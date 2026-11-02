@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mesa de Câmbio &amp; Milhas — BW</title>
+<style>:root{--navy:#0b1220;--navy2:#111c2e;--navy3:#16243a;--line:#25344d;--gold:#d4a94a;--gold2:#f0d08a;--txt:#e8eef8;--mut:#8fa2bd;--up:#3ecf8e;--dn:#f2686b;--warn:#e8b84b;--mono:ui-monospace,SFMono-Regular,Menlo,monospace;}*{box-sizing:border-box}html,body{margin:0;padding:0;background:var(--navy);color:var(--txt);font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased}a{color:var(--gold2)}.wrap{max-width:1280px;margin:0 auto;padding:0 20px 80px}header{position:sticky;top:0;z-index:50;background:rgba(11,18,32,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}.hd{max-width:1280px;margin:0 auto;padding:14px 20px;display:flex;align-items:center;gap:18px;flex-wrap:wrap}.brand{display:flex;align-items:baseline;gap:10px}.brand b{font-size:19px;letter-spacing:.14em;color:var(--gold)}.brand span{font-size:11px;letter-spacing:.28em;color:var(--mut);text-transform:uppercase}.hd .stamp{margin-left:auto;font-size:11px;color:var(--mut);text-align:right;line-height:1.5}.hd .stamp b{color:var(--txt);font-weight:600}nav{display:flex;gap:6px;flex-wrap:wrap}nav a{font-size:12.5px;padding:7px 13px;border-radius:999px;color:var(--mut);text-decoration:none;border:1px solid transparent;white-space:nowrap}nav a:hover,nav a.on{color:var(--gold2);border-color:var(--line);background:var(--navy2)}h2{font-size:13px;letter-spacing:.22em;text-transform:uppercase;color:var(--mut);font-weight:600;margin:44px 0 14px;display:flex;align-items:center;gap:12px}h2::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--line),transparent)}.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}.kpi{background:linear-gradient(160deg,var(--navy2),var(--navy));border:1px solid var(--line);border-radius:14px;padding:16px 18px;position:relative;overflow:hidden}.kpi::before{content:"";position:absolute;inset:0 auto 0 0;width:3px;background:var(--gold);opacity:.7}.kpi .l{font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--mut)}.kpi .v{font-size:26px;font-weight:600;margin:6px 0 2px;font-variant-numeric:tabular-nums}.kpi .s{font-size:11.5px;color:var(--mut)}.chg{font-size:12px;font-weight:600;font-variant-numeric:tabular-nums}.up{color:var(--up)}.dn{color:var(--dn)}.fl{color:var(--mut)}.tbox{background:var(--navy2);border:1px solid var(--line);border-radius:14px;overflow:hidden}.tb-scroll{overflow-x:auto}table{width:100%;border-collapse:collapse;font-size:13px}thead th{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--mut);font-weight:600;text-align:right;padding:12px 14px;border-bottom:1px solid var(--line);white-space:nowrap;background:var(--navy3)}thead th:first-child,tbody td:first-child{text-align:left}tbody td{padding:11px 14px;text-align:right;border-bottom:1px solid rgba(37,52,77,.5);font-variant-numeric:tabular-nums;white-space:nowrap}tbody tr{cursor:pointer;transition:background .12s}tbody tr:hover{background:rgba(212,169,74,.06)}tbody tr.sel{background:rgba(212,169,74,.1)}tbody tr.sel td:first-child{box-shadow:inset 3px 0 0 var(--gold)}.cc{display:flex;align-items:center;gap:10px}.flag{width:26px;height:26px;border-radius:7px;display:grid;place-items:center;font-size:10px;font-weight:700;letter-spacing:.03em;background:var(--navy3);border:1px solid var(--line);color:var(--gold2);flex:none}.cc small{display:block;color:var(--mut);font-size:10.5px;font-weight:400;letter-spacing:.02em}.pct{display:inline-block;min-width:62px}.chartbox{background:var(--navy2);border:1px solid var(--line);border-radius:14px;padding:18px;margin-top:12px}.chead{display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:8px}.chead h3{margin:0;font-size:17px;font-weight:600}.chead h3 small{color:var(--mut);font-weight:400;font-size:12px;margin-left:8px}.rng{margin-left:auto;display:flex;gap:4px}.rng button{background:var(--navy3);color:var(--mut);border:1px solid var(--line);border-radius:8px;padding:5px 11px;font-size:11.5px;cursor:pointer;font-family:inherit}.rng button.on{background:var(--gold);color:#121a28;border-color:var(--gold);font-weight:600}svg.chart{width:100%;height:300px;display:block;overflow:visible}.legend{display:flex;gap:18px;flex-wrap:wrap;font-size:11.5px;color:var(--mut);margin-top:4px}.legend i{width:10px;height:10px;border-radius:3px;display:inline-block;margin-right:6px}.grid2{display:grid;grid-template-columns:1.25fr .75fr;gap:14px}@media(max-width:900px){.grid2{grid-template-columns:1fr}}.card{background:var(--navy2);border:1px solid var(--line);border-radius:14px;padding:18px}.card h3{margin:0 0 4px;font-size:15px}.card .sub{color:var(--mut);font-size:11.5px;margin-bottom:14px}.prog{display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid rgba(37,52,77,.6)}.prog:last-child{border-bottom:0}.dot{width:9px;height:9px;border-radius:50%;flex:none}.prog .nm{font-weight:600;font-size:13.5px;min-width:96px}.prog .nm small{display:block;font-weight:400;color:var(--mut);font-size:10.5px}.prog .pr{margin-left:auto;text-align:right}.prog .pr b{font-size:17px;font-variant-numeric:tabular-nums}.prog .pr small{display:block;color:var(--mut);font-size:10.5px}.bar{height:5px;border-radius:3px;background:var(--navy3);flex:1;max-width:180px;overflow:hidden}.bar i{display:block;height:100%;border-radius:3px}label{display:block;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--mut);margin:0 0 6px}input,select{width:100%;background:var(--navy3);border:1px solid var(--line);color:var(--txt);border-radius:10px;padding:11px 13px;font-size:14px;font-family:inherit;font-variant-numeric:tabular-nums}input:focus,select:focus{outline:0;border-color:var(--gold);box-shadow:0 0 0 3px rgba(212,169,74,.13)}.frow{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}.frow3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:14px}.btn{background:var(--gold);color:#121a28;border:0;border-radius:10px;padding:12px 20px;font-size:13.5px;font-weight:600;cursor:pointer;font-family:inherit}.btn:hover{background:var(--gold2)}.btn.gh{background:transparent;border:1px solid var(--line);color:var(--txt);font-weight:500}.out{background:var(--navy3);border:1px solid var(--line);border-radius:12px;padding:16px;margin-top:14px;font-size:13.5px;line-height:1.9}.out .big{font-size:24px;font-weight:600;color:var(--gold2);font-variant-numeric:tabular-nums}.out .row{display:flex;justify-content:space-between;gap:16px;border-bottom:1px dashed rgba(37,52,77,.9);padding:3px 0}.out .row:last-child{border:0}.out .row span:first-child{color:var(--mut)}.verdict{margin-top:12px;border-radius:10px;padding:12px 14px;font-size:13px;font-weight:600}.v-ok{background:rgba(62,207,142,.12);color:var(--up);border:1px solid rgba(62,207,142,.3)}.v-bad{background:rgba(242,104,107,.12);color:var(--dn);border:1px solid rgba(242,104,107,.3)}.v-mid{background:rgba(232,184,75,.12);color:var(--warn);border:1px solid rgba(232,184,75,.3)}.note{font-size:11.5px;color:var(--mut);line-height:1.7;margin-top:10px}.tag{display:inline-block;font-size:10.5px;padding:3px 9px;border-radius:999px;border:1px solid var(--line);color:var(--mut);letter-spacing:.06em;text-transform:uppercase}.tag.buy{color:var(--up);border-color:rgba(62,207,142,.4);background:rgba(62,207,142,.09)}.tag.sell{color:var(--dn);border-color:rgba(242,104,107,.4);background:rgba(242,104,107,.09)}.tag.neu{color:var(--warn);border-color:rgba(232,184,75,.4);background:rgba(232,184,75,.09)}.alert{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:11px;background:var(--navy3);border:1px solid var(--line);margin-bottom:8px;font-size:13px}.alert .x{margin-left:auto;background:none;border:0;color:var(--mut);cursor:pointer;font-size:16px;padding:0 4px}.alert .x:hover{color:var(--dn)}footer{margin-top:60px;padding-top:22px;border-top:1px solid var(--line);color:var(--mut);font-size:11.5px;line-height:1.8}footer b{color:var(--gold)}.spin{display:inline-block;width:11px;height:11px;border:2px solid var(--line);border-top-color:var(--gold);border-radius:50%;animation:sp .7s linear infinite;vertical-align:-1px}@keyframes sp{to{transform:rotate(360deg)}}</style>
+</head>
+<body>
+<header><div class="hd">
+  <div class="brand"><b>BW</b><span>Mesa de Câmbio &amp; Milhas</span></div>
+  <nav>
+    <a href="#cambio" class="on">Câmbio</a>
+    <a href="#serie">Série</a>
+    <a href="#calc">Calculadora</a>
+    <a href="#milhas">Milhas</a>
+    <a href="#alertas">Alertas</a>
+  </nav>
+  <div class="stamp">
+    PTAX <b id="stPtax">—</b> · Spot <b id="stSpot">—</b><br>
+    <span id="stSrc"></span>
+  </div>
+  <button class="btn gh" id="refresh" style="padding:8px 14px;font-size:12px">↻ Atualizar</button>
+</div></header>
+
+<div class="wrap">
+
+  <!-- ================= CÂMBIO ================= -->
+  <h2 id="cambio">Painel de câmbio — R$ por unidade</h2>
+  <div class="kpis" id="kpis"></div>
+
+  <div class="tbox" style="margin-top:14px">
+    <div class="tb-scroll">
+      <table id="fxTable">
+        <thead><tr>
+          <th>Moeda</th><th>PTAX venda</th><th>Spot</th><th>Dia</th><th>7 dias</th>
+          <th>30 dias</th><th>12 meses</th><th>52 sem.</th><th>Posição no ano</th><th>Sinal</th>
+        </tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+  <div class="note">
+    PTAX = cotação oficial de fechamento do Banco Central (base para contratos e turismo).
+    Spot = referência de mercado, atualizada em <span id="mktUp">—</span>.
+    <b>Posição no ano</b> = onde o preço está entre a mínima e a máxima de 12 meses
+    (0% = mais barato do período, 100% = mais caro). Clique numa linha para abrir a série.
+  </div>
+
+  <!-- ================= SÉRIE ================= -->
+  <h2 id="serie">Série histórica</h2>
+  <div class="chartbox">
+    <div class="chead">
+      <h3 id="chTitle">Dólar americano <small>R$ / USD</small></h3>
+      <div class="rng" id="rng">
+        <button data-d="30">30d</button><button data-d="90" class="on">90d</button>
+        <button data-d="180">6m</button><button data-d="365">12m</button>
+      </div>
+    </div>
+    <svg class="chart" id="chart"></svg>
+    <div class="legend">
+      <span><i style="background:#d4a94a"></i>PTAX oficial</span>
+      <span><i style="background:#5b7db1"></i>Média móvel 7 dias</span>
+      <span id="chStats" style="margin-left:auto"></span>
+    </div>
+  </div>
+
+  <!-- ================= CALCULADORA ================= -->
+  <h2 id="calc">Calculadora de compra</h2>
+  <div class="grid2">
+    <div class="card">
+      <h3>Quanto custa de verdade</h3>
+      <div class="sub">Compara PTAX, spread da casa de câmbio e IOF 3,5% (cartão internacional).</div>
+      <div class="frow3">
+        <div><label>Moeda</label><select id="cCur"></select></div>
+        <div><label>Valor</label><input id="cVal" type="number" value="1000" min="1" step="10"></div>
+        <div><label>Operação</label><select id="cDir">
+          <option value="brl">Tenho R$ → comprar moeda</option>
+          <option value="fx">Tenho moeda → vender por R$</option>
+        </select></div>
+      </div>
+      <div class="frow">
+        <div><label>Spread da casa (%)</label><input id="cSpread" type="number" value="2.5" step="0.1"></div>
+        <div><label>IOF (%)</label><input id="cIof" type="number" value="3.5" step="0.1"></div>
+      </div>
+      <button class="btn" id="cGo">Calcular</button>
+      <div class="out" id="cOut"></div>
+      <div class="note">Spread típico: banco 2–4%, corretora 0,5–1,5%, casa de câmbio no aeroporto 5–8%.
+      IOF de 3,5% incide sobre cartão internacional e câmbio em espécie para viagem (Decreto 12.499/2025).</div>
+    </div>
+    <div class="card">
+      <h3>Momento de comprar?</h3>
+      <div class="sub">Leitura automática pelo histórico de 12 meses.</div>
+      <div id="cAdvice"></div>
+    </div>
+  </div>
+
+  <!-- ================= MILHAS ================= -->
+  <h2 id="milhas">Mercado de milhas — preço do milheiro</h2>
+  <div class="grid2">
+    <div class="card">
+      <h3>Quanto pagam hoje pelas suas milhas</h3>
+      <div class="sub" id="mUpd">—</div>
+      <div id="mProgs"></div>
+      <div class="note">Fonte: cotações agregadas das compradoras (Real Milhas). O preço varia com volume,
+      prazo de pagamento e programa. Vender no prazo menor costuma render menos.</div>
+    </div>
+    <div class="card">
+      <h3>Vale a pena vender?</h3>
+      <div class="sub">Compara o que pagam com o custo de repor a milha.</div>
+      <div class="frow">
+        <div><label>Programa</label><select id="mProg"></select></div>
+        <div><label>Milhas</label><input id="mQtd" type="number" value="50000" step="1000"></div>
+      </div>
+      <div class="frow">
+        <div><label>Prazo (dias)</label><select id="mPrazo">
+          <option value="60">60</option><option value="90">90</option>
+          <option value="120">120</option><option value="150" selected>150</option></select></div>
+        <div><label>Custo de repor (R$/mil)</label><input id="mCusto" type="number" value="16" step="0.5"></div>
+      </div>
+      <button class="btn" id="mGo">Calcular</button>
+      <div class="out" id="mOut"></div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:14px">
+    <h3>Resgate vale a pena? (tarifa em R$ vs milhas + taxas)</h3>
+    <div class="sub">A conta que decide se você usa milhas ou paga a passagem.</div>
+    <div class="frow3" style=" margin-top:14px">
+      <div><label>Milhas necessárias</label><input id="rMil" type="number" value="25000" step="500"></div>
+      <div><label>Taxas de embarque (R$)</label><input id="rTax" type="number" value="75" step="5"></div>
+      <div><label>Tarifa equivalente (R$)</label><input id="rCash" type="number" value="1800" step="50"></div>
+    </div>
+    <div class="frow">
+      <div><label>Custo da sua milha (R$/mil)</label><input id="rCusto" type="number" value="16" step="0.5"></div>
+      <div><label>Programa (referência)</label><select id="rProg"></select></div>
+    </div>
+    <button class="btn" id="rGo">Avaliar resgate</button>
+    <div class="out" id="rOut"></div>
+  </div>
+
+  <!-- ================= ALERTAS ================= -->
+  <h2 id="alertas">Alertas de preço</h2>
+  <div class="card">
+    <h3>Dispara quando bater o alvo</h3>
+    <div class="sub">Fica salvo neste navegador. Ao abrir a página, os alvos atingidos aparecem no topo.</div>
+    <div class="frow3">
+      <div><label>Moeda</label><select id="aCur"></select></div>
+      <div><label>Comprar se cair para (R$)</label><input id="aBuy" type="number" step="0.01"></div>
+      <div><label>Vender se subir para (R$)</label><input id="aSel" type="number" step="0.01"></div>
+    </div>
+    <button class="btn" id="aGo">Criar alerta</button>
+    <div style="margin-top:16px" id="aList"></div>
+  </div>
+
+  <footer>
+    <b>Mesa de Câmbio &amp; Milhas — BW Audiovisual</b><br>
+    Dados: Banco Central do Brasil (PTAX, API Olinda) · referencia de mercado (exchangerate-api) ·
+    cotações de milhas (Real Milhas). PTAX de <span id="fPtax">—</span>.
+    Página estática: guarde o arquivo e abra em qualquer navegador; o botão “Atualizar” busca
+    cotação nova; sem internet, mostra os dados embutidos.
+    Não é recomendação de investimento.
+  </footer>
+</div>
+<script>const DATA={generated:"2026-11-02T09:56:23-03:00",ptax_date:"2026-10-30",market_updated:"Mon, 02 Nov 2026 00:02:31 +0000",dates:["2025-09-28","2025-10-07","2025-10-16","2025-10-25","2025-11-03","2025-11-10","2025-11-12","2025-11-14","2025-11-17","2025-11-21","2025-11-25","2025-11-28","2025-11-30","2025-12-02","2025-12-09","2025-12-11","2025-12-16","2025-12-19","2025-12-23","2025-12-24","2025-12-28","2025-12-31","2026-01-06","2026-01-08","2026-01-15","2026-01-21","2026-01-22","2026-01-24","2026-01-29","2026-02-02","2026-02-03","2026-02-05","2026-02-11","2026-02-12","2026-02-18","2026-02-20","2026-02-23","2026-03-01","2026-03-02","2026-03-03","2026-03-09","2026-03-10","2026-03-16","2026-03-19","2026-03-23","2026-03-27","2026-03-28","2026-03-30","2026-04-06","2026-04-07","2026-04-10","2026-04-14","2026-04-15","2026-04-22","2026-04-24","2026-04-29","2026-05-03","2026-05-07","2026-05-08","2026-05-12","2026-05-14","2026-05-21","2026-05-28","2026-05-30","2026-06-03","2026-06-05","2026-06-08","2026-06-12","2026-06-17","2026-06-19","2026-06-26","2026-06-30","2026-07-03","2026-07-05","2026-07-10","2026-07-13","2026-07-14","2026-07-17","2026-07-23","2026-07-24","2026-07-31","2026-08-01","2026-08-06","2026-08-07","2026-08-10","2026-08-14","2026-08-19","2026-08-20","2026-08-21","2026-08-28","2026-08-29","2026-09-01","2026-09-04","2026-09-07","2026-09-14","2026-09-15","2026-09-16","2026-09-21","2026-09-25","2026-09-28","2026-10-04","2026-10-05","2026-10-09","2026-10-13","2026-10-14","2026-10-15","2026-10-16","2026-10-19","2026-10-20","2026-10-21","2026-10-22","2026-10-23","2026-10-26","2026-10-27","2026-10-28","2026-10-29","2026-10-30","2026-10-31","2026-11-01"],series:{USD:{n:"Dólar americano",d:4,i:[4,5,8,10,13,14,16,18,21,23,24,26,28,31,33,36,38,40,42,44,47,49,51,53,55,57,60,61,62,65,67,69,70,72,74,77,79,80,83,85,88,89,92,94,97,99,101,103,104,105,106,107,108,109,110,111,112,113,114,115,116],v:[5.3505,5.3181,5.3108,5.3841,5.3465,5.457,5.4505,5.5643,5.5024,5.386,5.3846,5.3118,5.1956,5.258,5.1674,5.1635,5.2001,5.2139,5.2647,5.244,5.2353,5.1625,4.9806,4.9653,4.9985,4.917,4.9809,5.0077,5.0517,5.1244,5.0827,5.1442,5.1695,5.1717,5.1088,5.1176,5.0666,5.0773,5.0908,5.2236,5.1625,5.2005,5.1253,5.1696,5.1117,5.2132,4.9859,5.0096,5.0441,5.0521,5.0826,5.0564,5.014,5.0277,5.0383,5.0377,5.5007,5.3346,5.342,5.3744,5.4212]},EUR:{n:"Euro",d:4,i:[4,5,8,10,13,14,16,18,21,23,24,26,28,31,33,36,38,40,42,44,47,49,51,53,55,57,60,61,62,65,67,69,70,72,74,77,79,80,83,85,88,89,92,94,97,99,101,103,104,105,106,107,108,109,110,111,112,113,114,115,116],v:[6.167,6.1403,6.1595,6.2256,6.2057,6.3465,6.4158,6.552,6.4692,6.2838,6.2478,6.2334,6.1984,6.2002,6.1425,6.0903,6.0742,6.0445,6.0476,6.0757,5.997,5.974,5.8726,5.8164,5.8457,5.7844,5.8167,5.8034,5.8847,5.91,5.8827,5.8978,5.8953,5.9154,5.8434,5.855,5.7683,5.849,5.8845,6.05,6.0319,6.0315,5.9546,5.9704,5.8626,5.9253,5.5897,5.6092,5.6111,5.6609,5.7088,5.6682,5.6317,5.6411,5.6494,5.6422,6.1487,5.9449,5.9515,6,6.0522]},GBP:{n:"Libra esterlina",d:4,i:[4,5,8,10,13,14,16,18,21,23,24,26,28,31,33,36,38,40,42,44,47,49,51,53,55,57,60,61,62,65,67,69,70,72,74,77,79,80,83,85,88,89,92,94,97,99,101,103,104,105,106,107,108,109,110,111,112,113,114,115,116],v:[7.0348,6.9922,6.9986,7.0946,7.0595,7.2573,7.3129,7.5029,7.4112,7.2404,7.2089,7.1603,7.1507,7.1141,7.0561,6.9697,6.9541,6.9851,7.0031,7.0191,6.908,6.8362,6.7552,6.7066,6.7435,6.6911,6.7138,6.7138,6.7885,6.8462,6.8179,6.8017,6.8356,6.9084,6.8565,6.8816,6.7619,6.8391,6.8716,7.0811,7.0437,7.0493,6.9299,6.9774,6.8354,6.9117,6.5904,6.6387,6.634,6.6971,6.7756,6.7296,6.7072,6.7321,6.7428,6.7379,7.3423,7.1025,7.1059,7.1899,7.2633]},JPY:{n:"Iene japonês",d:5,i:[4,7,11,15,19,23,25,30,34,39,42,45,50,54,58,61,64,68,71,75,79,82,86,91,95,99,102,111,116],v:[.03473,.03429,.03419,.03496,.03548,.03434,.03373,.03355,.03384,.0335,.03305,.0327,.03155,.03143,.03128,.03146,.03152,.03161,.03184,.03153,.03095,.0322,.03264,.03223,.0332,.03311,.03151,.03211,.03443]},CAD:{n:"Dólar canadense",d:4,i:[4,7,11,15,19,23,25,30,34,39,42,45,50,54,58,61,64,68,71,75,79,82,86,91,95,99,102,111,116],v:[3.8036,3.7753,3.8263,3.9422,4.0475,3.8863,3.8681,3.8263,3.8236,3.8591,3.8476,3.7735,3.6327,3.6626,3.5818,3.6319,3.6293,3.6097,3.6442,3.6197,3.5987,3.6363,3.7417,3.7095,3.6998,3.679,3.4965,3.5996,3.8842]},AUD:{n:"Dólar australiano",d:4,i:[4,7,11,15,19,23,25,30,34,39,42,45,50,54,58,61,64,68,71,75,79,82,86,91,95,99,102,111,116],v:[3.4933,3.4673,3.4979,3.6192,3.7123,3.6081,3.6135,3.6638,3.6927,3.6998,3.7142,3.6082,3.5552,3.5829,3.549,3.5725,3.5991,3.5823,3.5796,3.5495,3.5446,3.5855,3.6831,3.6919,3.6702,3.6597,3.483,3.544,3.8138]},CHF:{n:"Franco suíço",d:4,i:[4,7,11,15,19,23,25,30,34,39,42,45,50,54,58,61,64,68,71,75,79,82,86,91,95,99,102,111,116],v:[6.6276,6.6766,6.644,6.8369,7.0259,6.7451,6.7223,6.7393,6.7748,6.7385,6.6752,6.5725,6.3645,6.3833,6.3046,6.3453,6.376,6.3868,6.4059,6.3018,6.2037,6.2767,6.4659,6.3541,6.2877,6.2644,6.0067,6.1078,6.5895]},DKK:{n:"Coroa dinamarquesa",d:4,i:[4,7,11,15,19,23,25,30,34,39,42,45,50,54,58,61,64,68,71,75,79,82,86,91,95,99,102,111,116],v:[.8261,.8235,.829,.8537,.8733,.841,.8361,.8262,.8264,.8191,.8093,.8075,.788,.7855,.772,.7766,.7829,.7855,.7908,.7808,.7716,.7863,.8069,.7998,.7951,.7927,.7471,.7549,.8098]},NOK:{n:"Coroa norueguesa",d:4,i:[4,7,11,15,19,23,25,30,34,39,42,45,50,54,58,61,64,68,71,75,79,82,86,91,95,99,102,111,116],v:[.5286,.5249,.5275,.5383,.554,.5338,.5358,.5412,.5495,.5435,.5437,.5382,.5284,.5371,.5316,.5405,.5412,.5328,.5225,.5237,.5293,.5341,.554,.5532,.5514,.5471,.5217,.5404,.5889]},SEK:{n:"Coroa sueca",d:4,i:[4,7,11,15,19,23,25,30,34,39,42,45,50,54,58,61,64,68,71,75,79,82,86,91,95,99,102,111,116],v:[.5644,.5608,.5658,.5867,.6042,.5844,.5862,.5874,.5801,.5682,.5628,.554,.5421,.5431,.5309,.5339,.5365,.5389,.5336,.5288,.5223,.5361,.5474,.5374,.5266,.5233,.4989,.5076,.5517]},ARS:{n:"Peso argentino",d:5,i:[0,1,2,3,4,6,9,12,14,17,20,22,24,27,29,32,35,37,41,43,46,48,52,54,56,59,61,63,66,68,70,73,76,78,81,84,87,90,93,96,98,100,103,110,117,118],v:[.004,.0037,.004,.0036,.0037,.0037,.0037,.0037,.0038,.0038,.0038,.0037,.0037,.0037,.0036,.0037,.0037,.0037,.0037,.0038,.0038,.0037,.0036,.0036,.0036,.0035,.0036,.0036,.0036,.0036,.0035,.0035,.0035,.0034,.0034,.0034,.0035,.0034,.0034,.0034,.0034,.0034,.0033,.0033,.0036,.0035]},CLP:{n:"Peso chileno",d:5,i:[0,1,2,3,4,6,9,12,14,17,20,22,24,27,29,32,35,37,41,43,46,48,52,54,56,59,61,63,66,68,70,73,76,78,81,84,87,90,93,96,98,100,103,110,117,118],v:[.0056,.0055,.0057,.0057,.0057,.0056,.0057,.0058,.0059,.0061,.0061,.006,.0061,.0061,.0061,.0061,.006,.0059,.0057,.0057,.0057,.0056,.0056,.0056,.0055,.0055,.0056,.0057,.0057,.0058,.0056,.0056,.0055,.0054,.0055,.0056,.0056,.0056,.0055,.0054,.0054,.0053,.0051,.0051,.0055,.0054]},MXN:{n:"Peso mexicano",d:3,i:[0,1,2,3,4,6,9,12,14,17,20,22,24,27,29,32,35,37,41,43,46,48,52,54,56,59,61,63,66,68,70,73,76,78,81,84,87,90,93,96,98,100,103,110,117,118],v:[.291,.29,.295,.292,.29,.288,.29,.292,.297,.307,.31,.302,.303,.305,.302,.303,.301,.298,.295,.296,.29,.289,.289,.288,.284,.285,.289,.29,.296,.296,.296,.296,.294,.291,.293,.296,.306,.305,.303,.3,.293,.287,.273,.268,.289,.288]},CNY:{n:"Yuan chinês",d:3,i:[0,1,2,3,4,6,9,12,14,17,20,22,24,27,29,32,35,37,41,43,46,48,52,54,56,59,61,63,66,68,70,73,76,78,81,84,87,90,93,96,98,100,103,110,117,118],v:[.749,.746,.765,.757,.755,.741,.75,.754,.768,.784,.791,.774,.774,.76,.757,.752,.754,.749,.757,.763,.76,.749,.731,.737,.726,.722,.737,.744,.763,.755,.763,.762,.758,.748,.752,.754,.77,.771,.764,.767,.773,.778,.745,.753,.817,.812]},ZAR:{n:"Rand sul-africano",d:4,i:[0,1,2,3,4,6,9,12,14,17,20,22,24,27,29,32,35,37,41,43,46,48,52,54,56,59,61,63,66,68,70,73,76,78,81,84,87,90,93,96,98,100,103,110,117,118],v:[.3079,.3089,.3148,.3109,.31,.3071,.3095,.3115,.319,.3299,.3327,.3309,.329,.328,.3258,.3269,.3222,.3229,.3187,.3108,.307,.3039,.3047,.3017,.2973,.2976,.3037,.3102,.3125,.3151,.3142,.3187,.3122,.3096,.3069,.3145,.3216,.3211,.3208,.317,.316,.314,.3019,.3063,.3255,.324]}},market:{USD:5.436971,EUR:6.067554,GBP:7.279324,JPY:.034513,CAD:3.892339,AUD:3.821468,CHF:6.593992,DKK:.812269,NOK:.590142,SEK:.553518,ARS:.003537,CLP:.005487,MXN:.289121,CNY:.816257,ZAR:.325679}};const MILHAS={updated:"02/11/2026 12:13",programs:[{id:"smiles",name:"Smiles",note:"Gol · 150 dias",best:20.03,bestBuyer:"Hotmilhas",avg:17.48,color:"#e8792b"},{id:"latam",name:"Latam Pass",note:"LATAM · 150 dias",best:31.15,bestBuyer:"Hotmilhas",avg:27.9,color:"#1b4b8f"},{id:"azul",name:"Tudo Azul",note:"Azul · 150 dias",best:18.79,bestBuyer:"Hotmilhas",avg:16.22,color:"#3f7fc4"}]};const $=s=>document.querySelector(s);const $$=s=>[...document.querySelectorAll(s)];const fmt=(v,d=4)=>v==null?"—":v.toLocaleString("pt-BR",{minimumFractionDigits:d,maximumFractionDigits:d});const pct=v=>v==null?"—":(v>0?"+":"")+v.toLocaleString("pt-BR",{maximumFractionDigits:2})+"%";const cls=v=>v==null?"fl":v>.02?"up":v<-.02?"dn":"fl";let SER={};let META={};let CODES=[];const decOf=c=>META[c]&&META[c].dec||4;function normalize(){SER={};META={};if(DATA.series){const dates=DATA.dates||[];Object.entries(DATA.series).forEach(([c,s])=>{SER[c]=s.i.map((ix,k)=>[dates[ix],s.v[k]]).sort((a,b)=>a[0]<b[0]?-1:1);META[c]={name:s.name,src:s.src,dec:s.dec}})}else if(DATA.hist){Object.entries(DATA.hist).forEach(([c,arr])=>{if(arr&&arr.length)SER[c]=arr.slice().sort((a,b)=>a[0]<b[0]?-1:1)});Object.assign(META,DATA.meta||{})}DATA.meta=META;CODES=Object.keys(SER).filter(c=>SER[c].length>5)}function ref(c){const spot=DATA.market&&DATA.market[c];return spot||(SER[c]?SER[c][SER[c].length-1][1]:null)}function chg(c,days){const s=SER[c];if(!s||s.length<2)return null;const last=s[s.length-1];const lim=new Date(last[0]);lim.setDate(lim.getDate()-days);const iso=lim.toISOString().slice(0,10);let best=null;for(const p of s){if(p[0]<=iso)best=p;else break}if(!best)best=s[0];if(!best[1])return null;return(last[1]/best[1]-1)*100}function range52(c){const s=SER[c];if(!s)return null;const last=s[s.length-1][0];const lim=new Date(last);lim.setDate(lim.getDate()-365);const iso=lim.toISOString().slice(0,10);const win=s.filter(p=>p[0]>=iso);if(win.length<3)return null;const vals=win.map(p=>p[1]);const mn=Math.min(...vals),mx=Math.max(...vals);const cur=ref(c);return{mn:mn,mx:mx,pos:mx===mn?50:(cur-mn)/(mx-mn)*100}}function sinal(c){const r=range52(c);if(!r)return["—","neu"];const ch30=chg(c,30);if(r.pos<=25)return["Bom momento","buy"];if(r.pos>=75)return["Caro","sell"];if(ch30!=null&&ch30>3)return["Subindo","neu"];if(ch30!=null&&ch30<-3)return["Cedendo","buy"];return["Neutro","neu"]}function kpi(c,label){const v=ref(c),d=chg(c,1),w=chg(c,7);const r=range52(c);return`<div class="kpi">
+    <div class="l">${label}</div>
+    <div class="v">R$ ${fmt(v,decOf(c))}</div>
+    <div class="s"><span class="chg ${cls(d)}">${pct(d)}</span> no dia ·
+      <span class="chg ${cls(w)}">${pct(w)}</span> 7d
+      ${r?` · faixa R$ ${fmt(r.mn,decOf(c)-1)}–${fmt(r.mx,decOf(c)-1)}`:""}</div>
+  </div>`}function renderKpis(){const list=["USD","EUR","GBP"];let html=list.filter(c=>SER[c]).map(c=>kpi(c,DATA.meta[c]?.name||c)).join("");let best=null;["USD","EUR","GBP"].filter(c=>SER[c]).forEach(c=>{const r=range52(c);if(r&&(!best||r.pos<best.pos))best={c:c,...r}});if(best){html+=`<div class="kpi" style="cursor:pointer" onclick="pick('${best.c}')">
+      <div class="l">Melhor entrada · principais</div>
+      <div class="v">${best.c} <span style="font-size:15px;color:var(--mut)">R$ ${fmt(ref(best.c),decOf(best.c))}</span></div>
+      <div class="s">${best.pos.toFixed(0)}% da faixa de 12 meses · mín R$ ${fmt(best.mn,decOf(best.c))}</div>
+    </div>`}$("#kpis").innerHTML=html}function renderTable(){const tb=$("#fxTable tbody");tb.innerHTML=CODES.map(c=>{const r=range52(c),[sg,sk]=sinal(c);const d1=chg(c,1),d7=chg(c,7),d30=chg(c,30),d365=chg(c,365);return`<tr data-c="${c}">
+      <td><div class="cc"><div class="flag">${c}</div>
+        <div><b style="font-weight:600">${c}/BRL</b><small>${DATA.meta[c]?.name||""}</small></div></div></td>
+      <td>${fmt(SER[c][SER[c].length-1][1],decOf(c))}</td>
+      <td>${fmt(DATA.market?DATA.market[c]:null,decOf(c))}</td>
+      <td><span class="chg ${cls(d1)}">${pct(d1)}</span></td>
+      <td><span class="chg ${cls(d7)}">${pct(d7)}</span></td>
+      <td><span class="chg ${cls(d30)}">${pct(d30)}</span></td>
+      <td><span class="chg ${cls(d365)}">${pct(d365)}</span></td>
+      <td>${r?`R$ ${fmt(r.mn,decOf(c))} – ${fmt(r.mx,decOf(c))}`:"—"}</td>
+      <td>${r?barMini(r.pos):"—"}</td>
+      <td><span class="tag ${sk}">${sg}</span></td>
+    </tr>`}).join("");tb.querySelectorAll("tr").forEach(tr=>tr.onclick=()=>pick(tr.dataset.c))}function barMini(pos){const p=Math.max(0,Math.min(100,pos));const col=p<=25?"var(--up)":p>=75?"var(--dn)":"var(--warn)";return`<span style="display:inline-flex;align-items:center;gap:7px">
+    <span style="width:58px;height:5px;border-radius:3px;background:var(--navy3);display:inline-block;overflow:hidden">
+      <span style="display:block;height:100%;width:${p}%;background:${col};border-radius:3px"></span></span>
+    <span style="font-size:11px;color:var(--mut);min-width:30px">${p.toFixed(0)}%</span></span>`}let CUR="USD",RANGE=90;function pick(c){CUR=c;RANGE=90;$$("#rng button").forEach(b=>b.classList.toggle("on",+b.dataset.d===90));renderChart();$$("#fxTable tbody tr").forEach(tr=>tr.classList.toggle("sel",tr.dataset.c===c));$("#chTitle").innerHTML=`${DATA.meta[c]?.name||c} <small>R$ / ${c}</small>`;renderAdvice();$("#calc").scrollIntoView({behavior:"smooth",block:"start"})}function renderChart(){const s=SER[CUR];if(!s)return;const last=s[s.length-1][0];const lim=new Date(last);lim.setDate(lim.getDate()-RANGE);const iso=lim.toISOString().slice(0,10);const win=s.filter(p=>p[0]>=iso);if(win.length<2){$("#chart").innerHTML="";return}const W=1e3,H=320,ml=62,mr=16,mt=14,mb=34;const vals=win.map(p=>p[1]);let mn=Math.min(...vals),mx=Math.max(...vals);const pad=(mx-mn)*.12||mx*.01;mn-=pad;mx+=pad;const X=i=>ml+i/(win.length-1)*(W-ml-mr);const Y=v=>mt+(1-(v-mn)/(mx-mn))*(H-mt-mb);const ma=win.map((p,i)=>{const a=Math.max(0,i-6);const sl=win.slice(a,i+1);return[X(i),Y(sl.reduce((t,x)=>t+x[1],0)/sl.length)]});const line=win.map((p,i)=>`${i?"L":"M"}${X(i).toFixed(1)},${Y(p[1]).toFixed(1)}`).join("");const area=`${line}L${X(win.length-1).toFixed(1)},${H-mb}L${ml},${H-mb}Z`;const maPath=ma.map((p,i)=>`${i?"L":"M"}${p[0].toFixed(1)},${p[1].toFixed(1)}`).join("");let grid="",yl="";const steps=5;for(let i=0;i<=steps;i++){const v=mn+(mx-mn)*(i/steps),y=Y(v);grid+=`<line x1="${ml}" y1="${y.toFixed(1)}" x2="${W-mr}" y2="${y.toFixed(1)}" stroke="#1e2c42" stroke-width="1"/>`;yl+=`<text x="${ml-9}" y="${(y+3.5).toFixed(1)}" fill="#8fa2bd" font-size="10.5" text-anchor="end" font-family="ui-monospace,monospace">${fmt(v,decOf(CUR))}</text>`}let xl="";const nx=Math.min(6,win.length);for(let i=0;i<nx;i++){const idx=Math.round(i*(win.length-1)/(nx-1||1));const d=win[idx][0].slice(5).split("-").reverse().join("/");xl+=`<text x="${X(idx).toFixed(1)}" y="${H-mb+17}" fill="#8fa2bd" font-size="10.5"
+      text-anchor="${i===0?"start":i===nx-1?"end":"middle"}">${d}</text>`}let hov="";const step=Math.max(1,Math.floor(win.length/120));win.forEach((p,i)=>{if(i%step)return;hov+=`<rect x="${(X(i)-3).toFixed(1)}" y="${mt}" width="6" height="${H-mt-mb}" fill="transparent">
+      <title>${p[0].split("-").reverse().join("/")} — R$ ${fmt(p[1],decOf(CUR))}</title></rect>`});$("#chart").setAttribute("viewBox",`0 0 ${W} ${H}`);$("#chart").innerHTML=`
+    <defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#d4a94a" stop-opacity=".28"/>
+      <stop offset="100%" stop-color="#d4a94a" stop-opacity="0"/>
+    </linearGradient></defs>
+    ${grid}
+    <path d="${area}" fill="url(#g)"/>
+    <path d="${maPath}" fill="none" stroke="#5b7db1" stroke-width="1.4" stroke-dasharray="4 3"/>
+    <path d="${line}" fill="none" stroke="#d4a94a" stroke-width="2.2" stroke-linejoin="round"/>
+    <circle cx="${X(win.length-1).toFixed(1)}" cy="${Y(win[win.length-1][1]).toFixed(1)}" r="4" fill="#d4a94a"/>
+    ${yl}${xl}${hov}`;const first=win[0][1],lastV=win[win.length-1][1];const v=(lastV/first-1)*100;$("#chStats").innerHTML=`no período: <b class="${cls(v)}">${pct(v)}</b> · mín ${fmt(Math.min(...vals),decOf(CUR))} · máx ${fmt(Math.max(...vals),decOf(CUR))}`}$$("#rng button").forEach(b=>b.onclick=()=>{RANGE=+b.dataset.d;$$("#rng button").forEach(x=>x.classList.toggle("on",x===b));renderChart()});function renderAdvice(){const r=range52(CUR),v=ref(CUR);if(!r){$("#cAdvice").innerHTML="<p>Série curta para leitura.</p>";return}const d30=chg(CUR,30),d365=chg(CUR,365);const pos=r.pos;let tone="v-mid",head="Zona neutra",body="";if(pos<=25){tone="v-ok";head="Boa janela de compra";body="A moeda está perto do fundo dos últimos 12 meses. Historicamente, comprar nessa faixa custou menos do que esperar."}else if(pos>=75){tone="v-bad";head="Preço esticado";body="Está perto da máxima do ano. Se a compra não é urgente, comprar em partes (ex.: 1/3 por mês) reduz o risco de pegar o topo."}else{tone="v-mid";head="Sem vantagem clara";body="Está no meio da faixa. Vale mais olhar o custo total (spread + IOF) do que tentar acertar o timing."}$("#cAdvice").innerHTML=`
+    <div class="out" style="margin-top:0">
+      <div class="row"><span>Cotado agora</span><b>R$ ${fmt(v,decOf(CUR))}</b></div>
+      <div class="row"><span>Mínima 12m</span><b>R$ ${fmt(r.mn,decOf(CUR))}</b></div>
+      <div class="row"><span>Máxima 12m</span><b>R$ ${fmt(r.mx,decOf(CUR))}</b></div>
+      <div class="row"><span>Posição na faixa</span><b>${pos.toFixed(0)}%</b></div>
+      <div class="row"><span>Variação 30d</span><b class="${cls(d30)}">${pct(d30)}</b></div>
+      <div class="row"><span>Variação 12m</span><b class="${cls(d365)}">${pct(d365)}</b></div>
+    </div>
+    <div class="verdict ${tone}">${head}<div style="font-weight:400;color:var(--txt);margin-top:5px;line-height:1.55">${body}</div></div>`}function fillSelects(){const opts=CODES.map(c=>`<option value="${c}">${c} — ${DATA.meta[c]?.name||""}</option>`).join("");["#cCur","#aCur"].forEach(s=>{const el=$(s);if(el)el.innerHTML=opts});const mp=MILHAS.programs.map(p=>`<option value="${p.id}">${p.name}</option>`).join("");$("#mProg").innerHTML=mp;$("#rProg").innerHTML=mp;$("#cCur").value="USD"}$("#cGo").onclick=()=>{const c=$("#cCur").value,val=+$("#cVal").value,dir=$("#cDir").value;const sp=+$("#cSpread").value/100,iof=+$("#cIof").value/100;const base=ref(c),d=decOf(c);if(!base||!val)return;let html="";if(dir==="brl"){const unit=base*(1+sp);const fx=val/unit;const total=val+val*iof;html=`<div class="row"><span>Taxa com spread ${(sp*100).toFixed(2)}%</span><b>R$ ${fmt(unit,d)}</b></div>
+      <div class="row"><span>Você entrega</span><b>R$ ${fmt(val,2)}</b></div>
+      <div class="row"><span>IOF ${(iof*100).toFixed(2)}%</span><b>R$ ${fmt(val*iof,2)}</b></div>
+      <div class="row"><span>Custo total</span><b>R$ ${fmt(total,2)}</b></div>
+      <div class="row" style="padding-top:8px"><span>Você recebe</span>
+        <span class="big">${fmt(fx,2)} ${c}</span></div>
+      <div class="row"><span>Taxa efetiva (com IOF)</span><b>R$ ${fmt(total/fx,d)} / ${c}</b></div>
+      <div class="row"><span>Sobra vs. PTAX puro</span>
+        <b>${((total/fx/base-1)*100).toFixed(2)}% mais caro</b></div>`}else{const unit=base*(1-sp);const brl=val*unit;html=`<div class="row"><span>Taxa com spread ${(sp*100).toFixed(2)}%</span><b>R$ ${fmt(unit,d)}</b></div>
+      <div class="row"><span>Você entrega</span><b>${fmt(val,2)} ${c}</b></div>
+      <div class="row" style="padding-top:8px"><span>Você recebe</span>
+        <span class="big">R$ ${fmt(brl,2)}</span></div>
+      <div class="row"><span>Se tivesse vendido na PTAX</span><b>R$ ${fmt(val*base,2)}</b></div>
+      <div class="row"><span>Custo do spread</span><b class="dn">R$ ${fmt(val*base-brl,2)}</b></div>`}$("#cOut").innerHTML=html};function renderMilhas(){const max=Math.max(...MILHAS.programs.map(p=>p.best));$("#mUpd").textContent="Cotações de "+MILHAS.updated+" · valores por 1.000 milhas";$("#mProgs").innerHTML=MILHAS.programs.map(p=>`
+    <div class="prog">
+      <span class="dot" style="background:${p.color}"></span>
+      <span class="nm">${p.name}<small>${p.note}</small></span>
+      <span class="bar"><i style="width:${(p.best/max*100).toFixed(0)}%;background:${p.color}"></i></span>
+      <span class="pr"><b>R$ ${p.best.toFixed(2)}</b><small>média R$ ${p.avg.toFixed(2)}</small></span>
+    </div>`).join("")+`
+    <div class="note">Referências de valor-alvo 2026 (Melhores Destinos): Smiles R$ 16 · Latam Pass R$ 26 · Azul R$ 13.
+    Acima disso, comprar milha é caro; abaixo, é oportunidade.</div>`}function prog(id){return MILHAS.programs.find(p=>p.id===id)}$("#mGo").onclick=()=>{const p=prog($("#mProg").value),qtd=+$("#mQtd").value;const prazo=+$("#mPrazo").value,custo=+$("#mCusto").value;if(!p||!qtd)return;const mil=qtd/1e3;const bruto=mil*p.best;const liq=mil*p.avg;const custoTotal=mil*custo;const lucro=liq-custoTotal;const margem=custoTotal?lucro/custoTotal*100:0;let tone="v-mid",txt="";if(margem>25){tone="v-ok";txt=`Vender rende ${margem.toFixed(0)}% sobre o custo de repor. Vale executar.`}else if(margem>5){tone="v-mid";txt=`Ganho moderado (${margem.toFixed(0)}%). Só compense se você não for usar as milhas.`}else{tone="v-bad";txt=`Margem de ${margem.toFixed(0)}%: vender agora destrói valor. Melhor guardar para resgate.`}$("#mOut").innerHTML=`
+    <div class="row"><span>Melhor cotação (${p.bestBuyer}, ${prazo}d)</span><b>R$ ${p.best.toFixed(2)}/mil</b></div>
+    <div class="row"><span>Média de mercado</span><b>R$ ${p.avg.toFixed(2)}/mil</b></div>
+    <div class="row"><span>Receita no melhor preço</span><b>R$ ${fmt(bruto,2)}</b></div>
+    <div class="row"><span>Receita na média</span><b>R$ ${fmt(liq,2)}</b></div>
+    <div class="row"><span>Custo de repor ${qtd.toLocaleString("pt-BR")} milhas</span><b>R$ ${fmt(custoTotal,2)}</b></div>
+    <div class="row" style="padding-top:8px"><span>Resultado</span>
+      <span class="big ${lucro>0?"":"dn"}">R$ ${fmt(lucro,2)}</span></div>
+    <div class="verdict ${tone}">${txt}</div>`};$("#rGo").onclick=()=>{const mil=+$("#rMil").value/1e3,tax=+$("#rTax").value;const cash=+$("#rCash").value,custo=+$("#rCusto").value;const p=prog($("#rProg").value);const valorMilhas=mil*custo;const totalMilhas=valorMilhas+tax;const economia=cash-totalMilhas;const cpmReal=mil?(cash-tax)/mil:0;const tone=economia>0?"v-ok":"v-bad";$("#rOut").innerHTML=`
+    <div class="row"><span>Valor das milhas usadas</span><b>R$ ${fmt(valorMilhas,2)}</b></div>
+    <div class="row"><span>Taxas de embarque</span><b>R$ ${fmt(tax,2)}</b></div>
+    <div class="row"><span>Custo total do resgate</span><b>R$ ${fmt(totalMilhas,2)}</b></div>
+    <div class="row"><span>Tarifa paga em dinheiro</span><b>R$ ${fmt(cash,2)}</b></div>
+    <div class="row" style="padding-top:8px"><span>${economia>0?"Economia":"Prejuízo"}</span>
+      <span class="big ${economia>0?"":"dn"}">R$ ${fmt(Math.abs(economia),2)}</span></div>
+    <div class="row"><span>Valor implícito do milheiro</span><b>R$ ${fmt(cpmReal,2)}</b></div>
+    <div class="verdict ${tone}">${economia>0?`O resgate paga R$ ${fmt(cpmReal,2)} por mil — acima do seu custo de R$ ${fmt(custo,2)}. Use as milhas.`:`O resgate paga só R$ ${fmt(cpmReal,2)} por mil, abaixo do custo. Pague em dinheiro e guarde as milhas.`}</div>`};const AKEY="bw_fx_alerts_v1";function loadAlerts(){try{return JSON.parse(localStorage.getItem(AKEY))||[]}catch{return[]}}function saveAlerts(a){try{localStorage.setItem(AKEY,JSON.stringify(a))}catch{}}function renderAlerts(){const al=loadAlerts();const hit=al.filter(a=>{const v=ref(a.c);return a.buy&&v<=a.buy||a.sel&&v>=a.sel});let html="";hit.forEach(a=>{const v=ref(a.c);html+=`<div class="alert" style="border-color:rgba(212,169,74,.45);background:rgba(212,169,74,.08)">
+      <span class="tag ${a.buy&&v<=a.buy?"buy":"sell"}">ALVO</span>
+      <span><b>${a.c}</b> está em R$ ${fmt(v,decOf(a.c))} — ${a.buy&&v<=a.buy?"abaixo do seu alvo de compra":"acima do seu alvo de venda"}.
+      ${a.note?`<span style="color:var(--mut)"> ${a.note}</span>`:""}</span>
+      <button class="x" onclick="delAlert(${a.id})">×</button></div>`});al.forEach(a=>{html+=`<div class="alert">
+      <span class="tag ${a.buy&&ref(a.c)<=a.buy?"buy":"neu"}">${a.c}</span>
+      <span>Comprar ≤ R$ ${fmt(a.buy,decOf(a.c))} · Vender ≥ R$ ${fmt(a.sel,decOf(a.c))}
+        <span style="color:var(--mut)"> · agora R$ ${fmt(ref(a.c),decOf(a.c))}</span></span>
+      <button class="x" onclick="delAlert(${a.id})">×</button></div>`});$("#aList").innerHTML=html||`<div class="note">Nenhum alerta criado.</div>`}window.delAlert=id=>{saveAlerts(loadAlerts().filter(a=>a.id!==id));renderAlerts()};$("#aGo").onclick=()=>{const c=$("#aCur").value,buy=+$("#aBuy").value||null,sel=+$("#aSel").value||null;if(!buy&&!sel)return;const al=loadAlerts();al.push({id:Date.now(),c:c,buy:buy,sel:sel});saveAlerts(al);$("#aBuy").value="";$("#aSel").value="";renderAlerts()};$("#aCur").onchange=()=>{const v=ref($("#aCur").value),d=decOf($("#aCur").value);$("#aBuy").value=(v*.97).toFixed(d);$("#aSel").value=(v*1.03).toFixed(d)};async function refresh(){const btn=$("#refresh");if(btn)btn.innerHTML=`<span class="spin"></span> atualizando`;try{const r=await fetch("https://open.er-api.com/v6/latest/USD",{cache:"no-store"});const j=await r.json();if(j.result==="success"){const brl=j.rates.BRL;DATA.market=DATA.market||{};Object.keys(DATA.market).forEach(c=>{if(j.rates[c])DATA.market[c]=+(brl/j.rates[c]).toFixed(6)});DATA.market.USD=+brl.toFixed(6);DATA.market_updated=j.time_last_update_utc;renderKpis();renderTable();renderChart();renderAdvice();renderAlerts();stamp()}}catch(e){console.warn("sem conexão",e)}try{await refreshPtax()}catch(e){console.warn("PTAX indisponível",e)}if(btn)btn.innerHTML="↻ Atualizar"}function stamp(){$("#stPtax").textContent=DATA.ptax_date?DATA.ptax_date.split("-").reverse().join("/"):"—";const u=DATA.market_updated;$("#stSpot").textContent=u?new Date(u).toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}):"—";$("#stSrc").textContent="BCB PTAX + mercado";const f=$("#fPtax");if(f)f.textContent=DATA.ptax_date?DATA.ptax_date.split("-").reverse().join("/"):"—";const mu=$("#mktUp");if(mu)mu.textContent=u?new Date(u).toLocaleString("pt-BR",{dateStyle:"short",timeStyle:"short"}):"—";$("#aCur").onchange()}(function init(){normalize();fillSelects();renderKpis();renderTable();renderChart();renderAdvice();renderMilhas();renderAlerts();stamp();$("#rProg").onchange=()=>{const p=prog($("#rProg").value);if(p)$("#rCusto").value=p.avg.toFixed(2)};$("#rProg").onchange();const rb=$("#refresh");if(rb)rb.onclick=refresh;window.addEventListener("resize",()=>{clearTimeout(__rz);__rz=setTimeout(renderChart,180)});$("#cGo").click();$("#mGo").click();$("#rGo").click()})();async function ptaxDay(offset){const d=new Date;d.setDate(d.getDate()-offset);const q=`${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}-${d.getFullYear()}`;const url="https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/"+`CotacaoDolarDia(dataCotacao=@dataCotacao)?@dataCotacao='${q}'`+"&$format=json&$select=cotacaoCompra,cotacaoVenda,dataHoraCotacao";const r=await fetch(url,{cache:"no-store"});const j=await r.json();const row=(j.value||[])[0];if(!row)return null;return{date:row.dataHoraCotacao.slice(0,10),venda:row.cotacaoVenda}}async function refreshPtax(){for(let off=0;off<=5;off++){const p=await ptaxDay(off);if(!p)continue;const cur=SER.USD;const i=cur.findIndex(x=>x[0]===p.date);if(i>=0)cur[i][1]=p.venda;else if(p.date>cur[cur.length-1][0])cur.push([p.date,p.venda]);DATA.ptax_date=p.date;stamp();return}}window.pick=pick;init();</script>
+</body>
+</html>
