@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Câmbio — Mesa BW</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0b1220">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Mesa BW">
+<style>
+:root{
+  --navy:#0b1220; --navy2:#111c2e; --navy3:#16243a; --line:#25344d;
+  --gold:#d4a94a; --gold2:#f0d08a; --txt:#e8eef8; --mut:#8fa2bd;
+  --up:#3ecf8e; --dn:#f2686b; --warn:#e8b84b;
+  --mono:ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--navy);color:var(--txt);
+  font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  -webkit-font-smoothing:antialiased}
+a{color:var(--gold2)}
+.wrap{max-width:1280px;margin:0 auto;padding:0 20px 80px}
+
+/* ---------- header ---------- */
+header{position:sticky;top:0;z-index:50;background:rgba(11,18,32,.92);
+  backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+.hd{max-width:1280px;margin:0 auto;padding:14px 20px;display:flex;
+  align-items:center;gap:18px;flex-wrap:wrap}
+.brand{display:flex;align-items:baseline;gap:10px}
+.brand b{font-size:19px;letter-spacing:.14em;color:var(--gold)}
+.brand span{font-size:11px;letter-spacing:.28em;color:var(--mut);text-transform:uppercase}
+.hd .stamp{margin-left:auto;font-size:11px;color:var(--mut);text-align:right;line-height:1.5}
+.hd .stamp b{color:var(--txt);font-weight:600}
+nav{display:flex;gap:6px;flex-wrap:wrap}
+nav a{font-size:12.5px;padding:7px 13px;border-radius:999px;color:var(--mut);
+  text-decoration:none;border:1px solid transparent;white-space:nowrap}
+nav a:hover,nav a.on{color:var(--gold2);border-color:var(--line);background:var(--navy2)}
+
+/* ---------- titles ---------- */
+h2{font-size:13px;letter-spacing:.22em;text-transform:uppercase;color:var(--mut);
+  font-weight:600;margin:44px 0 14px;display:flex;align-items:center;gap:12px}
+h2::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--line),transparent)}
+
+/* ---------- kpi ---------- */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.kpi{background:linear-gradient(160deg,var(--navy2),var(--navy));border:1px solid var(--line);
+  border-radius:14px;padding:16px 18px;position:relative;overflow:hidden}
+.kpi::before{content:"";position:absolute;inset:0 auto 0 0;width:3px;background:var(--gold);opacity:.7}
+.kpi .l{font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--mut)}
+.kpi .v{font-size:26px;font-weight:600;margin:6px 0 2px;font-variant-numeric:tabular-nums}
+.kpi .s{font-size:11.5px;color:var(--mut)}
+.chg{font-size:12px;font-weight:600;font-variant-numeric:tabular-nums}
+.up{color:var(--up)} .dn{color:var(--dn)} .fl{color:var(--mut)}
+
+/* ---------- table ---------- */
+.tbox{background:var(--navy2);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.tb-scroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead th{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--mut);
+  font-weight:600;text-align:right;padding:12px 14px;border-bottom:1px solid var(--line);
+  white-space:nowrap;background:var(--navy3)}
+thead th:first-child,tbody td:first-child{text-align:left}
+tbody td{padding:11px 14px;text-align:right;border-bottom:1px solid rgba(37,52,77,.5);
+  font-variant-numeric:tabular-nums;white-space:nowrap}
+tbody tr{cursor:pointer;transition:background .12s}
+tbody tr:hover{background:rgba(212,169,74,.06)}
+tbody tr.sel{background:rgba(212,169,74,.1)}
+tbody tr.sel td:first-child{box-shadow:inset 3px 0 0 var(--gold)}
+.cc{display:flex;align-items:center;gap:10px}
+.flag{width:26px;height:26px;border-radius:7px;display:grid;place-items:center;
+  font-size:10px;font-weight:700;letter-spacing:.03em;background:var(--navy3);
+  border:1px solid var(--line);color:var(--gold2);flex:none}
+.cc small{display:block;color:var(--mut);font-size:10.5px;font-weight:400;letter-spacing:.02em}
+.pct{display:inline-block;min-width:62px}
+
+/* ---------- charts ---------- */
+.chartbox{background:var(--navy2);border:1px solid var(--line);border-radius:14px;
+  padding:18px;margin-top:12px}
+.chead{display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:8px}
+.chead h3{margin:0;font-size:17px;font-weight:600}
+.chead h3 small{color:var(--mut);font-weight:400;font-size:12px;margin-left:8px}
+.rng{margin-left:auto;display:flex;gap:4px}
+.rng button{background:var(--navy3);color:var(--mut);border:1px solid var(--line);
+  border-radius:8px;padding:5px 11px;font-size:11.5px;cursor:pointer;font-family:inherit}
+.rng button.on{background:var(--gold);color:#121a28;border-color:var(--gold);font-weight:600}
+svg.chart{width:100%;height:300px;display:block;overflow:visible}
+.legend{display:flex;gap:18px;flex-wrap:wrap;font-size:11.5px;color:var(--mut);margin-top:4px}
+.legend i{width:10px;height:10px;border-radius:3px;display:inline-block;margin-right:6px}
+
+/* ---------- milhas ---------- */
+.grid2{display:grid;grid-template-columns:1.25fr .75fr;gap:14px}
+@media(max-width:900px){.grid2{grid-template-columns:1fr}}
+.menu-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;margin-top:16px}
+.menu-card{display:block;background:var(--navy2);border:1px solid var(--line);border-radius:14px;padding:16px;color:var(--txt);text-decoration:none;transition:border-color .15s}
+.menu-card:hover{border-color:var(--gold)}
+.menu-card b{font-size:15px;color:var(--gold2)}
+.menu-card small{display:block;margin-top:6px;color:var(--mut);line-height:1.5;font-size:12px}
+.card{background:var(--navy2);border:1px solid var(--line);border-radius:14px;padding:18px}
+.card h3{margin:0 0 4px;font-size:15px}
+.card .sub{color:var(--mut);font-size:11.5px;margin-bottom:14px}
+.prog{display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid rgba(37,52,77,.6)}
+.prog:last-child{border-bottom:0}
+.dot{width:9px;height:9px;border-radius:50%;flex:none}
+.prog .nm{font-weight:600;font-size:13.5px;min-width:96px}
+.prog .nm small{display:block;font-weight:400;color:var(--mut);font-size:10.5px}
+.prog .pr{margin-left:auto;text-align:right}
+.prog .pr b{font-size:17px;font-variant-numeric:tabular-nums}
+.prog .pr small{display:block;color:var(--mut);font-size:10.5px}
+.bar{height:5px;border-radius:3px;background:var(--navy3);flex:1;max-width:180px;overflow:hidden}
+.bar i{display:block;height:100%;border-radius:3px}
+
+/* ---------- forms ---------- */
+label{display:block;font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--mut);margin:0 0 6px}
+input,select{width:100%;background:var(--navy3);border:1px solid var(--line);color:var(--txt);
+  border-radius:10px;padding:11px 13px;font-size:14px;font-family:inherit;
+  font-variant-numeric:tabular-nums}
+input:focus,select:focus{outline:0;border-color:var(--gold);box-shadow:0 0 0 3px rgba(212,169,74,.13)}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+.frow3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:14px}
+.btn{background:var(--gold);color:#121a28;border:0;border-radius:10px;padding:12px 20px;
+  font-size:13.5px;font-weight:600;cursor:pointer;font-family:inherit}
+.btn:hover{background:var(--gold2)}
+.btn.gh{background:transparent;border:1px solid var(--line);color:var(--txt);font-weight:500}
+.out{background:var(--navy3);border:1px solid var(--line);border-radius:12px;padding:16px;
+  margin-top:14px;font-size:13.5px;line-height:1.9}
+.out .big{font-size:24px;font-weight:600;color:var(--gold2);font-variant-numeric:tabular-nums}
+.out .row{display:flex;justify-content:space-between;gap:16px;
+  border-bottom:1px dashed rgba(37,52,77,.9);padding:3px 0}
+.out .row:last-child{border:0}
+.out .row span:first-child{color:var(--mut)}
+.verdict{margin-top:12px;border-radius:10px;padding:12px 14px;font-size:13px;font-weight:600}
+.v-ok{background:rgba(62,207,142,.12);color:var(--up);border:1px solid rgba(62,207,142,.3)}
+.v-bad{background:rgba(242,104,107,.12);color:var(--dn);border:1px solid rgba(242,104,107,.3)}
+.v-mid{background:rgba(232,184,75,.12);color:var(--warn);border:1px solid rgba(232,184,75,.3)}
+.note{font-size:11.5px;color:var(--mut);line-height:1.7;margin-top:10px}
+.tag{display:inline-block;font-size:10.5px;padding:3px 9px;border-radius:999px;
+  border:1px solid var(--line);color:var(--mut);letter-spacing:.06em;text-transform:uppercase}
+.tag.buy{color:var(--up);border-color:rgba(62,207,142,.4);background:rgba(62,207,142,.09)}
+.tag.sell{color:var(--dn);border-color:rgba(242,104,107,.4);background:rgba(242,104,107,.09)}
+.tag.neu{color:var(--warn);border-color:rgba(232,184,75,.4);background:rgba(232,184,75,.09)}
+
+/* ---------- alerts ---------- */
+.alert{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:11px;
+  background:var(--navy3);border:1px solid var(--line);margin-bottom:8px;font-size:13px}
+.alert .x{margin-left:auto;background:none;border:0;color:var(--mut);cursor:pointer;font-size:16px;padding:0 4px}
+.alert .x:hover{color:var(--dn)}
+footer{margin-top:60px;padding-top:22px;border-top:1px solid var(--line);
+  color:var(--mut);font-size:11.5px;line-height:1.8}
+footer b{color:var(--gold)}
+.spin{display:inline-block;width:11px;height:11px;border:2px solid var(--line);
+  border-top-color:var(--gold);border-radius:50%;animation:sp .7s linear infinite;vertical-align:-1px}
+@keyframes sp{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<header><div class="hd">
+  <a href="./" class="btn gh" style="padding:8px 14px;font-size:12px;flex-shrink:0">INÍCIO</a>
+  <div class="brand"><b>BW</b><span>Mesa de Câmbio &amp; Milhas</span></div>
+  <nav>
+    <a href="cambio.html" class="on">Câmbio</a>
+    <a href="serie.html">Série</a>
+    <a href="calc.html">Calculadora</a>
+    <a href="milhas.html">Milhas</a>
+    <a href="ferramentas.html">Ferramentas</a>
+    <a href="/recs.html" style="color:var(--gold2);border-color:rgba(212,169,74,.4)">★ Recomendações</a>
+  </nav>
+  <div class="stamp">
+    PTAX <b id="stPtax">—</b> · Spot <b id="stSpot">—</b><br>
+    <span id="stSrc"></span>
+  </div>
+  <button class="btn gh" id="refresh" style="padding:8px 14px;font-size:12px">↻ Atualizar</button>
+  <span id="userBox" style="font-size:12px;color:var(--mut);margin-left:8px"></span>
+</div></header>
+<div class="wrap">
+<!-- ================= CÂMBIO ================= -->
+  <h2 id="cambio">Painel de câmbio — R$ por unidade</h2>
+  <div class="kpis" id="kpis"></div>
+
+  <div class="tbox" style="margin-top:14px">
+    <div class="tb-scroll">
+      <table id="fxTable">
+        <thead><tr>
+          <th>Moeda</th><th>PTAX venda</th><th>Spot</th><th>Dia</th><th>7 dias</th>
+          <th>30 dias</th><th>12 meses</th><th>52 sem.</th><th>Posição no ano</th><th>Sinal</th>
+        </tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+  <div class="note">
+    PTAX = cotação oficial de fechamento do Banco Central (base para contratos e turismo).
+    Spot = referência de mercado, atualizada em <span id="mktUp">—</span>.
+    <b>Posição no ano</b> = onde o preço está entre a mínima e a máxima de 12 meses
+    (0% = mais barato do período, 100% = mais caro). Clique numa linha para abrir a série.
+  </div>
+
+<footer>
+    <b>Mesa de Câmbio &amp; Milhas — BW Audiovisual</b><br>
+    Dados: Banco Central do Brasil (PTAX, API Olinda) · referencia de mercado (exchangerate-api) ·
+    cotações de milhas (Real Milhas). PTAX de <span id="fPtax">—</span>.
+    Página estática: guarde o arquivo e abra em qualquer navegador; o botão “Atualizar” busca
+    cotação nova; sem internet, mostra os dados embutidos.
+    Não é recomendação de investimento.
+  </footer>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script>window.__DATA={"generated":"2026-11-03T09:45:20-03:00","ptax_date":"2026-10-30","rotas":[{"o":"GRU","d":"MIA","city":"Miami","miles":26500},{"o":"GRU","d":"JFK","city":"Nova York","miles":26500},{"o":"GRU","d":"LHR","city":"Londres","miles":14800},{"o":"GRU","d":"MAD","city":"Madri","miles":20000},{"o":"GRU","d":"LIS","city":"Lisboa","miles":44900},{"o":"GRU","d":"SCL","city":"Santiago","miles":26500},{"o":"GRU","d":"CUN","city":"Cancún","miles":102200},{"o":"GRU","d":"EZE","city":"Buenos Aires","miles":70000}],"market_updated":"Tue, 03 Nov 2026 00:02:31 +0000","dates":["2025-09-28","2025-10-07","2025-10-16","2025-10-25","2025-11-03","2025-11-10","2025-11-12","2025-11-14","2025-11-17","2025-11-21","2025-11-25","2025-11-28","2025-11-30","2025-12-02","2025-12-09","2025-12-11","2025-12-16","2025-12-19","2025-12-23","2025-12-24","2025-12-28","2025-12-31","2026-01-06","2026-01-08","2026-01-15","2026-01-21","2026-01-22","2026-01-24","2026-01-29","2026-02-02","2026-02-03","2026-02-05","2026-02-11","2026-02-12","2026-02-18","2026-02-20","2026-02-23","2026-03-01","2026-03-02","2026-03-03","2026-03-09","2026-03-10","2026-03-16","2026-03-19","2026-03-23","2026-03-27","2026-03-28","2026-03-30","2026-04-06","2026-04-07","2026-04-10","2026-04-14","2026-04-15","2026-04-22","2026-04-24","2026-04-29","2026-05-03","2026-05-07","2026-05-08","2026-05-12","2026-05-14","2026-05-21","2026-05-28","2026-05-30","2026-06-03","2026-06-05","2026-06-08","2026-06-12","2026-06-17","2026-06-19","2026-06-26","2026-06-30","2026-07-03","2026-07-05","2026-07-10","2026-07-13","2026-07-14","2026-07-17","2026-07-23","2026-07-24","2026-07-31","2026-08-01","2026-08-06","2026-08-07","2026-08-10","2026-08-14","2026-08-19","2026-08-20","2026-08-21","2026-08-28","2026-08-29","2026-09-01","2026-09-04","2026-09-07","2026-09-14","2026-09-15","2026-09-16","2026-09-21","2026-09-25","2026-09-28","2026-10-04","2026-10-05","2026-10-09","2026-10-13","2026-10-14","2026-10-15","2026-10-16","2026-10-19","2026-10-20","2026-10-21","2026-10-22","2026-10-23","2026-10-26","2026-10-27","2026-10-28","2026-10-29","2026-10-30","2026-10-31","2026-11-03"],"series":{"USD":{"n":"Dólar americano","d":4,"i":[4,5,8,10,13,14,16,18,21,23,24,26,28,31,33,36,38,40,42,44,47,49,51,53,55,57,60,61,62,65,67,69,70,72,74,77,79,80,83,85,88,89,92,94,97,99,101,103,104,105,106,107,108,109,110,111,112,113,114,115,116],"v":[5.3505,5.3181,5.3108,5.3841,5.3465,5.457,5.4505,5.5643,5.5024,5.386,5.3846,5.3118,5.1956,5.258,5.1674,5.1635,5.2001,5.2139,5.2647,5.244,5.2353,5.1625,4.9806,4.9653,4.9985,4.917,4.9809,5.0077,5.0517,5.1244,5.0827,5.1442,5.1695,5.1717,5.1088,5.1176,5.0666,5.0773,5.0908,5.2236,5.1625,5.2005,5.1253,5.1696,5.1117,5.2132,4.9859,5.0096,5.0441,5.0521,5.0826,5.0564,5.014,5.0277,5.0383,5.0377,5.5007,5.3346,5.342,5.3744,5.4212]},"EUR":{"n":"Euro","d":4,"i":[4,5,8,10,13,14,16,18,21,23,24,26,28,31,33,36,38,40,42,44,47,49,51,53,55,57,60,61,62,65,67,69,70,72,74,77,79,80,83,85,88,89,92,94,97,99,101,103,104,105,106,107,108,109,110,111,112,113,114,115,116],"v":[6.167,6.1403,6.1595,6.2256,6.2057,6.3465,6.4158,6.552,6.4692,6.2838,6.2478,6.2334,6.1984,6.2002,6.1425,6.0903,6.0742,6.0445,6.0476,6.0757,5.997,5.974,5.8726,5.8164,5.8457,5.7844,5.8167,5.8034,5.8847,5.91,5.8827,5.8978,5.8953,5.9154,5.8434,5.855,5.7683,5.849,5.8845,6.05,6.0319,6.0315,5.9546,5.9704,5.8626,5.9253,5.5897,5.6092,5.6111,5.6609,5.7088,5.6682,5.6317,5.6411,5.6494,5.6422,6.1487,5.9449,5.9515,6.0,6.0522]},"GBP":{"n":"Libra esterlina","d":4,"i":[4,5,8,10,13,14,16,18,21,23,24,26,28,31,33,36,38,40,42,44,47,49,51,53,55,57,60,61,62,65,67,69,70,72,74,77,79,80,83,85,88,89,92,94,97,99,101,103,104,105,106,107,108,109,110,111,112,113,114,115,116],"v":[7.0348,6.9922,6.9986,7.0946,7.0595,7.2573,7.3129,7.5029,7.4112,7.2404,7.2089,7.1603,7.1507,7.1141,7.0561,6.9697,6.9541,6.9851,7.0031,7.0191,6.908,6.8362,6.7552,6.7066,6.7435,6.6911,6.7138,6.7138,6.7885,6.8462,6.8179,6.8017,6.8356,6.9084,6.8565,6.8816,6.7619,6.8391,6.8716,7.0811,7.0437,7.0493,6.9299,6.9774,6.8354,6.9117,6.5904,6.6387,6.634,6.6971,6.7756,6.7296,6.7072,6.7321,6.7428,6.7379,7.3423,7.1025,7.1059,7.1899,7.2633]},"JPY":{"n":"Iene japonês","d":5,"i":[4,7,11,15,19,23,25,30,34,39,42,45,50,54,58,61,64,68,71,75,79,82,86,91,95,99,102,111,116],"v":[0.03473,0.03429,0.03419,0.03496,0.03548,0.03434,0.03373,0.03355,0.03384,0.0335,0.03305,0.0327,0.03155,0.03143,0.03128,0.03146,0.03152,0.03161,0.03184,0.03153,0.03095,0.0322,0.03264,0.03223,0.0332,0.03311,0.03151,0.03211,0.03443]},"CAD":{"n":"Dólar canadense","d":4,"i":[4,7,11,15,19,23,25,30,34,39,42,45,50,54,58,61,64,68,71,75,79,82,86,91,95,99,102,111,116],"v":[3.8036,3.7753,3.8263,3.9422,4.0475,3.8863,3.8681,3.8263,3.8236,3.8591,3.8476,3.7735,3.6327,3.6626,3.5818,3.6319,3.6293,3.6097,3.6442,3.6197,3.5987,3.6363,3.7417,3.7095,3.6998,3.679,3.4965,3.5996,3.8842]},"AUD":{"n":"Dólar australiano","d":4,"i":[4,7,11,15,19,23,25,30,34,39,42,45,50,54,58,61,64,68,71,75,79,82,86,91,95,99,102,111,116],"v":[3.4933,3.4673,3.4979,3.6192,3.7123,3.6081,3.6135,3.6638,3.6927,3.6998,3.7142,3.6082,3.5552,3.5829,3.549,3.5725,3.5991,3.5823,3.5796,3.5495,3.5446,3.5855,3.6831,3.6919,3.6702,3.6597,3.483,3.544,3.8138]},"CHF":{"n":"Franco suíço","d":4,"i":[4,7,11,15,19,23,25,30,34,39,42,45,50,54,58,61,64,68,71,75,79,82,86,91,95,99,102,111,116],"v":[6.6276,6.6766,6.644,6.8369,7.0259,6.7451,6.7223,6.7393,6.7748,6.7385,6.6752,6.5725,6.3645,6.3833,6.3046,6.3453,6.376,6.3868,6.4059,6.3018,6.2037,6.2767,6.4659,6.3541,6.2877,6.2644,6.0067,6.1078,6.5895]},"DKK":{"n":"Coroa dinamarquesa","d":4,"i":[4,7,11,15,19,23,25,30,34,39,42,45,50,54,58,61,64,68,71,75,79,82,86,91,95,99,102,111,118],"v":[0.8261,0.8235,0.829,0.8537,0.8733,0.841,0.8361,0.8262,0.8264,0.8191,0.8093,0.8075,0.788,0.7855,0.772,0.7766,0.7829,0.7855,0.7908,0.7808,0.7716,0.7863,0.8069,0.7998,0.7951,0.7927,0.7471,0.7549,0.8156]},"NOK":{"n":"Coroa norueguesa","d":4,"i":[4,7,11,15,19,23,25,30,34,39,42,45,50,54,58,61,64,68,71,75,79,82,86,91,95,99,102,111,118],"v":[0.5286,0.5249,0.5275,0.5383,0.554,0.5338,0.5358,0.5412,0.5495,0.5435,0.5437,0.5382,0.5284,0.5371,0.5316,0.5405,0.5412,0.5328,0.5225,0.5237,0.5293,0.5341,0.554,0.5532,0.5514,0.5471,0.5217,0.5404,0.5852]},"SEK":{"n":"Coroa sueca","d":4,"i":[4,7,11,15,19,23,25,30,34,39,42,45,50,54,58,61,64,68,71,75,79,82,86,91,95,99,102,111,118],"v":[0.5644,0.5608,0.5658,0.5867,0.6042,0.5844,0.5862,0.5874,0.5801,0.5682,0.5628,0.554,0.5421,0.5431,0.5309,0.5339,0.5365,0.5389,0.5336,0.5288,0.5223,0.5361,0.5474,0.5374,0.5266,0.5233,0.4989,0.5076,0.556]},"ARS":{"n":"Peso argentino","d":5,"i":[0,1,2,3,4,6,9,12,14,17,20,22,24,27,29,32,35,37,41,43,46,48,52,54,56,59,61,63,66,68,70,73,76,78,81,84,87,90,93,96,98,100,103,110,117,118],"v":[0.004,0.0037,0.004,0.0036,0.0037,0.0037,0.0037,0.0037,0.0038,0.0038,0.0038,0.0037,0.0037,0.0037,0.0036,0.0037,0.0037,0.0037,0.0037,0.0038,0.0038,0.0037,0.0036,0.0036,0.0036,0.0035,0.0036,0.0036,0.0036,0.0036,0.0035,0.0035,0.0035,0.0034,0.0034,0.0034,0.0035,0.0034,0.0034,0.0034,0.0034,0.0034,0.0033,0.0033,0.0036,0.00352]},"CLP":{"n":"Peso chileno","d":5,"i":[0,1,2,3,4,6,9,12,14,17,20,22,24,27,29,32,35,37,41,43,46,48,52,54,56,59,61,63,66,68,70,73,76,78,81,84,87,90,93,96,98,100,103,110,117,118],"v":[0.0056,0.0055,0.0057,0.0057,0.0057,0.0056,0.0057,0.0058,0.0059,0.0061,0.0061,0.006,0.0061,0.0061,0.0061,0.0061,0.006,0.0059,0.0057,0.0057,0.0057,0.0056,0.0056,0.0056,0.0055,0.0055,0.0056,0.0057,0.0057,0.0058,0.0056,0.0056,0.0055,0.0054,0.0055,0.0056,0.0056,0.0056,0.0055,0.0054,0.0054,0.0053,0.0051,0.0051,0.0055,0.00547]},"MXN":{"n":"Peso mexicano","d":3,"i":[0,1,2,3,4,6,9,12,14,17,20,22,24,27,29,32,35,37,41,43,46,48,52,54,56,59,61,63,66,68,70,73,76,78,81,84,87,90,93,96,98,100,103,110,117,118],"v":[0.291,0.29,0.295,0.292,0.29,0.288,0.29,0.292,0.297,0.307,0.31,0.302,0.303,0.305,0.302,0.303,0.301,0.298,0.295,0.296,0.29,0.289,0.289,0.288,0.284,0.285,0.289,0.29,0.296,0.296,0.296,0.296,0.294,0.291,0.293,0.296,0.306,0.305,0.303,0.3,0.293,0.287,0.273,0.268,0.289,0.292]},"CNY":{"n":"Yuan chinês","d":3,"i":[0,1,2,3,4,6,9,12,14,17,20,22,24,27,29,32,35,37,41,43,46,48,52,54,56,59,61,63,66,68,70,73,76,78,81,84,87,90,93,96,98,100,103,110,117,118],"v":[0.749,0.746,0.765,0.757,0.755,0.741,0.75,0.754,0.768,0.784,0.791,0.774,0.774,0.76,0.757,0.752,0.754,0.749,0.757,0.763,0.76,0.749,0.731,0.737,0.726,0.722,0.737,0.744,0.763,0.755,0.763,0.762,0.758,0.748,0.752,0.754,0.77,0.771,0.764,0.767,0.773,0.778,0.745,0.753,0.817,0.816]},"ZAR":{"n":"Rand sul-africano","d":4,"i":[0,1,2,3,4,6,9,12,14,17,20,22,24,27,29,32,35,37,41,43,46,48,52,54,56,59,61,63,66,68,70,73,76,78,81,84,87,90,93,96,98,100,103,110,117,118],"v":[0.3079,0.3089,0.3148,0.3109,0.31,0.3071,0.3095,0.3115,0.319,0.3299,0.3327,0.3309,0.329,0.328,0.3258,0.3269,0.3222,0.3229,0.3187,0.3108,0.307,0.3039,0.3047,0.3017,0.2973,0.2976,0.3037,0.3102,0.3125,0.3151,0.3142,0.3187,0.3122,0.3096,0.3069,0.3145,0.3216,0.3211,0.3208,0.317,0.316,0.314,0.3019,0.3063,0.3255,0.3273]}},"market":{"USD":5.43751,"EUR":6.087203,"GBP":7.291458,"JPY":0.034437,"CAD":3.889242,"AUD":3.808057,"CHF":6.635431,"DKK":0.815577,"NOK":0.585218,"SEK":0.556008,"ARS":0.00352,"CLP":0.00547,"MXN":0.292119,"CNY":0.815782,"ZAR":0.327296}};window.__MILHAS={"updated": "03/11/2026, 12:45", "programs": [{"id": "smiles", "name": "Smiles", "note": "Gol", "color": "#e8792b", "best": 20.03, "bestBuyer": "Hotmilhas", "avg": 17.43, "buyers": [{"buyer": "Hotmilhas", "price": 20.03, "days": 150}, {"buyer": "Maxmilhas", "price": 17.43, "days": 150}, {"buyer": "Asap Milhas", "price": 15, "days": 60}]}, {"id": "latam", "name": "Latam Pass", "note": "LATAM", "color": "#1b4b8f", "best": 31.15, "bestBuyer": "Hotmilhas", "avg": 27.69, "buyers": [{"buyer": "Hotmilhas", "price": 31.15, "days": 150}, {"buyer": "Maxmilhas", "price": 27.69, "days": 150}, {"buyer": "Asap Milhas", "price": 25, "days": 60}, {"buyer": "Bankmilhas", "price": 20.5, "days": 150}]}, {"id": "azul", "name": "Tudo Azul", "note": "Azul", "color": "#3f7fc4", "best": 18.79, "bestBuyer": "Hotmilhas", "avg": 16.24, "buyers": [{"buyer": "Hotmilhas", "price": 18.79, "days": 150}, {"buyer": "Maxmilhas", "price": 16.24, "days": 150}, {"buyer": "Asap Milhas", "price": 10, "days": 60}]}]};</script>
+<script>/* Mesa de Câmbio & Milhas — BW (bundle de módulos, gerado) */
+const MOD = {};
+/* ===== core/format.js ===== */
+MOD['core/format'] = (function() {
+/* core/format.js — ÚNICO lugar que formata número/moeda/data. */
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+
+const fmt = (v, d = 4) => v == null ? "—" :
+  v.toLocaleString("pt-BR", { minimumFractionDigits: d, maximumFractionDigits: d });
+
+const pct = v => v == null ? "—" :
+  (v > 0 ? "+" : "") + v.toLocaleString("pt-BR", { maximumFractionDigits: 2 }) + "%";
+
+const cls = v => v == null ? "fl" : v > 0.02 ? "up" : v < -0.02 ? "dn" : "fl";
+
+/* escape de HTML para todo dado externo renderizado (segurança) */
+const esc = s => String(s ?? "")
+  .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+  .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+
+const dataBR = iso => iso ? iso.split("-").reverse().join("/") : "—";
+
+return { $, $$, cls, dataBR, esc, fmt, pct };
+})();
+/* ===== core/store.js ===== */
+MOD['core/store'] = (function() {
+/* core/store.js — ÚNICO lugar que grava no localStorage.
+   Chave versionada: mudar formato = subir a versão e migrar. */
+const PREFIX = "bw_";
+
+function load(key, versao = 1, padrao = null) {
+  try {
+    const raw = localStorage.getItem(`${PREFIX}${key}_v${versao}`);
+    return raw ? JSON.parse(raw) : padrao;
+  } catch (e) {
+    console.warn(`store: falha ao ler ${key}`, e);
+    return padrao;
+  }
+}
+
+function save(key, versao, valor) {
+  try {
+    localStorage.setItem(`${PREFIX}${key}_v${versao}`, JSON.stringify(valor));
+    return true;
+  } catch (e) {
+    console.warn(`store: falha ao gravar ${key}`, e);
+    return false;
+  }
+}
+
+function remove(key, versao = 1) {
+  try { localStorage.removeItem(`${PREFIX}${key}_v${versao}`); } catch (e) { }
+}
+
+return { load, remove, save };
+})();
+/* ===== core/data.js ===== */
+MOD['core/data'] = (function() {
+/* core/data.js — camada de DADOS: estado global da cotação + cálculos.
+   Nada aqui toca no DOM. Módulos importam daqui. */
+const {  fmt, pct, cls  } = MOD['core/format'];
+
+let SER = {};      // codigo -> [[date, v], ...] ordenado asc
+let META = {};
+let CODES = [];
+let DATA = {};     // dataset bruto (dates, series, market, rotas...)
+
+const decOf = c => (META[c] && META[c].dec) || 4;
+
+/* dataset compacto (eixo de datas + índices) -> SER/META.
+   MUTA os objetos no lugar (nunca reatribui): assim quem importou as
+   referências continua vendo os dados novos — é o contrato de live binding
+   dos ES modules, que o bundle sem build precisa preservar à mão. */
+function normalize(d) {
+  if (d) {
+    for (const k of Object.keys(DATA)) delete DATA[k];
+    Object.assign(DATA, d);
+  }
+  for (const k of Object.keys(SER)) delete SER[k];
+  for (const k of Object.keys(META)) delete META[k];
+  if (DATA.series) {
+    const dates = DATA.dates || [];
+    Object.entries(DATA.series).forEach(([c, s]) => {
+      SER[c] = s.i.map((ix, k) => [dates[ix], s.v[k]]).sort((a, b) => a[0] < b[0] ? -1 : 1);
+      META[c] = { name: s.name, src: s.src, dec: s.dec };
+    });
+  } else if (DATA.hist) {          // compatibilidade com o formato antigo
+    Object.entries(DATA.hist).forEach(([c, arr]) => {
+      if (arr && arr.length) SER[c] = arr.slice().sort((a, b) => a[0] < b[0] ? -1 : 1);
+    });
+    Object.assign(META, DATA.meta || {});
+  }
+  DATA.meta = META;
+  CODES.length = 0;
+  CODES.push(...Object.keys(SER).filter(c => SER[c].length > 5));
+}
+
+/* substitui o dataset inteiro preservando a identidade do objeto DATA */
+function setData(d) {
+  for (const k of Object.keys(DATA)) delete DATA[k];
+  Object.assign(DATA, d);
+}
+
+/* valor de referência: spot de mercado se existir, senão último PTAX */
+function ref(c) {
+  const spot = DATA.market && DATA.market[c];
+  return spot || (SER[c] ? SER[c][SER[c].length - 1][1] : null);
+}
+
+/* variação entre o último valor e o mais próximo de N dias atrás */
+function chg(c, days) {
+  const s = SER[c]; if (!s || s.length < 2) return null;
+  const last = s[s.length - 1];
+  const lim = new Date(last[0]); lim.setDate(lim.getDate() - days);
+  const iso = lim.toISOString().slice(0, 10);
+  let best = null;
+  for (const p of s) { if (p[0] <= iso) best = p; else break; }
+  if (!best) best = s[0];
+  if (!best[1]) return null;
+  return (last[1] / best[1] - 1) * 100;
+}
+
+function range52(c) {
+  const s = SER[c]; if (!s) return null;
+  const last = s[s.length - 1][0];
+  const lim = new Date(last); lim.setDate(lim.getDate() - 365);
+  const iso = lim.toISOString().slice(0, 10);
+  const win = s.filter(p => p[0] >= iso);
+  if (win.length < 3) return null;
+  const vals = win.map(p => p[1]);
+  const mn = Math.min(...vals), mx = Math.max(...vals);
+  const cur = ref(c);
+  return { mn, mx, pos: mx === mn ? 50 : ((cur - mn) / (mx - mn)) * 100 };
+}
+
+function sinal(c) {
+  const r = range52(c); if (!r) return ["—", "neu"];
+  const ch30 = chg(c, 30);
+  if (r.pos <= 25) return ["Bom momento", "buy"];
+  if (r.pos >= 75) return ["Caro", "sell"];
+  if (ch30 != null && ch30 > 3) return ["Subindo", "neu"];
+  if (ch30 != null && ch30 < -3) return ["Cedendo", "buy"];
+  return ["Neutro", "neu"];
+}
+
+/* ---- atualização ao vivo (fontes públicas) ---- */
+const LIVE = {
+  milhas: "https://raw.githubusercontent.com/audioevideobw-eng/mesa-cambio-milhas/main/milhas.json",
+};
+
+/* PTAX do último dia útil, direto do BCB */
+async function ptaxDay(offset) {
+  const d = new Date(); d.setDate(d.getDate() - offset);
+  const q = `${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}-${d.getFullYear()}`;
+  const url = "https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/"
+    + `CotacaoDolarDia(dataCotacao=@dataCotacao)?@dataCotacao='${q}'`
+    + "&$format=json&$select=cotacaoCompra,cotacaoVenda,dataHoraCotacao";
+  const r = await fetch(url, { cache: "no-store" });
+  const j = await r.json();
+  const row = (j.value || [])[0];
+  if (!row) return null;
+  return { date: row.dataHoraCotacao.slice(0, 10), venda: row.cotacaoVenda };
+}
+
+async function refreshPtax() {
+  if (!SER.USD) return;   // série ainda não carregada — nada a atualizar
+  for (let off = 0; off <= 5; off++) {
+    const p = await ptaxDay(off);
+    if (!p) continue;
+    const cur = SER.USD;
+    const i = cur.findIndex(x => x[0] === p.date);
+    if (i >= 0) cur[i][1] = p.venda;
+    else if (p.date > cur[cur.length - 1][0]) cur.push([p.date, p.venda]);
+    DATA.ptax_date = p.date;
+    return;
+  }
+}
+
+/* Lê milhas e rotas publicadas pela automação (última leitura do site). */
+async function loadLive() {
+  try {
+    const r = await fetch(LIVE.milhas + "?t=" + Date.now(), { cache: "no-store" });
+    if (!r.ok) return false;
+    const j = await r.json();
+    let ok = false;
+    if (j.programs && j.programs.length) {
+      window.__MILHAS.programs = j.programs;
+      window.__MILHAS.updated = j.updated || window.__MILHAS.updated;
+      window.__MILHAS.live = true;
+      ok = true;
+    }
+    if (j.rotas && j.rotas.length) DATA.rotas = j.rotas;
+    return ok;
+  } catch (e) {
+    console.warn("milhas ao vivo indisponível, usando embutidas", e);
+    return false;
+  }
+}
+
+/* spot de mercado ao vivo (open.er-api.com) */
+async function refreshSpot() {
+  const r = await fetch("https://open.er-api.com/v6/latest/USD", { cache: "no-store" });
+  const j = await r.json();
+  if (j.result !== "success") return false;
+  const brl = j.rates.BRL;
+  DATA.market = DATA.market || {};
+  Object.keys(DATA.market).forEach(c => {
+    if (j.rates[c]) DATA.market[c] = +(brl / j.rates[c]).toFixed(6);
+  });
+  DATA.market.USD = +brl.toFixed(6);
+  DATA.market_updated = j.time_last_update_utc;
+  return true;
+}
+
+return { CODES, DATA, LIVE, META, SER, chg, decOf, loadLive, normalize, range52, ref, refreshPtax, refreshSpot, setData, sinal };
+})();
+/* ===== core/ui.js ===== */
+MOD['core/ui'] = (function() {
+/* core/ui.js — helpers de renderização compartilhados. */
+
+/* barra de posição na faixa 12m (0-100%) */
+function barMini(pos) {
+  const p = Math.max(0, Math.min(100, pos));
+  const col = p <= 25 ? "var(--up)" : p >= 75 ? "var(--dn)" : "var(--warn)";
+  return `<span style="display:inline-flex;align-items:center;gap:7px">
+    <span style="width:58px;height:5px;border-radius:3px;background:var(--navy3);display:inline-block;overflow:hidden">
+      <span style="display:block;height:100%;width:${p}%;background:${col};border-radius:3px"></span></span>
+    <span style="font-size:11px;color:var(--mut);min-width:30px">${p.toFixed(0)}%</span></span>`;
+}
+
+/* carimbo do header (PTAX + spot) */
+function stamp(DATA) {
+  const el = s => document.querySelector(s);
+  const set = (sel, v) => { const e = el(sel); if (e) e.textContent = v; };
+  set("#stPtax", DATA.ptax_date ? DATA.ptax_date.split("-").reverse().join("/") : "—");
+  const u = DATA.market_updated;
+  set("#stSpot", u ? new Date(u).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }) : "—");
+  set("#stSrc", "BCB PTAX + mercado");
+  set("#fPtax", DATA.ptax_date ? DATA.ptax_date.split("-").reverse().join("/") : "—");
+  set("#mktUp", u ? new Date(u).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" }) : "—");
+}
+
+return { barMini, stamp };
+})();
+/* ===== core/auth.js ===== */
+MOD['core/auth'] = (function() {
+/* core/auth.js — autenticação com Supabase (e-mail/senha, acesso por convite).
+   O cliente é criado LAZY: só quando o usuário tenta entrar — se o projeto
+   Supabase ainda não estiver configurado, o painel segue funcionando sem login. */
+const {  load, save, remove  } = MOD['core/store'];
+
+const KEY = "fx_session", VER = 1;
+const URL_KEY = "fx_supabase_url", URL_VER = 1;
+const ANON_KEY = "fx_supabase_anon", ANON_VER = 1;
+/* publishable key e URL do projeto BW — a key é pública por design (client-side) */
+const ANON_PADRAO = "sb_publishable_qJ2mIx1hcn_ZH75-yxJiDA_OI-EHyIU";
+const URL_PADRAO = "https://zdtnetplvdonogmdvarx.supabase.co";
+
+/* credenciais do projeto (definidas em runtime pela aba Config, salvas localmente).
+   SEGURANÇA: chave secreta (sb_secret_/sbp_) NUNCA é usada no navegador —
+   se alguém colar uma, o painel ignora e volta à publishable padrão. */
+function credenciais() {
+  let anon = load(ANON_KEY, ANON_VER, "");
+  if (/^sb_secret_|^sbp_/.test(anon)) anon = "";
+  return {
+    url: load(URL_KEY, URL_VER, "") || URL_PADRAO,
+    anon: anon || ANON_PADRAO,
+  };
+}
+
+function configurar(url, anon) {
+  let u = (url || "").trim();
+  /* aceita: URL do projeto, link do dashboard ou o ref solto (20 chars) */
+  const m = u.match(/supabase\.com\/dashboard\/project\/([a-z0-9]{20})/i)
+        || u.match(/^([a-z0-9]{20})$/i)
+        || u.match(/https:\/\/([a-z0-9]{20})\.supabase\.co/i);
+  if (m) u = "https://" + m[1] + ".supabase.co";
+  save(URL_KEY, URL_VER, u);
+  save(ANON_KEY, ANON_VER, (anon || "").trim());
+  cliente = null;   // força recriação do cliente
+}
+
+function configurado() {
+  const c = credenciais();
+  return !!(c.url && c.anon);
+}
+
+let cliente = null;
+function clienteSB() {
+  if (cliente) return cliente;
+  const c = credenciais();
+  if (!c.url || !c.anon || !window.supabase) return null;
+  cliente = window.supabase.createClient(c.url, c.anon, {
+    auth: { persistSession: true, autoRefreshToken: true },
+  });
+  return cliente;
+}
+
+/* ---- sessão ---- */
+async function sessao() {
+  const sb = clienteSB();
+  if (!sb) return null;
+  try {
+    const { data } = await sb.auth.getSession();
+    return data.session || null;
+  } catch (e) { return null; }
+}
+
+async function usuarioAtual() {
+  const s = await sessao();
+  if (!s) return null;
+  return { email: s.user.email, id: s.user.id, criado: s.user.created_at };
+}
+
+function sessaoLocal() { return load(KEY, VER, null); }
+
+/* ---- ações ---- */
+async function entrar(email, senha) {
+  const sb = clienteSB(); if (!sb) throw new Error("Autenticação não configurada.");
+  const { data, error } = await sb.auth.signInWithPassword({ email, password: senha });
+  if (error) throw error;
+  save(KEY, VER, { email: data.user.email, id: data.user.id, em: Date.now() });
+  return data.user;
+}
+
+async function cadastrar(email, senha, nome) {
+  const sb = clienteSB(); if (!sb) throw new Error("Autenticação não configurada.");
+  /* acesso por convite: o cadastro cria a conta, mas sem e-mail confirmado
+     ela não entra; quem libera é o administrador no painel do Supabase */
+  const { data, error } = await sb.auth.signUp({
+    email, password: senha,
+    options: { data: { nome: nome || "" } },
+  });
+  if (error) throw error;
+  return data;
+}
+
+async function recuperar(email) {
+  const sb = clienteSB(); if (!sb) throw new Error("Autenticação não configurada.");
+  const { error } = await sb.auth.resetPasswordForEmail(email, {
+    redirectTo: location.origin + location.pathname + "#recuperar",
+  });
+  if (error) throw error;
+}
+
+async function trocarSenha(novaSenha) {
+  const sb = clienteSB(); if (!sb) throw new Error("Autenticação não configurada.");
+  const { error } = await sb.auth.updateUser({ password: novaSenha });
+  if (error) throw error;
+}
+
+async function sair() {
+  const sb = clienteSB();
+  if (sb) { try { await sb.auth.signOut(); } catch (e) { } }
+  remove(KEY, VER);
+}
+
+/* teste de conexão: valida URL + anon key contra o projeto Supabase.
+   Usa o endpoint de saúde do serviço de auth (GoTrue) — não cria nada. */
+async function testarConexao() {
+  const c = credenciais();
+  if (!c.url || !c.anon) return { ok: false, msg: "Preencha URL e anon key antes de testar." };
+  try {
+    const r = await fetch(c.url.replace(/\/+$/, "") + "/auth/v1/health", {
+      headers: { apikey: c.anon, Authorization: "Bearer " + c.anon },
+    });
+    if (r.status === 401 || r.status === 403)
+      return { ok: false, msg: "A anon key foi recusada — copie de novo em Project Settings → API (anon public)." };
+    if (!r.ok)
+      return { ok: false, msg: "A URL respondeu com erro " + r.status + " — confira o endereço do projeto." };
+    const j = await r.json().catch(() => ({}));
+    return { ok: true, msg: "Conexão OK — projeto Supabase respondendo" + (j.version ? " (auth " + j.version + ")" : "") + "." };
+  } catch (e) {
+    return { ok: false, msg: "Não consegui alcançar essa URL — deve ser https://xxxx.supabase.co." };
+  }
+}
+
+return { cadastrar, configurado, configurar, credenciais, entrar, recuperar, sair, sessao, sessaoLocal, testarConexao, trocarSenha, usuarioAtual };
+})();
+/* ===== core/bootcommon.js ===== */
+MOD['core/bootcommon'] = (function() {
+/* core/bootcommon.js — base comum de boot das páginas do painel multi-página.
+   Cada página (home, cambio, serie...) roda: dados → cabeçalho → SW → render. */
+const {  $, esc  } = MOD['core/format'];
+const data = MOD['core/data'];
+const {  stamp  } = MOD['core/ui'];
+const auth = MOD['core/auth'];
+
+/* injeta dados embutidos (página publicada) ou busca data.json (dev) */
+async function iniciarDados() {
+  window.__MILHAS = window.__MILHAS || { updated: "", programs: [] };
+  if (window.__DATA && window.__DATA.series) {
+    data.setData(window.__DATA);
+  } else {
+    try {
+      const r = await fetch("data.json", { cache: "no-store" });
+      if (r.ok) data.setData(await r.json());
+    } catch (e) { /* sem rede e sem embutido */ }
+  }
+  await data.loadLive();
+  data.normalize();
+  window.__DATA_META = data.META;
+  return !!(data.DATA && data.DATA.series);
+}
+
+function avisoSemDados() {
+  const w = document.querySelector(".wrap");
+  if (w) w.insertAdjacentHTML("afterbegin",
+    '<div class="out" style="border-color:#f2686b">Não foi possível carregar os dados de câmbio.</div>');
+}
+
+/* preenche <select> com as moedas do dataset */
+function preencherCodigos(seletores, padrao) {
+  const opts = data.CODES.map(c =>
+    `<option value="${c}">${c} — ${(data.META[c] && data.META[c].name) || ""}</option>`).join("");
+  seletores.forEach(s => {
+    const el = $(s);
+    if (el) { el.innerHTML = opts; if (padrao) el.value = padrao; }
+  });
+}
+
+/* preenche <select> com os programas de milhas */
+function preencherProgramas(seletores) {
+  const mp = (window.__MILHAS.programs || []).map(p => `<option value="${p.id}">${p.name}</option>`).join("");
+  seletores.forEach(s => { const el = $(s); if (el) el.innerHTML = mp; });
+}
+
+/* cabeçalho: botão LOGIN (página própria) ou conta logada */
+async function montarCabecalho() {
+  const el = $("#userBox"); if (!el) return;
+  let u = null;
+  try { u = await auth.usuarioAtual(); } catch (e) { }
+  if (u) {
+    el.innerHTML = `<a href="login.html" style="color:var(--mut)">${esc(u.email)}</a>` +
+      ` · <a href="#" onclick="window.__sair();return false" style="color:var(--gold2)">sair</a>`;
+  } else {
+    el.innerHTML = `<a href="login.html" class="btn gh" style="display:inline-block;padding:8px 14px;font-size:12px">LOGIN</a>`;
+  }
+}
+window.__sair = async () => { await auth.sair(); location.reload(); };
+
+/* service worker (PWA) */
+function registrarSW() {
+  const st = $("#pwaStatus");
+  if (!("serviceWorker" in navigator)) {
+    if (st) st.textContent = "Este navegador não suporta instalação (abra no Chrome/Safari).";
+    return;
+  }
+  navigator.serviceWorker.register("sw.js")
+    .then(() => { if (st) st.textContent = "✓ Pronto para instalar — app ativo e offline disponível."; })
+    .catch(() => { if (st) st.textContent = "Instalação disponível ao abrir pelo endereço https://."; });
+}
+
+/* atualização ao vivo: spot + PTAX + render da página + carimbo */
+async function refreshPagina(renderFn) {
+  const btn = $("#refresh");
+  if (btn) btn.innerHTML = `<span class="spin"></span> atualizando`;
+  try { await data.refreshSpot(); } catch (e) { console.warn("sem conexão", e); }
+  try { await data.refreshPtax(); } catch (e) { console.warn("PTAX indisponível", e); }
+  await renderFn();
+  stamp(data.DATA);
+  if (btn) btn.innerHTML = "↻ Atualizar";
+}
+
+/* boot comum: dados + cabeçalho + SW. Retorna true se os dados carregaram. */
+async function bootComum() {
+  const ok = await iniciarDados();
+  await montarCabecalho();
+  registrarSW();
+  return ok;
+}
+
+return { avisoSemDados, bootComum, iniciarDados, montarCabecalho, preencherCodigos, preencherProgramas, refreshPagina, registrarSW };
+})();
+/* ===== modules/cambio.js ===== */
+MOD['modules/cambio'] = (function() {
+/* módulo Câmbio — KPIs + tabela de moedas. */
+const {  $, $$, fmt, pct, cls, esc  } = MOD['core/format'];
+const {  SER, META, CODES, DATA, ref, chg, range52, sinal, decOf  } = MOD['core/data'];
+const {  barMini  } = MOD['core/ui'];
+
+function kpi(c, label) {
+  const v = ref(c), d = chg(c, 1), w = chg(c, 7);
+  const r = range52(c);
+  return `<div class="kpi">
+    <div class="l">${esc(label)}</div>
+    <div class="v">R$ ${fmt(v, decOf(c))}</div>
+    <div class="s"><span class="chg ${cls(d)}">${pct(d)}</span> no dia ·
+      <span class="chg ${cls(w)}">${pct(w)}</span> 7d
+      ${r ? ` · faixa R$ ${fmt(r.mn, decOf(c) - 1)}–${fmt(r.mx, decOf(c) - 1)}` : ""}</div>
+  </div>`;
+}
+
+function renderKpis() {
+  const el = $("#kpis"); if (!el) return;
+  let html = ["USD", "EUR", "GBP"].filter(c => SER[c])
+    .map(c => kpi(c, DATA.meta[c]?.name || c)).join("");
+  let best = null;
+  ["USD", "EUR", "GBP"].filter(c => SER[c]).forEach(c => {
+    const r = range52(c); if (r && (!best || r.pos < best.pos)) best = { c, ...r };
+  });
+  if (best) {
+    html += `<div class="kpi" style="cursor:pointer" onclick="window.__pick('${best.c}')">
+      <div class="l">Melhor entrada · principais</div>
+      <div class="v">${best.c} <span style="font-size:15px;color:var(--mut)">R$ ${fmt(ref(best.c), decOf(best.c))}</span></div>
+      <div class="s">${best.pos.toFixed(0)}% da faixa de 12 meses · mín R$ ${fmt(best.mn, decOf(best.c))}</div>
+    </div>`;
+  }
+  el.innerHTML = html;
+}
+
+function renderTable() {
+  const tb = $("#fxTable tbody"); if (!tb) return;
+  tb.innerHTML = CODES.map(c => {
+    const r = range52(c), [sg, sk] = sinal(c);
+    const d1 = chg(c, 1), d7 = chg(c, 7), d30 = chg(c, 30), d365 = chg(c, 365);
+    const nome = esc((META[c] && META[c].name) || "");
+    return `<tr data-c="${c}">
+      <td><div class="cc"><div class="flag">${c}</div>
+        <div><b style="font-weight:600">${c}/BRL</b><small>${nome}</small></div></div></td>
+      <td>${fmt(SER[c][SER[c].length - 1][1], decOf(c))}</td>
+      <td>${fmt(DATA.market ? DATA.market[c] : null, decOf(c))}</td>
+      <td><span class="chg ${cls(d1)}">${pct(d1)}</span></td>
+      <td><span class="chg ${cls(d7)}">${pct(d7)}</span></td>
+      <td><span class="chg ${cls(d30)}">${pct(d30)}</span></td>
+      <td><span class="chg ${cls(d365)}">${pct(d365)}</span></td>
+      <td>${r ? `R$ ${fmt(r.mn, decOf(c))} – ${fmt(r.mx, decOf(c))}` : "—"}</td>
+      <td>${r ? barMini(r.pos) : "—"}</td>
+      <td><span class="tag ${sk}">${sg}</span></td>
+    </tr>`;
+  }).join("");
+  tb.querySelectorAll("tr").forEach(tr => tr.onclick = () => window.__pick(tr.dataset.c));
+}
+
+return { renderKpis, renderTable };
+})();
+/* ===== cambio_main.js ===== */
+MOD['cambio_main'] = (function() {
+/* cambio_main.js — boot da página Câmbio.
+   Clique numa moeda → navega para serie.html?moeda=XXX (páginas separadas). */
+const {  $  } = MOD['core/format'];
+const {  bootComum, avisoSemDados, refreshPagina  } = MOD['core/bootcommon'];
+const cambio = MOD['modules/cambio'];
+const data = MOD['core/data'];
+const {  stamp  } = MOD['core/ui'];
+
+(async function boot() {
+  const ok = await bootComum();
+  if (!ok) { avisoSemDados(); return; }
+  window.__pick = c => { location.href = "serie.html?moeda=" + encodeURIComponent(c); };
+  const render = async () => { cambio.renderKpis(); cambio.renderTable(); };
+  render();
+  stamp(data.DATA);
+  const rb = $("#refresh");
+  if (rb) rb.onclick = () => refreshPagina(render);
+  refreshPagina(render);
+})();
+
+return {  };
+})();</script>
+</body>
+</html>
