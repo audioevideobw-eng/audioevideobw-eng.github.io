@@ -683,7 +683,27 @@ async function sair() {
   remove(KEY, VER);
 }
 
-return { cadastrar, configurado, configurar, credenciais, entrar, recuperar, sair, sessao, sessaoLocal, trocarSenha, usuarioAtual };
+/* teste de conexão: valida URL + anon key contra o projeto Supabase.
+   Usa o endpoint de saúde do serviço de auth (GoTrue) — não cria nada. */
+async function testarConexao() {
+  const c = credenciais();
+  if (!c.url || !c.anon) return { ok: false, msg: "Preencha URL e anon key antes de testar." };
+  try {
+    const r = await fetch(c.url.replace(/\/+$/, "") + "/auth/v1/health", {
+      headers: { apikey: c.anon, Authorization: "Bearer " + c.anon },
+    });
+    if (r.status === 401 || r.status === 403)
+      return { ok: false, msg: "A anon key foi recusada — copie de novo em Project Settings → API (anon public)." };
+    if (!r.ok)
+      return { ok: false, msg: "A URL respondeu com erro " + r.status + " — confira o endereço do projeto." };
+    const j = await r.json().catch(() => ({}));
+    return { ok: true, msg: "Conexão OK — projeto Supabase respondendo" + (j.version ? " (auth " + j.version + ")" : "") + "." };
+  } catch (e) {
+    return { ok: false, msg: "Não consegui alcançar essa URL — deve ser https://xxxx.supabase.co." };
+  }
+}
+
+return { cadastrar, configurado, configurar, credenciais, entrar, recuperar, sair, sessao, sessaoLocal, testarConexao, trocarSenha, usuarioAtual };
 })();
 /* ===== modules/cambio.js ===== */
 MOD['modules/cambio'] = (function() {
@@ -1333,12 +1353,24 @@ function renderConfig() {
     <div style="display:grid;gap:10px">
       <div><label>Project URL (Supabase)</label><input id="cfgUrl" type="url" placeholder="https://xxxx.supabase.co" value="${esc(c.url)}"></div>
       <div><label>Anon key (Supabase)</label><input id="cfgAnon" type="text" placeholder="eyJhbGciOi..." value="${esc(c.anon)}"></div>
-      <button class="btn gh" id="cfgGo">Salvar configuração</button>
-      <div class="note">Estas chaves são públicas por design (anon key) — a segurança fica nas regras do projeto Supabase. Salvas só neste navegador.</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn" id="cfgGo">Salvar configuração</button>
+        <button class="btn gh" id="cfgTest">Testar conexão</button>
+      </div>
+      <div class="note" id="cfgMsg"></div>
+      <div class="note">Estas chaves são públicas por design (anon key) — a segurança fica nas regras do projeto Supabase. Salvas só neste navegador. Nunca cole aqui a service_role key.</div>
     </div>`;
   $("#cfgGo").onclick = () => {
     auth.configurar($("#cfgUrl").value, $("#cfgAnon").value);
     mostrar("Configuração salva. Teste entrando com sua conta.", true);
+  };
+  $("#cfgTest").onclick = async () => {
+    auth.configurar($("#cfgUrl").value, $("#cfgAnon").value);
+    const m = $("#cfgMsg");
+    m.textContent = "Testando…";
+    const r = await auth.testarConexao();
+    m.textContent = r.msg;
+    m.style.color = r.ok ? "var(--up)" : "var(--dn)";
   };
 }
 
