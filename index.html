@@ -165,7 +165,7 @@ footer b{color:var(--gold)}
     <a href="serie.html">Série</a>
     <a href="calc.html">Calculadora</a>
     <a href="milhas.html">Milhas</a>
-    <a href="ferramentas.html">Ferramentas</a>
+    <a href="alertas.html">Alertas</a>
     <a href="/recs.html" style="color:var(--gold2);border-color:rgba(212,169,74,.4)">★ Recomendações</a>
   </nav>
   <span id="userBox" style="font-size:12px;color:var(--mut);margin-left:8px"></span>
@@ -174,15 +174,37 @@ footer b{color:var(--gold)}
 
   <h2 style="margin-top:6px">Painel BW Audiovisual</h2>
   <div class="sub">Câmbio, milhas e ferramentas de decisão — atualizados todos os dias úteis.</div>
-  <div class="menu-grid" id="menuGrid">
+
+  <h3 style="margin:22px 0 0;color:var(--gold2)">Câmbio</h3>
+  <div class="menu-grid">
     <a class="menu-card" href="cambio.html"><b>Câmbio</b><small>Cotações PTAX + mercado de 15 moedas, faixa de 12 meses e sinal do dia.</small></a>
     <a class="menu-card" href="serie.html"><b>Série histórica</b><small>Gráfico de 12 meses com média móvel, mínima e máxima por moeda.</small></a>
     <a class="menu-card" href="calc.html"><b>Calculadora</b><small>Custo real da compra com spread e IOF — e o momento de comprar.</small></a>
-    <a class="menu-card" href="milhas.html"><b>Milhas &amp; Rotas</b><small>Preço do milheiro por programa, simuladores e custo real de rotas.</small></a>
-    <a class="menu-card" href="ferramentas.html"><b>Ferramentas</b><small>Viagem, meta de milhas, diário de câmbio, evento, comparador, alertas e app.</small></a>
-    <a class="menu-card" href="/recs.html" style="border-color:rgba(212,169,74,.4)"><b>★ Recomendações</b><small>O que vale comprar e o que vale vender hoje, com plano e risco.</small></a>
-    <a class="menu-card" href="login.html"><b>Acesso</b><small>Entrar, criar conta (por convite) e configuração do administrador.</small></a>
+    <a class="menu-card" href="comparador.html"><b>Comparador</b><small>Duas moedas lado a lado — qual está mais perto do fundo dos 12 meses.</small></a>
+    <a class="menu-card" href="alertas.html"><b>Alertas</b><small>Alvos de compra e venda — avisam quando a moeda bater o preço.</small></a>
   </div>
+
+  <h3 style="margin:22px 0 0;color:var(--gold2)">Milhas</h3>
+  <div class="menu-grid">
+    <a class="menu-card" href="milhas.html"><b>Milhas &amp; Rotas</b><small>Preço do milheiro por programa, simuladores e custo real de rotas.</small></a>
+    <a class="menu-card" href="meta.html"><b>Meta de milhas</b><small>Quanto falta para fechar a passagem — e o custo de comprar hoje.</small></a>
+  </div>
+
+  <h3 style="margin:22px 0 0;color:var(--gold2)">Ferramentas</h3>
+  <div class="menu-grid">
+    <a class="menu-card" href="viagem.html"><b>Conversor de viagem</b><small>Quanto rende o que você troca — dias cobertos no destino, sobra ou falta.</small></a>
+    <a class="menu-card" href="diario.html"><b>Diário de câmbio</b><small>Suas operações reais: custo médio e resultado pelo preço de agora.</small></a>
+    <a class="menu-card" href="evento.html"><b>Evento em moeda</b><small>Orça evento/serviço em moeda estrangeira item a item, com total em R$.</small></a>
+    <a class="menu-card" href="app.html"><b>App &amp; sincronização</b><small>Instalar no celular, backup dos seus dados e sincronização entre aparelhos.</small></a>
+  </div>
+
+  <h3 style="margin:22px 0 0;color:var(--gold2)">Decisão &amp; acesso</h3>
+  <div class="menu-grid">
+    <a class="menu-card" href="/recs.html" style="border-color:rgba(212,169,74,.4)"><b>★ Recomendações</b><small>O que vale comprar e o que vale vender hoje, com plano e risco.</small></a>
+    <a class="menu-card" href="login.html"><b>Acesso</b><small>Entrar, criar conta (por convite) e recuperar senha.</small></a>
+    <a class="menu-card" href="configadm.html"><b>Configuração</b><small>Administrador: conexão Supabase, passo a passo e convite de usuários.</small></a>
+  </div>
+</div>
 <footer>
     <b>Mesa de Câmbio &amp; Milhas — BW Audiovisual</b><br>
     Dados: Banco Central do Brasil (PTAX, API Olinda) · referencia de mercado (exchangerate-api) ·
