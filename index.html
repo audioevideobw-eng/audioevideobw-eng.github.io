@@ -764,21 +764,31 @@ async function baixar() {
   } catch (e) { return { ok: false, msg: String(e.message || e) }; }
 }
 
-/* ---- subir: navegador -> nuvem ---- */
+/* ---- subir: navegador -> nuvem, com MESCLAGEM por id ----
+   Lê o que já está na nuvem e junta com o que existe aqui (união por id).
+   Assim sincronizar em um aparelho NUNCA apaga o que o outro criou —
+   cada lado mantém seus registros e recebe os do outro. */
 async function subir(chave) {
   const c = await sb(); if (!c) return { ok: false, msg: "sem cliente" };
   try {
     const { data: sess } = await c.auth.getSession();
     if (!sess || !sess.session) return { ok: false, msg: "sem sessão" };
-    const valor = load(chave, 1, []);
-    /* user_id NÃO vai no payload: o banco preenche com auth.uid() (default da
-       coluna). O conflito é pela chave primária composta (user_id, chave). */
+    const local = load(chave, 1, []);
+    const { data: remota, error: eLer } = await c.from("user_data")
+      .select("dados").eq("chave", chave).maybeSingle();
+    if (eLer) return { ok: false, msg: eLer.message };
+    const naNuvem = (remota && Array.isArray(remota.dados)) ? remota.dados : [];
+    const ids = new Set(naNuvem.map(x => x && x.id));
+    const novos = local.filter(x => x && !ids.has(x.id));
+    const mesclado = naNuvem.concat(novos).sort((a, b) => (a.id || 0) - (b.id || 0));
+    if (novos.length) save(chave, 1, mesclado);   // o aparelho também recebe a união
     const { error } = await c.from("user_data").upsert(
-      { chave, dados: valor, atualizado_em: new Date().toISOString() },
+      { chave, dados: mesclado, atualizado_em: new Date().toISOString() },
       { onConflict: "user_id,chave" }
     );
     if (error) return { ok: false, msg: error.message };
-    return { ok: true, msg: `${chave}: ${valor.length} registros na nuvem` };
+    return { ok: true, msg: `${chave}: ${mesclado.length} registros na nuvem` +
+      (novos.length ? ` (+${novos.length} novo(s) do aparelho)` : "") };
   } catch (e) { return { ok: false, msg: String(e.message || e) }; }
 }
 
