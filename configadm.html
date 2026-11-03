@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Configuração — Mesa BW</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0b1220">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<style>
+:root{
+  --navy:#0b1220; --navy2:#111c2e; --navy3:#16243a; --line:#25344d;
+  --gold:#d4a94a; --gold2:#f0d08a; --txt:#e8eef8; --mut:#8fa2bd;
+  --up:#3ecf8e; --dn:#f2686b; --warn:#e8b84b;
+  --mono:ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--navy);color:var(--txt);
+  font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  -webkit-font-smoothing:antialiased}
+a{color:var(--gold2)}
+.wrap{max-width:1280px;margin:0 auto;padding:0 20px 80px}
+
+/* ---------- header ---------- */
+header{position:sticky;top:0;z-index:50;background:rgba(11,18,32,.92);
+  backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+.hd{max-width:1280px;margin:0 auto;padding:14px 20px;display:flex;
+  align-items:center;gap:18px;flex-wrap:wrap}
+.brand{display:flex;align-items:baseline;gap:10px}
+.brand b{font-size:19px;letter-spacing:.14em;color:var(--gold)}
+.brand span{font-size:11px;letter-spacing:.28em;color:var(--mut);text-transform:uppercase}
+.hd .stamp{margin-left:auto;font-size:11px;color:var(--mut);text-align:right;line-height:1.5}
+.hd .stamp b{color:var(--txt);font-weight:600}
+nav{display:flex;gap:6px;flex-wrap:wrap}
+nav a{font-size:12.5px;padding:7px 13px;border-radius:999px;color:var(--mut);
+  text-decoration:none;border:1px solid transparent;white-space:nowrap}
+nav a:hover,nav a.on{color:var(--gold2);border-color:var(--line);background:var(--navy2)}
+
+/* ---------- titles ---------- */
+h2{font-size:13px;letter-spacing:.22em;text-transform:uppercase;color:var(--mut);
+  font-weight:600;margin:44px 0 14px;display:flex;align-items:center;gap:12px}
+h2::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--line),transparent)}
+
+/* ---------- kpi ---------- */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.kpi{background:linear-gradient(160deg,var(--navy2),var(--navy));border:1px solid var(--line);
+  border-radius:14px;padding:16px 18px;position:relative;overflow:hidden}
+.kpi::before{content:"";position:absolute;inset:0 auto 0 0;width:3px;background:var(--gold);opacity:.7}
+.kpi .l{font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--mut)}
+.kpi .v{font-size:26px;font-weight:600;margin:6px 0 2px;font-variant-numeric:tabular-nums}
+.kpi .s{font-size:11.5px;color:var(--mut)}
+.chg{font-size:12px;font-weight:600;font-variant-numeric:tabular-nums}
+.up{color:var(--up)} .dn{color:var(--dn)} .fl{color:var(--mut)}
+
+/* ---------- table ---------- */
+.tbox{background:var(--navy2);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.tb-scroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead th{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--mut);
+  font-weight:600;text-align:right;padding:12px 14px;border-bottom:1px solid var(--line);
+  white-space:nowrap;background:var(--navy3)}
+thead th:first-child,tbody td:first-child{text-align:left}
+tbody td{padding:11px 14px;text-align:right;border-bottom:1px solid rgba(37,52,77,.5);
+  font-variant-numeric:tabular-nums;white-space:nowrap}
+tbody tr{cursor:pointer;transition:background .12s}
+tbody tr:hover{background:rgba(212,169,74,.06)}
+tbody tr.sel{background:rgba(212,169,74,.1)}
+tbody tr.sel td:first-child{box-shadow:inset 3px 0 0 var(--gold)}
+.cc{display:flex;align-items:center;gap:10px}
+.flag{width:26px;height:26px;border-radius:7px;display:grid;place-items:center;
+  font-size:10px;font-weight:700;letter-spacing:.03em;background:var(--navy3);
+  border:1px solid var(--line);color:var(--gold2);flex:none}
+.cc small{display:block;color:var(--mut);font-size:10.5px;font-weight:400;letter-spacing:.02em}
+.pct{display:inline-block;min-width:62px}
+
+/* ---------- charts ---------- */
+.chartbox{background:var(--navy2);border:1px solid var(--line);border-radius:14px;
+  padding:18px;margin-top:12px}
+.chead{display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:8px}
+.chead h3{margin:0;font-size:17px;font-weight:600}
+.chead h3 small{color:var(--mut);font-weight:400;font-size:12px;margin-left:8px}
+.rng{margin-left:auto;display:flex;gap:4px}
+.rng button{background:var(--navy3);color:var(--mut);border:1px solid var(--line);
+  border-radius:8px;padding:5px 11px;font-size:11.5px;cursor:pointer;font-family:inherit}
+.rng button.on{background:var(--gold);color:#121a28;border-color:var(--gold);font-weight:600}
+svg.chart{width:100%;height:300px;display:block;overflow:visible}
+.legend{display:flex;gap:18px;flex-wrap:wrap;font-size:11.5px;color:var(--mut);margin-top:4px}
+.legend i{width:10px;height:10px;border-radius:3px;display:inline-block;margin-right:6px}
+
+/* ---------- milhas ---------- */
+.grid2{display:grid;grid-template-columns:1.25fr .75fr;gap:14px}
+@media(max-width:900px){.grid2{grid-template-columns:1fr}}
+.menu-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;margin-top:16px}
+.menu-card{display:block;background:var(--navy2);border:1px solid var(--line);border-radius:14px;padding:16px;color:var(--txt);text-decoration:none;transition:border-color .15s}
+.menu-card:hover{border-color:var(--gold)}
+.menu-card b{font-size:15px;color:var(--gold2)}
+.menu-card small{display:block;margin-top:6px;color:var(--mut);line-height:1.5;font-size:12px}
+.card{background:var(--navy2);border:1px solid var(--line);border-radius:14px;padding:18px}
+.card h3{margin:0 0 4px;font-size:15px}
+.card .sub{color:var(--mut);font-size:11.5px;margin-bottom:14px}
+.prog{display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid rgba(37,52,77,.6)}
+.prog:last-child{border-bottom:0}
+.dot{width:9px;height:9px;border-radius:50%;flex:none}
+.prog .nm{font-weight:600;font-size:13.5px;min-width:96px}
+.prog .nm small{display:block;font-weight:400;color:var(--mut);font-size:10.5px}
+.prog .pr{margin-left:auto;text-align:right}
+.prog .pr b{font-size:17px;font-variant-numeric:tabular-nums}
+.prog .pr small{display:block;color:var(--mut);font-size:10.5px}
+.bar{height:5px;border-radius:3px;background:var(--navy3);flex:1;max-width:180px;overflow:hidden}
+.bar i{display:block;height:100%;border-radius:3px}
+
+/* ---------- forms ---------- */
+label{display:block;font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--mut);margin:0 0 6px}
+input,select{width:100%;background:var(--navy3);border:1px solid var(--line);color:var(--txt);
+  border-radius:10px;padding:11px 13px;font-size:14px;font-family:inherit;
+  font-variant-numeric:tabular-nums}
+input:focus,select:focus{outline:0;border-color:var(--gold);box-shadow:0 0 0 3px rgba(212,169,74,.13)}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+.frow3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:14px}
+.btn{background:var(--gold);color:#121a28;border:0;border-radius:10px;padding:12px 20px;
+  font-size:13.5px;font-weight:600;cursor:pointer;font-family:inherit}
+.btn:hover{background:var(--gold2)}
+.btn.gh{background:transparent;border:1px solid var(--line);color:var(--txt);font-weight:500}
+.out{background:var(--navy3);border:1px solid var(--line);border-radius:12px;padding:16px;
+  margin-top:14px;font-size:13.5px;line-height:1.9}
+.out .big{font-size:24px;font-weight:600;color:var(--gold2);font-variant-numeric:tabular-nums}
+.out .row{display:flex;justify-content:space-between;gap:16px;
+  border-bottom:1px dashed rgba(37,52,77,.9);padding:3px 0}
+.out .row:last-child{border:0}
+.out .row span:first-child{color:var(--mut)}
+.verdict{margin-top:12px;border-radius:10px;padding:12px 14px;font-size:13px;font-weight:600}
+.v-ok{background:rgba(62,207,142,.12);color:var(--up);border:1px solid rgba(62,207,142,.3)}
+.v-bad{background:rgba(242,104,107,.12);color:var(--dn);border:1px solid rgba(242,104,107,.3)}
+.v-mid{background:rgba(232,184,75,.12);color:var(--warn);border:1px solid rgba(232,184,75,.3)}
+.note{font-size:11.5px;color:var(--mut);line-height:1.7;margin-top:10px}
+.tag{display:inline-block;font-size:10.5px;padding:3px 9px;border-radius:999px;
+  border:1px solid var(--line);color:var(--mut);letter-spacing:.06em;text-transform:uppercase}
+.tag.buy{color:var(--up);border-color:rgba(62,207,142,.4);background:rgba(62,207,142,.09)}
+.tag.sell{color:var(--dn);border-color:rgba(242,104,107,.4);background:rgba(242,104,107,.09)}
+.tag.neu{color:var(--warn);border-color:rgba(232,184,75,.4);background:rgba(232,184,75,.09)}
+
+/* ---------- alerts ---------- */
+.alert{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:11px;
+  background:var(--navy3);border:1px solid var(--line);margin-bottom:8px;font-size:13px}
+.alert .x{margin-left:auto;background:none;border:0;color:var(--mut);cursor:pointer;font-size:16px;padding:0 4px}
+.alert .x:hover{color:var(--dn)}
+footer{margin-top:60px;padding-top:22px;border-top:1px solid var(--line);
+  color:var(--mut);font-size:11.5px;line-height:1.8}
+footer b{color:var(--gold)}
+.spin{display:inline-block;width:11px;height:11px;border:2px solid var(--line);
+  border-top-color:var(--gold);border-radius:50%;animation:sp .7s linear infinite;vertical-align:-1px}
+@keyframes sp{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<header><div class="hd">
+  <a href="./" class="btn gh" style="padding:8px 14px;font-size:12px;flex-shrink:0">INÍCIO</a>
+  <div class="brand"><b>BW</b><span>Configuração</span></div>
+  <div style="margin-left:auto"><a href="login.html" class="btn gh" style="display:inline-block;padding:8px 14px;font-size:12px">← Voltar ao acesso</a></div>
+</div></header>
+
+<div class="wrap">
+  <h2 style="margin-top:6px">Configuração do projeto (administrador)</h2>
+  <div class="sub">Conecta o painel ao projeto Supabase criado para a BW. Esta página é só sua — os convidados não precisam dela.</div>
+
+  <div class="grid2" style="margin-top:16px">
+    <div class="card">
+      <h3>Conexão com o Supabase</h3>
+      <div class="sub">Já configurada — os campos abaixo servem para conferir ou trocar.</div>
+      <div id="lCfg"></div>
+    </div>
+    <div class="card">
+      <h3>Passo a passo (referência)</h3>
+      <div class="note" style="line-height:1.7">
+        1. Crie conta grátis em <b>supabase.com</b> → New project (nome: <b>bw-audiovisual</b>).<br>
+        2. Em <b>Authentication → Providers</b>: Email ativado (padrão).<br>
+        3. Em <b>Authentication → Users</b>: <b>Add user → Create new user</b> — cadastre você mesmo com senha forte e marque <b>Auto Confirm User</b>.<br>
+        4. Em <b>Project Settings → API (API Keys)</b>: copie a <b>Project URL</b> (https://xxxx.supabase.co). A <b>Publishable key</b> já vem preenchida no painel.<br>
+        5. Cole a URL ao lado (aceita também o link do dashboard), <b>Salvar</b> e <b>Testar conexão</b>.
+      </div>
+      <h3 style="margin-top:16px">Convidar um usuário</h3>
+      <div class="note" style="line-height:1.7">
+        No Supabase: <b>Authentication → Users → Add user</b> → e-mail + senha forte →
+        marque <b>Auto Confirm User</b> → Save. A pessoa entra pela página de Acesso
+        com esse e-mail e senha.
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <b>Mesa de Câmbio &amp; Milhas — BW Audiovisual</b><br>
+    Acesso por convite: só entra quem o administrador liberar no Supabase.
+    Senha protegida com hash bcrypt; sessão com token JWT.
+  </footer>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script>/* Mesa de Câmbio & Milhas — BW (bundle de módulos, gerado) */
+const MOD = {};
+/* ===== core/format.js ===== */
+MOD['core/format'] = (function() {
+/* core/format.js — ÚNICO lugar que formata número/moeda/data. */
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+
+const fmt = (v, d = 4) => v == null ? "—" :
+  v.toLocaleString("pt-BR", { minimumFractionDigits: d, maximumFractionDigits: d });
+
+const pct = v => v == null ? "—" :
+  (v > 0 ? "+" : "") + v.toLocaleString("pt-BR", { maximumFractionDigits: 2 }) + "%";
+
+const cls = v => v == null ? "fl" : v > 0.02 ? "up" : v < -0.02 ? "dn" : "fl";
+
+/* escape de HTML para todo dado externo renderizado (segurança) */
+const esc = s => String(s ?? "")
+  .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+  .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+
+const dataBR = iso => iso ? iso.split("-").reverse().join("/") : "—";
+
+return { $, $$, cls, dataBR, esc, fmt, pct };
+})();
+/* ===== core/store.js ===== */
+MOD['core/store'] = (function() {
+/* core/store.js — ÚNICO lugar que grava no localStorage.
+   Chave versionada: mudar formato = subir a versão e migrar. */
+const PREFIX = "bw_";
+
+function load(key, versao = 1, padrao = null) {
+  try {
+    const raw = localStorage.getItem(`${PREFIX}${key}_v${versao}`);
+    return raw ? JSON.parse(raw) : padrao;
+  } catch (e) {
+    console.warn(`store: falha ao ler ${key}`, e);
+    return padrao;
+  }
+}
+
+function save(key, versao, valor) {
+  try {
+    localStorage.setItem(`${PREFIX}${key}_v${versao}`, JSON.stringify(valor));
+    return true;
+  } catch (e) {
+    console.warn(`store: falha ao gravar ${key}`, e);
+    return false;
+  }
+}
+
+function remove(key, versao = 1) {
+  try { localStorage.removeItem(`${PREFIX}${key}_v${versao}`); } catch (e) { }
+}
+
+return { load, remove, save };
+})();
+/* ===== core/data.js ===== */
+MOD['core/data'] = (function() {
+/* core/data.js — camada de DADOS: estado global da cotação + cálculos.
+   Nada aqui toca no DOM. Módulos importam daqui. */
+const {  fmt, pct, cls  } = MOD['core/format'];
+
+let SER = {};      // codigo -> [[date, v], ...] ordenado asc
+let META = {};
+let CODES = [];
+let DATA = {};     // dataset bruto (dates, series, market, rotas...)
+
+const decOf = c => (META[c] && META[c].dec) || 4;
+
+/* dataset compacto (eixo de datas + índices) -> SER/META.
+   MUTA os objetos no lugar (nunca reatribui): assim quem importou as
+   referências continua vendo os dados novos — é o contrato de live binding
+   dos ES modules, que o bundle sem build precisa preservar à mão. */
+function normalize(d) {
+  if (d) {
+    for (const k of Object.keys(DATA)) delete DATA[k];
+    Object.assign(DATA, d);
+  }
+  for (const k of Object.keys(SER)) delete SER[k];
+  for (const k of Object.keys(META)) delete META[k];
+  if (DATA.series) {
+    const dates = DATA.dates || [];
+    Object.entries(DATA.series).forEach(([c, s]) => {
+      SER[c] = s.i.map((ix, k) => [dates[ix], s.v[k]]).sort((a, b) => a[0] < b[0] ? -1 : 1);
+      META[c] = { name: s.name, src: s.src, dec: s.dec };
+    });
+  } else if (DATA.hist) {          // compatibilidade com o formato antigo
+    Object.entries(DATA.hist).forEach(([c, arr]) => {
+      if (arr && arr.length) SER[c] = arr.slice().sort((a, b) => a[0] < b[0] ? -1 : 1);
+    });
+    Object.assign(META, DATA.meta || {});
+  }
+  DATA.meta = META;
+  CODES.length = 0;
+  CODES.push(...Object.keys(SER).filter(c => SER[c].length > 5));
+}
+
+/* substitui o dataset inteiro preservando a identidade do objeto DATA */
+function setData(d) {
+  for (const k of Object.keys(DATA)) delete DATA[k];
+  Object.assign(DATA, d);
+}
+
+/* valor de referência: spot de mercado se existir, senão último PTAX */
+function ref(c) {
+  const spot = DATA.market && DATA.market[c];
+  return spot || (SER[c] ? SER[c][SER[c].length - 1][1] : null);
+}
+
+/* variação entre o último valor e o mais próximo de N dias atrás */
+function chg(c, days) {
+  const s = SER[c]; if (!s || s.length < 2) return null;
+  const last = s[s.length - 1];
+  const lim = new Date(last[0]); lim.setDate(lim.getDate() - days);
+  const iso = lim.toISOString().slice(0, 10);
+  let best = null;
+  for (const p of s) { if (p[0] <= iso) best = p; else break; }
+  if (!best) best = s[0];
+  if (!best[1]) return null;
+  return (last[1] / best[1] - 1) * 100;
+}
+
+function range52(c) {
+  const s = SER[c]; if (!s) return null;
+  const last = s[s.length - 1][0];
+  const lim = new Date(last); lim.setDate(lim.getDate() - 365);
+  const iso = lim.toISOString().slice(0, 10);
+  const win = s.filter(p => p[0] >= iso);
+  if (win.length < 3) return null;
+  const vals = win.map(p => p[1]);
+  const mn = Math.min(...vals), mx = Math.max(...vals);
+  const cur = ref(c);
+  return { mn, mx, pos: mx === mn ? 50 : ((cur - mn) / (mx - mn)) * 100 };
+}
+
+function sinal(c) {
+  const r = range52(c); if (!r) return ["—", "neu"];
+  const ch30 = chg(c, 30);
+  if (r.pos <= 25) return ["Bom momento", "buy"];
+  if (r.pos >= 75) return ["Caro", "sell"];
+  if (ch30 != null && ch30 > 3) return ["Subindo", "neu"];
+  if (ch30 != null && ch30 < -3) return ["Cedendo", "buy"];
+  return ["Neutro", "neu"];
+}
+
+/* ---- atualização ao vivo (fontes públicas) ---- */
+const LIVE = {
+  milhas: "https://raw.githubusercontent.com/audioevideobw-eng/mesa-cambio-milhas/main/milhas.json",
+};
+
+/* PTAX do último dia útil, direto do BCB */
+async function ptaxDay(offset) {
+  const d = new Date(); d.setDate(d.getDate() - offset);
+  const q = `${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}-${d.getFullYear()}`;
+  const url = "https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/"
+    + `CotacaoDolarDia(dataCotacao=@dataCotacao)?@dataCotacao='${q}'`
+    + "&$format=json&$select=cotacaoCompra,cotacaoVenda,dataHoraCotacao";
+  const r = await fetch(url, { cache: "no-store" });
+  const j = await r.json();
+  const row = (j.value || [])[0];
+  if (!row) return null;
+  return { date: row.dataHoraCotacao.slice(0, 10), venda: row.cotacaoVenda };
+}
+
+async function refreshPtax() {
+  if (!SER.USD) return;   // série ainda não carregada — nada a atualizar
+  for (let off = 0; off <= 5; off++) {
+    const p = await ptaxDay(off);
+    if (!p) continue;
+    const cur = SER.USD;
+    const i = cur.findIndex(x => x[0] === p.date);
+    if (i >= 0) cur[i][1] = p.venda;
+    else if (p.date > cur[cur.length - 1][0]) cur.push([p.date, p.venda]);
+    DATA.ptax_date = p.date;
+    return;
+  }
+}
+
+/* Lê milhas e rotas publicadas pela automação (última leitura do site). */
+async function loadLive() {
+  try {
+    const r = await fetch(LIVE.milhas + "?t=" + Date.now(), { cache: "no-store" });
+    if (!r.ok) return false;
+    const j = await r.json();
+    let ok = false;
+    if (j.programs && j.programs.length) {
+      window.__MILHAS.programs = j.programs;
+      window.__MILHAS.updated = j.updated || window.__MILHAS.updated;
+      window.__MILHAS.live = true;
+      ok = true;
+    }
+    if (j.rotas && j.rotas.length) DATA.rotas = j.rotas;
+    return ok;
+  } catch (e) {
+    console.warn("milhas ao vivo indisponível, usando embutidas", e);
+    return false;
+  }
+}
+
+/* spot de mercado ao vivo (open.er-api.com) */
+async function refreshSpot() {
+  const r = await fetch("https://open.er-api.com/v6/latest/USD", { cache: "no-store" });
+  const j = await r.json();
+  if (j.result !== "success") return false;
+  const brl = j.rates.BRL;
+  DATA.market = DATA.market || {};
+  Object.keys(DATA.market).forEach(c => {
+    if (j.rates[c]) DATA.market[c] = +(brl / j.rates[c]).toFixed(6);
+  });
+  DATA.market.USD = +brl.toFixed(6);
+  DATA.market_updated = j.time_last_update_utc;
+  return true;
+}
+
+return { CODES, DATA, LIVE, META, SER, chg, decOf, loadLive, normalize, range52, ref, refreshPtax, refreshSpot, setData, sinal };
+})();
+/* ===== core/ui.js ===== */
+MOD['core/ui'] = (function() {
+/* core/ui.js — helpers de renderização compartilhados. */
+
+/* barra de posição na faixa 12m (0-100%) */
+function barMini(pos) {
+  const p = Math.max(0, Math.min(100, pos));
+  const col = p <= 25 ? "var(--up)" : p >= 75 ? "var(--dn)" : "var(--warn)";
+  return `<span style="display:inline-flex;align-items:center;gap:7px">
+    <span style="width:58px;height:5px;border-radius:3px;background:var(--navy3);display:inline-block;overflow:hidden">
+      <span style="display:block;height:100%;width:${p}%;background:${col};border-radius:3px"></span></span>
+    <span style="font-size:11px;color:var(--mut);min-width:30px">${p.toFixed(0)}%</span></span>`;
+}
+
+/* carimbo do header (PTAX + spot) */
+function stamp(DATA) {
+  const el = s => document.querySelector(s);
+  const set = (sel, v) => { const e = el(sel); if (e) e.textContent = v; };
+  set("#stPtax", DATA.ptax_date ? DATA.ptax_date.split("-").reverse().join("/") : "—");
+  const u = DATA.market_updated;
+  set("#stSpot", u ? new Date(u).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }) : "—");
+  set("#stSrc", "BCB PTAX + mercado");
+  set("#fPtax", DATA.ptax_date ? DATA.ptax_date.split("-").reverse().join("/") : "—");
+  set("#mktUp", u ? new Date(u).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" }) : "—");
+}
+
+return { barMini, stamp };
+})();
+/* ===== core/auth.js ===== */
+MOD['core/auth'] = (function() {
+/* core/auth.js — autenticação com Supabase (e-mail/senha, acesso por convite).
+   O cliente é criado LAZY: só quando o usuário tenta entrar — se o projeto
+   Supabase ainda não estiver configurado, o painel segue funcionando sem login. */
+const {  load, save, remove  } = MOD['core/store'];
+
+const KEY = "fx_session", VER = 1;
+const URL_KEY = "fx_supabase_url", URL_VER = 1;
+const ANON_KEY = "fx_supabase_anon", ANON_VER = 1;
+/* publishable key e URL do projeto BW — a key é pública por design (client-side) */
+const ANON_PADRAO = "sb_publishable_qJ2mIx1hcn_ZH75-yxJiDA_OI-EHyIU";
+const URL_PADRAO = "https://zdtnetplvdonogmdvarx.supabase.co";
+
+/* credenciais do projeto (definidas em runtime pela aba Config, salvas localmente).
+   SEGURANÇA: chave secreta (sb_secret_/sbp_) NUNCA é usada no navegador —
+   se alguém colar uma, o painel ignora e volta à publishable padrão. */
+function credenciais() {
+  let anon = load(ANON_KEY, ANON_VER, "");
+  if (/^sb_secret_|^sbp_/.test(anon)) anon = "";
+  return {
+    url: load(URL_KEY, URL_VER, "") || URL_PADRAO,
+    anon: anon || ANON_PADRAO,
+  };
+}
+
+function configurar(url, anon) {
+  let u = (url || "").trim();
+  /* aceita: URL do projeto, link do dashboard ou o ref solto (20 chars) */
+  const m = u.match(/supabase\.com\/dashboard\/project\/([a-z0-9]{20})/i)
+        || u.match(/^([a-z0-9]{20})$/i)
+        || u.match(/https:\/\/([a-z0-9]{20})\.supabase\.co/i);
+  if (m) u = "https://" + m[1] + ".supabase.co";
+  save(URL_KEY, URL_VER, u);
+  save(ANON_KEY, ANON_VER, (anon || "").trim());
+  cliente = null;   // força recriação do cliente
+}
+
+function configurado() {
+  const c = credenciais();
+  return !!(c.url && c.anon);
+}
+
+let cliente = null;
+function clienteSB() {
+  if (cliente) return cliente;
+  const c = credenciais();
+  if (!c.url || !c.anon || !window.supabase) return null;
+  cliente = window.supabase.createClient(c.url, c.anon, {
+    auth: { persistSession: true, autoRefreshToken: true },
+  });
+  return cliente;
+}
+
+/* ---- sessão ---- */
+async function sessao() {
+  const sb = clienteSB();
+  if (!sb) return null;
+  try {
+    const { data } = await sb.auth.getSession();
+    return data.session || null;
+  } catch (e) { return null; }
+}
+
+async function usuarioAtual() {
+  const s = await sessao();
+  if (!s) return null;
+  return { email: s.user.email, id: s.user.id, criado: s.user.created_at };
+}
+
+function sessaoLocal() { return load(KEY, VER, null); }
+
+/* ---- ações ---- */
+async function entrar(email, senha) {
+  const sb = clienteSB(); if (!sb) throw new Error("Autenticação não configurada.");
+  const { data, error } = await sb.auth.signInWithPassword({ email, password: senha });
+  if (error) throw error;
+  save(KEY, VER, { email: data.user.email, id: data.user.id, em: Date.now() });
+  return data.user;
+}
+
+async function cadastrar(email, senha, nome) {
+  const sb = clienteSB(); if (!sb) throw new Error("Autenticação não configurada.");
+  /* acesso por convite: o cadastro cria a conta, mas sem e-mail confirmado
+     ela não entra; quem libera é o administrador no painel do Supabase */
+  const { data, error } = await sb.auth.signUp({
+    email, password: senha,
+    options: { data: { nome: nome || "" } },
+  });
+  if (error) throw error;
+  return data;
+}
+
+async function recuperar(email) {
+  const sb = clienteSB(); if (!sb) throw new Error("Autenticação não configurada.");
+  const { error } = await sb.auth.resetPasswordForEmail(email, {
+    redirectTo: location.origin + location.pathname + "#recuperar",
+  });
+  if (error) throw error;
+}
+
+async function trocarSenha(novaSenha) {
+  const sb = clienteSB(); if (!sb) throw new Error("Autenticação não configurada.");
+  const { error } = await sb.auth.updateUser({ password: novaSenha });
+  if (error) throw error;
+}
+
+async function sair() {
+  const sb = clienteSB();
+  if (sb) { try { await sb.auth.signOut(); } catch (e) { } }
+  remove(KEY, VER);
+}
+
+/* teste de conexão: valida URL + anon key contra o projeto Supabase.
+   Usa o endpoint de saúde do serviço de auth (GoTrue) — não cria nada. */
+async function testarConexao() {
+  const c = credenciais();
+  if (!c.url || !c.anon) return { ok: false, msg: "Preencha URL e anon key antes de testar." };
+  try {
+    const r = await fetch(c.url.replace(/\/+$/, "") + "/auth/v1/health", {
+      headers: { apikey: c.anon, Authorization: "Bearer " + c.anon },
+    });
+    if (r.status === 401 || r.status === 403)
+      return { ok: false, msg: "A anon key foi recusada — copie de novo em Project Settings → API (anon public)." };
+    if (!r.ok)
+      return { ok: false, msg: "A URL respondeu com erro " + r.status + " — confira o endereço do projeto." };
+    const j = await r.json().catch(() => ({}));
+    return { ok: true, msg: "Conexão OK — projeto Supabase respondendo" + (j.version ? " (auth " + j.version + ")" : "") + "." };
+  } catch (e) {
+    return { ok: false, msg: "Não consegui alcançar essa URL — deve ser https://xxxx.supabase.co." };
+  }
+}
+
+return { cadastrar, configurado, configurar, credenciais, entrar, recuperar, sair, sessao, sessaoLocal, testarConexao, trocarSenha, usuarioAtual };
+})();
+/* ===== core/bootcommon.js ===== */
+MOD['core/bootcommon'] = (function() {
+/* core/bootcommon.js — base comum de boot das páginas do painel multi-página.
+   Cada página (home, cambio, serie...) roda: dados → cabeçalho → SW → render. */
+const {  $, esc  } = MOD['core/format'];
+const data = MOD['core/data'];
+const {  stamp  } = MOD['core/ui'];
+const auth = MOD['core/auth'];
+
+/* injeta dados embutidos (página publicada) ou busca data.json (dev) */
+async function iniciarDados() {
+  window.__MILHAS = window.__MILHAS || { updated: "", programs: [] };
+  if (window.__DATA && window.__DATA.series) {
+    data.setData(window.__DATA);
+  } else {
+    try {
+      const r = await fetch("data.json", { cache: "no-store" });
+      if (r.ok) data.setData(await r.json());
+    } catch (e) { /* sem rede e sem embutido */ }
+  }
+  await data.loadLive();
+  data.normalize();
+  window.__DATA_META = data.META;
+  return !!(data.DATA && data.DATA.series);
+}
+
+function avisoSemDados() {
+  const w = document.querySelector(".wrap");
+  if (w) w.insertAdjacentHTML("afterbegin",
+    '<div class="out" style="border-color:#f2686b">Não foi possível carregar os dados de câmbio.</div>');
+}
+
+/* preenche <select> com as moedas do dataset */
+function preencherCodigos(seletores, padrao) {
+  const opts = data.CODES.map(c =>
+    `<option value="${c}">${c} — ${(data.META[c] && data.META[c].name) || ""}</option>`).join("");
+  seletores.forEach(s => {
+    const el = $(s);
+    if (el) { el.innerHTML = opts; if (padrao) el.value = padrao; }
+  });
+}
+
+/* preenche <select> com os programas de milhas */
+function preencherProgramas(seletores) {
+  const mp = (window.__MILHAS.programs || []).map(p => `<option value="${p.id}">${p.name}</option>`).join("");
+  seletores.forEach(s => { const el = $(s); if (el) el.innerHTML = mp; });
+}
+
+/* cabeçalho: botão LOGIN (página própria) ou conta logada */
+async function montarCabecalho() {
+  const el = $("#userBox"); if (!el) return;
+  let u = null;
+  try { u = await auth.usuarioAtual(); } catch (e) { }
+  if (u) {
+    el.innerHTML = `<a href="login.html" style="color:var(--mut)">${esc(u.email)}</a>` +
+      ` · <a href="#" onclick="window.__sair();return false" style="color:var(--gold2)">sair</a>`;
+  } else {
+    el.innerHTML = `<a href="login.html" class="btn gh" style="display:inline-block;padding:8px 14px;font-size:12px">LOGIN</a>`;
+  }
+}
+window.__sair = async () => { await auth.sair(); location.reload(); };
+
+/* service worker (PWA) */
+function registrarSW() {
+  const st = $("#pwaStatus");
+  if (!("serviceWorker" in navigator)) {
+    if (st) st.textContent = "Este navegador não suporta instalação (abra no Chrome/Safari).";
+    return;
+  }
+  navigator.serviceWorker.register("sw.js")
+    .then(() => { if (st) st.textContent = "✓ Pronto para instalar — app ativo e offline disponível."; })
+    .catch(() => { if (st) st.textContent = "Instalação disponível ao abrir pelo endereço https://."; });
+}
+
+/* atualização ao vivo: spot + PTAX + render da página + carimbo */
+async function refreshPagina(renderFn) {
+  const btn = $("#refresh");
+  if (btn) btn.innerHTML = `<span class="spin"></span> atualizando`;
+  try { await data.refreshSpot(); } catch (e) { console.warn("sem conexão", e); }
+  try { await data.refreshPtax(); } catch (e) { console.warn("PTAX indisponível", e); }
+  await renderFn();
+  stamp(data.DATA);
+  if (btn) btn.innerHTML = "↻ Atualizar";
+}
+
+/* boot comum: dados + cabeçalho + SW. Retorna true se os dados carregaram. */
+async function bootComum() {
+  const ok = await iniciarDados();
+  await montarCabecalho();
+  registrarSW();
+  return ok;
+}
+
+return { avisoSemDados, bootComum, iniciarDados, montarCabecalho, preencherCodigos, preencherProgramas, refreshPagina, registrarSW };
+})();
+/* ===== modules/login.js ===== */
+MOD['modules/login'] = (function() {
+/* módulo Login — telas de acesso + configuração do projeto Supabase.
+   Acesso por convite: cadastro existe, mas só entra quem o administrador
+   confirmar no painel do Supabase (ou via e-mail de confirmação). */
+const {  $, fmt, esc  } = MOD['core/format'];
+const auth = MOD['core/auth'];
+
+let modo = "entrar";   // entrar | cadastrar | recuperar | trocar
+
+function mostrar(msg, ok = false) {
+  const el = $("#lMsg"); if (!el) return;
+  el.innerHTML = `<div class="note" style="color:${ok ? "var(--up)" : "var(--dn)"}">${esc(msg)}</div>`;
+}
+
+function render() {
+  const box = $("#lBox"); if (!box) return;
+  const t = {
+    entrar: { h: "Entrar", sub: "Use o e-mail e a senha da sua conta BW.", btn: "Entrar",
+      campos: `<div><label>E-mail</label><input id="lEmail" type="email" placeholder="voce@email.com"></div>
+               <div><label>Senha</label><input id="lSenha" type="password" placeholder="••••••••"></div>` },
+    cadastrar: { h: "Criar conta", sub: "O cadastro fica pendente até o administrador liberar o acesso.", btn: "Criar minha conta",
+      campos: `<div><label>Seu nome</label><input id="lNome" type="text" placeholder="Nome completo"></div>
+               <div><label>E-mail</label><input id="lEmail" type="email" placeholder="voce@email.com"></div>
+               <div><label>Senha (mín. 6 caracteres)</label><input id="lSenha" type="password" placeholder="mínimo 6"></div>` },
+    recuperar: { h: "Recuperar senha", sub: "Enviamos um link de redefinição para o seu e-mail.", btn: "Enviar link",
+      campos: `<div><label>E-mail</label><input id="lEmail" type="email" placeholder="voce@email.com"></div>` },
+    trocar: { h: "Definir nova senha", sub: "Chegou pelo link do e-mail? Defina a nova senha aqui.", btn: "Salvar nova senha",
+      campos: `<div><label>Nova senha (mín. 6 caracteres)</label><input id="lSenha" type="password" placeholder="mínimo 6"></div>` },
+  }[modo];
+
+  box.innerHTML = `
+    <h3>${t.h}</h3>
+    <div class="sub">${t.sub}</div>
+    <div style="display:grid;gap:10px;margin-top:12px">${t.campos}</div>
+    <button class="btn" id="lGo" style="margin-top:14px">${t.btn}</button>
+    <div style="margin-top:12px;font-size:12.5px;color:var(--mut)">
+      ${modo !== "entrar" ? `<a href="#login" onclick="window.__lModo('entrar');return false" style="color:var(--gold2)">← Voltar para entrar</a> · ` : ""}
+      ${modo === "entrar" ? `<a href="#login" onclick="window.__lModo('cadastrar');return false" style="color:var(--gold2)">Criar conta</a> · <a href="#login" onclick="window.__lModo('recuperar');return false" style="color:var(--gold2)">Esqueci a senha</a>` : ""}
+    </div>`;
+  $("#lGo").onclick = agir;
+}
+
+async function agir() {
+  const email = ($("#lEmail") || {}).value || "", senha = ($("#lSenha") || {}).value || "";
+  const nome = ($("#lNome") || {}).value || "";
+  try {
+    $("#lGo").disabled = true;
+    if (modo === "entrar") {
+      await auth.entrar(email, senha);
+      mostrar("Entrou! Voltando ao painel…", true);
+      setTimeout(() => { location.href = "./"; }, 600);
+    } else if (modo === "cadastrar") {
+      if (senha.length < 6) throw new Error("A senha precisa de pelo menos 6 caracteres.");
+      await auth.cadastrar(email, senha, nome);
+      mostrar("Conta criada! Agora aguarde a liberação do administrador (você receberá um e-mail quando o acesso for liberado).", true);
+      modo = "entrar"; render();
+    } else if (modo === "recuperar") {
+      await auth.recuperar(email);
+      mostrar("Link enviado! Confira seu e-mail (e a caixa de spam).", true);
+    } else if (modo === "trocar") {
+      if (senha.length < 6) throw new Error("A senha precisa de pelo menos 6 caracteres.");
+      await auth.trocarSenha(senha);
+      mostrar("Senha alterada! Entre com a nova.", true);
+      modo = "entrar"; render();
+    }
+  } catch (e) {
+    mostrar(traduzErro(e));
+  } finally {
+    const g = $("#lGo"); if (g) g.disabled = false;
+  }
+}
+
+function traduzErro(e) {
+  const m = (e && (e.message || e.msg)) || String(e);
+  if (/Invalid login/i.test(m)) return "E-mail ou senha incorretos.";
+  if (/not confirmed/i.test(m)) return "Sua conta ainda não foi liberada pelo administrador.";
+  if (/already registered/i.test(m)) return "Este e-mail já tem conta — use Entrar.";
+  if (/rate limit/i.test(m)) return "Muitas tentativas. Aguarde um minuto.";
+  if (/não configurada/i.test(m)) return "A autenticação ainda não foi configurada — veja o passo a passo abaixo.";
+  return m;
+}
+
+/* configuração do projeto (só o administrador usa) — exportada para a página CONFIGADM */
+function initConfig() {
+  const el = $("#lCfg"); if (!el) return;
+  const c = auth.credenciais();
+  el.innerHTML = `
+    <div style="display:grid;gap:10px">
+      <div><label>Project URL (Supabase)</label><input id="cfgUrl" type="url" placeholder="https://xxxx.supabase.co — ou cole o link do dashboard" value="${esc(c.url)}"></div>
+      <div><label>Publishable key (Supabase)</label><input id="cfgAnon" type="text" placeholder="sb_publishable_... ou eyJhbGciOi..." value="${esc(c.anon)}"></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn" id="cfgGo">Salvar configuração</button>
+        <button class="btn gh" id="cfgTest">Testar conexão</button>
+      </div>
+      <div class="note" id="cfgMsg"></div>
+      <div class="note">A Publishable key já vem preenchida — é pública por design. Falta só a Project URL. Nunca cole aqui a secret key (sb_secret_…): o painel recusa automaticamente.</div>
+    </div>`;
+  $("#cfgGo").onclick = () => {
+    auth.configurar($("#cfgUrl").value, $("#cfgAnon").value);
+    mostrar("Configuração salva. Teste entrando com sua conta.", true);
+  };
+  $("#cfgTest").onclick = async () => {
+    auth.configurar($("#cfgUrl").value, $("#cfgAnon").value);
+    const m = $("#cfgMsg");
+    m.textContent = "Testando…";
+    const r = await auth.testarConexao();
+    m.textContent = r.msg;
+    m.style.color = r.ok ? "var(--up)" : "var(--dn)";
+  };
+}
+
+function init() {
+  if (!$("#lBox")) return;
+  window.__lModo = m => { modo = m; render(); };
+  render();
+  initConfig();
+
+  /* link do e-mail de recuperação volta com hash #recuperar + token na URL */
+  if (location.hash.startsWith("#recuperar") || /type=recovery/.test(location.hash)) {
+    modo = "trocar"; render();
+  }
+}
+
+/* estado para o main: logado ou não */
+async function estado() {
+  if (!auth.configurado()) return { modo: "nao-configurado" };
+  const u = await auth.usuarioAtual();
+  return u ? { modo: "logado", usuario: u } : { modo: "deslogado" };
+}
+
+return { estado, init, initConfig };
+})();
+/* ===== configadm_main.js ===== */
+MOD['configadm_main'] = (function() {
+/* configadm_main.js — boot da página CONFIGADM (só a configuração admin). */
+const {  $  } = MOD['core/format'];
+const auth = MOD['core/auth'];
+const login = MOD['modules/login'];
+const {  registrarSW  } = MOD['core/bootcommon'];
+
+(async function boot() {
+  login.initConfig();   // renderiza #lCfg com Salvar + Testar conexão
+  registrarSW();
+})();
+
+return {  };
+})();</script>
+</body>
+</html>
