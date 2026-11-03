@@ -165,16 +165,14 @@ footer b{color:var(--gold)}
   <div class="grid2" style="margin-top:16px">
     <div><div class="card" id="lBox"></div><div id="lMsg" style="margin-top:10px"></div></div>
     <div class="card">
-      <h3>Configuração do projeto (administrador)</h3>
-      <div class="sub">Conecta o painel ao projeto Supabase criado para a BW. Passo a passo:</div>
+      <h3>Acesso por convite</h3>
+      <div class="sub">Só entra quem o administrador liberar. Sua sessão fica salva neste aparelho.</div>
       <div class="note" style="line-height:1.7">
-        1. Crie conta grátis em <b>supabase.com</b> → New project (nome: <b>bw-audiovisual</b>).<br>
-        2. Em <b>Authentication → Providers</b>: Email ativado (padrão).<br>
-        3. Em <b>Authentication → Users</b>: <b>Add user → Create new user</b> — cadastre você mesmo com senha forte e marque <b>Auto Confirm User</b>.<br>
-        4. Em <b>Project Settings → API (API Keys)</b>: copie a <b>Project URL</b> (https://xxxx.supabase.co). A <b>Publishable key</b> já vem preenchida no painel.<br>
-        5. Cole a URL ao lado (aceita também o link do dashboard), <b>Salvar</b> e <b>Testar conexão</b>. Depois entre com seu e-mail e senha. Novos usuários: <b>Authentication → Users → Add user</b> (convite).
+        • <b>Esqueceu a senha?</b> Use "Recuperar senha" — o link chega por e-mail.<br>
+        • <b>Primeira vez?</b> Crie a conta e aguarde a liberação do administrador.<br>
+        • <b>Administrador</b>: cria e libera usuários no painel do Supabase
+        (referência completa na página <a href="configadm.html" style="color:var(--gold2)">CONFIGADM</a>).
       </div>
-      <div id="lCfg" style="margin-top:12px"></div>
     </div>
   </div>
 
@@ -461,8 +459,8 @@ function traduzErro(e) {
   return m;
 }
 
-/* ---- configuração do projeto (só o administrador usa) ---- */
-function renderConfig() {
+/* configuração do projeto (só o administrador usa) — exportada para a página CONFIGADM */
+function initConfig() {
   const el = $("#lCfg"); if (!el) return;
   const c = auth.credenciais();
   el.innerHTML = `
@@ -494,7 +492,7 @@ function init() {
   if (!$("#lBox")) return;
   window.__lModo = m => { modo = m; render(); };
   render();
-  renderConfig();
+  initConfig();
 
   /* link do e-mail de recuperação volta com hash #recuperar + token na URL */
   if (location.hash.startsWith("#recuperar") || /type=recovery/.test(location.hash)) {
@@ -509,7 +507,7 @@ async function estado() {
   return u ? { modo: "logado", usuario: u } : { modo: "deslogado" };
 }
 
-return { estado, init };
+return { estado, init, initConfig };
 })();
 /* ===== login_main.js ===== */
 MOD['login_main'] = (function() {
