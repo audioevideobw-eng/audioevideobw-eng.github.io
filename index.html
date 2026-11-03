@@ -767,9 +767,11 @@ async function subir(chave) {
     const { data: sess } = await c.auth.getSession();
     if (!sess || !sess.session) return { ok: false, msg: "sem sessão" };
     const valor = load(chave, 1, []);
+    /* user_id NÃO vai no payload: o banco preenche com auth.uid() (default da
+       coluna). O conflito é pela chave primária composta (user_id, chave). */
     const { error } = await c.from("user_data").upsert(
       { chave, dados: valor, atualizado_em: new Date().toISOString() },
-      { onConflict: "chave" }   // user_id vem do RLS/jwt — não mandamos
+      { onConflict: "user_id,chave" }
     );
     if (error) return { ok: false, msg: error.message };
     return { ok: true, msg: `${chave}: ${valor.length} registros na nuvem` };
