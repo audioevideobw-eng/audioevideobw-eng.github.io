@@ -309,6 +309,11 @@
       </div>
       <div class="note" id="sMsg"></div>
     </div>
+    <div class="card">
+      <h3>Sincronização com a conta</h3>
+      <div class="sub">Com login ativo, seus alertas e diário ficam na sua conta — o mesmo dado em celular e computador.</div>
+      <div id="sNuvem"><div class="note">Verificando sessão…</div></div>
+    </div>
   </div>
 
   <!-- ================= ALERTAS ================= -->
@@ -717,6 +722,78 @@ async function testarConexao() {
 }
 
 return { cadastrar, configurado, configurar, credenciais, entrar, recuperar, sair, sessao, sessaoLocal, testarConexao, trocarSenha, usuarioAtual };
+})();
+/* ===== core/nuvem.js ===== */
+MOD['core/nuvem'] = (function() {
+/* core/nuvem.js — sincronização dos dados pessoais com a conta Supabase.
+   Contrato: o navegador continua sendo a fonte imediata (localStorage via
+   core/store); a nuvem é a cópia sincronizada. Cada chave (fx_alerts,
+   fx_diario) é uma linha em public.user_data com RLS — cada usuário só
+   acessa as próprias linhas. */
+const {  load, save  } = MOD['core/store'];
+const {  credenciais  } = MOD['core/auth'];
+
+/* lê a sessão do cliente supabase-js carregado no template */
+async function sb() {
+  if (!window.supabase) return null;
+  const c = credenciais();
+  if (!c.url || !c.anon) return null;
+  return window.supabase.createClient(c.url, c.anon);
+}
+
+/* ---- baixar: nuvem -> navegador ---- */
+async function baixar() {
+  const c = await sb(); if (!c) return { ok: false, msg: "sem cliente" };
+  try {
+    const { data: sess } = await c.auth.getSession();
+    if (!sess || !sess.session) return { ok: false, msg: "sem sessão" };
+    const { data, error } = await c.from("user_data").select("chave, dados, atualizado_em");
+    if (error) return { ok: false, msg: error.message };
+    let n = 0;
+    (data || []).forEach(r => {
+      if (Array.isArray(r.dados)) {
+        save(r.chave, 1, r.dados);
+        n += r.dados.length;
+      }
+    });
+    return { ok: true, msg: `${n} registros baixados da nuvem`, registros: n };
+  } catch (e) { return { ok: false, msg: String(e.message || e) }; }
+}
+
+/* ---- subir: navegador -> nuvem ---- */
+async function subir(chave) {
+  const c = await sb(); if (!c) return { ok: false, msg: "sem cliente" };
+  try {
+    const { data: sess } = await c.auth.getSession();
+    if (!sess || !sess.session) return { ok: false, msg: "sem sessão" };
+    const valor = load(chave, 1, []);
+    const { error } = await c.from("user_data").upsert(
+      { chave, dados: valor, atualizado_em: new Date().toISOString() },
+      { onConflict: "chave" }   // user_id vem do RLS/jwt — não mandamos
+    );
+    if (error) return { ok: false, msg: error.message };
+    return { ok: true, msg: `${chave}: ${valor.length} registros na nuvem` };
+  } catch (e) { return { ok: false, msg: String(e.message || e) }; }
+}
+
+/* ---- sincronizar tudo: sobe as chaves conhecidas ---- */
+async function sincronizarTudo() {
+  const chaves = ["fx_alerts", "fx_diario"];
+  const res = [];
+  for (const k of chaves) res.push(await subir(k));
+  return res;
+}
+
+/* ---- estado: logado e com tabela acessível? ---- */
+async function disponivel() {
+  const c = await sb(); if (!c) return false;
+  try {
+    const { data: sess } = await c.auth.getSession();
+    return !!(sess && sess.session);
+  } catch (e) { return false; }
+}
+
+return { baixar, disponivel, sincronizarTudo, subir };
 })();
 /* ===== modules/cambio.js ===== */
 MOD['modules/cambio'] = (function() {
@@ -1465,10 +1542,12 @@ return { calcular, init, render };
 MOD['modules/sync'] = (function() {
 /* módulo Sincronização — backup/restauração dos dados locais do painel.
    Exporta tudo o que o usuário criou (alertas, diário) num arquivo .json
-   e restaura de volta em outro aparelho/navegador. Sem servidor: o arquivo
-   é a cópia de segurança. */
+   e restaura de volta em outro aparelho/navegador. Com conta logada,
+   também sincroniza com a nuvem (Supabase) — mesmo dado em todo aparelho. */
 const {  $, fmt  } = MOD['core/format'];
 const {  load, save  } = MOD['core/store'];
+const auth = MOD['core/auth'];
+const nuvem = MOD['core/nuvem'];
 
 /* tudo o que é dado do usuário, com a chave/versão do core/store */
 const ITENS = [
@@ -1513,6 +1592,35 @@ function init() {
     };
     fr.readAsText(arq.files[0]);
   };
+
+  /* sincronização com a conta (se logado) */
+  const cNuvem = $("#sNuvem");
+  if (cNuvem) {
+    auth.usuarioAtual().then(u => {
+      if (!u) { cNuvem.innerHTML = '<div class="note">Entre na aba Acesso para sincronizar seus dados com a conta.</div>'; return; }
+      cNuvem.innerHTML = `
+        <div class="row"><span>Conta</span><b>${u.email}</b></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+          <button class="btn" id="sSync">Sincronizar agora</button>
+          <button class="btn gh" id="sDown">Baixar da nuvem</button>
+        </div>
+        <div class="note" id="sNuvemMsg">Sobe alertas e diário para a sua conta; em outro aparelho, entre e clique em "Baixar da nuvem".</div>`;
+      $("#sSync").onclick = async () => {
+        $("#sNuvemMsg").textContent = "Sincronizando…";
+        const rs = await nuvem.sincronizarTudo();
+        const falha = rs.find(r => !r.ok);
+        $("#sNuvemMsg").textContent = falha ? "Falha: " + falha.msg
+          : rs.map(r => r.msg).join(" · ") + " — sincronizado ✓";
+        $("#sNuvemMsg").style.color = falha ? "var(--dn)" : "var(--up)";
+      };
+      $("#sDown").onclick = async () => {
+        $("#sNuvemMsg").textContent = "Baixando…";
+        const r = await nuvem.baixar();
+        $("#sNuvemMsg").textContent = r.msg + (r.ok ? " — atualize a página para ver" : "");
+        $("#sNuvemMsg").style.color = r.ok ? "var(--up)" : "var(--dn)";
+      };
+    });
+  }
 }
 
 return { coletar, init, restaurar };
@@ -1579,6 +1687,7 @@ const {  $, $$  } = MOD['core/format'];
 const data = MOD['core/data'];
 const {  stamp  } = MOD['core/ui'];
 const auth = MOD['core/auth'];
+const nuvem = MOD['core/nuvem'];
 const login = MOD['modules/login'];
 const cambio = MOD['modules/cambio'];
 const serie = MOD['modules/serie'];
