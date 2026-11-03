@@ -593,8 +593,9 @@ const {  load, save, remove  } = MOD['core/store'];
 const KEY = "fx_session", VER = 1;
 const URL_KEY = "fx_supabase_url", URL_VER = 1;
 const ANON_KEY = "fx_supabase_anon", ANON_VER = 1;
-/* publishable key do projeto BW — pública por design (client-side) */
+/* publishable key e URL do projeto BW — a key é pública por design (client-side) */
 const ANON_PADRAO = "sb_publishable_qJ2mIx1hcn_ZH75-yxJiDA_OI-EHyIU";
+const URL_PADRAO = "https://zdtnetplvdonogmdvarx.supabase.co";
 
 /* credenciais do projeto (definidas em runtime pela aba Config, salvas localmente).
    SEGURANÇA: chave secreta (sb_secret_/sbp_) NUNCA é usada no navegador —
@@ -603,7 +604,7 @@ function credenciais() {
   let anon = load(ANON_KEY, ANON_VER, "");
   if (/^sb_secret_|^sbp_/.test(anon)) anon = "";
   return {
-    url: load(URL_KEY, URL_VER, ""),
+    url: load(URL_KEY, URL_VER, "") || URL_PADRAO,
     anon: anon || ANON_PADRAO,
   };
 }
