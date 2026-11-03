@@ -25,7 +25,6 @@
     <a href="#diario">Diário</a>
     <a href="#evento">Evento</a>
     <a href="#comparador">Comparar</a>
-    <a href="#login" style="color:var(--gold2)">Acesso</a>
     <a href="#app">App</a>
     <a href="#alertas">Alertas</a>
     <a href="/recs.html" style="color:var(--gold2);border-color:rgba(212,169,74,.4)">★ Recomendações</a>
@@ -267,24 +266,6 @@
       <div style="align-self:end"><button class="btn" id="kGo" style="width:100%">Comparar</button></div>
     </div>
     <div style="margin-top:14px" id="kOut"></div>
-  </div>
-
-  <!-- ================= LOGIN ================= -->
-  <h2 id="login">Acesso</h2>
-  <div class="grid2">
-    <div class="card" id="lBox"></div>
-    <div class="card">
-      <h3>Configuração do projeto (administrador)</h3>
-      <div class="sub">Conecta o painel ao projeto Supabase criado para a BW. Passo a passo:</div>
-      <div class="note" style="line-height:1.7">
-        1. Crie conta grátis em <b>supabase.com</b> → New project (nome: <b>bw-audiovisual</b>).<br>
-        2. Em <b>Authentication → Providers</b>: Email ativado (padrão).<br>
-        3. Em <b>Authentication → Users</b>: <b>Add user → Create new user</b> — cadastre você mesmo com senha forte e marque <b>Auto Confirm User</b>.<br>
-        4. Em <b>Project Settings → API (API Keys)</b>: copie a <b>Project URL</b> (https://xxxx.supabase.co). A <b>Publishable key</b> já vem preenchida no painel.<br>
-        5. Cole a URL ao lado (aceita também o link do dashboard), <b>Salvar</b> e <b>Testar conexão</b>. Depois entre com seu e-mail e senha. Novos usuários: <b>Authentication → Users → Add user</b> (convite).
-      </div>
-      <div id="lCfg" style="margin-top:12px"></div>
-    </div>
   </div>
 
   <!-- ================= APP / SINCRONIZAÇÃO ================= -->
@@ -1368,139 +1349,6 @@ function init() {
 
 return { init, render };
 })();
-/* ===== modules/login.js ===== */
-MOD['modules/login'] = (function() {
-/* módulo Login — telas de acesso + configuração do projeto Supabase.
-   Acesso por convite: cadastro existe, mas só entra quem o administrador
-   confirmar no painel do Supabase (ou via e-mail de confirmação). */
-const {  $, fmt, esc  } = MOD['core/format'];
-const auth = MOD['core/auth'];
-
-let modo = "entrar";   // entrar | cadastrar | recuperar | trocar
-
-function mostrar(msg, ok = false) {
-  const el = $("#lMsg"); if (!el) return;
-  el.innerHTML = `<div class="note" style="color:${ok ? "var(--up)" : "var(--dn)"}">${esc(msg)}</div>`;
-}
-
-function render() {
-  const box = $("#lBox"); if (!box) return;
-  const t = {
-    entrar: { h: "Entrar", sub: "Use o e-mail e a senha da sua conta BW.", btn: "Entrar",
-      campos: `<div><label>E-mail</label><input id="lEmail" type="email" placeholder="voce@email.com"></div>
-               <div><label>Senha</label><input id="lSenha" type="password" placeholder="••••••••"></div>` },
-    cadastrar: { h: "Criar conta", sub: "O cadastro fica pendente até o administrador liberar o acesso.", btn: "Criar minha conta",
-      campos: `<div><label>Seu nome</label><input id="lNome" type="text" placeholder="Nome completo"></div>
-               <div><label>E-mail</label><input id="lEmail" type="email" placeholder="voce@email.com"></div>
-               <div><label>Senha (mín. 6 caracteres)</label><input id="lSenha" type="password" placeholder="mínimo 6"></div>` },
-    recuperar: { h: "Recuperar senha", sub: "Enviamos um link de redefinição para o seu e-mail.", btn: "Enviar link",
-      campos: `<div><label>E-mail</label><input id="lEmail" type="email" placeholder="voce@email.com"></div>` },
-    trocar: { h: "Definir nova senha", sub: "Chegou pelo link do e-mail? Defina a nova senha aqui.", btn: "Salvar nova senha",
-      campos: `<div><label>Nova senha (mín. 6 caracteres)</label><input id="lSenha" type="password" placeholder="mínimo 6"></div>` },
-  }[modo];
-
-  box.innerHTML = `
-    <h3>${t.h}</h3>
-    <div class="sub">${t.sub}</div>
-    <div style="display:grid;gap:10px;margin-top:12px">${t.campos}</div>
-    <button class="btn" id="lGo" style="margin-top:14px">${t.btn}</button>
-    <div style="margin-top:12px;font-size:12.5px;color:var(--mut)">
-      ${modo !== "entrar" ? `<a href="#login" onclick="window.__lModo('entrar');return false" style="color:var(--gold2)">← Voltar para entrar</a> · ` : ""}
-      ${modo === "entrar" ? `<a href="#login" onclick="window.__lModo('cadastrar');return false" style="color:var(--gold2)">Criar conta</a> · <a href="#login" onclick="window.__lModo('recuperar');return false" style="color:var(--gold2)">Esqueci a senha</a>` : ""}
-    </div>`;
-  $("#lGo").onclick = agir;
-}
-
-async function agir() {
-  const email = ($("#lEmail") || {}).value || "", senha = ($("#lSenha") || {}).value || "";
-  const nome = ($("#lNome") || {}).value || "";
-  try {
-    $("#lGo").disabled = true;
-    if (modo === "entrar") {
-      await auth.entrar(email, senha);
-      mostrar("Entrou! Carregando seu painel…", true);
-      setTimeout(() => location.reload(), 600);
-    } else if (modo === "cadastrar") {
-      if (senha.length < 6) throw new Error("A senha precisa de pelo menos 6 caracteres.");
-      await auth.cadastrar(email, senha, nome);
-      mostrar("Conta criada! Agora aguarde a liberação do administrador (você receberá um e-mail quando o acesso for liberado).", true);
-      modo = "entrar"; render();
-    } else if (modo === "recuperar") {
-      await auth.recuperar(email);
-      mostrar("Link enviado! Confira seu e-mail (e a caixa de spam).", true);
-    } else if (modo === "trocar") {
-      if (senha.length < 6) throw new Error("A senha precisa de pelo menos 6 caracteres.");
-      await auth.trocarSenha(senha);
-      mostrar("Senha alterada! Entre com a nova.", true);
-      modo = "entrar"; render();
-    }
-  } catch (e) {
-    mostrar(traduzErro(e));
-  } finally {
-    const g = $("#lGo"); if (g) g.disabled = false;
-  }
-}
-
-function traduzErro(e) {
-  const m = (e && (e.message || e.msg)) || String(e);
-  if (/Invalid login/i.test(m)) return "E-mail ou senha incorretos.";
-  if (/not confirmed/i.test(m)) return "Sua conta ainda não foi liberada pelo administrador.";
-  if (/already registered/i.test(m)) return "Este e-mail já tem conta — use Entrar.";
-  if (/rate limit/i.test(m)) return "Muitas tentativas. Aguarde um minuto.";
-  if (/não configurada/i.test(m)) return "A autenticação ainda não foi configurada — veja o passo a passo abaixo.";
-  return m;
-}
-
-/* ---- configuração do projeto (só o administrador usa) ---- */
-function renderConfig() {
-  const el = $("#lCfg"); if (!el) return;
-  const c = auth.credenciais();
-  el.innerHTML = `
-    <div style="display:grid;gap:10px">
-      <div><label>Project URL (Supabase)</label><input id="cfgUrl" type="url" placeholder="https://xxxx.supabase.co — ou cole o link do dashboard" value="${esc(c.url)}"></div>
-      <div><label>Publishable key (Supabase)</label><input id="cfgAnon" type="text" placeholder="sb_publishable_... ou eyJhbGciOi..." value="${esc(c.anon)}"></div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <button class="btn" id="cfgGo">Salvar configuração</button>
-        <button class="btn gh" id="cfgTest">Testar conexão</button>
-      </div>
-      <div class="note" id="cfgMsg"></div>
-      <div class="note">A Publishable key já vem preenchida — é pública por design. Falta só a Project URL. Nunca cole aqui a secret key (sb_secret_…): o painel recusa automaticamente.</div>
-    </div>`;
-  $("#cfgGo").onclick = () => {
-    auth.configurar($("#cfgUrl").value, $("#cfgAnon").value);
-    mostrar("Configuração salva. Teste entrando com sua conta.", true);
-  };
-  $("#cfgTest").onclick = async () => {
-    auth.configurar($("#cfgUrl").value, $("#cfgAnon").value);
-    const m = $("#cfgMsg");
-    m.textContent = "Testando…";
-    const r = await auth.testarConexao();
-    m.textContent = r.msg;
-    m.style.color = r.ok ? "var(--up)" : "var(--dn)";
-  };
-}
-
-function init() {
-  if (!$("#lBox")) return;
-  window.__lModo = m => { modo = m; render(); };
-  render();
-  renderConfig();
-
-  /* link do e-mail de recuperação volta com hash #recuperar + token na URL */
-  if (location.hash.startsWith("#recuperar") || /type=recovery/.test(location.hash)) {
-    modo = "trocar"; render();
-  }
-}
-
-/* estado para o main: logado ou não */
-async function estado() {
-  if (!auth.configurado()) return { modo: "nao-configurado" };
-  const u = await auth.usuarioAtual();
-  return u ? { modo: "logado", usuario: u } : { modo: "deslogado" };
-}
-
-return { estado, init };
-})();
 /* ===== modules/milhasmeta.js ===== */
 MOD['modules/milhasmeta'] = (function() {
 /* módulo Meta de milhas — quanto custa fechar a meta para uma rota. */
@@ -1613,7 +1461,7 @@ function init() {
   const cNuvem = $("#sNuvem");
   if (cNuvem) {
     auth.usuarioAtual().then(u => {
-      if (!u) { cNuvem.innerHTML = '<div class="note">Entre na aba Acesso para sincronizar seus dados com a conta.</div>'; return; }
+      if (!u) { cNuvem.innerHTML = '<div class="note">Entre com sua conta (botão LOGIN no topo) para sincronizar seus dados entre aparelhos.</div>'; return; }
       cNuvem.innerHTML = `
         <div class="row"><span>Conta</span><b>${u.email}</b></div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
@@ -1699,12 +1547,11 @@ return { init, loadAlerts, renderAlerts, saveAlerts };
 /* ===== main.js ===== */
 MOD['main'] = (function() {
 /* main.js — registro de módulos + boot. O shell não conhece o conteúdo. */
-const {  $, $$  } = MOD['core/format'];
+const {  $, $$, esc  } = MOD['core/format'];
 const data = MOD['core/data'];
 const {  stamp  } = MOD['core/ui'];
 const auth = MOD['core/auth'];
 const nuvem = MOD['core/nuvem'];
-const login = MOD['modules/login'];
 const cambio = MOD['modules/cambio'];
 const serie = MOD['modules/serie'];
 const calc = MOD['modules/calculadora'];
@@ -1772,22 +1619,21 @@ function init() {
   window.addEventListener("resize", () => { clearTimeout(__rz); __rz = setTimeout(serie.render, 180); });
   $("#mGo").click(); $("#rGo").click();
   sync.init();
-  login.init();
   registrarSW();
   atualizarCabecalho();
   refresh();
 }
 
-/* mostra quem está logado no cabeçalho (ou convite para entrar) */
+/* cabeçalho: botão LOGIN (página própria) ou conta logada */
 async function atualizarCabecalho() {
-  const st = await login.estado();
   const el = $("#userBox"); if (!el) return;
-  if (st.modo === "logado") {
-    el.innerHTML = `${esc(st.usuario.email)} · <a href="#login" onclick="window.__sair();return false" style="color:var(--gold2)">sair</a>`;
-  } else if (st.modo === "deslogado") {
-    el.innerHTML = `<a href="#login" style="color:var(--gold2)">Entrar</a>`;
+  let u = null;
+  try { u = await auth.usuarioAtual(); } catch (e) { }
+  if (u) {
+    el.innerHTML = `<a href="login.html" style="color:var(--mut)">${esc(u.email)}</a>` +
+      ` · <a href="#" onclick="window.__sair();return false" style="color:var(--gold2)">sair</a>`;
   } else {
-    el.innerHTML = `<a href="#login" style="color:var(--mut)">Ativar acesso</a>`;
+    el.innerHTML = `<a href="login.html" class="btn gh" style="display:inline-block;padding:8px 14px;font-size:12px">LOGIN</a>`;
   }
 }
 window.__sair = async () => { await auth.sair(); location.reload(); };
