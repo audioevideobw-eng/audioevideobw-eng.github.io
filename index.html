@@ -749,14 +749,18 @@ async function baixar() {
     if (!sess || !sess.session) return { ok: false, msg: "sem sessão" };
     const { data, error } = await c.from("user_data").select("chave, dados, atualizado_em");
     if (error) return { ok: false, msg: error.message };
-    let n = 0;
+    let n = 0; const porChave = {};
     (data || []).forEach(r => {
       if (Array.isArray(r.dados)) {
         save(r.chave, 1, r.dados);
         n += r.dados.length;
+        porChave[r.chave] = r.dados.length;
       }
     });
-    return { ok: true, msg: `${n} registros baixados da nuvem`, registros: n };
+    const rotulos = { fx_alerts: "alertas", fx_diario: "operações de diário" };
+    const partes = Object.entries(porChave)
+      .map(([k, v]) => `${v} ${rotulos[k] || k}`).join(" e ");
+    return { ok: true, msg: `Baixado da nuvem: ${partes || "nada ainda"}`, registros: n };
   } catch (e) { return { ok: false, msg: String(e.message || e) }; }
 }
 
