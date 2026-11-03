@@ -280,8 +280,8 @@
         1. Crie conta grátis em <b>supabase.com</b> → New project (nome: <b>bw-audiovisual</b>).<br>
         2. Em <b>Authentication → Providers</b>: Email ativado (padrão).<br>
         3. Em <b>Authentication → Users</b>: <b>Add user → Create new user</b> — cadastre você mesmo com senha forte e marque <b>Auto Confirm User</b>.<br>
-        4. Em <b>Project Settings → API</b>: copie <b>Project URL</b> e <b>anon public key</b> e cole ao lado.<br>
-        5. Salve a configuração e entre. Novos usuários: <b>Authentication → Users → Add user</b> (convite).
+        4. Em <b>Project Settings → API (API Keys)</b>: copie a <b>Project URL</b> (https://xxxx.supabase.co). A <b>Publishable key</b> já vem preenchida no painel.<br>
+        5. Cole a URL ao lado (aceita também o link do dashboard), <b>Salvar</b> e <b>Testar conexão</b>. Depois entre com seu e-mail e senha. Novos usuários: <b>Authentication → Users → Add user</b> (convite).
       </div>
       <div id="lCfg" style="margin-top:12px"></div>
     </div>
@@ -593,17 +593,29 @@ const {  load, save, remove  } = MOD['core/store'];
 const KEY = "fx_session", VER = 1;
 const URL_KEY = "fx_supabase_url", URL_VER = 1;
 const ANON_KEY = "fx_supabase_anon", ANON_VER = 1;
+/* publishable key do projeto BW — pública por design (client-side) */
+const ANON_PADRAO = "sb_publishable_qJ2mIx1hcn_ZH75-yxJiDA_OI-EHyIU";
 
-/* credenciais do projeto (definidas em runtime pela aba Config, salvas localmente) */
+/* credenciais do projeto (definidas em runtime pela aba Config, salvas localmente).
+   SEGURANÇA: chave secreta (sb_secret_/sbp_) NUNCA é usada no navegador —
+   se alguém colar uma, o painel ignora e volta à publishable padrão. */
 function credenciais() {
+  let anon = load(ANON_KEY, ANON_VER, "");
+  if (/^sb_secret_|^sbp_/.test(anon)) anon = "";
   return {
     url: load(URL_KEY, URL_VER, ""),
-    anon: load(ANON_KEY, ANON_VER, ""),
+    anon: anon || ANON_PADRAO,
   };
 }
 
 function configurar(url, anon) {
-  save(URL_KEY, URL_VER, (url || "").trim());
+  let u = (url || "").trim();
+  /* aceita: URL do projeto, link do dashboard ou o ref solto (20 chars) */
+  const m = u.match(/supabase\.com\/dashboard\/project\/([a-z0-9]{20})/i)
+        || u.match(/^([a-z0-9]{20})$/i)
+        || u.match(/https:\/\/([a-z0-9]{20})\.supabase\.co/i);
+  if (m) u = "https://" + m[1] + ".supabase.co";
+  save(URL_KEY, URL_VER, u);
   save(ANON_KEY, ANON_VER, (anon || "").trim());
   cliente = null;   // força recriação do cliente
 }
@@ -1351,14 +1363,14 @@ function renderConfig() {
   const c = auth.credenciais();
   el.innerHTML = `
     <div style="display:grid;gap:10px">
-      <div><label>Project URL (Supabase)</label><input id="cfgUrl" type="url" placeholder="https://xxxx.supabase.co" value="${esc(c.url)}"></div>
-      <div><label>Anon key (Supabase)</label><input id="cfgAnon" type="text" placeholder="eyJhbGciOi..." value="${esc(c.anon)}"></div>
+      <div><label>Project URL (Supabase)</label><input id="cfgUrl" type="url" placeholder="https://xxxx.supabase.co — ou cole o link do dashboard" value="${esc(c.url)}"></div>
+      <div><label>Publishable key (Supabase)</label><input id="cfgAnon" type="text" placeholder="sb_publishable_... ou eyJhbGciOi..." value="${esc(c.anon)}"></div>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
         <button class="btn" id="cfgGo">Salvar configuração</button>
         <button class="btn gh" id="cfgTest">Testar conexão</button>
       </div>
       <div class="note" id="cfgMsg"></div>
-      <div class="note">Estas chaves são públicas por design (anon key) — a segurança fica nas regras do projeto Supabase. Salvas só neste navegador. Nunca cole aqui a service_role key.</div>
+      <div class="note">A Publishable key já vem preenchida — é pública por design. Falta só a Project URL. Nunca cole aqui a secret key (sb_secret_…): o painel recusa automaticamente.</div>
     </div>`;
   $("#cfgGo").onclick = () => {
     auth.configurar($("#cfgUrl").value, $("#cfgAnon").value);
