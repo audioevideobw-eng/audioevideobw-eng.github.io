@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<!-- build 2026-11-04T15:25:13 -->
+<!-- build 2026-11-04T15:42:15 -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Gestão de casa — Mesa BW</title>
@@ -1055,7 +1055,8 @@ const SYNC_EM = { casa_orcamento: "orcSync", casa_contas: "ctSync", casa_reserva
 /* ---- renderização ---- */
 function linhaHTML(lista, o) {
   const cel = lista.cols.map((c, i) => `<td>${esc(o["c" + i] || "")}</td>`).join("");
-  let acoes = `<a href="#" onclick="window.__delCasa('${lista.key}','${o.id}');return false" style="color:var(--dn)">✕</a>`;
+  let acoes = o.virt ? '<small style="color:var(--mut)">fixo</small>'
+    : `<a href="#" onclick="window.__delCasa('${lista.key}','${o.id}');return false" style="color:var(--dn)">✕</a>`;
   if (lista.key === "casa_contas") {
     const pago = ["s", "sim"].includes((o.c3 || "").toLowerCase());
     acoes = `<a href="#" onclick="window.__togglePago('${o.id}');return false" class="tag ${pago ? "up" : "mid"}"
@@ -1100,6 +1101,19 @@ function render() {
       : (l.key === "casa_orcamento") ? todos.filter(o => (o.c4 || "").slice(0, 7) === MES_REF)
       : todos;
     const resumo = resumoLista(l.key, dados);
+    /* lançamentos recorrentes (fixos) aparecem como linhas nos meses posteriores:
+       descrição, categoria e valor — igual a um lançamento normal */
+    let linhas = dados;
+    if (l.key === "casa_orcamento") {
+      const virt = load(FIXOS_KEY, 1, []).filter(f => {
+        const ini = (f.c4 || "").slice(0, 7);
+        if (!ini) return false;
+        return f.c2 === "anual" ? MES_REF === ini : MES_REF >= ini;
+      }).map(f => ({ id: "v_" + f.id, virt: true,
+        c0: (f.c0 || "") + " (fixo)", c1: f.c5 || "", c2: "Despesa",
+        c3: f.c1, c4: MES_REF }));
+      linhas = [...dados, ...virt];
+    }
     const nav = l.key === "casa_reserva" ? "" : `
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
         <button class="btn gh" data-mes="prev" style="padding:6px 12px">‹</button>
@@ -1113,7 +1127,7 @@ function render() {
       ${l.key === "casa_orcamento" ? graficoCategorias(dados) + graficoEvolucao(dados) : ""}
       <div class="tb-scroll"><table>
         <thead><tr>${l.cols.map(c => `<th>${c}</th>`).join("")}<th></th></tr></thead>
-        <tbody>${dados.length ? dados.map(o => linhaHTML(l, o)).join("")
+        <tbody>${linhas.length ? linhas.map(o => linhaHTML(l, o)).join("")
           : '<tr><td colspan="9" style="color:var(--mut)">Vazio — use o formulário abaixo.</td></tr>'}</tbody>
       </table></div>
       <div class="frow3" style="margin-top:10px">
