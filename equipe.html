@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<!-- build 2026-11-04T19:02:04 -->
+<!-- build 2026-11-04T19:56:44 -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Gestão de equipe — Mesa BW</title>
@@ -792,6 +792,7 @@ const {  $, esc  } = MOD['core/format'];
 const {  load, save  } = MOD['core/store'];
 const nuvem = MOD['core/nuvem'];
 const auth = MOD['core/auth'];
+const {  credenciais  } = MOD['core/auth'];
 
 const K_COLAB = "neg_equipe_colaboradores";
 const K_EQUIPES = "neg_equipe_equipes";
@@ -1203,33 +1204,39 @@ function initFormulario() {
   }
 }
 
-/* cadastros recebidos: aprovar (vira colaborador) ou descartar */
+/* cadastros recebidos: lê da tabela equipe_cadastros na nuvem (só o dono lê) */
 function renderCadastros() {
   const el = $("#eqCadastros"); if (!el) return;
-  const lista = load("neg_equipe_cadastros", 1, []);
-  if (!lista.length) { el.innerHTML = '<div class="note">Nenhum cadastro recebido ainda.</div>'; return; }
-  el.innerHTML = lista.map(c => `<div class="card" style="margin-top:6px;background:var(--navy3)">
-    <b>${esc(c.nome)}</b> <small style="color:var(--mut)">${esc(c.funcao || "")}</small>
-    <div style="font-size:12px;color:var(--mut)">${esc(c.tel || "")} · ${esc(c.email || "")} · ${esc(c.cpf || "")}</div>
-    <div style="margin-top:6px;display:flex;gap:8px">
-      <button class="btn gh" style="padding:5px 10px;font-size:11px" onclick="window.__aprovarCad('${c.id}')">✓ Aprovar</button>
-      <a href="#" onclick="window.__descCad('${c.id}');return false" style="color:var(--dn);align-self:center">descartar</a>
-    </div>
-  </div>`).join("");
-  window.__aprovarCad = id => {
-    const lista2 = load("neg_equipe_cadastros", 1, []);
-    const c = lista2.find(x => String(x.id) === String(id));
-    if (!c) return;
-    const colabs2 = colabs();
-    colabs2.push({ id: Date.now(), nome: c.nome, funcao: c.funcao, tel: c.tel, email: c.email, cpf: c.cpf });
-    save(K_COLAB, 1, colabs2);
-    save("neg_equipe_cadastros", 1, lista2.filter(x => String(x.id) !== String(id)));
-    renderCadastros(); renderColaboradores();
-  };
-  window.__descCad = id => {
-    save("neg_equipe_cadastros", 1, load("neg_equipe_cadastros", 1, []).filter(x => String(x.id) !== String(id)));
-    renderCadastros();
-  };
+  const c = credenciais();
+  if (!c.url || !c.anon) { el.innerHTML = '<div class="note">Configure o Supabase para receber cadastros.</div>'; return; }
+  const sb = window.supabase.createClient(c.url, c.anon);
+  sb.from("equipe_cadastros").select("*").order("criado_em", { ascending: false })
+    .then(({ data, error }) => {
+      if (error) { el.innerHTML = '<div class="note">Erro ao ler cadastros: ' + esc(error.message) + '</div>'; return; }
+      if (!data || !data.length) { el.innerHTML = '<div class="note">Nenhum cadastro recebido ainda.</div>'; return; }
+      el.innerHTML = data.map(c2 => `<div class="card" style="margin-top:6px;background:var(--navy3)">
+        <b>${esc(c2.nome)}</b> <small style="color:var(--mut)">${esc(c2.funcao || "")}</small>
+        <div style="font-size:12px;color:var(--mut)">${esc(c2.telefone || "")} · ${esc(c2.email || "")} · ${esc(c2.cpf || "")}</div>
+        <div style="margin-top:6px;display:flex;gap:8px">
+          <button class="btn gh" style="padding:5px 10px;font-size:11px" onclick="window.__aprovarCad(${c2.id})">✓ Aprovar</button>
+          <a href="#" onclick="window.__descCad(${c2.id});return false" style="color:var(--dn);align-self:center">descartar</a>
+        </div>
+      </div>`).join("");
+      window.__aprovarCad = id => {
+        const item = data.find(x => x.id === id);
+        if (!item) return;
+        const colabs2 = colabs();
+        colabs2.push({ id: Date.now(), nome: item.nome, funcao: item.funcao || "",
+          tel: item.telefone || "", email: item.email || "", cpf: item.cpf || "" });
+        save(K_COLAB, 1, colabs2);
+        sb.from("equipe_cadastros").delete().eq("id", id)
+          .then(() => { renderCadastros(); renderColaboradores(); });
+      };
+      window.__descCad = id => {
+        sb.from("equipe_cadastros").delete().eq("id", id)
+          .then(() => renderCadastros());
+      };
+    });
 }
 
 /* modo do colaborador: página aberta com ?cadastro=TOKEN — só o formulário */
@@ -1238,6 +1245,8 @@ function modoCadastro() {
   if (!token) return false;
   const dono = load("neg_equipe_token", 1, "");
   if (!dono || token !== dono) return false;
+  const cred = credenciais();
+  var SB_URL = cred.url, SB_ANON = cred.anon;
   const main = document.querySelector(".wrap");
   main.innerHTML = `<h2>Cadastro — Equipe BW Audiovisual</h2>
     <div class="card">
@@ -1258,25 +1267,25 @@ function modoCadastro() {
   $("#fTel").oninput = e => { e.target.value = maskTel(e.target.value); };
   $("#fCPF").oninput = e => { e.target.value = maskCPF(e.target.value); };
   $("#fEnviar").onclick = async () => {
-    const c = { id: Date.now(),
+    const c = {
       nome: $("#fNome").value.trim(), funcao: $("#fFuncao").value.trim(),
       tel: $("#fTel").value.trim(), email: $("#fEmail").value.trim(), cpf: $("#fCPF").value.trim() };
     if (!c.nome) { $("#fMsg").textContent = "Informe seu nome."; return; }
     $("#fMsg").textContent = "Enviando…";
-    /* salva local e tenta subir para a nuvem (se houver sessão do dono neste
-       navegador) — senão fica salvo local e sobe na próxima sincronização */
-    const lista = load("neg_equipe_cadastros", 1, []);
-    lista.push(c); save("neg_equipe_cadastros", 1, lista);
+    /* grava DIRETO na nuvem (tabela equipe_cadastros, insert público) —
+       o colaborador não precisa de login; o dono lê no painel */
     try {
-      if (window.MOD && MOD["core/auth"] && MOD["core/nuvem"]) {
-        await MOD["core/nuvem"].subir("neg_equipe_cadastros");
-      }
+      const cliente = window.supabase.createClient(SB_URL, SB_ANON);
+      const { error } = await cliente.from("equipe_cadastros").insert({
+        token: token, nome: c.nome, funcao: c.funcao,
+        telefone: c.tel, email: c.email, cpf: c.cpf });
+      if (error) throw error;
       $("#fMsg").textContent = "✓ Cadastro enviado! O administrador vai confirmar sua entrada na equipe.";
+      $("#fNome").value = ""; $("#fFuncao").value = ""; $("#fTel").value = "";
+      $("#fEmail").value = ""; $("#fCPF").value = "";
     } catch (e) {
-      $("#fMsg").textContent = "Cadastro salvo neste aparelho. O administrador sincroniza ao abrir o painel.";
+      $("#fMsg").textContent = "Não consegui enviar (" + (e.message || e) + "). Tente novamente ou avise o administrador.";
     }
-    $("#fNome").value = ""; $("#fFuncao").value = ""; $("#fTel").value = "";
-    $("#fEmail").value = ""; $("#fCPF").value = "";
   };
   return true;
 }
