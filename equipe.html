@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<!-- build 2026-11-04T19:56:44 -->
+<!-- build 2026-11-04T20:19:52 -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Gestão de equipe — Mesa BW</title>
@@ -1248,7 +1248,13 @@ function modoCadastro() {
   const cred = credenciais();
   var SB_URL = cred.url, SB_ANON = cred.anon;
   const main = document.querySelector(".wrap");
-  main.innerHTML = `<h2>Cadastro — Equipe BW Audiovisual</h2>
+  /* página 100% do formulário: some com cabeçalho, menu e rodapé.
+     Via CSS no <head> (o bootComum re-renderiza o header depois do init). */
+  const css = document.createElement("style");
+  css.textContent = "header,footer,.hd nav{display:none!important}";
+  document.head.appendChild(css);
+  document.title = "Cadastro — BW Audiovisual";
+  main.innerHTML = `<h2 style="margin-top:24px">Cadastro — Equipe BW Audiovisual</h2>
     <div class="card">
       <h3>Seus dados</h3>
       <div class="sub">Preencha e envie — o administrador recebe na hora e você entra na escala.</div>
