@@ -1,177 +1,179 @@
 {
- "atualizado": "04/11/2026 08:55",
+ "atualizado": "04/11/2026 10:00",
  "fontes": [
-  "G1 Economia",
-  "G1 Mercado"
+  "Valor Economia",
+  "Valor Finanças",
+  "Valor Empresas",
+  "Valor Agronegócios"
  ],
  "noticias": [
   {
-   "t": "Canva anuncia demissão de 1,2 mil funcionários e corta 22% da equipe",
-   "l": "https://g1.globo.com/tecnologia/noticia/2026/11/04/canva-anuncia-demissao-de-12-mil-funcionarios-em-reestruturacao.ghtml",
-   "d": "Logo do Canva Divulgação O Canva, plataforma australiana de criação de designs, anunciou nesta terça-feira (3) uma reestruturação que afetará 1.271 funcionários, o equivalente a 22% de sua equipe. A empresa atribuiu as m",
-   "dt": "Wed, 04 Nov 2026 11:20:20 -0000",
-   "f": "G1 Economia"
+   "t": "Dólar e juros futuros caem após vitória democrata nas 'midterms', com investidores à espera do Copom",
+   "l": "https://valor.globo.com/financas/ao-vivo/2023/06/16/dolar-avanca-e-ibovespa-recua-em-dia-de-correcao-siga-os-mercados.ghtml",
+   "d": "Dólar e juros futuros caem após vitória democrata nas 'midterms', com investidores à espera do Copom Manutenção da Selic em 13,75% passou a ser consenso no mercado diante de uma piora no sentimento dos agentes financeiro",
+   "dt": "Wed, 04 Nov 2026 12:38:51 -0000",
+   "f": "Valor Finanças"
   },
   {
-   "t": "Midterms nos EUA: vitória democrata ameaça planos de Trump e pode afetar dólar e juros no Brasil",
-   "l": "https://g1.globo.com/economia/noticia/2026/11/04/midterms-nos-eua-vitoria-democrata-ameaca-planos-de-trump-e-pode-afetar-dolar-e-juros-no-brasil.ghtml",
-   "d": "Democratas conquistam controle do Congresso nos Estados Unidos A vitória do Partido Democrata nas eleições de meio de mandato dos Estados Unidos, realizadas na terça-feira (3), pode mudar os rumos da política econômica d",
-   "dt": "Wed, 04 Nov 2026 11:02:43 -0000",
-   "f": "G1 Economia"
+   "t": "Juros futuros acompanham Treasuries e têm alívio; mercado segue à espera do Copom",
+   "l": "https://valor.globo.com/financas/noticia/2026/11/04/juros-futuros-acompanham-treasuries-e-tem-alivio-mercado-segue-a-espera-do-copom.ghtml",
+   "d": "Os juros futuros operam em queda no início dos negócios, em um movimento que reflete a queima de prêmios da curva de juros americana após as eleições de meio de mandato (“midterms”) nos Estados Unidos. O alívio no mercad",
+   "dt": "Wed, 04 Nov 2026 12:36:07 -0000",
+   "f": "Valor Finanças"
   },
   {
-   "t": "VÍDEO: Avicultor usa maçarico para aquecer pintinhos após queda de energia: 'Não morreu nenhum'",
-   "l": "https://g1.globo.com/mg/triangulo-mineiro/noticia/2026/11/04/video-avicultor-usa-macarico-para-aquecer-pintinhos-apos-queda-de-energia-nao-morreu-nenhum.ghtml",
-   "d": "Após queda de energia, avicultor usa maçarico para manter pintinhos aquecidos em Uberaba Uma queda de energia causada pela chuva obrigou um avicultor de Uberaba a improvisar para salvar um lote de 400 pintinhos. Sem os e",
-   "dt": "Wed, 04 Nov 2026 08:20:09 -0000",
-   "f": "G1 Economia"
+   "t": "Saída de estrangeiros da bolsa chega ao 7º pregão seguido e acumula R$ 11,9 bilhões no período",
+   "l": "https://valor.globo.com/financas/noticia/2026/11/04/saida-de-estrangeiros-da-bolsa-chega-ao-7o-pregao-seguido-e-acumula-r-119-bilhoes-no-periodo.ghtml",
+   "d": "A saída de investidores estrangeiros da bolsa brasileira chegou ao 7º pregão consecutivo, movimento que se intensificou após o segundo turno das eleições. Em 30 de outubro, a categoria retirou R$ 317,1 milhões em recurso",
+   "dt": "Wed, 04 Nov 2026 12:30:01 -0000",
+   "f": "Valor Finanças"
   },
   {
-   "t": "RAM 2500 tem recall no Brasil por falha que pode afetar os freios e os controles de estabilidade e tração",
-   "l": "https://g1.globo.com/carros/noticia/2026/11/04/ram-2500-tem-recall-no-brasil-por-falha-que-pode-afetar-os-freios-e-os-controles-de-estabilidade-e-tracao.ghtml",
-   "d": "RAM 2500 modelo 2018. Divulgação / RAM A Stellantis convocou no Brasil um recall da Ram 2500, modelo 2018, por uma falha que pode comprometer o funcionamento do sistema de freios ABS e dos controles de estabilidade e tra",
-   "dt": "Wed, 04 Nov 2026 07:27:42 -0000",
-   "f": "G1 Economia"
+   "t": "Dólar acompanha alívio externo após ‘midterms’ e opera em queda ante o real",
+   "l": "https://valor.globo.com/financas/noticia/2026/11/04/dolar-acompanha-alivio-externo-apos-midterms-e-opera-em-queda-ante-o-real.ghtml",
+   "d": "O câmbio doméstico dá início à sessão de hoje atento aos movimentos do exterior, onde a ampla vitória dos democratas nas eleições de meio de mandato (“midterms”) nos Estados Unidos deixam o dólar em queda ao redor do glo",
+   "dt": "Wed, 04 Nov 2026 12:26:26 -0000",
+   "f": "Valor Finanças"
   },
   {
-   "t": "Paraguai: entenda a crise que colocou banco sob suspeita e levou à renúncia do presidente do BC",
-   "l": "https://g1.globo.com/economia/noticia/2026/11/04/paraguai-crise-banco-renuncia-presidente-do-bc.ghtml",
-   "d": "Vista aérea mostra a sede do Ueno Bank, em Assunção, no Paraguai. Reuters Uma crise envolvendo o banco digital Ueno, que tem cerca de 3 milhões de clientes no Paraguai, levou à renúncia de Carlos Carvallo, presidente do ",
-   "dt": "Wed, 04 Nov 2026 07:00:00 -0000",
-   "f": "G1 Economia"
+   "t": "Analistas destacam resiliência do Itaú em meio a piora no ciclo de crédito",
+   "l": "https://valor.globo.com/financas/noticia/2026/11/04/analistas-destacam-resilincia-do-ita-em-meio-a-piora-no-ciclo-de-crdito.ghtml",
+   "d": "Analistas afirmam que os resultados do Itaú Unibanco no terceiro trimestre, divulgados na noite de ontem, mostram a resiliência da instituição em meio a uma piora no ciclo de crédito. Ainda assim, apontam que a questão é",
+   "dt": "Wed, 04 Nov 2026 12:14:19 -0000",
+   "f": "Valor Finanças"
   },
   {
-   "t": "Cidade do ES tem 327 galinhas e perus para cada morador; média do estado é de cinco; veja todos os municípios",
-   "l": "https://g1.globo.com/es/espirito-santo/agronegocios/noticia/2026/11/04/cidade-do-es-tem-327-galinhas-e-perus-para-cada-morador-media-do-estado-e-de-cinco-veja-todos-os-municipios.ghtml",
-   "d": "Galinhas em granja de Santa Maria de Jetibá, no Espírito Santo Reprodução/TV Gazeta Conhecida nacionalmente como capital do ovo, Santa Maria de Jetibá, na Região Serrana do Espírito Santo, também lidera o ranking de prod",
-   "dt": "Wed, 04 Nov 2026 07:00:00 -0000",
-   "f": "G1 Economia"
+   "t": "Ações da Sequoia passam a ser negociadas grupadas na proporção de 150 para 1",
+   "l": "https://valor.globo.com/empresas/noticia/2026/11/04/aes-da-sequoia-passam-a-ser-negociadas-grupadas-na-proporo-de-150-para-1.ghtml",
+   "d": "A Sequoia informou que suas ações passaram a ser negociadas grupadas na proporção de 150 para 1 desde terça-feira. Com a efetivação do grupamento, o capital social da Companhia passou a ser dividido em 42.469.924 ações o",
+   "dt": "Wed, 04 Nov 2026 12:09:47 -0000",
+   "f": "Valor Finanças"
   },
   {
-   "t": "Midterms: apostas para as eleições já movimentam mais de R$ 8 bilhões nos EUA; dá para confiar nas previsões?",
-   "l": "https://g1.globo.com/economia/noticia/2026/11/04/midterms-mercados-de-previsao.ghtml",
-   "d": "Por que Trump está preocupado com as midterms? As eleições de meio de mandato dos Estados Unidos (midterms) serão um grande teste para os mercados de previsão. Kalshi e Polymarket, que já somam mais de US$ 1,48 bilhão (R",
-   "dt": "Wed, 04 Nov 2026 06:00:01 -0000",
-   "f": "G1 Economia"
+   "t": "Openbank, banco digital do Santander, poderá ‘eventualmente’ estar no Brasil, diz Botín",
+   "l": "https://valor.globo.com/financas/noticia/2026/11/04/openbank-banco-digital-do-santander-poder-eventualmente-estar-no-brasil-diz-botn.ghtml",
+   "d": "O Openbank, banco digital do Grupo Santander, deverá expandir sua atuação para a Colômbia, o Peru e, eventualmente, o Brasil, segundo a presidente-executiva do grupo, Ana Botín. Atualmente, a instituição está presente na",
+   "dt": "Wed, 04 Nov 2026 11:41:06 -0000",
+   "f": "Valor Finanças"
   },
   {
-   "t": "Calendário de novembro 2026: veja datas de pagamento do INSS, Bolsa Família, pé-de-meia e mais",
-   "l": "https://g1.globo.com/economia/noticia/2026/11/04/calendario-de-novembro-2026.ghtml",
-   "d": "Calendário de novembro 2026 Governo Federal O mês de novembro de 2026 já começou, e com ele chegam os pagamentos de programas e benefícios como INSS, Pé-de-Meia e Bolsa Família, entre outros. Alguns dos depósitos começam",
-   "dt": "Wed, 04 Nov 2026 03:00:02 -0000",
-   "f": "G1 Economia"
+   "t": "Ações de SpaceX e Tesla caem após ‘onda azul’ varrer eleições americanas mesmo com pressão de Musk",
+   "l": "https://valor.globo.com/empresas/noticia/2026/11/04/acoes-de-spacex-e-tesla-caem-apos-onda-azul-varrer-eleicoes-americanas-mesmo-com-pressao-de-musk.ghtml",
+   "d": "As ações da SpaceX e da Tesla, companhias lideradas pelo bilionário Elon Musk, têm forte queda nas negociações de pré-mercado na Nasdaq, em Nova York, após o Partido Democrata conquistar uma vitória acachapante nas eleiç",
+   "dt": "Wed, 04 Nov 2026 11:37:33 -0000",
+   "f": "Valor Finanças"
   },
   {
-   "t": "Mega da Virada 2026: sorteio acontece no dia 1º de janeiro novamente; apostas estão abertas",
-   "l": "https://g1.globo.com/loterias/noticia/2026/11/04/mega-da-virada-2026-sorteio-acontece-no-dia-1o-de-janeiro.ghtml",
-   "d": "Imagens de lotérica e cartões de apostas da Mega Sena da Virada, loteria com prêmio previsto de R$ 600 milhões. Caxias do Sul, RS (27). 27/12/2024 - Foto: Antonio Machado/FOTOARENA/Estadão Conteúdo O sorteio da Mega da V",
-   "dt": "Wed, 04 Nov 2026 03:00:01 -0000",
-   "f": "G1 Economia"
+   "t": "Manhã no mercado: À espera do Copom, investidores monitoram ‘midterms’ e notícias sobre o Lula 4",
+   "l": "https://valor.globo.com/financas/noticia/2026/11/04/manha-no-mercado-a-espera-do-copom-investidores-monitoram-midterms-e-noticias-sobre-o-lula-4.ghtml",
+   "d": "É grande a expectativa dos participantes do mercado para a decisão do Comitê de Política Monetária (Copom) do Banco Central, a partir das 18h30. A manutenção da Selic em 13,75% passou a ser o consenso do mercado nos últi",
+   "dt": "Wed, 04 Nov 2026 11:28:26 -0000",
+   "f": "Valor Finanças"
   },
   {
-   "t": "Com mercado dividido após reeleição de Lula, BC decide nesta quarta entre novo corte ou manutenção da taxa de juros",
-   "l": "https://g1.globo.com/economia/noticia/2026/11/04/com-mercado-dividido-apos-reeleicao-de-lula-bc-decide-nesta-quarta-entre-novo-corte-ou-manutencao-da-taxa-de-juros.ghtml",
-   "d": "O Comitê de Política Monetária (Copom) do Banco Central se reúne nesta quarta-feira (16) para definir o patamar da taxa básica de juros da economia brasileira, atualmente em 13,75% após cinco cortes seguidos. 🕝A decisão ",
-   "dt": "Wed, 04 Nov 2026 03:00:01 -0000",
-   "f": "G1 Economia"
+   "t": "'Creio que governo Lula deu demonstrações importantíssimas de confiança para os mercados', diz Botín, do Santander",
+   "l": "https://valor.globo.com/financas/noticia/2026/11/04/creio-que-governo-lula-deu-demonstracoes-importantissimas-de-confianca-para-os-mercados-diz-botin-do-santander.ghtml",
+   "d": "Questionada sobre as eleições gerais no Brasil, a presidente-executiva do Grupo Santander, Ana Botín, avaliou que o governo do presidente Luiz Inácio Lula da Silva (PT) deu “demonstrações importantíssimas de confiança pa",
+   "dt": "Wed, 04 Nov 2026 11:12:46 -0000",
+   "f": "Valor Finanças"
   },
   {
-   "t": "Selic: por que o Banco Central pode parar de cortar juros após a reeleição de Lula?",
-   "l": "https://g1.globo.com/economia/noticia/2026/11/04/selic-por-que-o-banco-central-pode-parar-de-cortar-juros-apos-a-reeleicao-de-lula.ghtml",
-   "d": "Copom reduz taxa de juros, e o FED mantém Jornal Nacional/ Reprodução O Banco Central chega à reunião do Comitê de Política Monetária (Copom) nesta quarta-feira (4) diante de um cenário mais complicado para decidir o fut",
-   "dt": "Wed, 04 Nov 2026 03:00:01 -0000",
-   "f": "G1 Economia"
+   "t": "Santander anuncia 100 bilhões de euros em crédito na América Latina para 2027",
+   "l": "https://valor.globo.com/financas/noticia/2026/11/04/santander-anuncia-100-bilhoes-de-euros-em-credito-na-america-latina-para-2027.ghtml",
+   "d": "Ana Botín, presidente-executiva do Grupo Santander, anunciou, durante o XXII Encontro Santander América Latina, que o banco pretende conceder 100 bilhões de euros em crédito a clientes da região em 2027. A executiva, no ",
+   "dt": "Wed, 04 Nov 2026 11:10:09 -0000",
+   "f": "Valor Finanças"
   },
   {
-   "t": "Concurso da CGU com 60 vagas e salário de R$ 20 mil encerra inscrições nesta quarta",
-   "l": "https://g1.globo.com/trabalho-e-carreira/concursos/noticia/2026/11/04/concurso-da-cgu-com-60-vagas-e-salario-de-r-20-mil.ghtml",
-   "d": "Fachada da Controladoria-Geral da União (CGU) Kenzo Suzuki ASCOM/CGU d As inscrições para o novo concurso público da Controladoria-Geral da União (CGU) terminam nesta quarta-feira (4), às 18h (horário de Brasília). Ao to",
-   "dt": "Wed, 04 Nov 2026 03:00:01 -0000",
-   "f": "G1 Economia"
+   "t": "Agenda do dia: Copom, Caged e PMI de serviços nos EUA são destaque",
+   "l": "https://valor.globo.com/financas/noticia/2026/11/04/agenda-do-dia-copom-caged-e-pmi-de-servicos-nos-eua-sao-destaque.ghtml",
+   "d": "A decisão do Comitê de Política Monetária (Copom) do Banco Central (BC) é o principal destaque desta quarta-feira, com a ansiedade elevada dos mercados pelo comunicado e uma ampla expectativa em torno da manutenção da Se",
+   "dt": "Wed, 04 Nov 2026 10:44:45 -0000",
+   "f": "Valor Finanças"
   },
   {
-   "t": "Dólar fecha em alta e volta a encostar em R$ 3,30",
-   "l": "https://g1.globo.com/economia/mercados/noticia/cotacao-do-dolar-131117.ghtml",
-   "d": "Notas de dólar; moeda dos EUA fechou em alta nesta segunda-feira (13) e volta a encostar em R$ 3,30 Reuters/Dado Ruvic O dólar fechou em alta ante o real nesta segunda-feira (13) e voltou a encostar em R$ 3,30, seguindo ",
-   "dt": "Mon, 13 Nov 2017 11:14:32 -0000",
-   "f": "G1 Mercado"
+   "t": "Anvisa aprova Wegovy em comprimido, 1ª versão oral das canetas emagrecedoras",
+   "l": "https://valor.globo.com/empresas/noticia/2026/11/04/anvisa-aprova-wegovy-em-comprimido-1-verso-oral-das-canetas-emagrecedoras.ghtml",
+   "d": "A Agência Nacional de Vigilância Sanitária (Anvisa) aprovou, nesta quarta-feira (4/11), o registro da via oral de administração para o medicamento Wegovy (semaglutida). O produto estava disponível no Brasil apenas na for",
+   "dt": "Wed, 04 Nov 2026 12:55:54 -0000",
+   "f": "Valor Empresas"
   },
   {
-   "t": "Presidente do JPMorgan diz que bitcoin 'é uma fraude'",
-   "l": "https://g1.globo.com/economia/noticia/presidente-do-jpmorgan-diz-que-bitcoin-e-uma-fraude.ghtml",
-   "d": "Bitcoin, uma moeda virtual não lastreada por nenhum governo, mais do que quadruplicou de valor desde dezembro Benoit Tessier/Reuters A bitcoin \"é uma fraude\" e vai entrar em colapso, disse Jamie Dimon, presidente-executi",
-   "dt": "Tue, 12 Sep 2017 21:17:35 -0000",
-   "f": "G1 Mercado"
+   "t": "IndiGo está em negociações com Embraer para comprar 100 aeronaves, dizem fontes",
+   "l": "https://valor.globo.com/empresas/noticia/2026/11/04/indigo-est-em-negociaes-com-embraer-para-comprar-100-aeronaves-dizem-fontes.ghtml",
+   "d": "A IndiGo, maior companhia aérea da Índia, está em negociações para adquirir 100 aeronaves de aviação regional da Embraer, com opção de compra de mais cerca de 50, segundo três fontes com conhecimento direto do assunto, n",
+   "dt": "Wed, 04 Nov 2026 12:44:27 -0000",
+   "f": "Valor Empresas"
   },
   {
-   "t": "Aplicativo gratuito ajuda a encontrar imóveis retomados pela Caixa com até 90% de desconto",
-   "l": "https://g1.globo.com/sp/piracicaba-regiao/noticia/aplicativo-ajuda-a-encontrar-imoveis-retomados-pela-caixa-com-ate-90-de-desconto.ghtml",
-   "d": "Piracicaba tem imóveis com descontos acima da média no estado de São Paulo Claudia Assencio/G1 Um aplicativo de celular gratuito ajuda a encontrar imóveis retomados pela Caixa Econômica Federal com até 90%, a depender da",
-   "dt": "Sun, 30 Jul 2017 14:21:00 -0000",
-   "f": "G1 Mercado"
+   "t": "Fitch reitera notas de crédito da Petrobras e mantêm perspectiva estável",
+   "l": "https://valor.globo.com/empresas/noticia/2026/11/04/fitch-reitera-notas-de-credito-da-petrobras-e-mantem-perspectiva-estavel.ghtml",
+   "d": "A Fitch Ratings reiterou as notas de crédito em moedas estrangeira e local “BB” da Petrobras, mantendo também inalterada a nota nacional “AAA(bra)”, todas com perspectiva estável. Matéria exclusiva para assinantes. Para ",
+   "dt": "Wed, 04 Nov 2026 12:39:13 -0000",
+   "f": "Valor Empresas"
   },
   {
-   "t": "Bovespa fecha a semana em alta",
-   "l": "https://g1.globo.com/economia/mercados/noticia/bovespa-fecha-em-leve-alta-de-olho-no-noticiario-corporativo.ghtml",
-   "d": "O principal índice da bolsa brasileira fechou em leve alta nesta sexta-feira (28), em mais uma sessão de intenso noticiário corporativo, com diversas empresas divulgando balanços financeiros do segundo trimestre, segundo",
-   "dt": "Fri, 28 Jul 2017 20:18:59 -0000",
-   "f": "G1 Mercado"
+   "t": "Vendas da Volvo Car caem 16% com continuidade de fraqueza nos EUA e na China",
+   "l": "https://valor.globo.com/empresas/noticia/2026/11/04/vendas-da-volvo-car-caem-16-pontos-percentuais-com-continuidade-de-fraqueza-nos-eua-e-na-china.ghtml",
+   "d": "A Volvo Car informou que suas vendas globais recuaram 16% na comparação anual no trimestre encerrado em outubro, com a demanda prejudicada pela continuidade de condições de mercado desafiadoras nos Estados Unidos e na Ch",
+   "dt": "Wed, 04 Nov 2026 12:27:49 -0000",
+   "f": "Valor Empresas"
   },
   {
-   "t": "CVM regulamenta o crowdfunding, a 'vaquinha virtual'",
-   "l": "https://g1.globo.com/economia/pme/noticia/cvm-regulamenta-o-crowdfunding-a-vaquinha-virtual.ghtml",
-   "d": "A Comissão de Valores Mobiliários (CVM) publicou nesta quinta-feira (13) uma instrução que regulamenta a captação de dinheiro via crowdfunding por pequenas empresas. Pela nova regra, companhias que faturam menos de R$ 10",
-   "dt": "Thu, 13 Jul 2017 16:32:04 -0000",
-   "f": "G1 Mercado"
+   "t": "Yduqs convoca assembleia para deliberar sobre fusão com Afya",
+   "l": "https://valor.globo.com/empresas/noticia/2026/11/04/yduqs-convoca-assembleia-para-deliberar-sobre-fusao-com-afya.ghtml",
+   "d": "A Yduqs convocou para o próximo dia 25 de novembro a assembleia geral extraordinária onde os acionistas vão deliberar sobre a proposta de fusão com a Afya e também sobre a eliminação do mecanismo de “poison pill” do seu ",
+   "dt": "Wed, 04 Nov 2026 12:11:25 -0000",
+   "f": "Valor Empresas"
   },
   {
-   "t": "Dólar fecha em alta nesta quinta, de olho em corte na Selic e crise política",
-   "l": "https://g1.globo.com/economia/mercados/noticia/dolar-fecha-em-alta-nesta-quinta-de-olho-em-corte-na-selic-e-crise-politica.ghtml",
-   "d": "O dólar fechou em alta nesta quinta-feira (1), após abrir os negócios em queda e mudar de rumo pela manhã, com o mercado ainda monitorando pistas sobre o rumo das reformas econômicas no Congresso em meio à crise política",
-   "dt": "Thu, 01 Jun 2017 20:01:01 -0000",
-   "f": "G1 Mercado"
+   "t": "WEG compra terreno na Índia por US$ 8 mi para expandir operações no país",
+   "l": "https://valor.globo.com/empresas/noticia/2026/11/04/weg-compra-terreno-na-india-por-us-8-mi-para-expandir-operacoes-no-pais.ghtml",
+   "d": "A WEG anunciou nesta quarta-feira a aquisição de um terreno de 400 mil metros quadrados localizado na cidade de Dharmapuri, em Tamil Nadu, na Índia, por US$ 8 milhões para expansão de suas operações no país do sul da Ási",
+   "dt": "Wed, 04 Nov 2026 11:58:12 -0000",
+   "f": "Valor Empresas"
   },
   {
-   "t": "Apple é a 1ª empresa a ultrapassar US$ 800 bilhões em valor de mercado",
-   "l": "https://g1.globo.com/economia/negocios/noticia/apple-e-a-1-empresa-a-ultrapassar-us-800-bilhoes-em-valor-de-mercado.ghtml",
-   "d": "REUTERS/Lucy Nicholson A Apple se tornou nesta terça-feira (9) a primeira empresa a superar os US$ 800 bilhões em valor de mercado e logo deve ultrapassar US$ 1 trilhão, estimou um analista financeiro, segundo a AFP. A a",
-   "dt": "Tue, 09 May 2017 23:30:29 -0000",
-   "f": "G1 Mercado"
+   "t": "Google investirá US$ 15 bi na Malásia em infraestrutura digital, energia limpa e empregos",
+   "l": "https://valor.globo.com/empresas/noticia/2026/11/04/google-investir-us-15-bi-na-malsia-em-infraestrutura-digital-energia-limpa-e-empregos.ghtml",
+   "d": "O Google, subsidiária da Alphabet, investirá US$ 15 bilhões na Malásia ao longo de 2027 e 2028 para expandir sua infraestrutura digital, desenvolver talentos locais e apoiar iniciativas de energia limpa e saneamento. Mat",
+   "dt": "Wed, 04 Nov 2026 11:23:13 -0000",
+   "f": "Valor Empresas"
   },
   {
-   "t": "Bovespa opera em leve alta nesta sexta-feira",
-   "l": "https://g1.globo.com//noticia/bovespa-28-04-17.ghtml",
-   "d": "O principal índice de ações da bolsa paulista oscilava em torno da estabilidade nos minutos iniciais do pregão desta sexta-feira (28) . Às 10h13, o Ibovespa subia 0,11%, a 64.7450 pontos. Veja a cotação. Aas ações do Gru",
-   "dt": "Fri, 28 Apr 2017 13:18:11 -0000",
-   "f": "G1 Mercado"
+   "t": "Agenda de empresas: Lucro da RD Saúde recua 10% no 3° trimestre; ganho do Itaú soma R$ 12,6 bilhões",
+   "l": "https://valor.globo.com/empresas/noticia/2026/11/04/agenda-de-empresas-lucro-da-rd-saude-recua-10percent-no-3-trimestre-ganho-do-itau-soma-r-126-bilhoes.ghtml",
+   "d": "RD Saúde Matéria exclusiva para assinantes. Para ter acesso completo, acesse o link da matéria e faça o seu cadastro.",
+   "dt": "Wed, 04 Nov 2026 11:18:20 -0000",
+   "f": "Valor Empresas"
   },
   {
-   "t": "Bovespa fecha em queda, de olho na cena política local",
-   "l": "https://g1.globo.com/economia/mercados/noticia/bovespa-fecha-em-queda-de-olho-na-cena-politica.ghtml",
-   "d": "O principal índice da bolsa paulista fechou em queda nesta quinta-feira (27), com as ações da Vale entre as maiores baixas, em dia de divulgação de um grande número de balanços corporativos, de acordo com a Reuters. O Ib",
-   "dt": "Thu, 27 Apr 2017 20:19:00 -0000",
-   "f": "G1 Mercado"
+   "t": "CVS anuncia plano de dividir negócios em empresas independentes",
+   "l": "https://valor.globo.com/empresas/noticia/2026/11/04/cvs-anuncia-plano-de-dividir-negocios-em-empresas-independentes.ghtml",
+   "d": "A CVS revelou planos de se dividir em duas companhias independentes em 2028, antecipando o anúncio à divulgação de seus resultados financeiros do terceiro trimestre. Matéria exclusiva para assinantes. Para ter acesso com",
+   "dt": "Wed, 04 Nov 2026 11:15:55 -0000",
+   "f": "Valor Empresas"
   },
   {
-   "t": "Fintechs podem liderar safra de IPOs na bolsa brasileira",
-   "l": "https://g1.globo.com/economia/negocios/noticia/fintechs-podem-liderar-safra-de-ipos-na-bolsa-brasileira.ghtml",
-   "d": "Empresas tecnológicas de serviços financeiros no Brasil fazem planos de listar ações na B3, na esteira da rápida popularidade que ganharam com a oferta de soluções para enfrentar os serviços bancários caros e burocrático",
-   "dt": "Wed, 12 Apr 2017 18:11:51 -0000",
-   "f": "G1 Mercado"
+   "t": "Minério de ferro avança 1,56% na Bolsa de Dalian",
+   "l": "https://valor.globo.com/empresas/noticia/2026/11/04/minrio-de-ferro-avana-156-pontos-percentuais-na-bolsa-de-dalian.ghtml",
+   "d": "O preço do minério de ferro avançou nesta quarta-feira (4) na China, devolvendo parte das perdas registradas nas últimas sessões. Matéria exclusiva para assinantes. Para ter acesso completo, acesse o link da matéria e fa",
+   "dt": "Wed, 04 Nov 2026 11:12:08 -0000",
+   "f": "Valor Empresas"
   },
   {
-   "t": "Bovespa opera em leve alta nesta segunda, após encerrar março no vermelho",
-   "l": "https://g1.globo.com/economia/mercados/noticia/bovespa-cotacao-em-03042017.ghtml",
-   "d": "A Bovespa opera em alta nesta segunda-feira (3), no primeiro pregão de abril, após encerrar o mês anterior no vermelho. Às 16h46, o Ibovespa, principal indicador da bolsa, subia 0,3%, aos 65.179 pontos. Veja a cotação da",
-   "dt": "Mon, 03 Apr 2017 13:21:52 -0000",
-   "f": "G1 Mercado"
+   "t": "Flávio Bolsonaro precisará de equilíbrio em negociações do agro com EUA e China se for eleito, diz senadora",
+   "l": "https://valor.globo.com/agronegocios/noticia/2026/10/12/flavio-bolsonaro-precisara-de-equilibrio-em-negociacoes-do-agro-com-eua-e-china-se-for-eleito-diz-senadora.ghtml",
+   "d": "Na hipótese de uma gestão de Flávio Bolsonaro (PL), candidato à Presidência da República que disputará o segundo turno das eleições com Luiz Inácio Lula da Silva (PT), será necessário equilíbrio nas negociações do agrone",
+   "dt": "Mon, 12 Oct 2026 19:29:48 -0000",
+   "f": "Valor Agronegócios"
   },
   {
-   "t": "Bovespa fecha em alta de quase 2%",
-   "l": "https://g1.globo.com//noticia/bovespa-fecha-em-alta-de-quase-2.ghtml",
-   "d": "A Bovespa fechou em alta de quase 2% nesta sexta-feira (10), retomando o patamar dos 66 mil pontos pela primeira vez em duas semanas, amparada nos fortes ganhos nas ações de empresas ligadas a commodities e com Vale tend",
-   "dt": "Fri, 10 Feb 2017 20:17:01 -0000",
-   "f": "G1 Mercado"
+   "t": "Agrofloresta eleva a renda de produtores de leite em Minas Gerais",
+   "l": "https://valor.globo.com/agronegocios/noticia/2026/10/05/agrofloresta-eleva-a-renda-de-produtores-de-leite-em-minas-gerais.ghtml",
+   "d": "Matéria exclusiva para assinantes. Para ter acesso completo, acesse o link da matéria e faça o seu cadastro.",
+   "dt": "Mon, 05 Oct 2026 08:00:00 -0000",
+   "f": "Valor Agronegócios"
   }
  ]
 }
