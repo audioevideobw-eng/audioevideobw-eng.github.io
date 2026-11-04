@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cadastro — BW Audiovisual</title>
+<style>
+:root{--navy:#0b1220;--navy2:#111a2c;--line:#1e2c42;--txt:#e8eef7;--mut:#8fa2bd;--gold:#d4a94a;--gold2:#e5c069;--up:#3f9d6b;--dn:#c0564a}
+*{box-sizing:border-box}
+body{margin:0;background:linear-gradient(180deg,#0b1220,#0d1526 60%,#0b1220);color:var(--txt);font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:24px 16px}
+.logo{margin:24px 0 6px;font-size:26px;letter-spacing:.22em;color:var(--gold);font-weight:700}
+.logo small{display:block;font-size:10px;letter-spacing:.4em;color:var(--mut);text-align:center;margin-top:4px}
+.card{background:var(--navy2);border:1px solid var(--line);border-radius:16px;padding:20px;width:100%;max-width:460px;box-shadow:0 10px 40px rgba(0,0,0,.35)}
+h1{font-size:18px;margin:0 0 4px}
+.sub{color:var(--mut);font-size:13px;line-height:1.5;margin-bottom:16px}
+label{display:block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);margin:12px 0 4px}
+input{width:100%;background:#0b1220;border:1px solid var(--line);border-radius:10px;color:var(--txt);padding:11px 12px;font-size:15px;outline:none}
+input:focus{border-color:var(--gold)}
+button{width:100%;background:var(--gold);color:#0b1220;border:0;border-radius:10px;padding:13px;font-size:15px;font-weight:700;letter-spacing:.04em;margin-top:18px;cursor:pointer}
+button:disabled{opacity:.6;cursor:wait}
+.msg{font-size:13px;margin-top:12px;line-height:1.5}
+.ok{color:var(--up)} .err{color:var(--dn)}
+.rodape{color:var(--mut);font-size:11px;margin-top:18px;text-align:center;line-height:1.6}
+.invalido{max-width:460px;text-align:center}
+.invalido h1{color:var(--dn)}
+</style>
+</head>
+<body>
+  <div class="logo">BW AUDIOVISUAL<small>EVENTOS · TRANSMISSÕES · PRODUÇÃO</small></div>
+  <div class="card" id="box">
+    <h1>Cadastro de colaborador</h1>
+    <div class="sub">Preencha seus dados para entrar na escala da equipe. O administrador recebe na hora.</div>
+    <label>Nome completo</label>
+    <input id="fNome" type="text" placeholder="Seu nome completo" autocomplete="name">
+    <label>Função</label>
+    <input id="fFuncao" type="text" placeholder="Ex.: câmera, som, apoio" autocomplete="organization-title">
+    <label>Telefone / WhatsApp</label>
+    <input id="fTel" type="tel" placeholder="(11) 99999-9999" autocomplete="tel">
+    <label>E-mail</label>
+    <input id="fEmail" type="email" placeholder="seu@email.com" autocomplete="email">
+    <label>CPF</label>
+    <input id="fCPF" type="text" placeholder="000.000.000-00" autocomplete="off">
+    <button id="fEnviar">Enviar cadastro</button>
+    <div class="msg" id="fMsg"></div>
+  </div>
+  <div class="rodape">BW Audiovisual · seus dados são usados apenas para a organização das equipes de eventos.</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script>
+(function(){
+  "use strict";
+  var params = new URLSearchParams(location.search);
+  var TOKEN = params.get("t") || params.get("cadastro") || "";
+  var SB_URL = "https://zdtnetplvdonogmdvarx.supabase.co";
+  var SB_ANON = "sb_publishable_qJ2mIx1hcn_ZH75-yxJiDA_OI-EHyIU";
+  function $(s){ return document.querySelector(s); }
+  function maskCPF(v){ v=(v||"").replace(/\D/g,"").slice(0,11); v=v.replace(/(\d{3})(\d)/,"$1.$2"); v=v.replace(/(\d{3})(\d)/,"$1.$2"); v=v.replace(/(\d{3})(\d{1,2})$/,"$1-$2"); return v; }
+  function maskTel(v){ v=(v||"").replace(/\D/g,"").slice(0,11); if(v.length<=10) return v.replace(/(\d{2})(\d{4})(\d{0,4})/,"($1) $2-$3").replace(/[-\s]+$/,""); return v.replace(/(\d{2})(\d{5})(\d{0,4})/,"($1) $2-$3").replace(/[-\s]+$/,""); }
+  if (!TOKEN) {
+    document.body.innerHTML = '<div class="card invalido"><h1>Link inválido</h1><div class="sub">Este link de cadastro não é válido. Peça um novo link ao administrador da BW Audiovisual.</div></div>';
+    return;
+  }
+  $("#fTel").addEventListener("input", function(e){ e.target.value = maskTel(e.target.value); });
+  $("#fCPF").addEventListener("input", function(e){ e.target.value = maskCPF(e.target.value); });
+  $("#fEnviar").addEventListener("click", async function(){
+    var btn = $("#fEnviar"), msg = $("#fMsg");
+    var c = { nome: $("#fNome").value.trim(), funcao: $("#fFuncao").value.trim(),
+              telefone: $("#fTel").value.trim(), email: $("#fEmail").value.trim(), cpf: $("#fCPF").value.trim() };
+    if (!c.nome) { msg.textContent = "Informe seu nome completo."; msg.className = "msg err"; return; }
+    if (c.cpf && c.cpf.replace(/\D/g,"").length !== 11) { msg.textContent = "CPF incompleto (11 números)."; msg.className = "msg err"; return; }
+    btn.disabled = true; btn.textContent = "Enviando…"; msg.textContent = ""; msg.className = "msg";
+    try {
+      var sb = window.supabase.createClient(SB_URL, SB_ANON);
+      var res = await sb.from("equipe_cadastros").insert({ token: TOKEN, nome: c.nome, funcao: c.funcao, telefone: c.telefone, email: c.email, cpf: c.cpf });
+      if (res.error) throw res.error;
+      $("#box").innerHTML = '<h1 style="color:var(--up)">✓ Cadastro enviado!</h1><div class="sub">Obrigado, ' + c.nome.split(" ")[0] + '! O administrador da BW vai confirmar sua entrada na equipe. Você pode fechar esta página.</div>';
+    } catch (e) {
+      msg.textContent = "Não consegui enviar (" + (e.message || e) + "). Verifique a conexão e tente de novo.";
+      msg.className = "msg err";
+      btn.disabled = false; btn.textContent = "Enviar cadastro";
+    }
+  });
+})();
+</script>
+</body>
+</html>
