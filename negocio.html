@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<!-- build 2026-11-04T13:35:12 -->
+<!-- build 2026-11-04T16:24:19 -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Meu negócio — Mesa BW</title>
@@ -190,6 +190,7 @@ footer b{color:var(--gold)}
     <div class="menu-grid">
       <a class="menu-card" href="preco.html"><b>Calculadora de preço e margem</b><small>Custo + imposto do Simples + margem → preço de venda sugerido.</small></a>
       <a class="menu-card" href="fluxo.html"><b>Fluxo de caixa da empresa</b><small>Entradas, saídas e saldo do período — com planilha conectada.</small></a>
+      <a class="menu-card" href="equipe.html"><b>Gestão de equipe</b><small>Colaboradores, equipes por evento, PDF da escala e alertas.</small></a>
     </div>
   </div>
 
@@ -769,6 +770,8 @@ function renderFluxo() {
 }
 
 function initFluxo() {
+  const hj = $("#nFlHoje");
+  if (hj) hj.onclick = () => { const d = $("#nFlData"); if (d) d.value = new Date().toISOString().slice(0, 10); };
   const go = $("#nFluxoAdd");
   if (go) go.onclick = () => {
     const dados = load(FLUXO, 1, []);
