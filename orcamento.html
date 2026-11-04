@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<!-- build 2026-11-04T13:35:12 -->
+<!-- build 2026-11-04T13:44:12 -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Orçamento familiar — Mesa BW</title>
@@ -1183,9 +1183,7 @@ const {  $  } = MOD['core/format'];
 
 (async function boot() {
   const ok = await bootComum();
-  casa.render();
-  casa.initPlanilha();
-  casa.initSyncRapido();
+  casa.init();
   if (!ok) { avisoSemDados(); return; }
   stamp(data.DATA);
   const render = async () => casa.render();
