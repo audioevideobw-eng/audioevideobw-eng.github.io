@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<!-- build 2026-11-04T14:16:12 -->
+<!-- build 2026-11-04T14:22:36 -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Contas a pagar — Mesa BW</title>
@@ -189,6 +189,7 @@ footer b{color:var(--gold)}
     <div class="sub">Marque as pagas e acompanhe o total em aberto — lembrete no celular quando vencer.</div>
   </div>
   <div id="ctBox"></div>
+  <div style="margin-top:14px" id="fixosBox"></div>
   <div class="card" style="margin-top:14px" id="ctSync"></div>
   <div class="card" style="margin-top:14px">
     <h3>Relatório mensal (PDF)</h3>
@@ -767,7 +768,7 @@ async function subir(chave) {
 
 /* ---- sincronizar tudo: sobe as chaves conhecidas ---- */
 async function sincronizarTudo() {
-  const chaves = ["fx_alerts", "fx_diario", "casa_orcamento", "casa_contas", "casa_reserva", "neg_fluxo"];
+  const chaves = ["fx_alerts", "fx_diario", "casa_orcamento", "casa_contas", "casa_reserva", "neg_fluxo", "casa_fixos"];
   const res = [];
   for (const k of chaves) res.push(await subir(k));
   return res;
@@ -1027,6 +1028,8 @@ function graficoEvolucao(dados) {
 }
 
 /* contêiner de cada página individual */
+const FIXOS_KEY = "casa_fixos";
+/* cols dos fixos: c0 Descrição · c1 Valor · c2 Recorrência (mensal/anual) · c3 Dia (1-31) · c4 Mês inicial (AAAA-MM) · c5 Categoria */
 const BOXES = { casa_orcamento: "orcBox", casa_contas: "ctBox", casa_reserva: "rsBox" };
 const PLANILHA_EM = { casa_orcamento: "orcPlanilha" };   // planilha só no orçamento
 const SYNC_EM = { casa_orcamento: "orcSync", casa_contas: "ctSync", casa_reserva: "rsSync" };
@@ -1034,7 +1037,40 @@ const SYNC_EM = { casa_orcamento: "orcSync", casa_contas: "ctSync", casa_reserva
 /* ---- renderização ---- */
 function linhaHTML(lista, o) {
   const cel = lista.cols.map((c, i) => `<td>${esc(o["c" + i] || "")}</td>`).join("");
-  return `<tr><td>${cel}<td><a href="#" onclick="window.__delCasa('${lista.key}',${o.id});return false" style="color:var(--dn)">✕</a></td></tr>`;
+  let acoes = `<a href="#" onclick="window.__delCasa('${lista.key}','${o.id}');return false" style="color:var(--dn)">✕</a>`;
+  if (lista.key === "casa_contas") {
+    const pago = ["s", "sim"].includes((o.c3 || "").toLowerCase());
+    acoes = `<a href="#" onclick="window.__togglePago('${o.id}');return false" class="tag ${pago ? "up" : "mid"}"
+      style="margin-right:8px;text-decoration:none">${pago ? "Pago ✓" : "Marcar pago"}</a>` + acoes;
+  }
+  return `<tr><td>${cel}<td>${acoes}</td></tr>`;
+}
+
+/* expande os fixos em lançamentos futuros (contas) até 6 meses à frente */
+function expandirFixos() {
+  const fixos = load(FIXOS_KEY, 1, []);
+  if (!fixos.length) return 0;
+  const contas = load("casa_contas", 1, []);
+  const hoje = new Date();
+  let n = 0;
+  fixos.forEach(f => {
+    const dia = Math.min(Math.max(parseInt(f.c3 || "1", 10) || 1, 1), 28);
+    const inicio = f.c4 || hoje.toISOString().slice(0, 7);
+    const [ai, mi] = inicio.split("-").map(Number);
+    for (let k = 0; k < 6; k++) {
+      let ano = ai, mes = mi + k;
+      if (f.c2 === "anual") { if (k > 0) continue; }          // anual: só o mês inicial
+      else { while (mes > 12) { mes -= 12; ano += 1; } }      // mensal: soma meses
+      const venc = `${ano}-${String(mes).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
+      const id = `fixo_${f.id}_${venc}`;                       // id determinístico = dedup
+      if (contas.some(c => c.id === id)) continue;
+      if (new Date(venc + "T23:59") < hoje) continue;          // não recria vencidos
+      contas.push({ id, c0: `${f.c0} (fixo)`, c1: f.c1, c2: venc, c3: "Não", c5: f.c5 || "" });
+      n++;
+    }
+  });
+  if (n) save("casa_contas", 1, contas);
+  return n;
 }
 
 function render() {
@@ -1120,7 +1156,16 @@ function wireFormularios() {
     };
   });
   window.__delCasa = (key, id) => {
-    save(key, 1, load(key, 1, []).filter(o => o.id !== id));
+    save(key, 1, load(key, 1, []).filter(o => String(o.id) !== String(id)));
+    render();
+  };
+  window.__togglePago = id => {
+    const dados = load("casa_contas", 1, []);
+    const cta = dados.find(o => String(o.id) === String(id));
+    if (!cta) return;
+    const pago = ["s", "sim"].includes((cta.c3 || "").toLowerCase());
+    cta.c3 = pago ? "Não" : "Sim";
+    save("casa_contas", 1, dados);
     render();
   };
 }
@@ -1216,6 +1261,52 @@ function initSyncRapido() {
   });
 }
 
+/* ---- pagamentos fixos (recorrentes) ---- */
+function renderFixos() {
+  const box = $("#fixosBox"); if (!box) return;
+  const fixos = load(FIXOS_KEY, 1, []);
+  box.innerHTML = `<div class="card">
+    <h3>Pagamentos fixos (recorrentes)</h3>
+    <div class="sub">Cada fixo gera automaticamente as contas dos próximos 6 meses (mensal) ou do mês escolhido (anual). Ao pagar, marque na lista de contas — o orçamento e os gráficos atualizam na hora.</div>
+    <div class="tb-scroll"><table>
+      <thead><tr><th>Descrição</th><th>Valor</th><th>Recorrência</th><th>Dia</th><th>Mês inicial</th><th>Categoria</th><th></th></tr></thead>
+      <tbody>${fixos.length ? fixos.map(f => `<tr>
+        <td>${esc(f.c0)}</td><td>${esc(f.c1)}</td><td>${esc(f.c2)}</td><td>${esc(f.c3)}</td><td>${esc(f.c4)}</td><td>${esc(f.c5 || "")}</td>
+        <td><a href="#" onclick="window.__delFixo('${f.id}');return false" style="color:var(--dn)">✕</a></td></tr>`).join("")
+        : '<tr><td colspan="7" style="color:var(--mut)">Nenhum fixo cadastrado.</td></tr>'}</tbody>
+    </table></div>
+    <div class="frow3" style="margin-top:10px">
+      <div><label>Descrição</label><input id="fxDesc" type="text" placeholder="Ex.: Aluguel"></div>
+      <div><label>Valor (R$)</label><input id="fxVal" type="number" step="0.01" min="0" placeholder="0,00"></div>
+      <div><label>Recorrência</label><select id="fxRec"><option>mensal</option><option>anual</option></select></div>
+    </div>
+    <div class="frow3">
+      <div><label>Dia do mês (1-28)</label><input id="fxDia" type="number" min="1" max="28" value="5"></div>
+      <div><label>Mês inicial</label><input id="fxMes" type="month" value="${new Date().toISOString().slice(0, 7)}"></div>
+      <div><label>Categoria</label><select id="fxCat">${(LISTAS[0].opcoes[1] || []).map(o => `<option>${o}</option>`).join("")}</select></div>
+    </div>
+    <button class="btn" id="fxAdd">Criar pagamento fixo</button>
+    <div class="note" id="fxMsg"></div>
+  </div>`;
+  $("#fxAdd").onclick = () => {
+    const f = { id: Date.now(),
+      c0: $("#fxDesc").value.trim(), c1: $("#fxVal").value.trim(),
+      c2: $("#fxRec").value, c3: $("#fxDia").value, c4: $("#fxMes").value, c5: $("#fxCat").value };
+    if (!f.c0 || !f.c1) { $("#fxMsg").textContent = "Preencha descrição e valor."; return; }
+    const fixos = load(FIXOS_KEY, 1, []);
+    fixos.push(f);
+    save(FIXOS_KEY, 1, fixos);
+    const n = expandirFixos();
+    $("#fxMsg").textContent = `Fixo criado — ${n} conta(s) gerada(s) automaticamente.`;
+    renderFixos();
+    render();
+  };
+  window.__delFixo = id => {
+    save(FIXOS_KEY, 1, load(FIXOS_KEY, 1, []).filter(f => String(f.id) !== String(id)));
+    renderFixos();
+  };
+}
+
 function init() {
   render();
   initPlanilha();
@@ -1223,7 +1314,7 @@ function init() {
   initExportar();
 }
 
-return { chavesNuvem, init, initExportar, initPlanilha, initSyncRapido, parseCSV, render, setUrlSheets, urlSheets };
+return { chavesNuvem, expandirFixos, init, initExportar, initPlanilha, initSyncRapido, parseCSV, render, renderFixos, setUrlSheets, urlSheets };
 })();
 /* ===== contas_main.js ===== */
 MOD['contas_main'] = (function() {
@@ -1237,6 +1328,8 @@ const {  $  } = MOD['core/format'];
 (async function boot() {
   const ok = await bootComum();
   casa.init();
+  casa.expandirFixos();
+  casa.renderFixos();
   if (!ok) { avisoSemDados(); return; }
   stamp(data.DATA);
   const render = async () => casa.render();
