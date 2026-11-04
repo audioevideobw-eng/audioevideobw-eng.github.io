@@ -546,6 +546,18 @@ async function recuperar(email) {
   if (error) throw error;
 }
 
+/* login social (OAuth): redireciona para o Google e volta para o painel.
+   Requer: Supabase → Authentication → Providers → Google ativado com as
+   credenciais do Google Cloud (ver página CONFIGADM). */
+async function entrarComGoogle() {
+  const sb = clienteSB(); if (!sb) throw new Error("Autenticação não configurada.");
+  const { error } = await sb.auth.signInWithOAuth({
+    provider: "google",
+    options: { redirectTo: location.origin + location.pathname },
+  });
+  if (error) throw error;
+}
+
 async function trocarSenha(novaSenha) {
   const sb = clienteSB(); if (!sb) throw new Error("Autenticação não configurada.");
   const { error } = await sb.auth.updateUser({ password: novaSenha });
@@ -578,7 +590,7 @@ async function testarConexao() {
   }
 }
 
-return { cadastrar, configurado, configurar, credenciais, entrar, recuperar, sair, sessao, sessaoLocal, testarConexao, trocarSenha, usuarioAtual };
+return { cadastrar, configurado, configurar, credenciais, entrar, entrarComGoogle, recuperar, sair, sessao, sessaoLocal, testarConexao, trocarSenha, usuarioAtual };
 })();
 /* ===== core/bootcommon.js ===== */
 MOD['core/bootcommon'] = (function() {
@@ -677,10 +689,70 @@ return { avisoSemDados, bootComum, iniciarDados, montarCabecalho, preencherCodig
 })();
 /* ===== modules/comparador.js ===== */
 MOD['modules/comparador'] = (function() {
-/* módulo Comparador — duas moedas lado a lado: qual está na melhor janela. */
+/* módulo Comparador — duas moedas lado a lado + gráfico comparativo. */
 const {  $, fmt, pct, cls  } = MOD['core/format'];
-const {  CODES, META, ref, chg, range52, sinal, decOf  } = MOD['core/data'];
+const {  CODES, META, ref, chg, range52, sinal, decOf, SER  } = MOD['core/data'];
 const {  barMini  } = MOD['core/ui'];
+
+/* desenha as duas séries no mesmo gráfico SVG (mesmo estilo da aba Série). */
+function grafico(a, b) {
+  const sa = SER[a], sb = SER[b];
+  if (!sa || !sb) return "";
+  const dias = 90;
+  const corte = new Date(sa[sa.length - 1][0]);
+  corte.setDate(corte.getDate() - dias);
+  const iso = corte.toISOString().slice(0, 10);
+  const wa = sa.filter(p => p[0] >= iso), wb = sb.filter(p => p[0] >= iso);
+  if (wa.length < 2 || wb.length < 2) return "";
+  // normaliza para % de variação (as moedas têm escalas diferentes)
+  const base = w => w[0][1] || 1;
+  const va = wa.map(p => (p[1] / base(wa) - 1) * 100);
+  const vb = wb.map(p => (p[1] / base(wb) - 1) * 100);
+  const W = 1000, H = 300, ml = 58, mr = 14, mt = 14, mb = 32;
+  const all = va.concat(vb);
+  let mn = Math.min(...all), mx = Math.max(...all);
+  const pad = (mx - mn) * 0.1 || 1; mn -= pad; mx += pad;
+  const X = i => ml + (i / (wa.length - 1)) * (W - ml - mr);
+  const Y = v => mt + (1 - (v - mn) / (mx - mn)) * (H - mt - mb);
+  const path = vs => vs.map((v, i) => `${i ? "L" : "M"}${X(i).toFixed(1)},${Y(v).toFixed(1)}`).join("");
+  let grid = "", yl = "";
+  for (let i = 0; i <= 4; i++) {
+    const v = mn + (mx - mn) * (i / 4), y = Y(v);
+    grid += `<line x1="${ml}" y1="${y.toFixed(1)}" x2="${W - mr}" y2="${y.toFixed(1)}" stroke="#1e2c42"/>`;
+    yl += `<text x="${ml - 8}" y="${(y + 3.5).toFixed(1)}" fill="#8fa2bd" font-size="10.5" text-anchor="end"
+      font-family="ui-monospace,monospace">${v >= 0 ? "+" : ""}${v.toFixed(1)}%</text>`;
+  }
+  let xl = "";
+  for (let i = 0; i < 5; i++) {
+    const idx = Math.round(i * (wa.length - 1) / 4);
+    const d = wa[idx][0].slice(5).split("-").reverse().join("/");
+    xl += `<text x="${X(idx).toFixed(1)}" y="${H - mb + 16}" fill="#8fa2bd" font-size="10.5"
+      text-anchor="${i === 0 ? "start" : i === 4 ? "end" : "middle"}">${d}</text>`;
+  }
+  const hov = (w, vs, cor) => {
+    const step = Math.max(1, Math.floor(w.length / 60));
+    let s = "";
+    w.forEach((p, i) => {
+      if (i % step) return;
+      s += `<rect x="${(X(i) - 4).toFixed(1)}" y="${mt}" width="8" height="${H - mt - mb}" fill="transparent">
+        <title>${a === cor ? a : b} ${p[0].split("-").reverse().join("/")} — ${vs[i] >= 0 ? "+" : ""}${vs[i].toFixed(1)}%</title></rect>`;
+    });
+    return s;
+  };
+  return `<div class="chartbox" style="margin-top:14px">
+    <svg class="chart" viewBox="0 0 ${W} ${H}" style="width:100%">
+      ${grid}${yl}${xl}
+      <path d="${path(va)}" fill="none" stroke="#d4a94a" stroke-width="2.4"/>
+      <path d="${path(vb)}" fill="none" stroke="#5b7db1" stroke-width="2.4"/>
+      ${hov(wa, va, a)}${hov(wb, vb, b)}
+    </svg>
+    <div class="legend">
+      <span><i style="background:#d4a94a"></i>${a}</span>
+      <span><i style="background:#5b7db1"></i>${b}</span>
+      <span style="margin-left:auto">Variação em % nos últimos ${dias} dias (base 0 = início do período)</span>
+    </div>
+  </div>`;
+}
 
 function render() {
   const el = $("#kOut"); if (!el) return;
@@ -701,6 +773,7 @@ function render() {
       <div class="out" style="margin:0">${linha(a)}</div>
       <div class="out" style="margin:0">${linha(b)}</div>
     </div>
+    ${grafico(a, b)}
     <div class="verdict ${melhor === "empate" ? "v-mid" : "v-ok"}">${melhor === "empate"
       ? "As duas estão na mesma altura da faixa — decida pela moeda que você vai usar primeiro."
       : `${melhor} está mais perto do fundo dos 12 meses (${Math.min(pa, pb).toFixed(0)}% vs ${Math.max(pa, pb).toFixed(0)}%) — se as duas servem, comece por ela.`}</div>`;
