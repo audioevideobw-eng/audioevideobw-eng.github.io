@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<!-- build 2026-11-04T14:46:40 -->
+<!-- build 2026-11-04T15:00:48 -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Contas a pagar — Mesa BW</title>
@@ -1027,6 +1027,55 @@ function graficoEvolucao(dados) {
   </div>`;
 }
 
+/* ===== INDICADORES INTEGRADOS — todas as tabelas leem da mesma base ===== */
+/* mês de referência global (navegação por meses) */
+let MES_REF = new Date().toISOString().slice(0, 7);
+function mesRef() { return MES_REF; }
+function setMesRef(m) { MES_REF = m; }
+
+/* base unificada: orçamento (receitas/despesas) + contas (pago=despesa realizada) */
+function indicadores(mes) {
+  const m = mes || MES_REF;
+  const orc = load("casa_orcamento", 1, []);
+  let rec = 0, desp = 0;
+  orc.forEach(o => {
+    if ((o.c4 || "").slice(0, 7) !== m) return;
+    const v = parseFloat((o.c3 || "0").replace(",", ".")) || 0;
+    if ((o.c2 || "").toLowerCase().startsWith("receita")) rec += v; else desp += v;
+  });
+  const contas = load("casa_contas", 1, []);
+  let pagoContas = 0, abertoContas = 0;
+  contas.forEach(c => {
+    if ((c.c2 || "").slice(0, 7) !== m) return;
+    const v = parseFloat((c.c1 || "0").replace(",", ".")) || 0;
+    if (["s", "sim"].includes((c.c3 || "").toLowerCase())) pagoContas += v;
+    else abertoContas += v;
+  });
+  const reserva = load("casa_reserva", 1, [])
+    .filter(o => (o.c0 || "").slice(0, 7) === m)
+    .reduce((t, o) => t + (parseFloat((o.c1 || "0").replace(",", ".")) || 0), 0);
+  const fixos = load(FIXOS_KEY, 1, []).filter(f => f.c2 === "mensal");
+  return { mes: m, rec, desp, pagoContas, abertoContas, reserva,
+           saldo: rec - desp, fixosAtivos: fixos.length };
+}
+
+/* resumo com comparação ao mês anterior (usado por todas as páginas) */
+function resumoIntegrado(mes) {
+  const i = indicadores(mes);
+  const antes = new Date(i.mes + "-01T12:00");
+  antes.setMonth(antes.getMonth() - 1);
+  const pm = indicadores(antes.toISOString().slice(0, 7));
+  const delta = (atual, prev) => {
+    if (!prev) return "";
+    const d = atual - prev;
+    if (Math.abs(d) < 0.005) return " <small>(=)</small>";
+    return ` <small style="color:${d > 0 ? "var(--up)" : "var(--dn)"}">(${d > 0 ? "+" : "−"}${fmt(Math.abs(d), 0)})</small>`;
+  };
+  return `Receitas ${fmt(i.rec, 2)}${delta(i.rec, pm.rec)} · Despesas ${fmt(i.desp, 2)}${delta(i.desp, pm.desp)} · <b>Saldo ${fmt(i.saldo, 2)}</b>` +
+    ` · Contas: ${fmt(i.pagoContas, 2)} pagas / ${fmt(i.abertoContas, 2)} em aberto` +
+    ` · Reserva ${fmt(i.reserva, 2)}`;
+}
+
 /* contêiner de cada página individual */
 const FIXOS_KEY = "casa_fixos";
 /* cols dos fixos: c0 Descrição · c1 Valor · c2 Recorrência (mensal/anual) · c3 Dia (1-31) · c4 Mês inicial (AAAA-MM) · c5 Categoria */
@@ -1076,9 +1125,20 @@ function expandirFixos() {
 function render() {
   LISTAS.forEach(l => {
     const box = $("#" + BOXES[l.key]); if (!box) return;
-    const dados = load(l.key, 1, []);
+    const todos = load(l.key, 1, []);
+    /* contas e orçamento mostram o mês de referência (navegação por meses) */
+    const dados = (l.key === "casa_contas") ? todos.filter(o => (o.c2 || "").slice(0, 7) === MES_REF)
+      : (l.key === "casa_orcamento") ? todos.filter(o => (o.c4 || "").slice(0, 7) === MES_REF)
+      : todos;
     const resumo = resumoLista(l.key, dados);
-    box.innerHTML = `<div class="card">
+    const nav = l.key === "casa_reserva" ? "" : `
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+        <button class="btn gh" data-mes="prev" style="padding:6px 12px">‹</button>
+        <b style="font-size:15px">${MES_REF}</b>
+        <button class="btn gh" data-mes="next" style="padding:6px 12px">›</button>
+        <button class="btn gh" data-mes="hoje" style="padding:6px 12px">Mês atual</button>
+      </div>`;
+    box.innerHTML = `${nav}<div class="card">
       <h3>${l.label}</h3>
       <div class="sub">${resumo}</div>
       ${l.key === "casa_orcamento" ? graficoCategorias(dados) + graficoEvolucao(dados) : ""}
@@ -1114,19 +1174,8 @@ function render() {
 }
 
 function resumoLista(key, dados) {
-  if (key === "casa_orcamento") {
-    let rec = 0, desp = 0;
-    dados.forEach(o => {
-      const v = parseFloat((o.c3 || "0").replace(",", ".")) || 0;
-      if ((o.c2 || "").toLowerCase().startsWith("receita")) rec += v; else desp += v;
-    });
-    return `Receitas ${fmt(rec, 2)} · Despesas ${fmt(desp, 2)} · <b>Saldo ${fmt(rec - desp, 2)}</b>`;
-  }
-  if (key === "casa_contas") {
-    const abertas = dados.filter(o => !["s", "sim"].includes((o.c3 || "").toLowerCase()));
-    const total = abertas.reduce((t, o) => t + (parseFloat((o.c1 || "0").replace(",", ".")) || 0), 0);
-    return `${dados.length - abertas.length} pagas · <b>${abertas.length} abertas (${fmt(total, 2)})</b>`;
-  }
+  /* todas as tabelas usam os MESMOS indicadores (base única) */
+  if (key === "casa_orcamento" || key === "casa_contas") return resumoIntegrado();
   if (key === "casa_reserva") {
     const total = dados.reduce((t, o) => t + (parseFloat((o.c1 || "0").replace(",", ".")) || 0), 0);
     return `Total acumulado: <b>${fmt(total, 2)}</b>`;
@@ -1135,6 +1184,22 @@ function resumoLista(key, dados) {
 }
 
 function wireFormularios() {
+  document.querySelectorAll("[data-mes]").forEach(btn => {
+    btn.onclick = () => {
+      const [a, m] = MES_REF.split("-").map(Number);
+      if (btn.dataset.mes === "prev") {
+        const d = new Date(a, m - 2, 1);
+        MES_REF = d.toISOString().slice(0, 7);
+      } else if (btn.dataset.mes === "next") {
+        const d = new Date(a, m, 1);
+        MES_REF = d.toISOString().slice(0, 7);
+      } else {
+        MES_REF = new Date().toISOString().slice(0, 7);
+      }
+      render();
+      renderFixos();
+    };
+  });
   document.querySelectorAll("[data-add]").forEach(btn => {
     btn.onclick = () => {
       const key = btn.dataset.add;
@@ -1166,7 +1231,9 @@ function wireFormularios() {
     const pago = ["s", "sim"].includes((cta.c3 || "").toLowerCase());
     cta.c3 = pago ? "Não" : "Sim";
     save("casa_contas", 1, dados);
+    /* todas as tabelas recebem o dado: re-render completo + gráficos */
     render();
+    renderFixos();
   };
 }
 
@@ -1314,7 +1381,7 @@ function init() {
   initExportar();
 }
 
-return { chavesNuvem, expandirFixos, init, initExportar, initPlanilha, initSyncRapido, parseCSV, render, renderFixos, setUrlSheets, urlSheets };
+return { chavesNuvem, expandirFixos, indicadores, init, initExportar, initPlanilha, initSyncRapido, mesRef, parseCSV, render, renderFixos, resumoIntegrado, setMesRef, setUrlSheets, urlSheets };
 })();
 /* ===== contas_main.js ===== */
 MOD['contas_main'] = (function() {
