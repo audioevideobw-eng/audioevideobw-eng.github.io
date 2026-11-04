@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<!-- build 2026-11-04T13:35:12 -->
+<!-- build 2026-11-04T14:16:12 -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Fluxo de caixa — Mesa BW</title>
@@ -188,7 +188,12 @@ footer b{color:var(--gold)}
     <h3>Lançamentos</h3>
     <div class="sub">Entradas e saídas — saldo automático do período.</div>
     <div class="frow">
-      <div><label>Data</label><input id="nFlData" type="date"></div>
+      <div><label>Data</label>
+        <div style="display:flex;gap:6px">
+          <input id="nFlData" type="date" style="flex:1">
+          <button class="btn gh" id="nFlHoje" style="padding:8px 10px" title="Usar hoje">Hoje</button>
+        </div>
+      </div>
       <div><label>Tipo</label><select id="nFlTipo"><option>Entrada</option><option>Saída</option></select></div>
     </div>
     <div class="frow">
@@ -881,6 +886,8 @@ function renderFluxo() {
 }
 
 function initFluxo() {
+  const hj = $("#nFlHoje");
+  if (hj) hj.onclick = () => { const d = $("#nFlData"); if (d) d.value = new Date().toISOString().slice(0, 10); };
   const go = $("#nFluxoAdd");
   if (go) go.onclick = () => {
     const dados = load(FLUXO, 1, []);
