@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<!-- build 2026-11-04T20:19:52 -->
+<!-- build 2026-11-04T20:32:45 -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Gestão de equipe — Mesa BW</title>
@@ -1174,7 +1174,7 @@ function importarCSV(txt) {
 function initFormulario() {
   const box = $("#eqFormBox"); if (!box) return;
   const token = load("neg_equipe_token", 1, "");
-  const link = token ? location.origin + location.pathname + "?cadastro=" + token : "";
+  const link = token ? location.origin + location.pathname.replace(/[^/]*$/, "cadastro.html?t=") + token : "";
   box.innerHTML = `<div class="card">
     <h3>Cadastro pelo colaborador (link)</h3>
     <div class="sub">Gere o link e envie pelo WhatsApp. O colaborador preenche os dados e eles chegam aqui para aprovação — sem digitar nada para você.</div>
