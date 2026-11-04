@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<!-- build 2026-11-04T20:32:45 -->
+<!-- build 2026-11-04T20:49:45 -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Gestão de equipe — Mesa BW</title>
@@ -598,7 +598,7 @@ async function testarConexao() {
   }
 }
 
-return { cadastrar, configurado, configurar, credenciais, entrar, entrarComGoogle, recuperar, sair, sessao, sessaoLocal, testarConexao, trocarSenha, usuarioAtual };
+return { cadastrar, clienteSB, configurado, configurar, credenciais, entrar, entrarComGoogle, recuperar, sair, sessao, sessaoLocal, testarConexao, trocarSenha, usuarioAtual };
 })();
 /* ===== core/bootcommon.js ===== */
 MOD['core/bootcommon'] = (function() {
@@ -1207,9 +1207,9 @@ function initFormulario() {
 /* cadastros recebidos: lê da tabela equipe_cadastros na nuvem (só o dono lê) */
 function renderCadastros() {
   const el = $("#eqCadastros"); if (!el) return;
-  const c = credenciais();
-  if (!c.url || !c.anon) { el.innerHTML = '<div class="note">Configure o Supabase para receber cadastros.</div>'; return; }
-  const sb = window.supabase.createClient(c.url, c.anon);
+  /* lê com a SESSÃO do dono (RLS: leitura só autenticada) */
+  const sb = auth.clienteSB ? auth.clienteSB() : null;
+  if (!sb) { el.innerHTML = '<div class="note">Configure o Supabase para receber cadastros.</div>'; return; }
   sb.from("equipe_cadastros").select("*").order("criado_em", { ascending: false })
     .then(({ data, error }) => {
       if (error) { el.innerHTML = '<div class="note">Erro ao ler cadastros: ' + esc(error.message) + '</div>'; return; }
