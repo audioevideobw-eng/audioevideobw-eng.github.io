@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<!-- build 2026-11-04T15:42:15 -->
+<!-- build 2026-11-04T16:17:23 -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Orçamento familiar — Mesa BW</title>
@@ -809,8 +809,62 @@ function disponivel() {
   return typeof window.pdfMake !== "undefined";
 }
 
+/* desenha o gráfico de barras por categoria como VETORES do pdfmake (sem imagem) */
+function desenhoBarras(dados) {
+  const porCat = {};
+  dados.forEach(o => {
+    if (!(o.c2 || "").toLowerCase().startsWith("despesa")) return;
+    const cat = o.c1 || "Sem categoria";
+    porCat[cat] = (porCat[cat] || 0) + (parseFloat((o.c3 || "0").replace(",", ".")) || 0);
+  });
+  const pares = Object.entries(porCat).sort((a, b) => b[1] - a[1]).slice(0, 8);
+  if (!pares.length) return null;
+  const max = pares[0][1];
+  return {
+    table: { widths: ["35%", "65%", "25%"], body: [
+      [{ text: "Categoria", bold: true, color: "#fff", fillColor: "#0b1220", fontSize: 8 },
+       { text: "", fillColor: "#0b1220" },
+       { text: "Valor", bold: true, color: "#fff", fillColor: "#0b1220", fontSize: 8, alignment: "right" }],
+      ...pares.map(([cat, v]) => [
+        { text: cat, fontSize: 8 },
+        { canvas: [{ type: "rect", x: 0, y: 3, w: Math.max(4, (v / max) * 120), h: 8, color: "#d4a94a" }] },
+        { text: "R$ " + fmt(v, 2), fontSize: 8, alignment: "right" },
+      ]),
+    ] }, margin: [0, 6, 0, 10],
+  };
+}
+
+/* desenha a evolução mensal (receitas × despesas) como vetores do pdfmake */
+function desenhoEvolucao() {
+  const orc = load("casa_orcamento", 1, []);
+  const meses = [...new Set(orc.map(o => (o.c4 || "").slice(0, 7)))].filter(Boolean).sort();
+  if (meses.length < 2) return null;
+  const porMes = {};
+  orc.forEach(o => {
+    const m = (o.c4 || "").slice(0, 7);
+    const v = parseFloat((o.c3 || "0").replace(",", ".")) || 0;
+    if (!porMes[m]) porMes[m] = { rec: 0, desp: 0 };
+    if ((o.c2 || "").toLowerCase().startsWith("receita")) porMes[m].rec += v;
+    else porMes[m].desp += v;
+  });
+  const maxV = Math.max(...meses.flatMap(m => [porMes[m].rec, porMes[m].desp]), 1);
+  const linhas = meses.map(m => [
+    { text: m, fontSize: 8 },
+    { text: "R$ " + fmt(porMes[m].rec, 2), fontSize: 8, color: "#1e8e5a", alignment: "right" },
+    { text: "R$ " + fmt(porMes[m].desp, 2), fontSize: 8, color: "#b8860b", alignment: "right" },
+  ]);
+  return {
+    table: { widths: ["34%", "33%", "33%"], body: [
+      [{ text: "Mês", bold: true, color: "#fff", fillColor: "#0b1220", fontSize: 8 },
+       { text: "Receitas", bold: true, color: "#fff", fillColor: "#0b1220", fontSize: 8, alignment: "right" },
+       { text: "Despesas", bold: true, color: "#fff", fillColor: "#0b1220", fontSize: 8, alignment: "right" }],
+      ...linhas,
+    ] }, margin: [0, 6, 0, 10],
+  };
+}
+
 /* gera o PDF do relatório mensal (chama pdfMake.createPdf) */
-function exportarMes(titulo, key, cols, resumo) {
+async function exportarMes(titulo, key, cols, resumo, desenhos = []) {
   if (!disponivel()) throw new Error("Biblioteca de PDF não carregou — recarregue a página.");
   const dados = linhas(key, cols);
   const corpo = [
@@ -829,6 +883,7 @@ function exportarMes(titulo, key, cols, resumo) {
     content: [
       { text: titulo, fontSize: 16, bold: true, margin: [0, 20, 0, 4] },
       { text: `Mês de referência: ${MES}`, color: "#55627a", margin: [0, 0, 0, 12] },
+      ...(desenhos || []),
       ...(resumo ? [{ table: { widths: ["*", "*"], body: resumo.map(r => [
         { text: r[0], color: "#55627a" }, { text: r[1], bold: true, alignment: "right" },
       ]) }, margin: [0, 0, 0, 14] }] : []),
@@ -883,7 +938,7 @@ function resumoFluxo() {
   return [["Entradas", "R$ " + fmt(ent, 2)], ["Saídas", "R$ " + fmt(sai, 2)], ["Saldo", "R$ " + fmt(ent - sai, 2)]];
 }
 
-return { disponivel, exportarMes, resumoContas, resumoFluxo, resumoOrcamento, resumoReserva };
+return { desenhoBarras, desenhoEvolucao, disponivel, exportarMes, resumoContas, resumoFluxo, resumoOrcamento, resumoReserva };
 })();
 /* ===== modules/casa.js ===== */
 MOD['modules/casa'] = (function() {
@@ -1346,16 +1401,18 @@ function chavesNuvem() { return LISTAS.map(l => l.key); }
 function initExportar() {
   const mapeia = [
     ["#expOrc", "Orçamento familiar", "casa_orcamento",
-     ["Descrição", "Categoria", "Tipo (receita/despesa)", "Valor", "Mês (2026-11)"], exportar.resumoOrcamento],
+     ["Descrição", "Categoria", "Tipo (receita/despesa)", "Valor", "Mês (2026-11)"], exportar.resumoOrcamento,
+     () => [exportar.desenhoBarras(load("casa_orcamento", 1, [])),
+            exportar.desenhoEvolucao()].filter(Boolean)],
     ["#expCt", "Contas a pagar", "casa_contas",
      ["Descrição", "Valor", "Vencimento (AAAA-MM-DD)", "Pago? (s/n)"], exportar.resumoContas],
     ["#expRs", "Reserva de emergência", "casa_reserva",
      ["Mês (2026-11)", "Aporte em R$"], exportar.resumoReserva],
   ];
-  mapeia.forEach(([sel, titulo, key, cols, resumo]) => {
+  mapeia.forEach(([sel, titulo, key, cols, resumo, desenhos]) => {
     const btn = $(sel); if (!btn) return;
-    btn.onclick = () => {
-      try { exportar.exportarMes(titulo, key, cols, resumo()); }
+    btn.onclick = async () => {
+      try { await exportar.exportarMes(titulo, key, cols, resumo(), desenhos ? desenhos() : []); }
       catch (e) { btn.textContent = "Erro: " + (e.message || e); }
     };
   });
