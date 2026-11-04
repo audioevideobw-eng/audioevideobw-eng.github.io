@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<!-- build 2026-11-04T15:00:48 -->
+<!-- build 2026-11-04T15:25:13 -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Contas a pagar — Mesa BW</title>
@@ -987,16 +987,29 @@ function graficoCategorias(dados) {
 
 /* gráfico de linha: receitas × despesas por mês (evolução) */
 function graficoEvolucao(dados) {
-  const porMes = {};
-  dados.forEach(o => {
-    const mes = (o.c4 || "sem mês").slice(0, 7);   // AAAA-MM
-    const v = parseFloat((o.c3 || "0").replace(",", ".")) || 0;
-    if (!porMes[mes]) porMes[mes] = { rec: 0, desp: 0 };
-    if ((o.c2 || "").toLowerCase().startsWith("receita")) porMes[mes].rec += v;
-    else porMes[mes].desp += v;
+  /* usa os INDICADORES INTEGRADOS: cada mês inclui contas pagas/abertas
+     e os fixos previstos (mesmo sem conta gerada) — a visão real do mês */
+  const orc = load("casa_orcamento", 1, []);
+  const mesesSet = new Set();
+  orc.forEach(o => mesesSet.add((o.c4 || "").slice(0, 7)));
+  load("casa_contas", 1, []).forEach(c => mesesSet.add((c.c2 || "").slice(0, 7)));
+  load(FIXOS_KEY, 1, []).forEach(f => {
+    const ini = (f.c4 || "").slice(0, 7);
+    if (ini && f.c2 !== "anual") {
+      const [a, m] = ini.split("-").map(Number);
+      for (let k = 0; k < 12; k++) {
+        const d = new Date(a, m - 1 + k, 1);
+        mesesSet.add(d.toISOString().slice(0, 7));
+      }
+    } else if (ini) mesesSet.add(ini);
   });
-  const meses = Object.keys(porMes).sort();
+  const meses = [...mesesSet].filter(Boolean).sort();
   if (meses.length < 2) return "";   // precisa de 2+ meses para linha fazer sentido
+  const porMes = {};
+  meses.forEach(m => {
+    const i = indicadores(m);
+    porMes[m] = { rec: i.rec, desp: i.despTotal };
+  });
   const W = 640, H = 220, ml = 56, mr = 14, mt = 14, mb = 30;
   const maxV = Math.max(...meses.flatMap(m => [porMes[m].rec, porMes[m].desp]), 1);
   const X = i => ml + (i / (meses.length - 1)) * (W - ml - mr);
@@ -1033,7 +1046,27 @@ let MES_REF = new Date().toISOString().slice(0, 7);
 function mesRef() { return MES_REF; }
 function setMesRef(m) { MES_REF = m; }
 
-/* base unificada: orçamento (receitas/despesas) + contas (pago=despesa realizada) */
+/* fixos que ocorrem no mês m mas AINDA NÃO têm conta gerada nele
+   (mensal: do mês inicial em diante, sempre; anual: só o mês inicial).
+   É o que faz o custo fixo aparecer nos indicadores de QUALQUER mês futuro. */
+function fixosSemConta(m, contas) {
+  const fixos = load(FIXOS_KEY, 1, []);
+  const comConta = new Set(contas
+    .filter(c => String(c.id || "").startsWith("fixo_") && (c.c2 || "").slice(0, 7) === m)
+    .map(c => String(c.id).split("_")[1]));
+  let total = 0;
+  fixos.forEach(f => {
+    const inicio = (f.c4 || "").slice(0, 7);
+    if (!inicio) return;
+    if (f.c2 === "anual") { if (m !== inicio) return; }
+    else if (m < inicio) return;
+    if (comConta.has(String(f.id))) return;
+    total += parseFloat((f.c1 || "0").replace(",", ".")) || 0;
+  });
+  return total;
+}
+
+/* base unificada: orçamento + contas (pagas e em aberto) + fixos previstos */
 function indicadores(mes) {
   const m = mes || MES_REF;
   const orc = load("casa_orcamento", 1, []);
@@ -1051,12 +1084,15 @@ function indicadores(mes) {
     if (["s", "sim"].includes((c.c3 || "").toLowerCase())) pagoContas += v;
     else abertoContas += v;
   });
+  const fixosPrev = fixosSemConta(m, contas);
   const reserva = load("casa_reserva", 1, [])
     .filter(o => (o.c0 || "").slice(0, 7) === m)
     .reduce((t, o) => t + (parseFloat((o.c1 || "0").replace(",", ".")) || 0), 0);
-  const fixos = load(FIXOS_KEY, 1, []).filter(f => f.c2 === "mensal");
-  return { mes: m, rec, desp, pagoContas, abertoContas, reserva,
-           saldo: rec - desp, fixosAtivos: fixos.length };
+  const fixosAtivos = load(FIXOS_KEY, 1, []).length;
+  /* despesa total = lançada + contas pagas + contas em aberto + fixos sem conta no mês */
+  const despTotal = desp + pagoContas + abertoContas + fixosPrev;
+  return { mes: m, rec, desp, despTotal, fixosPrev, pagoContas, abertoContas,
+           reserva, saldo: rec - despTotal, fixosAtivos };
 }
 
 /* resumo com comparação ao mês anterior (usado por todas as páginas) */
@@ -1071,7 +1107,9 @@ function resumoIntegrado(mes) {
     if (Math.abs(d) < 0.005) return " <small>(=)</small>";
     return ` <small style="color:${d > 0 ? "var(--up)" : "var(--dn)"}">(${d > 0 ? "+" : "−"}${fmt(Math.abs(d), 0)})</small>`;
   };
-  return `Receitas ${fmt(i.rec, 2)}${delta(i.rec, pm.rec)} · Despesas ${fmt(i.desp, 2)}${delta(i.desp, pm.desp)} · <b>Saldo ${fmt(i.saldo, 2)}</b>` +
+  const fixosNota = i.fixosPrev > 0 ? ` <small>(inclui ${fmt(i.fixosPrev, 2)} de fixos previstos)</small>` : "";
+  return `Receitas ${fmt(i.rec, 2)}${delta(i.rec, pm.rec)} · Despesas ${fmt(i.despTotal, 2)}${delta(i.despTotal, pm.despTotal)}${fixosNota}` +
+    ` · <b>Saldo ${fmt(i.saldo, 2)}</b>` +
     ` · Contas: ${fmt(i.pagoContas, 2)} pagas / ${fmt(i.abertoContas, 2)} em aberto` +
     ` · Reserva ${fmt(i.reserva, 2)}`;
 }
