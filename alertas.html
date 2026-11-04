@@ -188,6 +188,11 @@ footer b{color:var(--gold)}
     </div>
     <button class="btn" id="aGo">Criar alerta</button>
     <div style="margin-top:16px" id="aList"></div>
+    <div style="margin-top:16px;border-top:1px solid var(--line);padding-top:14px">
+      <h3>Notificações no aparelho</h3>
+      <button class="btn gh" id="aPush">Ativar notificações (push)</button>
+      <div class="note" id="aPushMsg"></div>
+    </div>
   </div>
 
 <footer>
@@ -676,12 +681,83 @@ async function bootComum() {
 
 return { avisoSemDados, bootComum, iniciarDados, montarCabecalho, preencherCodigos, preencherProgramas, refreshPagina, registrarSW };
 })();
+/* ===== core/push.js ===== */
+MOD['core/push'] = (function() {
+/* core/push.js — notificações push dos alertas de preço.
+   O usuário ativa uma vez; a inscrição (endpoint + chaves) fica na nuvem,
+   na linha do próprio usuário (tabela user_data, chave 'fx_push').
+   A automação das 2h lê as inscrições e envia o push se um alvo foi atingido. */
+const {  load, save, remove  } = MOD['core/store'];
+const {  credenciais  } = MOD['core/auth'];
+
+const KEY = "fx_push_ok", VER = 1;
+/* publicKey VAPID da BW (pública por design; a privada fica no cofre) */
+const VAPID_PUBLIC = "BEd-DZh9yqmiVBY-RSlwTM4-6Xj1kFpQO4Y3cN7eS-A6fH5Q7X8yZ0aV9uW2xK3mN4pQ5rS6tU7vA8wB9c";
+
+function ativo() { return load(KEY, VER, false); }
+
+/* ativa: pede permissão, inscreve no pushManager e sobe a inscrição p/ nuvem */
+async function ativar() {
+  if (!("serviceWorker" in navigator) || !("PushManager" in window))
+    throw new Error("Este navegador não suporta notificações (abra no Chrome/Safari).");
+  const reg = await navigator.serviceWorker.register("sw.js");
+  const perm = await Notification.requestPermission();
+  if (perm !== "granted") throw new Error("Permissão negada — libere nas configurações do navegador.");
+  const c = credenciais();
+  const sub = await reg.pushManager.subscribe({
+    userVisibleOnly: true,
+    applicationServerKey: urlB64ToUint8(VAPID_PUBLIC),
+  });
+  const j = sub.toJSON();
+  /* grava a inscrição na nuvem (linha fx_push do usuário) */
+  const sb = window.supabase && c.url && c.anon ? window.supabase.createClient(c.url, c.anon) : null;
+  if (!sb) throw new Error("Entre com sua conta antes de ativar as notificações.");
+  const { error } = await sb.from("user_data").upsert(
+    { chave: "fx_push", dados: j, atualizado_em: new Date().toISOString() },
+    { onConflict: "user_id,chave" }
+  );
+  if (error) throw error;
+  save(KEY, VER, true);
+  return true;
+}
+
+/* desativa: remove a inscrição da nuvem e local */
+async function desativar() {
+  try {
+    const reg = await navigator.serviceWorker.getRegistration();
+    if (reg) {
+      const sub = await reg.pushManager.getSubscription();
+      if (sub) await sub.unsubscribe();
+    }
+  } catch (e) { }
+  const c = credenciais();
+  const sb = window.supabase && c.url && c.anon ? window.supabase.createClient(c.url, c.anon) : null;
+  if (sb) {
+    try {
+      const { data: sess } = await sb.auth.getSession();
+      if (sess && sess.session)
+        await sb.from("user_data").delete().eq("chave", "fx_push");
+    } catch (e) { }
+  }
+  remove(KEY, VER);
+}
+
+function urlB64ToUint8(b64) {
+  const pad = "=".repeat((4 - (b64.length % 4)) % 4);
+  const base = (b64 + pad).replace(/-/g, "+").replace(/_/g, "/");
+  const raw = atob(base);
+  return Uint8Array.from(raw, c => c.charCodeAt(0));
+}
+
+return { ativar, ativo, desativar };
+})();
 /* ===== modules/alertas.js ===== */
 MOD['modules/alertas'] = (function() {
-/* módulo Alertas — alvos de preço salvos no navegador (via core/store). */
+/* módulo Alertas — alvos de preço (compra/venda) + notificações push */
 const {  $, fmt  } = MOD['core/format'];
 const {  ref, decOf  } = MOD['core/data'];
 const {  load, save  } = MOD['core/store'];
+const push = MOD['core/push'];
 
 const KEY = "fx_alerts", VER = 1;
 
@@ -727,6 +803,26 @@ function init() {
     $("#aBuy").value = (v * 0.97).toFixed(d); $("#aSel").value = (v * 1.03).toFixed(d);
   };
   window.__delAlert = id => { saveAlerts(loadAlerts().filter(a => a.id !== id)); renderAlerts(); };
+
+  /* notificações push (botão na página) */
+  const bp = $("#aPush"), mp = $("#aPushMsg");
+  if (bp && mp) {
+    const atualiza = () => {
+      const ok = push.ativo();
+      bp.textContent = ok ? "Desativar notificações" : "Ativar notificações (push)";
+      mp.textContent = ok ? "Notificações ativas neste aparelho — a automação avisa quando um alvo bater."
+        : "Receba no celular quando um alvo de compra ou venda bater. Ativa uma vez por aparelho.";
+    };
+    atualiza();
+    bp.onclick = async () => {
+      mp.textContent = "Ativando…";
+      try {
+        if (push.ativo()) { await push.desativar(); }
+        else { await push.ativar(); }
+        atualiza();
+      } catch (e) { mp.textContent = e.message || String(e); }
+    };
+  }
 }
 
 return { init, loadAlerts, renderAlerts, saveAlerts };
