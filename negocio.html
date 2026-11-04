@@ -183,37 +183,15 @@ footer b{color:var(--gold)}
 <div class="wrap">
 <!-- ================= MEU NEGÓCIO ================= -->
   <h2 id="negocio">Meu negócio</h2>
-  <div class="grid2">
-    <div class="card">
-      <h3>Calculadora de preço e margem</h3>
-      <div class="sub">Preço de venda com imposto do Simples Nacional e a margem que você quer ganhar.</div>
-      <div class="frow3">
-        <div><label>Custo (R$)</label><input id="nCusto" type="number" step="0.01" min="0"></div>
-        <div><label>Imposto Simples (%)</label><input id="nAliq" type="number" step="0.1" min="0" max="100" value="6"></div>
-        <div><label>Margem desejada (%)</label><input id="nMargem" type="number" step="1" min="0" max="100" value="30"></div>
-      </div>
-      <div class="frow">
-        <div><label>Gastos fixos por venda (R$)</label><input id="nOutros" type="number" step="0.01" min="0" value="0"></div>
-      </div>
-      <div class="out" id="nPrecoOut"></div>
-    </div>
-    <div class="card">
-      <h3>Fluxo de caixa da empresa</h3>
-      <div class="sub">Entradas e saídas — saldo automático do período.</div>
-      <div class="frow">
-        <div><label>Data</label><input id="nFlData" type="date"></div>
-        <div><label>Tipo</label><select id="nFlTipo"><option>Entrada</option><option>Saída</option></select></div>
-      </div>
-      <div class="frow">
-        <div><label>Valor (R$)</label><input id="nFlValor" type="number" step="0.01" min="0"></div>
-        <div><label>Descrição</label><input id="nFlDesc" type="text" placeholder="Venda, fornecedor…"></div>
-      </div>
-      <button class="btn" id="nFluxoAdd">Lançar</button>
-      <div id="nFluxoOut" style="margin-top:12px"></div>
+  <div class="card">
+    <h3>Ferramentas do negócio</h3>
+    <div class="sub">Preço, caixa e cotações — cada uma em sua página.</div>
+    <div class="menu-grid">
+      <a class="menu-card" href="preco.html"><b>Calculadora de preço e margem</b><small>Custo + imposto do Simples + margem → preço de venda sugerido.</small></a>
+      <a class="menu-card" href="fluxo.html"><b>Fluxo de caixa da empresa</b><small>Entradas, saídas e saldo do período — com planilha conectada.</small></a>
+      <a class="menu-card" href="milhas.html"><b>Câmbio para cotações</b><small>PTAX + mercado ao vivo para precificar importação e serviços.</small></a>
     </div>
   </div>
-  <div class="card" style="margin-top:14px" id="negPlanilha"></div>
-  <div class="card" style="margin-top:14px" id="negSync"></div>
 
 <footer>
     <b>Mesa de Câmbio &amp; Milhas — BW Audiovisual</b><br>
@@ -747,6 +725,28 @@ function calcularPreco() {
 /* ---- fluxo de caixa (lista sincronizada) ---- */
 const FLUXO = "neg_fluxo";
 
+/* categorias pré-definidas do fluxo (o usuário também pode digitar outra —
+   por isso o select tem a opção "Outra…" que vira campo livre) */
+const CATEGORIAS_NEG = [
+  "Venda de produto", "Venda de serviço", "Recebimento de cliente",
+  "Fornecedor", "Aluguel", "Energia/Água/Internet", "Salários e pró-labore",
+  "Impostos e taxas", "Marketing/Publicidade", "Transporte/Combustível",
+  "Material de trabalho", "Equipamento", "Empréstimo/Financiamento", "Outra…",
+];
+
+function initCategorias() {
+  const sel = $("#nFlDesc"); if (!sel) return;
+  sel.innerHTML = CATEGORIAS_NEG.map(c => `<option>${c}</option>`).join("");
+  const campo = sel.parentElement;
+  sel.onchange = () => {
+    if (sel.value === "Outra…") {
+      const inp = document.createElement("input");
+      inp.id = "nFlDescLivre"; inp.type = "text"; inp.placeholder = "Digite a categoria";
+      sel.replaceWith(inp); inp.id = "nFlDesc";
+    }
+  };
+}
+
 function renderFluxo() {
   const el = $("#nFluxoOut"); if (!el) return;
   const dados = load(FLUXO, 1, []);
@@ -771,7 +771,7 @@ function initFluxo() {
     const dados = load(FLUXO, 1, []);
     const obj = { id: Date.now(),
       c0: $("#nFlData").value.trim(), c1: $("#nFlTipo").value.trim(),
-      c2: $("#nFlValor").value.trim(), c3: $("#nFlDesc").value.trim() };
+      c2: $("#nFlValor").value.trim(), c3: ($("#nFlDesc").value === "Outra…" ? ($("#nFlDescLivre") ? $("#nFlDescLivre").value.trim() : "") : $("#nFlDesc").value.trim()) };
     if (!obj.c1 && !obj.c2) return;
     dados.push(obj); save(FLUXO, 1, dados); renderFluxo();
   };
@@ -859,19 +859,24 @@ function initSyncRapido() {
   });
 }
 
-function init() {
-  initSyncRapido();
-  initFluxo();
-  initPlanilha();
-  renderFluxo();
-  $("#nCusto").oninput = calcularPreco;
-  $("#nAliq").oninput = calcularPreco;
-  $("#nMargem").oninput = calcularPreco;
-  $("#nOutros").oninput = calcularPreco;
+/* calculadora de preço — separada para a página própria (preco.html) */
+function initPreco() {
+  ["#nCusto", "#nAliq", "#nMargem", "#nOutros"].forEach(s => {
+    const el = $(s); if (el) el.oninput = calcularPreco;
+  });
   calcularPreco();
 }
 
-return { calcularPreco, init, initFluxo, initPlanilha, initSyncRapido, renderFluxo, setUrlSheets, urlSheets };
+function init() {
+  initSyncRapido();
+  initFluxo();
+  initCategorias();
+  initPlanilha();
+  initPreco();
+  renderFluxo();
+}
+
+return { CATEGORIAS_NEG, calcularPreco, init, initCategorias, initFluxo, initPlanilha, initPreco, initSyncRapido, renderFluxo, setUrlSheets, urlSheets };
 })();
 /* ===== negocio_main.js ===== */
 MOD['negocio_main'] = (function() {
