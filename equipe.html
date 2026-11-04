@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<!-- build 2026-11-04T16:21:40 -->
+<!-- build 2026-11-04T18:54:32 -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Gestão de equipe — Mesa BW</title>
@@ -831,11 +831,15 @@ function renderColaboradores() {
     <div class="sub">${dados.length} cadastrado(s) — dados usados nas equipes e no PDF da escala.</div>
     <div class="tb-scroll"><table>
       <thead><tr><th>Nome</th><th>Função</th><th>Telefone</th><th>E-mail</th><th>CPF</th><th></th></tr></thead>
-      <tbody>${dados.length ? dados.map(m => `<tr>
-        <td><b>${esc(m.nome)}</b></td><td>${esc(m.funcao || "")}</td><td>${esc(m.tel || "")}</td>
-        <td>${esc(m.email || "")}</td><td>${esc(m.cpf || "")}</td>
-        <td><a href="#" onclick="window.__wa('${m.id}');return false" title="WhatsApp" style="margin-right:6px">💬</a>
-        <a href="#" onclick="window.__delColab('${m.id}');return false" style="color:var(--dn)">✕</a></td></tr>`).join("")
+      <tbody>${dados.length ? dados.map(m => {
+        const wa = telWa(m.tel);
+        const telCel = wa ? `<a href="https://wa.me/${wa}" target="_blank" rel="noopener" style="color:var(--gold2);text-decoration:none">${esc(m.tel)}</a> <a href="https://wa.me/${wa}" target="_blank" rel="noopener" title="Abrir no WhatsApp" style="text-decoration:none">💬</a>` : esc(m.tel || "—");
+        const mailCel = m.email ? `<a href="mailto:${esc(m.email)}" style="color:var(--gold2);text-decoration:none">${esc(m.email)}</a>` : "—";
+        return `<tr>
+        <td><b>${esc(m.nome)}</b></td><td>${esc(m.funcao || "")}</td><td>${telCel}</td>
+        <td>${mailCel}</td><td>${esc(m.cpf || "")}</td>
+        <td><a href="#" onclick="window.__delColab('${m.id}');return false" style="color:var(--dn)">✕</a></td></tr>`;
+      }).join("")
         : '<tr><td colspan="6" style="color:var(--mut)">Nenhum colaborador cadastrado.</td></tr>'}</tbody>
     </table></div>
     <div class="frow3" style="margin-top:10px">
@@ -865,11 +869,6 @@ function renderColaboradores() {
   window.__delColab = id => {
     save(K_COLAB, 1, colabs().filter(c => String(c.id) !== String(id)));
     renderColaboradores(); renderEquipes();
-  };
-  window.__wa = id => {
-    const m = colabs().find(c => String(c.id) === String(id));
-    const wa = telWa(m && m.tel);
-    if (wa) window.open("https://wa.me/" + wa, "_blank");
   };
 }
 
