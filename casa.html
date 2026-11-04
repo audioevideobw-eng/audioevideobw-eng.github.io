@@ -759,7 +759,7 @@ async function subir(chave) {
 
 /* ---- sincronizar tudo: sobe as chaves conhecidas ---- */
 async function sincronizarTudo() {
-  const chaves = ["fx_alerts", "fx_diario"];
+  const chaves = ["fx_alerts", "fx_diario", "casa_orcamento", "casa_contas", "casa_reserva", "neg_fluxo"];
   const res = [];
   for (const k of chaves) res.push(await subir(k));
   return res;
