@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<!-- build 2026-11-04T13:52:47 -->
+<!-- build 2026-11-04T14:16:12 -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Orçamento familiar — Mesa BW</title>
@@ -901,7 +901,8 @@ const LISTAS = [
     opcoes: { 1: ["Alimentação", "Combustível", "Lazer", "Saúde", "Educação", "Moradia", "Transporte", "Vestuário", "Contas (luz/água/net)", "Assinaturas", "Outra…"],
               2: ["Receita", "Despesa"] } },
   { key: "casa_contas", label: "Contas a pagar", cols: ["Descrição", "Valor", "Vencimento (AAAA-MM-DD)", "Pago? (s/n)"],
-    opcoes: { 0: ["Aluguel", "Condomínio", "Energia", "Água", "Internet", "Telefone", "Cartão de crédito", "IPTU", "Escola", "Plano de saúde", "Financiamento", "Outra…"] } },
+    opcoes: { 0: ["Aluguel", "Condomínio", "Energia", "Água", "Internet", "Telefone", "Cartão de crédito", "IPTU", "Escola", "Plano de saúde", "Financiamento", "Outra…"],
+              3: ["Não", "Sim"] } },
   { key: "casa_reserva", label: "Reserva de emergência", cols: ["Mês (2026-11)", "Aporte em R$"] },
 ];
 
@@ -1054,9 +1055,20 @@ function render() {
       <div class="frow3" style="margin-top:10px">
         ${l.cols.map((c, i) => {
           const ops = (l.opcoes || {})[i];
-          const campo = ops
-            ? `<select data-lista="${l.key}" data-col="${c}">${ops.map(o => `<option>${o}</option>`).join("")}</select>`
-            : `<input data-lista="${l.key}" data-col="${c}" type="${c.includes("Valor") || c.includes("Aporte") ? "number" : "text"}" step="0.01">`;
+          /* facilidades por tipo de campo: select com opções, date/month com
+             calendário nativo, number com step — e botão "hoje/este mês" */
+          let campo;
+          if (ops) {
+            campo = `<select data-lista="${l.key}" data-col="${c}">${ops.map(o => `<option>${o}</option>`).join("")}</select>`;
+          } else if (c.includes("Vencimento")) {
+            campo = `<input data-lista="${l.key}" data-col="${c}" type="date">`;
+          } else if (c.startsWith("Mês")) {
+            campo = `<input data-lista="${l.key}" data-col="${c}" type="month" value="${new Date().toISOString().slice(0, 7)}">`;
+          } else if (c.includes("Valor") || c.includes("Aporte")) {
+            campo = `<input data-lista="${l.key}" data-col="${c}" type="number" step="0.01" min="0" placeholder="0,00">`;
+          } else {
+            campo = `<input data-lista="${l.key}" data-col="${c}" type="text" placeholder="${c.split(" (")[0]}">`;
+          }
           return `<div><label>${c.split(" (")[0]}</label>${campo}</div>`;
         }).join("")}
         <div style="align-self:end"><button class="btn" data-add="${l.key}">Adicionar</button></div>
@@ -1076,7 +1088,7 @@ function resumoLista(key, dados) {
     return `Receitas ${fmt(rec, 2)} · Despesas ${fmt(desp, 2)} · <b>Saldo ${fmt(rec - desp, 2)}</b>`;
   }
   if (key === "casa_contas") {
-    const abertas = dados.filter(o => (o.c3 || "").toLowerCase() !== "s");
+    const abertas = dados.filter(o => !["s", "sim"].includes((o.c3 || "").toLowerCase()));
     const total = abertas.reduce((t, o) => t + (parseFloat((o.c1 || "0").replace(",", ".")) || 0), 0);
     return `${dados.length - abertas.length} pagas · <b>${abertas.length} abertas (${fmt(total, 2)})</b>`;
   }
