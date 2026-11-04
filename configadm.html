@@ -185,6 +185,13 @@ footer b{color:var(--gold)}
         marque <b>Auto Confirm User</b> → Save. A pessoa entra pela página de Acesso
         com esse e-mail e senha.
       </div>
+      <h3 style="margin-top:16px">Opcional: "Entrar com Google"</h3>
+      <div class="note" style="line-height:1.7">
+        1. No <b>Google Cloud Console</b> (console.cloud.google.com) → APIs e Serviços → Credenciais → Criar credenciais → <b>ID do cliente OAuth</b> → Tipo: Aplicativo da Web.<br>
+        2. Em "Origens JavaScript autorizadas": <b>https://audioevideobw-eng.github.io</b>. Em "URIs de redirecionamento": copie a URL que o Supabase mostra (Authentication → Providers → Google).<br>
+        3. No Supabase → Authentication → Providers → <b>Google</b>: ative e cole o <b>Client ID</b> e o <b>Client Secret</b> → Save.<br>
+        4. Pronto: o botão "Entrar com Google" na página de Acesso passa a funcionar.
+      </div>
     </div>
   </div>
 
@@ -542,6 +549,18 @@ async function recuperar(email) {
   if (error) throw error;
 }
 
+/* login social (OAuth): redireciona para o Google e volta para o painel.
+   Requer: Supabase → Authentication → Providers → Google ativado com as
+   credenciais do Google Cloud (ver página CONFIGADM). */
+async function entrarComGoogle() {
+  const sb = clienteSB(); if (!sb) throw new Error("Autenticação não configurada.");
+  const { error } = await sb.auth.signInWithOAuth({
+    provider: "google",
+    options: { redirectTo: location.origin + location.pathname },
+  });
+  if (error) throw error;
+}
+
 async function trocarSenha(novaSenha) {
   const sb = clienteSB(); if (!sb) throw new Error("Autenticação não configurada.");
   const { error } = await sb.auth.updateUser({ password: novaSenha });
@@ -574,7 +593,7 @@ async function testarConexao() {
   }
 }
 
-return { cadastrar, configurado, configurar, credenciais, entrar, recuperar, sair, sessao, sessaoLocal, testarConexao, trocarSenha, usuarioAtual };
+return { cadastrar, configurado, configurar, credenciais, entrar, entrarComGoogle, recuperar, sair, sessao, sessaoLocal, testarConexao, trocarSenha, usuarioAtual };
 })();
 /* ===== core/bootcommon.js ===== */
 MOD['core/bootcommon'] = (function() {
@@ -707,11 +726,23 @@ function render() {
     <div class="sub">${t.sub}</div>
     <div style="display:grid;gap:10px;margin-top:12px">${t.campos}</div>
     <button class="btn" id="lGo" style="margin-top:14px">${t.btn}</button>
+    ${modo === "entrar" ? `<div style="margin-top:12px;border-top:1px solid var(--line);padding-top:12px">
+      <button class="btn gh" id="lGoogle" style="width:100%">Entrar com Google</button>
+      <div class="note">Ative este recurso em 5 minutos: no Supabase → Authentication → Providers → Google, e no Google Cloud crie o OAuth (o passo a passo está na página CONFIGADM).</div>
+    </div>` : ""}
     <div style="margin-top:12px;font-size:12.5px;color:var(--mut)">
       ${modo !== "entrar" ? `<a href="#login" onclick="window.__lModo('entrar');return false" style="color:var(--gold2)">← Voltar para entrar</a> · ` : ""}
       ${modo === "entrar" ? `<a href="#login" onclick="window.__lModo('cadastrar');return false" style="color:var(--gold2)">Criar conta</a> · <a href="#login" onclick="window.__lModo('recuperar');return false" style="color:var(--gold2)">Esqueci a senha</a>` : ""}
     </div>`;
   $("#lGo").onclick = agir;
+  const gg = $("#lGoogle");
+  if (gg) gg.onclick = async () => {
+    try {
+      await auth.entrarComGoogle();
+    } catch (e) {
+      mostrar(traduzErro(e));
+    }
+  };
 }
 
 async function agir() {
