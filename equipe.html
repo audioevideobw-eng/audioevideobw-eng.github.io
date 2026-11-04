@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<!-- build 2026-11-04T18:54:32 -->
+<!-- build 2026-11-04T19:02:04 -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Gestão de equipe — Mesa BW</title>
@@ -189,6 +189,9 @@ footer b{color:var(--gold)}
     <div class="sub">Cadastre colaboradores, monte equipes (como grupos) e organize os eventos. Cada evento gera o PDF da escala, dispara alertas no celular e permite comunicar a equipe.</div>
   </div>
   <div id="eqColabBox"></div>
+  <div id="eqSyncBox" style="margin-top:14px"></div>
+  <div id="eqPlanilhaBox" style="margin-top:14px"></div>
+  <div id="eqFormBox" style="margin-top:14px"></div>
   <div id="eqEquipesBox" style="margin-top:14px"></div>
   <div id="eqEventosBox" style="margin-top:14px"></div>
 
@@ -763,7 +766,7 @@ async function subir(chave) {
 
 /* ---- sincronizar tudo: sobe as chaves conhecidas ---- */
 async function sincronizarTudo() {
-  const chaves = ["fx_alerts", "fx_diario", "casa_orcamento", "casa_contas", "casa_reserva", "neg_fluxo", "casa_fixos", "neg_equipe_colaboradores", "neg_equipe_equipes", "neg_equipe_eventos"];
+  const chaves = ["fx_alerts", "fx_diario", "casa_orcamento", "casa_contas", "casa_reserva", "neg_fluxo", "casa_fixos", "neg_equipe_colaboradores", "neg_equipe_equipes", "neg_equipe_eventos", "neg_equipe_cadastros"];
   const res = [];
   for (const k of chaves) res.push(await subir(k));
   return res;
@@ -787,6 +790,8 @@ MOD['modules/equipe'] = (function() {
    PDF da escala, alertas de vencimento e comunicação (WhatsApp/e-mail/cópia). */
 const {  $, esc  } = MOD['core/format'];
 const {  load, save  } = MOD['core/store'];
+const nuvem = MOD['core/nuvem'];
+const auth = MOD['core/auth'];
 
 const K_COLAB = "neg_equipe_colaboradores";
 const K_EQUIPES = "neg_equipe_equipes";
@@ -1055,13 +1060,238 @@ function comunicar(id) {
   };
 }
 
+/* ---------- sincronização com a conta ---------- */
+function initSync() {
+  const box = $("#eqSyncBox"); if (!box) return;
+  auth.usuarioAtual().then(u => {
+    if (!u) {
+      box.innerHTML = '<div class="note">Entre com sua conta (LOGIN no topo) para sincronizar os dados da equipe entre celular e PC.</div>';
+      return;
+    }
+    box.innerHTML = `<div class="card">
+      <h3>Sincronização</h3>
+      <div class="sub">Os dados da equipe ficam na sua conta — cadastros feitos no celular aparecem no PC e vice-versa.</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+        <button class="btn gh" id="eqSyncUp">↑ Enviar para a conta</button>
+        <button class="btn gh" id="eqSyncDown">↓ Puxar da conta</button>
+      </div>
+      <div class="note" id="eqSyncMsg"></div>
+    </div>`;
+    const CHAVES = ["neg_equipe_colaboradores", "neg_equipe_equipes", "neg_equipe_eventos"];
+    $("#eqSyncUp").onclick = async () => {
+      $("#eqSyncMsg").textContent = "Enviando…";
+      const rs = [];
+      for (const k of CHAVES) rs.push(await nuvem.subir(k));
+      const falha = rs.find(r => !r.ok);
+      $("#eqSyncMsg").textContent = falha ? "Falha: " + falha.msg
+        : "Enviado ✓ — " + rs.map(r => r.msg.replace(/^[a-z_]+: /, "")).join(" · ");
+      $("#eqSyncMsg").style.color = falha ? "var(--dn)" : "var(--up)";
+    };
+    $("#eqSyncDown").onclick = async () => {
+      $("#eqSyncMsg").textContent = "Puxando…";
+      const rs = [];
+      for (const k of CHAVES) rs.push(await nuvem.baixar(k));
+      const falha = rs.find(r => !r.ok);
+      $("#eqSyncMsg").textContent = falha ? "Falha: " + falha.msg
+        : "Puxado ✓ — " + rs.map(r => r.msg.replace(/^[a-z_]+: /, "")).join(" · ");
+      $("#eqSyncMsg").style.color = falha ? "var(--dn)" : "var(--up)";
+      init();
+    };
+  });
+}
+
+/* ---------- planilha de colaboradores (Google Sheets publicada + upload) ---------- */
+function initPlanilha() {
+  const box = $("#eqPlanilhaBox"); if (!box) return;
+  const url = load("neg_equipe_sheets", 1, "");
+  box.innerHTML = `<div class="card">
+    <h3>Importar colaboradores de planilha</h3>
+    <div class="sub">No Google Sheets: Arquivo → Compartilhar → <b>Publicar na web</b> → escolha a aba → publique → copie o link CSV. Ou faça upload de um CSV do Excel/Sheets.</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+      <input id="eqUrl" type="url" placeholder="https://docs.google.com/spreadsheets/…/pub?output=csv" value="${esc(url)}" style="flex:1;min-width:220px">
+      <button class="btn" id="eqImport">Importar da planilha</button>
+    </div>
+    <input type="file" id="eqArq" accept=".csv,.txt" style="padding:8px;margin-top:8px">
+    <div class="note">Cabeçalho na 1ª linha com: Nome, Função, Telefone, E-mail, CPF (qualquer ordem). Os dados entram na tabela de colaboradores automaticamente.</div>
+    <div class="note" id="eqImpMsg"></div>
+  </div>`;
+  $("#eqImport").onclick = async () => {
+    const u = $("#eqUrl").value.trim();
+    if (!u) return;
+    save("neg_equipe_sheets", 1, u);
+    $("#eqImpMsg").textContent = "Lendo planilha…";
+    try {
+      const r = await fetch(u);
+      if (!r.ok) throw new Error("Não consegui ler (" + r.status + "). Confira se está publicada.");
+      const n = importarCSV(await r.text());
+      $("#eqImpMsg").textContent = `Importado: ${n} colaborador(es).`;
+      renderColaboradores();
+    } catch (e) { $("#eqImpMsg").textContent = e.message || String(e); }
+  };
+  $("#eqArq").onchange = e => {
+    const f = e.target.files[0]; if (!f) return;
+    const fr = new FileReader();
+    fr.onload = () => {
+      const n = importarCSV(fr.result);
+      $("#eqImpMsg").textContent = `Importado do arquivo: ${n} colaborador(es).`;
+      renderColaboradores();
+    };
+    fr.readAsText(f);
+  };
+}
+
+/* parser CSV → colaboradores (mapeia colunas pelo cabeçalho) */
+function importarCSV(txt) {
+  const linhas = txt.split(/\r?\n/).filter(l => l.trim()).map(l => l.split(","));
+  if (linhas.length < 2) return 0;
+  const cab = linhas[0].map(x => x.trim().toLowerCase());
+  const pega = (...nomes) => cab.findIndex(h => nomes.some(n => h.includes(n)));
+  const iNome = pega("nome"), iFun = pega("funç", "funcao", "cargo"),
+        iTel = pega("tel", "celular", "whats"), iMail = pega("email", "e-mail"),
+        iCpf = pega("cpf");
+  const lista = colabs();
+  let n = 0;
+  linhas.slice(1).forEach(row => {
+    const nome = (iNome >= 0 ? row[iNome] : "").trim();
+    if (!nome) return;
+    const tel = maskTel((iTel >= 0 ? row[iTel] : "").trim());
+    if (lista.some(c => (c.nome || "").toLowerCase() === nome.toLowerCase())) return; // dedup
+    lista.push({ id: Date.now() + Math.floor(Math.random() * 1000), nome,
+      funcao: (iFun >= 0 ? row[iFun] : "").trim(), tel,
+      email: (iMail >= 0 ? row[iMail] : "").trim(), cpf: maskCPF((iCpf >= 0 ? row[iCpf] : "").trim()) });
+    n++;
+  });
+  if (n) save(K_COLAB, 1, lista);
+  return n;
+}
+
+/* ---------- formulário público para o colaborador preencher ----------
+   O dono gera um LINK (botão abaixo) e envia pelo WhatsApp. O colaborador abre,
+   preenche nome/função/telefone/e-mail/CPF e envia. Os dados caem na chave
+   neg_equipe_cadastros na nuvem (na conta do dono) e aparecem no painel
+   com botão "Aprovar" (entra na lista de colaboradores). */
+function initFormulario() {
+  const box = $("#eqFormBox"); if (!box) return;
+  const token = load("neg_equipe_token", 1, "");
+  const link = token ? location.origin + location.pathname + "?cadastro=" + token : "";
+  box.innerHTML = `<div class="card">
+    <h3>Cadastro pelo colaborador (link)</h3>
+    <div class="sub">Gere o link e envie pelo WhatsApp. O colaborador preenche os dados e eles chegam aqui para aprovação — sem digitar nada para você.</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+      ${token ? `<input id="eqLink" type="text" value="${esc(link)}" readonly style="flex:1;min-width:220px;font-size:11px">
+        <button class="btn gh" id="eqCopiarLink">📋 Copiar link</button>
+        <a class="btn gh" style="padding:8px 12px" target="_blank" href="https://wa.me/?text=${encodeURIComponent("Preencha seus dados para a equipe BW: " + link)}">💬 Enviar pelo WhatsApp</a>` : ""}
+      <button class="btn" id="eqGerarLink">${token ? "Gerar novo link" : "Gerar link de cadastro"}</button>
+    </div>
+    <div class="note" id="eqFormMsg"></div>
+    ${token ? `<div style="margin-top:10px"><b style="font-size:12px">Cadastros recebidos:</b>
+      <div id="eqCadastros" style="margin-top:6px"></div></div>` : ""}
+  </div>`;
+  $("#eqGerarLink").onclick = () => {
+    const novo = "bw" + Math.random().toString(36).slice(2, 10);
+    save("neg_equipe_token", 1, novo);
+    initFormulario();
+  };
+  if (token) {
+    const cop = $("#eqCopiarLink");
+    if (cop) cop.onclick = () => {
+      navigator.clipboard.writeText(link).then(() => {
+        $("#eqFormMsg").textContent = "Link copiado — cole no WhatsApp do colaborador.";
+      });
+    };
+    renderCadastros();
+  }
+}
+
+/* cadastros recebidos: aprovar (vira colaborador) ou descartar */
+function renderCadastros() {
+  const el = $("#eqCadastros"); if (!el) return;
+  const lista = load("neg_equipe_cadastros", 1, []);
+  if (!lista.length) { el.innerHTML = '<div class="note">Nenhum cadastro recebido ainda.</div>'; return; }
+  el.innerHTML = lista.map(c => `<div class="card" style="margin-top:6px;background:var(--navy3)">
+    <b>${esc(c.nome)}</b> <small style="color:var(--mut)">${esc(c.funcao || "")}</small>
+    <div style="font-size:12px;color:var(--mut)">${esc(c.tel || "")} · ${esc(c.email || "")} · ${esc(c.cpf || "")}</div>
+    <div style="margin-top:6px;display:flex;gap:8px">
+      <button class="btn gh" style="padding:5px 10px;font-size:11px" onclick="window.__aprovarCad('${c.id}')">✓ Aprovar</button>
+      <a href="#" onclick="window.__descCad('${c.id}');return false" style="color:var(--dn);align-self:center">descartar</a>
+    </div>
+  </div>`).join("");
+  window.__aprovarCad = id => {
+    const lista2 = load("neg_equipe_cadastros", 1, []);
+    const c = lista2.find(x => String(x.id) === String(id));
+    if (!c) return;
+    const colabs2 = colabs();
+    colabs2.push({ id: Date.now(), nome: c.nome, funcao: c.funcao, tel: c.tel, email: c.email, cpf: c.cpf });
+    save(K_COLAB, 1, colabs2);
+    save("neg_equipe_cadastros", 1, lista2.filter(x => String(x.id) !== String(id)));
+    renderCadastros(); renderColaboradores();
+  };
+  window.__descCad = id => {
+    save("neg_equipe_cadastros", 1, load("neg_equipe_cadastros", 1, []).filter(x => String(x.id) !== String(id)));
+    renderCadastros();
+  };
+}
+
+/* modo do colaborador: página aberta com ?cadastro=TOKEN — só o formulário */
+function modoCadastro() {
+  const token = new URLSearchParams(location.search).get("cadastro");
+  if (!token) return false;
+  const dono = load("neg_equipe_token", 1, "");
+  if (!dono || token !== dono) return false;
+  const main = document.querySelector(".wrap");
+  main.innerHTML = `<h2>Cadastro — Equipe BW Audiovisual</h2>
+    <div class="card">
+      <h3>Seus dados</h3>
+      <div class="sub">Preencha e envie — o administrador recebe na hora e você entra na escala.</div>
+      <div class="frow3" style="margin-top:10px">
+        <div><label>Nome completo</label><input id="fNome" type="text" placeholder="Nome completo"></div>
+        <div><label>Função</label><input id="fFuncao" type="text" placeholder="Ex.: Câmera, som, apoio"></div>
+        <div><label>Telefone</label><input id="fTel" type="tel" placeholder="(11) 99999-9999"></div>
+      </div>
+      <div class="frow3">
+        <div><label>E-mail</label><input id="fEmail" type="email" placeholder="nome@exemplo.com"></div>
+        <div><label>CPF</label><input id="fCPF" type="text" placeholder="000.000.000-00"></div>
+        <div style="align-self:end"><button class="btn" id="fEnviar">Enviar cadastro</button></div>
+      </div>
+      <div class="note" id="fMsg"></div>
+    </div>`;
+  $("#fTel").oninput = e => { e.target.value = maskTel(e.target.value); };
+  $("#fCPF").oninput = e => { e.target.value = maskCPF(e.target.value); };
+  $("#fEnviar").onclick = async () => {
+    const c = { id: Date.now(),
+      nome: $("#fNome").value.trim(), funcao: $("#fFuncao").value.trim(),
+      tel: $("#fTel").value.trim(), email: $("#fEmail").value.trim(), cpf: $("#fCPF").value.trim() };
+    if (!c.nome) { $("#fMsg").textContent = "Informe seu nome."; return; }
+    $("#fMsg").textContent = "Enviando…";
+    /* salva local e tenta subir para a nuvem (se houver sessão do dono neste
+       navegador) — senão fica salvo local e sobe na próxima sincronização */
+    const lista = load("neg_equipe_cadastros", 1, []);
+    lista.push(c); save("neg_equipe_cadastros", 1, lista);
+    try {
+      if (window.MOD && MOD["core/auth"] && MOD["core/nuvem"]) {
+        await MOD["core/nuvem"].subir("neg_equipe_cadastros");
+      }
+      $("#fMsg").textContent = "✓ Cadastro enviado! O administrador vai confirmar sua entrada na equipe.";
+    } catch (e) {
+      $("#fMsg").textContent = "Cadastro salvo neste aparelho. O administrador sincroniza ao abrir o painel.";
+    }
+    $("#fNome").value = ""; $("#fFuncao").value = ""; $("#fTel").value = "";
+    $("#fEmail").value = ""; $("#fCPF").value = "";
+  };
+  return true;
+}
+
 function init() {
+  if (modoCadastro()) return;   // modo do colaborador: só o formulário
   renderColaboradores();
   renderEquipes();
   renderEventos();
+  initSync();
+  initPlanilha();
+  initFormulario();
 }
 
-return { comunicar, diasAte, gerarPDFEvento, init, maskCPF, maskTel, renderColaboradores, renderEquipes, renderEventos, telWa };
+return { comunicar, diasAte, gerarPDFEvento, init, initFormulario, initPlanilha, initSync, maskCPF, maskTel, modoCadastro, renderColaboradores, renderEquipes, renderEventos, telWa };
 })();
 /* ===== equipe_main.js ===== */
 MOD['equipe_main'] = (function() {
