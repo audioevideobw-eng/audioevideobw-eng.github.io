@@ -789,8 +789,11 @@ const nuvem = MOD['core/nuvem'];
 const auth = MOD['core/auth'];
 
 const LISTAS = [
-  { key: "casa_orcamento", label: "Orçamento familiar", cols: ["Descrição", "Categoria", "Tipo (receita/despesa)", "Valor", "Mês (2026-11)"] },
-  { key: "casa_contas", label: "Contas a pagar", cols: ["Descrição", "Valor", "Vencimento (AAAA-MM-DD)", "Pago? (s/n)"] },
+  { key: "casa_orcamento", label: "Orçamento familiar", cols: ["Descrição", "Categoria", "Tipo (receita/despesa)", "Valor", "Mês (2026-11)"],
+    opcoes: { 1: ["Alimentação", "Combustível", "Lazer", "Saúde", "Educação", "Moradia", "Transporte", "Vestuário", "Contas (luz/água/net)", "Assinaturas", "Outra…"],
+              2: ["Receita", "Despesa"] } },
+  { key: "casa_contas", label: "Contas a pagar", cols: ["Descrição", "Valor", "Vencimento (AAAA-MM-DD)", "Pago? (s/n)"],
+    opcoes: { 0: ["Aluguel", "Condomínio", "Energia", "Água", "Internet", "Telefone", "Cartão de crédito", "IPTU", "Escola", "Plano de saúde", "Financiamento", "Outra…"] } },
   { key: "casa_reserva", label: "Reserva de emergência", cols: ["Mês (2026-11)", "Aporte em R$"] },
 ];
 
@@ -868,7 +871,13 @@ function render() {
           : '<tr><td colspan="9" style="color:var(--mut)">Vazio — use o formulário ou a planilha abaixo.</td></tr>'}</tbody>
       </table></div>
       <div class="frow3" style="margin-top:10px">
-        ${l.cols.map(c => `<div><label>${c.split(" (")[0]}</label><input data-lista="${l.key}" data-col="${c}" type="text"></div>`).join("")}
+        ${l.cols.map((c, i) => {
+          const ops = (l.opcoes || {})[i];
+          const campo = ops
+            ? `<select data-lista="${l.key}" data-col="${c}">${ops.map(o => `<option>${o}</option>`).join("")}</select>`
+            : `<input data-lista="${l.key}" data-col="${c}" type="${c.includes("Valor") || c.includes("Aporte") ? "number" : "text"}" step="0.01">`;
+          return `<div><label>${c.split(" (")[0]}</label>${campo}</div>`;
+        }).join("")}
         <div style="align-self:end"><button class="btn" data-add="${l.key}">Adicionar</button></div>
       </div>
     </div>`;
@@ -905,12 +914,12 @@ function wireFormularios() {
       const dados = load(key, 1, []);
       const obj = { id: Date.now() };
       let preenchido = false;
-      document.querySelectorAll(`input[data-lista="${key}"]`).forEach(inp => {
+      document.querySelectorAll(`[data-lista="${key}"]`).forEach(inp => {
         const i = lista.cols.indexOf(inp.dataset.col);
-        const v = inp.value.trim();
-        if (v) preenchido = true;
+        const v = (inp.value || "").trim();
+        if (v && v !== "Outra…") preenchido = true;
         obj["c" + i] = v;
-        inp.value = "";
+        if (inp.tagName === "INPUT") inp.value = "";
       });
       if (!preenchido) return;
       dados.push(obj);
