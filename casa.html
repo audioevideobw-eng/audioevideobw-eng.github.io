@@ -181,15 +181,33 @@ footer b{color:var(--gold)}
   <span id="userBox" style="font-size:12px;color:var(--mut);margin-left:8px"></span>
 </div></header>
 <div class="wrap">
-<!-- ================= GESTÃO DE CASA ================= -->
-  <h2 id="casa">Gestão de casa</h2>
+<!-- ================= ORÇAMENTO FAMILIAR ================= -->
+  <h2 id="orcamento">Orçamento familiar</h2>
   <div class="card">
-    <h3>Suas listas da casa</h3>
-    <div class="sub">Orçamento, contas a pagar e reserva — salvos no seu navegador e, quando você entra com a conta, sincronizados entre aparelhos.</div>
+    <h3>Receitas e despesas do mês</h3>
+    <div class="sub">Saldo automático — salvo no navegador e sincronizado com sua conta.</div>
   </div>
-  <div id="casaBox"></div>
-  <div class="card" style="margin-top:14px" id="casaPlanilha"></div>
-  <div class="card" style="margin-top:14px" id="casaSync"></div>
+  <div id="orcBox"></div>
+  <div class="card" style="margin-top:14px" id="orcPlanilha"></div>
+  <div class="card" style="margin-top:14px" id="orcSync"></div>
+
+<!-- ================= CONTAS A PAGAR ================= -->
+  <h2 id="contas">Contas a pagar</h2>
+  <div class="card">
+    <h3>Vencimentos</h3>
+    <div class="sub">Marque as pagas e acompanhe o total em aberto — lembrete no celular quando vencer.</div>
+  </div>
+  <div id="ctBox"></div>
+  <div class="card" style="margin-top:14px" id="ctSync"></div>
+
+<!-- ================= RESERVA ================= -->
+  <h2 id="reserva">Reserva de emergência</h2>
+  <div class="card">
+    <h3>Acumulado mês a mês</h3>
+    <div class="sub">Cada aporte soma para a sua meta.</div>
+  </div>
+  <div id="rsBox"></div>
+  <div class="card" style="margin-top:14px" id="rsSync"></div>
 
 <footer>
     <b>Mesa de Câmbio &amp; Milhas — BW Audiovisual</b><br>
@@ -851,6 +869,11 @@ function importar(lista, matriz) {
   return n;
 }
 
+/* contêiner de cada página individual */
+const BOXES = { casa_orcamento: "orcBox", casa_contas: "ctBox", casa_reserva: "rsBox" };
+const PLANILHA_EM = { casa_orcamento: "orcPlanilha" };   // planilha só no orçamento
+const SYNC_EM = { casa_orcamento: "orcSync", casa_contas: "ctSync", casa_reserva: "rsSync" };
+
 /* ---- renderização ---- */
 function linhaHTML(lista, o) {
   const cel = lista.cols.map((c, i) => `<td>${esc(o["c" + i] || "")}</td>`).join("");
@@ -858,17 +881,17 @@ function linhaHTML(lista, o) {
 }
 
 function render() {
-  const box = $("#casaBox"); if (!box) return;
-  box.innerHTML = LISTAS.map(l => {
+  LISTAS.forEach(l => {
+    const box = $("#" + BOXES[l.key]); if (!box) return;
     const dados = load(l.key, 1, []);
     const resumo = resumoLista(l.key, dados);
-    return `<div class="card" style="margin-top:14px">
+    box.innerHTML = `<div class="card">
       <h3>${l.label}</h3>
       <div class="sub">${resumo}</div>
       <div class="tb-scroll"><table>
         <thead><tr>${l.cols.map(c => `<th>${c}</th>`).join("")}<th></th></tr></thead>
         <tbody>${dados.length ? dados.map(o => linhaHTML(l, o)).join("")
-          : '<tr><td colspan="9" style="color:var(--mut)">Vazio — use o formulário ou a planilha abaixo.</td></tr>'}</tbody>
+          : '<tr><td colspan="9" style="color:var(--mut)">Vazio — use o formulário abaixo.</td></tr>'}</tbody>
       </table></div>
       <div class="frow3" style="margin-top:10px">
         ${l.cols.map((c, i) => {
@@ -881,7 +904,7 @@ function render() {
         <div style="align-self:end"><button class="btn" data-add="${l.key}">Adicionar</button></div>
       </div>
     </div>`;
-  }).join("");
+  });
   wireFormularios();
 }
 
@@ -935,7 +958,7 @@ function wireFormularios() {
 
 /* ---- planilha conectada + upload ---- */
 function initPlanilha() {
-  const box = $("#casaPlanilha"); if (!box) return;
+  const box = $("#orcPlanilha"); if (!box) return;
   const url = urlSheets();
   box.innerHTML = `
     <h3>Planilha conectada (tempo real)</h3>
@@ -987,24 +1010,22 @@ function chavesNuvem() { return LISTAS.map(l => l.key); }
 
 /* sincronização rápida dentro da página (usa o mesmo mecanismo da nuvem) */
 function initSyncRapido() {
-  const el = $("#casaSync"); if (!el) return;
   auth.usuarioAtual().then(u => {
-    if (!u) {
-      el.innerHTML = '<div class="note">Entre com sua conta (LOGIN no topo) para sincronizar entre aparelhos.</div>';
-      return;
-    }
-    el.innerHTML = `<button class="btn gh" id="casaSyncBtn">Sincronizar com a conta</button>
-      <div class="note" id="casaSyncMsg">Sobe orçamento, contas e reserva para a sua conta (mesma mecânica da aba App).</div>`;
-    $("#casaSyncBtn").onclick = async () => {
-      $("#casaSyncMsg").textContent = "Sincronizando…";
-      const chaves = LISTAS.map(l => l.key);
-      const rs = [];
-      for (const k of chaves) rs.push(await nuvem.subir(k));
-      const falha = rs.find(r => !r.ok);
-      $("#casaSyncMsg").textContent = falha ? "Falha: " + falha.msg
-        : "Sincronizado ✓ — " + rs.map(r => r.msg.replace(/^[a-z_]+: /, "")).join(" · ");
-      $("#casaSyncMsg").style.color = falha ? "var(--dn)" : "var(--up)";
-    };
+    const semConta = '<div class="note">Entre com sua conta (LOGIN no topo) para sincronizar entre aparelhos.</div>';
+    Object.entries(SYNC_EM).forEach(([chave, boxId]) => {
+      const el = $("#" + boxId); if (!el) return;
+      if (!u) { el.innerHTML = semConta; return; }
+      const lista = LISTAS.find(l => l.key === chave);
+      el.innerHTML = `<button class="btn gh" id="sync_${chave}">Sincronizar com a conta</button>
+        <div class="note" id="msg_${chave}">Sobe ${lista.label.toLowerCase()} para a sua conta.</div>`;
+      $(`#sync_${chave}`).onclick = async () => {
+        $(`#msg_${chave}`).textContent = "Sincronizando…";
+        const r = await nuvem.subir(chave);
+        $(`#msg_${chave}`).textContent = r.ok ? "Sincronizado ✓ — " + r.msg.replace(/^[a-z_]+: /, "")
+          : "Falha: " + r.msg;
+        $(`#msg_${chave}`).style.color = r.ok ? "var(--up)" : "var(--dn)";
+      };
+    });
   });
 }
 
