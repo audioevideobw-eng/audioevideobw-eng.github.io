@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<!-- build 2026-11-04T13:44:12 -->
+<!-- build 2026-11-04T13:52:47 -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Orçamento familiar — Mesa BW</title>
@@ -984,6 +984,48 @@ function graficoCategorias(dados) {
   </div>`;
 }
 
+/* gráfico de linha: receitas × despesas por mês (evolução) */
+function graficoEvolucao(dados) {
+  const porMes = {};
+  dados.forEach(o => {
+    const mes = (o.c4 || "sem mês").slice(0, 7);   // AAAA-MM
+    const v = parseFloat((o.c3 || "0").replace(",", ".")) || 0;
+    if (!porMes[mes]) porMes[mes] = { rec: 0, desp: 0 };
+    if ((o.c2 || "").toLowerCase().startsWith("receita")) porMes[mes].rec += v;
+    else porMes[mes].desp += v;
+  });
+  const meses = Object.keys(porMes).sort();
+  if (meses.length < 2) return "";   // precisa de 2+ meses para linha fazer sentido
+  const W = 640, H = 220, ml = 56, mr = 14, mt = 14, mb = 30;
+  const maxV = Math.max(...meses.flatMap(m => [porMes[m].rec, porMes[m].desp]), 1);
+  const X = i => ml + (i / (meses.length - 1)) * (W - ml - mr);
+  const Y = v => mt + (1 - v / (maxV * 1.15)) * (H - mt - mb);
+  const path = k => meses.map((m, i) => `${i ? "L" : "M"}${X(i).toFixed(1)},${Y(porMes[m][k]).toFixed(1)}`).join("");
+  let grid = "";
+  for (let i = 0; i <= 3; i++) {
+    const v = maxV * 1.15 * (i / 3), y = Y(v);
+    grid += `<line x1="${ml}" y1="${y.toFixed(1)}" x2="${W - mr}" y2="${y.toFixed(1)}" stroke="#1e2c42"/>
+      <text x="${ml - 8}" y="${(y + 3.5).toFixed(1)}" fill="#8fa2bd" font-size="10" text-anchor="end">R$ ${fmt(v, 0)}</text>`;
+  }
+  const labels = meses.map((m, i) =>
+    `<text x="${X(i).toFixed(1)}" y="${H - mb + 16}" fill="#8fa2bd" font-size="10" text-anchor="middle">${m.slice(5)}/${m.slice(2, 4)}</text>`).join("");
+  return `<div class="chartbox" style="margin-top:12px">
+    <svg viewBox="0 0 ${W} ${H}" style="width:100%">
+      ${grid}
+      <path d="${path("rec")}" fill="none" stroke="#3f9d6b" stroke-width="2.4"/>
+      <path d="${path("desp")}" fill="none" stroke="#d4a94a" stroke-width="2.4"/>
+      ${meses.map((m, i) => `<circle cx="${X(i).toFixed(1)}" cy="${Y(porMes[m].rec).toFixed(1)}" r="3.5" fill="#3f9d6b"/>
+        <circle cx="${X(i).toFixed(1)}" cy="${Y(porMes[m].desp).toFixed(1)}" r="3.5" fill="#d4a94a"/>
+        <title>${m}: receitas R$ ${fmt(porMes[m].rec, 0)} · despesas R$ ${fmt(porMes[m].desp, 0)}</title>`).join("")}
+      ${labels}
+    </svg>
+    <div class="legend">
+      <span><i style="background:#3f9d6b"></i>Receitas</span>
+      <span><i style="background:#d4a94a"></i>Despesas</span>
+    </div>
+  </div>`;
+}
+
 /* contêiner de cada página individual */
 const BOXES = { casa_orcamento: "orcBox", casa_contas: "ctBox", casa_reserva: "rsBox" };
 const PLANILHA_EM = { casa_orcamento: "orcPlanilha" };   // planilha só no orçamento
@@ -1003,7 +1045,7 @@ function render() {
     box.innerHTML = `<div class="card">
       <h3>${l.label}</h3>
       <div class="sub">${resumo}</div>
-      ${l.key === "casa_orcamento" ? graficoCategorias(dados) : ""}
+      ${l.key === "casa_orcamento" ? graficoCategorias(dados) + graficoEvolucao(dados) : ""}
       <div class="tb-scroll"><table>
         <thead><tr>${l.cols.map(c => `<th>${c}</th>`).join("")}<th></th></tr></thead>
         <tbody>${dados.length ? dados.map(o => linhaHTML(l, o)).join("")
