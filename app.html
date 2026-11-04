@@ -779,7 +779,7 @@ async function subir(chave) {
 
 /* ---- sincronizar tudo: sobe as chaves conhecidas ---- */
 async function sincronizarTudo() {
-  const chaves = ["fx_alerts", "fx_diario"];
+  const chaves = ["fx_alerts", "fx_diario", "casa_orcamento", "casa_contas", "casa_reserva", "neg_fluxo"];
   const res = [];
   for (const k of chaves) res.push(await subir(k));
   return res;
@@ -868,7 +868,7 @@ function init() {
         const rs = await nuvem.sincronizarTudo();
         const falha = rs.find(r => !r.ok);
         $("#sNuvemMsg").textContent = falha ? "Falha: " + falha.msg
-          : rs.map(r => r.msg).join(" · ") + " — sincronizado ✓";
+          : rs.map(r => r.msg.replace(/^[a-z_]+: /, "")).join(" · ") + " — sincronizado ✓";
         $("#sNuvemMsg").style.color = falha ? "var(--dn)" : "var(--up)";
       };
       $("#sDown").onclick = async () => {
