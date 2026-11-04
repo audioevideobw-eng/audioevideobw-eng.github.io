@@ -4,7 +4,7 @@
    - fontes de dados (milhas.json): network-first, cai no cache sem rede
    - APIs externas (BCB, er-api): NUNCA cacheadas — passam direto
    Versão no nome do cache: subir CACHE a cada publicação de conteúdo. */
-const CACHE = "bw-mesa-v4";
+const CACHE = "bw-mesa-v5";
 const SHELL = [
   "./",
   "./index.html",
@@ -70,4 +70,26 @@ self.addEventListener("fetch", e => {
       return hit || rede;
     })
   );
+});
+
+/* PUSH: notificação quando um alerta de preço dispara */
+self.addEventListener("push", e => {
+  let d = {};
+  try { d = e.data.json(); } catch (err) { d = { title: "Mesa BW", body: (e.data && e.data.text()) || "" }; }
+  e.waitUntil(self.registration.showNotification(d.title || "Mesa BW", {
+    body: d.body || "",
+    tag: d.tag || "bw-alerta",
+    icon: "icons/icon-192.png",
+    badge: "icons/icon-192.png",
+    data: { url: d.url || "./" }
+  }));
+});
+
+self.addEventListener("notificationclick", e => {
+  e.notification.close();
+  const alvo = (e.notification.data && e.notification.data.url) || "./";
+  e.waitUntil(clients.matchAll({ type: "window" }).then(cs => {
+    for (const c of cs) if (c.url.includes(alvo)) return c.focus();
+    return clients.openWindow(alvo);
+  }));
 });
