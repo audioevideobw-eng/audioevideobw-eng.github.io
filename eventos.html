@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<!-- build 2026-11-05T13:35:23 -->
+<!-- build 2026-11-05T13:44:44 -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Eventos — Mesa BW</title>
@@ -1796,13 +1796,18 @@ function wireMidia(e) {
 }
 
 /* ---------- dossiê PDF completo ---------- */
+/* promessa com tempo limite — o PDF nunca trava esperando uma foto */
+function comTempo(p, ms) {
+  return Promise.race([p, new Promise(resolve => setTimeout(() => resolve(null), ms))]);
+}
+
 /* baixa uma imagem (CORS liberado no Storage) e devolve dataURL para o PDF.
    COMPRIME antes: redimensiona p/ máx 1200px e re-comprime em JPEG —
    fotos de celular (5-20 MB) viram ~200-400 KB, e o PDF não trava o celular. */
 async function urlParaDataUrl(url) {
   try {
-    const r = await fetch(url);
-    if (!r.ok) return null;
+    const r = await comTempo(fetch(url), 20000);
+    if (!r || !r.ok) return null;
     let blob = await r.blob();
     if (!blob.type.startsWith("image/")) return null;
     /* HEIC (iPhone): o canvas não desenha — converte para JPEG com heic2any */
@@ -1810,14 +1815,15 @@ async function urlParaDataUrl(url) {
       || /\.heic$/i.test(url) || /\.heif$/i.test(url);
     if (ehHeic) {
       if (!window.heic2any) return null;
-      blob = await window.heic2any({ blob, toType: "image/jpeg", quality: 0.8 });
+      blob = await comTempo(window.heic2any({ blob, toType: "image/jpeg", quality: 0.8 }), 25000);
+      if (!blob) return null;
     }
-    const bmp = await new Promise(resolve => {
+    const bmp = await comTempo(new Promise(resolve => {
       const img = new Image();
       img.onload = () => resolve(img);
       img.onerror = () => resolve(null);
       img.src = URL.createObjectURL(blob);
-    });
+    }), 8000);
     if (!bmp) return null;
     const maxLado = 1200;
     const escala = Math.min(1, maxLado / Math.max(bmp.width, bmp.height));
