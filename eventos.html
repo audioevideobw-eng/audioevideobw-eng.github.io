@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<!-- build 2026-11-05T07:14:58 -->
+<!-- build 2026-11-05T07:23:41 -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Eventos — Mesa BW</title>
@@ -1701,10 +1701,10 @@ function wireMidia(e) {
     <input type="file" id="midArq" accept="image/*,video/*" multiple style="padding:8px">
     <div class="note">Fotos e vídeos ficam na nuvem (Supabase Storage, camada gratuita). Envie do celular logo após o evento.</div>
     <div id="midLista" style="margin-top:8px"></div>`;
-  const lista = e.midia || [];
   const renderLista = () => {
-    $("#midLista").innerHTML = lista.length
-      ? lista.map((m, i) => `<div class="row"><span><a href="${esc(m.url)}" target="_blank" style="color:var(--gold2)">${esc(m.nome)}</a></span><b><a href="#" onclick="window.__midDel('${e.id}',${i});return false" style="color:var(--dn)">✕</a></b></div>`).join("")
+    const atual = (eventos().find(x => String(x.id) === String(e.id)) || {}).midia || [];
+    $("#midLista").innerHTML = atual.length
+      ? atual.map((m, i) => `<div class="row"><span><a href="${esc(m.url)}" target="_blank" style="color:var(--gold2)">${esc(m.nome)}</a></span><b><a href="#" onclick="window.__midDel('${e.id}',${i});return false" style="color:var(--dn)">✕</a></b></div>`).join("")
       : '<div class="note">Nenhuma mídia enviada.</div>';
   };
   renderLista();
@@ -1717,16 +1717,23 @@ function wireMidia(e) {
     const sb = window.supabase.createClient(cred.url, cred.anon);
     const { data: sess } = await sb.auth.getSession();
     if (!sess || !sess.session) { $("#midLista").innerHTML = '<div class="note">Entre com sua conta para enviar mídia.</div>'; return; }
+    $("#midLista").innerHTML = '<div class="note">Enviando ' + arquivos.length + ' arquivo(s)…</div>';
+    /* SEMPRE ler o estado atual do evento (nunca a lista capturada na abertura) */
+    const l2 = eventos();
+    const alvo = l2.find(x => String(x.id) === String(e.id));
+    alvo.midia = alvo.midia || [];
+    let enviados = 0;
     for (const f of arquivos) {
       const caminho = `${e.id}/${Date.now()}_${f.name}`;
       const { error } = await sb.storage.from("eventos-midia").upload(caminho, f);
-      if (error) { $("#midLista").innerHTML = `<div class="note">Erro: ${esc(error.message)}</div>`; return; }
+      if (error) { $("#midLista").innerHTML = `<div class="note">Erro no upload: ${esc(error.message)}</div>`; renderLista(); return; }
       const { data: pub } = sb.storage.from("eventos-midia").getPublicUrl(caminho);
-      lista.push({ nome: f.name, url: pub.data.publicUrl, caminho });
+      alvo.midia.push({ nome: f.name, url: pub.data.publicUrl, caminho });
+      enviados++;
     }
-    const l2 = eventos();
-    l2.find(x => String(x.id) === String(e.id)).midia = lista;
     salvarEventos(l2);
+    e.midia = alvo.midia;
+    $("#midLista").innerHTML = `<div class="note" style="color:var(--up)">✓ ${enviados} arquivo(s) enviado(s) para a nuvem.</div>`;
     renderLista();
   };
   window.__midDel = (id, i) => {
