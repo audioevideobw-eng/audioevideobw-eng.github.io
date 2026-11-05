@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<!-- build 2026-11-05T07:39:00 -->
+<!-- build 2026-11-05T07:52:04 -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Eventos — Mesa BW</title>
@@ -1399,6 +1399,8 @@ const auth = MOD['core/auth'];
 
 const K_EV = "neg_eventos";
 const K_TEMPLATES = "neg_eventos_checklist_modelos";
+/* formato público do Storage (estável; evita depender do retorno do SDK) */
+const SB_PUBLIC = "https://zdtnetplvdonogmdvarx.supabase.co/storage/v1/object/public/eventos-midia";
 
 const STATUS = ["Orçamento", "Confirmado", "Em produção", "Realizado", "Entregue"];
 const TIPOS = ["Casamento", "Corporativo", "Show", "Transmissão ao vivo", "Formatura", "Aniversário", "Outro"];
@@ -1731,11 +1733,13 @@ function wireMidia(e) {
       alvo.midia = alvo.midia || [];
       const urls = new Set(alvo.midia.map(m => m.caminho));
       for (const a of (arquivos || [])) {
-        if (a.name === ".emptyFolderPlaceholder") continue;
+        if (!a || !a.name || a.name === ".emptyFolderPlaceholder") continue;
         const caminho = `${e.id}/${a.name}`;
         if (urls.has(caminho)) continue;
-        const { data: pub } = sb.storage.from("eventos-midia").getPublicUrl(caminho);
-        alvo.midia.push({ nome: a.name, url: pub.data.publicUrl, caminho });
+        /* URL pública construída direto (formato estável) — sem depender do
+           formato de retorno do SDK (blindagem contra pub.data undefined) */
+        const url = `${SB_PUBLIC}/${caminho}`;
+        alvo.midia.push({ nome: a.name, url, caminho });
         urls.add(caminho);
       }
       salvarEventos(l2);
@@ -1766,8 +1770,8 @@ function wireMidia(e) {
       const caminho = `${e.id}/${Date.now()}_${f.name}`;
       const { error } = await sb.storage.from("eventos-midia").upload(caminho, f);
       if (error) { $("#midLista").innerHTML = `<div class="note">Erro no upload: ${esc(error.message)}</div>`; renderLista(listaAtual()); return; }
-      const { data: pub } = sb.storage.from("eventos-midia").getPublicUrl(caminho);
-      alvo.midia.push({ nome: f.name, url: pub.data.publicUrl, caminho });
+      /* URL pública construída direto — sem depender do retorno do SDK */
+      alvo.midia.push({ nome: f.name, url: `${SB_PUBLIC}/${caminho}`, caminho });
       enviados++;
     }
     salvarEventos(l2);
