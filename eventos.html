@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<!-- build 2026-11-05T06:56:16 -->
+<!-- build 2026-11-05T07:12:44 -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Eventos — Mesa BW</title>
@@ -192,6 +192,7 @@ footer b{color:var(--gold)}
   <div id="evLista" style="margin-top:14px"></div>
   <div id="evNovoBox" style="margin-top:14px"></div>
   <div id="evDossie" style="margin-top:14px"></div>
+  <div id="evSyncBox" style="margin-top:14px"></div>
 
 <footer>
     <b>Mesa de Câmbio &amp; Milhas — BW Audiovisual</b><br>
@@ -1393,6 +1394,8 @@ MOD['modules/eventos'] = (function() {
 const {  $, esc, fmt  } = MOD['core/format'];
 const {  load, save  } = MOD['core/store'];
 const equipe = MOD['modules/equipe'];
+const nuvem = MOD['core/nuvem'];
+const auth = MOD['core/auth'];
 
 const K_EV = "neg_eventos";
 const K_TEMPLATES = "neg_eventos_checklist_modelos";
@@ -1403,9 +1406,45 @@ const TIPOS = ["Casamento", "Corporativo", "Show", "Transmissão ao vivo", "Form
 const eventos = () => load(K_EV, 1, []);
 const salvarEventos = v => save(K_EV, 1, v);
 
+/* ---------- sincronização rápida (celular ↔ PC) ---------- */
+function initSync() {
+  const box = $("#evSyncBox"); if (!box) return;
+  auth.usuarioAtual().then(u => {
+    if (!u) {
+      box.innerHTML = '<div class="note">Entre com sua conta (LOGIN no topo) para sincronizar os eventos entre celular e PC.</div>';
+      return;
+    }
+    box.innerHTML = `<div class="card">
+      <h3>Sincronização</h3>
+      <div class="sub">Os eventos ficam na sua conta — lançou no PC, puxa no celular (e vice-versa).</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+        <button class="btn" id="evSyncUp">↑ Enviar para a conta</button>
+        <button class="btn gh" id="evSyncDown">↓ Puxar da conta</button>
+      </div>
+      <div class="note" id="evSyncMsg"></div>
+    </div>`;
+    $("#evSyncUp").onclick = async () => {
+      $("#evSyncMsg").textContent = "Enviando…";
+      const r = await nuvem.subir(K_EV);
+      $("#evSyncMsg").textContent = r.ok ? "Enviado ✓ — " + r.msg.replace(/^[a-z_]+: /, "")
+        : "Falha: " + r.msg;
+      $("#evSyncMsg").style.color = r.ok ? "var(--up)" : "var(--dn)";
+    };
+    $("#evSyncDown").onclick = async () => {
+      $("#evSyncMsg").textContent = "Puxando…";
+      const r = await nuvem.baixar(K_EV);
+      $("#evSyncMsg").textContent = r.ok ? "Puxado ✓ — " + r.msg.replace(/^[a-z_]+: /, "")
+        : "Falha: " + r.msg;
+      $("#evSyncMsg").style.color = r.ok ? "var(--up)" : "var(--dn)";
+      init();
+    };
+  });
+}
+
 function init() {
   render();
   wireFormulario();
+  initSync();
 }
 
 /* ---------- dashboard ---------- */
@@ -1771,7 +1810,7 @@ window.__evDel = id => {
   render();
 };
 
-return { STATUS, gerarDossiePDF, init };
+return { STATUS, gerarDossiePDF, init, initSync };
 })();
 /* ===== eventos_main.js ===== */
 MOD['eventos_main'] = (function() {
