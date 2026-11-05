@@ -50,11 +50,52 @@ button:disabled{opacity:.6;cursor:wait}
   "use strict";
   var params = new URLSearchParams(location.search);
   var TOKEN = params.get("t") || params.get("cadastro") || "";
+  var EV_ID = params.get("ev") || "";
+  var EV_NOME = params.get("nome") || "";
   var SB_URL = "https://zdtnetplvdonogmdvarx.supabase.co";
   var SB_ANON = "sb_publishable_qJ2mIx1hcn_ZH75-yxJiDA_OI-EHyIU";
   function $(s){ return document.querySelector(s); }
   function maskCPF(v){ v=(v||"").replace(/\D/g,"").slice(0,11); v=v.replace(/(\d{3})(\d)/,"$1.$2"); v=v.replace(/(\d{3})(\d)/,"$1.$2"); v=v.replace(/(\d{3})(\d{1,2})$/,"$1-$2"); return v; }
   function maskTel(v){ v=(v||"").replace(/\D/g,"").slice(0,11); if(v.length<=10) return v.replace(/(\d{2})(\d{4})(\d{0,4})/,"($1) $2-$3").replace(/[-\s]+$/,""); return v.replace(/(\d{2})(\d{5})(\d{0,4})/,"($1) $2-$3").replace(/[-\s]+$/,""); }
+  if (EV_ID) {
+    /* modo CONFIRMAÇÃO DE PRESENÇA: o colaborador responde sim/não/talvez */
+    document.querySelector("h1").textContent = "Confirmação de presença";
+    document.querySelector(".sub").textContent = "Evento: " + EV_NOME + " — confirme sua participação.";
+    ["#fNome-wrap","#fFuncao-wrap","#fEmail-wrap","#fCPF-wrap"].forEach(function(sel){ var el=document.querySelector(sel); if(el) el.style.display="none"; });
+    document.querySelector('label[for="fNome"]').textContent = "Seu nome";
+    var obs = document.createElement("div");
+    obs.innerHTML = '<label>Observação (opcional)</label><input id="fObs" type="text" placeholder="Ex.: posso levar equipamento extra">';
+    $("#fCPF").parentNode.insertBefore(obs, $("#fCPF").parentNode.firstChild);
+    $("#fEnviar").textContent = "Enviar resposta";
+    $("#fEnviar").addEventListener("click", async function(){
+      var btn = $("#fEnviar"), msg = $("#fMsg");
+      var nome = $("#fNome").value.trim();
+      if (!nome) { msg.textContent = "Informe seu nome."; msg.className = "msg err"; return; }
+      var resp = window.__resposta || "sim";
+      btn.disabled = true; btn.textContent = "Enviando…";
+      try {
+        var sb = window.supabase.createClient(SB_URL, SB_ANON);
+        var res = await sb.from("equipe_presenca").insert({ evento_id: EV_ID, colaborador: nome, resposta: resp, observacao: $("#fObs") ? $("#fObs").value.trim() : null });
+        if (res.error) throw res.error;
+        $("#box").innerHTML = '<h1 style="color:var(--up)">✓ Resposta enviada!</h1><div class="sub">Obrigado, ' + nome.split(" ")[0] + '! Sua resposta (' + (resp === "sim" ? "PRESENÇA CONFIRMADA" : resp === "nao" ? "não poderei ir" : "talvez") + ') foi registrada para o evento ' + EV_NOME + '.</div>';
+      } catch (e) {
+        msg.textContent = "Não consegui enviar (" + (e.message || e) + "). Tente de novo.";
+        msg.className = "msg err"; btn.disabled = false; btn.textContent = "Enviar resposta";
+      }
+    });
+    var barra = document.createElement("div");
+    barra.style.cssText = "display:flex;gap:8px;margin-top:14px";
+    barra.innerHTML = '<button id="rSim" style="background:var(--up);color:#fff;margin:0">✓ Vou</button>' +
+      '<button id="rTalvez" style="background:#b8860b;color:#fff;margin:0">? Talvez</button>' +
+      '<button id="rNao" style="background:var(--dn);color:#fff;margin:0">✕ Não vou</button>';
+    $("#fEnviar").parentNode.insertBefore(barra, $("#fEnviar"));
+    $("#fEnviar").style.display = "none";
+    window.__resposta = "sim";
+    $("#rSim").onclick = function(){ window.__resposta = "sim"; $("#rSim").style.outline = "2px solid #fff"; $("#rTalvez").style.outline = ""; $("#rNao").style.outline = ""; };
+    $("#rTalvez").onclick = function(){ window.__resposta = "talvez"; $("#rTalvez").style.outline = "2px solid #fff"; $("#rSim").style.outline = ""; $("#rNao").style.outline = ""; };
+    $("#rNao").onclick = function(){ window.__resposta = "nao"; $("#rNao").style.outline = "2px solid #fff"; $("#rSim").style.outline = ""; $("#rTalvez").style.outline = ""; };
+    return;
+  }
   if (!TOKEN) {
     document.body.innerHTML = '<div class="card invalido"><h1>Link inválido</h1><div class="sub">Este link de cadastro não é válido. Peça um novo link ao administrador da BW Audiovisual.</div></div>';
     return;
