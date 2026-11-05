@@ -4,7 +4,7 @@
    - fontes de dados (milhas.json): network-first, cai no cache sem rede
    - APIs externas (BCB, er-api): NUNCA cacheadas — passam direto
    Versão no nome do cache: subir CACHE a cada publicação de conteúdo. */
-const CACHE = "bw-mesa-v12";
+const CACHE = "bw-mesa-v13";
 const SHELL = [
   "./",
   "./index.html",
@@ -55,6 +55,18 @@ self.addEventListener("fetch", e => {
   /* APIs externas: sempre rede, sem cache */
   if (url.origin !== location.origin &&
       /olinda\.bcb\.gov\.br|open\.er-api\.com/.test(url.hostname)) return;
+
+  /* páginas com conteúdo que muda: rede primeiro (cadastro/presença) */
+  if (url.pathname.endsWith("cadastro.html") || url.pathname.endsWith("equipe.html")) {
+    e.respondWith(
+      fetch(e.request).then(r => {
+        const cp = r.clone();
+        caches.open(CACHE).then(c => c.put(e.request, cp));
+        return r;
+      }).catch(() => caches.match(e.request))
+    );
+    return;
+  }
 
   /* dados da automação (milhas.json): rede primeiro, cache como reserva */
   if (url.pathname.endsWith("milhas.json")) {
