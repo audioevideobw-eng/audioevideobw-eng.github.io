@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<!-- build 2026-11-05T07:52:04 -->
+<!-- build 2026-11-05T13:09:12 -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Eventos — Mesa BW</title>
@@ -1795,19 +1795,34 @@ function wireMidia(e) {
 }
 
 /* ---------- dossiê PDF completo ---------- */
-/* baixa uma imagem (CORS liberado no Storage) e devolve dataURL para o PDF */
+/* baixa uma imagem (CORS liberado no Storage) e devolve dataURL para o PDF.
+   COMPRIME antes: redimensiona p/ máx 1200px e re-comprime em JPEG —
+   fotos de celular (5-20 MB) viram ~200-400 KB, e o PDF não trava o celular. */
 async function urlParaDataUrl(url) {
   try {
     const r = await fetch(url);
     if (!r.ok) return null;
     const blob = await r.blob();
     if (!blob.type.startsWith("image/")) return null;
-    return await new Promise(resolve => {
-      const fr = new FileReader();
-      fr.onload = () => resolve(fr.result);
-      fr.onerror = () => resolve(null);
-      fr.readAsDataURL(blob);
+    const bmp = await new Promise(resolve => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = () => resolve(null);
+      img.src = URL.createObjectURL(blob);
     });
+    if (!bmp) return null;
+    const maxLado = 1200;
+    const escala = Math.min(1, maxLado / Math.max(bmp.width, bmp.height));
+    const w = Math.max(1, Math.round(bmp.width * escala));
+    const h = Math.max(1, Math.round(bmp.height * escala));
+    const cv = document.createElement("canvas");
+    cv.width = w; cv.height = h;
+    const ctx = cv.getContext("2d");
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, w, h);
+    ctx.drawImage(bmp, 0, 0, w, h);
+    URL.revokeObjectURL(bmp.src);
+    return cv.toDataURL("image/jpeg", 0.72);
   } catch (e) { return null; }
 }
 
