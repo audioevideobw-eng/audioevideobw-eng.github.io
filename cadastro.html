@@ -58,42 +58,47 @@ button:disabled{opacity:.6;cursor:wait}
   function maskCPF(v){ v=(v||"").replace(/\D/g,"").slice(0,11); v=v.replace(/(\d{3})(\d)/,"$1.$2"); v=v.replace(/(\d{3})(\d)/,"$1.$2"); v=v.replace(/(\d{3})(\d{1,2})$/,"$1-$2"); return v; }
   function maskTel(v){ v=(v||"").replace(/\D/g,"").slice(0,11); if(v.length<=10) return v.replace(/(\d{2})(\d{4})(\d{0,4})/,"($1) $2-$3").replace(/[-\s]+$/,""); return v.replace(/(\d{2})(\d{5})(\d{0,4})/,"($1) $2-$3").replace(/[-\s]+$/,""); }
   if (EV_ID) {
-    /* modo CONFIRMAÇÃO DE PRESENÇA: o colaborador responde sim/não/talvez */
-    document.querySelector("h1").textContent = "Confirmação de presença";
-    document.querySelector(".sub").textContent = "Evento: " + EV_NOME + " — confirme sua participação.";
-    ["#fNome-wrap","#fFuncao-wrap","#fEmail-wrap","#fCPF-wrap"].forEach(function(sel){ var el=document.querySelector(sel); if(el) el.style.display="none"; });
-    document.querySelector('label[for="fNome"]').textContent = "Seu nome";
-    var obs = document.createElement("div");
-    obs.innerHTML = '<label>Observação (opcional)</label><input id="fObs" type="text" placeholder="Ex.: posso levar equipamento extra">';
-    $("#fCPF").parentNode.insertBefore(obs, $("#fCPF").parentNode.firstChild);
-    $("#fEnviar").textContent = "Enviar resposta";
-    $("#fEnviar").addEventListener("click", async function(){
-      var btn = $("#fEnviar"), msg = $("#fMsg");
-      var nome = $("#fNome").value.trim();
-      if (!nome) { msg.textContent = "Informe seu nome."; msg.className = "msg err"; return; }
-      var resp = window.__resposta || "sim";
-      btn.disabled = true; btn.textContent = "Enviando…";
-      try {
-        var sb = window.supabase.createClient(SB_URL, SB_ANON);
-        var res = await sb.from("equipe_presenca").insert({ evento_id: EV_ID, colaborador: nome, resposta: resp, observacao: $("#fObs") ? $("#fObs").value.trim() : null });
-        if (res.error) throw res.error;
-        $("#box").innerHTML = '<h1 style="color:var(--up)">✓ Resposta enviada!</h1><div class="sub">Obrigado, ' + nome.split(" ")[0] + '! Sua resposta (' + (resp === "sim" ? "PRESENÇA CONFIRMADA" : resp === "nao" ? "não poderei ir" : "talvez") + ') foi registrada para o evento ' + EV_NOME + '.</div>';
-      } catch (e) {
-        msg.textContent = "Não consegui enviar (" + (e.message || e) + "). Tente de novo.";
-        msg.className = "msg err"; btn.disabled = false; btn.textContent = "Enviar resposta";
-      }
-    });
-    var barra = document.createElement("div");
-    barra.style.cssText = "display:flex;gap:8px;margin-top:14px";
-    barra.innerHTML = '<button id="rSim" style="background:var(--up);color:#fff;margin:0">✓ Vou</button>' +
-      '<button id="rTalvez" style="background:#b8860b;color:#fff;margin:0">? Talvez</button>' +
-      '<button id="rNao" style="background:var(--dn);color:#fff;margin:0">✕ Não vou</button>';
-    $("#fEnviar").parentNode.insertBefore(barra, $("#fEnviar"));
-    $("#fEnviar").style.display = "none";
-    window.__resposta = "sim";
-    $("#rSim").onclick = function(){ window.__resposta = "sim"; $("#rSim").style.outline = "2px solid #fff"; $("#rTalvez").style.outline = ""; $("#rNao").style.outline = ""; };
-    $("#rTalvez").onclick = function(){ window.__resposta = "talvez"; $("#rTalvez").style.outline = "2px solid #fff"; $("#rSim").style.outline = ""; $("#rNao").style.outline = ""; };
-    $("#rNao").onclick = function(){ window.__resposta = "nao"; $("#rNao").style.outline = "2px solid #fff"; $("#rSim").style.outline = ""; $("#rTalvez").style.outline = ""; };
+    /* modo PRESENÇA: mínimo — evento, nome e confirmação */
+    document.body.innerHTML = '<div class="logo">BW AUDIOVISUAL<small>EVENTOS · TRANSMISSÕES · PRODUÇÃO</small></div>' +
+      '<div class="card"><h1>Confirmação de presença</h1>' +
+      '<div class="sub">Evento: <b>' + EV_NOME.replace(/[<>]/g, "") + '</b></div>' +
+      '<label>Seu nome</label><input id="pNome" type="text" placeholder="Seu nome">' +
+      '<div id="pBotoes" style="display:flex;gap:8px;margin-top:16px">' +
+      '<button id="pSim" style="background:#3f9d6b;color:#fff;margin:0">✓ Vou</button>' +
+      '<button id="pNao" style="background:#c0564a;color:#fff;margin:0">✕ Não vou</button>' +
+      '</div><div class="msg" id="pMsg"></div></div>' +
+      '<div class="rodape">BW Audiovisual</div>';
+    var resposta = "sim";
+    var botaoSim = document.querySelector("#pSim"), botaoNao = document.querySelector("#pNao");
+    botaoSim.style.outline = "2px solid #e5c069";
+    botaoSim.onclick = function(){ resposta = "sim"; botaoSim.style.outline = "2px solid #e5c069"; botaoNao.style.outline = "none"; };
+    botaoNao.onclick = function(){ resposta = "nao"; botaoNao.style.outline = "2px solid #e5c069"; botaoSim.style.outline = "none"; };
+    document.querySelector("#pMsg").className = "msg";
+    function enviar() {
+      var nome = document.querySelector("#pNome").value.trim();
+      var msg = document.querySelector("#pMsg");
+      if (!nome) { msg.textContent = "Escreva seu nome."; msg.className = "msg err"; return; }
+      botaoSim.disabled = botaoNao.disabled = true;
+      msg.textContent = "Enviando…"; msg.className = "msg";
+      var sb = window.supabase.createClient(SB_URL, SB_ANON);
+      sb.from("equipe_presenca").insert({ evento_id: EV_ID, colaborador: nome, resposta: resposta })
+        .then(function(res){
+          if (res.error) throw res.error;
+          document.body.innerHTML = '<div class="logo">BW AUDIOVISUAL<small>EVENTOS · TRANSMISSÕES · PRODUÇÃO</small></div>' +
+            '<div class="card"><h1 style="color:#3f9d6b">✓ Resposta enviada!</h1>' +
+            '<div class="sub">Obrigado, ' + nome.split(" ")[0] + '! ' +
+            (resposta === "sim" ? "Presença confirmada" : "Tudo bem, ficamos sem você desta vez") +
+            ' no evento ' + EV_NOME.replace(/[<>]/g, "") + '.</div></div>' +
+            '<div class="rodape">Pode fechar esta página.</div>';
+        })
+        .catch(function(e){
+          msg.textContent = "Não consegui enviar (" + (e.message || e) + "). Tente de novo.";
+          msg.className = "msg err";
+          botaoSim.disabled = botaoNao.disabled = false;
+        });
+    }
+    botaoSim.addEventListener("click", enviar);
+    botaoNao.addEventListener("click", enviar);
     return;
   }
   if (!TOKEN) {
