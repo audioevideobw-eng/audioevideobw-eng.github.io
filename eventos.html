@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<!-- build 2026-11-05T14:02:19 -->
+<!-- build 2026-11-05T14:18:56 -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Eventos — Mesa BW</title>
@@ -1455,10 +1455,10 @@ function dashboard() {
   const box = $("#evDash"); if (!box) return;
   const dados = eventos();
   const hoje = new Date().toISOString().slice(0, 10);
-  const proximos = dados.filter(e => e.data >= hoje && e.status !== "Entregue").length;
+  const proximos = dados.filter(e => e.data >= hoje && e.status !== "Entregue" && e.status !== "Realizado").length;
   const emProd = dados.filter(e => e.status === "Em produção").length;
   const ano = hoje.slice(0, 4);
-  const faturado = dados.filter(e => (e.data || "").startsWith(ano) && e.status === "Entregue")
+  const faturado = dados.filter(e => (e.data || "").startsWith(ano))
     .reduce((t, e) => t + (parseFloat(e.recebido || 0) || 0), 0);
   const porTipo = {};
   dados.forEach(e => { const t = e.tipo || "Outro"; porTipo[t] = (porTipo[t] || 0) + 1; });
@@ -1485,29 +1485,74 @@ function render() {
   const box = $("#evLista"); if (!box) return;
   const hoje = new Date().toISOString().slice(0, 10);
   const dados = eventos().sort((a, b) => (a.data || "").localeCompare(b.data || ""));
+  const finalizados = dados.filter(e => e.status === "Realizado" || e.status === "Entregue");
+  const agenda = dados.filter(e => !(e.status === "Realizado" || e.status === "Entregue"));
+  const aba = load("neg_eventos_aba", 1, "agenda");
   const cor = s => s === "Entregue" ? "up" : s === "Realizado" ? "mid" : s === "Em produção" ? "dn" : "mid";
+  const pago = e => (parseFloat(e.contratado || 0) || 0) > 0 && (parseFloat(e.recebido || 0) || 0) >= (parseFloat(e.contratado || 0) || 0);
+  const card = e => {
+    const dias = e.data ? Math.round((new Date(e.data + "T12:00") - new Date(hoje + "T12:00")) / 86400000) : null;
+    const badge = dias === null ? "" : dias < 0 ? "realizado" : dias === 0 ? "HOJE" : `faltam ${dias}d`;
+    const sit = pago(e);
+    const acoes = (e.status === "Realizado" || e.status === "Entregue")
+      ? `<button class="btn gh" data-agd="${e.id}">📅 Agendar</button>
+         <button class="btn gh" data-pago="${e.id}">${sit ? "⏳ Marcar não pago" : "💰 Marcar recebido"}</button>`
+      : `<button class="btn gh" data-fin="${e.id}">✓ Finalizado</button>
+         <button class="btn gh" data-pago="${e.id}">${sit ? "⏳ Marcar não pago" : "💰 Marcar recebido"}</button>`;
+    return `<div class="card" style="margin-top:10px;background:var(--navy3)">
+      <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap">
+        <b>${esc(e.nome)}</b>
+        <span><span class="tag ${cor(e.status)}">${esc(e.status)}</span>
+        <span class="tag ${sit ? "up" : "dn"}">${sit ? "RECEBIDO" : "NÃO PAGO"}</span>
+        ${badge ? `<span class="tag mid">${badge}</span>` : ""}</span>
+      </div>
+      <div style="margin-top:4px;color:var(--mut);font-size:12.5px">
+        📅 ${esc((e.data || "").split("-").reverse().join("/"))} · 📍 ${esc(e.local || "—")} ·
+        👤 ${esc(e.cliente || "—")} · 🎭 ${esc(e.tipo || "—")} · 👥 ${esc(e.equipeNome || "sem equipe")}
+      </div>
+      <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn gh" onclick="window.__evAbrir('${e.id}')">📂 Abrir dossiê</button>
+        ${acoes}
+        <a href="#" onclick="window.__evDel('${e.id}');return false" style="color:var(--dn);align-self:center">excluir</a>
+      </div>
+    </div>`;
+  };
+  const lista = aba === "realizados" ? finalizados : agenda;
   box.innerHTML = `<div class="card">
-    <h3>Eventos</h3>
-    <div class="sub">Cada evento é um dossiê: ficha, equipe, checklist, mídia, relatório e financeiro.</div>
-    ${dados.length ? dados.map(e => {
-      const dias = e.data ? Math.round((new Date(e.data + "T12:00") - new Date(hoje + "T12:00")) / 86400000) : null;
-      const badge = dias === null ? "" : dias < 0 ? "realizado" : dias === 0 ? "HOJE" : `faltam ${dias}d`;
-      return `<div class="card" style="margin-top:10px;background:var(--navy3)">
-        <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap">
-          <b>${esc(e.nome)}</b>
-          <span><span class="tag ${cor(e.status)}">${esc(e.status)}</span> ${badge ? `<span class="tag mid">${badge}</span>` : ""}</span>
-        </div>
-        <div style="margin-top:4px;color:var(--mut);font-size:12.5px">
-          📅 ${esc((e.data || "").split("-").reverse().join("/"))} · 📍 ${esc(e.local || "—")} ·
-          👤 ${esc(e.cliente || "—")} · 🎭 ${esc(e.tipo || "—")} · 👥 ${esc(e.equipeNome || "sem equipe")}
-        </div>
-        <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
-          <button class="btn gh" onclick="window.__evAbrir('${e.id}')">📂 Abrir dossiê</button>
-          <a href="#" onclick="window.__evDel('${e.id}');return false" style="color:var(--dn);align-self:center">excluir</a>
-        </div>
-      </div>`;
-    }).join("") : '<div class="note">Nenhum evento cadastrado — crie o primeiro abaixo.</div>'}
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+      <button class="btn ${aba === "agenda" ? "" : "gh"}" data-aba="agenda">📅 AGENDA DE EVENTOS (${agenda.length})</button>
+      <button class="btn ${aba === "realizados" ? "" : "gh"}" data-aba="realizados">🏁 EVENTOS REALIZADOS (${finalizados.length})</button>
+    </div>
+    <div class="sub">Cada evento é um dossiê: ficha, equipe, checklist, mídia, relatório e financeiro. "✓ Finalizado" move para EVENTOS REALIZADOS; "📅 Agendar" traz de volta. O pagamento sincroniza com os indicadores.</div>
+    ${lista.length ? lista.map(card).join("") : `<div class="note">${aba === "agenda" ? "Nenhum evento na agenda — crie abaixo ou mova de EVENTOS REALIZADOS." : "Nenhum evento realizado ainda — use ✓ Finalizado na AGENDA."}</div>`}
   </div>`;
+  box.querySelectorAll("[data-aba]").forEach(b => b.onclick = () => { save("neg_eventos_aba", 1, b.dataset.aba); render(); });
+  box.querySelectorAll("[data-fin]").forEach(b => b.onclick = () => {
+    const l2 = eventos();
+    const alvo = l2.find(x => String(x.id) === String(b.dataset.fin));
+    if (!alvo) return;
+    alvo.status = "Realizado";
+    salvarEventos(l2);
+    save("neg_eventos_aba", 1, "realizados");   // a view segue o evento
+    render();
+  });
+  box.querySelectorAll("[data-agd]").forEach(b => b.onclick = () => {
+    const l2 = eventos();
+    const alvo = l2.find(x => String(x.id) === String(b.dataset.agd));
+    if (!alvo) return;
+    alvo.status = "Confirmado";
+    salvarEventos(l2);
+    save("neg_eventos_aba", 1, "agenda");       // a view segue o evento
+    render();
+  });
+  box.querySelectorAll("[data-pago]").forEach(b => b.onclick = () => {
+    const l2 = eventos();
+    const alvo = l2.find(x => String(x.id) === String(b.dataset.pago));
+    if (!alvo) return;
+    alvo.recebido = pago(alvo) ? 0 : (alvo.contratado || 0);
+    salvarEventos(l2);
+    render();
+  });
 }
 
 /* ---------- formulário de cadastro enriquecido ---------- */
