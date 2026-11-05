@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<!-- build 2026-11-05T13:44:44 -->
+<!-- build 2026-11-05T14:02:19 -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Eventos — Mesa BW</title>
@@ -1607,6 +1607,14 @@ function abrirDossie(id) {
       <div id="dMidia"></div>
     </div>
     <div style="margin-top:14px;border-top:1px solid var(--line);padding-top:12px">
+      <h3>💰 Gastos operacionais + comprovante fiscal</h3>
+      <div id="dGastos"></div>
+    </div>
+    <div style="margin-top:14px;border-top:1px solid var(--line);padding-top:12px">
+      <h3>🧾 Nota Fiscal Eletrônica</h3>
+      <div id="dNFE"></div>
+    </div>
+    <div style="margin-top:14px;border-top:1px solid var(--line);padding-top:12px">
       <h3>📝 Relatório</h3>
       <textarea id="dRelatorio" style="width:100%;min-height:70px;background:#0b1220;border:1px solid var(--line);border-radius:10px;color:var(--txt);padding:10px" placeholder="O que foi feito, ocorrências, feedback do cliente…">${esc(e.relatorio || "")}</textarea>
       <button class="btn gh" id="dSalvarRel" style="margin-top:8px">💾 Salvar relatório</button>
@@ -1632,6 +1640,8 @@ function abrirDossie(id) {
   };
   wireChecklist(e);
   wireMidia(e);
+  wireGastos(e);
+  wireNFE(e);
   box.scrollIntoView({ behavior: "smooth" });
 }
 
@@ -1694,6 +1704,119 @@ function wireChecklist(e) {
       $("#ckModelo").click();
     };
   };
+}
+
+/* ---------- gastos operacionais com comprovante fiscal ---------- */
+function wireGastos(e) {
+  const box = $("#dGastos"); if (!box) return;
+  const auth = MOD["core/auth"];
+  const cred = auth.credenciais();
+  const sb = window.supabase ? window.supabase.createClient(cred.url, cred.anon) : null;
+  const listaAtual = () => (eventos().find(x => String(x.id) === String(e.id)) || {}).gastos || [];
+  const renderLista = () => {
+    const gts = listaAtual();
+    box.querySelector("#gLista").innerHTML = gts.length ? gts.map((g, i) => `
+      <div class="row"><span><b>${esc(g.desc)}</b> <small style="color:var(--mut)">${esc(g.data || "")}</small>
+        <small style="display:block;color:var(--gold2)">R$ ${fmt(parseFloat(g.valor || 0) || 0, 2)}</small></span>
+      <b>${g.comprovante ? `<a class="btn gh" style="padding:5px 10px;font-size:11px" href="${esc(g.comprovante)}" target="_blank">🧾 Comprovante Fiscal</a>` : ""}
+      <a href="#" onclick="window.__gDel('${e.id}',${i});return false" style="color:var(--dn)">✕</a></b></div>`).join("")
+      : '<div class="note">Nenhum gasto operacional lançado.</div>';
+  };
+  box.innerHTML = `
+    <div class="frow3">
+      <div><label>Descrição do gasto</label><input id="gDesc" type="text" placeholder="Ex.: Combustível"></div>
+      <div><label>Valor (R$)</label><input id="gVal" type="number" step="0.01" min="0" placeholder="0,00"></div>
+      <div><label>Data</label><input id="gData" type="date"></div>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:6px">
+      <input type="file" id="gComp" accept="image/*,application/pdf" style="padding:8px;flex:1;min-width:180px">
+      <button class="btn gh" id="gAdd" style="padding:10px 14px">+ Lançar gasto</button>
+    </div>
+    <div class="note">Tire a foto do comprovante fiscal (ou anexe o PDF da NF-e) — fica disponível no botão 🧾 ao lado do gasto.</div>
+    <div id="gLista" style="margin-top:8px"></div>`;
+  renderLista();
+  $("#gAdd").onclick = async () => {
+    const desc = $("#gDesc").value.trim(), valor = $("#gVal").value.trim(), data = $("#gData").value;
+    if (!desc || !valor) { box.querySelector("#gLista").innerHTML = '<div class="note">Preencha descrição e valor.</div>'; return; }
+    const f = $("#gComp").files[0];
+    $("#gLista").innerHTML = '<div class="note">Salvando gasto…</div>';
+    let comprovante = null, caminho = null;
+    if (f && sb) {
+      const { data: sess } = await sb.auth.getSession();
+      if (sess && sess.session) {
+        const cp = `${e.id}/comprovantes/${Date.now()}_${f.name}`;
+        const { error } = await sb.storage.from("eventos-midia").upload(cp, f);
+        if (!error) {
+          comprovante = `${SB_PUBLIC}/${cp}`;
+          caminho = cp;
+        }
+      }
+    }
+    const l2 = eventos();
+    const alvo = l2.find(x => String(x.id) === String(e.id));
+    alvo.gastos = alvo.gastos || [];
+    alvo.gastos.push({ desc, valor: parseFloat(valor.replace(",", ".")) || 0, data, comprovante, caminho });
+    salvarEventos(l2);
+    e.gastos = alvo.gastos;
+    renderLista();
+  };
+  window.__gDel = (id, i) => {
+    const l2 = eventos();
+    const alvo = l2.find(x => String(x.id) === String(id));
+    const [rem] = alvo.gastos.splice(i, 1);
+    salvarEventos(l2);
+    if (rem.caminho && sb) sb.storage.from("eventos-midia").remove([rem.caminho]);
+    wireGastos(alvo);
+  };
+}
+
+/* ---------- Nota Fiscal Eletrônica (PDF do evento) ---------- */
+function wireNFE(e) {
+  const box = $("#dNFE"); if (!box) return;
+  const auth = MOD["core/auth"];
+  const cred = auth.credenciais();
+  const sb = window.supabase ? window.supabase.createClient(cred.url, cred.anon) : null;
+  const renderNFE = () => {
+    const alvo = eventos().find(x => String(x.id) === String(e.id)) || {};
+    const nfe = alvo.nfe;
+    document.querySelector("#nfeBox").innerHTML = nfe
+      ? '<div class="row"><span><b>' + esc(nfe.nome) + '</b> <small style="color:var(--mut)">' + esc(nfe.numero ? "NF-e nº " + nfe.numero : "") + '</small></span>' +
+        '<b><a class="btn gh" style="padding:5px 10px;font-size:11px" href="' + esc(nfe.url) + '" target="_blank">Abrir NF-e</a>' +
+        '<a href="#" data-nfe-del="' + e.id + '" style="color:var(--dn)">✕</a></b></div>'
+      : '<div class="note">Nenhuma NF-e cadastrada — anexe o PDF (ou foto) da nota do evento.</div>';
+  };
+  box.innerHTML = '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">' +
+    '<input type="file" id="nfeArq" accept="application/pdf,image/*" style="padding:8px;flex:1;min-width:180px">' +
+    '<input id="nfeNum" type="text" placeholder="Nº da NF-e (opcional)" style="padding:8px;width:180px">' +
+    '<button class="btn gh" id="nfeAdd" style="padding:10px 14px">+ Anexar NF-e</button></div>' +
+    '<div id="nfeBox" style="margin-top:8px"></div>';
+  renderNFE();
+  document.querySelector("#nfeAdd").onclick = async () => {
+    const f = document.querySelector("#nfeArq").files[0];
+    if (!f) { document.querySelector("#nfeBox").innerHTML = '<div class="note">Selecione o PDF da NF-e.</div>'; return; }
+    if (!sb) return;
+    const sess = await sb.auth.getSession();
+    if (!sess.data || !sess.data.session) { document.querySelector("#nfeBox").innerHTML = '<div class="note">Entre com sua conta para anexar a NF-e.</div>'; return; }
+    document.querySelector("#nfeBox").innerHTML = '<div class="note">Enviando NF-e…</div>';
+    const cp = e.id + "/nfe/" + Date.now() + "_" + f.name;
+    const up = await sb.storage.from("eventos-midia").upload(cp, f);
+    if (up.error) { document.querySelector("#nfeBox").innerHTML = '<div class="note">Erro: ' + esc(up.error.message) + '</div>'; renderNFE(); return; }
+    const l2 = eventos();
+    const alvo = l2.find(x => String(x.id) === String(e.id));
+    alvo.nfe = { nome: f.name, url: SB_PUBLIC + "/" + cp, caminho: cp, numero: document.querySelector("#nfeNum").value.trim() };
+    salvarEventos(l2);
+    renderNFE();
+  };
+  box.querySelectorAll("[data-nfe-del]").forEach(a => {
+    a.onclick = () => {
+      const l2 = eventos();
+      const alvo = l2.find(x => String(x.id) === String(e.id));
+      if (alvo.nfe && alvo.nfe.caminho && sb) sb.storage.from("eventos-midia").remove([alvo.nfe.caminho]);
+      alvo.nfe = null;
+      salvarEventos(l2);
+      renderNFE();
+    };
+  });
 }
 
 /* ---------- mídia (Supabase Storage) ---------- */
@@ -1930,6 +2053,22 @@ async function gerarDossiePDF(id) {
       ...(presencas.length ? [
         { text: "Confirmações de presença", bold: true, margin: [0, 12, 0, 4] },
         { ul: presencas.map(p => ({ text: `${p.colaborador} (${p.email || "sem e-mail"}) — ${p.resposta === "sim" ? "✓ vai" : p.resposta === "nao" ? "✕ não vai" : "? talvez"}`, fontSize: 9 })) },
+      ] : []),
+      ...((e.gastos || []).length ? [
+        { text: "Gastos operacionais", bold: true, margin: [0, 12, 0, 4] },
+        { table: { widths: ["45%", "20%", "35%"], body: [
+          [{ text: "Descrição", bold: true, color: "#fff", fillColor: "#0b1220", fontSize: 8 },
+           { text: "Valor", bold: true, color: "#fff", fillColor: "#0b1220", fontSize: 8, alignment: "right" },
+           { text: "Comprovante", bold: true, color: "#fff", fillColor: "#0b1220", fontSize: 8 }],
+          ...e.gastos.map(g => [
+            { text: g.desc + (g.data ? " (" + g.data + ")" : ""), fontSize: 9 },
+            { text: "R$ " + fmt(parseFloat(g.valor || 0), 2), fontSize: 9, alignment: "right" },
+            { text: g.comprovante ? "anexado (veja na página do evento)" : "—", fontSize: 8, color: "#55627a" }]),
+          [{ text: "Total", bold: true, fontSize: 9 }, { text: "R$ " + fmt(e.gastos.reduce((t, g) => t + (parseFloat(g.valor || 0) || 0), 0), 2), fontSize: 9, bold: true, alignment: "right" }, { text: "" }],
+        ] } }] : []),
+      ...(e.nfe ? [
+        { text: "Nota Fiscal Eletrônica", bold: true, margin: [0, 12, 0, 4] },
+        { text: (e.nfe.numero ? "NF-e nº " + e.nfe.numero + " — " : "") + e.nfe.nome + " (anexada ao evento)", fontSize: 9 },
       ] : []),
       { text: "Mídia", bold: true, margin: [0, 12, 0, 4] },
       ...(galeria ? [
