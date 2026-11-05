@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<!-- build 2026-11-05T07:23:41 -->
+<!-- build 2026-11-05T07:32:07 -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Eventos — Mesa BW</title>
@@ -1696,9 +1696,11 @@ function wireChecklist(e) {
 /* ---------- mídia (Supabase Storage) ---------- */
 function wireMidia(e) {
   const box = $("#dMidia"); if (!box) return;
-  const c = load("fx_supabase_url", 1, "") || "";
   box.innerHTML = `
-    <input type="file" id="midArq" accept="image/*,video/*" multiple style="padding:8px">
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <input type="file" id="midArq" accept="image/*,video/*" multiple style="padding:8px;flex:1;min-width:180px">
+      <button class="btn gh" id="midRefresh" title="Atualizar a lista de mídia" style="padding:10px 14px">🔄 Atualizar</button>
+    </div>
     <div class="note">Fotos e vídeos ficam na nuvem (Supabase Storage, camada gratuita). Envie do celular logo após o evento.</div>
     <div id="midLista" style="margin-top:8px"></div>`;
   const renderLista = () => {
@@ -1708,6 +1710,7 @@ function wireMidia(e) {
       : '<div class="note">Nenhuma mídia enviada.</div>';
   };
   renderLista();
+  $("#midRefresh").onclick = () => { renderLista(); wireMidia(e); };
   $("#midArq").onchange = async ev => {
     const arquivos = [...ev.target.files];
     if (!arquivos.length) return;
