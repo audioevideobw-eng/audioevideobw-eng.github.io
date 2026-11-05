@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<!-- build 2026-11-04T21:22:30 -->
+<!-- build 2026-11-04T22:20:53 -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Gestão de equipe — Mesa BW</title>
@@ -1001,9 +1001,23 @@ function renderEventos() {
     const { data } = await sb.from("equipe_presenca").select("*").eq("evento_id", String(id));
     const el = $("#presencas_" + id);
     if (!el) return;
-    el.innerHTML = (data && data.length)
-      ? '<b style="font-size:12px">Respostas:</b>' + data.map(r => `<div style="font-size:12px;margin-top:4px">· <b>${esc(r.colaborador)}</b> — ${r.resposta === "sim" ? "✓ vai" : r.resposta === "nao" ? "✕ não vai" : "? talvez"}${r.observacao ? " (" + esc(r.observacao) + ")" : ""}</div>`).join("")
-      : '<div class="note">Nenhuma resposta ainda.</div>';
+    if (!data || !data.length) { el.innerHTML = '<div class="note">Nenhuma resposta ainda.</div>'; return; }
+    /* identifica o colaborador pelo E-MAIL (nomes podem se repetir) */
+    const porEmail = {};
+    data.forEach(r => { if (r.email) porEmail[r.email.toLowerCase()] = r; });
+    const eq = equipes().find(q => String(q.id) === String(eventos().find(e => String(e.id) === String(id)).equipeId));
+    const membros = ((eq && eq.membros) || []).map(mid => colabs().find(x => String(x.id) === String(mid))).filter(Boolean);
+    const linhasMembros = membros.map(m => {
+      const r = m.email && porEmail[m.email.toLowerCase()];
+      const icone = r ? (r.resposta === "sim" ? '<span style="color:var(--up)">✓</span>'
+        : r.resposta === "nao" ? '<span style="color:var(--dn)">✕</span>' : '<span style="color:var(--gold2)">?</span>') : '<span style="color:var(--mut)">…</span>';
+      return `<div style="font-size:12.5px;margin-top:4px">${icone} <b>${esc(m.nome)}</b>${r ? ` — ${r.resposta === "sim" ? "vai" : r.resposta === "nao" ? "não vai" : "talvez"}` : " — sem resposta"}</div>`;
+    }).join("");
+    /* convidados que não estão na lista (confirmaram pelo link) */
+    const fora = data.filter(r => !membros.some(m => m.email && m.email.toLowerCase() === (r.email || "").toLowerCase()));
+    const linhasFora = fora.map(r => `<div style="font-size:12.5px;margin-top:4px">${r.resposta === "sim" ? '<span style="color:var(--up)">✓</span>' : r.resposta === "nao" ? '<span style="color:var(--dn)">✕</span>' : '?'} <b>${esc(r.colaborador)}</b> <small style="color:var(--mut)">(fora da equipe — ${esc(r.email || "")})</small></div>`).join("");
+    el.innerHTML = '<b style="font-size:12px">Equipe:</b>' + linhasMembros +
+      (fora.length ? '<b style="font-size:12px;display:block;margin-top:8px">Outros confirmados:</b>' + linhasFora : "");
   };
 }
 
@@ -1050,11 +1064,24 @@ async function gerarPDFEvento(id) {
           [{ text: "Colaborador", bold: true, color: "#fff", fillColor: "#0b1220", fontSize: 8 },
            { text: "Resposta", bold: true, color: "#fff", fillColor: "#0b1220", fontSize: 8 },
            { text: "Observação", bold: true, color: "#fff", fillColor: "#0b1220", fontSize: 8 }],
-          ...presencas.map(p => [
-            { text: p.colaborador, fontSize: 9 },
-            { text: p.resposta === "sim" ? "✓ vai" : p.resposta === "nao" ? "✕ não vai" : "? talvez", fontSize: 9,
-              color: p.resposta === "sim" ? "#1e8e5a" : p.resposta === "nao" ? "#c0392b" : "#b8860b" },
-            { text: p.observacao || "—", fontSize: 9 }]),
+          ...membros.map(m => {
+            const p = m.email && presencas.find(x => (x.email || "").toLowerCase() === m.email.toLowerCase());
+            if (!p) return [
+              { text: m.nome, fontSize: 9, color: "#8a93a6" },
+              { text: "sem resposta", fontSize: 9, color: "#8a93a6" },
+              { text: "—", fontSize: 9, color: "#8a93a6" }];
+            return [
+              { text: m.nome, fontSize: 9, bold: true },
+              { text: p.resposta === "sim" ? "✓ vai" : p.resposta === "nao" ? "✕ não vai" : "? talvez", fontSize: 9,
+                color: p.resposta === "sim" ? "#1e8e5a" : p.resposta === "nao" ? "#c0392b" : "#b8860b" },
+              { text: p.observacao || "—", fontSize: 9 }];
+          }),
+          ...presencas.filter(p => !membros.some(m => m.email && m.email.toLowerCase() === (p.email || "").toLowerCase()))
+            .map(p => [
+              { text: p.colaborador + " (fora da equipe)", fontSize: 9 },
+              { text: p.resposta === "sim" ? "✓ vai" : p.resposta === "nao" ? "✕ não vai" : "? talvez", fontSize: 9,
+                color: p.resposta === "sim" ? "#1e8e5a" : p.resposta === "nao" ? "#c0392b" : "#b8860b" },
+              { text: p.observacao || "—", fontSize: 9 }]),
         ] } }] : []),
     ],
     footer: { margin: [40, 10, 40, 20], columns: [
