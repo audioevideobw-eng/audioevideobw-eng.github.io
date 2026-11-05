@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<!-- build 2026-11-05T13:21:15 -->
+<!-- build 2026-11-05T13:35:23 -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Eventos — Mesa BW</title>
@@ -1834,6 +1834,43 @@ async function urlParaDataUrl(url) {
   } catch (e) { return null; }
 }
 
+/* compõe as fotos em UMA imagem só (grade 3×N de miniaturas) para o PDF —
+   otimiza o documento: uma imagem, tamanho previsível, visual de galeria */
+async function comporGaleria(fotos) {
+  if (!fotos || !fotos.length) return null;
+  const celW = 240, celH = 180, cols = 3;
+  const n = Math.min(fotos.length, 9);
+  const rows = Math.ceil(n / cols);
+  const cv = document.createElement("canvas");
+  cv.width = cols * celW;
+  cv.height = rows * celH;
+  const ctx = cv.getContext("2d");
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, cv.width, cv.height);
+  for (let i = 0; i < n; i++) {
+    const img = await new Promise(resolve => {
+      const im = new Image();
+      im.onload = () => resolve(im);
+      im.onerror = () => resolve(null);
+      im.src = fotos[i].du;
+    });
+    if (!img) continue;
+    const x = (i % cols) * celW, y = Math.floor(i / cols) * celH;
+    /* cover-crop: a foto preenche a célula (o excesso é cortado) */
+    const escala = Math.max(celW / img.width, celH / img.height);
+    const dw = img.width * escala, dh = img.height * escala;
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(x, y, celW, celH);
+    ctx.clip();
+    ctx.drawImage(img, x + (celW - dw) / 2, y + (celH - dh) / 2, dw, dh);
+    ctx.restore();
+    ctx.strokeStyle = "#e8eef7";
+    ctx.strokeRect(x + 0.5, y + 0.5, celW - 1, celH - 1);
+  }
+  return cv.toDataURL("image/jpeg", 0.8);
+}
+
 async function gerarDossiePDF(id) {
   const e = eventos().find(x => String(x.id) === String(id));
   if (!e) return;
@@ -1849,11 +1886,13 @@ async function gerarDossiePDF(id) {
   } catch (err) { }
   /* baixa as fotos do Storage (CORS liberado) para embutir no PDF */
   const fotos = [];
-  for (const m of (e.midia || []).slice(0, 6)) {
+  for (const m of (e.midia || []).slice(0, 9)) {
     if (!m.url) continue;
     const du = await urlParaDataUrl(m.url);
     if (du) fotos.push({ nome: m.nome, du });
   }
+  /* compõe a GALERIA ÚNICA (grade de miniaturas) — otimiza o PDF */
+  const galeria = await comporGaleria(fotos);
   const ficha = [["Evento", e.nome], ["Data", (e.data || "").split("-").reverse().join("/")],
     ["Tipo", e.tipo || "—"], ["Local", e.local || "—"], ["Cliente", e.cliente || "—"],
     ["Contato", (e.tel || "—") + (e.email ? " · " + e.email : "")],
@@ -1887,10 +1926,10 @@ async function gerarDossiePDF(id) {
         { ul: presencas.map(p => ({ text: `${p.colaborador} (${p.email || "sem e-mail"}) — ${p.resposta === "sim" ? "✓ vai" : p.resposta === "nao" ? "✕ não vai" : "? talvez"}`, fontSize: 9 })) },
       ] : []),
       { text: "Mídia", bold: true, margin: [0, 12, 0, 4] },
-      ...(fotos.length ? fotos.map((f, i) => [
-        { image: f.du, width: 380, alignment: "center", margin: [0, i === 0 ? 0 : 10, 0, 2] },
-        { text: f.nome, fontSize: 8, color: "#55627a", alignment: "center", margin: [0, 0, 0, 6] },
-      ]).flat() : [{ text: (e.midia || []).length ? "Fotos não carregaram para o PDF (veja na página do evento)." : "Nenhuma mídia enviada.", fontSize: 9, color: "#55627a" }]),
+      ...(galeria ? [
+        { image: galeria, width: 500, alignment: "center", margin: [0, 0, 0, 2] },
+        { text: `Galeria do evento — ${fotos.length} foto(s)`, fontSize: 8, color: "#55627a", alignment: "center", margin: [0, 0, 0, 6] },
+      ] : [{ text: (e.midia || []).length ? "Fotos não carregaram para o PDF (veja na página do evento)." : "Nenhuma mídia enviada.", fontSize: 9, color: "#55627a" }]),
       { text: "Relatório", bold: true, margin: [0, 12, 0, 4] },
       { text: e.relatorio || "Sem relatório.", fontSize: 9, italics: !e.relatorio },
       { text: "Observações: " + (e.obs || "—"), fontSize: 9, margin: [0, 12, 0, 0], color: "#55627a" },
