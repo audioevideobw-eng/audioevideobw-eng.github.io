@@ -63,6 +63,7 @@ button:disabled{opacity:.6;cursor:wait}
       '<div class="card"><h1>Confirmação de presença</h1>' +
       '<div class="sub">Evento: <b>' + EV_NOME.replace(/[<>]/g, "") + '</b></div>' +
       '<label>Seu nome</label><input id="pNome" type="text" placeholder="Seu nome">' +
+      '<label>Seu e-mail</label><input id="pEmail" type="email" placeholder="seu@email.com">' +
       '<div id="pBotoes" style="display:flex;gap:8px;margin-top:16px">' +
       '<button id="pSim" style="background:#3f9d6b;color:#fff;margin:0">✓ Vou</button>' +
       '<button id="pNao" style="background:#c0564a;color:#fff;margin:0">✕ Não vou</button>' +
@@ -76,12 +77,14 @@ button:disabled{opacity:.6;cursor:wait}
     document.querySelector("#pMsg").className = "msg";
     function enviar() {
       var nome = document.querySelector("#pNome").value.trim();
+      var email = document.querySelector("#pEmail").value.trim();
       var msg = document.querySelector("#pMsg");
       if (!nome) { msg.textContent = "Escreva seu nome."; msg.className = "msg err"; return; }
+      if (!email || email.indexOf("@") < 1) { msg.textContent = "Escreva seu e-mail (para identificar você na equipe)."; msg.className = "msg err"; return; }
       botaoSim.disabled = botaoNao.disabled = true;
       msg.textContent = "Enviando…"; msg.className = "msg";
       var sb = window.supabase.createClient(SB_URL, SB_ANON);
-      sb.from("equipe_presenca").insert({ evento_id: EV_ID, colaborador: nome, resposta: resposta })
+      sb.from("equipe_presenca").insert({ evento_id: EV_ID, colaborador: nome, email: email, resposta: resposta })
         .then(function(res){
           if (res.error) throw res.error;
           document.body.innerHTML = '<div class="logo">BW AUDIOVISUAL<small>EVENTOS · TRANSMISSÕES · PRODUÇÃO</small></div>' +
