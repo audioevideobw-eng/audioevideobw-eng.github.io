@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<!-- build 2026-11-04T16:24:19 -->
+<!-- build 2026-11-04T21:22:30 -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Meu negócio — Mesa BW</title>
@@ -597,7 +597,7 @@ async function testarConexao() {
   }
 }
 
-return { cadastrar, configurado, configurar, credenciais, entrar, entrarComGoogle, recuperar, sair, sessao, sessaoLocal, testarConexao, trocarSenha, usuarioAtual };
+return { cadastrar, clienteSB, configurado, configurar, credenciais, entrar, entrarComGoogle, recuperar, sair, sessao, sessaoLocal, testarConexao, trocarSenha, usuarioAtual };
 })();
 /* ===== core/bootcommon.js ===== */
 MOD['core/bootcommon'] = (function() {
@@ -728,6 +728,79 @@ function calcularPreco() {
 
 /* ---- fluxo de caixa (lista sincronizada) ---- */
 const FLUXO = "neg_fluxo";
+const FIXOS_NEG = "neg_fixos";   // c0 Descrição · c1 Valor · c2 Recorrência · c3 Dia · c4 Mês inicial · c5 Categoria
+
+/* expande os fixos do negócio em lançamentos futuros (6 meses) */
+function expandirFixosNeg() {
+  const fixos = load(FIXOS_NEG, 1, []);
+  if (!fixos.length) return 0;
+  const fluxo = load(FLUXO, 1, []);
+  const hoje = new Date();
+  let n = 0;
+  fixos.forEach(f => {
+    const dia = Math.min(Math.max(parseInt(f.c3 || "1", 10) || 1, 1), 28);
+    const inicio = f.c4 || hoje.toISOString().slice(0, 7);
+    const [ai, mi] = inicio.split("-").map(Number);
+    for (let k = 0; k < 6; k++) {
+      let ano = ai, mes = mi + k;
+      if (f.c2 === "anual") { if (k > 0) continue; }
+      else { while (mes > 12) { mes -= 12; ano += 1; } }
+      const data = `${ano}-${String(mes).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
+      const id = `fixo_${f.id}_${data}`;
+      if (fluxo.some(o => o.id === id)) continue;
+      if (new Date(data + "T23:59") < hoje) continue;
+      fluxo.push({ id, c0: data, c1: f.c5 === "Entrada" ? "Entrada" : "Saída",
+        c2: f.c1, c3: `${f.c0} (fixo)` });
+      n++;
+    }
+  });
+  if (n) save(FLUXO, 1, fluxo);
+  return n;
+}
+
+/* render dos fixos do negócio */
+function renderFixosNeg() {
+  const box = $("#negFixosBox"); if (!box) return;
+  const fixos = load(FIXOS_NEG, 1, []);
+  box.innerHTML = `<div class="card">
+    <h3>Pagamentos e recebimentos fixos (recorrentes)</h3>
+    <div class="sub">Mensal (6 lançamentos futuros) ou anual (1) — entram no fluxo e nos indicadores automaticamente.</div>
+    <div class="tb-scroll"><table>
+      <thead><tr><th>Descrição</th><th>Valor</th><th>Tipo</th><th>Recorrência</th><th>Dia</th><th>Mês inicial</th><th></th></tr></thead>
+      <tbody>${fixos.length ? fixos.map(f => `<tr>
+        <td>${esc(f.c0)}</td><td>${esc(f.c1)}</td><td>${esc(f.c5 || "Saída")}</td><td>${esc(f.c2)}</td><td>${esc(f.c3)}</td><td>${esc(f.c4)}</td>
+        <td><a href="#" onclick="window.__delFixoNeg('${f.id}');return false" style="color:var(--dn)">✕</a></td></tr>`).join("")
+        : '<tr><td colspan="7" style="color:var(--mut)">Nenhum fixo cadastrado.</td></tr>'}</tbody>
+    </table></div>
+    <div class="frow3" style="margin-top:10px">
+      <div><label>Descrição</label><input id="fnDesc" type="text" placeholder="Ex.: Aluguel do estúdio"></div>
+      <div><label>Valor (R$)</label><input id="fnVal" type="number" step="0.01" min="0" placeholder="0,00"></div>
+      <div><label>Tipo</label><select id="fnTipo"><option>Saída</option><option>Entrada</option></select></div>
+    </div>
+    <div class="frow3">
+      <div><label>Recorrência</label><select id="fnRec"><option>mensal</option><option>anual</option></select></div>
+      <div><label>Dia do mês (1-28)</label><input id="fnDia" type="number" min="1" max="28" value="5"></div>
+      <div><label>Mês inicial</label><input id="fnMes" type="month" value="${new Date().toISOString().slice(0, 7)}"></div>
+    </div>
+    <button class="btn" id="fnAdd">Criar fixo</button>
+    <div class="note" id="fnMsg"></div>
+  </div>`;
+  $("#fnAdd").onclick = () => {
+    const f = { id: Date.now(),
+      c0: $("#fnDesc").value.trim(), c1: $("#fnVal").value.trim(),
+      c5: $("#fnTipo").value, c2: $("#fnRec").value,
+      c3: $("#fnDia").value, c4: $("#fnMes").value };
+    if (!f.c0 || !f.c1) { $("#fnMsg").textContent = "Preencha descrição e valor."; return; }
+    const lista = load(FIXOS_NEG, 1, []); lista.push(f); save(FIXOS_NEG, 1, lista);
+    const n = expandirFixosNeg();
+    $("#fnMsg").textContent = `Fixo criado — ${n} lançamento(s) gerado(s).`;
+    renderFixosNeg(); renderFluxo();
+  };
+  window.__delFixoNeg = id => {
+    save(FIXOS_NEG, 1, load(FIXOS_NEG, 1, []).filter(f => String(f.id) !== String(id)));
+    renderFixosNeg();
+  };
+}
 
 /* categorias pré-definidas do fluxo (o usuário também pode digitar outra —
    por isso o select tem a opção "Outra…" que vira campo livre) */
@@ -889,10 +962,12 @@ function init() {
   initPlanilha();
   initPreco();
   initExportar();
+  expandirFixosNeg();
+  renderFixosNeg();
   renderFluxo();
 }
 
-return { CATEGORIAS_NEG, calcularPreco, init, initCategorias, initExportar, initFluxo, initPlanilha, initPreco, initSyncRapido, renderFluxo, setUrlSheets, urlSheets };
+return { CATEGORIAS_NEG, calcularPreco, expandirFixosNeg, init, initCategorias, initExportar, initFluxo, initPlanilha, initPreco, initSyncRapido, renderFixosNeg, renderFluxo, setUrlSheets, urlSheets };
 })();
 /* ===== negocio_main.js ===== */
 MOD['negocio_main'] = (function() {
