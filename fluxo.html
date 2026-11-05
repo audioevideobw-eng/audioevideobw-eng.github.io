@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<!-- build 2026-11-04T14:41:24 -->
+<!-- build 2026-11-04T21:22:30 -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Fluxo de caixa — Mesa BW</title>
@@ -203,6 +203,7 @@ footer b{color:var(--gold)}
     <button class="btn" id="nFluxoAdd">Lançar</button>
     <div id="nFluxoOut" style="margin-top:12px"></div>
   </div>
+  <div style="margin-top:14px" id="negFixosBox"></div>
   <div class="card" style="margin-top:14px" id="negPlanilha"></div>
   <div class="card" style="margin-top:14px" id="negSync"></div>
   <div class="card" style="margin-top:14px">
@@ -614,7 +615,7 @@ async function testarConexao() {
   }
 }
 
-return { cadastrar, configurado, configurar, credenciais, entrar, entrarComGoogle, recuperar, sair, sessao, sessaoLocal, testarConexao, trocarSenha, usuarioAtual };
+return { cadastrar, clienteSB, configurado, configurar, credenciais, entrar, entrarComGoogle, recuperar, sair, sessao, sessaoLocal, testarConexao, trocarSenha, usuarioAtual };
 })();
 /* ===== core/bootcommon.js ===== */
 MOD['core/bootcommon'] = (function() {
@@ -734,8 +735,62 @@ function disponivel() {
   return typeof window.pdfMake !== "undefined";
 }
 
+/* desenha o gráfico de barras por categoria como VETORES do pdfmake (sem imagem) */
+function desenhoBarras(dados) {
+  const porCat = {};
+  dados.forEach(o => {
+    if (!(o.c2 || "").toLowerCase().startsWith("despesa")) return;
+    const cat = o.c1 || "Sem categoria";
+    porCat[cat] = (porCat[cat] || 0) + (parseFloat((o.c3 || "0").replace(",", ".")) || 0);
+  });
+  const pares = Object.entries(porCat).sort((a, b) => b[1] - a[1]).slice(0, 8);
+  if (!pares.length) return null;
+  const max = pares[0][1];
+  return {
+    table: { widths: ["35%", "65%", "25%"], body: [
+      [{ text: "Categoria", bold: true, color: "#fff", fillColor: "#0b1220", fontSize: 8 },
+       { text: "", fillColor: "#0b1220" },
+       { text: "Valor", bold: true, color: "#fff", fillColor: "#0b1220", fontSize: 8, alignment: "right" }],
+      ...pares.map(([cat, v]) => [
+        { text: cat, fontSize: 8 },
+        { canvas: [{ type: "rect", x: 0, y: 3, w: Math.max(4, (v / max) * 120), h: 8, color: "#d4a94a" }] },
+        { text: "R$ " + fmt(v, 2), fontSize: 8, alignment: "right" },
+      ]),
+    ] }, margin: [0, 6, 0, 10],
+  };
+}
+
+/* desenha a evolução mensal (receitas × despesas) como vetores do pdfmake */
+function desenhoEvolucao() {
+  const orc = load("casa_orcamento", 1, []);
+  const meses = [...new Set(orc.map(o => (o.c4 || "").slice(0, 7)))].filter(Boolean).sort();
+  if (meses.length < 2) return null;
+  const porMes = {};
+  orc.forEach(o => {
+    const m = (o.c4 || "").slice(0, 7);
+    const v = parseFloat((o.c3 || "0").replace(",", ".")) || 0;
+    if (!porMes[m]) porMes[m] = { rec: 0, desp: 0 };
+    if ((o.c2 || "").toLowerCase().startsWith("receita")) porMes[m].rec += v;
+    else porMes[m].desp += v;
+  });
+  const maxV = Math.max(...meses.flatMap(m => [porMes[m].rec, porMes[m].desp]), 1);
+  const linhas = meses.map(m => [
+    { text: m, fontSize: 8 },
+    { text: "R$ " + fmt(porMes[m].rec, 2), fontSize: 8, color: "#1e8e5a", alignment: "right" },
+    { text: "R$ " + fmt(porMes[m].desp, 2), fontSize: 8, color: "#b8860b", alignment: "right" },
+  ]);
+  return {
+    table: { widths: ["34%", "33%", "33%"], body: [
+      [{ text: "Mês", bold: true, color: "#fff", fillColor: "#0b1220", fontSize: 8 },
+       { text: "Receitas", bold: true, color: "#fff", fillColor: "#0b1220", fontSize: 8, alignment: "right" },
+       { text: "Despesas", bold: true, color: "#fff", fillColor: "#0b1220", fontSize: 8, alignment: "right" }],
+      ...linhas,
+    ] }, margin: [0, 6, 0, 10],
+  };
+}
+
 /* gera o PDF do relatório mensal (chama pdfMake.createPdf) */
-function exportarMes(titulo, key, cols, resumo) {
+async function exportarMes(titulo, key, cols, resumo, desenhos = []) {
   if (!disponivel()) throw new Error("Biblioteca de PDF não carregou — recarregue a página.");
   const dados = linhas(key, cols);
   const corpo = [
@@ -754,6 +809,7 @@ function exportarMes(titulo, key, cols, resumo) {
     content: [
       { text: titulo, fontSize: 16, bold: true, margin: [0, 20, 0, 4] },
       { text: `Mês de referência: ${MES}`, color: "#55627a", margin: [0, 0, 0, 12] },
+      ...(desenhos || []),
       ...(resumo ? [{ table: { widths: ["*", "*"], body: resumo.map(r => [
         { text: r[0], color: "#55627a" }, { text: r[1], bold: true, alignment: "right" },
       ]) }, margin: [0, 0, 0, 14] }] : []),
@@ -808,7 +864,7 @@ function resumoFluxo() {
   return [["Entradas", "R$ " + fmt(ent, 2)], ["Saídas", "R$ " + fmt(sai, 2)], ["Saldo", "R$ " + fmt(ent - sai, 2)]];
 }
 
-return { disponivel, exportarMes, resumoContas, resumoFluxo, resumoOrcamento, resumoReserva };
+return { desenhoBarras, desenhoEvolucao, disponivel, exportarMes, resumoContas, resumoFluxo, resumoOrcamento, resumoReserva };
 })();
 /* ===== modules/negocio.js ===== */
 MOD['modules/negocio'] = (function() {
@@ -844,6 +900,79 @@ function calcularPreco() {
 
 /* ---- fluxo de caixa (lista sincronizada) ---- */
 const FLUXO = "neg_fluxo";
+const FIXOS_NEG = "neg_fixos";   // c0 Descrição · c1 Valor · c2 Recorrência · c3 Dia · c4 Mês inicial · c5 Categoria
+
+/* expande os fixos do negócio em lançamentos futuros (6 meses) */
+function expandirFixosNeg() {
+  const fixos = load(FIXOS_NEG, 1, []);
+  if (!fixos.length) return 0;
+  const fluxo = load(FLUXO, 1, []);
+  const hoje = new Date();
+  let n = 0;
+  fixos.forEach(f => {
+    const dia = Math.min(Math.max(parseInt(f.c3 || "1", 10) || 1, 1), 28);
+    const inicio = f.c4 || hoje.toISOString().slice(0, 7);
+    const [ai, mi] = inicio.split("-").map(Number);
+    for (let k = 0; k < 6; k++) {
+      let ano = ai, mes = mi + k;
+      if (f.c2 === "anual") { if (k > 0) continue; }
+      else { while (mes > 12) { mes -= 12; ano += 1; } }
+      const data = `${ano}-${String(mes).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
+      const id = `fixo_${f.id}_${data}`;
+      if (fluxo.some(o => o.id === id)) continue;
+      if (new Date(data + "T23:59") < hoje) continue;
+      fluxo.push({ id, c0: data, c1: f.c5 === "Entrada" ? "Entrada" : "Saída",
+        c2: f.c1, c3: `${f.c0} (fixo)` });
+      n++;
+    }
+  });
+  if (n) save(FLUXO, 1, fluxo);
+  return n;
+}
+
+/* render dos fixos do negócio */
+function renderFixosNeg() {
+  const box = $("#negFixosBox"); if (!box) return;
+  const fixos = load(FIXOS_NEG, 1, []);
+  box.innerHTML = `<div class="card">
+    <h3>Pagamentos e recebimentos fixos (recorrentes)</h3>
+    <div class="sub">Mensal (6 lançamentos futuros) ou anual (1) — entram no fluxo e nos indicadores automaticamente.</div>
+    <div class="tb-scroll"><table>
+      <thead><tr><th>Descrição</th><th>Valor</th><th>Tipo</th><th>Recorrência</th><th>Dia</th><th>Mês inicial</th><th></th></tr></thead>
+      <tbody>${fixos.length ? fixos.map(f => `<tr>
+        <td>${esc(f.c0)}</td><td>${esc(f.c1)}</td><td>${esc(f.c5 || "Saída")}</td><td>${esc(f.c2)}</td><td>${esc(f.c3)}</td><td>${esc(f.c4)}</td>
+        <td><a href="#" onclick="window.__delFixoNeg('${f.id}');return false" style="color:var(--dn)">✕</a></td></tr>`).join("")
+        : '<tr><td colspan="7" style="color:var(--mut)">Nenhum fixo cadastrado.</td></tr>'}</tbody>
+    </table></div>
+    <div class="frow3" style="margin-top:10px">
+      <div><label>Descrição</label><input id="fnDesc" type="text" placeholder="Ex.: Aluguel do estúdio"></div>
+      <div><label>Valor (R$)</label><input id="fnVal" type="number" step="0.01" min="0" placeholder="0,00"></div>
+      <div><label>Tipo</label><select id="fnTipo"><option>Saída</option><option>Entrada</option></select></div>
+    </div>
+    <div class="frow3">
+      <div><label>Recorrência</label><select id="fnRec"><option>mensal</option><option>anual</option></select></div>
+      <div><label>Dia do mês (1-28)</label><input id="fnDia" type="number" min="1" max="28" value="5"></div>
+      <div><label>Mês inicial</label><input id="fnMes" type="month" value="${new Date().toISOString().slice(0, 7)}"></div>
+    </div>
+    <button class="btn" id="fnAdd">Criar fixo</button>
+    <div class="note" id="fnMsg"></div>
+  </div>`;
+  $("#fnAdd").onclick = () => {
+    const f = { id: Date.now(),
+      c0: $("#fnDesc").value.trim(), c1: $("#fnVal").value.trim(),
+      c5: $("#fnTipo").value, c2: $("#fnRec").value,
+      c3: $("#fnDia").value, c4: $("#fnMes").value };
+    if (!f.c0 || !f.c1) { $("#fnMsg").textContent = "Preencha descrição e valor."; return; }
+    const lista = load(FIXOS_NEG, 1, []); lista.push(f); save(FIXOS_NEG, 1, lista);
+    const n = expandirFixosNeg();
+    $("#fnMsg").textContent = `Fixo criado — ${n} lançamento(s) gerado(s).`;
+    renderFixosNeg(); renderFluxo();
+  };
+  window.__delFixoNeg = id => {
+    save(FIXOS_NEG, 1, load(FIXOS_NEG, 1, []).filter(f => String(f.id) !== String(id)));
+    renderFixosNeg();
+  };
+}
 
 /* categorias pré-definidas do fluxo (o usuário também pode digitar outra —
    por isso o select tem a opção "Outra…" que vira campo livre) */
@@ -1005,10 +1134,12 @@ function init() {
   initPlanilha();
   initPreco();
   initExportar();
+  expandirFixosNeg();
+  renderFixosNeg();
   renderFluxo();
 }
 
-return { CATEGORIAS_NEG, calcularPreco, init, initCategorias, initExportar, initFluxo, initPlanilha, initPreco, initSyncRapido, renderFluxo, setUrlSheets, urlSheets };
+return { CATEGORIAS_NEG, calcularPreco, expandirFixosNeg, init, initCategorias, initExportar, initFluxo, initPlanilha, initPreco, initSyncRapido, renderFixosNeg, renderFluxo, setUrlSheets, urlSheets };
 })();
 /* ===== fluxo_main.js ===== */
 MOD['fluxo_main'] = (function() {
@@ -1023,6 +1154,8 @@ const {  stamp  } = MOD['core/ui'];
   const ok = await bootComum();
   negocio.initFluxo();
   negocio.initCategorias();
+  negocio.expandirFixosNeg();
+  negocio.renderFixosNeg();
   negocio.renderFluxo();
   if (!ok) { avisoSemDados(); return; }
   stamp(data.DATA);
