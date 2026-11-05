@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<!-- build 2026-11-05T07:12:44 -->
+<!-- build 2026-11-05T07:14:58 -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Eventos — Mesa BW</title>
@@ -1744,6 +1744,22 @@ function wireMidia(e) {
 }
 
 /* ---------- dossiê PDF completo ---------- */
+/* baixa uma imagem (CORS liberado no Storage) e devolve dataURL para o PDF */
+async function urlParaDataUrl(url) {
+  try {
+    const r = await fetch(url);
+    if (!r.ok) return null;
+    const blob = await r.blob();
+    if (!blob.type.startsWith("image/")) return null;
+    return await new Promise(resolve => {
+      const fr = new FileReader();
+      fr.onload = () => resolve(fr.result);
+      fr.onerror = () => resolve(null);
+      fr.readAsDataURL(blob);
+    });
+  } catch (e) { return null; }
+}
+
 async function gerarDossiePDF(id) {
   const e = eventos().find(x => String(x.id) === String(id));
   if (!e) return;
@@ -1757,6 +1773,13 @@ async function gerarDossiePDF(id) {
     const { data } = await sb.from("equipe_presenca").select("*").eq("evento_id", String(id));
     presencas = data || [];
   } catch (err) { }
+  /* baixa as fotos do Storage (CORS liberado) para embutir no PDF */
+  const fotos = [];
+  for (const m of (e.midia || []).slice(0, 6)) {
+    if (!m.url) continue;
+    const du = await urlParaDataUrl(m.url);
+    if (du) fotos.push({ nome: m.nome, du });
+  }
   const ficha = [["Evento", e.nome], ["Data", (e.data || "").split("-").reverse().join("/")],
     ["Tipo", e.tipo || "—"], ["Local", e.local || "—"], ["Cliente", e.cliente || "—"],
     ["Contato", (e.tel || "—") + (e.email ? " · " + e.email : "")],
@@ -1790,7 +1813,10 @@ async function gerarDossiePDF(id) {
         { ul: presencas.map(p => ({ text: `${p.colaborador} (${p.email || "sem e-mail"}) — ${p.resposta === "sim" ? "✓ vai" : p.resposta === "nao" ? "✕ não vai" : "? talvez"}`, fontSize: 9 })) },
       ] : []),
       { text: "Mídia", bold: true, margin: [0, 12, 0, 4] },
-      { text: (e.midia || []).length ? (e.midia.map(m => m.nome).join(" · ")) : "Nenhuma mídia enviada.", fontSize: 9, color: "#55627a" },
+      ...(fotos.length ? fotos.map((f, i) => [
+        { image: f.du, width: 380, alignment: "center", margin: [0, i === 0 ? 0 : 10, 0, 2] },
+        { text: f.nome, fontSize: 8, color: "#55627a", alignment: "center", margin: [0, 0, 0, 6] },
+      ]).flat() : [{ text: (e.midia || []).length ? "Fotos não carregaram para o PDF (veja na página do evento)." : "Nenhuma mídia enviada.", fontSize: 9, color: "#55627a" }]),
       { text: "Relatório", bold: true, margin: [0, 12, 0, 4] },
       { text: e.relatorio || "Sem relatório.", fontSize: 9, italics: !e.relatorio },
       { text: "Observações: " + (e.obs || "—"), fontSize: 9, margin: [0, 12, 0, 0], color: "#55627a" },
