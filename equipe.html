@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<!-- build 2026-11-04T20:49:45 -->
+<!-- build 2026-11-04T21:22:30 -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Gestão de equipe — Mesa BW</title>
@@ -766,7 +766,7 @@ async function subir(chave) {
 
 /* ---- sincronizar tudo: sobe as chaves conhecidas ---- */
 async function sincronizarTudo() {
-  const chaves = ["fx_alerts", "fx_diario", "casa_orcamento", "casa_contas", "casa_reserva", "neg_fluxo", "casa_fixos", "neg_equipe_colaboradores", "neg_equipe_equipes", "neg_equipe_eventos", "neg_equipe_cadastros"];
+  const chaves = ["fx_alerts", "fx_diario", "casa_orcamento", "casa_contas", "casa_reserva", "neg_fluxo", "casa_fixos", "neg_equipe_colaboradores", "neg_equipe_equipes", "neg_equipe_eventos", "neg_equipe_cadastros", "neg_fixos"];
   const res = [];
   for (const k of chaves) res.push(await subir(k));
   return res;
@@ -939,6 +939,7 @@ function renderEventos() {
         <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
           <button class="btn gh" onclick="window.__pdfEvento('${ev.id}')">📄 PDF da escala</button>
           <button class="btn gh" onclick="window.__comunicar('${ev.id}')">💬 Comunicar equipe</button>
+          <button class="btn gh" onclick="window.__linkPresenca('${ev.id}')">🔗 Link de presença</button>
           <a href="#" onclick="window.__delEvento('${ev.id}');return false" style="color:var(--dn);align-self:center">excluir</a>
         </div>
         <div id="com_${ev.id}"></div>
@@ -973,14 +974,53 @@ function renderEventos() {
   };
   window.__pdfEvento = id => gerarPDFEvento(id);
   window.__comunicar = id => comunicar(id);
+  window.__linkPresenca = id => {
+    const ev = eventos().find(e => String(e.id) === String(id));
+    if (!ev) return;
+    const link = location.origin + location.pathname.replace(/[^/]*$/, "cadastro.html") +
+      "?ev=" + id + "&nome=" + encodeURIComponent(ev.nome);
+    const alvo = $("#com_" + id);
+    if (alvo) alvo.innerHTML = `<div class="note" style="margin-top:10px">
+      <b>Link de confirmação de presença</b>
+      <input type="text" readonly value="${esc(link)}" style="width:100%;font-size:11px;margin-top:6px" onclick="this.select()">
+      <div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap">
+        <button class="btn gh" style="padding:6px 10px;font-size:11px" onclick="window.__copiarPresenca('${id}')">📋 Copiar</button>
+        <a class="btn gh" style="padding:6px 10px;font-size:11px" target="_blank" href="https://wa.me/?text=${encodeURIComponent("Confirme sua presença no evento " + ev.nome + ": " + link)}">💬 Enviar pelo WhatsApp</a>
+        <button class="btn gh" style="padding:6px 10px;font-size:11px" onclick="window.__verPresencas('${id}')">👀 Ver respostas</button>
+      </div>
+      <div id="presencas_${id}"></div>
+    </div>`;
+  };
+  window.__copiarPresenca = id => {
+    const inp = document.querySelector("#com_" + id + " input");
+    if (inp) { inp.select(); navigator.clipboard.writeText(inp.value).then(() => { inp.value = "Copiado! Cole no grupo."; setTimeout(() => location.reload(), 800); }); }
+  };
+  window.__verPresencas = async id => {
+    const c = credenciais();
+    const sb = window.supabase.createClient(c.url, c.anon);
+    const { data } = await sb.from("equipe_presenca").select("*").eq("evento_id", String(id));
+    const el = $("#presencas_" + id);
+    if (!el) return;
+    el.innerHTML = (data && data.length)
+      ? '<b style="font-size:12px">Respostas:</b>' + data.map(r => `<div style="font-size:12px;margin-top:4px">· <b>${esc(r.colaborador)}</b> — ${r.resposta === "sim" ? "✓ vai" : r.resposta === "nao" ? "✕ não vai" : "? talvez"}${r.observacao ? " (" + esc(r.observacao) + ")" : ""}</div>`).join("")
+      : '<div class="note">Nenhuma resposta ainda.</div>';
+  };
 }
 
 /* ---------- PDF da escala ---------- */
-function gerarPDFEvento(id) {
+async function gerarPDFEvento(id) {
   const ev = eventos().find(e => String(e.id) === String(id));
   if (!ev) return;
   const eq = equipes().find(q => String(q.id) === String(ev.equipeId));
   const membros = ((eq && eq.membros) || []).map(mid => colabs().find(c => String(c.id) === String(mid))).filter(Boolean);
+  /* confirmações de presença (se houver) entram no PDF */
+  let presencas = [];
+  try {
+    const c = credenciais();
+    const sb = window.supabase.createClient(c.url, c.anon);
+    const { data } = await sb.from("equipe_presenca").select("*").eq("evento_id", String(id));
+    presencas = data || [];
+  } catch (e) { }
   const corpo = [
     ["Nome", "Função", "Telefone", "E-mail", "CPF"].map(t => ({ text: t, bold: true, color: "#fff", fillColor: "#0b1220", fontSize: 8 })),
     ...membros.map(m => [m.nome, m.funcao || "—", m.tel || "—", m.email || "—", m.cpf || "—"]
@@ -1004,6 +1044,18 @@ function gerarPDFEvento(id) {
       { text: "Equipe de trabalho", bold: true, margin: [0, 0, 0, 6] },
       ...(membros.length ? [{ table: { widths: ["25%", "20%", "20%", "20%", "15%"], body: corpo, headerRows: 1 } }]
         : [{ text: "A equipe não tem membros cadastrados.", italics: true, color: "#8a93a6" }]),
+      ...(presencas.length ? [
+        { text: "Confirmações de presença", bold: true, margin: [0, 16, 0, 6] },
+        { table: { widths: ["40%", "20%", "40%"], body: [
+          [{ text: "Colaborador", bold: true, color: "#fff", fillColor: "#0b1220", fontSize: 8 },
+           { text: "Resposta", bold: true, color: "#fff", fillColor: "#0b1220", fontSize: 8 },
+           { text: "Observação", bold: true, color: "#fff", fillColor: "#0b1220", fontSize: 8 }],
+          ...presencas.map(p => [
+            { text: p.colaborador, fontSize: 9 },
+            { text: p.resposta === "sim" ? "✓ vai" : p.resposta === "nao" ? "✕ não vai" : "? talvez", fontSize: 9,
+              color: p.resposta === "sim" ? "#1e8e5a" : p.resposta === "nao" ? "#c0392b" : "#b8860b" },
+            { text: p.observacao || "—", fontSize: 9 }]),
+        ] } }] : []),
     ],
     footer: { margin: [40, 10, 40, 20], columns: [
       { text: "BW Audiovisual — eventos, transmissões e produção", color: "#8a93a6", fontSize: 8 },
