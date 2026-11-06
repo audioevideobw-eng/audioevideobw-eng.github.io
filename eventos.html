@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<!-- build 2026-11-05T14:18:56 -->
+<!-- build 2026-11-05T21:33:28 -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Eventos — Mesa BW</title>
@@ -1475,8 +1475,24 @@ function dashboard() {
       <div class="sub">Distribuição dos eventos</div>
       ${Object.entries(porTipo).sort((a, b) => b[1] - a[1]).map(([t, n]) =>
         `<div class="row"><span>${t}</span><b>${n}</b></div>`).join("") || '<div class="note">Sem eventos ainda.</div>'}
+      <button class="btn gh" id="evRelGastos" style="margin-top:10px">📊 Relatório mensal de gastos</button>
+      <div id="relGastosBox" style="margin-top:8px"></div>
     </div>
   </div>`;
+  const btnG = $("#evRelGastos");
+  if (btnG) btnG.onclick = () => {
+    const mes = new Date().toISOString().slice(0, 7);
+    const linhas = [];
+    eventos().forEach(ev => (ev.gastos || []).forEach(g => {
+      if ((g.data || "").slice(0, 7) === mes)
+        linhas.push({ ev: ev.nome, desc: g.desc, valor: parseFloat(g.valor || 0) || 0, comp: g.comprovante });
+    }));
+    const total = linhas.reduce((t, l) => t + l.valor, 0);
+    $("#relGastosBox").innerHTML = linhas.length
+      ? `<div class="sub">Gastos operacionais de ${mes} — total: <b>R$ ${fmt(total, 2)}</b></div>` +
+        linhas.map(l => `<div class="row"><span>${esc(l.ev)} · ${esc(l.desc)}${l.comp ? ' 🧾' : ''}</span><b>R$ ${fmt(l.valor, 2)}</b></div>`).join("")
+      : `<div class="note">Nenhum gasto operacional lançado em ${mes}.</div>`;
+  };
 }
 
 /* ---------- lista de eventos ---------- */
@@ -1549,7 +1565,20 @@ function render() {
     const l2 = eventos();
     const alvo = l2.find(x => String(x.id) === String(b.dataset.pago));
     if (!alvo) return;
-    alvo.recebido = pago(alvo) ? 0 : (alvo.contratado || 0);
+    const estavaPago = pago(alvo);
+    alvo.recebido = estavaPago ? 0 : (alvo.contratado || 0);
+    /* integra com o fluxo de caixa do negócio: receita entra/sai automaticamente */
+    const fluxo = load("neg_fluxo", 1, []);
+    const fid = `ev_${alvo.id}`;
+    const existente = fluxo.find(o => o.id === fid);
+    if (!estavaPago && alvo.recebido > 0) {
+      if (existente) { existente.c2 = String(alvo.recebido); }
+      else fluxo.push({ id: fid, c0: (alvo.data || ""), c1: "Entrada",
+        c2: String(alvo.recebido), c3: `Evento: ${alvo.nome}` });
+    } else if (estavaPago && existente) {
+      fluxo.splice(fluxo.indexOf(existente), 1);   // desmarcou: sai do fluxo
+    }
+    save("neg_fluxo", 1, fluxo);
     salvarEventos(l2);
     render();
   });
@@ -1639,6 +1668,14 @@ function abrirDossie(id) {
       <button class="btn gh" id="dPDF">📄 Dossiê em PDF</button>
     </div>
     <div style="margin-top:14px;border-top:1px solid var(--line);padding-top:12px">
+      <h3>👤 Histórico do cliente</h3>
+      <div id="dHistorico"></div>
+    </div>
+    <div style="margin-top:14px;border-top:1px solid var(--line);padding-top:12px">
+      <h3>⭐ Avaliação da equipe</h3>
+      <div id="dAvaliacao"></div>
+    </div>
+    <div style="margin-top:14px;border-top:1px solid var(--line);padding-top:12px">
       <h3>👥 Equipe (da Gestão de Equipe)</h3>
       ${membros.length ? membros.map(m => `<div class="row"><span>${esc(m.nome)} <small style="color:var(--mut)">${esc(m.funcao || "")}</small></span><b>${m.tel ? `<a href="https://wa.me/55${(m.tel || "").replace(/\D/g, "")}" style="color:var(--gold2)">💬</a>` : ""}</b></div>`).join("")
         : '<div class="note">A equipe selecionada não tem membros.</div>'}
@@ -1650,6 +1687,8 @@ function abrirDossie(id) {
     <div style="margin-top:14px;border-top:1px solid var(--line);padding-top:12px">
       <h3>📸 Mídia do evento</h3>
       <div id="dMidia"></div>
+      <div style="margin-top:10px"><button class="btn gh" id="dGaleriaLink">🔗 Galeria do cliente</button>
+      <div id="galeriaBox" style="margin-top:8px"></div></div>
     </div>
     <div style="margin-top:14px;border-top:1px solid var(--line);padding-top:12px">
       <h3>💰 Gastos operacionais + comprovante fiscal</h3>
@@ -1687,6 +1726,9 @@ function abrirDossie(id) {
   wireMidia(e);
   wireGastos(e);
   wireNFE(e);
+  wireHistorico(e);
+  wireGaleriaLink(e);
+  wireAvaliacao(e);
   box.scrollIntoView({ behavior: "smooth" });
 }
 
@@ -1961,6 +2003,71 @@ function wireMidia(e) {
     }
     wireMidia(alvo);
   };
+}
+
+/* ---------- galeria compartilhável com o cliente ---------- */
+function wireGaleriaLink(e) {
+  const btn = $("#dGaleriaLink"); if (!btn) return;
+  btn.onclick = async () => {
+    const box = $("#galeriaBox");
+    const midia = (eventos().find(x => String(x.id) === String(e.id)) || {}).midia || [];
+    if (!midia.length) { box.innerHTML = '<div class="note">Envie fotos primeiro — a galeria usa as fotos do evento.</div>'; return; }
+    /* cria a página da galeria no próprio painel: cadastro.html?galeria=ID */
+    const link = location.origin + location.pathname.replace(/[^/]*$/, "cadastro.html") + "?galeria=" + e.id;
+    box.innerHTML = `<div class="note">
+      <input type="text" readonly value="${esc(link)}" style="width:100%;font-size:11px" onclick="this.select()">
+      <div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap">
+        <button class="btn gh" style="padding:6px 10px;font-size:11px" onclick="navigator.clipboard.writeText('${link}').then(()=>{this.textContent='✓ Copiado!'})">📋 Copiar</button>
+        <a class="btn gh" style="padding:6px 10px;font-size:11px" target="_blank" href="https://wa.me/?text=${encodeURIComponent("Fotos do evento " + e.nome + ": " + link)}">💬 Enviar pelo WhatsApp</a>
+      </div>
+      <div class="note">O cliente vê as fotos do evento — sem acessar a plataforma.</div>
+    </div>`;
+  };
+}
+
+/* ---------- avaliação da equipe (estrelas por colaborador) ---------- */
+function wireAvaliacao(e) {
+  const box = $("#dAvaliacao"); if (!box) return;
+  const eq = load("neg_equipe_equipes", 1, []).find(q => String(q.id) === String(e.equipeId));
+  const membros = ((eq && eq.membros) || []).map(mid => load("neg_equipe_colaboradores", 1, []).find(c => String(c.id) === String(mid))).filter(Boolean);
+  if (!membros.length) { box.innerHTML = '<div class="note">Sem equipe para avaliar.</div>'; return; }
+  e.avaliacoes = e.avaliacoes || {};
+  const renderAval = () => {
+    box.innerHTML = membros.map(m => {
+      const nota = e.avaliacoes[m.id] || 0;
+      const estrelas = [1,2,3,4,5].map(n =>
+        `<a href="#" data-av="${m.id}" data-n="${n}" style="text-decoration:none;font-size:18px;color:${n <= nota ? "var(--gold)" : "var(--line)"}">★</a>`).join("");
+      return `<div class="row"><span><b>${esc(m.nome)}</b> <small style="color:var(--mut)">${esc(m.funcao || "")}</small><div>${estrelas}</div></span>
+        <b style="color:var(--gold2)">${nota ? nota + "/5" : ""}</b></div>`;
+    }).join("");
+    box.querySelectorAll("[data-av]").forEach(a => {
+      a.onclick = (ev) => {
+        ev.preventDefault();
+        const l2 = eventos();
+        const alvo = l2.find(x => String(x.id) === String(e.id));
+        alvo.avaliacoes = alvo.avaliacoes || {};
+        alvo.avaliacoes[a.dataset.av] = +a.dataset.n;
+        salvarEventos(l2);
+        e.avaliacoes = alvo.avaliacoes;
+        renderAval();
+      };
+    });
+  };
+  renderAval();
+}
+
+/* ---------- histórico do cliente ---------- */
+function wireHistorico(e) {
+  const box = $("#dHistorico"); if (!box) return;
+  const nome = (e.cliente || "").trim().toLowerCase();
+  if (!nome) { box.innerHTML = '<div class="note">Sem cliente cadastrado neste evento.</div>'; return; }
+  const anteriores = eventos()
+    .filter(x => String(x.id) !== String(e.id) && (x.cliente || "").trim().toLowerCase() === nome)
+    .sort((a, b) => (b.data || "").localeCompare(a.data || ""));
+  if (!anteriores.length) { box.innerHTML = '<div class="note">Primeiro evento deste cliente.</div>'; return; }
+  const total = anteriores.reduce((t, x) => t + (parseFloat(x.contratado || 0) || 0), 0);
+  box.innerHTML = `<div class="sub">${anteriores.length} evento(s) anterior(es) deste cliente — total contratado: R$ ${fmt(total, 2)}</div>` +
+    anteriores.map(x => `<div class="row"><span>📅 ${esc((x.data || "").split("-").reverse().join("/"))} · ${esc(x.nome)} <small style="color:var(--mut)">${esc(x.status)}</small></span><b>R$ ${fmt(parseFloat(x.contratado || 0) || 0, 2)}</b></div>`).join("");
 }
 
 /* ---------- dossiê PDF completo ---------- */
