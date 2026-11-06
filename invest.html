@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<!-- build 2026-11-05T23:14:44 -->
+<!-- build 2026-11-05T23:56:50 -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Rendimento de investimentos — Mesa BW</title>
@@ -27,28 +27,150 @@ a{color:var(--gold2)}
 
 /* ---------- header ---------- */
 header{position:sticky;top:0;z-index:50;background:rgba(11,18,32,.92);
-  border-bottom:1px solid var(--line);backdrop-filter:blur(8px)}
+  backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
 .hd{max-width:1280px;margin:0 auto;padding:14px 20px;display:flex;
-  align-items:center;gap:14px;flex-wrap:wrap}
-.hd-voltar{padding:8px 13px;font-size:16px;line-height:1;flex-shrink:0}
-.hd .brand{display:flex;align-items:baseline;gap:8px;flex-shrink:0}
-.hd .brand b{font-size:20px;letter-spacing:.14em;color:var(--gold)}
-.hd .brand span{font-size:10px;letter-spacing:.2em;color:var(--mut);text-transform:uppercase}
-.hd nav{display:flex;gap:8px;flex-wrap:wrap}
-.hd nav a{padding:8px 14px;font-size:12px;border:1px solid var(--line);border-radius:10px;
-  color:var(--txt);text-decoration:none}
-.hd nav a:hover{border-color:var(--gold);color:var(--gold2)}
-.hd-menu-btn{padding:8px 14px;font-size:12px;flex-shrink:0}
+  align-items:center;gap:18px;flex-wrap:wrap}
+.brand{display:flex;align-items:baseline;gap:10px}
+.brand b{font-size:19px;letter-spacing:.14em;color:var(--gold)}
+.brand span{font-size:11px;letter-spacing:.28em;color:var(--mut);text-transform:uppercase}
 .hd .stamp{margin-left:auto;font-size:11px;color:var(--mut);text-align:right;line-height:1.5}
 .hd .stamp b{color:var(--txt);font-weight:600}
-.nav-grupos{display:none;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;
-  width:100%;padding:14px 4px 6px;border-top:1px solid var(--line);margin-top:12px}
-.nav-grupos.aberto{display:grid}
-.nav-col b{display:block;font-size:11px;letter-spacing:.1em;text-transform:uppercase;
-  color:var(--gold2);margin-bottom:6px}
-.nav-col a{display:block;padding:5px 8px;border-radius:8px;color:var(--txt);
-  text-decoration:none;font-size:13px;border:0}
-.nav-col a:hover{background:var(--navy2);color:var(--gold2)}
+nav{display:flex;gap:6px;flex-wrap:wrap}
+nav a{font-size:12.5px;padding:7px 13px;border-radius:999px;color:var(--mut);
+  text-decoration:none;border:1px solid transparent;white-space:nowrap}
+nav a:hover,nav a.on{color:var(--gold2);border-color:var(--line);background:var(--navy2)}
+
+/* ---------- titles ---------- */
+h2{font-size:13px;letter-spacing:.22em;text-transform:uppercase;color:var(--mut);
+  font-weight:600;margin:44px 0 14px;display:flex;align-items:center;gap:12px}
+h2::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--line),transparent)}
+
+/* ---------- kpi ---------- */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.kpi{background:linear-gradient(160deg,var(--navy2),var(--navy));border:1px solid var(--line);
+  border-radius:14px;padding:16px 18px;position:relative;overflow:hidden}
+.kpi::before{content:"";position:absolute;inset:0 auto 0 0;width:3px;background:var(--gold);opacity:.7}
+.kpi .l{font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--mut)}
+.kpi .v{font-size:26px;font-weight:600;margin:6px 0 2px;font-variant-numeric:tabular-nums}
+.kpi .s{font-size:11.5px;color:var(--mut)}
+.chg{font-size:12px;font-weight:600;font-variant-numeric:tabular-nums}
+.up{color:var(--up)} .dn{color:var(--dn)} .fl{color:var(--mut)}
+
+/* ---------- table ---------- */
+.tbox{background:var(--navy2);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.tb-scroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead th{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--mut);
+  font-weight:600;text-align:right;padding:12px 14px;border-bottom:1px solid var(--line);
+  white-space:nowrap;background:var(--navy3)}
+thead th:first-child,tbody td:first-child{text-align:left}
+tbody td{padding:11px 14px;text-align:right;border-bottom:1px solid rgba(37,52,77,.5);
+  font-variant-numeric:tabular-nums;white-space:nowrap}
+tbody tr{cursor:pointer;transition:background .12s}
+tbody tr:hover{background:rgba(212,169,74,.06)}
+tbody tr.sel{background:rgba(212,169,74,.1)}
+tbody tr.sel td:first-child{box-shadow:inset 3px 0 0 var(--gold)}
+.cc{display:flex;align-items:center;gap:10px}
+.flag{width:26px;height:26px;border-radius:7px;display:grid;place-items:center;
+  font-size:10px;font-weight:700;letter-spacing:.03em;background:var(--navy3);
+  border:1px solid var(--line);color:var(--gold2);flex:none}
+.cc small{display:block;color:var(--mut);font-size:10.5px;font-weight:400;letter-spacing:.02em}
+.pct{display:inline-block;min-width:62px}
+
+/* ---------- charts ---------- */
+.chartbox{background:var(--navy2);border:1px solid var(--line);border-radius:14px;
+  padding:18px;margin-top:12px}
+.chead{display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:8px}
+.chead h3{margin:0;font-size:17px;font-weight:600}
+.chead h3 small{color:var(--mut);font-weight:400;font-size:12px;margin-left:8px}
+.rng{margin-left:auto;display:flex;gap:4px}
+.rng button{background:var(--navy3);color:var(--mut);border:1px solid var(--line);
+  border-radius:8px;padding:5px 11px;font-size:11.5px;cursor:pointer;font-family:inherit}
+.rng button.on{background:var(--gold);color:#121a28;border-color:var(--gold);font-weight:600}
+svg.chart{width:100%;height:300px;display:block;overflow:visible}
+.legend{display:flex;gap:18px;flex-wrap:wrap;font-size:11.5px;color:var(--mut);margin-top:4px}
+.legend i{width:10px;height:10px;border-radius:3px;display:inline-block;margin-right:6px}
+
+/* ---------- milhas ---------- */
+.grid2{display:grid;grid-template-columns:1.25fr .75fr;gap:14px}
+@media(max-width:900px){.grid2{grid-template-columns:1fr}}
+.menu-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;margin-top:16px}
+.menu-card{display:block;background:var(--navy2);border:1px solid var(--line);border-radius:14px;padding:16px;color:var(--txt);text-decoration:none;transition:border-color .15s}
+.menu-card:hover{border-color:var(--gold)}
+.menu-card b{font-size:15px;color:var(--gold2)}
+.menu-card small{display:block;margin-top:6px;color:var(--mut);line-height:1.5;font-size:12px}
+.grupo-btn{display:flex;align-items:center;justify-content:space-between;gap:12px;
+  background:var(--navy2);border:1px solid var(--line);border-radius:14px;
+  padding:16px 18px;margin-top:12px;cursor:pointer;user-select:none}
+.grupo-btn:hover{border-color:var(--gold)}
+.grupo-btn.ativo{border-color:var(--gold)}
+.grupo-btn span:first-child{font-weight:700;letter-spacing:.08em;color:var(--gold2);font-size:14px}
+.grupo-btn .seta{color:var(--mut);font-size:12px;transition:transform .15s}
+.grupo-btn.ativo .seta{transform:rotate(90deg);color:var(--gold2)}
+.grupo-painel{display:none}
+.grupo-painel.aberto{display:block;animation:descer .15s ease}
+@keyframes descer{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+.news{display:block;background:var(--navy2);border:1px solid var(--line);border-radius:12px;padding:12px 14px;color:var(--txt);text-decoration:none}
+.news:hover{border-color:var(--gold)}
+.news b{font-size:13.5px;line-height:1.4;display:block}
+.news small{display:block;margin-top:4px;color:var(--mut);font-size:12px;line-height:1.45}
+.news span{display:block;margin-top:6px;color:var(--gold2);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase}
+.card{background:var(--navy2);border:1px solid var(--line);border-radius:14px;padding:18px}
+.card h3{margin:0 0 4px;font-size:15px}
+.card .sub{color:var(--mut);font-size:11.5px;margin-bottom:14px}
+.prog{display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid rgba(37,52,77,.6)}
+.prog:last-child{border-bottom:0}
+.dot{width:9px;height:9px;border-radius:50%;flex:none}
+.prog .nm{font-weight:600;font-size:13.5px;min-width:96px}
+.prog .nm small{display:block;font-weight:400;color:var(--mut);font-size:10.5px}
+.prog .pr{margin-left:auto;text-align:right}
+.prog .pr b{font-size:17px;font-variant-numeric:tabular-nums}
+.prog .pr small{display:block;color:var(--mut);font-size:10.5px}
+.bar{height:5px;border-radius:3px;background:var(--navy3);flex:1;max-width:180px;overflow:hidden}
+.bar i{display:block;height:100%;border-radius:3px}
+
+/* ---------- forms ---------- */
+label{display:block;font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--mut);margin:0 0 6px}
+input,select{width:100%;background:var(--navy3);border:1px solid var(--line);color:var(--txt);
+  border-radius:10px;padding:11px 13px;font-size:14px;font-family:inherit;
+  font-variant-numeric:tabular-nums}
+input:focus,select:focus{outline:0;border-color:var(--gold);box-shadow:0 0 0 3px rgba(212,169,74,.13)}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+.frow3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:14px}
+.btn{background:var(--gold);color:#121a28;border:0;border-radius:10px;padding:12px 20px;
+  font-size:13.5px;font-weight:600;cursor:pointer;font-family:inherit}
+.btn:hover{background:var(--gold2)}
+.btn.gh{background:transparent;border:1px solid var(--line);color:var(--txt);font-weight:500}
+.out{background:var(--navy3);border:1px solid var(--line);border-radius:12px;padding:16px;
+  margin-top:14px;font-size:13.5px;line-height:1.9}
+.out .big{font-size:24px;font-weight:600;color:var(--gold2);font-variant-numeric:tabular-nums}
+.out .row{display:flex;justify-content:space-between;gap:16px;
+  border-bottom:1px dashed rgba(37,52,77,.9);padding:3px 0}
+.out .row:last-child{border:0}
+.out .row span:first-child{color:var(--mut)}
+.verdict{margin-top:12px;border-radius:10px;padding:12px 14px;font-size:13px;font-weight:600}
+.v-ok{background:rgba(62,207,142,.12);color:var(--up);border:1px solid rgba(62,207,142,.3)}
+.v-bad{background:rgba(242,104,107,.12);color:var(--dn);border:1px solid rgba(242,104,107,.3)}
+.v-mid{background:rgba(232,184,75,.12);color:var(--warn);border:1px solid rgba(232,184,75,.3)}
+.note{font-size:11.5px;color:var(--mut);line-height:1.7;margin-top:10px}
+.tag{display:inline-block;font-size:10.5px;padding:3px 9px;border-radius:999px;
+  border:1px solid var(--line);color:var(--mut);letter-spacing:.06em;text-transform:uppercase}
+.tag.buy{color:var(--up);border-color:rgba(62,207,142,.4);background:rgba(62,207,142,.09)}
+.tag.sell{color:var(--dn);border-color:rgba(242,104,107,.4);background:rgba(242,104,107,.09)}
+.tag.neu{color:var(--warn);border-color:rgba(232,184,75,.4);background:rgba(232,184,75,.09)}
+
+/* ---------- alerts ---------- */
+.alert{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:11px;
+  background:var(--navy3);border:1px solid var(--line);margin-bottom:8px;font-size:13px}
+.alert .x{margin-left:auto;background:none;border:0;color:var(--mut);cursor:pointer;font-size:16px;padding:0 4px}
+.alert .x:hover{color:var(--dn)}
+footer{margin-top:60px;padding-top:22px;border-top:1px solid var(--line);
+  color:var(--mut);font-size:11.5px;line-height:1.8}
+footer b{color:var(--gold)}
+.spin{display:inline-block;width:11px;height:11px;border:2px solid var(--line);
+  border-top-color:var(--gold);border-radius:50%;animation:sp .7s linear infinite;vertical-align:-1px}
+@keyframes sp{to{transform:rotate(360deg)}}
 </style>
 </head>
 <body>
@@ -127,14 +249,7 @@ header{position:sticky;top:0;z-index:50;background:rgba(11,18,32,.92);
     </div>
   </div>
 
-<footer>
-    <b>Mesa de Câmbio &amp; Milhas — BW Audiovisual</b><br>
-    Dados: Banco Central do Brasil (PTAX, API Olinda) · referencia de mercado (exchangerate-api) ·
-    cotações de milhas (Real Milhas). PTAX de <span id="fPtax">—</span>.
-    Página estática: guarde o arquivo e abra em qualquer navegador; o botão “Atualizar” busca
-    cotação nova; sem internet, mostra os dados embutidos.
-    Não é recomendação de investimento.
-  </footer>
+
 </div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/pdfmake@0.2.20/build/pdfmake.min.js"></script>
