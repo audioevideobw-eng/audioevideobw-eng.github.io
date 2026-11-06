@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<!-- build 2026-11-05T22:30:42 -->
+<!-- build 2026-11-05T23:14:44 -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Eventos — Mesa BW</title>
@@ -26,40 +26,47 @@ a{color:var(--gold2)}
 .wrap{max-width:1280px;margin:0 auto;padding:0 20px 80px}
 
 /* ---------- header ---------- */
-header{position:sticky;top:0;z-index:50;background:rgba(11,18,32,.96);
+header{position:sticky;top:0;z-index:50;background:rgba(11,18,32,.92);
   border-bottom:1px solid var(--line);backdrop-filter:blur(8px)}
-.hd{max-width:1280px;margin:0 auto;padding:10px 16px}
-.hd-linha1{display:flex;align-items:center;gap:12px}
+.hd{max-width:1280px;margin:0 auto;padding:14px 20px;display:flex;
+  align-items:center;gap:14px;flex-wrap:wrap}
 .hd-voltar{padding:8px 13px;font-size:16px;line-height:1;flex-shrink:0}
-.hd-logo{display:flex;align-items:baseline;gap:6px;text-decoration:none;flex-shrink:0}
-.hd-logo b{font-size:20px;letter-spacing:.14em;color:var(--gold)}
-.hd-logo span{font-size:10px;letter-spacing:.2em;color:var(--mut);text-transform:uppercase}
-.hd-menu-btn{padding:8px 14px;font-size:12px}
-.stamp{margin-left:auto;font-size:11px;color:var(--mut);text-align:right;line-height:1.5}
-.stamp b{color:var(--txt);font-weight:600}
+.hd .brand{display:flex;align-items:baseline;gap:8px;flex-shrink:0}
+.hd .brand b{font-size:20px;letter-spacing:.14em;color:var(--gold)}
+.hd .brand span{font-size:10px;letter-spacing:.2em;color:var(--mut);text-transform:uppercase}
+.hd nav{display:flex;gap:8px;flex-wrap:wrap}
+.hd nav a{padding:8px 14px;font-size:12px;border:1px solid var(--line);border-radius:10px;
+  color:var(--txt);text-decoration:none}
+.hd nav a:hover{border-color:var(--gold);color:var(--gold2)}
+.hd-menu-btn{padding:8px 14px;font-size:12px;flex-shrink:0}
+.hd .stamp{margin-left:auto;font-size:11px;color:var(--mut);text-align:right;line-height:1.5}
+.hd .stamp b{color:var(--txt);font-weight:600}
 .nav-grupos{display:none;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;
-  padding:14px 4px 6px;border-top:1px solid var(--line);margin-top:12px}
+  width:100%;padding:14px 4px 6px;border-top:1px solid var(--line);margin-top:12px}
 .nav-grupos.aberto{display:grid}
 .nav-col b{display:block;font-size:11px;letter-spacing:.1em;text-transform:uppercase;
   color:var(--gold2);margin-bottom:6px}
 .nav-col a{display:block;padding:5px 8px;border-radius:8px;color:var(--txt);
   text-decoration:none;font-size:13px;border:0}
 .nav-col a:hover{background:var(--navy2);color:var(--gold2)}
-@media(max-width:720px){
-  .stamp{display:none}
-  .hd-logo span{display:none}
-}
 </style>
 </head>
 <body>
 <header><div class="hd">
-  <div class="hd-linha1">
-    <button class="btn gh hd-voltar" id="btnVoltar" title="Voltar à página anterior">‹</button>
-    <a href="./" class="hd-logo" title="Início">BW<span>Audiovisual</span></a>
-    <button class="btn gh hd-menu-btn" id="btnMenu" title="Abrir menu">☰ Menu</button>
-    <div class="stamp">PTAX <b id="stPtax">—</b> · Spot <b id="stSpot">—</b><br>
-    <span id="stampData"></span> · <span id="userBox"></span></div>
-  </div>
+  <button class="btn gh hd-voltar" id="btnVoltar" title="Voltar à página anterior">‹</button>
+  <a href="./" class="btn gh" style="padding:8px 14px;font-size:12px;flex-shrink:0">INÍCIO</a>
+  <div class="brand"><b>BW</b><span>Mesa de Câmbio &amp; Milhas</span></div>
+  <nav>
+    <a href="cambio.html">Câmbio</a>
+    <a href="serie.html">Série</a>
+    <a href="calc.html">Calculadora</a>
+    <a href="milhas.html">Milhas</a>
+    <a href="alertas.html">Alertas</a>
+    <a href="/recs.html" style="color:var(--gold2);border-color:rgba(212,169,74,.4)">★ Recomendações</a>
+  </nav>
+  <button class="btn gh hd-menu-btn" id="btnMenu" title="Abrir menu">☰ Menu</button>
+  <div class="stamp">PTAX <b id="stPtax">—</b> · Spot <b id="stSpot">—</b><br>
+  <span id="stampData"></span> · <span id="userBox"></span></div>
   <nav id="navGrupos" class="nav-grupos">
     <div class="nav-col"><b>Meu negócio</b>
       <a href="negocio.html">Ferramentas do negócio</a>
@@ -602,7 +609,10 @@ async function refreshPagina(renderFn) {
 function wireHeader() {
   const mb = document.querySelector("#btnMenu");
   const nav = document.querySelector("#navGrupos");
-  if (mb && nav) mb.onclick = () => nav.classList.toggle("aberto");
+  if (mb && nav) mb.onclick = () => {
+    const visivel = getComputedStyle(nav).display !== "none" && nav.style.display !== "none";
+    nav.style.display = visivel ? "none" : "grid";
+  };
   const vb = document.querySelector("#btnVoltar");
   if (vb) vb.onclick = () => history.back();
 }
