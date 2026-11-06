@@ -52,11 +52,37 @@ button:disabled{opacity:.6;cursor:wait}
   var TOKEN = params.get("t") || params.get("cadastro") || "";
   var EV_ID = params.get("ev") || "";
   var EV_NOME = params.get("nome") || "";
+  var GALERIA = params.get("galeria") || "";
   var SB_URL = "https://zdtnetplvdonogmdvarx.supabase.co";
   var SB_ANON = "sb_publishable_qJ2mIx1hcn_ZH75-yxJiDA_OI-EHyIU";
   function $(s){ return document.querySelector(s); }
   function maskCPF(v){ v=(v||"").replace(/\D/g,"").slice(0,11); v=v.replace(/(\d{3})(\d)/,"$1.$2"); v=v.replace(/(\d{3})(\d)/,"$1.$2"); v=v.replace(/(\d{3})(\d{1,2})$/,"$1-$2"); return v; }
   function maskTel(v){ v=(v||"").replace(/\D/g,"").slice(0,11); if(v.length<=10) return v.replace(/(\d{2})(\d{4})(\d{0,4})/,"($1) $2-$3").replace(/[-\s]+$/,""); return v.replace(/(\d{2})(\d{5})(\d{0,4})/,"($1) $2-$3").replace(/[-\s]+$/,""); }
+  if (GALERIA) {
+    /* modo GALERIA: o cliente vê as fotos do evento (leitura pública do Storage) */
+    document.body.innerHTML = '<div class="logo">BW AUDIOVISUAL<small>EVENTOS · TRANSMISSÕES · PRODUÇÃO</small></div>' +
+      '<div class="card"><h1>Fotos do evento</h1><div class="sub" id="gNome">Carregando…</div>' +
+      '<div id="gFotos" style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:12px"></div>' +
+      '<div class="msg" id="gMsg"></div></div>' +
+      '<div class="rodape">BW Audiovisual · fotos do seu evento</div>';
+    (async function(){
+      try {
+        var sb = window.supabase.createClient(SB_URL, SB_ANON);
+        var pasta = GALERIA;
+        var res = await sb.storage.from("eventos-midia").list(pasta, { limit: 100 });
+        var fotos = (res.data || []).filter(function(a){ return a.name && a.name.indexOf(".") > 0; });
+        document.querySelector("#gNome").textContent = fotos.length + " foto(s) do evento";
+        document.querySelector("#gFotos").innerHTML = fotos.map(function(a){
+          var u = SB_URL + "/storage/v1/object/public/eventos-midia/" + pasta + "/" + a.name;
+          return '<a href="' + u + '" target="_blank"><img src="' + u + '" style="width:100%;height:110px;object-fit:cover;border-radius:8px"></a>';
+        }).join("");
+        if (!fotos.length) document.querySelector("#gMsg").textContent = "Nenhuma foto publicada ainda.";
+      } catch (e) {
+        document.querySelector("#gMsg").textContent = "Não consegui carregar a galeria.";
+      }
+    })();
+    return;
+  }
   if (EV_ID) {
     /* modo PRESENÇA: mínimo — evento, nome e confirmação */
     document.body.innerHTML = '<div class="logo">BW AUDIOVISUAL<small>EVENTOS · TRANSMISSÕES · PRODUÇÃO</small></div>' +
