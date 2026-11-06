@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<!-- build 2026-11-05T23:56:50 -->
+<!-- build 2026-11-06T00:24:21 -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Conversor de viagem — Mesa BW</title>
@@ -99,17 +99,6 @@ svg.chart{width:100%;height:300px;display:block;overflow:visible}
 .menu-card:hover{border-color:var(--gold)}
 .menu-card b{font-size:15px;color:var(--gold2)}
 .menu-card small{display:block;margin-top:6px;color:var(--mut);line-height:1.5;font-size:12px}
-.grupo-btn{display:flex;align-items:center;justify-content:space-between;gap:12px;
-  background:var(--navy2);border:1px solid var(--line);border-radius:14px;
-  padding:16px 18px;margin-top:12px;cursor:pointer;user-select:none}
-.grupo-btn:hover{border-color:var(--gold)}
-.grupo-btn.ativo{border-color:var(--gold)}
-.grupo-btn span:first-child{font-weight:700;letter-spacing:.08em;color:var(--gold2);font-size:14px}
-.grupo-btn .seta{color:var(--mut);font-size:12px;transition:transform .15s}
-.grupo-btn.ativo .seta{transform:rotate(90deg);color:var(--gold2)}
-.grupo-painel{display:none}
-.grupo-painel.aberto{display:block;animation:descer .15s ease}
-@keyframes descer{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
 .news{display:block;background:var(--navy2);border:1px solid var(--line);border-radius:12px;padding:12px 14px;color:var(--txt);text-decoration:none}
 .news:hover{border-color:var(--gold)}
 .news b{font-size:13.5px;line-height:1.4;display:block}
@@ -171,6 +160,33 @@ footer b{color:var(--gold)}
 .spin{display:inline-block;width:11px;height:11px;border:2px solid var(--line);
   border-top-color:var(--gold);border-radius:50%;animation:sp .7s linear infinite;vertical-align:-1px}
 @keyframes sp{to{transform:rotate(360deg)}}
+.hd-voltar{padding:8px 13px;font-size:16px;line-height:1;flex-shrink:0}
+.hd-menu-btn{padding:8px 14px;font-size:12px;flex-shrink:0}
+.nav-grupos{display:none;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;
+  width:100%;padding:14px 4px 6px;border-top:1px solid var(--line);margin-top:12px}
+.nav-grupos.aberto{display:grid}
+.nav-col b{display:block;font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--gold2);margin-bottom:6px}
+.nav-col a{display:block;padding:5px 8px;border-radius:8px;color:var(--txt);
+  text-decoration:none;font-size:13px;border:0}
+.nav-col a:hover{background:var(--navy2);color:var(--gold2)}
+.grupo-btn{display:flex;align-items:center;justify-content:space-between;gap:12px;
+  background:var(--navy2);border:1px solid var(--line);border-radius:14px;
+  padding:16px 18px;margin-top:12px;cursor:pointer;user-select:none}
+.grupo-btn:hover{border-color:var(--gold)}
+.grupo-btn.ativo{border-color:var(--gold)}
+.grupo-btn span:first-child{font-weight:700;letter-spacing:.08em;color:var(--gold2);font-size:14px}
+.grupo-btn .seta{color:var(--mut);font-size:12px;transition:transform .15s}
+.grupo-btn.ativo .seta{transform:rotate(90deg);color:var(--gold2)}
+.grupo-linha{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0 4px}
+.grupo-dourado{flex:1 1 170px;min-width:150px;background:var(--navy2);border:1px solid var(--line);
+  border-radius:14px;padding:16px 14px;cursor:pointer;user-select:none;text-align:left;color:var(--txt);font-family:inherit}
+.grupo-dourado b{display:block;font-size:13px;letter-spacing:.08em;color:var(--gold2)}
+.grupo-dourado small{display:block;margin-top:5px;color:var(--mut);font-size:11px;line-height:1.4}
+.grupo-dourado:hover{border-color:var(--gold)}
+.grupo-dourado.ativo{border-color:var(--gold);background:rgba(212,169,74,.08)}
+.grupo-painel{display:none}
+.grupo-painel.aberto{display:block}
 </style>
 </head>
 <body>
@@ -187,8 +203,12 @@ footer b{color:var(--gold)}
     <a href="/recs.html" style="color:var(--gold2);border-color:rgba(212,169,74,.4)">★ Recomendações</a>
   </nav>
   <button class="btn gh hd-menu-btn" id="btnMenu" title="Abrir menu">☰ Menu</button>
-  <div class="stamp">PTAX <b id="stPtax">—</b> · Spot <b id="stSpot">—</b><br>
-  <span id="stampData"></span> · <span id="userBox"></span></div>
+  <div class="stamp">
+    PTAX <b id="stPtax">—</b> · Spot <b id="stSpot">—</b><br>
+    <span id="stSrc"></span>
+  </div>
+  <button class="btn gh" id="refresh" style="padding:8px 14px;font-size:12px">↻ Atualizar</button>
+  <span id="userBox" style="font-size:12px;color:var(--mut);margin-left:8px"></span>
   <nav id="navGrupos" class="nav-grupos">
     <div class="nav-col"><b>Meu negócio</b>
       <a href="negocio.html">Ferramentas do negócio</a>
@@ -214,7 +234,6 @@ footer b{color:var(--gold)}
       <a href="viagem.html" class="on">Conversor de viagem</a>
       <a href="diario.html">Diário de câmbio</a>
       <a href="noticias.html">Notícias</a>
-      <a href="/recs.html" style="color:var(--gold2)">★ Recomendações</a>
       <a href="app.html">App & sincronização</a>
     </div>
     <div class="nav-col"><b>Conta</b>
@@ -246,7 +265,14 @@ footer b{color:var(--gold)}
     <div class="card"><h3>Resultado</h3><div class="sub">Sem hospedagem — some o hotel por fora.</div><div id="vOut"><div class="note">Preencha e calcule.</div></div></div>
   </div>
 
-
+<footer>
+    <b>Mesa de Câmbio &amp; Milhas — BW Audiovisual</b><br>
+    Dados: Banco Central do Brasil (PTAX, API Olinda) · referencia de mercado (exchangerate-api) ·
+    cotações de milhas (Real Milhas). PTAX de <span id="fPtax">—</span>.
+    Página estática: guarde o arquivo e abra em qualquer navegador; o botão “Atualizar” busca
+    cotação nova; sem internet, mostra os dados embutidos.
+    Não é recomendação de investimento.
+  </footer>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/pdfmake@0.2.20/build/pdfmake.min.js"></script>
@@ -735,7 +761,7 @@ function wireHeader() {
   const mb = document.querySelector("#btnMenu");
   const nav = document.querySelector("#navGrupos");
   if (mb && nav) mb.onclick = () => {
-    const visivel = getComputedStyle(nav).display !== "none" && nav.style.display !== "none";
+    const visivel = nav.style.display === "grid";
     nav.style.display = visivel ? "none" : "grid";
   };
   const vb = document.querySelector("#btnVoltar");
@@ -751,7 +777,7 @@ async function bootComum() {
   return ok;
 }
 
-return { avisoSemDados, bootComum, iniciarDados, montarCabecalho, preencherCodigos, preencherProgramas, refreshPagina, registrarSW };
+return { avisoSemDados, bootComum, iniciarDados, montarCabecalho, preencherCodigos, preencherProgramas, refreshPagina, registrarSW, wireHeader };
 })();
 /* ===== modules/viagem.js ===== */
 MOD['modules/viagem'] = (function() {
