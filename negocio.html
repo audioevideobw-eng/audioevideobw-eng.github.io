@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<!-- build 2026-11-06T00:24:21 -->
+<!-- build 2026-11-09T11:28:24 -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Meu negócio — Mesa BW</title>
@@ -251,7 +251,6 @@ footer b{color:var(--gold)}
     <div class="menu-grid">
       <a class="menu-card" href="preco.html"><b>Calculadora de preço e margem</b><small>Custo + imposto do Simples + margem → preço de venda sugerido.</small></a>
       <a class="menu-card" href="fluxo.html"><b>Fluxo de caixa da empresa</b><small>Entradas, saídas e saldo do período — com planilha conectada.</small></a>
-      <a class="menu-card" href="equipe.html"><b>Gestão de equipe</b><small>Colaboradores, equipes por evento, PDF da escala e alertas.</small></a>
     </div>
   </div>
 
@@ -778,6 +777,7 @@ const {  load, save  } = MOD['core/store'];
 const nuvem = MOD['core/nuvem'];
 const auth = MOD['core/auth'];
 const exportar = MOD['modules/exportar'];
+const {  sincronizarTudo, contagem  } = MOD['modules/sincronia'];
 
 /* ---- calculadora de preço (Simples Nacional) ---- */
 function calcularPreco() {
@@ -917,6 +917,22 @@ function renderFluxo() {
     </table></div>`;
 }
 
+function renderSincBox() {
+  const box = $("#sincBox"); if (!box) return;
+  const n = contagem();
+  box.innerHTML = `<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
+    <div><h3 style="margin:0">🔄 Sincronização financeira</h3>
+    <div class="sub">${n} lançamento(s) conectados automaticamente: cachês (contas a pagar × custos variáveis), gastos operacionais e receitas de eventos.</div></div>
+    <button class="btn gh" id="sincBtn" style="padding:8px 14px">🔄 Sincronizar agora</button>
+  </div>
+  <div class="note" id="sincMsg"></div>`;
+  $("#sincBtn").onclick = () => {
+    const m = sincronizarTudo();
+    $("#sincMsg").textContent = m ? `✓ ${m} lançamento(s) atualizado(s) no fluxo geral.` : "✓ Tudo já sincronizado.";
+    renderFluxo();
+  };
+}
+
 function initFluxo() {
   const hj = $("#nFlHoje");
   if (hj) hj.onclick = () => { const d = $("#nFlData"); if (d) d.value = new Date().toISOString().slice(0, 10); };
@@ -1039,6 +1055,7 @@ function init() {
   initExportar();
   expandirFixosNeg();
   renderFixosNeg();
+  renderSincBox();
   renderFluxo();
 }
 
