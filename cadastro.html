@@ -53,6 +53,7 @@ button:disabled{opacity:.6;cursor:wait}
   var EV_ID = params.get("ev") || "";
   var EV_NOME = params.get("nome") || "";
   var GALERIA = params.get("galeria") || "";
+  var CLI_TOKEN = params.get("cliente") || "";
   var SB_URL = "https://zdtnetplvdonogmdvarx.supabase.co";
   var SB_ANON = "sb_publishable_qJ2mIx1hcn_ZH75-yxJiDA_OI-EHyIU";
   function $(s){ return document.querySelector(s); }
@@ -81,6 +82,43 @@ button:disabled{opacity:.6;cursor:wait}
         document.querySelector("#gMsg").textContent = "Não consegui carregar a galeria.";
       }
     })();
+    return;
+  }
+  if (CLI_TOKEN) {
+    /* modo CADASTRO DE CLIENTE: empresa preenche os dados dela */
+    document.body.innerHTML = '<div class="logo">BW AUDIOVISUAL<small>EVENTOS · TRANSMISSÕES · PRODUÇÃO</small></div>' +
+      '<div class="card"><h1>Cadastro de cliente</h1>' +
+      '<div class="sub">Preencha os dados da empresa — o administrador recebe na hora.</div>' +
+      '<label>Nome / Empresa</label><input id="cNome" type="text" placeholder="Nome da empresa">' +
+      '<label>CNPJ</label><input id="cCNPJ" type="text" placeholder="00.000.000/0000-00">' +
+      '<label>Telefone</label><input id="cTel" type="tel" placeholder="(11) 99999-9999">' +
+      '<label>E-mail</label><input id="cEmail" type="email" placeholder="contato@empresa.com">' +
+      '<label>Endereço</label><input id="cEnd" type="text" placeholder="Rua, número, bairro">' +
+      '<label>Cidade / UF</label><input id="cCidade" type="text" placeholder="Cidade — UF">' +
+      '<button id="cEnviar">Enviar cadastro</button><div class="msg" id="cMsg"></div></div>' +
+      '<div class="rodape">BW Audiovisual</div>';
+    var mCNPJ = function(v){ v=(v||"").replace(/\D/g,"").slice(0,14); return v.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/,"$1.$2.$3/$4-$5"); };
+    var mTel = function(v){ v=(v||"").replace(/\D/g,"").slice(0,11); if(v.length<=10) return v.replace(/(\d{2})(\d{4})(\d{0,4})/,"($1) $2-$3").replace(/[-\s]+$/,""); return v.replace(/(\d{2})(\d{5})(\d{0,4})/,"($1) $2-$3").replace(/[-\s]+$/,""); };
+    document.querySelector("#cTel").addEventListener("input", function(e){ e.target.value = mTel(e.target.value); });
+    document.querySelector("#cCNPJ").addEventListener("input", function(e){ e.target.value = mCNPJ(e.target.value); });
+    document.querySelector("#cEnviar").addEventListener("click", async function(){
+      var btn = document.querySelector("#cEnviar"), msg = document.querySelector("#cMsg");
+      var c = { nome: document.querySelector("#cNome").value.trim(), cnpj: document.querySelector("#cCNPJ").value.trim(),
+        tel: document.querySelector("#cTel").value.trim(), email: document.querySelector("#cEmail").value.trim(),
+        end: document.querySelector("#cEnd").value.trim(), cidade: document.querySelector("#cCidade").value.trim() };
+      if (!c.nome) { msg.textContent = "Informe o nome da empresa."; msg.className = "msg err"; return; }
+      btn.disabled = true; btn.textContent = "Enviando…";
+      try {
+        var sb = window.supabase.createClient(SB_URL, SB_ANON);
+        var res = await sb.from("equipe_cadastros").insert({ token: CLI_TOKEN, nome: c.nome, funcao: "cliente",
+          telefone: c.tel, email: c.email, cpf: c.cnpj, observacao: JSON.stringify(c) });
+        if (res.error) throw res.error;
+        document.querySelector("#box").innerHTML = '<h1 style="color:#3f9d6b">✓ Cadastro enviado!</h1><div class="sub">Obrigado! O administrador da BW vai confirmar seus dados.</div>';
+      } catch (e) {
+        msg.textContent = "Não consegui enviar (" + (e.message || e) + "). Tente de novo.";
+        msg.className = "msg err"; btn.disabled = false; btn.textContent = "Enviar cadastro";
+      }
+    });
     return;
   }
   if (EV_ID) {
