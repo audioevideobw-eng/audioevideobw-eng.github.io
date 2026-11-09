@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<!-- build 2026-11-09T11:39:43 -->
+<!-- build 2026-11-09T13:15:26 -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Eventos — Mesa BW</title>
@@ -1949,6 +1949,7 @@ function render() {
       </div>
       <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
         <button class="btn gh" onclick="window.__evAbrir('${e.id}')">📂 Abrir dossiê</button>
+        <button class="btn gh" onclick="window.__evEditar('${e.id}')">✎ EDITAR</button>
         ${acoes}
         <a href="#" onclick="window.__evDel('${e.id}');return false" style="color:var(--dn);align-self:center">excluir</a>
       </div>
