@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<!-- build 2026-11-06T00:24:21 -->
+<!-- build 2026-11-09T10:24:40 -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Gestão de equipe — Mesa BW</title>
@@ -249,6 +249,7 @@ footer b{color:var(--gold)}
     <h3>Equipes para eventos</h3>
     <div class="sub">Cadastre colaboradores, monte equipes (como grupos) e organize os eventos. Cada evento gera o PDF da escala, dispara alertas no celular e permite comunicar a equipe.</div>
   </div>
+  <div id="pagBox" style="margin-top:14px"></div>
   <div id="eqColabBox"></div>
   <div id="eqSyncBox" style="margin-top:14px"></div>
   <div id="eqPlanilhaBox" style="margin-top:14px"></div>
@@ -841,7 +842,7 @@ async function subir(chave) {
 
 /* ---- sincronizar tudo: sobe as chaves conhecidas ---- */
 async function sincronizarTudo() {
-  const chaves = ["fx_alerts", "fx_diario", "casa_orcamento", "casa_contas", "casa_reserva", "neg_fluxo", "casa_fixos", "neg_equipe_colaboradores", "neg_equipe_equipes", "neg_equipe_eventos", "neg_equipe_cadastros", "neg_fixos", "neg_eventos"];
+  const chaves = ["fx_alerts", "fx_diario", "casa_orcamento", "casa_contas", "casa_reserva", "neg_fluxo", "casa_fixos", "neg_equipe_colaboradores", "neg_equipe_equipes", "neg_equipe_eventos", "neg_equipe_cadastros", "neg_fixos", "neg_eventos", "neg_equipe_pagamentos"];
   const res = [];
   for (const k of chaves) res.push(await subir(k));
   return res;
@@ -858,6 +859,203 @@ async function disponivel() {
 
 return { baixar, disponivel, sincronizarTudo, subir };
 })();
+/* ===== modules/pagamento.js ===== */
+MOD['modules/pagamento'] = (function() {
+/* módulo Pagamento — PAGAMENTO EQUIPE (aba na Gestão de Equipe).
+   Fluxo: 1) botões das equipes (sincronizadas com a Gestão de Equipe)
+          2) colaborador → lançamento de cachê
+          3) pago/não pago (verde/vermelho)
+          4) cada lançamento conecta com os custos do evento (e.gastos)
+          5) dashboard financeiro por evento com gráfico individual. */
+const {  $, esc, fmt  } = MOD['core/format'];
+const {  load, save  } = MOD['core/store'];
+
+const K_PAG = "neg_equipe_pagamentos";
+const pagamentos = () => load(K_PAG, 1, []);
+
+/* eventos disponíveis (da área de Eventos) para conectar os pagamentos */
+const eventos = () => load("neg_eventos", 1, []);
+
+function init() {
+  render();
+}
+
+/* ---------- 1) seleção de equipe (botões sincronizados) ---------- */
+function render() {
+  const box = $("#pagBox"); if (!box) return;
+  const equipes = load("neg_equipe_equipes", 1, []);
+  const colabs = load("neg_equipe_colaboradores", 1, []);
+  const evs = eventos();
+  const aba = load("neg_pag_aba", 1, "");
+
+  /* painel: botões de equipe + dashboard + lançamentos */
+  const equipeAtiva = load("neg_pag_equipe", 1, "");
+  const eq = equipes.find(q => String(q.id) === String(equipeAtiva));
+  const membros = eq ? (eq.membros || []).map(mid => colabs.find(c => String(c.id) === String(mid))).filter(Boolean) : [];
+
+  box.innerHTML = `
+    <div class="card">
+      <h3>1 · Escolha a equipe</h3>
+      <div class="sub">Botões sincronizados com as equipes formadas na Gestão de Equipe.</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+        ${equipes.length ? equipes.map(q => `<button class="btn ${String(q.id) === String(equipeAtiva) ? "" : "gh"}" data-eq="${q.id}">${esc(q.nome)}</button>`).join("")
+          : '<div class="note">Nenhuma equipe formada — crie na aba Gestão de Equipe.</div>'}
+      </div>
+    </div>
+    ${eq ? `
+    <div class="card" style="margin-top:14px">
+      <h3>2 · Lançar cachê — ${esc(eq.nome)}</h3>
+      <div class="frow3">
+        <div><label>Colaborador</label><select id="pgColab">${membros.map(m => `<option value="${m.id}">${esc(m.nome)}</option>`).join("")}</select></div>
+        <div><label>Evento</label><select id="pgEvento">${evs.map(e => `<option value="${e.id}">${esc(e.nome)}</option>`).join("") || "<option value=''>—</option>"}</select></div>
+        <div><label>Cachê (R$)</label><input id="pgVal" type="number" step="0.01" min="0" placeholder="0,00"></div>
+      </div>
+      <div class="frow3">
+        <div><label>Data do pagamento</label><input id="pgData" type="date"></div>
+        <div><label>Observação</label><input id="pgObs" type="text" placeholder="Ex.: diária, hora extra…"></div>
+        <div style="align-self:end"><button class="btn" id="pgAdd">+ Lançar cachê</button></div>
+      </div>
+      <div class="note" id="pgMsg"></div>
+    </div>
+    <div class="card" style="margin-top:14px">
+      <h3>3 · Pagamentos — ${esc(eq.nome)}</h3>
+      <div class="sub">Clique em NÃO PAGO para pagar (fica verde). Cada lançamento entra nos custos do evento.</div>
+      <div id="pgLista"></div>
+    </div>
+    ${renderDashboards(evs)}` : ""}
+  `;
+  wireEquipes(equipes);
+  if (eq) {
+    wireLancamento(eq, membros);
+    renderPagamentos(eq);
+    wireDashboards(evs);
+  }
+}
+
+function wireEquipes(equipes) {
+  document.querySelectorAll("[data-eq]").forEach(b => {
+    b.onclick = () => {
+      save("neg_pag_equipe", 1, b.dataset.eq);
+      save("neg_pag_aba", 1, b.dataset.eq);
+      render();
+    };
+  });
+}
+
+/* ---------- 2/3) lançamento + pago/não pago ---------- */
+function wireLancamento(eq, membros) {
+  $("#pgAdd").onclick = () => {
+    const colabId = $("#pgColab").value;
+    const m = membros.find(x => String(x.id) === String(colabId));
+    const evId = $("#pgEvento").value;
+    const ev = eventos().find(x => String(x.id) === String(evId));
+    const valor = parseFloat(($("#pgVal").value || "0").replace(",", ".")) || 0;
+    if (!m || !valor) { $("#pgMsg").textContent = "Escolha o colaborador e o cachê."; return; }
+    const lista = pagamentos();
+    lista.push({ id: Date.now(), equipeId: eq.id, colabId: m.id, colab: m.nome,
+      eventoId: evId, evento: ev ? ev.nome : "", valor,
+      data: $("#pgData").value, obs: $("#pgObs").value.trim(), pago: false });
+    save(K_PAG, 1, lista);
+    $("#pgMsg").textContent = `Cachê de ${m.nome} lançado.`;
+    render();
+  };
+}
+
+function renderPagamentos(eq) {
+  const box = $("#pgLista"); if (!box) return;
+  const lista = pagamentos().filter(p => String(p.equipeId) === String(eq.id));
+  if (!lista.length) { box.innerHTML = '<div class="note">Nenhum cachê lançado para esta equipe.</div>'; return; }
+  const total = lista.reduce((t, p) => t + p.valor, 0);
+  const pago = lista.filter(p => p.pago).reduce((t, p) => t + p.valor, 0);
+  box.innerHTML = `<div class="row"><span>Total da equipe</span><b>R$ ${fmt(total, 2)}</b></div>
+    <div class="row"><span>Pago</span><b style="color:var(--up)">R$ ${fmt(pago, 2)}</b></div>
+    <div class="row"><span>A pagar</span><b style="color:var(--dn)">R$ ${fmt(total - pago, 2)}</b></div>
+    <div style="margin-top:8px">` +
+    lista.map(p => `<div class="row">
+      <span><b>${esc(p.colab)}</b> <small style="color:var(--mut)">${esc(p.evento || "sem evento")}${p.data ? " · " + p.data.split("-").reverse().join("/") : ""}${p.obs ? " · " + esc(p.obs) : ""}</small></span>
+      <b><span style="color:var(--gold2)">R$ ${fmt(p.valor, 2)}</span>
+      <button class="btn ${p.pago ? "" : "gh"}" data-pg="${p.id}" style="padding:5px 10px;font-size:11px;
+        ${p.pago ? "background:var(--up);color:#fff" : "color:var(--dn);border-color:var(--dn)"}">${p.pago ? "PAGO ✓" : "NÃO PAGO"}</button></b>
+    </div>`).join("") + `</div>`;
+  box.querySelectorAll("[data-pg]").forEach(b => {
+    b.onclick = () => {
+      const lista2 = pagamentos();
+      const p = lista2.find(x => String(x.id) === String(b.dataset.pg));
+      if (!p) return;
+      p.pago = !p.pago;
+      p.data = p.data || new Date().toISOString().slice(0, 10);
+      save(K_PAG, 1, lista2);
+      /* 4) conecta com a planilha de custos do evento (e.gastos) */
+      sincronizarComEvento(p);
+      render();
+    };
+  });
+}
+
+/* 4) o cachê pago entra como gasto operacional do evento (custo real) */
+function sincronizarComEvento(p) {
+  if (!p.eventoId) return;
+  const evs = eventos();
+  const ev = evs.find(x => String(x.id) === String(p.eventoId));
+  if (!ev) return;
+  ev.gastos = ev.gastos || [];
+  const gid = "pag_" + p.id;
+  const existente = ev.gastos.find(g => g.id === gid);
+  if (p.pago) {
+    const gasto = { id: gid, desc: `Cachê — ${p.colab}`, valor: p.valor,
+      data: p.data || new Date().toISOString().slice(0, 10), comprovante: null, caminho: null };
+    if (existente) Object.assign(existente, gasto);
+    else ev.gastos.push(gasto);
+  } else if (existente) {
+    ev.gastos.splice(ev.gastos.indexOf(existente), 1);
+  }
+  save("neg_eventos", 1, evs);
+}
+
+/* ---------- 5) dashboard financeiro por evento (gráfico individual) ---------- */
+function renderDashboards(evs) {
+  const comDados = evs.filter(e => (e.gastos || []).length || (e.contratado || 0) > 0);
+  if (!comDados.length) return '<div class="card" style="margin-top:14px"><h3>5 · Dashboard financeiro dos eventos</h3><div class="note">Cadastre eventos e lançamentos para ver os gráficos.</div></div>';
+  return `<div class="card" style="margin-top:14px">
+    <h3>5 · Dashboard financeiro dos eventos</h3>
+    <div class="sub">Cada evento com seu controle individual: contratado, recebido, custos (incluindo cachês pagos) e resultado.</div>
+    ${comDados.map(e => dashEvento(e)).join("")}
+  </div>`;
+}
+
+function dashEvento(e) {
+  const contratado = parseFloat(e.contratado || 0) || 0;
+  const recebido = parseFloat(e.recebido || 0) || 0;
+  const custos = (e.gastos || []).reduce((t, g) => t + (parseFloat(g.valor || 0) || 0), 0);
+  const resultado = recebido - custos;
+  const margem = recebido > 0 ? (resultado / recebido) * 100 : 0;
+  /* gráfico de barras horizontais: recebido × custos (SVG próprio) */
+  const maxV = Math.max(recebido, custos, 1);
+  const W = 420, barW = 150;
+  const barra = (label, v, cor) => {
+    const w = Math.max(4, (v / maxV) * barW);
+    return `<div class="row"><span>${label}</span><span style="display:flex;align-items:center;gap:8px">
+      <svg width="${barW + 60}" height="16" style="flex-shrink:0">
+        <rect x="0" y="1" width="${w.toFixed(0)}" height="14" rx="3" fill="${cor}"/>
+        <text x="${(w + 6).toFixed(0)}" y="12" fill="var(--txt)" font-size="10">R$ ${fmt(v, 0)}</text>
+      </svg></span></div>`;
+  };
+  return `<div class="card" style="margin-top:10px;background:var(--navy3)">
+    <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px">
+      <b>${esc(e.nome)}</b><span class="tag mid">${esc(e.status || "")}</span>
+    </div>
+    ${barra("Recebido", recebido, "#3f9d6b")}
+    ${barra("Custos", custos, "#c0564a")}
+    <div class="row"><span>Contratado</span><b>R$ ${fmt(contratado, 2)}</b></div>
+    <div class="row"><span>Resultado (recebido − custos)</span><b style="color:${resultado >= 0 ? "var(--up)" : "var(--dn)"}">R$ ${fmt(resultado, 2)}</b></div>
+    <div class="row"><span>Margem</span><b style="color:${margem >= 0 ? "var(--up)" : "var(--dn)"}">${margem.toFixed(1).replace(".", ",")}%</b></div>
+  </div>`;
+}
+
+function wireDashboards(evs) { /* os gráficos são estáticos (SVG) — nada a ligar */ }
+
+return { init };
+})();
 /* ===== modules/equipe.js ===== */
 MOD['modules/equipe'] = (function() {
 /* módulo Equipe — gestão de equipe para eventos BW.
@@ -868,6 +1066,7 @@ const {  load, save  } = MOD['core/store'];
 const nuvem = MOD['core/nuvem'];
 const auth = MOD['core/auth'];
 const {  credenciais  } = MOD['core/auth'];
+const pagamento = MOD['modules/pagamento'];
 
 const K_COLAB = "neg_equipe_colaboradores";
 const K_EQUIPES = "neg_equipe_equipes";
@@ -984,10 +1183,12 @@ function renderEquipes() {
     const lista = equipes(); lista.push({ id: Date.now(), nome, membros }); save(K_EQUIPES, 1, lista);
     $("#eqMsg").textContent = `Equipe ${nome} criada com ${membros.length} membro(s).`;
     renderEquipes(); renderEventos();
+    pagamento.init();
   };
   window.__delEquipe = id => {
     save(K_EQUIPES, 1, equipes().filter(q => String(q.id) !== String(id)));
     renderEquipes(); renderEventos();
+    pagamento.init();
   };
 }
 
@@ -1452,6 +1653,7 @@ function modoCadastro() {
 
 function init() {
   if (modoCadastro()) return;   // modo do colaborador: só o formulário
+  pagamento.init();
   renderColaboradores();
   renderEquipes();
   renderEventos();
