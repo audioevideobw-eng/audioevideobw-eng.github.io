@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<!-- build 2026-11-09T11:28:24 -->
+<!-- build 2026-11-09T11:39:43 -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Eventos — Mesa BW</title>
@@ -253,6 +253,7 @@ footer b{color:var(--gold)}
   <div id="evLista" style="margin-top:14px"></div>
   <div id="evNovoBox" style="margin-top:14px"></div>
   <div id="evDossie" style="margin-top:14px"></div>
+  <div id="evEditar" style="margin-top:14px"></div>
   <div id="evSyncBox" style="margin-top:14px"></div>
 
 <footer>
@@ -840,7 +841,7 @@ async function subir(chave) {
 
 /* ---- sincronizar tudo: sobe as chaves conhecidas ---- */
 async function sincronizarTudo() {
-  const chaves = ["fx_alerts", "fx_diario", "casa_orcamento", "casa_contas", "casa_reserva", "neg_fluxo", "casa_fixos", "neg_equipe_colaboradores", "neg_equipe_equipes", "neg_equipe_eventos", "neg_equipe_cadastros", "neg_fixos", "neg_eventos", "neg_equipe_pagamentos"];
+  const chaves = ["fx_alerts", "fx_diario", "casa_orcamento", "casa_contas", "casa_reserva", "neg_fluxo", "casa_fixos", "neg_equipe_colaboradores", "neg_equipe_equipes", "neg_equipe_eventos", "neg_equipe_cadastros", "neg_fixos", "neg_eventos", "neg_equipe_pagamentos", "neg_clientes", "neg_cli_cadastros"];
   const res = [];
   for (const k of chaves) res.push(await subir(k));
   return res;
@@ -966,6 +967,207 @@ function contagem() {
 
 return { SB_PUBLIC, contagem, sincronizarTudo };
 })();
+/* ===== modules/clientes.js ===== */
+MOD['modules/clientes'] = (function() {
+/* módulo Clientes — cadastro de clientes (nome, CNPJ, endereço, telefones, e-mail)
+   + link público de cadastro (como o dos colaboradores). Os eventos escolhem o
+   cliente da lista (sem digitação errada) e o histórico usa o cadastro. */
+const {  $, esc  } = MOD['core/format'];
+const {  load, save  } = MOD['core/store'];
+const nuvem = MOD['core/nuvem'];
+const auth = MOD['core/auth'];
+
+const K_CLI = "neg_clientes";
+const clientes = () => load(K_CLI, 1, []);
+
+function maskCNPJ(v) {
+  v = (v || "").replace(/\D/g, "").slice(0, 14);
+  v = v.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, "$1.$2.$3/$4-$5");
+  return v;
+}
+function maskTel(v) {
+  v = (v || "").replace(/\D/g, "").slice(0, 11);
+  if (v.length <= 10) return v.replace(/(\d{2})(\d{4})(\d{0,4})/, "($1) $2-$3").replace(/[-\s]+$/, "");
+  return v.replace(/(\d{2})(\d{5})(\d{0,4})/, "($1) $2-$3").replace(/[-\s]+$/, "");
+}
+
+function init() {
+  renderClientes();
+  initSync();
+  initFormulario();
+}
+
+/* ---------- lista + formulário ---------- */
+function renderClientes() {
+  const box = $("#cliBox"); if (!box) return;
+  const dados = clientes();
+  box.innerHTML = `<div class="card">
+    <h3>Clientes</h3>
+    <div class="sub">${dados.length} cadastrado(s) — os eventos escolhem da lista (sem erro de digitação).</div>
+    <div class="tb-scroll"><table>
+      <thead><tr><th>Nome / Empresa</th><th>CNPJ</th><th>Telefone</th><th>E-mail</th><th>Cidade</th><th></th></tr></thead>
+      <tbody>${dados.length ? dados.map(c => `<tr>
+        <td><b>${esc(c.nome)}</b></td><td>${esc(c.cnpj || "")}</td><td>${esc(c.tel || "")}</td>
+        <td>${esc(c.email || "")}</td><td>${esc(c.cidade || "")}</td>
+        <td><a href="#" data-cli-edit="${c.id}" style="margin-right:6px;color:var(--gold2)">✎</a>
+        <a href="#" data-cli-del="${c.id}" style="color:var(--dn)">✕</a></td></tr>`).join("")
+        : '<tr><td colspan="6" style="color:var(--mut)">Nenhum cliente cadastrado.</td></tr>'}</tbody>
+    </table></div>
+    <div class="frow3" style="margin-top:10px">
+      <div><label>Nome / Empresa</label><input id="cNome" type="text" placeholder="Nome do cliente"></div>
+      <div><label>CNPJ</label><input id="cCNPJ" type="text" placeholder="00.000.000/0000-00"></div>
+      <div><label>Telefone</label><input id="cTel" type="tel" placeholder="(11) 99999-9999"></div>
+    </div>
+    <div class="frow3">
+      <div><label>E-mail</label><input id="cEmail" type="email" placeholder="cliente@email.com"></div>
+      <div><label>Endereço</label><input id="cEnd" type="text" placeholder="Rua, número, bairro"></div>
+      <div><label>Cidade / UF</label><input id="cCidade" type="text" placeholder="Cidade — UF"></div>
+    </div>
+    <button class="btn" id="cAdd">+ Cadastrar cliente</button>
+    <button class="btn gh" id="cCancel" style="display:none">Cancelar edição</button>
+    <div class="note" id="cMsg"></div>
+  </div>`;
+  const tel = $("#cTel"), cnpj = $("#cCNPJ");
+  tel.oninput = e => { e.target.value = maskTel(e.target.value); };
+  cnpj.oninput = e => { e.target.value = maskCNPJ(e.target.value); };
+  let editando = null;
+  box.querySelectorAll("[data-cli-edit]").forEach(a => {
+    a.onclick = () => {
+      const c = clientes().find(x => String(x.id) === String(a.dataset.cliEdit));
+      if (!c) return;
+      editando = c.id;
+      $("#cNome").value = c.nome || ""; $("#cCNPJ").value = c.cnpj || "";
+      $("#cTel").value = c.tel || ""; $("#cEmail").value = c.email || "";
+      $("#cEnd").value = c.end || ""; $("#cCidade").value = c.cidade || "";
+      $("#cAdd").textContent = "💾 Salvar alterações";
+      $("#cCancel").style.display = "inline-block";
+      $("#cMsg").textContent = `Editando ${c.nome}…`;
+      box.scrollIntoView({ behavior: "smooth" });
+    };
+  });
+  $("#cCancel").onclick = () => { editando = null; renderClientes(); };
+  $("#cAdd").onclick = () => {
+    const nome = $("#cNome").value.trim();
+    if (!nome) { $("#cMsg").textContent = "Informe o nome do cliente."; return; }
+    const lista = clientes();
+    if (editando) {
+      const c = lista.find(x => String(x.id) === String(editando));
+      Object.assign(c, { nome, cnpj: $("#cCNPJ").value.trim(), tel: $("#cTel").value.trim(),
+        email: $("#cEmail").value.trim(), end: $("#cEnd").value.trim(), cidade: $("#cCidade").value.trim() });
+      $("#cMsg").textContent = `Cliente ${nome} atualizado.`;
+    } else {
+      lista.push({ id: Date.now(), nome, cnpj: $("#cCNPJ").value.trim(), tel: $("#cTel").value.trim(),
+        email: $("#cEmail").value.trim(), end: $("#cEnd").value.trim(), cidade: $("#cCidade").value.trim() });
+      $("#cMsg").textContent = `Cliente ${nome} cadastrado.`;
+    }
+    save(K_CLI, 1, lista);
+    renderClientes();
+  };
+  box.querySelectorAll("[data-cli-del]").forEach(a => {
+    a.onclick = () => {
+      save(K_CLI, 1, clientes().filter(c => String(c.id) !== String(a.dataset.cliDel)));
+      renderClientes();
+    };
+  });
+}
+
+/* ---------- sincronização ---------- */
+function initSync() {
+  const box = $("#cliSyncBox"); if (!box) return;
+  auth.usuarioAtual().then(u => {
+    if (!u) { box.innerHTML = '<div class="note">Entre com sua conta para sincronizar os clientes entre aparelhos.</div>'; return; }
+    box.innerHTML = `<div class="card">
+      <h3>Sincronização</h3>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+        <button class="btn gh" id="cliUp">↑ Enviar para a conta</button>
+        <button class="btn gh" id="cliDown">↓ Puxar da conta</button>
+      </div>
+      <div class="note" id="cliSyncMsg"></div>
+    </div>`;
+    $("#cliUp").onclick = async () => {
+      const r = await nuvem.subir(K_CLI);
+      $("#cliSyncMsg").textContent = r.ok ? "Enviado ✓" : "Falha: " + r.msg;
+    };
+    $("#cliDown").onclick = async () => {
+      const r = await nuvem.baixar(K_CLI);
+      $("#cliSyncMsg").textContent = r.ok ? "Puxado ✓" : "Falha: " + r.msg;
+      renderClientes();
+    };
+  });
+}
+
+/* ---------- link público de cadastro (como o dos colaboradores) ---------- */
+function initFormulario() {
+  const box = $("#cliFormBox"); if (!box) return;
+  const token = load("neg_cli_token", 1, "");
+  const link = token ? location.origin + location.pathname.replace(/[^/]*$/, "cadastro.html") + "?cliente=" + token : "";
+  box.innerHTML = `<div class="card">
+    <h3>Cadastro pelo cliente (link)</h3>
+    <div class="sub">Gere o link e envie — o cliente preenche os dados e eles chegam aqui para aprovação.</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+      ${token ? `<input id="cliLink" type="text" value="${esc(link)}" readonly style="flex:1;min-width:220px;font-size:11px">
+        <button class="btn gh" id="cliCopiar">📋 Copiar</button>
+        <a class="btn gh" style="padding:8px 12px" target="_blank" href="https://wa.me/?text=${encodeURIComponent("Preencha seus dados, por favor: " + link)}">💬 WhatsApp</a>` : ""}
+      <button class="btn" id="cliGerar">${token ? "Gerar novo link" : "Gerar link de cadastro"}</button>
+    </div>
+    <div class="note" id="cliFMsg"></div>
+    ${token ? '<div style="margin-top:10px"><b style="font-size:12px">Cadastros recebidos:</b><div id="cliCadastros" style="margin-top:6px"></div></div>' : ""}
+  </div>`;
+  $("#cliGerar").onclick = () => {
+    save("neg_cli_token", 1, "cli" + Math.random().toString(36).slice(2, 10));
+    initFormulario();
+  };
+  if (token) {
+    const cop = $("#cliCopiar");
+    if (cop) cop.onclick = () => navigator.clipboard.writeText(link).then(() => { $("#cliFMsg").textContent = "Link copiado."; });
+    renderCadastros();
+  }
+}
+
+function renderCadastros() {
+  const el = $("#cliCadastros"); if (!el) return;
+  /* lê da nuvem (tabela equipe_cadastros, cadastros de CLIENTE) com a sessão do dono */
+  const auth = MOD["core/auth"];
+  const cred = auth.credenciais();
+  const sb = window.supabase.createClient(cred.url, cred.anon);
+  sb.from("equipe_cadastros").select("*").eq("funcao", "cliente").order("criado_em", { ascending: false })
+    .then(({ data, error }) => {
+      if (error) { el.innerHTML = '<div class="note">Erro ao ler: ' + esc(error.message) + '</div>'; return; }
+      if (!data || !data.length) { el.innerHTML = '<div class="note">Nenhum cadastro recebido ainda.</div>'; return; }
+      el.innerHTML = data.map(c => {
+        let cli = {};
+        try { cli = JSON.parse(c.observacao || "{}"); } catch (e) { }
+        return `<div class="card" style="margin-top:6px;background:var(--navy3)">
+          <b>${esc(c.nome)}</b> <small style="color:var(--mut)">${esc(cli.cnpj || "")}</small>
+          <div style="font-size:12px;color:var(--mut)">${esc(cli.tel || c.telefone || "")} · ${esc(cli.email || c.email || "")} · ${esc(cli.cidade || "")}</div>
+          <div style="margin-top:6px;display:flex;gap:8px">
+            <button class="btn gh" style="padding:5px 10px;font-size:11px" data-cli-apr="${c.id}">✓ Aprovar</button>
+            <a href="#" data-cli-desc="${c.id}" style="color:var(--dn);align-self:center">descartar</a>
+          </div></div>`;
+      }).join("");
+      el.querySelectorAll("[data-cli-apr]").forEach(b => {
+        b.onclick = () => {
+          const item = data.find(x => String(x.id) === String(b.dataset.cliApr));
+          if (!item) return;
+          let cli = {};
+          try { cli = JSON.parse(item.observacao || "{}"); } catch (e) { }
+          const cl = clientes();
+          cl.push({ id: Date.now(), nome: item.nome, cnpj: cli.cnpj || "", tel: cli.tel || item.telefone || "",
+            email: cli.email || item.email || "", end: cli.end || "", cidade: cli.cidade || "" });
+          save(K_CLI, 1, cl);
+          sb.from("equipe_cadastros").delete().eq("id", item.id).then(() => { renderCadastros(); renderClientes(); });
+        };
+      });
+      el.querySelectorAll("[data-cli-desc]").forEach(a => {
+        a.onclick = () => {
+          sb.from("equipe_cadastros").delete().eq("id", a.dataset.cliDesc).then(() => renderCadastros());
+        };
+      });
+    });
+}
+
+return { init, maskCNPJ, maskTel };
+})();
 /* ===== modules/equipe.js ===== */
 MOD['modules/equipe'] = (function() {
 /* módulo Equipe — gestão de equipe para eventos BW.
@@ -977,6 +1179,7 @@ const nuvem = MOD['core/nuvem'];
 const auth = MOD['core/auth'];
 const {  credenciais  } = MOD['core/auth'];
 const pagamento = MOD['modules/pagamento'];
+const clientes = MOD['modules/clientes'];
 
 const K_COLAB = "neg_equipe_colaboradores";
 const K_EQUIPES = "neg_equipe_equipes";
@@ -1564,6 +1767,7 @@ function modoCadastro() {
 function init() {
   if (modoCadastro()) return;   // modo do colaborador: só o formulário
   pagamento.init();
+  clientes.init();
   renderColaboradores();
   renderEquipes();
   renderEventos();
@@ -1816,7 +2020,8 @@ function wireFormulario() {
     </div>
     <div class="frow3">
       <div><label>Local</label><input id="evFLocal" type="text" placeholder="Endereço/local"></div>
-      <div><label>Cliente</label><input id="evFCliente" type="text" placeholder="Nome do cliente"></div>
+      <div><label>Cliente (da lista)</label><select id="evFClienteSel"><option value="">— digitar livre —</option>${load("neg_clientes", 1, []).map(c => `<option>${esc(c.nome)}</option>`).join("")}</select>
+        <input id="evFCliente" type="text" placeholder="ou digite o nome" style="margin-top:4px"></div>
       <div><label>Equipe (da Gestão de Equipe)</label><select id="evFEquipe">
         <option value="">—</option>${equipesLista.map(q => `<option value="${q.id}">${esc(q.nome)}</option>`).join("")}</select></div>
     </div>
@@ -1844,7 +2049,7 @@ function wireFormulario() {
       id: Date.now(),
       nome: $("#evFNome").value.trim(), data: $("#evFData").value,
       tipo: $("#evFTipo").value, local: $("#evFLocal").value.trim(),
-      cliente: $("#evFCliente").value.trim(), equipeId: $("#evFEquipe").value,
+      cliente: $("#evFClienteSel").value || $("#evFCliente").value.trim(), equipeId: $("#evFEquipe").value,
       status: $("#evFStatus").value, tel: $("#evFTel").value.trim(),
       email: $("#evFEmail").value.trim(), montagem: $("#evFMontagem").value,
       desmontagem: $("#evFDesmontagem").value, contrato: $("#evFContrato").value.trim(),
@@ -2465,6 +2670,83 @@ async function gerarDossiePDF(id) {
   window.pdfMake.createPdf(doc).download(`dossie-${slug}-${e.data}.pdf`);
 }
 window.__evPDF = id => gerarDossiePDF(id);
+
+/* ---------- EDIÇÃO do evento: formulário completo pré-preenchido ---------- */
+window.__evEditar = id => {
+  const e = eventos().find(x => String(x.id) === String(id));
+  if (!e) return;
+  const box = $("#evEditar"); if (!box) return;
+  const clientes = load("neg_clientes", 1, []);
+  const equipes = load("neg_equipe_equipes", 1, []);
+  box.innerHTML = `<div class="card">
+    <h3>✎ Editar evento — ${esc(e.nome)}</h3>
+    <div class="sub">Altere qualquer campo e salve. Os indicadores e o Fluxo de Caixa se atualizam.</div>
+    <div class="frow3" style="margin-top:10px">
+      <div><label>Nome do evento</label><input id="edNome" type="text" value="${esc(e.nome)}"></div>
+      <div><label>Data</label><input id="edData" type="date" value="${e.data || ""}"></div>
+      <div><label>Tipo</label><select id="edTipo">${["Casamento","Corporativo","Show","Transmissão ao vivo","Formatura","Aniversário","Outro"].map(t => `<option ${t === e.tipo ? "selected" : ""}>${t}</option>`).join("")}</select></div>
+    </div>
+    <div class="frow3">
+      <div><label>Cliente (da lista de cadastro)</label><select id="edCliente">
+        <option value="">— digitar livre —</option>
+        ${clientes.map(c => `<option value="${esc(c.nome)}" ${c.nome === e.cliente ? "selected" : ""}>${esc(c.nome)}</option>`).join("")}
+      </select><input id="edClienteLivre" type="text" placeholder="ou digite o nome" value="${esc(e.cliente || "")}" style="margin-top:4px"></div>
+      <div><label>Local</label><input id="edLocal" type="text" value="${esc(e.local || "")}"></div>
+      <div><label>Equipe</label><select id="edEquipe"><option value="">—</option>${equipes.map(q => `<option value="${q.id}" ${String(q.id) === String(e.equipeId) ? "selected" : ""}>${esc(q.nome)}</option>`).join("")}</select></div>
+    </div>
+    <div class="frow3">
+      <div><label>Status</label><select id="edStatus">${["Orçamento","Confirmado","Em produção","Realizado","Entregue"].map(s2 => `<option ${s2 === e.status ? "selected" : ""}>${s2}</option>`).join("")}</select></div>
+      <div><label>Telefone do cliente</label><input id="edTel" type="text" value="${esc(e.tel || "")}"></div>
+      <div><label>E-mail do cliente</label><input id="edEmail" type="text" value="${esc(e.email || "")}"></div>
+    </div>
+    <div class="frow3">
+      <div><label>Montagem</label><input id="edMontagem" type="date" value="${e.montagem || ""}"></div>
+      <div><label>Desmontagem</label><input id="edDesmontagem" type="date" value="${e.desmontagem || ""}"></div>
+      <div><label>Contrato/OS nº</label><input id="edContrato" type="text" value="${esc(e.contrato || "")}"></div>
+    </div>
+    <div class="frow3">
+      <div><label>Orçado (R$)</label><input id="edOrcado" type="number" step="0.01" value="${e.orcado || ""}"></div>
+      <div><label>Contratado (R$)</label><input id="edContratado" type="number" step="0.01" value="${e.contratado || ""}"></div>
+      <div><label>Recebido (R$)</label><input id="edRecebido" type="number" step="0.01" value="${e.recebido || ""}"></div>
+    </div>
+    <div><label>Observações</label><textarea id="edObs" style="width:100%;min-height:50px;background:#0b1220;border:1px solid var(--line);border-radius:10px;color:var(--txt);padding:10px">${esc(e.obs || "")}</textarea></div>
+    <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+      <button class="btn" id="edSalvar">💾 Salvar alterações</button>
+      <button class="btn gh" id="edCancelar">Cancelar</button>
+    </div>
+    <div class="note" id="edMsg"></div>
+  </div>`;
+  box.scrollIntoView({ behavior: "smooth" });
+  $("#edSalvar").onclick = () => {
+    const l2 = eventos();
+    const alvo = l2.find(x => String(x.id) === String(id));
+    alvo.nome = $("#edNome").value.trim() || alvo.nome;
+    alvo.data = $("#edData").value;
+    alvo.tipo = $("#edTipo").value;
+    const cliSel = $("#edCliente").value;
+    alvo.cliente = cliSel || $("#edClienteLivre").value.trim();
+    const cli = clientes.find(c => c.nome === cliSel);
+    if (cli) { alvo.tel = cli.tel || alvo.tel; alvo.email = cli.email || alvo.email; }
+    else { alvo.tel = $("#edTel").value.trim(); alvo.email = $("#edEmail").value.trim(); }
+    alvo.local = $("#edLocal").value.trim();
+    const eqId = $("#edEquipe").value;
+    alvo.equipeId = eqId;
+    const eq = equipes.find(q => String(q.id) === String(eqId));
+    alvo.equipeNome = eq ? eq.nome : "";
+    alvo.status = $("#edStatus").value;
+    alvo.montagem = $("#edMontagem").value;
+    alvo.desmontagem = $("#edDesmontagem").value;
+    alvo.contrato = $("#edContrato").value.trim();
+    alvo.orcado = $("#edOrcado").value;
+    alvo.contratado = $("#edContratado").value;
+    alvo.recebido = $("#edRecebido").value;
+    alvo.obs = $("#edObs").value.trim();
+    salvarEventos(l2);
+    $("#edMsg").textContent = "✓ Alterações salvas — indicadores e Fluxo de Caixa atualizados.";
+    render();
+  };
+  $("#edCancelar").onclick = () => { box.innerHTML = ""; };
+};
 
 window.__evAbrir = id => abrirDossie(id);
 window.__evDel = id => {
