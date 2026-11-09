@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<!-- build 2026-11-09T13:15:26 -->
+<!-- build 2026-11-09T13:42:49 -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Eventos — Mesa BW</title>
@@ -1861,6 +1861,42 @@ function init() {
 }
 
 /* ---------- dashboard ---------- */
+function agendaVisual() {
+  const cal = $("#agCal"); if (!cal) return;
+  const hoje = new Date();
+  const ano = hoje.getFullYear(), mes = hoje.getMonth();
+  const mesNome = hoje.toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+  $("#agMes").textContent = mesNome.charAt(0).toUpperCase() + mesNome.slice(1);
+  const primeiro = new Date(ano, mes, 1);
+  const diasMes = new Date(ano, mes + 1, 0).getDate();
+  const diaSemana = (primeiro.getDay() + 6) % 7;   // segunda = 0
+  const eventos = load("neg_eventos", 1, []);
+  const porDia = {};
+  eventos.forEach(e => {
+    const d = (e.data || "").slice(0, 10);
+    if (d.startsWith(`${ano}-${String(mes + 1).padStart(2, "0")}`)) {
+      const dia = +d.slice(8, 10);
+      porDia[dia] = porDia[dia] || [];
+      porDia[dia].push(e);
+    }
+  });
+  let html = '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;font-size:11px">';
+  ["S","T","Q","Q","S","S","D"].forEach(d => html += `<div style="text-align:center;color:var(--mut)">${d}</div>`);
+  for (let i = 0; i < diaSemana; i++) html += "<div></div>";
+  for (let d = 1; d <= diasMes; d++) {
+    const evs = porDia[d] || [];
+    const temHoje = d === hoje.getDate();
+    const fundo = evs.length ? "background:rgba(212,169,74,.15);border:1px solid var(--gold)" :
+      temHoje ? "border:1px solid var(--gold2)" : "border:1px solid var(--line)";
+    html += `<div style="${fundo};border-radius:8px;padding:6px 2px;min-height:44px;text-align:center">
+      <b style="font-size:12px">${d}</b>
+      ${evs.map(e => `<div style="font-size:9px;color:var(--gold2);overflow:hidden;text-overflow:ellipsis" title="${esc(e.nome)}">${esc(e.nome.slice(0, 10))}</div>`).join("")}
+    </div>`;
+  }
+  html += "</div>";
+  cal.innerHTML = html;
+}
+
 function dashboard() {
   const box = $("#evDash"); if (!box) return;
   const dados = eventos();
@@ -1873,6 +1909,11 @@ function dashboard() {
   const porTipo = {};
   dados.forEach(e => { const t = e.tipo || "Outro"; porTipo[t] = (porTipo[t] || 0) + 1; });
   box.innerHTML = `<div class="grid2">
+    <div class="card">
+      <h3>📅 Agenda do mês</h3>
+      <div class="sub" id="agMes"></div>
+      <div id="agCal" style="margin-top:8px"></div>
+    </div>
     <div class="card">
       <h3>Painel de eventos</h3>
       <div class="sub">${dados.length} evento(s) no total</div>
@@ -1887,8 +1928,13 @@ function dashboard() {
         `<div class="row"><span>${t}</span><b>${n}</b></div>`).join("") || '<div class="note">Sem eventos ainda.</div>'}
       <button class="btn gh" id="evRelGastos" style="margin-top:10px">📊 Relatório mensal de gastos</button>
       <div id="relGastosBox" style="margin-top:8px"></div>
+      <button class="btn gh" id="evRelAnual" style="margin-top:10px">📈 Relatório anual (PDF)</button>
+      <div class="note" id="relAnualMsg"></div>
     </div>
   </div>`;
+  agendaVisual();
+  const btnA = $("#evRelAnual");
+  if (btnA) btnA.onclick = () => gerarRelatorioAnual();
   const btnG = $("#evRelGastos");
   if (btnG) btnG.onclick = () => {
     const mes = new Date().toISOString().slice(0, 7);
@@ -2124,6 +2170,10 @@ function abrirDossie(id) {
       <div id="dNFE"></div>
     </div>
     <div style="margin-top:14px;border-top:1px solid var(--line);padding-top:12px">
+      <h3>📜 Contrato / OS</h3>
+      <div id="dContrato"></div>
+    </div>
+    <div style="margin-top:14px;border-top:1px solid var(--line);padding-top:12px">
       <h3>📝 Relatório</h3>
       <textarea id="dRelatorio" style="width:100%;min-height:70px;background:#0b1220;border:1px solid var(--line);border-radius:10px;color:var(--txt);padding:10px" placeholder="O que foi feito, ocorrências, feedback do cliente…">${esc(e.relatorio || "")}</textarea>
       <button class="btn gh" id="dSalvarRel" style="margin-top:8px">💾 Salvar relatório</button>
@@ -2151,6 +2201,7 @@ function abrirDossie(id) {
   wireMidia(e);
   wireGastos(e);
   wireNFE(e);
+  wireContrato(e);
   wireHistorico(e);
   wireGaleriaLink(e);
   wireAvaliacao(e);
@@ -2279,6 +2330,53 @@ function wireGastos(e) {
     salvarEventos(l2);
     if (rem.caminho && sb) sb.storage.from("eventos-midia").remove([rem.caminho]);
     wireGastos(alvo);
+  };
+}
+
+/* ---------- Contrato / OS anexado ao evento ---------- */
+function wireContrato(e) {
+  const box = $("#dContrato"); if (!box) return;
+  const auth = MOD["core/auth"];
+  const cred = auth.credenciais();
+  const sb = window.supabase ? window.supabase.createClient(cred.url, cred.anon) : null;
+  const renderC = () => {
+    const alvo = eventos().find(x => String(x.id) === String(e.id)) || {};
+    const c = alvo.contratoArq;
+    document.querySelector("#ctBox").innerHTML = c
+      ? '<div class="row"><span><b>' + esc(c.nome) + '</b></span>' +
+        '<b><a class="btn gh" style="padding:5px 10px;font-size:11px" href="' + esc(c.url) + '" target="_blank">Abrir contrato</a>' +
+        '<a href="#" data-ct-del style="color:var(--dn)">✕</a></b></div>'
+      : '<div class="note">Nenhum contrato/OS anexado — envie o PDF (ou foto) do contrato do evento.</div>';
+    const del = document.querySelector("[data-ct-del]");
+    if (del) del.onclick = () => {
+      const l2 = eventos();
+      const alvo = l2.find(x => String(x.id) === String(e.id));
+      if (alvo.contratoArq && alvo.contratoArq.caminho && sb) sb.storage.from("eventos-midia").remove([alvo.contratoArq.caminho]);
+      alvo.contratoArq = null;
+      salvarEventos(l2);
+      renderC();
+    };
+  };
+  box.innerHTML = '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">' +
+    '<input type="file" id="ctArq" accept="application/pdf,image/*" style="padding:8px;flex:1;min-width:180px">' +
+    '<button class="btn gh" id="ctAdd" style="padding:10px 14px">+ Anexar contrato</button></div>' +
+    '<div id="ctBox" style="margin-top:8px"></div>';
+  renderC();
+  document.querySelector("#ctAdd").onclick = async () => {
+    const f = document.querySelector("#ctArq").files[0];
+    if (!f) { document.querySelector("#ctBox").innerHTML = '<div class="note">Selecione o arquivo do contrato.</div>'; return; }
+    if (!sb) return;
+    const sess = await sb.auth.getSession();
+    if (!sess.data || !sess.data.session) { document.querySelector("#ctBox").innerHTML = '<div class="note">Entre com sua conta para anexar o contrato.</div>'; return; }
+    document.querySelector("#ctBox").innerHTML = '<div class="note">Enviando contrato…</div>';
+    const cp = e.id + "/contratos/" + Date.now() + "_" + f.name;
+    const up = await sb.storage.from("eventos-midia").upload(cp, f);
+    if (up.error) { document.querySelector("#ctBox").innerHTML = '<div class="note">Erro: ' + esc(up.error.message) + '</div>'; renderC(); return; }
+    const l2 = eventos();
+    const alvo = l2.find(x => String(x.id) === String(e.id));
+    alvo.contratoArq = { nome: f.name, url: SB_PUBLIC + "/" + cp, caminho: cp };
+    salvarEventos(l2);
+    renderC();
   };
 }
 
@@ -2502,6 +2600,56 @@ function wireHistorico(e) {
     `</div>`;
 }
 
+/* ---------- relatório anual de eventos (PDF) ---------- */
+function gerarRelatorioAnual() {
+  const ano = new Date().getFullYear();
+  const dados = eventos().filter(e => (e.data || "").startsWith(ano));
+  const porTipo = {}, porStatus = {};
+  let contratado = 0, recebido = 0;
+  dados.forEach(e => {
+    const t = e.tipo || "Outro"; porTipo[t] = (porTipo[t] || 0) + 1;
+    const st = e.status || "—"; porStatus[st] = (porStatus[st] || 0) + 1;
+    contratado += parseFloat(e.contratado || 0) || 0;
+    recebido += parseFloat(e.recebido || 0) || 0;
+  });
+  const tabela = [["Evento", "Data", "Cliente", "Tipo", "Status", "Contratado", "Recebido"].map(t =>
+    ({ text: t, bold: true, color: "#fff", fillColor: "#0b1220", fontSize: 8 })),
+    ...dados.sort((a, b) => (a.data || "").localeCompare(b.data || "")).map(e => [
+      { text: e.nome, fontSize: 9 }, { text: (e.data || "").split("-").reverse().join("/"), fontSize: 9 },
+      { text: e.cliente || "—", fontSize: 9 }, { text: e.tipo || "—", fontSize: 9 },
+      { text: e.status || "—", fontSize: 9 },
+      { text: "R$ " + fmt(parseFloat(e.contratado || 0) || 0, 2), fontSize: 9, alignment: "right" },
+      { text: "R$ " + fmt(parseFloat(e.recebido || 0) || 0, 2), fontSize: 9, alignment: "right" }]),
+    [{ text: "TOTAL", bold: true, fontSize: 9 }, { text: "" }, { text: "" }, { text: "" }, { text: "" },
+     { text: "R$ " + fmt(contratado, 2), bold: true, fontSize: 9, alignment: "right" },
+     { text: "R$ " + fmt(recebido, 2), bold: true, fontSize: 9, alignment: "right" }]];
+  const doc = {
+    defaultStyle: { font: "Roboto", fontSize: 10 },
+    header: { margin: [40, 30, 40, 0], columns: [
+      { text: "BW AUDIOVISUAL", bold: true, color: "#b8860b", fontSize: 11 },
+      { text: "Relatório anual " + ano, alignment: "right", color: "#55627a", fontSize: 10 }] },
+    content: [
+      { text: "Relatório Anual de Eventos — " + ano, fontSize: 16, bold: true, margin: [0, 20, 0, 4] },
+      { text: `${dados.length} evento(s) no ano`, color: "#55627a", margin: [0, 0, 0, 12] },
+      { table: { widths: ["25%", "25%"], body: [
+        [{ text: "Total contratado", color: "#55627a", fontSize: 9 }, { text: "R$ " + fmt(contratado, 2), bold: true, fontSize: 10 }],
+        [{ text: "Total recebido", color: "#55627a", fontSize: 9 }, { text: "R$ " + fmt(recebido, 2), bold: true, fontSize: 10, color: "#1e8e5a" }],
+        [{ text: "A receber", color: "#55627a", fontSize: 9 }, { text: "R$ " + fmt(contratado - recebido, 2), bold: true, fontSize: 10, color: "#b8860b" }]] }, margin: [0, 0, 0, 12] },
+      { text: "Eventos por tipo", bold: true, margin: [0, 0, 0, 4] },
+      { ul: Object.entries(porTipo).map(([t, n]) => ({ text: `${t}: ${n}`, fontSize: 9 })) },
+      { text: "Eventos por status", bold: true, margin: [0, 8, 0, 4] },
+      { ul: Object.entries(porStatus).map(([t, n]) => ({ text: `${t}: ${n}`, fontSize: 9 })) },
+      { text: "Detalhamento", bold: true, margin: [0, 12, 0, 4] },
+      { table: { widths: ["22%", "12%", "16%", "12%", "12%", "13%", "13%"], body: tabela, headerRows: 1 } },
+    ],
+    footer: { margin: [40, 10, 40, 20], columns: [
+      { text: "BW Audiovisual — eventos, transmissões e produção", color: "#8a93a6", fontSize: 8 },
+      { text: `gerado em ${new Date().toLocaleString("pt-BR")}`, alignment: "right", color: "#8a93a6", fontSize: 8 }] },
+  };
+  window.pdfMake.createPdf(doc).download(`relatorio-anual-eventos-${ano}.pdf`);
+}
+window.__evRelAnual = () => gerarRelatorioAnual();
+
 /* ---------- dossiê PDF completo ---------- */
 /* promessa com tempo limite — o PDF nunca trava esperando uma foto */
 function comTempo(p, ms) {
@@ -2654,6 +2802,10 @@ async function gerarDossiePDF(id) {
         { text: "Nota Fiscal Eletrônica", bold: true, margin: [0, 12, 0, 4] },
         { text: (e.nfe.numero ? "NF-e nº " + e.nfe.numero + " — " : "") + e.nfe.nome + " (anexada ao evento)", fontSize: 9 },
       ] : []),
+      ...(e.contratoArq ? [
+        { text: "Contrato / OS", bold: true, margin: [0, 12, 0, 4] },
+        { text: e.contratoArq.nome + " (anexado ao evento)", fontSize: 9 },
+      ] : []),
       { text: "Mídia", bold: true, margin: [0, 12, 0, 4] },
       ...(galeria ? [
         { image: galeria, width: 500, alignment: "center", margin: [0, 0, 0, 2] },
@@ -2755,7 +2907,7 @@ window.__evDel = id => {
   render();
 };
 
-return { STATUS, gerarDossiePDF, init, initSync };
+return { STATUS, gerarDossiePDF, gerarRelatorioAnual, init, initSync };
 })();
 /* ===== eventos_main.js ===== */
 MOD['eventos_main'] = (function() {
