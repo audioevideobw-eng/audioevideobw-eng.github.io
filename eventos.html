@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<!-- build 2026-11-09T16:09:58 -->
+<!-- build 2026-11-09T18:35:21 -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Eventos — Mesa BW</title>
@@ -1952,12 +1952,17 @@ function dashboard() {
       porDesc[k] = (porDesc[k] || 0) + l.valor;
     });
     const cats = Object.entries(porDesc).sort((a, b) => b[1] - a[1]);
+    const linkComp = l => l.comp ? `<a href="${esc(l.comp)}" target="_blank" title="Abrir comprovante" style="color:var(--gold2);text-decoration:none;margin-left:6px">🧾</a>` : "";
     $("#relGastosBox").innerHTML = linhas.length
-      ? `<div class="sub">Gastos operacionais de ${mes} — total: <b>R$ ${fmt(total, 2)}</b></div>` +
+      ? `<div class="sub">Gastos operacionais de ${mes} — total: <b>R$ ${fmt(total, 2)}</b> · ${linhas.filter(l => l.comp).length} comprovante(s) 🧾 (clique para abrir)</div>` +
         `<div style="margin-top:6px"><b style="font-size:12px">Por categoria:</b>` +
-        cats.map(([k, v]) => `<div class="row"><span>${esc(k)}${linhas.filter(l => (l.desc || "").trim() === k).some(l => l.comp) ? ' 🧾' : ''}</span><b>R$ ${fmt(v, 2)}</b></div>`).join("") +
+        cats.map(([k, v]) => {
+          const daCategoria = linhas.filter(l => (l.desc || "").trim() === k);
+          const primeiroComp = daCategoria.find(l => l.comp);
+          return `<div class="row"><span>${esc(k)}${primeiroComp ? linkComp(primeiroComp) : ""}</span><b>R$ ${fmt(v, 2)}</b></div>`;
+        }).join("") +
         `</div><div style="margin-top:6px"><b style="font-size:12px">Detalhado por evento:</b>` +
-        linhas.map(l => `<div class="row"><span>${esc(l.ev)} · ${esc(l.desc)}${l.comp ? ' 🧾' : ''}</span><b>R$ ${fmt(l.valor, 2)}</b></div>`).join("") +
+        linhas.map(l => `<div class="row"><span>${esc(l.ev)} · ${esc(l.desc)}${linkComp(l)}</span><b>R$ ${fmt(l.valor, 2)}</b></div>`).join("") +
         `</div>`
       : `<div class="note">Nenhum gasto operacional lançado em ${mes}.</div>`;
   };
@@ -2374,6 +2379,8 @@ function wireGastos(e) {
         if (!error) {
           comprovante = `${SB_PUBLIC}/${cp}`;
           caminho = cp;
+        } else {
+          box.querySelector("#gLista").innerHTML = `<div class="note">Foto não subiu (${esc(error.message)}) — o gasto será salvo sem comprovante.</div>`;
         }
       }
     }
@@ -2383,6 +2390,9 @@ function wireGastos(e) {
     alvo.gastos.push({ desc, valor: parseFloat(valor.replace(",", ".")) || 0, data, comprovante, caminho });
     salvarEventos(l2);
     e.gastos = alvo.gastos;
+    box.querySelector("#gLista").innerHTML = comprovante
+      ? '<div class="note" style="color:var(--up)">✓ Gasto salvo com comprovante 🧾 (abre no botão ao lado e no relatório).</div>'
+      : '<div class="note" style="color:var(--up)">✓ Gasto salvo.</div>';
     renderLista();
   };
   window.__gDel = (id, i) => {
