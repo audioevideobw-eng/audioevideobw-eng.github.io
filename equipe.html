@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<!-- build 2026-11-09T11:15:53 -->
+<!-- build 2026-11-09T11:28:24 -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Gestão de equipe — Mesa BW</title>
@@ -987,22 +987,29 @@ const pagamentos = () => load(K_PAG, 1, []);
 const eventos = () => load("neg_eventos", 1, []);
 
 function init() {
-  render();
+  /* cada página mostra só o que é dela:
+     equipe.html    → seções 1 (equipes) e 2 (lançar cachê)
+     financeiro.html → seção 3 (pagamentos) + seção 5 (dashboard)     */
+  const pagina = (location.pathname.split("/").pop() || "index.html").toLowerCase();
+  const pb = $("#pagBox"), fb = $("#finBox");
+  if (pagina === "financeiro.html") {
+    if (pb) pb.style.display = "none";
+    if (fb) renderFinBox();
+  } else if (pagina === "equipe.html") {
+    if (fb) fb.style.display = "none";
+    if (pb) renderEquipeBox();
+  }
 }
 
-/* ---------- 1) seleção de equipe (botões sincronizados) ---------- */
-function render() {
+/* ---------- equipe.html: seções 1 (equipes) e 2 (lançar cachê) ---------- */
+function renderEquipeBox() {
   const box = $("#pagBox"); if (!box) return;
   const equipes = load("neg_equipe_equipes", 1, []);
   const colabs = load("neg_equipe_colaboradores", 1, []);
   const evs = eventos();
-  const aba = load("neg_pag_aba", 1, "");
-
-  /* painel: botões de equipe + dashboard + lançamentos */
   const equipeAtiva = load("neg_pag_equipe", 1, "");
   const eq = equipes.find(q => String(q.id) === String(equipeAtiva));
   const membros = eq ? (eq.membros || []).map(mid => colabs.find(c => String(c.id) === String(mid))).filter(Boolean) : [];
-
   box.innerHTML = `
     <div class="card">
       <h3>1 · Escolha a equipe</h3>
@@ -1026,20 +1033,33 @@ function render() {
         <div style="align-self:end"><button class="btn" id="pgAdd">+ Lançar cachê</button></div>
       </div>
       <div class="note" id="pgMsg"></div>
-    </div>
-    <div class="card" style="margin-top:14px">
-      <h3>3 · Pagamentos — ${esc(eq.nome)}</h3>
-      <div class="sub">Clique em NÃO PAGO para pagar (fica verde). Cada lançamento entra nos custos do evento.</div>
-      <div id="pgLista"></div>
-    </div>
-    ${renderDashboards(evs)}` : ""}
+    </div>` : ""}
   `;
   wireEquipes(equipes);
-  if (eq) {
-    wireLancamento(eq, membros);
-    renderPagamentos(eq);
-    wireDashboards(evs);
-  }
+  if (eq) wireLancamento(eq, membros);
+}
+
+/* ---------- financeiro.html: seção 3 (pagamentos) + seção 5 (dashboard) ---------- */
+function renderFinBox() {
+  const box = $("#finBox"); if (!box) return;
+  const equipes = load("neg_equipe_equipes", 1, []);
+  const equipeAtiva = load("neg_pag_equipe", 1, "");
+  const eq = equipes.find(q => String(q.id) === String(equipeAtiva));
+  const evs = eventos();
+  box.innerHTML = `
+    <div class="card">
+      <h3>3 · Pagamentos${eq ? " — " + esc(eq.nome) : ""}</h3>
+      <div class="sub">Clique em NÃO PAGO para pagar (fica verde). Cada lançamento entra nos custos do evento e no Fluxo de Caixa geral.</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+        ${equipes.length ? equipes.map(q => `<button class="btn ${String(q.id) === String(equipeAtiva) ? "" : "gh"}" data-eq="${q.id}">${esc(q.nome)}</button>`).join("")
+          : '<div class="note">Nenhuma equipe formada — crie na Gestão de Equipe.</div>'}
+      </div>
+      <div id="pgLista" style="margin-top:10px"></div>
+    </div>
+    <div id="finDash" style="margin-top:14px"></div>`;
+  wireEquipes(equipes);
+  if (eq) renderPagamentos(eq);
+  renderDashboardsEm(evs, $("#finDash"));
 }
 
 function wireEquipes(equipes) {
@@ -1124,13 +1144,13 @@ function sincronizarComEvento(p) {
 }
 
 /* ---------- 5) dashboard financeiro por evento (gráfico individual) ---------- */
-function renderDashboards(evs) {
+function renderDashboardsEm(evs, container) {
+  if (!container) return;
   const comDados = evs.filter(e => (e.gastos || []).length || (e.contratado || 0) > 0);
-  if (!comDados.length) return '<div class="card" style="margin-top:14px"><h3>5 · Dashboard financeiro dos eventos</h3><div class="note">Cadastre eventos e lançamentos para ver os gráficos.</div></div>';
-  return `<div class="card" style="margin-top:14px">
+  container.innerHTML = `<div class="card">
     <h3>5 · Dashboard financeiro dos eventos</h3>
     <div class="sub">Cada evento com seu controle individual: contratado, recebido, custos (incluindo cachês pagos) e resultado.</div>
-    ${comDados.map(e => dashEvento(e)).join("")}
+    ${comDados.length ? comDados.map(e => dashEvento(e)).join("") : '<div class="note">Cadastre eventos e lançamentos para ver os gráficos.</div>'}
   </div>`;
 }
 
@@ -1163,7 +1183,7 @@ function dashEvento(e) {
   </div>`;
 }
 
-function wireDashboards(evs) { /* os gráficos são estáticos (SVG) — nada a ligar */ }
+
 
 return { init };
 })();
