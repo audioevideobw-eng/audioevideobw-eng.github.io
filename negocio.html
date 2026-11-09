@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<!-- build 2026-11-09T16:09:58 -->
+<!-- build 2026-11-09T20:28:07 -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Meu negócio — Mesa BW</title>
@@ -895,6 +895,8 @@ MOD['modules/ocr'] = (function() {
 const {  $, esc, fmt  } = MOD['core/format'];
 const {  load, save  } = MOD['core/store'];
 const {  sincronizarTudo  } = MOD['modules/sincronia'];
+const nuvem = MOD['core/nuvem'];
+const auth = MOD['core/auth'];
 
 const SB_PUBLIC = "https://zdtnetplvdonogmdvarx.supabase.co/storage/v1/object/public/eventos-midia";
 
@@ -1042,8 +1044,15 @@ async function lancarGasto() {
   save("neg_eventos", 1, l2);
   /* fluxo geral + indicadores */
   const mudou = sincronizarTudo();
+  /* SOBE PARA A NUVEM automaticamente (sem depender do botão sincronizar) */
+  let nuvemOk = false;
+  try {
+    const r = await nuvem.subir("neg_eventos");
+    nuvemOk = !!r.ok;
+  } catch (e) { }
   $("#ocrMsg").innerHTML = `✓ Lançado em <b>${esc(ev.nome)}</b>: R$ ${fmt(valor, 2)} · ${esc(desc)}` +
-    (comprovante ? ' · 🧾 foto anexada' : ' · (entre com sua conta para anexar a foto)') +
+    (comprovante ? ' · 🧾 comprovante salvo (abre no dossiê e no relatório)' : ' · ⚠️ sem comprovante (entre com sua conta)') +
+    (nuvemOk ? ' · ☁️ sincronizado com a conta' : ' · ⚠️ toque em ↑ Enviar para subir à conta') +
     ` · <a href="?ev=${ev.id}" style="color:var(--gold2)">abrir o evento</a>` +
     (mudou ? ` · Fluxo de Caixa atualizado.` : "");
   $("#ocrDadosCard").style.display = "none";
