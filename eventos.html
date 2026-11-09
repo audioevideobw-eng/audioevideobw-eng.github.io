@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<!-- build 2026-11-09T10:24:40 -->
+<!-- build 2026-11-09T11:15:53 -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Eventos — Mesa BW</title>
@@ -857,6 +857,115 @@ async function disponivel() {
 
 return { baixar, disponivel, sincronizarTudo, subir };
 })();
+/* ===== modules/sincronia.js ===== */
+MOD['modules/sincronia'] = (function() {
+/* módulo Sincronia — conecta TODOS os fluxos financeiros da plataforma ao
+   Fluxo de Caixa geral (neg_fluxo). Lançamento automático com descrição
+   inteligente: contas a pagar (pendente) × custos variáveis (pago).
+   Id determinístico por origem → nunca duplica, atualiza e remove junto. */
+const {  load, save  } = MOD['core/store'];
+
+const SB_PUBLIC = "https://zdtnetplvdonogmdvarx.supabase.co/storage/v1/object/public/eventos-midia";
+
+/* lê o fluxo e garante um lançamento (por id de origem) */
+function garantir(fluxo, id, item) {
+  const existente = fluxo.find(o => o.id === id);
+  if (item === null) {                       // remover
+    if (existente) fluxo.splice(fluxo.indexOf(existente), 1);
+    return true;
+  }
+  if (existente) {                           // atualizar (mantém posição)
+    Object.assign(existente, item);
+    return false;
+  }
+  fluxo.push(Object.assign({ id }, item));   // criar
+  return true;
+}
+
+/* sincroniza TUDO: cachês (pagos e pendentes), gastos de eventos, receitas */
+function sincronizarTudo() {
+  const eventos = load("neg_eventos", 1, []);
+  const pags = load("neg_equipe_pagamentos", 1, []);
+  const fluxo = load("neg_fluxo", 1, []);
+  let mudou = 0;
+
+  /* 1) CACHÊS (PAGAMENTO EQUIPE):
+        não pago → "Contas a pagar — cachê de X (evento)"
+        pago     → "Custos variáveis — cachê de X (evento)"          */
+  const idsCache = new Set();
+  pags.forEach(p => {
+    const fid = "cache_" + p.id;
+    idsCache.add(fid);
+    const ev = eventos.find(e => String(e.id) === String(p.eventoId));
+    const evNome = ev ? ev.nome : (p.evento || "evento");
+    const pago = !!p.pago;
+    const item = {
+      c0: p.data || new Date().toISOString().slice(0, 10),
+      c1: "Saída",
+      c2: String(p.valor || 0),
+      c3: pago ? `Custos variáveis — cachê de ${p.colab} (${evNome})`
+               : `Contas a pagar — cachê de ${p.colab} (${evNome})`,
+      fonte: pago ? "pago" : "pendente",
+    };
+    if (garantir(fluxo, fid, item)) mudou++;
+  });
+  /* remove lançamentos de cachês excluídos */
+  fluxo.filter(o => String(o.id).startsWith("cache_") && !idsCache.has(o.id))
+    .forEach(o => { garantir(fluxo, o.id, null); mudou++; });
+
+  /* 2) GASTOS OPERACIONAIS dos eventos (com ou sem comprovante):
+        "Custos variáveis — <desc> (evento)"                          */
+  const idsGasto = new Set();
+  eventos.forEach(e => (e.gastos || []).forEach(g => {
+    const gid = g.id || ("gasto_" + e.id + "_" + (g.desc || "") + "_" + (g.data || ""));
+    const fid = "gasto_" + gid;
+    idsGasto.add(fid);
+    if (String(fid).startsWith("gasto_pag_")) return;   // cachês já tratados acima
+    const item = {
+      c0: g.data || new Date().toISOString().slice(0, 10),
+      c1: "Saída",
+      c2: String(g.valor || 0),
+      c3: `Custos variáveis — ${g.desc} (${e.nome})`,
+      fonte: g.comprovante ? "comprovado" : "pago",
+    };
+    if (garantir(fluxo, fid, item)) mudou++;
+  }));
+  fluxo.filter(o => String(o.id).startsWith("gasto_") && !idsGasto.has(o.id) && !String(o.id).startsWith("gasto_pag_"))
+    .forEach(o => { garantir(fluxo, o.id, null); mudou++; });
+
+  /* 3) RECEITAS de eventos (quando marcado recebido) */
+  const idsRec = new Set();
+  eventos.forEach(e => {
+    const recebido = parseFloat(e.recebido || 0) || 0;
+    const fid = "receita_" + e.id;
+    if (recebido > 0) {
+      idsRec.add(fid);
+      const item = {
+        c0: e.data || new Date().toISOString().slice(0, 10),
+        c1: "Entrada",
+        c2: String(recebido),
+        c3: `Receita de evento — ${e.nome}`,
+        fonte: "recebido",
+      };
+      if (garantir(fluxo, fid, item)) mudou++;
+    }
+  });
+  fluxo.filter(o => String(o.id).startsWith("receita_") && !idsRec.has(o.id))
+    .forEach(o => { garantir(fluxo, o.id, null); mudou++; });
+
+  if (mudou) save("neg_fluxo", 1, fluxo);
+  return mudou;
+}
+
+/* quantos lançamentos da sincronia existem (para o painel) */
+function contagem() {
+  return load("neg_fluxo", 1, []).filter(o =>
+    String(o.id).startsWith("cache_") || String(o.id).startsWith("gasto_") ||
+    String(o.id).startsWith("receita_")).length;
+}
+
+return { SB_PUBLIC, contagem, sincronizarTudo };
+})();
 /* ===== modules/equipe.js ===== */
 MOD['modules/equipe'] = (function() {
 /* módulo Equipe — gestão de equipe para eventos BW.
@@ -1475,6 +1584,7 @@ const {  load, save  } = MOD['core/store'];
 const equipe = MOD['modules/equipe'];
 const nuvem = MOD['core/nuvem'];
 const auth = MOD['core/auth'];
+const {  sincronizarTudo  } = MOD['modules/sincronia'];
 
 const K_EV = "neg_eventos";
 const K_TEMPLATES = "neg_eventos_checklist_modelos";
@@ -1674,6 +1784,7 @@ function render() {
     if (!alvo) return;
     const estavaPago = pago(alvo);
     alvo.recebido = estavaPago ? 0 : (alvo.contratado || 0);
+    /* receita do evento vai para o fluxo geral (sincronia) */
     /* integra com o fluxo de caixa do negócio: receita entra/sai automaticamente */
     const fluxo = load("neg_fluxo", 1, []);
     const fid = `ev_${alvo.id}`;
@@ -1687,6 +1798,7 @@ function render() {
     }
     save("neg_fluxo", 1, fluxo);
     salvarEventos(l2);
+    sincronizarTudo();
     render();
   });
 }
