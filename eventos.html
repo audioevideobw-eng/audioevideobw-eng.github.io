@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<!-- build 2026-11-09T10:14:50 -->
+<!-- build 2026-11-09T10:24:40 -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Eventos — Mesa BW</title>
@@ -840,7 +840,7 @@ async function subir(chave) {
 
 /* ---- sincronizar tudo: sobe as chaves conhecidas ---- */
 async function sincronizarTudo() {
-  const chaves = ["fx_alerts", "fx_diario", "casa_orcamento", "casa_contas", "casa_reserva", "neg_fluxo", "casa_fixos", "neg_equipe_colaboradores", "neg_equipe_equipes", "neg_equipe_eventos", "neg_equipe_cadastros", "neg_fixos", "neg_eventos"];
+  const chaves = ["fx_alerts", "fx_diario", "casa_orcamento", "casa_contas", "casa_reserva", "neg_fluxo", "casa_fixos", "neg_equipe_colaboradores", "neg_equipe_equipes", "neg_equipe_eventos", "neg_equipe_cadastros", "neg_fixos", "neg_eventos", "neg_equipe_pagamentos"];
   const res = [];
   for (const k of chaves) res.push(await subir(k));
   return res;
@@ -867,6 +867,7 @@ const {  load, save  } = MOD['core/store'];
 const nuvem = MOD['core/nuvem'];
 const auth = MOD['core/auth'];
 const {  credenciais  } = MOD['core/auth'];
+const pagamento = MOD['modules/pagamento'];
 
 const K_COLAB = "neg_equipe_colaboradores";
 const K_EQUIPES = "neg_equipe_equipes";
@@ -983,10 +984,12 @@ function renderEquipes() {
     const lista = equipes(); lista.push({ id: Date.now(), nome, membros }); save(K_EQUIPES, 1, lista);
     $("#eqMsg").textContent = `Equipe ${nome} criada com ${membros.length} membro(s).`;
     renderEquipes(); renderEventos();
+    pagamento.init();
   };
   window.__delEquipe = id => {
     save(K_EQUIPES, 1, equipes().filter(q => String(q.id) !== String(id)));
     renderEquipes(); renderEventos();
+    pagamento.init();
   };
 }
 
@@ -1451,6 +1454,7 @@ function modoCadastro() {
 
 function init() {
   if (modoCadastro()) return;   // modo do colaborador: só o formulário
+  pagamento.init();
   renderColaboradores();
   renderEquipes();
   renderEventos();
@@ -1518,7 +1522,25 @@ function initSync() {
   });
 }
 
+/* página única do evento: eventos.html?ev=ID abre SÓ o dossiê completo */
+function modoPaginaUnica() {
+  const id = new URLSearchParams(location.search).get("ev");
+  if (!id) return false;
+  const e = eventos().find(x => String(x.id) === String(id));
+  if (!e) return false;
+  const main = document.querySelector(".wrap");
+  if (main) main.style.display = "none";
+  const d = $("#evDossie");
+  if (d) {
+    d.style.marginTop = "0";
+    abrirDossie(id);
+    d.scrollIntoView();
+  }
+  return true;
+}
+
 function init() {
+  if (modoPaginaUnica()) return;
   render();
   wireFormulario();
   initSync();
