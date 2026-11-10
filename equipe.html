@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<!-- build 2026-11-10T08:47:41 -->
+<!-- build 2026-11-10T14:09:16 -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Gestão de equipe — Mesa BW</title>
@@ -1380,6 +1380,7 @@ function renderCadastros() {
           cl.push({ id: Date.now(), nome: item.nome, cnpj: cli.cnpj || "", tel: cli.tel || item.telefone || "",
             email: cli.email || item.email || "", end: cli.end || "", cidade: cli.cidade || "" });
           save(K_CLI, 1, cl);
+          nuvem.subir(K_CLI);   // sobe a lista atualizada (senão o cliente "some")
           sb.from("equipe_cadastros").delete().eq("id", item.id).then(() => { renderCadastros(); renderClientes(); });
         };
       });
@@ -1922,6 +1923,9 @@ function renderCadastros() {
         colabs2.push({ id: Date.now(), nome: item.nome, funcao: item.funcao || "",
           tel: item.telefone || "", email: item.email || "", cpf: item.cpf || "" });
         save(K_COLAB, 1, colabs2);
+        /* sobe a lista atualizada para a nuvem — senão o colaborador "some"
+           ao atualizar a página (a lista é recarregada da nuvem) */
+        nuvem.subir(K_COLAB);
         sb.from("equipe_cadastros").delete().eq("id", id)
           .then(() => { renderCadastros(); renderColaboradores(); });
       };
