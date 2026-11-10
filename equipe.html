@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<!-- build 2026-11-10T08:26:11 -->
+<!-- build 2026-11-10T08:47:41 -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Gestão de equipe — Mesa BW</title>
@@ -1934,7 +1934,7 @@ function renderCadastros() {
 
 /* modo do colaborador: página aberta com ?cadastro=TOKEN — só o formulário */
 function modoCadastro() {
-  const token = new URLSearchParams(location.search).get("cadastro");
+  const token = (new URLSearchParams(location.search).get("cadastro") || "").trim();
   if (!token) return false;
   /* o token do LINK é o identificador (gerado pelo dono) — não precisa estar
      salvo no aparelho do colaborador (o localStorage dele está vazio!) */
