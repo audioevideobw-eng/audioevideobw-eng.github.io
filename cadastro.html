@@ -49,7 +49,7 @@ button:disabled{opacity:.6;cursor:wait}
 (function(){
   "use strict";
   var params = new URLSearchParams(location.search);
-  var TOKEN = params.get("t") || params.get("cadastro") || "";
+  var TOKEN = (params.get("t") || params.get("cadastro") || "").trim();
   var EV_ID = params.get("ev") || "";
   var EV_NOME = params.get("nome") || "";
   var GALERIA = params.get("galeria") || "";
