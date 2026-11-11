@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<!-- build 2026-11-11T12:13:02 -->
+<!-- build 2026-11-11T12:42:53 -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Gestão de casa — Mesa BW</title>
@@ -875,9 +875,18 @@ async function baixar() {
     let n = 0; const porChave = {};
     (data || []).forEach(r => {
       if (Array.isArray(r.dados)) {
-        save(r.chave, 1, r.dados);
-        n += r.dados.length;
-        porChave[r.chave] = r.dados.length;
+        /* MESCLA em vez de sobrescrever: união por id — o que existe só no
+           aparelho NÃO é perdido; o que existe só na nuvem é trazido */
+        const locais = load(r.chave, 1, []);
+        const porId = new Map(locais.map(o => [String(o.id), o]));
+        let trazidos = 0;
+        (r.dados || []).forEach(o => {
+          if (!porId.has(String(o.id))) { porId.set(String(o.id), o); trazidos++; }
+        });
+        const mesclado = [...porId.values()];
+        save(r.chave, 1, mesclado);
+        n += mesclado.length;
+        porChave[r.chave] = `${trazidos} novo(s) de ${mesclado.length}`;
       }
     });
     const rotulos = { fx_alerts: "alertas", fx_diario: "operações de diário" };
@@ -1246,7 +1255,13 @@ function render() {
         <h3>${l.label}</h3><span class="colap-seta" data-seta="lista_${l.key}">▶</span>
       </div>
       <div class="sub" style="margin-top:2px">${resumo} — toque para revelar/omitir os lançamentos.</div>
-      ${l.key === "casa_orcamento" ? graficoCategorias(dados) + graficoEvolucao(dados) : ""}
+      ${l.key === "casa_orcamento" ? `<div class="colap-titulo" data-colap="graf_${l.key}" style="margin-top:10px">
+        <h3 style="font-size:13px">📊 Gráficos do mês</h3><span class="colap-seta" data-seta="graf_${l.key}">▶</span>
+      </div>
+      <div class="colap-painel" data-painel="graf_${l.key}">${graficoCategorias(dados) + graficoEvolucao(dados)}</div>` : ""}
+      <div class="colap-titulo" data-colap="lista_${l.key}" style="margin-top:10px">
+        <h3 style="font-size:13px">📋 Lançamentos</h3><span class="colap-seta" data-seta="lista_${l.key}">▶</span>
+      </div>
       <div class="colap-painel" data-painel="lista_${l.key}">
       <div class="tb-scroll"><table>
         <thead><tr>${l.cols.map(c => `<th>${c}</th>`).join("")}<th></th></tr></thead>
@@ -1443,8 +1458,11 @@ function renderFixos() {
   const box = $("#fixosBox"); if (!box) return;
   const fixos = load(FIXOS_KEY, 1, []);
   box.innerHTML = `<div class="card">
-    <h3>Pagamentos fixos (recorrentes)</h3>
-    <div class="sub">Cada fixo gera automaticamente as contas dos próximos 6 meses (mensal) ou do mês escolhido (anual). Ao pagar, marque na lista de contas — o orçamento e os gráficos atualizam na hora.</div>
+    <div class="colap-titulo" data-colap="fixos">
+      <h3>Pagamentos fixos (recorrentes)</h3><span class="colap-seta" data-seta="fixos">▶</span>
+    </div>
+    <div class="sub" style="margin-top:2px">Cada fixo gera automaticamente as contas dos próximos 6 meses (mensal) ou do mês escolhido (anual). Toque para revelar/omitir a lista.</div>
+    <div class="colap-painel" data-painel="fixos">
     <div class="tb-scroll"><table>
       <thead><tr><th>Descrição</th><th>Valor</th><th>Recorrência</th><th>Dia</th><th>Mês inicial</th><th>Categoria</th><th></th></tr></thead>
       <tbody>${fixos.length ? fixos.map(f => `<tr>
@@ -1452,6 +1470,7 @@ function renderFixos() {
         <td><a href="#" onclick="window.__delFixo('${f.id}');return false" style="color:var(--dn)">✕</a></td></tr>`).join("")
         : '<tr><td colspan="7" style="color:var(--mut)">Nenhum fixo cadastrado.</td></tr>'}</tbody>
     </table></div>
+    </div>
     <div class="frow3" style="margin-top:10px">
       <div><label>Descrição</label><input id="fxDesc" type="text" placeholder="Ex.: Aluguel"></div>
       <div><label>Valor (R$)</label><input id="fxVal" type="number" step="0.01" min="0" placeholder="0,00"></div>
@@ -1465,6 +1484,7 @@ function renderFixos() {
     <button class="btn" id="fxAdd">Criar pagamento fixo</button>
     <div class="note" id="fxMsg"></div>
   </div>`;
+  ligarColapsaveis(box);
   $("#fxAdd").onclick = () => {
     const f = { id: Date.now(),
       c0: $("#fxDesc").value.trim(), c1: $("#fxVal").value.trim(),
