@@ -181,6 +181,13 @@ footer b{color:var(--gold)}
 .grupo-dourado small{display:block;margin-top:5px;color:var(--mut);font-size:11px;line-height:1.4}
 .grupo-dourado:hover{border-color:var(--gold)}
 .grupo-dourado.ativo{border-color:var(--gold);background:rgba(212,169,74,.08)}
+.colap-titulo{display:flex;align-items:center;justify-content:space-between;gap:10px;
+  cursor:pointer;user-select:none}
+.colap-titulo:hover h3{color:var(--gold2)}
+.colap-seta{color:var(--gold2);font-size:14px;transition:transform .15s}
+.colap-seta.aberta{transform:rotate(90deg)}
+.colap-painel{display:none}
+.colap-painel.aberto{display:block}
 .grupo-painel{display:none}
 .grupo-painel.aberto{display:block}
 </style>
