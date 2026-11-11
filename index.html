@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<!-- build 2026-11-11T15:35:09 -->
+<!-- build 2026-11-11T15:35:47 -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Mesa de Câmbio & Milhas — BW Audiovisual</title>
@@ -209,10 +209,13 @@ footer b{color:var(--gold)}
     <a href="alertas.html">Alertas</a>
     <a href="/recs.html" style="color:var(--gold2);border-color:rgba(212,169,74,.4)">★ Recomendações</a>
   </nav>
-  <button class="btn gh hd-menu-btn" id="btnSync" title="Sincronizar dados entre celular e PC">🔄 Sincronizar</button>
   <button class="btn gh hd-menu-btn" id="btnMenu" title="Abrir menu">☰ Menu</button>
   <span id="userBox" style="font-size:12px;color:var(--mut);margin-left:8px"></span>
   <nav id="navGrupos" class="nav-grupos">
+    <div class="nav-col"><b>Sincronização</b>
+      <a href="#" id="menuSync">🔄 Sincronizar dados</a>
+      <small style="color:var(--mut);font-size:11px;padding:0 8px;display:block">Celular ↔ PC — automática ao abrir e ao salvar</small>
+    </div>
     <div class="nav-col"><b>Meu negócio</b>
       <a href="negocio.html">Ferramentas do negócio</a>
       <a href="eventos.html">Eventos</a>
@@ -1008,18 +1011,19 @@ function wireHeader() {
   };
   const vb = document.querySelector("#btnVoltar");
   if (vb) vb.onclick = () => history.back();
-  /* 🔄 Sincronizar: mescla tudo (celular ↔ PC) e mostra o resultado no botão */
-  const sb = document.querySelector("#btnSync");
-  if (sb) sb.onclick = async () => {
-    const orig = sb.textContent;
-    sb.textContent = "⟳ Sincronizando…"; sb.disabled = true;
+  /* 🔄 Sincronizar (item do menu ☰): mescla tudo (celular ↔ PC) e recarrega */
+  const ms = document.querySelector("#menuSync");
+  if (ms) ms.onclick = async (e) => {
+    e.preventDefault();
+    const orig = ms.textContent;
+    ms.textContent = "⟳ Sincronizando…";
     try {
       const r = await sincronizarTudo();
-      sb.textContent = r.msg.length > 34 ? "✓ Sincronizado" : r.msg;
-      setTimeout(() => { sb.textContent = orig; sb.disabled = false; location.reload(); }, 900);
-    } catch (e) {
-      sb.textContent = "⚠ falha"; sb.disabled = false;
-      setTimeout(() => { sb.textContent = orig; }, 2000);
+      ms.textContent = r.msg || "✓ Sincronizado";
+      setTimeout(() => { location.reload(); }, 900);
+    } catch (err) {
+      ms.textContent = "⚠ falha na sincronização";
+      setTimeout(() => { ms.textContent = orig; }, 2000);
     }
   };
 }
