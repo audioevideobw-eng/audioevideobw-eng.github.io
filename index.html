@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<!-- build 2026-11-11T13:15:36 -->
+<!-- build 2026-11-11T15:11:43 -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Mesa de Câmbio & Milhas — BW Audiovisual</title>
@@ -239,6 +239,7 @@ footer b{color:var(--gold)}
       <a href="leitor.html">Leitor de comprovantes</a>
       <a href="noticias.html">Notícias</a>
       <a href="app.html">App & sincronização</a>
+      <a href="dados.html">Meus dados</a>
     </div>
     <div class="nav-col"><b>Conta</b>
       <a href="login.html">Acesso</a>
@@ -292,6 +293,7 @@ footer b{color:var(--gold)}
       <a class="menu-card" href="viagem.html"><b>Conversor de viagem</b><small>Quanto rende o que você troca no destino.</small></a>
       <a class="menu-card" href="diario.html"><b>Diário de câmbio</b><small>Suas operações reais: custo médio e resultado.</small></a>
       <a class="menu-card" href="leitor.html"><b>Leitor de comprovantes</b><small>Foto da nota → a IA lê e lança o custo no evento. Tudo local.</small></a>
+      <a class="menu-card" href="dados.html"><b>Meus dados</b><small>Suas coleções organizadas: fornecedores, documentos, equipamentos, contatos — com busca e CSV.</small></a>
       <a class="menu-card" href="app.html"><b>App & sincronização</b><small>Instalar no celular, backup e sincronização entre aparelhos.</small></a>
       <a class="menu-card" href="login.html"><b>Acesso</b><small>Entrar, criar conta (por convite) e recuperar senha.</small></a>
       <a class="menu-card" href="configadm.html"><b>Configuração</b><small>Administrador: conexão, convites e integrações.</small></a>
@@ -793,7 +795,7 @@ async function subir(chave) {
 /* ---- sincronizar tudo: BIDIRECIONAL (mescla nuvem ↔ local em todas as chaves)
    Regra do dono: a sincronia é automática — ao abrir/atualizar a página,
    ao salvar qualquer lançamento e pelo botão ☰ Sincronizar. ---- */
-const CHAVES_SYNC = ["fx_alerts", "fx_diario", "casa_orcamento", "casa_contas", "casa_reserva", "neg_fluxo", "casa_fixos", "neg_equipe_colaboradores", "neg_equipe_equipes", "neg_equipe_eventos", "neg_equipe_cadastros", "neg_fixos", "neg_eventos", "neg_equipe_pagamentos", "neg_clientes", "neg_cli_cadastros"];
+const CHAVES_SYNC = ["fx_alerts", "fx_diario", "casa_orcamento", "casa_contas", "casa_reserva", "neg_fluxo", "casa_fixos", "neg_equipe_colaboradores", "neg_equipe_equipes", "neg_equipe_eventos", "neg_equipe_cadastros", "neg_fixos", "neg_eventos", "neg_equipe_pagamentos", "neg_clientes", "neg_cli_cadastros", "dd_colecoes", "dd_registros"];
 
 /* mescla UMA chave: união por id (nuvem + local), grava nos dois lados */
 async function mesclarChave(chave) {
