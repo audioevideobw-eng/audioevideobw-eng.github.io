@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<!-- build 2026-11-11T11:48:37 -->
+<!-- build 2026-11-11T13:15:36 -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Gestão de equipe — Mesa BW</title>
@@ -209,6 +209,7 @@ footer b{color:var(--gold)}
     <a href="alertas.html">Alertas</a>
     <a href="/recs.html" style="color:var(--gold2);border-color:rgba(212,169,74,.4)">★ Recomendações</a>
   </nav>
+  <button class="btn gh hd-menu-btn" id="btnSync" title="Sincronizar dados entre celular e PC">🔄 Sincronizar</button>
   <button class="btn gh hd-menu-btn" id="btnMenu" title="Abrir menu">☰ Menu</button>
   <div class="stamp">
     PTAX <b id="stPtax">—</b> · Spot <b id="stSpot">—</b><br>
@@ -675,6 +676,171 @@ async function testarConexao() {
 
 return { cadastrar, clienteSB, configurado, configurar, credenciais, entrar, entrarComGoogle, recuperar, sair, sessao, sessaoLocal, testarConexao, trocarSenha, usuarioAtual };
 })();
+/* ===== core/nuvem.js ===== */
+MOD['core/nuvem'] = (function() {
+/* core/nuvem.js — sincronização dos dados pessoais com a conta Supabase.
+   Contrato: o navegador continua sendo a fonte imediata (localStorage via
+   core/store); a nuvem é a cópia sincronizada. Cada chave (fx_alerts,
+   fx_diario) é uma linha em public.user_data com RLS — cada usuário só
+   acessa as próprias linhas. */
+const {  load, save  } = MOD['core/store'];
+const {  credenciais  } = MOD['core/auth'];
+
+/* lê a sessão do cliente supabase-js carregado no template */
+async function sb() {
+  if (!window.supabase) return null;
+  const c = credenciais();
+  if (!c.url || !c.anon) return null;
+  return window.supabase.createClient(c.url, c.anon);
+}
+
+/* ---- baixar: nuvem -> navegador ---- */
+async function baixar() {
+  const c = await sb(); if (!c) return { ok: false, msg: "sem cliente" };
+  try {
+    const { data: sess } = await c.auth.getSession();
+    if (!sess || !sess.session) return { ok: false, msg: "sem sessão" };
+    const { data, error } = await c.from("user_data").select("chave, dados, atualizado_em");
+    if (error) return { ok: false, msg: error.message };
+    let n = 0; const porChave = {};
+    (data || []).forEach(r => {
+      if (Array.isArray(r.dados)) {
+        /* MESCLA em vez de sobrescrever: união por id — o que existe só no
+           aparelho NÃO é perdido; o que existe só na nuvem é trazido */
+        const locais = load(r.chave, 1, []);
+        const porId = new Map(locais.map(o => [String(o.id), o]));
+        let trazidos = 0;
+        (r.dados || []).forEach(o => {
+          if (!porId.has(String(o.id))) { porId.set(String(o.id), o); trazidos++; }
+        });
+        const mesclado = [...porId.values()];
+        save(r.chave, 1, mesclado);
+        n += mesclado.length;
+        porChave[r.chave] = `${trazidos} novo(s) de ${mesclado.length}`;
+      }
+    });
+    const rotulos = { fx_alerts: "alertas", fx_diario: "operações de diário" };
+    const partes = Object.entries(porChave)
+      .map(([k, v]) => `${v} ${rotulos[k] || k}`).join(" e ");
+    return { ok: true, msg: `Baixado da nuvem: ${partes || "nada ainda"}`, registros: n };
+  } catch (e) { return { ok: false, msg: String(e.message || e) }; }
+}
+
+/* ---- subir: navegador -> nuvem, com MESCLAGEM por id ----
+   Lê o que já está na nuvem e junta com o que existe aqui (união por id).
+   Assim sincronizar em um aparelho NUNCA apaga o que o outro criou —
+   cada lado mantém seus registros e recebe os do outro. */
+async function subir(chave) {
+  const c = await sb(); if (!c) return { ok: false, msg: "sem cliente" };
+  try {
+    const { data: sess } = await c.auth.getSession();
+    if (!sess || !sess.session) return { ok: false, msg: "sem sessão" };
+    const local = load(chave, 1, []);
+    const { data: remota, error: eLer } = await c.from("user_data")
+      .select("dados").eq("chave", chave).maybeSingle();
+    if (eLer) return { ok: false, msg: eLer.message };
+    const naNuvem = (remota && Array.isArray(remota.dados)) ? remota.dados : [];
+    const ids = new Set(naNuvem.map(x => x && x.id));
+    const novos = local.filter(x => x && !ids.has(x.id));
+    const mesclado = naNuvem.concat(novos).sort((a, b) => (a.id || 0) - (b.id || 0));
+    if (novos.length) save(chave, 1, mesclado);   // o aparelho também recebe a união
+    const { error } = await c.from("user_data").upsert(
+      { chave, dados: mesclado, atualizado_em: new Date().toISOString() },
+      { onConflict: "user_id,chave" }
+    );
+    if (error) return { ok: false, msg: error.message };
+    return { ok: true, msg: `${chave}: ${mesclado.length} registros na nuvem` +
+      (novos.length ? ` (+${novos.length} novo(s) do aparelho)` : "") };
+  } catch (e) { return { ok: false, msg: String(e.message || e) }; }
+}
+
+/* ---- sincronizar tudo: BIDIRECIONAL (mescla nuvem ↔ local em todas as chaves)
+   Regra do dono: a sincronia é automática — ao abrir/atualizar a página,
+   ao salvar qualquer lançamento e pelo botão ☰ Sincronizar. ---- */
+const CHAVES_SYNC = ["fx_alerts", "fx_diario", "casa_orcamento", "casa_contas", "casa_reserva", "neg_fluxo", "casa_fixos", "neg_equipe_colaboradores", "neg_equipe_equipes", "neg_equipe_eventos", "neg_equipe_cadastros", "neg_fixos", "neg_eventos", "neg_equipe_pagamentos", "neg_clientes", "neg_cli_cadastros"];
+
+/* mescla UMA chave: união por id (nuvem + local), grava nos dois lados */
+async function mesclarChave(chave) {
+  const { data: sess } = await (await sb()).auth.getSession();
+  if (!sess || !sess.session) return { chave, novos: 0, subidos: 0 };
+  const { data: remota, error } = await (await sb()).from("user_data")
+    .select("dados").eq("chave", chave).maybeSingle();
+  if (error) return { chave, novos: 0, subidos: 0, erro: error.message };
+  const naNuvem = (remota && Array.isArray(remota.dados)) ? remota.dados : [];
+  const locais = load(chave, 1, []);
+  const porId = new Map(naNuvem.map(o => [String(o.id), o]));
+  let novos = 0;
+  locais.forEach(o => {
+    if (!porId.has(String(o.id))) { porId.set(String(o.id), o); novos++; }
+  });
+  const mesclado = [...porId.values()];
+  const mudouLocal = mesclado.length !== locais.length;
+  if (mudouLocal) save(chave, 1, mesclado);   // aparelho recebe o que faltava
+  const subidos = mesclado.length - naNuvem.length;
+  if (mesclado.length !== naNuvem.length || JSON.stringify(mesclado) !== JSON.stringify(naNuvem)) {
+    await (await sb()).from("user_data").upsert(
+      { chave, dados: mesclado, atualizado_em: new Date().toISOString() },
+      { onConflict: "user_id,chave" });
+  }
+  return { chave, novos, subidos };
+}
+
+async function sincronizarTudo() {
+  const res = [];
+  for (const k of CHAVES_SYNC) res.push(await mesclarChave(k));
+  const novos = res.reduce((t, r) => t + (r.novos || 0), 0);
+  const subidos = res.reduce((t, r) => t + (r.subidos || 0), 0);
+  return { detalhes: res, novos, subidos,
+    msg: `✓ Sincronizado: ${novos} trazido(s) da conta · ${subidos} enviado(s)` +
+      (novos + subidos === 0 ? " — tudo atualizado" : "") };
+}
+
+/* ---- estado: logado e com tabela acessível? ---- */
+async function disponivel() {
+  const c = await sb(); if (!c) return false;
+  try {
+    const { data: sess } = await c.auth.getSession();
+    return !!(sess && sess.session);
+  } catch (e) { return false; }
+}
+
+return { CHAVES_SYNC, baixar, disponivel, sincronizarTudo, subir };
+})();
+/* ===== core/colap.js ===== */
+MOD['core/colap'] = (function() {
+/* core/colap.js — listas de dados cadastrados começam OMITIDAS (economiza
+   espaço conforme a base cresce); o título clicável (seta) revela/omite. */
+const {  esc  } = MOD['core/format'];
+
+/* envolve um bloco HTML em um colapsável fechado.
+   titulo: texto do h3; conteudo: HTML interno (tabela, cards…); id: único. */
+function colapsavel(id, titulo, conteudo, extra = "") {
+  return `<div class="card" ${extra}>
+    <div class="colap-titulo" data-colap="${id}">
+      <h3>${esc(titulo)}</h3><span class="colap-seta" data-seta="${id}">▶</span>
+    </div>
+    <div class="colap-sub" style="color:var(--mut);font-size:12px;margin-top:2px" data-sub="${id}"></div>
+    <div class="colap-painel" data-painel="${id}">${conteudo}</div>
+  </div>`;
+}
+
+/* liga os títulos clicáveis de um container (chamar após render) */
+function ligarColapsaveis(root = document) {
+  root.querySelectorAll("[data-colap]").forEach(t => {
+    t.onclick = () => {
+      const id = t.dataset.colap;
+      const painel = root.querySelector(`[data-painel="${id}"]`);
+      const seta = root.querySelector(`[data-seta="${id}"]`);
+      if (!painel) return;
+      const abrindo = !painel.classList.contains("aberto");
+      painel.classList.toggle("aberto", abrindo);
+      if (seta) seta.classList.toggle("aberta", abrindo);
+    };
+  });
+}
+
+return { colapsavel, ligarColapsaveis };
+})();
 /* ===== core/bootcommon.js ===== */
 MOD['core/bootcommon'] = (function() {
 /* core/bootcommon.js — base comum de boot das páginas do painel multi-página.
@@ -683,6 +849,7 @@ const {  $, esc  } = MOD['core/format'];
 const data = MOD['core/data'];
 const {  stamp  } = MOD['core/ui'];
 const auth = MOD['core/auth'];
+const {  sincronizarTudo  } = MOD['core/nuvem'];
 
 /* injeta dados embutidos (página publicada) ou busca data.json (dev) */
 async function iniciarDados() {
@@ -770,6 +937,20 @@ function wireHeader() {
   };
   const vb = document.querySelector("#btnVoltar");
   if (vb) vb.onclick = () => history.back();
+  /* 🔄 Sincronizar: mescla tudo (celular ↔ PC) e mostra o resultado no botão */
+  const sb = document.querySelector("#btnSync");
+  if (sb) sb.onclick = async () => {
+    const orig = sb.textContent;
+    sb.textContent = "⟳ Sincronizando…"; sb.disabled = true;
+    try {
+      const r = await sincronizarTudo();
+      sb.textContent = r.msg.length > 34 ? "✓ Sincronizado" : r.msg;
+      setTimeout(() => { sb.textContent = orig; sb.disabled = false; location.reload(); }, 900);
+    } catch (e) {
+      sb.textContent = "⚠ falha"; sb.disabled = false;
+      setTimeout(() => { sb.textContent = orig; }, 2000);
+    }
+  };
 }
 
 /* boot comum: dados + cabeçalho + SW. Retorna true se os dados carregaram. */
@@ -778,6 +959,13 @@ async function bootComum() {
   await montarCabecalho();
   wireHeader();
   registrarSW();
+  /* sincronia automática: ao abrir/atualizar a página, mescla celular ↔ PC */
+  sincronizarTudo().then(r => {
+    if (r && (r.novos > 0 || r.subidos > 0)) {
+      /* algo mudou entre os aparelhos — recarrega para mostrar o estado atual */
+      setTimeout(() => location.reload(), 400);
+    }
+  }).catch(() => { });
   return ok;
 }
 
@@ -847,9 +1035,18 @@ async function baixar() {
     let n = 0; const porChave = {};
     (data || []).forEach(r => {
       if (Array.isArray(r.dados)) {
-        save(r.chave, 1, r.dados);
-        n += r.dados.length;
-        porChave[r.chave] = r.dados.length;
+        /* MESCLA em vez de sobrescrever: união por id — o que existe só no
+           aparelho NÃO é perdido; o que existe só na nuvem é trazido */
+        const locais = load(r.chave, 1, []);
+        const porId = new Map(locais.map(o => [String(o.id), o]));
+        let trazidos = 0;
+        (r.dados || []).forEach(o => {
+          if (!porId.has(String(o.id))) { porId.set(String(o.id), o); trazidos++; }
+        });
+        const mesclado = [...porId.values()];
+        save(r.chave, 1, mesclado);
+        n += mesclado.length;
+        porChave[r.chave] = `${trazidos} novo(s) de ${mesclado.length}`;
       }
     });
     const rotulos = { fx_alerts: "alertas", fx_diario: "operações de diário" };
@@ -887,12 +1084,45 @@ async function subir(chave) {
   } catch (e) { return { ok: false, msg: String(e.message || e) }; }
 }
 
-/* ---- sincronizar tudo: sobe as chaves conhecidas ---- */
+/* ---- sincronizar tudo: BIDIRECIONAL (mescla nuvem ↔ local em todas as chaves)
+   Regra do dono: a sincronia é automática — ao abrir/atualizar a página,
+   ao salvar qualquer lançamento e pelo botão ☰ Sincronizar. ---- */
+const CHAVES_SYNC = ["fx_alerts", "fx_diario", "casa_orcamento", "casa_contas", "casa_reserva", "neg_fluxo", "casa_fixos", "neg_equipe_colaboradores", "neg_equipe_equipes", "neg_equipe_eventos", "neg_equipe_cadastros", "neg_fixos", "neg_eventos", "neg_equipe_pagamentos", "neg_clientes", "neg_cli_cadastros"];
+
+/* mescla UMA chave: união por id (nuvem + local), grava nos dois lados */
+async function mesclarChave(chave) {
+  const { data: sess } = await (await sb()).auth.getSession();
+  if (!sess || !sess.session) return { chave, novos: 0, subidos: 0 };
+  const { data: remota, error } = await (await sb()).from("user_data")
+    .select("dados").eq("chave", chave).maybeSingle();
+  if (error) return { chave, novos: 0, subidos: 0, erro: error.message };
+  const naNuvem = (remota && Array.isArray(remota.dados)) ? remota.dados : [];
+  const locais = load(chave, 1, []);
+  const porId = new Map(naNuvem.map(o => [String(o.id), o]));
+  let novos = 0;
+  locais.forEach(o => {
+    if (!porId.has(String(o.id))) { porId.set(String(o.id), o); novos++; }
+  });
+  const mesclado = [...porId.values()];
+  const mudouLocal = mesclado.length !== locais.length;
+  if (mudouLocal) save(chave, 1, mesclado);   // aparelho recebe o que faltava
+  const subidos = mesclado.length - naNuvem.length;
+  if (mesclado.length !== naNuvem.length || JSON.stringify(mesclado) !== JSON.stringify(naNuvem)) {
+    await (await sb()).from("user_data").upsert(
+      { chave, dados: mesclado, atualizado_em: new Date().toISOString() },
+      { onConflict: "user_id,chave" });
+  }
+  return { chave, novos, subidos };
+}
+
 async function sincronizarTudo() {
-  const chaves = ["fx_alerts", "fx_diario", "casa_orcamento", "casa_contas", "casa_reserva", "neg_fluxo", "casa_fixos", "neg_equipe_colaboradores", "neg_equipe_equipes", "neg_equipe_eventos", "neg_equipe_cadastros", "neg_fixos", "neg_eventos", "neg_equipe_pagamentos", "neg_clientes", "neg_cli_cadastros"];
   const res = [];
-  for (const k of chaves) res.push(await subir(k));
-  return res;
+  for (const k of CHAVES_SYNC) res.push(await mesclarChave(k));
+  const novos = res.reduce((t, r) => t + (r.novos || 0), 0);
+  const subidos = res.reduce((t, r) => t + (r.subidos || 0), 0);
+  return { detalhes: res, novos, subidos,
+    msg: `✓ Sincronizado: ${novos} trazido(s) da conta · ${subidos} enviado(s)` +
+      (novos + subidos === 0 ? " — tudo atualizado" : "") };
 }
 
 /* ---- estado: logado e com tabela acessível? ---- */
@@ -904,7 +1134,7 @@ async function disponivel() {
   } catch (e) { return false; }
 }
 
-return { baixar, disponivel, sincronizarTudo, subir };
+return { CHAVES_SYNC, baixar, disponivel, sincronizarTudo, subir };
 })();
 /* ===== modules/sincronia.js ===== */
 MOD['modules/sincronia'] = (function() {
@@ -913,6 +1143,7 @@ MOD['modules/sincronia'] = (function() {
    inteligente: contas a pagar (pendente) × custos variáveis (pago).
    Id determinístico por origem → nunca duplica, atualiza e remove junto. */
 const {  load, save  } = MOD['core/store'];
+const nuvem = MOD['core/nuvem'];
 
 const SB_PUBLIC = "https://zdtnetplvdonogmdvarx.supabase.co/storage/v1/object/public/eventos-midia";
 
@@ -1003,6 +1234,8 @@ function sincronizarTudo() {
     .forEach(o => { garantir(fluxo, o.id, null); mudou++; });
 
   if (mudou) save("neg_fluxo", 1, fluxo);
+  /* emenda a sincronia bidirecional completa (regra do dono: automática) */
+  try { nuvem.sincronizarTudo(); } catch (e) { }
   return mudou;
 }
 
@@ -1202,9 +1435,10 @@ function renderDashboardsEm(evs, container) {
   const comDados = evs.filter(e => (e.gastos || []).length || (e.contratado || 0) > 0);
   container.innerHTML = `<div class="card">
     <h3>5 · Dashboard financeiro dos eventos</h3>
-    <div class="sub">Cada evento com seu controle individual: contratado, recebido, custos (incluindo cachês pagos) e resultado.</div>
+    <div class="sub">Cada evento com seu controle individual — toque no nome para revelar os dados.</div>
     ${comDados.length ? comDados.map(e => dashEvento(e)).join("") : '<div class="note">Cadastre eventos e lançamentos para ver os gráficos.</div>'}
   </div>`;
+  ligarColapsaveis(container);
 }
 
 function dashEvento(e) {
@@ -1225,14 +1459,20 @@ function dashEvento(e) {
       </svg></span></div>`;
   };
   return `<div class="card" style="margin-top:10px;background:var(--navy3)">
-    <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px">
-      <b>${esc(e.nome)}</b><span class="tag mid">${esc(e.status || "")}</span>
+    <div class="colap-titulo" data-colap="dash_${e.id}">
+      <b>${esc(e.nome)}</b>
+      <span style="display:flex;align-items:center;gap:8px">
+        <span class="tag mid">${esc(e.status || "")}</span>
+        <span class="colap-seta" data-seta="dash_${e.id}">▶</span>
+      </span>
     </div>
-    ${barra("Recebido", recebido, "#3f9d6b")}
-    ${barra("Custos", custos, "#c0564a")}
-    <div class="row"><span>Contratado</span><b>R$ ${fmt(contratado, 2)}</b></div>
-    <div class="row"><span>Resultado (recebido − custos)</span><b style="color:${resultado >= 0 ? "var(--up)" : "var(--dn)"}">R$ ${fmt(resultado, 2)}</b></div>
-    <div class="row"><span>Margem</span><b style="color:${margem >= 0 ? "var(--up)" : "var(--dn)"}">${margem.toFixed(1).replace(".", ",")}%</b></div>
+    <div class="colap-painel" data-painel="dash_${e.id}">
+      ${barra("Recebido", recebido, "#3f9d6b")}
+      ${barra("Custos", custos, "#c0564a")}
+      <div class="row"><span>Contratado</span><b>R$ ${fmt(contratado, 2)}</b></div>
+      <div class="row"><span>Resultado (recebido − custos)</span><b style="color:${resultado >= 0 ? "var(--up)" : "var(--dn)"}">R$ ${fmt(resultado, 2)}</b></div>
+      <div class="row"><span>Margem</span><b style="color:${margem >= 0 ? "var(--up)" : "var(--dn)"}">${margem.toFixed(1).replace(".", ",")}%</b></div>
+    </div>
   </div>`;
 }
 
@@ -1249,6 +1489,7 @@ const {  $, esc  } = MOD['core/format'];
 const {  load, save  } = MOD['core/store'];
 const nuvem = MOD['core/nuvem'];
 const {  ligarColapsaveis  } = MOD['core/colap'];
+const {  sincronizarTudo  } = MOD['core/nuvem'];
 const auth = MOD['core/auth'];
 
 const K_CLI = "neg_clientes";
@@ -1340,6 +1581,7 @@ function renderClientes() {
       $("#cMsg").textContent = `Cliente ${nome} cadastrado.`;
     }
     save(K_CLI, 1, lista);
+    setTimeout(() => sincronizarTudo(), 300);
     renderClientes();
   };
   box.querySelectorAll("[data-cli-del]").forEach(a => {
@@ -1461,6 +1703,7 @@ const {  credenciais  } = MOD['core/auth'];
 const pagamento = MOD['modules/pagamento'];
 const clientes = MOD['modules/clientes'];
 const {  colapsavel, ligarColapsaveis  } = MOD['core/colap'];
+const {  sincronizarTudo  } = MOD['core/nuvem'];
 
 const K_COLAB = "neg_equipe_colaboradores";
 const K_EQUIPES = "neg_equipe_equipes";
@@ -1547,6 +1790,7 @@ function renderColaboradores() {
     if (!m.nome) { $("#cbMsg").textContent = "Informe ao menos o nome."; return; }
     if (m.cpf && m.cpf.replace(/\D/g, "").length !== 11) { $("#cbMsg").textContent = "CPF incompleto (11 números)."; return; }
     const lista = colabs(); lista.push(m); save(K_COLAB, 1, lista);
+    setTimeout(() => sincronizarTudo(), 300);
     $("#cbMsg").textContent = `Colaborador ${m.nome} adicionado.`;
     renderColaboradores(); renderEquipes();
   };
