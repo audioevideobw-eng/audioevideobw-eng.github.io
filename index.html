@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<!-- build 2026-11-11T15:35:47 -->
+<!-- build 2026-11-11T17:09:00 -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Mesa de Câmbio & Milhas — BW Audiovisual</title>
@@ -843,9 +843,17 @@ async function mesclarChave(chave) {
   const naNuvem = (remota && Array.isArray(remota.dados)) ? remota.dados : [];
   const locais = load(chave, 1, []);
   const porId = new Map(naNuvem.map(o => [String(o.id), o]));
-  let novos = 0;
+  let novos = 0, atualizados = 0;
   locais.forEach(o => {
-    if (!porId.has(String(o.id))) { porId.set(String(o.id), o); novos++; }
+    const k = String(o.id);
+    if (!porId.has(k)) { porId.set(k, o); novos++; return; }
+    /* ÚLTIMA EDIÇÃO VENCE: se o item existe nos dois lados, o de carimbo
+       _ed mais recente ganha (edições se propagam entre aparelhos) */
+    const rem = porId.get(k);
+    const edL = o._ed || 0, edR = rem._ed || 0;
+    if (edL > edR && JSON.stringify(o) !== JSON.stringify(rem)) {
+      porId.set(k, o); atualizados++;
+    }
   });
   const mesclado = colapsarDuplicados(chave, [...porId.values()]);
   const mudouLocal = mesclado.length !== locais.length;
