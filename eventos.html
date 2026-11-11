@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<!-- build 2026-11-09T18:35:21 -->
+<!-- build 2026-11-11T11:48:37 -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Eventos — Mesa BW</title>
@@ -185,6 +185,13 @@ footer b{color:var(--gold)}
 .grupo-dourado small{display:block;margin-top:5px;color:var(--mut);font-size:11px;line-height:1.4}
 .grupo-dourado:hover{border-color:var(--gold)}
 .grupo-dourado.ativo{border-color:var(--gold);background:rgba(212,169,74,.08)}
+.colap-titulo{display:flex;align-items:center;justify-content:space-between;gap:10px;
+  cursor:pointer;user-select:none}
+.colap-titulo:hover h3{color:var(--gold2)}
+.colap-seta{color:var(--gold2);font-size:14px;transition:transform .15s}
+.colap-seta.aberta{transform:rotate(90deg)}
+.colap-painel{display:none}
+.colap-painel.aberto{display:block}
 .grupo-painel{display:none}
 .grupo-painel.aberto{display:block}
 </style>
@@ -213,7 +220,7 @@ footer b{color:var(--gold)}
     <div class="nav-col"><b>Meu negócio</b>
       <a href="negocio.html">Ferramentas do negócio</a>
       <a href="eventos.html" class="on">Eventos</a>
-      <a href="equipe.html">Gestão de equipe</a>
+      <a href="equipe.html">Gestão de pessoas</a>
     </div>
     <div class="nav-col"><b>Gestão de casa</b>
       <a href="orcamento.html">Orçamento familiar</a>
@@ -233,6 +240,7 @@ footer b{color:var(--gold)}
       <a href="fluxo.html">Fluxo de caixa</a>
       <a href="viagem.html">Conversor de viagem</a>
       <a href="diario.html">Diário de câmbio</a>
+      <a href="leitor.html">Leitor de comprovantes</a>
       <a href="noticias.html">Notícias</a>
       <a href="app.html">App & sincronização</a>
     </div>
@@ -771,6 +779,41 @@ async function bootComum() {
 
 return { avisoSemDados, bootComum, iniciarDados, montarCabecalho, preencherCodigos, preencherProgramas, refreshPagina, registrarSW, wireHeader };
 })();
+/* ===== core/colap.js ===== */
+MOD['core/colap'] = (function() {
+/* core/colap.js — listas de dados cadastrados começam OMITIDAS (economiza
+   espaço conforme a base cresce); o título clicável (seta) revela/omite. */
+const {  esc  } = MOD['core/format'];
+
+/* envolve um bloco HTML em um colapsável fechado.
+   titulo: texto do h3; conteudo: HTML interno (tabela, cards…); id: único. */
+function colapsavel(id, titulo, conteudo, extra = "") {
+  return `<div class="card" ${extra}>
+    <div class="colap-titulo" data-colap="${id}">
+      <h3>${esc(titulo)}</h3><span class="colap-seta" data-seta="${id}">▶</span>
+    </div>
+    <div class="colap-sub" style="color:var(--mut);font-size:12px;margin-top:2px" data-sub="${id}"></div>
+    <div class="colap-painel" data-painel="${id}">${conteudo}</div>
+  </div>`;
+}
+
+/* liga os títulos clicáveis de um container (chamar após render) */
+function ligarColapsaveis(root = document) {
+  root.querySelectorAll("[data-colap]").forEach(t => {
+    t.onclick = () => {
+      const id = t.dataset.colap;
+      const painel = root.querySelector(`[data-painel="${id}"]`);
+      const seta = root.querySelector(`[data-seta="${id}"]`);
+      if (!painel) return;
+      const abrindo = !painel.classList.contains("aberto");
+      painel.classList.toggle("aberto", abrindo);
+      if (seta) seta.classList.toggle("aberta", abrindo);
+    };
+  });
+}
+
+return { colapsavel, ligarColapsaveis };
+})();
 /* ===== core/nuvem.js ===== */
 MOD['core/nuvem'] = (function() {
 /* core/nuvem.js — sincronização dos dados pessoais com a conta Supabase.
@@ -976,6 +1019,7 @@ MOD['modules/clientes'] = (function() {
 const {  $, esc  } = MOD['core/format'];
 const {  load, save  } = MOD['core/store'];
 const nuvem = MOD['core/nuvem'];
+const {  ligarColapsaveis  } = MOD['core/colap'];
 const auth = MOD['core/auth'];
 
 const K_CLI = "neg_clientes";
@@ -996,6 +1040,7 @@ function init() {
   renderClientes();
   initSync();
   initFormulario();
+  ligarColapsaveis();
 }
 
 /* ---------- lista + formulário ---------- */
@@ -1003,8 +1048,11 @@ function renderClientes() {
   const box = $("#cliBox"); if (!box) return;
   const dados = clientes();
   box.innerHTML = `<div class="card">
-    <h3>Clientes</h3>
-    <div class="sub">${dados.length} cadastrado(s) — os eventos escolhem da lista (sem erro de digitação).</div>
+    <div class="colap-titulo" data-colap="clientes">
+      <h3>Clientes</h3><span class="colap-seta" data-seta="clientes">▶</span>
+    </div>
+    <div class="sub" style="margin-top:2px">${dados.length} cadastrado(s) — os eventos escolhem da lista (sem erro de digitação). Toque para revelar/omitir.</div>
+    <div class="colap-painel" data-painel="clientes">
     <div class="tb-scroll"><table>
       <thead><tr><th>Nome / Empresa</th><th>CNPJ</th><th>Telefone</th><th>E-mail</th><th>Cidade</th><th></th></tr></thead>
       <tbody>${dados.length ? dados.map(c => `<tr>
@@ -1014,6 +1062,7 @@ function renderClientes() {
         <a href="#" data-cli-del="${c.id}" style="color:var(--dn)">✕</a></td></tr>`).join("")
         : '<tr><td colspan="6" style="color:var(--mut)">Nenhum cliente cadastrado.</td></tr>'}</tbody>
     </table></div>
+    </div>
     <div class="frow3" style="margin-top:10px">
       <div><label>Nome / Empresa</label><input id="cNome" type="text" placeholder="Nome do cliente"></div>
       <div><label>CNPJ</label><input id="cCNPJ" type="text" placeholder="00.000.000/0000-00"></div>
@@ -1156,6 +1205,7 @@ function renderCadastros() {
           cl.push({ id: Date.now(), nome: item.nome, cnpj: cli.cnpj || "", tel: cli.tel || item.telefone || "",
             email: cli.email || item.email || "", end: cli.end || "", cidade: cli.cidade || "" });
           save(K_CLI, 1, cl);
+          nuvem.subir(K_CLI);   // sobe a lista atualizada (senão o cliente "some")
           sb.from("equipe_cadastros").delete().eq("id", item.id).then(() => { renderCadastros(); renderClientes(); });
         };
       });
@@ -1181,6 +1231,7 @@ const auth = MOD['core/auth'];
 const {  credenciais  } = MOD['core/auth'];
 const pagamento = MOD['modules/pagamento'];
 const clientes = MOD['modules/clientes'];
+const {  colapsavel, ligarColapsaveis  } = MOD['core/colap'];
 
 const K_COLAB = "neg_equipe_colaboradores";
 const K_EQUIPES = "neg_equipe_equipes";
@@ -1221,21 +1272,30 @@ function renderColaboradores() {
   const box = $("#eqColabBox"); if (!box) return;
   const dados = colabs();
   box.innerHTML = `<div class="card">
-    <h3>Colaboradores</h3>
-    <div class="sub">${dados.length} cadastrado(s) — dados usados nas equipes e no PDF da escala.</div>
+    <div class="colap-titulo" data-colap="colabs">
+      <h3>Colaboradores</h3><span class="colap-seta" data-seta="colabs">▶</span>
+    </div>
+    <div class="sub" style="margin-top:2px">${dados.length} cadastrado(s) — dados usados nas equipes e no PDF da escala. Toque para revelar/omitir.</div>
+    <div class="colap-painel" data-painel="colabs">
     <div class="tb-scroll"><table>
-      <thead><tr><th>Nome</th><th>Função</th><th>Telefone</th><th>E-mail</th><th>CPF</th><th></th></tr></thead>
+      <thead><tr><th>Nome</th><th>Função</th><th>Telefone</th><th>Veículo</th><th>Placa</th><th></th></tr></thead>
       <tbody>${dados.length ? dados.map(m => {
         const wa = telWa(m.tel);
         const telCel = wa ? `<a href="https://wa.me/${wa}" target="_blank" rel="noopener" style="color:var(--gold2);text-decoration:none">${esc(m.tel)}</a> <a href="https://wa.me/${wa}" target="_blank" rel="noopener" title="Abrir no WhatsApp" style="text-decoration:none">💬</a>` : esc(m.tel || "—");
         const mailCel = m.email ? `<a href="mailto:${esc(m.email)}" style="color:var(--gold2);text-decoration:none">${esc(m.email)}</a>` : "—";
         return `<tr>
         <td><b>${esc(m.nome)}</b></td><td>${esc(m.funcao || "")}</td><td>${telCel}</td>
-        <td>${mailCel}</td><td>${esc(m.cpf || "")}</td>
+        <td>${esc(m.veiculo || "—")}</td><td>${esc(m.placa || "—")}</td>
         <td><a href="#" onclick="window.__delColab('${m.id}');return false" style="color:var(--dn)">✕</a></td></tr>`;
       }).join("")
         : '<tr><td colspan="6" style="color:var(--mut)">Nenhum colaborador cadastrado.</td></tr>'}</tbody>
     </table></div>
+    </div>
+    <div class="frow3" style="margin-top:10px">
+      <div><label>Veículo (modelo)</label><input id="cbVeiculo" type="text" placeholder="Ex.: Fiat Toro — usado nos eventos"></div>
+      <div><label>Placa</label><input id="cbPlaca" type="text" placeholder="ABC1D23" maxlength="8" style="text-transform:uppercase"></div>
+      <div></div>
+    </div>
     <div class="frow3" style="margin-top:10px">
       <div><label>Nome</label><input id="cbNome" type="text" placeholder="Nome completo"></div>
       <div><label>Função</label><input id="cbFuncao" type="text" placeholder="Ex.: Câmera, som, apoio"></div>
@@ -1253,7 +1313,8 @@ function renderColaboradores() {
   $("#cbAdd").onclick = () => {
     const m = { id: Date.now(),
       nome: $("#cbNome").value.trim(), funcao: $("#cbFuncao").value.trim(),
-      tel: $("#cbTel").value.trim(), email: $("#cbEmail").value.trim(), cpf: $("#cbCPF").value.trim() };
+      tel: $("#cbTel").value.trim(), email: $("#cbEmail").value.trim(), cpf: $("#cbCPF").value.trim(),
+      veiculo: ($("#cbVeiculo").value || "").trim(), placa: ($("#cbPlaca").value || "").toUpperCase().trim() };
     if (!m.nome) { $("#cbMsg").textContent = "Informe ao menos o nome."; return; }
     if (m.cpf && m.cpf.replace(/\D/g, "").length !== 11) { $("#cbMsg").textContent = "CPF incompleto (11 números)."; return; }
     const lista = colabs(); lista.push(m); save(K_COLAB, 1, lista);
@@ -1272,8 +1333,11 @@ function renderEquipes() {
   const dados = equipes();
   const nomeColab = id => { const c = colabs().find(x => String(x.id) === String(id)); return c ? c.nome : "?"; };
   box.innerHTML = `<div class="card">
-    <h3>Equipes de trabalho</h3>
-    <div class="sub">${dados.length} equipe(s) — como grupos: escolha um nome e marque os membros.</div>
+    <div class="colap-titulo" data-colap="equipes">
+      <h3>Equipes de trabalho</h3><span class="colap-seta" data-seta="equipes">▶</span>
+    </div>
+    <div class="sub" style="margin-top:2px">${dados.length} equipe(s) — como grupos: escolha um nome e marque os membros. Toque para revelar/omitir.</div>
+    <div class="colap-painel" data-painel="equipes">
     ${dados.length ? dados.map(q => `<div class="card" style="margin-top:10px;background:var(--navy3)">
       <b>${esc(q.nome)}</b> <small style="color:var(--mut)">· ${q.membros.length} membro(s)</small>
       <div style="margin-top:6px">${q.membros.map(id => `<span class="tag mid" style="margin:2px">${esc(nomeColab(id))}</span>`).join("")}</div>
@@ -1698,6 +1762,9 @@ function renderCadastros() {
         colabs2.push({ id: Date.now(), nome: item.nome, funcao: item.funcao || "",
           tel: item.telefone || "", email: item.email || "", cpf: item.cpf || "" });
         save(K_COLAB, 1, colabs2);
+        /* sobe a lista atualizada para a nuvem — senão o colaborador "some"
+           ao atualizar a página (a lista é recarregada da nuvem) */
+        nuvem.subir(K_COLAB);
         sb.from("equipe_cadastros").delete().eq("id", id)
           .then(() => { renderCadastros(); renderColaboradores(); });
       };
@@ -1710,10 +1777,10 @@ function renderCadastros() {
 
 /* modo do colaborador: página aberta com ?cadastro=TOKEN — só o formulário */
 function modoCadastro() {
-  const token = new URLSearchParams(location.search).get("cadastro");
+  const token = (new URLSearchParams(location.search).get("cadastro") || "").trim();
   if (!token) return false;
-  const dono = load("neg_equipe_token", 1, "");
-  if (!dono || token !== dono) return false;
+  /* o token do LINK é o identificador (gerado pelo dono) — não precisa estar
+     salvo no aparelho do colaborador (o localStorage dele está vazio!) */
   const cred = credenciais();
   var SB_URL = cred.url, SB_ANON = cred.anon;
   const main = document.querySelector(".wrap");
@@ -1775,6 +1842,7 @@ function init() {
   initSync();
   initPlanilha();
   initFormulario();
+  ligarColapsaveis();
 }
 
 return { comunicar, diasAte, gerarPDFEvento, init, initFormulario, initPlanilha, initSync, maskCPF, maskTel, modoCadastro, renderColaboradores, renderEquipes, renderEventos, telWa };
@@ -1790,6 +1858,7 @@ const equipe = MOD['modules/equipe'];
 const nuvem = MOD['core/nuvem'];
 const auth = MOD['core/auth'];
 const {  sincronizarTudo  } = MOD['modules/sincronia'];
+const {  ligarColapsaveis  } = MOD['core/colap'];
 
 const K_EV = "neg_eventos";
 const K_TEMPLATES = "neg_eventos_checklist_modelos";
@@ -2009,13 +2078,19 @@ function render() {
   };
   const lista = aba === "realizados" ? finalizados : agenda;
   box.innerHTML = `<div class="card">
+    <div class="colap-titulo" data-colap="evlista">
+      <h3>Eventos cadastrados</h3><span class="colap-seta aberta" data-seta="evlista">▶</span>
+    </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
       <button class="btn ${aba === "agenda" ? "" : "gh"}" data-aba="agenda">📅 AGENDA DE EVENTOS (${agenda.length})</button>
       <button class="btn ${aba === "realizados" ? "" : "gh"}" data-aba="realizados">🏁 EVENTOS REALIZADOS (${finalizados.length})</button>
     </div>
     <div class="sub">Cada evento é um dossiê: ficha, equipe, checklist, mídia, relatório e financeiro. "✓ Finalizado" move para EVENTOS REALIZADOS; "📅 Agendar" traz de volta. O pagamento sincroniza com os indicadores.</div>
+    <div class="colap-painel aberto" data-painel="evlista">
     ${lista.length ? lista.map(card).join("") : `<div class="note">${aba === "agenda" ? "Nenhum evento na agenda — crie abaixo ou mova de EVENTOS REALIZADOS." : "Nenhum evento realizado ainda — use ✓ Finalizado na AGENDA."}</div>`}
+    </div>
   </div>`;
+  ligarColapsaveis(box);
   box.querySelectorAll("[data-aba]").forEach(b => b.onclick = () => { save("neg_eventos_aba", 1, b.dataset.aba); render(); });
   box.querySelectorAll("[data-fin]").forEach(b => b.onclick = () => {
     const l2 = eventos();
@@ -2176,6 +2251,10 @@ function abrirDossie(id) {
       <div id="dNFE"></div>
     </div>
     <div style="margin-top:14px;border-top:1px solid var(--line);padding-top:12px">
+      <h3>🚗 Veículos do evento (entrada)</h3>
+      <div id="dVeiculos"></div>
+    </div>
+    <div style="margin-top:14px;border-top:1px solid var(--line);padding-top:12px">
       <h3>📜 Contrato / OS</h3>
       <div id="dContrato"></div>
     </div>
@@ -2208,6 +2287,7 @@ function abrirDossie(id) {
   wireGastos(e);
   wireNFE(e);
   wireContrato(e);
+  wireVeiculos(e);
   wireHistorico(e);
   wireGaleriaLink(e);
   wireAvaliacao(e);
@@ -2402,6 +2482,48 @@ function wireGastos(e) {
     salvarEventos(l2);
     if (rem.caminho && sb) sb.storage.from("eventos-midia").remove([rem.caminho]);
     wireGastos(alvo);
+  };
+}
+
+/* ---------- Veículos do evento (placa + motorista, para portaria) ---------- */
+function wireVeiculos(e) {
+  const box = $("#dVeiculos"); if (!box) return;
+  const renderV = () => {
+    const alvo = eventos().find(x => String(x.id) === String(e.id)) || {};
+    const veics = alvo.veiculos || [];
+    document.querySelector("#vBox").innerHTML = veics.length
+      ? veics.map((v, i) => `<div class="row"><span><b>${esc(v.placa)}</b> · ${esc(v.modelo || "")} <small style="color:var(--mut)">${esc(v.motorista || "")}</small></span>
+          <b><a href="#" data-v-del="${i}" style="color:var(--dn)">✕</a></b></div>`).join("")
+      : '<div class="note">Nenhum veículo cadastrado — cadastre as placas para a portaria do evento.</div>';
+    document.querySelectorAll("[data-v-del]").forEach(a => {
+      a.onclick = () => {
+        const l2 = eventos();
+        const alvo = l2.find(x => String(x.id) === String(e.id));
+        alvo.veiculos.splice(+a.dataset.vDel, 1);
+        salvarEventos(l2);
+        renderV();
+      };
+    });
+  };
+  box.innerHTML = '<div class="frow3">' +
+    '<div><label>Placa</label><input id="vPlaca" type="text" placeholder="ABC1D23" maxlength="8" style="text-transform:uppercase"></div>' +
+    '<div><label>Modelo</label><input id="vModelo" type="text" placeholder="Ex.: Fiat Toro"></div>' +
+    '<div><label>Motorista</label><input id="vMotorista" type="text" placeholder="Quem dirige"></div></div>' +
+    '<button class="btn gh" id="vAdd" style="margin-top:8px">+ Cadastrar veículo</button>' +
+    '<div id="vBox" style="margin-top:8px"></div>';
+  renderV();
+  document.querySelector("#vAdd").onclick = () => {
+    const placa = (document.querySelector("#vPlaca").value || "").toUpperCase().trim();
+    if (!placa) { document.querySelector("#vBox").innerHTML = '<div class="note">Informe a placa.</div>'; return; }
+    const l2 = eventos();
+    const alvo = l2.find(x => String(x.id) === String(e.id));
+    alvo.veiculos = alvo.veiculos || [];
+    alvo.veiculos.push({ placa, modelo: document.querySelector("#vModelo").value.trim(),
+      motorista: document.querySelector("#vMotorista").value.trim() });
+    salvarEventos(l2);
+    document.querySelector("#vPlaca").value = ""; document.querySelector("#vModelo").value = "";
+    document.querySelector("#vMotorista").value = "";
+    renderV();
   };
 }
 
@@ -2885,6 +3007,17 @@ async function gerarDossiePDF(id) {
         { text: "Nota Fiscal Eletrônica", bold: true, margin: [0, 12, 0, 4] },
         { text: (e.nfe.numero ? "NF-e nº " + e.nfe.numero + " — " : "") + e.nfe.nome + " (anexada ao evento)", fontSize: 9 },
       ] : []),
+      ...((e.veiculos || []).length ? [
+        { text: "Veículos do evento (portaria)", bold: true, margin: [0, 12, 0, 4] },
+        { table: { widths: ["25%", "35%", "40%"], body: [
+          [{ text: "Placa", bold: true, color: "#fff", fillColor: "#0b1220", fontSize: 8 },
+           { text: "Modelo", bold: true, color: "#fff", fillColor: "#0b1220", fontSize: 8 },
+           { text: "Motorista", bold: true, color: "#fff", fillColor: "#0b1220", fontSize: 8 }],
+          ...e.veiculos.map(v => [
+            { text: v.placa, fontSize: 9, bold: true },
+            { text: v.modelo || "—", fontSize: 9 },
+            { text: v.motorista || "—", fontSize: 9 }]),
+        ] } }] : []),
       ...(e.contratoArq ? [
         { text: "Contrato / OS", bold: true, margin: [0, 12, 0, 4] },
         { text: e.contratoArq.nome + " (anexado ao evento)", fontSize: 9 },
