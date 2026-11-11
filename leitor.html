@@ -1056,8 +1056,9 @@ function garantir(fluxo, id, item) {
     return true;
   }
   if (existente) {                           // atualizar (mantém posição)
+    const antes = JSON.stringify(existente);
     Object.assign(existente, item);
-    return false;
+    return JSON.stringify(existente) !== antes;   // atualização também é mudança
   }
   fluxo.push(Object.assign({ id }, item));   // criar
   return true;
