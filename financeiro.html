@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<!-- build 2026-11-11T11:48:37 -->
+<!-- build 2026-11-11T12:13:02 -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Financeiro de eventos — Mesa BW</title>
@@ -1193,9 +1193,10 @@ function renderDashboardsEm(evs, container) {
   const comDados = evs.filter(e => (e.gastos || []).length || (e.contratado || 0) > 0);
   container.innerHTML = `<div class="card">
     <h3>5 · Dashboard financeiro dos eventos</h3>
-    <div class="sub">Cada evento com seu controle individual: contratado, recebido, custos (incluindo cachês pagos) e resultado.</div>
+    <div class="sub">Cada evento com seu controle individual — toque no nome para revelar os dados.</div>
     ${comDados.length ? comDados.map(e => dashEvento(e)).join("") : '<div class="note">Cadastre eventos e lançamentos para ver os gráficos.</div>'}
   </div>`;
+  ligarColapsaveis(container);
 }
 
 function dashEvento(e) {
@@ -1216,14 +1217,20 @@ function dashEvento(e) {
       </svg></span></div>`;
   };
   return `<div class="card" style="margin-top:10px;background:var(--navy3)">
-    <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px">
-      <b>${esc(e.nome)}</b><span class="tag mid">${esc(e.status || "")}</span>
+    <div class="colap-titulo" data-colap="dash_${e.id}">
+      <b>${esc(e.nome)}</b>
+      <span style="display:flex;align-items:center;gap:8px">
+        <span class="tag mid">${esc(e.status || "")}</span>
+        <span class="colap-seta" data-seta="dash_${e.id}">▶</span>
+      </span>
     </div>
-    ${barra("Recebido", recebido, "#3f9d6b")}
-    ${barra("Custos", custos, "#c0564a")}
-    <div class="row"><span>Contratado</span><b>R$ ${fmt(contratado, 2)}</b></div>
-    <div class="row"><span>Resultado (recebido − custos)</span><b style="color:${resultado >= 0 ? "var(--up)" : "var(--dn)"}">R$ ${fmt(resultado, 2)}</b></div>
-    <div class="row"><span>Margem</span><b style="color:${margem >= 0 ? "var(--up)" : "var(--dn)"}">${margem.toFixed(1).replace(".", ",")}%</b></div>
+    <div class="colap-painel" data-painel="dash_${e.id}">
+      ${barra("Recebido", recebido, "#3f9d6b")}
+      ${barra("Custos", custos, "#c0564a")}
+      <div class="row"><span>Contratado</span><b>R$ ${fmt(contratado, 2)}</b></div>
+      <div class="row"><span>Resultado (recebido − custos)</span><b style="color:${resultado >= 0 ? "var(--up)" : "var(--dn)"}">R$ ${fmt(resultado, 2)}</b></div>
+      <div class="row"><span>Margem</span><b style="color:${margem >= 0 ? "var(--up)" : "var(--dn)"}">${margem.toFixed(1).replace(".", ",")}%</b></div>
+    </div>
   </div>`;
 }
 
