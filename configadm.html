@@ -181,6 +181,13 @@ footer b{color:var(--gold)}
 .grupo-dourado small{display:block;margin-top:5px;color:var(--mut);font-size:11px;line-height:1.4}
 .grupo-dourado:hover{border-color:var(--gold)}
 .grupo-dourado.ativo{border-color:var(--gold);background:rgba(212,169,74,.08)}
+.colap-titulo{display:flex;align-items:center;justify-content:space-between;gap:10px;
+  cursor:pointer;user-select:none}
+.colap-titulo:hover h3{color:var(--gold2)}
+.colap-seta{color:var(--gold2);font-size:14px;transition:transform .15s}
+.colap-seta.aberta{transform:rotate(90deg)}
+.colap-painel{display:none}
+.colap-painel.aberto{display:block}
 .grupo-painel{display:none}
 .grupo-painel.aberto{display:block}
 </style>
@@ -635,6 +642,7 @@ const {  $, esc  } = MOD['core/format'];
 const data = MOD['core/data'];
 const {  stamp  } = MOD['core/ui'];
 const auth = MOD['core/auth'];
+const {  sincronizarTudo  } = MOD['core/nuvem'];
 
 /* injeta dados embutidos (página publicada) ou busca data.json (dev) */
 async function iniciarDados() {
@@ -722,6 +730,20 @@ function wireHeader() {
   };
   const vb = document.querySelector("#btnVoltar");
   if (vb) vb.onclick = () => history.back();
+  /* 🔄 Sincronizar: mescla tudo (celular ↔ PC) e mostra o resultado no botão */
+  const sb = document.querySelector("#btnSync");
+  if (sb) sb.onclick = async () => {
+    const orig = sb.textContent;
+    sb.textContent = "⟳ Sincronizando…"; sb.disabled = true;
+    try {
+      const r = await sincronizarTudo();
+      sb.textContent = r.msg.length > 34 ? "✓ Sincronizado" : r.msg;
+      setTimeout(() => { sb.textContent = orig; sb.disabled = false; location.reload(); }, 900);
+    } catch (e) {
+      sb.textContent = "⚠ falha"; sb.disabled = false;
+      setTimeout(() => { sb.textContent = orig; }, 2000);
+    }
+  };
 }
 
 /* boot comum: dados + cabeçalho + SW. Retorna true se os dados carregaram. */
@@ -730,6 +752,13 @@ async function bootComum() {
   await montarCabecalho();
   wireHeader();
   registrarSW();
+  /* sincronia automática: ao abrir/atualizar a página, mescla celular ↔ PC */
+  sincronizarTudo().then(r => {
+    if (r && (r.novos > 0 || r.subidos > 0)) {
+      /* algo mudou entre os aparelhos — recarrega para mostrar o estado atual */
+      setTimeout(() => location.reload(), 400);
+    }
+  }).catch(() => { });
   return ok;
 }
 
