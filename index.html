@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<!-- build 2026-11-09T20:36:59 -->
+<!-- build 2026-11-11T11:48:37 -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Mesa de Câmbio & Milhas — BW Audiovisual</title>
@@ -185,6 +185,13 @@ footer b{color:var(--gold)}
 .grupo-dourado small{display:block;margin-top:5px;color:var(--mut);font-size:11px;line-height:1.4}
 .grupo-dourado:hover{border-color:var(--gold)}
 .grupo-dourado.ativo{border-color:var(--gold);background:rgba(212,169,74,.08)}
+.colap-titulo{display:flex;align-items:center;justify-content:space-between;gap:10px;
+  cursor:pointer;user-select:none}
+.colap-titulo:hover h3{color:var(--gold2)}
+.colap-seta{color:var(--gold2);font-size:14px;transition:transform .15s}
+.colap-seta.aberta{transform:rotate(90deg)}
+.colap-painel{display:none}
+.colap-painel.aberto{display:block}
 .grupo-painel{display:none}
 .grupo-painel.aberto{display:block}
 </style>
@@ -208,7 +215,7 @@ footer b{color:var(--gold)}
     <div class="nav-col"><b>Meu negócio</b>
       <a href="negocio.html">Ferramentas do negócio</a>
       <a href="eventos.html">Eventos</a>
-      <a href="equipe.html">Gestão de equipe</a>
+      <a href="equipe.html">Gestão de pessoas</a>
     </div>
     <div class="nav-col"><b>Gestão de casa</b>
       <a href="orcamento.html">Orçamento familiar</a>
@@ -250,7 +257,7 @@ footer b{color:var(--gold)}
   <div class="grupo-painel aberto" id="g-neg">
     <div class="menu-grid">
       <a class="menu-card" href="negocio.html"><b>Ferramentas do negócio</b><small>Calculadora de preço, fluxo de caixa e planilha conectada — tudo dentro.</small></a>
-      <a class="menu-card" href="equipe.html"><b>Gestão de equipe</b><small>Colaboradores, equipes por evento, PDF da escala e alertas no celular.</small></a>
+      <a class="menu-card" href="equipe.html"><b>Gestão de pessoas</b><small>Colaboradores, equipes por evento, PDF da escala e alertas no celular.</small></a>
       <a class="menu-card" href="eventos.html"><b>Eventos</b><small>Dossiê completo: ficha, equipe, checklist, mídia, relatório e financeiro.</small></a>
       <a class="menu-card" href="financeiro.html"><b>Financeiro de eventos</b><small>Pagamentos da equipe e dashboard financeiro individual por evento.</small></a>
     </div>
