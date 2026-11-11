@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<!-- build 2026-11-11T15:11:43 -->
+<!-- build 2026-11-11T15:35:47 -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Meus dados — Mesa BW</title>
@@ -209,7 +209,6 @@ footer b{color:var(--gold)}
     <a href="alertas.html">Alertas</a>
     <a href="/recs.html" style="color:var(--gold2);border-color:rgba(212,169,74,.4)">★ Recomendações</a>
   </nav>
-  <button class="btn gh hd-menu-btn" id="btnSync" title="Sincronizar dados entre celular e PC">🔄 Sincronizar</button>
   <button class="btn gh hd-menu-btn" id="btnMenu" title="Abrir menu">☰ Menu</button>
   <div class="stamp">
     PTAX <b id="stPtax">—</b> · Spot <b id="stSpot">—</b><br>
@@ -218,6 +217,10 @@ footer b{color:var(--gold)}
   <button class="btn gh" id="refresh" style="padding:8px 14px;font-size:12px">↻ Atualizar</button>
   <span id="userBox" style="font-size:12px;color:var(--mut);margin-left:8px"></span>
   <nav id="navGrupos" class="nav-grupos">
+    <div class="nav-col"><b>Sincronização</b>
+      <a href="#" id="menuSync">🔄 Sincronizar dados</a>
+      <small style="color:var(--mut);font-size:11px;padding:0 8px;display:block">Celular ↔ PC — automática ao abrir e ao salvar</small>
+    </div>
     <div class="nav-col"><b>Meu negócio</b>
       <a href="negocio.html">Ferramentas do negócio</a>
       <a href="eventos.html">Eventos</a>
@@ -729,7 +732,7 @@ async function baixar() {
         (r.dados || []).forEach(o => {
           if (!porId.has(String(o.id))) { porId.set(String(o.id), o); trazidos++; }
         });
-        const mesclado = [...porId.values()];
+        const mesclado = colapsarDuplicados(r.chave, [...porId.values()]);
         save(r.chave, 1, mesclado);
         n += mesclado.length;
         porChave[r.chave] = `${trazidos} novo(s) de ${mesclado.length}`;
@@ -775,6 +778,39 @@ async function subir(chave) {
    ao salvar qualquer lançamento e pelo botão ☰ Sincronizar. ---- */
 const CHAVES_SYNC = ["fx_alerts", "fx_diario", "casa_orcamento", "casa_contas", "casa_reserva", "neg_fluxo", "casa_fixos", "neg_equipe_colaboradores", "neg_equipe_equipes", "neg_equipe_eventos", "neg_equipe_cadastros", "neg_fixos", "neg_eventos", "neg_equipe_pagamentos", "neg_clientes", "neg_cli_cadastros", "dd_colecoes", "dd_registros"];
 
+/* ---- duplicados: chave natural por tipo de lista ----
+   A união por id faz o mesmo dado cadastrado duas vezes voltar da nuvem ou
+   do outro aparelho. Para as listas de pessoas/empresas existe chave natural
+   (nome + documento/telefone): o merge colapsa em UM registro. */
+const CHAVE_NATURAL = {
+  neg_clientes: ["nome", "cnpj"],
+  neg_equipe_colaboradores: ["nome", "tel"],
+};
+
+const norm = s => String(s == null ? "" : s).normalize("NFD")
+  .replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, " ")
+  .replace(/[^\w\s@.\/-]/g, "").trim().toLowerCase();
+
+function colapsarDuplicados(chave, lista) {
+  const campos = CHAVE_NATURAL[chave];
+  if (!campos) return lista;
+  const porChave = new Map();
+  lista.forEach(o => {
+    if (!o) return;
+    /* só junta quando há identidade suficiente — nome sozinho não basta */
+    const doc = norm(o[campos[1]]).replace(/\D/g, "");
+    if (!norm(o[campos[0]]) || !doc) { porChave.set("__id_" + o.id, o); return; }
+    const k = norm(o[campos[0]]) + "|" + doc;
+    if (!porChave.has(k)) { porChave.set(k, Object.assign({}, o)); return; }
+    /* duplicado: completa os campos vazios que o outro já tem */
+    const alvo = porChave.get(k);
+    Object.keys(o).forEach(c => {
+      if ((alvo[c] === "" || alvo[c] == null) && o[c]) alvo[c] = o[c];
+    });
+  });
+  return [...porChave.values()];
+}
+
 /* mescla UMA chave: união por id (nuvem + local), grava nos dois lados */
 async function mesclarChave(chave) {
   const { data: sess } = await (await sb()).auth.getSession();
@@ -789,7 +825,7 @@ async function mesclarChave(chave) {
   locais.forEach(o => {
     if (!porId.has(String(o.id))) { porId.set(String(o.id), o); novos++; }
   });
-  const mesclado = [...porId.values()];
+  const mesclado = colapsarDuplicados(chave, [...porId.values()]);
   const mudouLocal = mesclado.length !== locais.length;
   if (mudouLocal) save(chave, 1, mesclado);   // aparelho recebe o que faltava
   const subidos = mesclado.length - naNuvem.length;
@@ -953,18 +989,19 @@ function wireHeader() {
   };
   const vb = document.querySelector("#btnVoltar");
   if (vb) vb.onclick = () => history.back();
-  /* 🔄 Sincronizar: mescla tudo (celular ↔ PC) e mostra o resultado no botão */
-  const sb = document.querySelector("#btnSync");
-  if (sb) sb.onclick = async () => {
-    const orig = sb.textContent;
-    sb.textContent = "⟳ Sincronizando…"; sb.disabled = true;
+  /* 🔄 Sincronizar (item do menu ☰): mescla tudo (celular ↔ PC) e recarrega */
+  const ms = document.querySelector("#menuSync");
+  if (ms) ms.onclick = async (e) => {
+    e.preventDefault();
+    const orig = ms.textContent;
+    ms.textContent = "⟳ Sincronizando…";
     try {
       const r = await sincronizarTudo();
-      sb.textContent = r.msg.length > 34 ? "✓ Sincronizado" : r.msg;
-      setTimeout(() => { sb.textContent = orig; sb.disabled = false; location.reload(); }, 900);
-    } catch (e) {
-      sb.textContent = "⚠ falha"; sb.disabled = false;
-      setTimeout(() => { sb.textContent = orig; }, 2000);
+      ms.textContent = r.msg || "✓ Sincronizado";
+      setTimeout(() => { location.reload(); }, 900);
+    } catch (err) {
+      ms.textContent = "⚠ falha na sincronização";
+      setTimeout(() => { ms.textContent = orig; }, 2000);
     }
   };
 }
