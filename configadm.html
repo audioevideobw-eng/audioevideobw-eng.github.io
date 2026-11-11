@@ -730,18 +730,19 @@ function wireHeader() {
   };
   const vb = document.querySelector("#btnVoltar");
   if (vb) vb.onclick = () => history.back();
-  /* 🔄 Sincronizar: mescla tudo (celular ↔ PC) e mostra o resultado no botão */
-  const sb = document.querySelector("#btnSync");
-  if (sb) sb.onclick = async () => {
-    const orig = sb.textContent;
-    sb.textContent = "⟳ Sincronizando…"; sb.disabled = true;
+  /* 🔄 Sincronizar (item do menu ☰): mescla tudo (celular ↔ PC) e recarrega */
+  const ms = document.querySelector("#menuSync");
+  if (ms) ms.onclick = async (e) => {
+    e.preventDefault();
+    const orig = ms.textContent;
+    ms.textContent = "⟳ Sincronizando…";
     try {
       const r = await sincronizarTudo();
-      sb.textContent = r.msg.length > 34 ? "✓ Sincronizado" : r.msg;
-      setTimeout(() => { sb.textContent = orig; sb.disabled = false; location.reload(); }, 900);
-    } catch (e) {
-      sb.textContent = "⚠ falha"; sb.disabled = false;
-      setTimeout(() => { sb.textContent = orig; }, 2000);
+      ms.textContent = r.msg || "✓ Sincronizado";
+      setTimeout(() => { location.reload(); }, 900);
+    } catch (err) {
+      ms.textContent = "⚠ falha na sincronização";
+      setTimeout(() => { ms.textContent = orig; }, 2000);
     }
   };
 }
