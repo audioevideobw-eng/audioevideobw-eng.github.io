@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<!-- build 2026-11-11T15:35:47 -->
+<!-- build 2026-11-11T16:07:24 -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Eventos — Mesa BW</title>
@@ -2238,12 +2238,17 @@ function init() {
 }
 
 /* ---------- dashboard ---------- */
+/* mês exibido no calendário (navegação ‹ ›) */
+let AG_ANO = new Date().getFullYear();
+let AG_MES = new Date().getMonth();
+
 function agendaVisual() {
   const cal = $("#agCal"); if (!cal) return;
   const hoje = new Date();
-  const ano = hoje.getFullYear(), mes = hoje.getMonth();
-  const mesNome = hoje.toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
-  $("#agMes").textContent = mesNome.charAt(0).toUpperCase() + mesNome.slice(1);
+  const ano = AG_ANO, mes = AG_MES;
+  const mesNome = new Date(ano, mes, 1).toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+  const ehHoje = ano === hoje.getFullYear() && mes === hoje.getMonth();
+  $("#agMes").textContent = mesNome.charAt(0).toUpperCase() + mesNome.slice(1) + (ehHoje ? "" : " (navegando)");
   const primeiro = new Date(ano, mes, 1);
   const diasMes = new Date(ano, mes + 1, 0).getDate();
   const diaSemana = (primeiro.getDay() + 6) % 7;   // segunda = 0
@@ -2287,9 +2292,20 @@ function dashboard() {
   dados.forEach(e => { const t = e.tipo || "Outro"; porTipo[t] = (porTipo[t] || 0) + 1; });
   box.innerHTML = `<div class="grid2">
     <div class="card">
-      <h3>📅 Agenda do mês</h3>
-      <div class="sub" id="agMes"></div>
+      <div class="colap-titulo" data-colap="agenda">
+        <h3>📅 Agenda</h3><span class="colap-seta aberta" data-seta="agenda">▶</span>
+      </div>
+      <div class="colap-painel aberto" data-painel="agenda">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
+        <div class="sub" id="agMes" style="margin:0"></div>
+        <div style="display:flex;gap:6px;align-items:center">
+          <button class="btn gh" id="agPrev" title="Mês anterior" style="padding:6px 12px">‹</button>
+          <button class="btn gh" id="agHoje" title="Mês atual" style="padding:6px 12px;font-size:11px">Hoje</button>
+          <button class="btn gh" id="agNext" title="Mês seguinte" style="padding:6px 12px">›</button>
+        </div>
+      </div>
       <div id="agCal" style="margin-top:8px"></div>
+      </div>
     </div>
     <div class="card">
       <h3>Painel de eventos</h3>
@@ -2310,6 +2326,11 @@ function dashboard() {
     </div>
   </div>`;
   agendaVisual();
+  const prev = $("#agPrev"), next = $("#agNext"), hj = $("#agHoje");
+  if (prev) prev.onclick = () => { AG_MES--; if (AG_MES < 0) { AG_MES = 11; AG_ANO--; } agendaVisual(); };
+  if (next) next.onclick = () => { AG_MES++; if (AG_MES > 11) { AG_MES = 0; AG_ANO++; } agendaVisual(); };
+  if (hj) hj.onclick = () => { AG_ANO = new Date().getFullYear(); AG_MES = new Date().getMonth(); agendaVisual(); };
+  if ($("#agCal")) ligarColapsaveis($("#evDash"));
   const btnA = $("#evRelAnual");
   if (btnA) btnA.onclick = () => gerarRelatorioAnual();
   const btnG = $("#evRelGastos");
