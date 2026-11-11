@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<!-- build 2026-11-11T12:13:02 -->
+<!-- build 2026-11-11T12:42:53 -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Financeiro de eventos — Mesa BW</title>
@@ -838,9 +838,18 @@ async function baixar() {
     let n = 0; const porChave = {};
     (data || []).forEach(r => {
       if (Array.isArray(r.dados)) {
-        save(r.chave, 1, r.dados);
-        n += r.dados.length;
-        porChave[r.chave] = r.dados.length;
+        /* MESCLA em vez de sobrescrever: união por id — o que existe só no
+           aparelho NÃO é perdido; o que existe só na nuvem é trazido */
+        const locais = load(r.chave, 1, []);
+        const porId = new Map(locais.map(o => [String(o.id), o]));
+        let trazidos = 0;
+        (r.dados || []).forEach(o => {
+          if (!porId.has(String(o.id))) { porId.set(String(o.id), o); trazidos++; }
+        });
+        const mesclado = [...porId.values()];
+        save(r.chave, 1, mesclado);
+        n += mesclado.length;
+        porChave[r.chave] = `${trazidos} novo(s) de ${mesclado.length}`;
       }
     });
     const rotulos = { fx_alerts: "alertas", fx_diario: "operações de diário" };
