@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<!-- build 2026-11-11T16:07:24 -->
+<!-- build 2026-11-11T17:22:06 -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Orçamento familiar — Mesa BW</title>
@@ -805,9 +805,17 @@ async function mesclarChave(chave) {
   const naNuvem = (remota && Array.isArray(remota.dados)) ? remota.dados : [];
   const locais = load(chave, 1, []);
   const porId = new Map(naNuvem.map(o => [String(o.id), o]));
-  let novos = 0;
+  let novos = 0, atualizados = 0;
   locais.forEach(o => {
-    if (!porId.has(String(o.id))) { porId.set(String(o.id), o); novos++; }
+    const k = String(o.id);
+    if (!porId.has(k)) { porId.set(k, o); novos++; return; }
+    /* ÚLTIMA EDIÇÃO VENCE: se o item existe nos dois lados, o de carimbo
+       _ed mais recente ganha (edições se propagam entre aparelhos) */
+    const rem = porId.get(k);
+    const edL = o._ed || 0, edR = rem._ed || 0;
+    if (edL > edR && JSON.stringify(o) !== JSON.stringify(rem)) {
+      porId.set(k, o); atualizados++;
+    }
   });
   const mesclado = colapsarDuplicados(chave, [...porId.values()]);
   const mudouLocal = mesclado.length !== locais.length;
@@ -819,6 +827,54 @@ async function mesclarChave(chave) {
       { onConflict: "user_id,chave" });
   }
   return { chave, novos, subidos };
+}
+
+/* ENVIAR (ordem do usuário): o aparelho onde o botão foi apertado MANDA —
+   seus dados sobrescrevem a nuvem em todas as chaves. Os outros aparelhos
+   recebem ao abrir/atualizar (F5). */
+async function enviarTudo() {
+  const res = [];
+  for (const k of CHAVES_SYNC) {
+    const c = await sb();
+    const { data: sess } = await c.auth.getSession();
+    if (!sess || !sess.session) return { ok: false, msg: "Entre com sua conta para sincronizar." };
+    const local = load(k, 1, []);
+    const { error } = await c.from("user_data").upsert(
+      { chave: k, dados: local, atualizado_em: new Date().toISOString() },
+      { onConflict: "user_id,chave" });
+    res.push({ chave: k, ok: !error, erro: error ? error.message : null });
+  }
+  const falhas = res.filter(r => !r.ok);
+  const total = res.reduce((t, r) => t + (load(r.chave, 1, []).length), 0);
+  if (falhas.length) return { ok: false, msg: "Falha em " + falhas.length + " chave(s): " + falhas[0].erro };
+  return { ok: true, msg: `✓ Enviado: ${total} registros — os outros aparelhos atualizam ao abrir (F5)` };
+}
+
+/* RECEBER (F5/abrir): o aparelho ADOTA a conta como está (a última ordem vence).
+   Regra do dono: quem apertou Sincronizar deu a ordem — os outros seguem.
+   (Itens que existem só aqui e não na nuvem são removidos: a nuvem é a verdade.) */
+async function receberTudo() {
+  const res = [];
+  for (const k of CHAVES_SYNC) {
+    const c = await sb();
+    const { data: sess } = await c.auth.getSession();
+    if (!sess || !sess.session) return { ok: false, msg: "sem sessão" };
+    const { data: remota, error } = await c.from("user_data")
+      .select("dados").eq("chave", k).maybeSingle();
+    if (error) { res.push({ chave: k, novos: 0 }); continue; }
+    const naNuvem = (remota && Array.isArray(remota.dados)) ? remota.dados : [];
+    const locais = load(k, 1, []);
+    const antes = new Set(locais.map(o => String(o.id)));
+    const depois = new Set(naNuvem.map(o => String(o.id)));
+    let novos = 0, removidos = 0;
+    naNuvem.forEach(o => { if (!antes.has(String(o.id))) novos++; });
+    locais.forEach(o => { if (!depois.has(String(o.id))) removidos++; });
+    save(k, 1, naNuvem);
+    res.push({ chave: k, novos, removidos });
+  }
+  const novos = res.reduce((t, r) => t + (r.novos || 0), 0);
+  const removidos = res.reduce((t, r) => t + (r.removidos || 0), 0);
+  return { ok: true, msg: `✓ Recebido: ${novos} novo(s), ${removidos} removido(s)` };
 }
 
 async function sincronizarTudo() {
@@ -840,7 +896,7 @@ async function disponivel() {
   } catch (e) { return false; }
 }
 
-return { CHAVES_SYNC, baixar, disponivel, sincronizarTudo, subir };
+return { CHAVES_SYNC, baixar, disponivel, enviarTudo, receberTudo, sincronizarTudo, subir };
 })();
 /* ===== core/colap.js ===== */
 MOD['core/colap'] = (function() {
@@ -885,7 +941,7 @@ const {  $, esc  } = MOD['core/format'];
 const data = MOD['core/data'];
 const {  stamp  } = MOD['core/ui'];
 const auth = MOD['core/auth'];
-const {  sincronizarTudo  } = MOD['core/nuvem'];
+const {  enviarTudo, receberTudo  } = MOD['core/nuvem'];
 
 /* injeta dados embutidos (página publicada) ou busca data.json (dev) */
 async function iniciarDados() {
@@ -973,18 +1029,19 @@ function wireHeader() {
   };
   const vb = document.querySelector("#btnVoltar");
   if (vb) vb.onclick = () => history.back();
-  /* 🔄 Sincronizar (item do menu ☰): mescla tudo (celular ↔ PC) e recarrega */
+  /* 🔄 Sincronizar (menu ☰) = ORDEM DO USUÁRIO: este aparelho MANDA seus dados
+     para a conta — os outros aparelhos atualizam ao abrir/atualizar (F5) */
   const ms = document.querySelector("#menuSync");
   if (ms) ms.onclick = async (e) => {
     e.preventDefault();
     const orig = ms.textContent;
-    ms.textContent = "⟳ Sincronizando…";
+    ms.textContent = "⟳ Enviando dados…";
     try {
-      const r = await sincronizarTudo();
-      ms.textContent = r.msg || "✓ Sincronizado";
-      setTimeout(() => { location.reload(); }, 900);
+      const r = await enviarTudo();
+      ms.textContent = r.msg || "✓ Enviado";
+      setTimeout(() => { location.reload(); }, 1200);
     } catch (err) {
-      ms.textContent = "⚠ falha na sincronização";
+      ms.textContent = "⚠ falha no envio";
       setTimeout(() => { ms.textContent = orig; }, 2000);
     }
   };
@@ -996,10 +1053,10 @@ async function bootComum() {
   await montarCabecalho();
   wireHeader();
   registrarSW();
-  /* sincronia automática: ao abrir/atualizar a página, mescla celular ↔ PC */
-  sincronizarTudo().then(r => {
-    if (r && (r.novos > 0 || r.subidos > 0)) {
-      /* algo mudou entre os aparelhos — recarrega para mostrar o estado atual */
+  /* sincronia automática ao abrir/atualizar: RECEBE o que os outros aparelhos
+     enviaram (mesclando — nada local se perde). Se algo chegou, recarrega. */
+  receberTudo().then(r => {
+    if (r && r.ok && r.msg.indexOf("0 registro") < 0) {
       setTimeout(() => location.reload(), 400);
     }
   }).catch(() => { });
@@ -1169,9 +1226,17 @@ async function mesclarChave(chave) {
   const naNuvem = (remota && Array.isArray(remota.dados)) ? remota.dados : [];
   const locais = load(chave, 1, []);
   const porId = new Map(naNuvem.map(o => [String(o.id), o]));
-  let novos = 0;
+  let novos = 0, atualizados = 0;
   locais.forEach(o => {
-    if (!porId.has(String(o.id))) { porId.set(String(o.id), o); novos++; }
+    const k = String(o.id);
+    if (!porId.has(k)) { porId.set(k, o); novos++; return; }
+    /* ÚLTIMA EDIÇÃO VENCE: se o item existe nos dois lados, o de carimbo
+       _ed mais recente ganha (edições se propagam entre aparelhos) */
+    const rem = porId.get(k);
+    const edL = o._ed || 0, edR = rem._ed || 0;
+    if (edL > edR && JSON.stringify(o) !== JSON.stringify(rem)) {
+      porId.set(k, o); atualizados++;
+    }
   });
   const mesclado = colapsarDuplicados(chave, [...porId.values()]);
   const mudouLocal = mesclado.length !== locais.length;
@@ -1183,6 +1248,54 @@ async function mesclarChave(chave) {
       { onConflict: "user_id,chave" });
   }
   return { chave, novos, subidos };
+}
+
+/* ENVIAR (ordem do usuário): o aparelho onde o botão foi apertado MANDA —
+   seus dados sobrescrevem a nuvem em todas as chaves. Os outros aparelhos
+   recebem ao abrir/atualizar (F5). */
+async function enviarTudo() {
+  const res = [];
+  for (const k of CHAVES_SYNC) {
+    const c = await sb();
+    const { data: sess } = await c.auth.getSession();
+    if (!sess || !sess.session) return { ok: false, msg: "Entre com sua conta para sincronizar." };
+    const local = load(k, 1, []);
+    const { error } = await c.from("user_data").upsert(
+      { chave: k, dados: local, atualizado_em: new Date().toISOString() },
+      { onConflict: "user_id,chave" });
+    res.push({ chave: k, ok: !error, erro: error ? error.message : null });
+  }
+  const falhas = res.filter(r => !r.ok);
+  const total = res.reduce((t, r) => t + (load(r.chave, 1, []).length), 0);
+  if (falhas.length) return { ok: false, msg: "Falha em " + falhas.length + " chave(s): " + falhas[0].erro };
+  return { ok: true, msg: `✓ Enviado: ${total} registros — os outros aparelhos atualizam ao abrir (F5)` };
+}
+
+/* RECEBER (F5/abrir): o aparelho ADOTA a conta como está (a última ordem vence).
+   Regra do dono: quem apertou Sincronizar deu a ordem — os outros seguem.
+   (Itens que existem só aqui e não na nuvem são removidos: a nuvem é a verdade.) */
+async function receberTudo() {
+  const res = [];
+  for (const k of CHAVES_SYNC) {
+    const c = await sb();
+    const { data: sess } = await c.auth.getSession();
+    if (!sess || !sess.session) return { ok: false, msg: "sem sessão" };
+    const { data: remota, error } = await c.from("user_data")
+      .select("dados").eq("chave", k).maybeSingle();
+    if (error) { res.push({ chave: k, novos: 0 }); continue; }
+    const naNuvem = (remota && Array.isArray(remota.dados)) ? remota.dados : [];
+    const locais = load(k, 1, []);
+    const antes = new Set(locais.map(o => String(o.id)));
+    const depois = new Set(naNuvem.map(o => String(o.id)));
+    let novos = 0, removidos = 0;
+    naNuvem.forEach(o => { if (!antes.has(String(o.id))) novos++; });
+    locais.forEach(o => { if (!depois.has(String(o.id))) removidos++; });
+    save(k, 1, naNuvem);
+    res.push({ chave: k, novos, removidos });
+  }
+  const novos = res.reduce((t, r) => t + (r.novos || 0), 0);
+  const removidos = res.reduce((t, r) => t + (r.removidos || 0), 0);
+  return { ok: true, msg: `✓ Recebido: ${novos} novo(s), ${removidos} removido(s)` };
 }
 
 async function sincronizarTudo() {
@@ -1204,7 +1317,7 @@ async function disponivel() {
   } catch (e) { return false; }
 }
 
-return { CHAVES_SYNC, baixar, disponivel, sincronizarTudo, subir };
+return { CHAVES_SYNC, baixar, disponivel, enviarTudo, receberTudo, sincronizarTudo, subir };
 })();
 /* ===== modules/exportar.js ===== */
 MOD['modules/exportar'] = (function() {
@@ -1371,7 +1484,7 @@ const {  load, save  } = MOD['core/store'];
 const nuvem = MOD['core/nuvem'];
 const auth = MOD['core/auth'];
 const exportar = MOD['modules/exportar'];
-const {  sincronizarTudo  } = MOD['core/nuvem'];
+const {  enviarTudo  } = MOD['core/nuvem'];
 const {  ligarColapsaveis  } = MOD['core/colap'];
 
 const LISTAS = [
@@ -1714,7 +1827,7 @@ function render() {
   LISTAS.forEach(l => { const b = $("#" + BOXES[l.key]); if (b) ligarColapsaveis(b); });
   /* sincronia automática após salvar (regra do dono) */
   document.querySelectorAll("[data-add]").forEach(b => {
-    b.addEventListener("click", () => setTimeout(() => sincronizarTudo(), 300));
+    b.addEventListener("click", () => setTimeout(() => enviarTudo(), 300));
   });
 }
 
@@ -1914,7 +2027,7 @@ function renderFixos() {
     if (!f.c0 || !f.c1) { $("#fxMsg").textContent = "Preencha descrição e valor."; return; }
     const fixos = load(FIXOS_KEY, 1, []);
     fixos.push(f);
-    setTimeout(() => sincronizarTudo(), 300);
+    setTimeout(() => enviarTudo(), 300);
     save(FIXOS_KEY, 1, fixos);
     const n = expandirFixos();
     $("#fxMsg").textContent = `Fixo criado — ${n} conta(s) gerada(s) automaticamente.`;
