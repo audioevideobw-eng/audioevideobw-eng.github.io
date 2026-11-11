@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<!-- build 2026-11-11T19:04:37 -->
+<!-- build 2026-11-11T20:31:39 -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Eventos — Mesa BW</title>
@@ -1338,8 +1338,9 @@ function garantir(fluxo, id, item) {
     return true;
   }
   if (existente) {                           // atualizar (mantém posição)
+    const antes = JSON.stringify(existente);
     Object.assign(existente, item);
-    return false;
+    return JSON.stringify(existente) !== antes;   // atualização também é mudança
   }
   fluxo.push(Object.assign({ id }, item));   // criar
   return true;
