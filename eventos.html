@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<!-- build 2026-11-11T16:07:24 -->
+<!-- build 2026-11-11T17:09:00 -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Eventos — Mesa BW</title>
@@ -801,9 +801,17 @@ async function mesclarChave(chave) {
   const naNuvem = (remota && Array.isArray(remota.dados)) ? remota.dados : [];
   const locais = load(chave, 1, []);
   const porId = new Map(naNuvem.map(o => [String(o.id), o]));
-  let novos = 0;
+  let novos = 0, atualizados = 0;
   locais.forEach(o => {
-    if (!porId.has(String(o.id))) { porId.set(String(o.id), o); novos++; }
+    const k = String(o.id);
+    if (!porId.has(k)) { porId.set(k, o); novos++; return; }
+    /* ÚLTIMA EDIÇÃO VENCE: se o item existe nos dois lados, o de carimbo
+       _ed mais recente ganha (edições se propagam entre aparelhos) */
+    const rem = porId.get(k);
+    const edL = o._ed || 0, edR = rem._ed || 0;
+    if (edL > edR && JSON.stringify(o) !== JSON.stringify(rem)) {
+      porId.set(k, o); atualizados++;
+    }
   });
   const mesclado = colapsarDuplicados(chave, [...porId.values()]);
   const mudouLocal = mesclado.length !== locais.length;
@@ -1165,9 +1173,17 @@ async function mesclarChave(chave) {
   const naNuvem = (remota && Array.isArray(remota.dados)) ? remota.dados : [];
   const locais = load(chave, 1, []);
   const porId = new Map(naNuvem.map(o => [String(o.id), o]));
-  let novos = 0;
+  let novos = 0, atualizados = 0;
   locais.forEach(o => {
-    if (!porId.has(String(o.id))) { porId.set(String(o.id), o); novos++; }
+    const k = String(o.id);
+    if (!porId.has(k)) { porId.set(k, o); novos++; return; }
+    /* ÚLTIMA EDIÇÃO VENCE: se o item existe nos dois lados, o de carimbo
+       _ed mais recente ganha (edições se propagam entre aparelhos) */
+    const rem = porId.get(k);
+    const edL = o._ed || 0, edR = rem._ed || 0;
+    if (edL > edR && JSON.stringify(o) !== JSON.stringify(rem)) {
+      porId.set(k, o); atualizados++;
+    }
   });
   const mesclado = colapsarDuplicados(chave, [...porId.values()]);
   const mudouLocal = mesclado.length !== locais.length;
@@ -1408,6 +1424,7 @@ function renderClientes() {
       const c = lista.find(x => String(x.id) === String(editando));
       Object.assign(c, { nome, cnpj: $("#cCNPJ").value.trim(), tel: $("#cTel").value.trim(),
         email: $("#cEmail").value.trim(), end: $("#cEnd").value.trim(), cidade: $("#cCidade").value.trim() });
+      c._ed = Date.now();
       $("#cMsg").textContent = `Cliente ${nome} atualizado.`;
     } else {
       lista.push({ id: Date.now(), nome, cnpj: $("#cCNPJ").value.trim(), tel: $("#cTel").value.trim(),
@@ -3438,6 +3455,7 @@ window.__evEditar = id => {
     alvo.contratado = $("#edContratado").value;
     alvo.recebido = $("#edRecebido").value;
     alvo.obs = $("#edObs").value.trim();
+    alvo._ed = Date.now();   // última edição vence na sincronia
     salvarEventos(l2);
     $("#edMsg").textContent = "✓ Alterações salvas — indicadores e Fluxo de Caixa atualizados.";
     render();
