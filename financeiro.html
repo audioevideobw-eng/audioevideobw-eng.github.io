@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<!-- build 2026-11-11T17:22:06 -->
+<!-- build 2026-11-11T19:04:37 -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Financeiro de eventos — Mesa BW</title>
@@ -861,12 +861,14 @@ async function receberTudo() {
     let novos = 0, removidos = 0;
     naNuvem.forEach(o => { if (!antes.has(String(o.id))) novos++; });
     locais.forEach(o => { if (!depois.has(String(o.id))) removidos++; });
-    save(k, 1, naNuvem);
+    /* grava SÓ se mudou de verdade (evita writes e loops) */
+    if (novos + removidos > 0) save(k, 1, naNuvem);
     res.push({ chave: k, novos, removidos });
   }
   const novos = res.reduce((t, r) => t + (r.novos || 0), 0);
   const removidos = res.reduce((t, r) => t + (r.removidos || 0), 0);
-  return { ok: true, msg: `✓ Recebido: ${novos} novo(s), ${removidos} removido(s)` };
+  return { ok: true, msg: `✓ Recebido: ${novos} novo(s), ${removidos} removido(s)`,
+    totalMudou: novos + removidos };
 }
 
 async function sincronizarTudo() {
@@ -1046,9 +1048,9 @@ async function bootComum() {
   wireHeader();
   registrarSW();
   /* sincronia automática ao abrir/atualizar: RECEBE o que os outros aparelhos
-     enviaram (mesclando — nada local se perde). Se algo chegou, recarrega. */
+     enviaram. Recarrega SÓ se algo mudou de verdade (novo/removido > 0). */
   receberTudo().then(r => {
-    if (r && r.ok && r.msg.indexOf("0 registro") < 0) {
+    if (r && r.ok && r.totalMudou > 0) {
       setTimeout(() => location.reload(), 400);
     }
   }).catch(() => { });
@@ -1282,12 +1284,14 @@ async function receberTudo() {
     let novos = 0, removidos = 0;
     naNuvem.forEach(o => { if (!antes.has(String(o.id))) novos++; });
     locais.forEach(o => { if (!depois.has(String(o.id))) removidos++; });
-    save(k, 1, naNuvem);
+    /* grava SÓ se mudou de verdade (evita writes e loops) */
+    if (novos + removidos > 0) save(k, 1, naNuvem);
     res.push({ chave: k, novos, removidos });
   }
   const novos = res.reduce((t, r) => t + (r.novos || 0), 0);
   const removidos = res.reduce((t, r) => t + (r.removidos || 0), 0);
-  return { ok: true, msg: `✓ Recebido: ${novos} novo(s), ${removidos} removido(s)` };
+  return { ok: true, msg: `✓ Recebido: ${novos} novo(s), ${removidos} removido(s)`,
+    totalMudou: novos + removidos };
 }
 
 async function sincronizarTudo() {
