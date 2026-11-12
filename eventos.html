@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<!-- build 2026-11-12T00:15:29 -->
+<!-- build 2026-11-12T00:28:52 -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Eventos — Brightway</title>
@@ -62,9 +62,9 @@ h2::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--li
 
 /* ---------- kpi ---------- */
 .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
-.kpi{background:linear-gradient(160deg,var(--navy2),var(--navy));border:1px solid var(--line);
-  border-radius:14px;padding:16px 18px;position:relative;overflow:hidden}
-.kpi::before{content:"";position:absolute;inset:0 auto 0 0;width:3px;background:var(--gold);opacity:.7}
+.kpi{background:var(--card-bg);border:1px solid var(--card-borda);
+  border-radius:var(--raio);padding:18px 20px;position:relative;overflow:hidden}
+
 .kpi .l{font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--mut)}
 .kpi .v{font-size:26px;font-weight:600;margin:6px 0 2px;font-variant-numeric:tabular-nums}
 .kpi .s{font-size:11.5px;color:var(--mut)}
@@ -217,6 +217,9 @@ footer b{color:var(--gold)}
 .bw-titulo-pagina{font-family:'Inter',sans-serif;font-size:30px;font-weight:600;color:var(--txt);margin-top:2px}
 .bw-sub{display:block;padding:2px 12px 2px 24px;font-size:14px;color:var(--txt2);text-decoration:none;min-height:34px;line-height:34px}
 .bw-sub:hover{color:var(--gold)}
+#evDossie{display:grid;grid-template-columns:2fr 1fr;gap:16px;align-items:start}
+#evDossie>.bw-card:first-child{grid-column:1/-1}
+@media(max-width:899px){#evDossie{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -294,7 +297,7 @@ footer b{color:var(--gold)}
     Não é recomendação de investimento.
   </footer>
 </div>
-<script>if(["index.html","eventos.html"].indexOf(location.pathname.split("/").pop())>-1||location.pathname.split("/").pop()==="")document.write('<scr'+'ipt src="assets/layout.js"></scr'+'ipt>');</script>
+<script src="assets/layout.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/pdfmake@0.2.20/build/pdfmake.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
@@ -2430,7 +2433,7 @@ function dashboard() {
   box.innerHTML = `<div class="grid2">
     <div class="card">
       <div class="colap-titulo" data-colap="agenda">
-        <h3>📅 Agenda</h3><span class="colap-seta aberta" data-seta="agenda">▶</span>
+        <h3>Agenda</h3><span class="colap-seta aberta" data-seta="agenda">▶</span>
       </div>
       <div class="colap-painel aberto" data-painel="agenda">
       <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
@@ -2456,9 +2459,9 @@ function dashboard() {
       <div class="sub">Distribuição dos eventos</div>
       ${Object.entries(porTipo).sort((a, b) => b[1] - a[1]).map(([t, n]) =>
         `<div class="row"><span>${t}</span><b>${n}</b></div>`).join("") || '<div class="note">Sem eventos ainda.</div>'}
-      <button class="btn gh" id="evRelGastos" style="margin-top:10px">📊 Relatório mensal de gastos</button>
+      <button class="btn gh" id="evRelGastos" style="margin-top:10px">Relatório mensal de gastos</button>
       <div id="relGastosBox" style="margin-top:8px"></div>
-      <button class="btn gh" id="evRelAnual" style="margin-top:10px">📈 Relatório anual (PDF)</button>
+      <button class="btn gh" id="evRelAnual" style="margin-top:10px">Relatório anual (PDF)</button>
       <div class="note" id="relAnualMsg"></div>
     </div>
   </div>`;
@@ -2518,10 +2521,10 @@ function render() {
     const badge = dias === null ? "" : dias < 0 ? "realizado" : dias === 0 ? "HOJE" : `faltam ${dias}d`;
     const sit = pago(e);
     const acoes = (e.status === "Realizado" || e.status === "Entregue")
-      ? `<button class="btn gh" data-agd="${e.id}">📅 Agendar</button>
-         <button class="btn gh" data-pago="${e.id}">${sit ? "⏳ Marcar não pago" : "💰 Marcar recebido"}</button>`
-      : `<button class="btn gh" data-fin="${e.id}">✓ Finalizado</button>
-         <button class="btn gh" data-pago="${e.id}">${sit ? "⏳ Marcar não pago" : "💰 Marcar recebido"}</button>`;
+      ? `<button class="btn gh" data-agd="${e.id}">Agendar</button>
+         <button class="btn gh" data-pago="${e.id}">${sit ? "Marcar não pago" : "Marcar recebido"}</button>`
+      : `<button class="btn gh" data-fin="${e.id}">Finalizado</button>
+         <button class="btn gh" data-pago="${e.id}">${sit ? "Marcar não pago" : "Marcar recebido"}</button>`;
     return `<div class="card" style="margin-top:10px;background:var(--navy3)">
       <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap">
         <b>${esc(e.nome)}</b>
@@ -2534,8 +2537,8 @@ function render() {
         👤 ${esc(e.cliente || "—")} · 🎭 ${esc(e.tipo || "—")} · 👥 ${esc(e.equipeNome || "sem equipe")}
       </div>
       <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
-        <button class="btn gh" onclick="window.__evAbrir('${e.id}')">📂 Abrir dossiê</button>
-        <button class="btn gh" onclick="window.__evEditar('${e.id}')">✎ EDITAR</button>
+        <button class="btn gh" onclick="window.__evAbrir('${e.id}')">Abrir dossiê</button>
+        <button class="btn gh" onclick="window.__evEditar('${e.id}')">EDITAR</button>
         ${acoes}
         <a href="#" onclick="window.__evDel('${e.id}');return false" style="color:var(--dn);align-self:center">excluir</a>
       </div>
@@ -2547,12 +2550,12 @@ function render() {
       <h3>Eventos cadastrados</h3><span class="colap-seta aberta" data-seta="evlista">▶</span>
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
-      <button class="btn ${aba === "agenda" ? "" : "gh"}" data-aba="agenda">📅 AGENDA DE EVENTOS (${agenda.length})</button>
-      <button class="btn ${aba === "realizados" ? "" : "gh"}" data-aba="realizados">🏁 EVENTOS REALIZADOS (${finalizados.length})</button>
+      <button class="btn ${aba === "agenda" ? "" : "gh"}" data-aba="agenda">AGENDA DE EVENTOS (${agenda.length})</button>
+      <button class="btn ${aba === "realizados" ? "" : "gh"}" data-aba="realizados">EVENTOS REALIZADOS (${finalizados.length})</button>
     </div>
-    <div class="sub">Cada evento é um dossiê: ficha, equipe, checklist, mídia, relatório e financeiro. "✓ Finalizado" move para EVENTOS REALIZADOS; "📅 Agendar" traz de volta. O pagamento sincroniza com os indicadores.</div>
+    <div class="sub">Cada evento é um dossiê: ficha, equipe, checklist, mídia, relatório e financeiro. "Finalizado" move para EVENTOS REALIZADOS; "Agendar" traz de volta. O pagamento sincroniza com os indicadores.</div>
     <div class="colap-painel aberto" data-painel="evlista">
-    ${lista.length ? lista.map(card).join("") : `<div class="note">${aba === "agenda" ? "Nenhum evento na agenda — crie abaixo ou mova de EVENTOS REALIZADOS." : "Nenhum evento realizado ainda — use ✓ Finalizado na AGENDA."}</div>`}
+    ${lista.length ? lista.map(card).join("") : `<div class="note">${aba === "agenda" ? "Nenhum evento na agenda — crie abaixo ou mova de EVENTOS REALIZADOS." : "Nenhum evento realizado ainda — use Finalizado na AGENDA."}</div>`}
     </div>
   </div>`;
   ligarColapsaveis(box);
@@ -2670,7 +2673,7 @@ function abrirDossie(id) {
         recebido = parseFloat(e.recebido || 0) || 0;
   box.innerHTML = `<div class="card">
     <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px">
-      <h3>📂 ${esc(e.nome)}</h3>
+      <h3>${esc(e.nome)}</h3>
       <span class="tag mid">${esc(e.status)}</span>
     </div>
     <div class="frow3" style="margin-top:10px">
@@ -2682,18 +2685,18 @@ function abrirDossie(id) {
     <div class="row"><span>A receber</span><b style="color:var(--gold2)">R$ ${fmt(Math.max(0, contratado - recebido), 2)}</b></div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
       <button class="btn gh" id="dSalvar">💾 Salvar alterações</button>
-      <button class="btn gh" id="dPDF">📄 Dossiê em PDF</button>
+      <button class="btn gh" id="dPDF">Dossiê em PDF</button>
     </div>
     <div style="margin-top:14px;border-top:1px solid var(--line);padding-top:12px">
-      <h3>👤 Histórico do cliente</h3>
+      <h3>Histórico do cliente</h3>
       <div id="dHistorico"></div>
     </div>
     <div style="margin-top:14px;border-top:1px solid var(--line);padding-top:12px">
-      <h3>⭐ Avaliação da equipe</h3>
+      <h3>Avaliação da equipe</h3>
       <div id="dAvaliacao"></div>
     </div>
     <div style="margin-top:14px;border-top:1px solid var(--line);padding-top:12px">
-      <h3>👥 Equipe (da Gestão de Equipe)</h3>
+      <h3>Equipe (da Gestão de Pessoas)</h3>
       ${membros.length ? membros.map(m => `<div class="row"><span>${esc(m.nome)} <small style="color:var(--mut)">${esc(m.funcao || "")}</small></span><b>${m.tel ? `<a href="https://wa.me/55${(m.tel || "").replace(/\D/g, "")}" style="color:var(--gold2)">💬</a>` : ""}</b></div>`).join("")
         : '<div class="note">A equipe selecionada não tem membros.</div>'}
     </div>
@@ -2702,29 +2705,29 @@ function abrirDossie(id) {
       <div id="dChecklist"></div>
     </div>
     <div style="margin-top:14px;border-top:1px solid var(--line);padding-top:12px">
-      <h3>📸 Mídia do evento</h3>
+      <h3>Mídia do evento</h3>
       <div id="dMidia"></div>
-      <div style="margin-top:10px"><button class="btn gh" id="dGaleriaLink">🔗 Galeria do cliente</button>
+      <div style="margin-top:10px"><button class="btn gh" id="dGaleriaLink">Galeria do cliente</button>
       <div id="galeriaBox" style="margin-top:8px"></div></div>
     </div>
     <div style="margin-top:14px;border-top:1px solid var(--line);padding-top:12px">
-      <h3>💰 Gastos operacionais + comprovante fiscal</h3>
+      <h3>Gastos operacionais + comprovante fiscal</h3>
       <div id="dGastos"></div>
     </div>
     <div style="margin-top:14px;border-top:1px solid var(--line);padding-top:12px">
-      <h3>🧾 Nota Fiscal Eletrônica</h3>
+      <h3>Nota Fiscal Eletrônica</h3>
       <div id="dNFE"></div>
     </div>
     <div style="margin-top:14px;border-top:1px solid var(--line);padding-top:12px">
-      <h3>🚗 Veículos do evento (entrada)</h3>
+      <h3>Veículos do evento (entrada)</h3>
       <div id="dVeiculos"></div>
     </div>
     <div style="margin-top:14px;border-top:1px solid var(--line);padding-top:12px">
-      <h3>📜 Contrato / OS</h3>
+      <h3>Contrato / OS</h3>
       <div id="dContrato"></div>
     </div>
     <div style="margin-top:14px;border-top:1px solid var(--line);padding-top:12px">
-      <h3>📝 Relatório</h3>
+      <h3>Relatório</h3>
       <textarea id="dRelatorio" style="width:100%;min-height:70px;background:#0b1220;border:1px solid var(--line);border-radius:10px;color:var(--txt);padding:10px" placeholder="O que foi feito, ocorrências, feedback do cliente…">${esc(e.relatorio || "")}</textarea>
       <button class="btn gh" id="dSalvarRel" style="margin-top:8px">💾 Salvar relatório</button>
     </div>
@@ -2895,7 +2898,7 @@ function wireGastos(e) {
     box.querySelector("#gLista").innerHTML = gts.length ? gts.map((g, i) => `
       <div class="row"><span><b>${esc(g.desc)}</b> <small style="color:var(--mut)">${esc(g.data || "")}</small>
         <small style="display:block;color:var(--gold2)">R$ ${fmt(parseFloat(g.valor || 0) || 0, 2)}</small></span>
-      <b>${g.comprovante ? `<a class="btn gh" style="padding:5px 10px;font-size:11px" href="${esc(g.comprovante)}" target="_blank">🧾 Comprovante Fiscal</a>` : ""}
+      <b>${g.comprovante ? `<a class="btn gh" style="padding:5px 10px;font-size:11px" href="${esc(g.comprovante)}" target="_blank">Comprovante Fiscal</a>` : ""}
       <a href="#" onclick="window.__gDel('${e.id}',${i});return false" style="color:var(--dn)">✕</a></b></div>`).join("")
       : '<div class="note">Nenhum gasto operacional lançado.</div>';
   };
