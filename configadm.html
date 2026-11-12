@@ -24,13 +24,14 @@ a{color:var(--gold2)}
 /* ---------- header ---------- */
 header{position:sticky;top:0;z-index:50;background:rgba(11,18,32,.92);
   backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
-.hd{max-width:1280px;margin:0 auto;padding:14px 20px;display:flex;
-  align-items:center;gap:18px;flex-wrap:wrap}
+.hd{max-width:1280px;margin:0 auto;padding:14px 20px;display:grid;
+  grid-template-columns:1fr auto 1fr;align-items:center;gap:12px}
+.hd-lado{display:flex;align-items:center;gap:10px}
+.hd-lado:last-child{justify-content:flex-end}
+.nav-grupos{grid-column:1/-1}
 .brand{display:flex;align-items:baseline;gap:10px}
 .brand b{font-size:19px;letter-spacing:.14em;color:var(--gold)}
 .brand span{font-size:11px;letter-spacing:.28em;color:var(--mut);text-transform:uppercase}
-.hd .stamp{margin-left:auto;font-size:11px;color:var(--mut);text-align:right;line-height:1.5}
-.hd .stamp b{color:var(--txt);font-weight:600}
 nav{display:flex;gap:6px;flex-wrap:wrap}
 nav a{font-size:12.5px;padding:7px 13px;border-radius:999px;color:var(--mut);
   text-decoration:none;border:1px solid transparent;white-space:nowrap}
