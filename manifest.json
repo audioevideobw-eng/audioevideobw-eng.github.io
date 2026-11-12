@@ -1,6 +1,6 @@
 {
-  "name": "Mesa de Câmbio & Milhas — BW Audiovisual",
-  "short_name": "Mesa BW",
+  "name": "Brightway — BW Audiovisual",
+  "short_name": "Brightway",
   "description": "Painel de câmbio, milhas e ferramentas de viagem da BW Audiovisual.",
   "start_url": "./",
   "scope": "./",
@@ -9,8 +9,23 @@
   "theme_color": "#0b1220",
   "lang": "pt-BR",
   "icons": [
-    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
   ]
 }
