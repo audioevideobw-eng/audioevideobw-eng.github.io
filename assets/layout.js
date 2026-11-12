@@ -3,6 +3,7 @@
    O #menuSync e o #userBox são RELOCADOS (mesmos ids, mesmos handlers).
    Celular (<900px): barra de abas fixa embaixo. */
 (function(){
+  function init(){
   var PAGINA = (location.pathname.split("/").pop() || "index.html").replace(".html", "");
   if (PAGINA === "index" || PAGINA === "") PAGINA = "index";
   if (PAGINA === "login" || PAGINA === "cadastro") return;   // sem menu lateral
@@ -115,4 +116,7 @@
   /* o botão voltar antigo (header escondido) continua existindo; ligo o novo */
   var vb = document.querySelector(".bw-topo #btnVoltar");
   if (vb) vb.onclick = function(){ history.back(); };
+  }  // fim init
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+  else init();
 })();
