@@ -1,4 +1,4 @@
-/* Service Worker da Mesa BW — offline-first.
+/* Service Worker do Brightway — offline-first.
    Estratégia:
    - shell (index.html, manifest, ícones): cache-first com atualização em 2º plano
    - fontes de dados (milhas.json): network-first, cai no cache sem rede
@@ -102,8 +102,8 @@ self.addEventListener("fetch", e => {
 /* PUSH: notificação quando um alerta de preço dispara */
 self.addEventListener("push", e => {
   let d = {};
-  try { d = e.data.json(); } catch (err) { d = { title: "Mesa BW", body: (e.data && e.data.text()) || "" }; }
-  e.waitUntil(self.registration.showNotification(d.title || "Mesa BW", {
+  try { d = e.data.json(); } catch (err) { d = { title: "Brightway", body: (e.data && e.data.text()) || "" }; }
+  e.waitUntil(self.registration.showNotification(d.title || "Brightway", {
     body: d.body || "",
     tag: d.tag || "bw-alerta",
     icon: "icons/icon-192.png",
