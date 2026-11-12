@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Configuração — Mesa BW</title>
+<title>Configuração — Brightway</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0b1220">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
@@ -235,7 +235,7 @@ footer b{color:var(--gold)}
   </div>
 
   <footer>
-    <b>Mesa de Câmbio &amp; Milhas — BW Audiovisual</b><br>
+    <b>Brightway — BW Audiovisual</b><br>
     Acesso por convite: só entra quem o administrador liberar no Supabase.
     Senha protegida com hash bcrypt; sessão com token JWT.
   </footer>
@@ -642,7 +642,7 @@ const {  $, esc  } = MOD['core/format'];
 const data = MOD['core/data'];
 const {  stamp  } = MOD['core/ui'];
 const auth = MOD['core/auth'];
-const {  sincronizarTudo  } = MOD['core/nuvem'];
+const {  enviarTudo, receberTudo  } = MOD['core/nuvem'];
 
 /* injeta dados embutidos (página publicada) ou busca data.json (dev) */
 async function iniciarDados() {
@@ -730,18 +730,19 @@ function wireHeader() {
   };
   const vb = document.querySelector("#btnVoltar");
   if (vb) vb.onclick = () => history.back();
-  /* 🔄 Sincronizar (item do menu ☰): mescla tudo (celular ↔ PC) e recarrega */
+  /* 🔄 Sincronizar (menu ☰) = ORDEM DO USUÁRIO: este aparelho MANDA seus dados
+     para a conta — os outros aparelhos atualizam ao abrir/atualizar (F5) */
   const ms = document.querySelector("#menuSync");
   if (ms) ms.onclick = async (e) => {
     e.preventDefault();
     const orig = ms.textContent;
-    ms.textContent = "⟳ Sincronizando…";
+    ms.textContent = "⟳ Enviando dados…";
     try {
-      const r = await sincronizarTudo();
-      ms.textContent = r.msg || "✓ Sincronizado";
-      setTimeout(() => { location.reload(); }, 900);
+      const r = await enviarTudo();
+      ms.textContent = r.msg || "✓ Enviado";
+      setTimeout(() => { location.reload(); }, 1200);
     } catch (err) {
-      ms.textContent = "⚠ falha na sincronização";
+      ms.textContent = "⚠ falha no envio";
       setTimeout(() => { ms.textContent = orig; }, 2000);
     }
   };
@@ -753,10 +754,10 @@ async function bootComum() {
   await montarCabecalho();
   wireHeader();
   registrarSW();
-  /* sincronia automática: ao abrir/atualizar a página, mescla celular ↔ PC */
-  sincronizarTudo().then(r => {
-    if (r && (r.novos > 0 || r.subidos > 0)) {
-      /* algo mudou entre os aparelhos — recarrega para mostrar o estado atual */
+  /* sincronia automática ao abrir/atualizar: RECEBE o que os outros aparelhos
+     enviaram. Recarrega SÓ se algo mudou de verdade (novo/removido > 0). */
+  receberTudo().then(r => {
+    if (r && r.ok && r.totalMudou > 0) {
       setTimeout(() => location.reload(), 400);
     }
   }).catch(() => { });
