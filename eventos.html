@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<!-- build 2026-11-12T09:48:37 -->
+<!-- build 2026-11-12T11:02:09 -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Eventos — Brightway</title>
@@ -12,7 +12,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Brightway">
-<link rel="stylesheet" href="assets/brightway.css?v=3">
+<link rel="stylesheet" href="assets/brightway.css?v=4">
 <style>
 :root{
   /* Identidade Brightway — paleta oficial */
@@ -297,7 +297,7 @@ footer b{color:var(--gold)}
     Não é recomendação de investimento.
   </footer>
 </div>
-<script src="assets/layout.js?v=3"></script>
+<script src="assets/layout.js?v=4"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/pdfmake@0.2.20/build/pdfmake.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
@@ -1532,7 +1532,7 @@ function renderClientes() {
       $("#cNome").value = c.nome || ""; $("#cCNPJ").value = c.cnpj || "";
       $("#cTel").value = c.tel || ""; $("#cEmail").value = c.email || "";
       $("#cEnd").value = c.end || ""; $("#cCidade").value = c.cidade || "";
-      $("#cAdd").textContent = "💾 Salvar alterações";
+      $("#cAdd").textContent = "Salvar alterações";
       $("#cCancel").style.display = "inline-block";
       $("#cMsg").textContent = `Editando ${c.nome}…`;
       box.scrollIntoView({ behavior: "smooth" });
@@ -1601,8 +1601,8 @@ function initFormulario() {
     <div class="sub">Gere o link e envie — o cliente preenche os dados e eles chegam aqui para aprovação.</div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
       ${token ? `<input id="cliLink" type="text" value="${esc(link)}" readonly style="flex:1;min-width:220px;font-size:11px">
-        <button class="btn gh" id="cliCopiar">📋 Copiar</button>
-        <a class="btn gh" style="padding:8px 12px" target="_blank" href="https://wa.me/?text=${encodeURIComponent("Preencha seus dados, por favor: " + link)}">💬 WhatsApp</a>` : ""}
+        <button class="btn gh" id="cliCopiar">Copiar</button>
+        <a class="btn gh" style="padding:8px 12px" target="_blank" href="https://wa.me/?text=${encodeURIComponent("Preencha seus dados, por favor: " + link)}">WhatsApp</a>` : ""}
       <button class="btn" id="cliGerar">${token ? "Gerar novo link" : "Gerar link de cadastro"}</button>
     </div>
     <div class="note" id="cliFMsg"></div>
@@ -1885,9 +1885,9 @@ function renderEventos() {
       <b>Link de confirmação de presença</b>
       <input type="text" readonly value="${esc(link)}" style="width:100%;font-size:11px;margin-top:6px" onclick="this.select()">
       <div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap">
-        <button class="btn gh" style="padding:6px 10px;font-size:11px" onclick="window.__copiarPresenca('${id}')">📋 Copiar</button>
-        <a class="btn gh" style="padding:6px 10px;font-size:11px" target="_blank" href="https://wa.me/?text=${encodeURIComponent("Confirme sua presença no evento " + ev.nome + ": " + link)}">💬 Enviar pelo WhatsApp</a>
-        <button class="btn gh" style="padding:6px 10px;font-size:11px" onclick="window.__verPresencas('${id}')">👀 Ver respostas</button>
+        <button class="btn gh" style="padding:6px 10px;font-size:11px" onclick="window.__copiarPresenca('${id}')">Copiar</button>
+        <a class="btn gh" style="padding:6px 10px;font-size:11px" target="_blank" href="https://wa.me/?text=${encodeURIComponent("Confirme sua presença no evento " + ev.nome + ": " + link)}">Enviar pelo WhatsApp</a>
+        <button class="btn gh" style="padding:6px 10px;font-size:11px" onclick="window.__verPresencas('${id}')"> Ver respostas</button>
       </div>
       <div id="presencas_${id}"></div>
     </div>`;
@@ -2009,7 +2009,7 @@ function comunicar(id) {
         onclick="window.__waMsg('${m.id}','${id}');return false">💬 ${esc(m.nome)}</a>`).join("")}
       <a class="btn gh" style="padding:6px 10px;font-size:11px" href="#"
         onclick="window.__mailTodos('${id}');return false">✉ E-mail para todos</a>
-      <button class="btn gh" style="padding:6px 10px;font-size:11px" onclick="window.__copiarLista('${id}')">📋 Copiar lista</button>
+      <button class="btn gh" style="padding:6px 10px;font-size:11px" onclick="window.__copiarLista('${id}')">Copiar lista</button>
     </div>
     <div id="copia_${id}"></div>
   </div>`;
@@ -2160,8 +2160,8 @@ function initFormulario() {
     <div class="sub">Gere o link e envie pelo WhatsApp. O colaborador preenche os dados e eles chegam aqui para aprovação — sem digitar nada para você.</div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
       ${token ? `<input id="eqLink" type="text" value="${esc(link)}" readonly style="flex:1;min-width:220px;font-size:11px">
-        <button class="btn gh" id="eqCopiarLink">📋 Copiar link</button>
-        <a class="btn gh" style="padding:8px 12px" target="_blank" href="https://wa.me/?text=${encodeURIComponent("Preencha seus dados para a equipe BW: " + link)}">💬 Enviar pelo WhatsApp</a>` : ""}
+        <button class="btn gh" id="eqCopiarLink">Copiar link</button>
+        <a class="btn gh" style="padding:8px 12px" target="_blank" href="https://wa.me/?text=${encodeURIComponent("Preencha seus dados para a equipe BW: " + link)}">Enviar pelo WhatsApp</a>` : ""}
       <button class="btn" id="eqGerarLink">${token ? "Gerar novo link" : "Gerar link de cadastro"}</button>
     </div>
     <div class="note" id="eqFormMsg"></div>
@@ -2459,9 +2459,9 @@ function dashboard() {
       <div class="sub">Distribuição dos eventos</div>
       ${Object.entries(porTipo).sort((a, b) => b[1] - a[1]).map(([t, n]) =>
         `<div class="row"><span>${t}</span><b>${n}</b></div>`).join("") || '<div class="note">Sem eventos ainda.</div>'}
-      <button class="btn gh" id="evRelGastos" style="margin-top:10px">Relatório mensal de gastos</button>
+      <button class="btn gh" id="evRelGastos" style="margin-top:10px"><svg width="15" height="15" viewBox="0 0 24 24" aria-hidden="true" style="vertical-align:-3px;margin-right:4px" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 16l4-6 4 3 5-8"/></svg>Relatório mensal de gastos</button>
       <div id="relGastosBox" style="margin-top:8px"></div>
-      <button class="btn gh" id="evRelAnual" style="margin-top:10px">Relatório anual (PDF)</button>
+      <button class="btn gh" id="evRelAnual" style="margin-top:10px"><svg width="15" height="15" viewBox="0 0 24 24" aria-hidden="true" style="vertical-align:-3px;margin-right:4px" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/></svg>Relatório anual (PDF)</button>
       <div class="note" id="relAnualMsg"></div>
     </div>
   </div>`;
@@ -2521,9 +2521,9 @@ function render() {
     const badge = dias === null ? "" : dias < 0 ? "realizado" : dias === 0 ? "HOJE" : `faltam ${dias}d`;
     const sit = pago(e);
     const acoes = (e.status === "Realizado" || e.status === "Entregue")
-      ? `<button class="btn gh" data-agd="${e.id}">Agendar</button>
+      ? `<button class="btn gh" data-agd="${e.id}"><svg width="15" height="15" viewBox="0 0 24 24" aria-hidden="true" style="vertical-align:-3px;margin-right:4px" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Agendar</button>
          <button class="btn gh" data-pago="${e.id}">${sit ? "Marcar não pago" : "Marcar recebido"}</button>`
-      : `<button class="btn gh" data-fin="${e.id}">Finalizado</button>
+      : `<button class="btn gh" data-fin="${e.id}"><svg width="15" height="15" viewBox="0 0 24 24" aria-hidden="true" style="vertical-align:-3px;margin-right:4px" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>Finalizado</button>
          <button class="btn gh" data-pago="${e.id}">${sit ? "Marcar não pago" : "Marcar recebido"}</button>`;
     return `<div class="card" style="margin-top:10px;background:var(--navy3)">
       <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap">
@@ -2533,12 +2533,12 @@ function render() {
         ${badge ? `<span class="tag mid">${badge}</span>` : ""}</span>
       </div>
       <div style="margin-top:4px;color:var(--mut);font-size:12.5px">
-        📅 ${esc((e.data || "").split("-").reverse().join("/"))} · 📍 ${esc(e.local || "—")} ·
-        👤 ${esc(e.cliente || "—")} · 🎭 ${esc(e.tipo || "—")} · 👥 ${esc(e.equipeNome || "sem equipe")}
+        ${esc((e.data || "").split("-").reverse().join("/"))} · ${esc(e.local || "—")} ·
+        ${esc(e.cliente || "—")} · ${esc(e.tipo || "—")} · ${esc(e.equipeNome || "sem equipe")}
       </div>
       <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
         <button class="btn gh" onclick="window.__evAbrir('${e.id}')">Abrir dossiê</button>
-        <button class="btn gh" onclick="window.__evEditar('${e.id}')">EDITAR</button>
+        <button class="btn gh" onclick="window.__evEditar('${e.id}')"><svg width="15" height="15" viewBox="0 0 24 24" aria-hidden="true" style="vertical-align:-3px;margin-right:4px" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.8 2.8 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></svg>EDITAR</button>
         ${acoes}
         <a href="#" onclick="window.__evDel('${e.id}');return false" style="color:var(--dn);align-self:center">excluir</a>
       </div>
@@ -2684,8 +2684,8 @@ function abrirDossie(id) {
     <div class="row"><span>Orçado</span><b>R$ ${fmt(orçado, 2)}</b></div>
     <div class="row"><span>A receber</span><b style="color:var(--gold2)">R$ ${fmt(Math.max(0, contratado - recebido), 2)}</b></div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
-      <button class="btn gh" id="dSalvar">💾 Salvar alterações</button>
-      <button class="btn gh" id="dPDF">Dossiê em PDF</button>
+      <button class="btn gh" id="dSalvar">Salvar alterações</button>
+      <button class="btn gh" id="dPDF"><svg width="15" height="15" viewBox="0 0 24 24" aria-hidden="true" style="vertical-align:-3px;margin-right:4px" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>Dossiê em PDF</button>
     </div>
     <div style="margin-top:14px;border-top:1px solid var(--line);padding-top:12px">
       <h3>Histórico do cliente</h3>
@@ -2707,7 +2707,7 @@ function abrirDossie(id) {
     <div style="margin-top:14px;border-top:1px solid var(--line);padding-top:12px">
       <h3>Mídia do evento</h3>
       <div id="dMidia"></div>
-      <div style="margin-top:10px"><button class="btn gh" id="dGaleriaLink">Galeria do cliente</button>
+      <div style="margin-top:10px"><button class="btn gh" id="dGaleriaLink"><svg width="15" height="15" viewBox="0 0 24 24" aria-hidden="true" style="vertical-align:-3px;margin-right:4px" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>Galeria do cliente</button>
       <div id="galeriaBox" style="margin-top:8px"></div></div>
     </div>
     <div style="margin-top:14px;border-top:1px solid var(--line);padding-top:12px">
@@ -2772,6 +2772,15 @@ function abrirDossie(id) {
     '<span><b style="color:var(--gold)">📍</b> ' + esc(e.local || "—") + '</span>' +
     '<span><b style="color:var(--gold)">👤</b> ' + esc(e.cliente || "—") + '</span></div></div>';
   box.insertBefore(cab, box.firstChild);
+  /* navegação em pílulas (âncoras para as seções do dossiê) */
+  const nav = document.createElement("div");
+  nav.style.cssText = "display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px";
+  nav.innerHTML = [["dChecklist", "Checklist"], ["dMidia", "Mídia"], ["dGastos", "Gastos"],
+    ["dNFE", "NF-e"], ["dVeiculos", "Veículos"], ["dContrato", "Contrato"],
+    ["dAvaliacao", "Avaliação"], ["dHistorico", "Histórico"]].map(function(p){
+    return '<a href="#' + p[0] + '" class="bw-chip bw-chip--ambar" style="text-decoration:none">' + p[1] + '</a>';
+  }).join("");
+  box.insertBefore(nav, cab.nextSibling);
   wireChecklist(e);
   wireMidia(e);
   wireGastos(e);
@@ -2789,9 +2798,13 @@ function wireChecklist(e) {
   const box = $("#dChecklist"); if (!box) return;
   const itens = e.checklist || [];
   box.innerHTML = `
-    ${itens.length ? itens.map((it, i) => `<div class="row">
-      <span><input type="checkbox" ${it.ok ? "checked" : ""} data-ck="${i}"> ${esc(it.t)}</span>
-      <b>${it.ok ? "✓" : ""}</b></div>`).join("") : '<div class="note">Nenhum item — adicione ou use um modelo.</div>'}
+    <div class="bw-barra" style="margin-bottom:10px"><div style="width:${itens.length ? Math.round(itens.filter(i => i.ok).length / itens.length * 100) : 0}%"></div></div>
+    ${itens.length ? itens.map((it, i) => `<div style="display:flex;align-items:flex-start;gap:10px;padding:6px 0">
+      <span style="width:12px;height:12px;border-radius:999px;flex-shrink:0;margin-top:4px;
+        ${it.ok ? "background:var(--gold)" : "border:1.6px solid var(--mut)"}"></span>
+      <span style="flex:1"><input type="checkbox" ${it.ok ? "checked" : ""} data-ck="${i}" style="accent-color:#FFB547;margin-right:6px">
+        <span style="${it.ok ? "text-decoration:line-through;color:var(--mut)" : ""}">${esc(it.t)}</span></span>
+      <b style="color:var(--gold)">${it.ok ? "✓" : ""}</b></div>`).join("") : '<div class="note">Nenhum item — adicione ou use um modelo.</div>'}
     <div class="frow" style="margin-top:8px">
       <div><input id="ckNovo" type="text" placeholder="Novo item (ex.: 2 câmeras, tripés…)"></div>
       <div style="align-self:end"><button class="btn gh" id="ckAdd">+ Item</button></div>
@@ -2898,7 +2911,7 @@ function wireGastos(e) {
     box.querySelector("#gLista").innerHTML = gts.length ? gts.map((g, i) => `
       <div class="row"><span><b>${esc(g.desc)}</b> <small style="color:var(--mut)">${esc(g.data || "")}</small>
         <small style="display:block;color:var(--gold2)">R$ ${fmt(parseFloat(g.valor || 0) || 0, 2)}</small></span>
-      <b>${g.comprovante ? `<a class="btn gh" style="padding:5px 10px;font-size:11px" href="${esc(g.comprovante)}" target="_blank">Comprovante Fiscal</a>` : ""}
+      <b>${g.comprovante ? `<a class="btn gh" style="padding:5px 10px;font-size:11px" href="${esc(g.comprovante)}" target="_blank"><svg width="15" height="15" viewBox="0 0 24 24" aria-hidden="true" style="vertical-align:-3px;margin-right:4px" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>Comprovante Fiscal</a>` : ""}
       <a href="#" onclick="window.__gDel('${e.id}',${i});return false" style="color:var(--dn)">✕</a></b></div>`).join("")
       : '<div class="note">Nenhum gasto operacional lançado.</div>';
   };
@@ -3224,8 +3237,8 @@ function wireGaleriaLink(e) {
     box.innerHTML = `<div class="note">
       <input type="text" readonly value="${esc(link)}" style="width:100%;font-size:11px" onclick="this.select()">
       <div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap">
-        <button class="btn gh" style="padding:6px 10px;font-size:11px" onclick="navigator.clipboard.writeText('${link}').then(()=>{this.textContent='✓ Copiado!'})">📋 Copiar</button>
-        <a class="btn gh" style="padding:6px 10px;font-size:11px" target="_blank" href="https://wa.me/?text=${encodeURIComponent("Fotos do evento " + e.nome + ": " + link)}">💬 Enviar pelo WhatsApp</a>
+        <button class="btn gh" style="padding:6px 10px;font-size:11px" onclick="navigator.clipboard.writeText('${link}').then(()=>{this.textContent='✓ Copiado!'})">Copiar</button>
+        <a class="btn gh" style="padding:6px 10px;font-size:11px" target="_blank" href="https://wa.me/?text=${encodeURIComponent("Fotos do evento " + e.nome + ": " + link)}">Enviar pelo WhatsApp</a>
       </div>
       <div class="note">O cliente vê as fotos do evento — sem acessar a plataforma.</div>
     </div>`;
@@ -3570,7 +3583,7 @@ window.__evEditar = id => {
     </div>
     <div><label>Observações</label><textarea id="edObs" style="width:100%;min-height:50px;background:#0b1220;border:1px solid var(--line);border-radius:10px;color:var(--txt);padding:10px">${esc(e.obs || "")}</textarea></div>
     <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
-      <button class="btn" id="edSalvar">💾 Salvar alterações</button>
+      <button class="btn" id="edSalvar">Salvar alterações</button>
       <button class="btn gh" id="edCancelar">Cancelar</button>
     </div>
     <div class="note" id="edMsg"></div>
