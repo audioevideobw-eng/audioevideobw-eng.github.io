@@ -1,7 +1,7 @@
 /* assets/layout.js — Brightway: injeta o MENU LATERAL + TOPO em todas as páginas.
-   Regra do prompt: só visual/estrutura de navegação — nenhum id/handler muda.
-   O #menuSync e o #userBox são RELOCADOS (mesmos ids, mesmos handlers).
-   Celular (<900px): barra de abas fixa embaixo. */
+   Correções do dono (12/11): (1) o .bw-conteudo entra DENTRO do .bw-shell;
+   (2) o menu usa data-slot e MOVE os originais (#menuSync, #userBox, #btnVoltar)
+   — sem duplicar ids, os handlers presos aos ids continuam funcionando. */
 (function(){
   function init(){
   var PAGINA = (location.pathname.split("/").pop() || "index.html").replace(".html", "");
@@ -43,13 +43,11 @@
     configadm:"Configuração" };
   var NOMES_CAT = {}; CATEGORIAS.forEach(function(c){ NOMES_CAT[c.id] = c.nome; });
 
-  /* ---- MENU LATERAL ---- */
   var itens = CATEGORIAS.map(function(c){
     var ativo = c.id === CAT ? " ativo" : "";
     var html = '<a class="bw-item' + ativo + '" href="' + c.href + '">' +
       '<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">' + c.icon + '</svg>' +
       '<span>' + c.nome + '</span></a>';
-    /* subpáginas da categoria ativa */
     if (c.id === CAT && SUBPAGINAS[c.id]) {
       html += SUBPAGINAS[c.id].map(function(s){
         var a = s[0] === PAGINA ? ' style="color:var(--gold)"' : "";
@@ -58,27 +56,26 @@
     }
     return html;
   }).join("");
+
   var menu = '<aside class="bw-menu" id="bwMenu">' +
-    '<div class="logo"><a href="./" aria-label="Brightway, início" style="padding:6px 10px 0;display:block"><div role="img" aria-label="BRIGHTWAY" style="font-family:Michroma,sans-serif;font-size:17px;line-height:1;letter-spacing:.16em;color:#F5F1EA;white-space:nowrap;margin-right:-.16em">BRIGHTW<svg viewBox="0 0 80 72" aria-hidden="true" style="width:.8em;height:.72em;vertical-align:baseline;overflow:visible;margin-right:.16em"><defs><linearGradient id="rdM" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#FFB547" stop-opacity=".04"/><stop offset="1" stop-color="#FFB547" stop-opacity=".55"/></linearGradient></defs><path d="M4 72 L37 8 L43 8 L76 72 Z" fill="url(#rdM)"/><path d="M4.5 70 L37.5 8 M75.5 70 L42.5 8" stroke="#FFB547" stroke-width="8" stroke-linecap="square" fill="none"/><path d="M40 68 L40 24" stroke="#FFF4DC" stroke-width="3" stroke-dasharray="8 6"/><path d="M40 -16 L42.8 -.8 L58 2 L42.8 4.8 L40 20 L37.2 4.8 L22 2 L37.2 -.8 Z" fill="#FFF8EA"/></svg>Y</div></a></div>' +
+    '<div class="logo"><a href="./" aria-label="Brightway, início"><div role="img" aria-label="BRIGHTWAY" style="font-family:Michroma,sans-serif;font-size:17px;line-height:1;letter-spacing:.16em;color:#F5F1EA;white-space:nowrap;margin-right:-.16em">BRIGHTW<svg viewBox="0 0 80 72" aria-hidden="true" style="width:.8em;height:.72em;vertical-align:baseline;overflow:visible;margin-right:.16em"><defs><linearGradient id="rdM" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#FFB547" stop-opacity=".04"/><stop offset="1" stop-color="#FFB547" stop-opacity=".55"/></linearGradient></defs><path d="M4 72 L37 8 L43 8 L76 72 Z" fill="url(#rdM)"/><path d="M4.5 70 L37.5 8 M75.5 70 L42.5 8" stroke="#FFB547" stroke-width="8" stroke-linecap="square" fill="none"/><path d="M40 68 L40 24" stroke="#FFF4DC" stroke-width="3" stroke-dasharray="8 6"/><path d="M40 -16 L42.8 -.8 L58 2 L42.8 4.8 L40 20 L37.2 4.8 L22 2 L37.2 -.8 Z" fill="#FFF8EA"/></svg>Y</div></a></div>' +
     itens +
     '<div class="sync-card">' +
-      '<div class="linha"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/></svg><span id="menuSync">Sincronizado</span></div>' +
+      '<div class="linha"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/></svg><span data-slot="menuSync">Sincronizado</span></div>' +
       '<div class="info">Celular e PC atualizados — automático ao abrir e ao salvar.</div>' +
       '<a href="app.html">Instalar no celular</a>' +
     '</div>' +
-    '<div id="userBox" style="font-size:11px;color:var(--txt2);padding:10px 12px 0"></div>' +
+    '<div data-slot="userBox" style="font-size:11px;color:var(--txt2);padding:10px 12px 0"></div>' +
     '</aside>';
 
-  /* ---- TOPO ---- */
   var topo = '<div class="bw-topo">' +
     '<div><div class="trilha">' + (CAT === "inicio" ? "Início" : NOMES_CAT[CAT] + " / <b>" + (TITULOS[PAGINA] || PAGINA) + "</b>") + '</div>' +
     '<div class="bw-titulo-pagina">' + (TITULOS[PAGINA] || PAGINA) + '</div></div>' +
     '<div class="acoes">' +
-      '<button class="bw-btn bw-btn--vidro" id="btnVoltar" title="Voltar" aria-label="Voltar" style="min-height:44px;padding:0 16px">‹</button>' +
+      '<button class="bw-btn bw-btn--vidro" data-slot="btnVoltar" title="Voltar" aria-label="Voltar" style="min-height:44px;padding:0 16px">‹</button>' +
       '<a href="login.html" title="Conta" aria-label="Conta"><span class="bw-icone" style="width:40px;height:40px"><svg width="20" height="20" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></span></a>' +
     '</div></div>';
 
-  /* ---- ABAS DO CELULAR ---- */
   var abas = CATEGORIAS.slice(0, 4).concat([{id:"mais", nome:"Mais", href:"#", icon:'<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>'}])
     .map(function(c){
       var ativo = c.id === CAT ? " ativo" : "";
@@ -86,7 +83,6 @@
         '<svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">' + c.icon + '</svg><span>' + c.nome + '</span></a>';
     }).join("");
 
-  /* ---- INJEÇÃO ---- */
   var body = document.body;
   var header = body.querySelector("header");
   var wrap = body.querySelector(".wrap");
@@ -96,27 +92,27 @@
   var conteudo = document.createElement("div");
   conteudo.className = "bw-conteudo";
   conteudo.innerHTML = topo + '<div class="bw-pagina" id="bwPagina"></div>';
-  if (wrap) {
-    /* o .wrap vira o conteúdo dentro do shell */
-    conteudo.querySelector("#bwPagina").appendChild(wrap);
-  }
-  /* mantém o header antigo no DOM (o JS pode referenciar #btnMenu/#navGrupos),
-     mas escondido — os ids continuam existindo */
+  if (wrap) conteudo.querySelector("#bwPagina").appendChild(wrap);
   if (header) { header.style.display = "none"; shell.appendChild(header); }
-  body.insertBefore(conteudo, body.firstChild);
-  body.insertBefore(shell, conteudo);
+  /* CORREÇÃO 1 (dono): o conteúdo entra DENTRO do shell antes de inserir */
+  shell.appendChild(conteudo);
+  body.insertBefore(shell, body.firstChild);
+  /* CORREÇÃO 2 (dono): MOVE os originais para os slots (sem duplicar ids) */
+  ["menuSync", "userBox", "btnVoltar"].forEach(function(id){
+    var slot = shell.querySelector('[data-slot="' + id + '"]');
+    var orig = document.getElementById(id);
+    if (slot && orig) { slot.removeAttribute("data-slot"); slot.id = id; orig.remove(); }
+  });
   /* abas do celular */
   var abasEl = document.createElement("nav");
   abasEl.className = "bw-abas";
   abasEl.innerHTML = abas;
   body.appendChild(abasEl);
-  /* "Mais" abre a lista completa */
   var mais = abasEl.querySelector('[data-aba="mais"]');
   if (mais) mais.onclick = function(e){ e.preventDefault(); var m = document.querySelector("#bwMenu"); if (m) { m.style.display = "block"; m.style.position = "fixed"; m.style.inset = "0"; m.style.zIndex = "70"; m.style.width = "100%"; var x = document.createElement("button"); x.textContent = "✕ Fechar"; x.style.cssText = "margin:0 0 10px;background:rgba(255,181,71,.1);color:var(--gold);border:1px solid rgba(255,181,71,.25);border-radius:12px;padding:12px;width:100%;font-weight:600"; x.onclick = function(){ m.style.display = "none"; x.remove(); }; m.insertBefore(x, m.firstChild); } };
-  /* o botão voltar antigo (header escondido) continua existindo; ligo o novo */
-  var vb = document.querySelector(".bw-topo #btnVoltar");
+  var vb = document.getElementById("btnVoltar");
   if (vb) vb.onclick = function(){ history.back(); };
-  }  // fim init
+  }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
   else init();
 })();
