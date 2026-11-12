@@ -17,7 +17,7 @@
     { id: "conta",   nome: "Conta",             href: "login.html", icon: '<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/>' }
   ];
   var SUBPAGINAS = {
-    negocio: [["negocio","Ferramentas do negócio"],["eventos","Eventos"],["evento","Evento"],["equipe","Gestão de pessoas"],["financeiro","Financeiro de eventos"],["preco","Calculadora de preço"],["fluxo","Fluxo de caixa"]],
+    negocio: [["negocio","Ferramentas do negócio"],["eventos","Eventos"],["evento","Dossiê do evento"],["equipe","Gestão de pessoas"],["financeiro","Financeiro de eventos"],["preco","Calculadora de preço"],["fluxo","Fluxo de caixa"]],
     casa: [["orcamento","Orçamento familiar"],["casa","Casa (tudo)"],["contas","Contas a pagar"],["reserva","Reserva de emergência"]],
     invest: [["milhas","Mercado de milhas"],["meta","Meta de milhas"],["comparador","Comparador"],["alertas","Alertas de preço"],["cambio","Câmbio"],["invest","Rendimento"],["serie","Série histórica"],["diario","Diário de câmbio"]],
     ferr: [["calc","Calculadora"],["viagem","Conversor de viagem"],["leitor","Leitor de comprovantes"],["recs","★ Recomendações"],["noticias","Notícias"],["dados","Meus dados"],["app","App & sincronização"]],
@@ -32,7 +32,7 @@
     return "conta";
   }
   var CAT = categoriaDe(PAGINA);
-  var TITULOS = { index:"Início", negocio:"Ferramentas do negócio", eventos:"Eventos", evento:"Evento",
+  var TITULOS = { index:"Início", negocio:"Ferramentas do negócio", eventos:"Eventos", evento:"Dossiê do evento",
     equipe:"Gestão de pessoas", financeiro:"Financeiro de eventos", preco:"Calculadora de preço",
     fluxo:"Fluxo de caixa", orcamento:"Orçamento familiar", casa:"Casa", contas:"Contas a pagar",
     reserva:"Reserva de emergência", milhas:"Mercado de milhas", meta:"Meta de milhas",
