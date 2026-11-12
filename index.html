@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<!-- build 2026-11-11T23:52:50 -->
+<!-- build 2026-11-12T00:15:29 -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Brightway — BW Audiovisual</title>
@@ -12,6 +12,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Brightway">
+<link rel="stylesheet" href="assets/brightway.css">
 <style>
 :root{
   /* Identidade Brightway — paleta oficial */
@@ -212,6 +213,10 @@ footer b{color:var(--gold)}
 .colap-painel.aberto{display:block}
 .grupo-painel{display:none}
 .grupo-painel.aberto{display:block}
+.bw-pagina .wrap{max-width:1280px;padding:0}
+.bw-titulo-pagina{font-family:'Inter',sans-serif;font-size:30px;font-weight:600;color:var(--txt);margin-top:2px}
+.bw-sub{display:block;padding:2px 12px 2px 24px;font-size:14px;color:var(--txt2);text-decoration:none;min-height:34px;line-height:34px}
+.bw-sub:hover{color:var(--gold)}
 </style>
 </head>
 <body>
@@ -267,73 +272,117 @@ footer b{color:var(--gold)}
 </div></header>
 <div class="wrap">
 
-  <div class="grupo-linha">
-    <button class="grupo-dourado ativo" data-g="g-neg"><b>MEU NEGÓCIO</b><small>Preço · Fluxo · Equipe · Eventos</small></button>
-    <button class="grupo-dourado" data-g="g-casa"><b>GESTÃO DE CASA</b><small>Orçamento · Contas · Reserva</small></button>
-    <button class="grupo-dourado" data-g="g-not"><b>NOTÍCIAS</b><small>Valor Econômico · a cada 2h</small></button>
-    <button class="grupo-dourado" data-g="g-inv"><b>INVESTIMENTOS</b><small>Milhas · Câmbio · Rendimento</small></button>
-    <button class="grupo-dourado" data-g="g-ferr"><b>FERRAMENTAS</b><small>Série · Calculadora · Viagem · App</small></button>
-  </div>
-  <div class="grupo-painel aberto" id="g-neg">
-    <div class="menu-grid">
-      <a class="menu-card" href="negocio.html"><b>Ferramentas do negócio</b><small>Calculadora de preço, fluxo de caixa e planilha conectada — tudo dentro.</small></a>
-      <a class="menu-card" href="equipe.html"><b>Gestão de pessoas</b><small>Colaboradores, equipes por evento, PDF da escala e alertas no celular.</small></a>
-      <a class="menu-card" href="eventos.html"><b>Eventos</b><small>Dossiê completo: ficha, equipe, checklist, mídia, relatório e financeiro.</small></a>
-      <a class="menu-card" href="financeiro.html"><b>Financeiro de eventos</b><small>Pagamentos da equipe e dashboard financeiro individual por evento.</small></a>
+  <!-- Saudação com a estrada -->
+  <div class="bw-card" style="position:relative;overflow:hidden;min-height:300px;display:flex;align-items:center">
+    <svg aria-hidden="true" viewBox="0 0 600 300" preserveAspectRatio="xMidYMid slice" style="position:absolute;right:0;top:0;height:100%;width:58%;opacity:.9">
+      <defs>
+        <linearGradient id="bwEstrada" x1="0" y1="1" x2="0" y2="0">
+          <stop offset="0" stop-color="#FFB547" stop-opacity=".02"/>
+          <stop offset="1" stop-color="#FFB547" stop-opacity=".45"/>
+        </linearGradient>
+        <radialGradient id="bwHalo" cx="50%" cy="18%" r="30%">
+          <stop offset="0" stop-color="#FFB547" stop-opacity=".55"/>
+          <stop offset="1" stop-color="#FFB547" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+      <g stroke="#F5F1EA" stroke-opacity=".05">
+        <line x1="300" y1="90" x2="60" y2="300"/><line x1="300" y1="90" x2="180" y2="300"/>
+        <line x1="300" y1="90" x2="420" y2="300"/><line x1="300" y1="90" x2="540" y2="300"/>
+        <line x1="300" y1="90" x2="0" y2="240"/><line x1="300" y1="90" x2="600" y2="240"/>
+        <line x1="0" y1="150" x2="600" y2="150" stroke-opacity=".03"/>
+      </g>
+      <line x1="0" y1="90" x2="600" y2="90" stroke="#FFF4DC" stroke-opacity=".55" stroke-width="1"/>
+      <ellipse cx="300" cy="90" rx="120" ry="26" fill="url(#bwHalo)"/>
+      <polygon points="252,300 348,300 306,90 294,90" fill="url(#bwEstrada)" stroke="#FFB547" stroke-width="3"/>
+      <line x1="300" y1="300" x2="300" y2="92" stroke="#FFF4DC" stroke-width="2" stroke-dasharray="10 14"/>
+      <path d="M300 62 L305 84 L327 90 L305 96 L300 118 L295 96 L273 90 L295 84 Z" fill="#FFF8EA"/>
+    </svg>
+    <div style="position:relative;z-index:1;max-width:60%">
+      <span class="bw-chip bw-chip--ciano" id="bwSaudaChip">Sincronizado com o celular</span>
+      <h1 id="bwSauda" style="font-family:'Inter',sans-serif;font-size:40px;font-weight:600;line-height:1.15;margin:14px 0 10px;color:var(--txt)">
+        Boa noite.<br>Seu <span style="color:var(--gold)">caminho</span> de hoje.
+      </h1>
+      <div style="font-size:14px;color:var(--txt2)" id="bwResumo">Carregando o resumo…</div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:20px">
+        <a class="bw-btn bw-btn--primario" href="eventos.html">Novo evento</a>
+        <a class="bw-btn bw-btn--vidro" href="leitor.html">Ler comprovante</a>
+        <a class="bw-btn bw-btn--vidro" href="orcamento.html">Lançar despesa</a>
+      </div>
     </div>
   </div>
-  <div class="grupo-painel" id="g-casa">
-    <div class="menu-grid">
-      <a class="menu-card" href="orcamento.html"><b>Orçamento familiar</b><small>Receitas, despesas por categoria e saldo do mês.</small></a>
-      <a class="menu-card" href="contas.html"><b>Contas a pagar</b><small>Vencimentos, marcação de pago e total em aberto.</small></a>
-      <a class="menu-card" href="reserva.html"><b>Reserva de emergência</b><small>Aportes por mês e total acumulado.</small></a>
+
+  <!-- 4 KPIs -->
+  <div class="bw-grid" style="margin-top:20px" id="bwKpis">
+    <div class="bw-kpi"><div class="rotulo"><span>Caixa do negócio</span><span style="width:36px;height:36px;flex-shrink:0;border-radius:12px;background:rgba(255,181,71,.1);border:1px solid rgba(255,181,71,.2);display:inline-flex;align-items:center;justify-content:center;color:#FFB547"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/></svg></span></div><div class="valor" id="kNeg">—</div><div class="nota" id="kNegN">entradas − saídas</div></div>
+    <div class="bw-kpi"><div class="rotulo"><span>Saldo da casa</span><span style="width:36px;height:36px;flex-shrink:0;border-radius:12px;background:rgba(255,181,71,.1);border:1px solid rgba(255,181,71,.2);display:inline-flex;align-items:center;justify-content:center;color:#FFB547"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M9 21v-6h6v6"/></svg></span></div><div class="valor" id="kCasa">—</div><div class="nota" id="kCasaN">receitas − despesas</div></div>
+    <div class="bw-kpi"><div class="rotulo"><span>Próximos eventos</span><span style="width:36px;height:36px;flex-shrink:0;border-radius:12px;background:rgba(255,181,71,.1);border:1px solid rgba(255,181,71,.2);display:inline-flex;align-items:center;justify-content:center;color:#FFB547"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></span></div><div class="valor" id="kEv">—</div><div class="nota" id="kEvN">na agenda</div></div>
+    <div class="bw-kpi"><div class="rotulo"><span>Contas a vencer</span><span style="width:36px;height:36px;flex-shrink:0;border-radius:12px;background:rgba(255,181,71,.1);border:1px solid rgba(255,181,71,.2);display:inline-flex;align-items:center;justify-content:center;color:#FFB547"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M9 16l2 2 4-4"/></svg></span></div><div class="valor" id="kContas">—</div><div class="nota" id="kContasN">em aberto</div></div>
+  </div>
+
+  <!-- Seções numeradas -->
+  <div class="bw-card" style="margin-top:24px">
+    <div class="bw-eyebrow"><span class="num">01</span><span class="traco"></span><span class="titulo">MEU NEGÓCIO</span></div>
+    <p style="color:var(--txt2);font-size:14px;margin:0 0 16px">Preço, caixa, equipe e cada evento num lugar só.</p>
+    <div class="bw-grid">
+      <a class="bw-tool-card" href="negocio.html"><span class="nome">Ferramentas do negócio</span><span class="desc">Calculadora de preço, fluxo de caixa e planilha conectada — tudo dentro.</span><span class="abrir">Abrir →</span></a>
+      <a class="bw-tool-card" href="equipe.html"><span class="nome">Gestão de pessoas</span><span class="desc">Colaboradores, equipes por evento, PDF da escala e alertas no celular.</span><span class="abrir">Abrir →</span></a>
+      <a class="bw-tool-card" href="eventos.html"><span class="nome">Eventos</span><span class="desc">Dossiê completo: ficha, equipe, checklist, mídia, relatório e financeiro.</span><span class="abrir">Abrir →</span></a>
+      <a class="bw-tool-card" href="financeiro.html"><span class="nome">Financeiro de eventos</span><span class="desc">Pagamentos da equipe e dashboard financeiro individual por evento.</span><span class="abrir">Abrir →</span></a>
     </div>
   </div>
-  <div class="grupo-painel" id="g-not">
-    <div class="menu-grid">
-      <a class="menu-card" href="noticias.html"><b>Notícias de economia</b><small>Manchetes do Valor Econômico (economia, finanças, empresas e agronegócios), atualizadas a cada 2h.</small></a>
+
+  <div class="bw-card" style="margin-top:20px">
+    <div class="bw-eyebrow"><span class="num">02</span><span class="traco"></span><span class="titulo">GESTÃO DE CASA</span></div>
+    <p style="color:var(--txt2);font-size:14px;margin:0 0 16px">As contas de casa organizadas com o mesmo cuidado dos eventos.</p>
+    <div class="bw-grid">
+      <a class="bw-tool-card" href="orcamento.html"><span class="nome">Orçamento familiar</span><span class="desc">Receitas, despesas por categoria e saldo do mês.</span><span class="abrir">Abrir →</span></a>
+      <a class="bw-tool-card" href="contas.html"><span class="nome">Contas a pagar</span><span class="desc">Vencimentos, marcação de pago e total em aberto.</span><span class="abrir">Abrir →</span></a>
+      <a class="bw-tool-card" href="reserva.html"><span class="nome">Reserva de emergência</span><span class="desc">Aportes por mês e total acumulado.</span><span class="abrir">Abrir →</span></a>
     </div>
   </div>
-  <div class="grupo-painel" id="g-inv">
-    <div class="menu-grid">
-      <a class="menu-card" href="milhas.html"><b>Mercado de milhas</b><small>Preço do milheiro por programa e comprador, com histórico.</small></a>
-      <a class="menu-card" href="meta.html"><b>Meta de milhas</b><small>Quanto falta para fechar a passagem — e o custo de comprar hoje.</small></a>
-      <a class="menu-card" href="comparador.html"><b>Comparador de moedas</b><small>Duas moedas lado a lado com gráfico de 90 dias.</small></a>
-      <a class="menu-card" href="alertas.html"><b>Alertas de preço</b><small>Avisa no celular quando a moeda bater o alvo.</small></a>
-      <a class="menu-card" href="cambio.html"><b>Câmbio para cotações</b><small>PTAX + mercado ao vivo de 15 moedas.</small></a>
-      <a class="menu-card" href="invest.html"><b>Rendimento de investimentos</b><small>Poupança × CDB × Tesouro — líquido de IR.</small></a>
+
+  <div class="bw-card" style="margin-top:20px">
+    <div class="bw-eyebrow"><span class="num">03</span><span class="traco"></span><span class="titulo">INVESTIMENTOS</span></div>
+    <p style="color:var(--txt2);font-size:14px;margin:0 0 16px">O mercado olhando para você — milhas, câmbio e rendimento.</p>
+    <div class="bw-grid">
+      <a class="bw-tool-card" href="milhas.html"><span class="nome">Mercado de milhas</span><span class="desc">Preço do milheiro por programa e comprador, com histórico.</span><span class="abrir">Abrir →</span></a>
+      <a class="bw-tool-card" href="meta.html"><span class="nome">Meta de milhas</span><span class="desc">Quanto falta para fechar a passagem — e o custo de comprar hoje.</span><span class="abrir">Abrir →</span></a>
+      <a class="bw-tool-card" href="comparador.html"><span class="nome">Comparador de moedas</span><span class="desc">Duas moedas lado a lado com gráfico de 90 dias.</span><span class="abrir">Abrir →</span></a>
+      <a class="bw-tool-card" href="alertas.html"><span class="nome">Alertas de preço</span><span class="desc">Avisa no celular quando a moeda bater o alvo.</span><span class="abrir">Abrir →</span></a>
+      <a class="bw-tool-card" href="cambio.html"><span class="nome">Câmbio para cotações</span><span class="desc">PTAX + mercado ao vivo de 15 moedas.</span><span class="abrir">Abrir →</span></a>
+      <a class="bw-tool-card" href="invest.html"><span class="nome">Rendimento de investimentos</span><span class="desc">Poupança × CDB × Tesouro — líquido de IR.</span><span class="abrir">Abrir →</span></a>
     </div>
   </div>
-  <div class="grupo-painel" id="g-ferr">
-    <div class="menu-grid">
-      <a class="menu-card" href="serie.html"><b>Série histórica</b><small>Gráfico de 12 meses com média móvel, mínima e máxima por moeda.</small></a>
-      <a class="menu-card" href="calc.html"><b>Calculadora</b><small>Custo real da compra com spread e IOF.</small></a>
-      <a class="menu-card" href="viagem.html"><b>Conversor de viagem</b><small>Quanto rende o que você troca no destino.</small></a>
-      <a class="menu-card" href="diario.html"><b>Diário de câmbio</b><small>Suas operações reais: custo médio e resultado.</small></a>
-      <a class="menu-card" href="leitor.html"><b>Leitor de comprovantes</b><small>Foto da nota → a IA lê e lança o custo no evento. Tudo local.</small></a>
-      <a class="menu-card" href="dados.html"><b>Meus dados</b><small>Suas coleções organizadas: fornecedores, documentos, equipamentos, contatos — com busca e CSV.</small></a>
-      <a class="menu-card" href="app.html"><b>App & sincronização</b><small>Instalar no celular, backup e sincronização entre aparelhos.</small></a>
-      <a class="menu-card" href="login.html"><b>Acesso</b><small>Entrar, criar conta (por convite) e recuperar senha.</small></a>
-      <a class="menu-card" href="configadm.html"><b>Configuração</b><small>Administrador: conexão, convites e integrações.</small></a>
+
+  <div class="bw-card" style="margin-top:20px">
+    <div class="bw-eyebrow"><span class="num">04</span><span class="traco"></span><span class="titulo">FERRAMENTAS</span></div>
+    <p style="color:var(--txt2);font-size:14px;margin:0 0 16px">As ferramentas do dia a dia, com IA onde ajuda.</p>
+    <div class="bw-grid-compacto">
+      <a class="bw-tool-card" href="leitor.html"><span class="nome">Leitor de comprovantes <span class="bw-chip bw-chip--ciano">IA</span></span><span class="desc">Foto da nota → a IA lê e lança o custo no evento.</span><span class="abrir">Abrir →</span></a>
+      <a class="bw-tool-card" href="serie.html"><span class="nome">Série histórica</span><span class="desc">Gráfico de 12 meses com média móvel, mínima e máxima.</span><span class="abrir">Abrir →</span></a>
+      <a class="bw-tool-card" href="calc.html"><span class="nome">Calculadora</span><span class="desc">Custo real da compra com spread e IOF.</span><span class="abrir">Abrir →</span></a>
+      <a class="bw-tool-card" href="viagem.html"><span class="nome">Conversor de viagem</span><span class="desc">Quanto rende o que você troca no destino.</span><span class="abrir">Abrir →</span></a>
+      <a class="bw-tool-card" href="diario.html"><span class="nome">Diário de câmbio</span><span class="desc">Suas operações reais: custo médio e resultado.</span><span class="abrir">Abrir →</span></a>
+      <a class="bw-tool-card" href="noticias.html"><span class="nome">Notícias de economia</span><span class="desc">Manchetes do Valor Econômico, atualizadas a cada 2h.</span><span class="abrir">Abrir →</span></a>
+      <a class="bw-tool-card" href="recs.html"><span class="nome">★ Recomendações</span><span class="desc">O que vale a pena comprar e vender hoje.</span><span class="abrir">Abrir →</span></a>
+      <a class="bw-tool-card" href="dados.html"><span class="nome">Meus dados</span><span class="desc">Coleções organizadas por você.</span><span class="abrir">Abrir →</span></a>
+      <a class="bw-tool-card" href="app.html"><span class="nome">App & sincronização</span><span class="desc">Instalar no celular, backup e sincronização.</span><span class="abrir">Abrir →</span></a>
+      <a class="bw-tool-card" href="configadm.html"><span class="nome">Configuração</span><span class="desc">Administrador: conexão, convites e integrações.</span><span class="abrir">Abrir →</span></a>
+      <a class="bw-tool-card" href="login.html"><span class="nome">Acesso</span><span class="desc">Entrar, criar conta (por convite) e recuperar senha.</span><span class="abrir">Abrir →</span></a>
     </div>
   </div>
-<script>
-(function(){
-  var botoes = document.querySelectorAll(".grupo-dourado");
-  botoes.forEach(function(b){
-    b.addEventListener("click", function(){
-      var painel = document.getElementById(b.dataset.g);
-      var estavaAberto = painel.classList.contains("aberto");
-      document.querySelectorAll(".grupo-painel").forEach(function(p){ p.classList.remove("aberto"); });
-      botoes.forEach(function(x){ x.classList.remove("ativo"); });
-      if (!estavaAberto) { painel.classList.add("aberto"); b.classList.add("ativo"); }
-    });
-  });
-})();
-</script>
+
+  <div style="display:flex;align-items:center;gap:14px;margin-top:28px;flex-wrap:wrap">
+    <img src="icons/brightway-logo.png" alt="Brightway" style="height:17px">
+    <span style="font-size:12px;color:var(--txt2)">Gestão · Tecnologia · IA</span>
+    <span style="margin-left:auto;display:flex;gap:14px;font-size:12px">
+      <a href="login.html">Conta</a><a href="app.html">App</a>
+    </span>
+  </div>
 </div>
 
 </div>
+<script>if(["index.html","eventos.html"].indexOf(location.pathname.split("/").pop())>-1||location.pathname.split("/").pop()==="")document.write('<scr'+'ipt src="assets/layout.js"></scr'+'ipt>');</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/pdfmake@0.2.20/build/pdfmake.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
@@ -1124,11 +1173,51 @@ return { avisoSemDados, bootComum, iniciarDados, montarCabecalho, preencherCodig
 MOD['home_main'] = (function() {
 /* home_main.js — boot da página inicial (menu). Sem dados: só sessão e PWA. */
 const {  montarCabecalho, registrarSW, wireHeader  } = MOD['core/bootcommon'];
+const {  load  } = MOD['core/store'];
+const {  fmt  } = MOD['core/format'];
 
 (async function boot() {
   await montarCabecalho();
   wireHeader();
   registrarSW();
+  /* ---- saudação pela hora ---- */
+  const h = new Date().getHours();
+  const sauda = h < 6 ? "Boa madrugada" : h < 12 ? "Bom dia" : h < 18 ? "Boa tarde" : "Boa noite";
+  const el = document.querySelector("#bwSauda");
+  if (el) el.innerHTML = sauda + ".<br>Seu <span style=\'color:var(--gold)\'>caminho</span> de hoje.";
+  /* ---- resumo: eventos da semana + contas a vencer ---- */
+  try {
+    const hoje = new Date();
+    const em7 = new Date(hoje.getTime() + 7 * 86400000).toISOString().slice(0, 10);
+    const evs = load("neg_eventos", 1, []).filter(e => e.data && e.data >= hoje.toISOString().slice(0, 10) && e.data <= em7 && e.status !== "Realizado" && e.status !== "Entregue");
+    const contas = load("casa_contas", 1, []).filter(c => (c.c3 || "") !== "pago");
+    const r = document.querySelector("#bwResumo");
+    if (r) r.textContent = evs.length + " evento(s) nos próximos 7 dias · " + contas.length + " conta(s) em aberto.";
+  } catch (e) { }
+  /* ---- KPIs com os valores que a plataforma já calcula ---- */
+  try {
+    const fluxo = load("neg_fluxo", 1, []);
+    let entradas = 0, saidas = 0;
+    fluxo.forEach(o => { const v = parseFloat(o.c2 || 0) || 0; if (o.c1 === "Entrada") entradas += v; else saidas += v; });
+    const kn = document.querySelector("#kNeg"); if (kn) kn.textContent = "R$ " + fmt(entradas - saidas, 2);
+  } catch (e) { }
+  try {
+    const mes = new Date().toISOString().slice(0, 7);
+    const orc = load("casa_orcamento", 1, []).filter(o => (o.c4 || "").slice(0, 7) === mes);
+    let rec = 0, desp = 0;
+    orc.forEach(o => { const v = parseFloat(o.c3 || 0) || 0; if ((o.c2 || "").toLowerCase().startsWith("receita")) rec += v; else desp += v; });
+    const kc = document.querySelector("#kCasa"); if (kc) kc.textContent = "R$ " + fmt(rec - desp, 2);
+  } catch (e) { }
+  try {
+    const hoje = new Date().toISOString().slice(0, 10);
+    const evs = load("neg_eventos", 1, []).filter(e => e.data && e.data >= hoje && e.status !== "Realizado" && e.status !== "Entregue");
+    const ke = document.querySelector("#kEv"); if (ke) ke.textContent = String(evs.length);
+  } catch (e) { }
+  try {
+    const contas = load("casa_contas", 1, []).filter(c => (c.c3 || "") !== "pago");
+    const total = contas.reduce((t, c) => t + (parseFloat(c.c2 || 0) || 0), 0);
+    const kc = document.querySelector("#kContas"); if (kc) kc.textContent = "R$ " + fmt(total, 2);
+  } catch (e) { }
 })();
 
 return {  };
