@@ -1,16 +1,16 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<!-- build 2026-11-11T16:07:24 -->
+<!-- build 2026-11-11T22:28:56 -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Alertas de preço — Mesa BW</title>
+<title>Alertas de preço — Brightway</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0b1220">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Mesa BW">
+<meta name="apple-mobile-web-app-title" content="Brightway">
 <style>
 :root{
   --navy:#0b1220; --navy2:#111c2e; --navy3:#16243a; --line:#25344d;
@@ -200,13 +200,8 @@ footer b{color:var(--gold)}
 <header><div class="hd">
   <button class="btn gh hd-voltar" id="btnVoltar" title="Voltar à página anterior">‹</button>
   <a href="./" class="btn gh" style="padding:8px 14px;font-size:12px;flex-shrink:0">INÍCIO</a>
-  <div class="brand"><b>BW</b><span>Mesa de Câmbio &amp; Milhas</span></div>
+  <div class="brand"><b>BW</b><span>Brightway</span></div>
   <nav>
-    <a href="cambio.html">Câmbio</a>
-    <a href="serie.html">Série</a>
-    <a href="calc.html">Calculadora</a>
-    <a href="milhas.html">Milhas</a>
-    <a href="alertas.html" class="on">Alertas</a>
     <a href="/recs.html" style="color:var(--gold2);border-color:rgba(212,169,74,.4)">★ Recomendações</a>
   </nav>
   <button class="btn gh hd-menu-btn" id="btnMenu" title="Abrir menu">☰ Menu</button>
@@ -276,7 +271,7 @@ footer b{color:var(--gold)}
   </div>
 
 <footer>
-    <b>Mesa de Câmbio &amp; Milhas — BW Audiovisual</b><br>
+    <b>Brightway — BW Audiovisual</b><br>
     Dados: Banco Central do Brasil (PTAX, API Olinda) · referencia de mercado (exchangerate-api) ·
     cotações de milhas (Real Milhas). PTAX de <span id="fPtax">—</span>.
     Página estática: guarde o arquivo e abra em qualquer navegador; o botão “Atualizar” busca
@@ -808,9 +803,17 @@ async function mesclarChave(chave) {
   const naNuvem = (remota && Array.isArray(remota.dados)) ? remota.dados : [];
   const locais = load(chave, 1, []);
   const porId = new Map(naNuvem.map(o => [String(o.id), o]));
-  let novos = 0;
+  let novos = 0, atualizados = 0;
   locais.forEach(o => {
-    if (!porId.has(String(o.id))) { porId.set(String(o.id), o); novos++; }
+    const k = String(o.id);
+    if (!porId.has(k)) { porId.set(k, o); novos++; return; }
+    /* ÚLTIMA EDIÇÃO VENCE: se o item existe nos dois lados, o de carimbo
+       _ed mais recente ganha (edições se propagam entre aparelhos) */
+    const rem = porId.get(k);
+    const edL = o._ed || 0, edR = rem._ed || 0;
+    if (edL > edR && JSON.stringify(o) !== JSON.stringify(rem)) {
+      porId.set(k, o); atualizados++;
+    }
   });
   const mesclado = colapsarDuplicados(chave, [...porId.values()]);
   const mudouLocal = mesclado.length !== locais.length;
@@ -822,6 +825,56 @@ async function mesclarChave(chave) {
       { onConflict: "user_id,chave" });
   }
   return { chave, novos, subidos };
+}
+
+/* ENVIAR (ordem do usuário): o aparelho onde o botão foi apertado MANDA —
+   seus dados sobrescrevem a nuvem em todas as chaves. Os outros aparelhos
+   recebem ao abrir/atualizar (F5). */
+async function enviarTudo() {
+  const res = [];
+  for (const k of CHAVES_SYNC) {
+    const c = await sb();
+    const { data: sess } = await c.auth.getSession();
+    if (!sess || !sess.session) return { ok: false, msg: "Entre com sua conta para sincronizar." };
+    const local = load(k, 1, []);
+    const { error } = await c.from("user_data").upsert(
+      { chave: k, dados: local, atualizado_em: new Date().toISOString() },
+      { onConflict: "user_id,chave" });
+    res.push({ chave: k, ok: !error, erro: error ? error.message : null });
+  }
+  const falhas = res.filter(r => !r.ok);
+  const total = res.reduce((t, r) => t + (load(r.chave, 1, []).length), 0);
+  if (falhas.length) return { ok: false, msg: "Falha em " + falhas.length + " chave(s): " + falhas[0].erro };
+  return { ok: true, msg: `✓ Enviado: ${total} registros — os outros aparelhos atualizam ao abrir (F5)` };
+}
+
+/* RECEBER (F5/abrir): o aparelho ADOTA a conta como está (a última ordem vence).
+   Regra do dono: quem apertou Sincronizar deu a ordem — os outros seguem.
+   (Itens que existem só aqui e não na nuvem são removidos: a nuvem é a verdade.) */
+async function receberTudo() {
+  const res = [];
+  for (const k of CHAVES_SYNC) {
+    const c = await sb();
+    const { data: sess } = await c.auth.getSession();
+    if (!sess || !sess.session) return { ok: false, msg: "sem sessão" };
+    const { data: remota, error } = await c.from("user_data")
+      .select("dados").eq("chave", k).maybeSingle();
+    if (error) { res.push({ chave: k, novos: 0 }); continue; }
+    const naNuvem = (remota && Array.isArray(remota.dados)) ? remota.dados : [];
+    const locais = load(k, 1, []);
+    const antes = new Set(locais.map(o => String(o.id)));
+    const depois = new Set(naNuvem.map(o => String(o.id)));
+    let novos = 0, removidos = 0;
+    naNuvem.forEach(o => { if (!antes.has(String(o.id))) novos++; });
+    locais.forEach(o => { if (!depois.has(String(o.id))) removidos++; });
+    /* grava SÓ se mudou de verdade (evita writes e loops) */
+    if (novos + removidos > 0) save(k, 1, naNuvem);
+    res.push({ chave: k, novos, removidos });
+  }
+  const novos = res.reduce((t, r) => t + (r.novos || 0), 0);
+  const removidos = res.reduce((t, r) => t + (r.removidos || 0), 0);
+  return { ok: true, msg: `✓ Recebido: ${novos} novo(s), ${removidos} removido(s)`,
+    totalMudou: novos + removidos };
 }
 
 async function sincronizarTudo() {
@@ -843,7 +896,7 @@ async function disponivel() {
   } catch (e) { return false; }
 }
 
-return { CHAVES_SYNC, baixar, disponivel, sincronizarTudo, subir };
+return { CHAVES_SYNC, baixar, disponivel, enviarTudo, receberTudo, sincronizarTudo, subir };
 })();
 /* ===== core/colap.js ===== */
 MOD['core/colap'] = (function() {
@@ -888,7 +941,7 @@ const {  $, esc  } = MOD['core/format'];
 const data = MOD['core/data'];
 const {  stamp  } = MOD['core/ui'];
 const auth = MOD['core/auth'];
-const {  sincronizarTudo  } = MOD['core/nuvem'];
+const {  enviarTudo, receberTudo  } = MOD['core/nuvem'];
 
 /* injeta dados embutidos (página publicada) ou busca data.json (dev) */
 async function iniciarDados() {
@@ -976,18 +1029,19 @@ function wireHeader() {
   };
   const vb = document.querySelector("#btnVoltar");
   if (vb) vb.onclick = () => history.back();
-  /* 🔄 Sincronizar (item do menu ☰): mescla tudo (celular ↔ PC) e recarrega */
+  /* 🔄 Sincronizar (menu ☰) = ORDEM DO USUÁRIO: este aparelho MANDA seus dados
+     para a conta — os outros aparelhos atualizam ao abrir/atualizar (F5) */
   const ms = document.querySelector("#menuSync");
   if (ms) ms.onclick = async (e) => {
     e.preventDefault();
     const orig = ms.textContent;
-    ms.textContent = "⟳ Sincronizando…";
+    ms.textContent = "⟳ Enviando dados…";
     try {
-      const r = await sincronizarTudo();
-      ms.textContent = r.msg || "✓ Sincronizado";
-      setTimeout(() => { location.reload(); }, 900);
+      const r = await enviarTudo();
+      ms.textContent = r.msg || "✓ Enviado";
+      setTimeout(() => { location.reload(); }, 1200);
     } catch (err) {
-      ms.textContent = "⚠ falha na sincronização";
+      ms.textContent = "⚠ falha no envio";
       setTimeout(() => { ms.textContent = orig; }, 2000);
     }
   };
@@ -999,10 +1053,10 @@ async function bootComum() {
   await montarCabecalho();
   wireHeader();
   registrarSW();
-  /* sincronia automática: ao abrir/atualizar a página, mescla celular ↔ PC */
-  sincronizarTudo().then(r => {
-    if (r && (r.novos > 0 || r.subidos > 0)) {
-      /* algo mudou entre os aparelhos — recarrega para mostrar o estado atual */
+  /* sincronia automática ao abrir/atualizar: RECEBE o que os outros aparelhos
+     enviaram. Recarrega SÓ se algo mudou de verdade (novo/removido > 0). */
+  receberTudo().then(r => {
+    if (r && r.ok && r.totalMudou > 0) {
       setTimeout(() => location.reload(), 400);
     }
   }).catch(() => { });
