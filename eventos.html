@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<!-- build 2026-11-11T23:52:50 -->
+<!-- build 2026-11-12T00:15:29 -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Eventos — Brightway</title>
@@ -12,6 +12,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Brightway">
+<link rel="stylesheet" href="assets/brightway.css">
 <style>
 :root{
   /* Identidade Brightway — paleta oficial */
@@ -212,6 +213,10 @@ footer b{color:var(--gold)}
 .colap-painel.aberto{display:block}
 .grupo-painel{display:none}
 .grupo-painel.aberto{display:block}
+.bw-pagina .wrap{max-width:1280px;padding:0}
+.bw-titulo-pagina{font-family:'Inter',sans-serif;font-size:30px;font-weight:600;color:var(--txt);margin-top:2px}
+.bw-sub{display:block;padding:2px 12px 2px 24px;font-size:14px;color:var(--txt2);text-decoration:none;min-height:34px;line-height:34px}
+.bw-sub:hover{color:var(--gold)}
 </style>
 </head>
 <body>
@@ -289,6 +294,7 @@ footer b{color:var(--gold)}
     Não é recomendação de investimento.
   </footer>
 </div>
+<script>if(["index.html","eventos.html"].indexOf(location.pathname.split("/").pop())>-1||location.pathname.split("/").pop()==="")document.write('<scr'+'ipt src="assets/layout.js"></scr'+'ipt>');</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/pdfmake@0.2.20/build/pdfmake.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
@@ -2741,6 +2747,28 @@ function abrirDossie(id) {
     salvarEventos(lista);
     $("#dMsg").textContent = "Relatório salvo.";
   };
+  /* cabeçalho visual do evento (estrada à direita, 60%) — só layout */
+  const cab = document.createElement("div");
+  cab.className = "bw-card";
+  cab.style.cssText = "position:relative;overflow:hidden;margin-bottom:14px";
+  cab.innerHTML = '<svg aria-hidden="true" viewBox="0 0 600 300" preserveAspectRatio="xMidYMid slice" style="position:absolute;right:0;top:0;height:100%;width:58%;opacity:.6">' +
+    '<defs><linearGradient id="bwE2" x1="0" y1="1" x2="0" y2="0">' +
+    '<stop offset="0" stop-color="#FFB547" stop-opacity=".02"/><stop offset="1" stop-color="#FFB547" stop-opacity=".45"/></linearGradient></defs>' +
+    '<g stroke="#F5F1EA" stroke-opacity=".05"><line x1="300" y1="90" x2="60" y2="300"/><line x1="300" y1="90" x2="540" y2="300"/><line x1="300" y1="90" x2="0" y2="240"/><line x1="300" y1="90" x2="600" y2="240"/></g>' +
+    '<line x1="0" y1="90" x2="600" y2="90" stroke="#FFF4DC" stroke-opacity=".5"/>' +
+    '<polygon points="252,300 348,300 306,90 294,90" fill="url(#bwE2)" stroke="#FFB547" stroke-width="3"/>' +
+    '<line x1="300" y1="300" x2="300" y2="92" stroke="#FFF4DC" stroke-width="2" stroke-dasharray="10 14"/>' +
+    '<path d="M300 62 L305 84 L327 90 L305 96 L300 118 L295 96 L273 90 L295 84 Z" fill="#FFF8EA"/></svg>' +
+    '<div style="position:relative;z-index:1">' +
+    '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">' +
+    '<span class="bw-chip bw-chip--ambar">' + esc(e.status || "—") + '</span>' +
+    (e.tipo ? '<span class="bw-chip bw-chip--ciano">' + esc(e.tipo) + '</span>' : "") + '</div>' +
+    '<div style="font-family:Inter,sans-serif;font-size:32px;font-weight:600;color:var(--txt)">' + esc(e.nome) + '</div>' +
+    '<div style="margin-top:8px;display:flex;gap:16px;flex-wrap:wrap;font-size:13.5px;color:var(--txt2)">' +
+    '<span><b style="color:var(--gold)">📅</b> ' + esc((e.data || "").split("-").reverse().join("/")) + '</span>' +
+    '<span><b style="color:var(--gold)">📍</b> ' + esc(e.local || "—") + '</span>' +
+    '<span><b style="color:var(--gold)">👤</b> ' + esc(e.cliente || "—") + '</span></div></div>';
+  box.insertBefore(cab, box.firstChild);
   wireChecklist(e);
   wireMidia(e);
   wireGastos(e);
