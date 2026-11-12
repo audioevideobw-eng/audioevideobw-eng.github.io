@@ -1,21 +1,31 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<!-- build 2026-11-11T22:56:59 -->
+<!-- build 2026-11-11T23:47:18 -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Milhas & Rotas — Brightway</title>
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#0b1220">
-<link rel="apple-touch-icon" href="icons/icon-192.png">
+<meta name="theme-color" content="#06080D">
+<link rel="icon" type="image/png" href="icons/brightway-icone.png">
+<link rel="apple-touch-icon" href="icons/brightway-icone.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Brightway">
 <style>
 :root{
-  --navy:#0b1220; --navy2:#111c2e; --navy3:#16243a; --line:#25344d;
-  --gold:#d4a94a; --gold2:#f0d08a; --txt:#e8eef8; --mut:#8fa2bd;
-  --up:#3ecf8e; --dn:#f2686b; --warn:#e8b84b;
+  /* Identidade Brightway — paleta oficial */
+  --navy:#06080D;   /* Noite — fundo principal */
+  --navy2:#11141B;  /* Grafite — superfícies e cards */
+  --navy3:#191d27;  /* Grafite elevado */
+  --line:#262b36;   /* linhas sutis sobre Grafite */
+  --gold:#FFB547;   /* Âmbar Luz — destaque, a estrada */
+  --gold2:#FFF8EA;  /* Brilho — a estrela */
+  --amber-dark:#C9780F; /* Âmbar Escuro — destaque em fundo claro */
+  --ciano:#3FD0E0;  /* Ciano Tech — acento de tecnologia, uso pontual */
+  --txt:#F5F1EA;    /* Marfim — texto e logotipo */
+  --mut:#9aa0ab;    /* texto secundário */
+  --up:#3ecf8e; --dn:#f2686b; --warn:#FFB547;
   --mono:ui-monospace,SFMono-Regular,Menlo,monospace;
 }
 *{box-sizing:border-box}
@@ -42,8 +52,8 @@ nav a{font-size:12.5px;padding:7px 13px;border-radius:999px;color:var(--mut);
 nav a:hover,nav a.on{color:var(--gold2);border-color:var(--line);background:var(--navy2)}
 
 /* ---------- titles ---------- */
-h2{font-size:13px;letter-spacing:.22em;text-transform:uppercase;color:var(--mut);
-  font-weight:600;margin:44px 0 14px;display:flex;align-items:center;gap:12px}
+h2{font-family:'Michroma',sans-serif;font-size:12px;letter-spacing:.24em;text-transform:uppercase;color:var(--gold);
+  font-weight:400;margin:44px 0 14px;display:flex;align-items:center;gap:12px}
 h2::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--line),transparent)}
 
 /* ---------- kpi ---------- */
@@ -82,7 +92,7 @@ tbody tr.sel td:first-child{box-shadow:inset 3px 0 0 var(--gold)}
 .chartbox{background:var(--navy2);border:1px solid var(--line);border-radius:14px;
   padding:18px;margin-top:12px}
 .chead{display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:8px}
-.chead h3{margin:0;font-size:17px;font-weight:600}
+.chead h3{margin:0;font-size:16px;font-weight:500;font-family:'Inter',sans-serif;color:var(--txt)}
 .chead h3 small{color:var(--mut);font-weight:400;font-size:12px;margin-left:8px}
 .rng{margin-left:auto;display:flex;gap:4px}
 .rng button{background:var(--navy3);color:var(--mut);border:1px solid var(--line);
@@ -203,7 +213,7 @@ footer b{color:var(--gold)}
     <button class="btn gh hd-voltar" id="btnVoltar" title="Voltar à página anterior">‹</button>
     <a href="./" class="btn gh" style="padding:8px 14px;font-size:12px">INÍCIO</a>
   </div>
-  <div class="brand"><b>BW</b><span>Brightway</span></div>
+  <div class="brand"><img src="icons/brightway-logo.png" alt="Brightway" style="height:34px;display:block"></div>
   <div class="hd-lado" style="justify-content:flex-end">
     <button class="btn gh" id="refresh" style="padding:8px 14px;font-size:12px">↻ Atualizar</button>
     <button class="btn gh hd-menu-btn" id="btnMenu" title="Abrir menu">☰ Menu</button>
