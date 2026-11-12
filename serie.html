@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<!-- build 2026-11-11T22:33:46 -->
+<!-- build 2026-11-11T22:49:44 -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Série histórica — Brightway</title>
@@ -198,20 +198,22 @@ footer b{color:var(--gold)}
 </head>
 <body>
 <header><div class="hd">
-  <button class="btn gh hd-voltar" id="btnVoltar" title="Voltar à página anterior">‹</button>
-  <a href="./" class="btn gh" style="padding:8px 14px;font-size:12px;flex-shrink:0">INÍCIO</a>
-  <div class="brand"><b>BW</b><span>Brightway</span></div>
-  <nav>
-    <a href="/recs.html" style="color:var(--gold2);border-color:rgba(212,169,74,.4)">★ Recomendações</a>
-  </nav>
-  <button class="btn gh hd-menu-btn" id="btnMenu" title="Abrir menu">☰ Menu</button>
-  <div class="stamp">
-    PTAX <b id="stPtax">—</b> · Spot <b id="stSpot">—</b><br>
-    <span id="stSrc"></span>
+  <div class="hd-lado">
+    <button class="btn gh hd-voltar" id="btnVoltar" title="Voltar à página anterior">‹</button>
+    <a href="./" class="btn gh" style="padding:8px 14px;font-size:12px">INÍCIO</a>
   </div>
-  <button class="btn gh" id="refresh" style="padding:8px 14px;font-size:12px">↻ Atualizar</button>
-  <span id="userBox" style="font-size:12px;color:var(--mut);margin-left:8px"></span>
+  <div class="brand"><b>BW</b><span>Brightway</span></div>
+  <div class="hd-lado" style="justify-content:flex-end">
+    <button class="btn gh" id="refresh" style="padding:8px 14px;font-size:12px">↻ Atualizar</button>
+    <button class="btn gh hd-menu-btn" id="btnMenu" title="Abrir menu">☰ Menu</button>
+  </div>
   <nav id="navGrupos" class="nav-grupos">
+    <div class="nav-col"><b>Câmbio do dia</b>
+      <div id="stampBox" style="font-size:12px;color:var(--mut);padding:2px 8px;line-height:1.6">
+        PTAX <b id="stPtax" style="color:var(--txt)">—</b> · Spot <b id="stSpot" style="color:var(--txt)">—</b><br>
+        <span id="stSrc"></span>
+      </div>
+    </div>
     <div class="nav-col"><b>Sincronização</b>
       <a href="#" id="menuSync">🔄 Sincronizar dados</a>
       <small style="color:var(--mut);font-size:11px;padding:0 8px;display:block">Celular ↔ PC — automática ao abrir e ao salvar</small>
@@ -240,6 +242,7 @@ footer b{color:var(--gold)}
       <a href="viagem.html">Conversor de viagem</a>
       <a href="diario.html">Diário de câmbio</a>
       <a href="leitor.html">Leitor de comprovantes</a>
+      <a href="/recs.html" style="color:var(--gold2)">★ Recomendações</a>
       <a href="noticias.html">Notícias</a>
       <a href="app.html">App & sincronização</a>
       <a href="dados.html">Meus dados</a>
@@ -247,6 +250,7 @@ footer b{color:var(--gold)}
     <div class="nav-col"><b>Conta</b>
       <a href="login.html">Acesso</a>
       <a href="configadm.html">Configuração</a>
+      <div id="userBox" style="font-size:11px;color:var(--mut);padding:2px 8px"></div>
     </div>
   </nav>
 </div></header>
