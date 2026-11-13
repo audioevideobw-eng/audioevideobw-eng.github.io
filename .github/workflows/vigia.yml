@@ -1,0 +1,61 @@
+# Vigia do Brightway (mantido pelo Claude — ver AGENTS.md)
+# A cada publicação na main, confere o site. Se algo essencial sumir,
+# abre um aviso (Issue) no GitHub — e o GitHub manda e-mail para o dono.
+name: Vigia do site
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: vigia
+  cancel-in-progress: true
+
+jobs:
+  conferir:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Conferir o site
+        id: vigia
+        env:
+          VIGIA_SAIDA: ${{ runner.temp }}/vigia.txt
+        run: python3 docs/vigia/vigia.py
+
+      - name: Avisar o dono (abre ou atualiza o aviso)
+        if: failure() && steps.vigia.outcome == 'failure'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ARQ: ${{ runner.temp }}/vigia.txt
+        run: |
+          gh label create vigia --color B60205 --description "Problema encontrado pelo vigia" 2>/dev/null || true
+          {
+            echo "O vigia encontrou problema(s) depois da publicação \`${GITHUB_SHA::7}\`:"
+            echo
+            cat "$ARQ"
+            echo
+            echo "Mensagem do commit: $(git log -1 --format=%s)"
+            echo
+            echo "**O que fazer:** abra o Claude e peça: \"o vigia do site apontou problemas, pode corrigir?\""
+          } > corpo.md
+          NUM=$(gh issue list --label vigia --state open --json number --jq '.[0].number')
+          if [ -n "$NUM" ]; then
+            gh issue comment "$NUM" --body-file corpo.md
+          else
+            gh issue create --title "⚠️ Vigia: o site precisa de correção" --label vigia --body-file corpo.md
+          fi
+
+      - name: Fechar o aviso quando tudo voltar ao normal
+        if: success()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          for NUM in $(gh issue list --label vigia --state open --json number --jq '.[].number'); do
+            gh issue close "$NUM" --comment "✅ Resolvido na publicação ${GITHUB_SHA::7} — o vigia conferiu tudo e está certo."
+          done
