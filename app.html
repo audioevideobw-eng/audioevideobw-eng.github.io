@@ -1146,11 +1146,10 @@ function init() {
         <div class="note" id="sNuvemMsg">Sobe alertas e diário para a sua conta; em outro aparelho, entre e clique em "Baixar da nuvem".</div>`;
       $("#sSync").onclick = async () => {
         $("#sNuvemMsg").textContent = "Sincronizando…";
-        const rs = await nuvem.sincronizarTudo();
-        const falha = rs.find(r => !r.ok);
-        $("#sNuvemMsg").textContent = falha ? "Falha: " + falha.msg
-          : rs.map(r => r.msg.replace(/^[a-z_]+: /, "")).join(" · ") + " — sincronizado ✓";
-        $("#sNuvemMsg").style.color = falha ? "var(--dn)" : "var(--up)";
+        const r = await nuvem.sincronizarTudo();
+        $("#sNuvemMsg").textContent = r.msg || (r.ok ? "Sincronizado ✓" : "Falha ao sincronizar");
+        $("#sNuvemMsg").style.color = r.ok ? "var(--up)" : "var(--dn)";
+        if (r.ok && r.totalMudou > 0) setTimeout(() => location.reload(), 900);
       };
       $("#sDown").onclick = async () => {
         $("#sNuvemMsg").textContent = "Baixando…";
