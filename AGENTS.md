@@ -71,3 +71,14 @@ O dono é a BW Audiovisual. Este arquivo é o combinado entre as duas. Leia **an
   sintaxe do JS, 7 cards do negocio.html, botão da App, regra do sw.js. Se falhar, abre uma Issue "⚠️ Vigia" (o
   dono recebe e-mail). → MAESTRO: rode `python3 docs/vigia/vigia.py` ANTES de publicar; só publique com "✅ Tudo certo".
   Removidos tmp-teste-a.png/tmp-teste-b.png (arquivos de teste do MAESTRO, salvos como texto).
+- 13/11/2026 17:15 · Teste de segurança 1 (dono): OK — 2 eventos e 3 links registrados no banco, nada sem dono.
+
+## Pendências (dono)
+- [ ] Teste de segurança 2A: cadastrar "Teste Colab" pelo link de colaborador numa janela anônima → deve aparecer
+      só para o dono em Gestão de pessoas → cadastros recebidos.
+- [ ] Teste 2B: criar conta de teste (janela anônima, confirmar em Supabase → Authentication → Users), logar e
+      conferir: Eventos vazio, sem o "Teste Colab"; criar "Evento da conta teste" → NÃO pode aparecer para o dono.
+- [ ] Teste 3: galeria do cliente (sem login) mostra só as fotos, nunca contratos/NF-e/comprovantes.
+- [ ] Depois dos testes: apagar a conta de teste e o "Teste Colab".
+- [ ] Futuro (MAESTRO): galeria do cliente por link secreto (hoje as FOTOS ainda são listáveis por quem souber
+      usar a API; documentos já estão protegidos).
