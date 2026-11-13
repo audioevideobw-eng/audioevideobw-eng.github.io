@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<!-- build 2026-11-13T16:42:36 -->
+<!-- build 2026-11-13T17:00:52 -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>App & sincronização — Brightway</title>
@@ -1147,9 +1147,11 @@ function init() {
       $("#sSync").onclick = async () => {
         $("#sNuvemMsg").textContent = "Sincronizando…";
         const r = await nuvem.sincronizarTudo();
-        $("#sNuvemMsg").textContent = r.msg || (r.ok ? "Sincronizado ✓" : "Falha ao sincronizar");
-        $("#sNuvemMsg").style.color = r.ok ? "var(--up)" : "var(--dn)";
-        if (r.ok && r.totalMudou > 0) setTimeout(() => location.reload(), 900);
+        /* o nuvem delega para o BWSync e devolve OBJETO (com msg) */
+        const msg = (r && r.msg) ? r.msg : (Array.isArray(r) ? r.map(x => x.msg || "").join(" · ") : "");
+        const falha = r && r.ok === false;
+        $("#sNuvemMsg").textContent = falha ? "Falha: " + msg : (msg || "Sincronizado ✓");
+        $("#sNuvemMsg").style.color = falha ? "var(--dn)" : "var(--up)";
       };
       $("#sDown").onclick = async () => {
         $("#sNuvemMsg").textContent = "Baixando…";
