@@ -256,60 +256,9 @@
   }
 
   /* ---------- 5. leitura/gravação na nuvem ---------- */
-  async function sessaoOk(c) { return !!(await sessaoUid(c)); }
-  async function sessaoUid(c) {
-    try { var r = await c.auth.getSession(); return (r && r.data && r.data.session && r.data.session.user.id) || null; }
-    catch (e) { return null; }
-  }
-
-  /* ---------- 5b. dados do aparelho pertencem a UMA conta ----------
-     (13/11/2026) O localStorage é do navegador, não do usuário: sem isto, quem
-     entrasse com outra conta no mesmo aparelho via (e SUBIA para a própria conta)
-     os dados de quem usou antes. Agora cada conta tem o seu "cofre" local:
-     ao trocar de conta (ou sair), os dados da conta anterior são guardados à parte
-     e a tela fica só com os dados de quem está logado. */
-  var DONO = "bwsync_dono_v1", COFRE = "bwsync_conta_";
-  var SISTEMA = /^bw_fx_(session|supabase_url|supabase_anon)_v\d+$/;
-  function chavesDaConta() {
-    var ks = [];
-    for (var i = 0; i < localStorage.length; i++) {
-      var k = localStorage.key(i);
-      if (k && ((k.indexOf("bw_") === 0 && !SISTEMA.test(k)) || k === META)) ks.push(k);
-    }
-    return ks;
-  }
-  function guardarConta(uid) {
-    var pacote = {};
-    chavesDaConta().forEach(function (k) { pacote[k] = localStorage.getItem(k); localStorage.removeItem(k); });
-    if (uid && Object.keys(pacote).length) {
-      try { localStorage.setItem(COFRE + uid, JSON.stringify(pacote)); } catch (e) { }
-    }
-  }
-  function restaurarConta(uid) {
-    var pacote = null;
-    try { pacote = JSON.parse(localStorage.getItem(COFRE + uid) || "null"); } catch (e) { }
-    if (!pacote) return 0;
-    interno = true;
-    try { Object.keys(pacote).forEach(function (k) { localStorage.setItem(k, pacote[k]); }); }
-    finally { interno = false; }
-    localStorage.removeItem(COFRE + uid);
-    return Object.keys(pacote).length;
-  }
-  /* devolve true se trocou o conteúdo local (a página precisa recarregar) */
-  function garantirDono(uid) {
-    var atual = localStorage.getItem(DONO);
-    if (atual === uid) return false;
-    if (!atual) { localStorage.setItem(DONO, uid); return false; }   // 1ª vez: dados locais são desta conta
-    guardarConta(atual);
-    restaurarConta(uid);
-    localStorage.setItem(DONO, uid);
-    return true;
-  }
-  function aoSair() {
-    var atual = localStorage.getItem(DONO);
-    if (!atual) return;
-    guardarConta(atual);
-    localStorage.removeItem(DONO);
+  async function sessaoOk(c) {
+    try { var r = await c.auth.getSession(); return !!(r && r.data && r.data.session); }
+    catch (e) { return false; }
   }
   async function lerLinhas(c, chaves) {
     var r = await c.from(TABELA).select("chave, dados, atualizado_em").in("chave", chaves);
@@ -351,16 +300,12 @@
   async function sincronizarAgora(chaves) {
     var c = cliente();
     if (!c) { status("offline"); return { ok: false, msg: "Sem conexão com o servidor.", totalMudou: 0 }; }
-    var uid = await sessaoUid(c);
-    if (!uid) {
+    if (!(await sessaoOk(c))) {
       status("semlogin");
       return { ok: false, semSessao: true, msg: "Entre com sua conta para sincronizar.", totalMudou: 0 };
     }
-    var trocouConta = garantirDono(uid);
-    if (trocouConta) chaves = CHAVES;
     status("salvando");
     var pendentes = chaves.slice(), mudouLocal = {}, trazidos = 0, enviados = 0;
-    if (trocouConta) mudouLocal.__conta = 1;
     try {
       for (var tentativa = 0; tentativa < 5 && pendentes.length; tentativa++) {
         var nomes = [];
@@ -513,14 +458,6 @@
     if (el && estado === "novos") { e.preventDefault(); e.stopImmediatePropagation(); location.reload(); }
   }, true);
   setInterval(function () { if (estado && document.querySelector("#menuSync")) status(estado); }, 30000);
-
-  /* saiu da conta (botão sair ou sessão revogada) → guarda os dados dessa conta */
-  try {
-    var cl = cliente();
-    if (cl && cl.auth && cl.auth.onAuthStateChange) cl.auth.onAuthStateChange(function (ev) {
-      if (ev === "SIGNED_OUT") aoSair();
-    });
-  } catch (e) { }
 
   /* service worker antigo servia leituras do Supabase do cache: força atualizar */
   try {
