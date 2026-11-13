@@ -15,6 +15,8 @@ O dono é a BW Audiovisual. Este arquivo é o combinado entre as duas. Leia **an
   (isso apagava os lançamentos feitos em outro aparelho).
 - `sw.js`: o Supabase e as APIs externas NÃO passam pelo cache. Páginas, JS e CSS usam rede primeiro.
 - Cada página precisa incluir no bundle TODOS os módulos que usa (`MOD['...']`), inclusive o `$` no boot.
+- Imagens (PNG/JPG/WEBP) precisam ir para o GitHub como ARQUIVO BINÁRIO, nunca como texto base64
+  (foi isso que quebrou a logo e os ícones do app). Confira: o arquivo deve abrir como imagem no GitHub.
 - Chave pública do Supabase só a `sb_publishable_…`. Nunca coloque a service_role nem senhas no código.
 
 ## Depois de mexer
@@ -30,3 +32,5 @@ O dono é a BW Audiovisual. Este arquivo é o combinado entre as duas. Leia **an
 - 13/11/2026 · Claude: nova sincronia segura (assets/bw-sync.js), sw.js sem cache do Supabase, módulos
   faltando nos bundles (casa, preco, negocio, eventos, configadm), `$` no boot (app, equipe, eventos,
   financeiro), formulários no celular (brightway.css v5).
+- 13/11/2026 · Claude: logo e ícones do app estavam salvos como texto base64 (imagem quebrada) → convertidos
+  para PNG de verdade; nova `icons/brightway-logo-web.png` (só o letreiro, fundo transparente) nas páginas; sw.js v20.
