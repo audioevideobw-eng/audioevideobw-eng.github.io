@@ -1349,6 +1349,239 @@ function renderCadastros() {
 
 return { init, maskCNPJ, maskTel };
 })();
+/* ===== modules/pagamento.js ===== */
+MOD['modules/pagamento'] = (function() {
+/* módulo Pagamento — PAGAMENTO EQUIPE (aba na Gestão de Equipe).
+   Fluxo: 1) botões das equipes (sincronizadas com a Gestão de Equipe)
+          2) colaborador → lançamento de cachê
+          3) pago/não pago (verde/vermelho)
+          4) cada lançamento conecta com os custos do evento (e.gastos)
+          5) dashboard financeiro por evento com gráfico individual. */
+const {  $, esc, fmt  } = MOD['core/format'];
+const {  load, save  } = MOD['core/store'];
+const {  sincronizarTudo  } = MOD['modules/sincronia'];
+const {  ligarColapsaveis  } = MOD['core/colap'];
+
+const K_PAG = "neg_equipe_pagamentos";
+const pagamentos = () => load(K_PAG, 1, []);
+
+/* eventos disponíveis (da área de Eventos) para conectar os pagamentos */
+const eventos = () => load("neg_eventos", 1, []);
+
+function init() {
+  /* cada página mostra só o que é dela:
+     equipe.html    → seções 1 (equipes) e 2 (lançar cachê)
+     financeiro.html → seção 3 (pagamentos) + seção 5 (dashboard)     */
+  const pagina = (location.pathname.split("/").pop() || "index.html").toLowerCase();
+  const pb = $("#pagBox"), fb = $("#finBox");
+  if (pagina === "financeiro.html") {
+    if (pb) pb.style.display = "none";
+    if (fb) renderFinBox();
+  } else if (pagina === "equipe.html") {
+    if (fb) fb.style.display = "none";
+    if (pb) renderEquipeBox();
+  }
+}
+
+/* ---------- equipe.html: seções 1 (equipes) e 2 (lançar cachê) ---------- */
+function renderEquipeBox() {
+  const box = $("#pagBox"); if (!box) return;
+  const equipes = load("neg_equipe_equipes", 1, []);
+  const colabs = load("neg_equipe_colaboradores", 1, []);
+  const evs = eventos();
+  const equipeAtiva = load("neg_pag_equipe", 1, "");
+  const eq = equipes.find(q => String(q.id) === String(equipeAtiva));
+  const membros = eq ? (eq.membros || []).map(mid => colabs.find(c => String(c.id) === String(mid))).filter(Boolean) : [];
+  box.innerHTML = `
+    <div class="card">
+      <h3>1 · Escolha a equipe</h3>
+      <div class="sub">Botões sincronizados com as equipes formadas na Gestão de Equipe.</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+        ${equipes.length ? equipes.map(q => `<button class="btn ${String(q.id) === String(equipeAtiva) ? "" : "gh"}" data-eq="${q.id}">${esc(q.nome)}</button>`).join("")
+          : '<div class="note">Nenhuma equipe formada — crie na aba Gestão de Equipe.</div>'}
+      </div>
+    </div>
+    ${eq ? `
+    <div class="card" style="margin-top:14px">
+      <h3>2 · Lançar cachê — ${esc(eq.nome)}</h3>
+      <div class="frow3">
+        <div><label>Colaborador</label><select id="pgColab">${membros.map(m => `<option value="${m.id}">${esc(m.nome)}</option>`).join("")}</select></div>
+        <div><label>Evento</label><select id="pgEvento">${evs.map(e => `<option value="${e.id}">${esc(e.nome)}</option>`).join("") || "<option value=''>—</option>"}</select></div>
+        <div><label>Cachê (R$)</label><input id="pgVal" type="number" step="0.01" min="0" placeholder="0,00"></div>
+      </div>
+      <div class="frow3">
+        <div><label>Data do pagamento</label><input id="pgData" type="date"></div>
+        <div><label>Observação</label><input id="pgObs" type="text" placeholder="Ex.: diária, hora extra…"></div>
+        <div style="align-self:end"><button class="btn" id="pgAdd">+ Lançar cachê</button></div>
+      </div>
+      <div class="note" id="pgMsg"></div>
+    </div>` : ""}
+  `;
+  wireEquipes(equipes);
+  if (eq) wireLancamento(eq, membros);
+  ligarColapsaveis(box);
+}
+
+/* ---------- financeiro.html: seção 3 (pagamentos) + seção 5 (dashboard) ---------- */
+function renderFinBox() {
+  const box = $("#finBox"); if (!box) return;
+  const equipes = load("neg_equipe_equipes", 1, []);
+  const equipeAtiva = load("neg_pag_equipe", 1, "");
+  const eq = equipes.find(q => String(q.id) === String(equipeAtiva));
+  const evs = eventos();
+  box.innerHTML = `
+    <div class="card">
+      <h3>3 · Pagamentos${eq ? " — " + esc(eq.nome) : ""}</h3>
+      <div class="sub">Clique em NÃO PAGO para pagar (fica verde). Cada lançamento entra nos custos do evento e no Fluxo de Caixa geral.</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+        ${equipes.length ? equipes.map(q => `<button class="btn ${String(q.id) === String(equipeAtiva) ? "" : "gh"}" data-eq="${q.id}">${esc(q.nome)}</button>`).join("")
+          : '<div class="note">Nenhuma equipe formada — crie na Gestão de Equipe.</div>'}
+      </div>
+      <div class="colap-titulo" data-colap="pgs" style="margin-top:10px">
+        <h3 style="font-size:13px">Lançamentos da equipe</h3><span class="colap-seta" data-seta="pgs">▶</span>
+      </div>
+      <div class="colap-painel" data-painel="pgs"><div id="pgLista" style="margin-top:6px"></div></div>
+    </div>
+    <div id="finDash" style="margin-top:14px"></div>`;
+  wireEquipes(equipes);
+  if (eq) renderPagamentos(eq);
+  renderDashboardsEm(evs, $("#finDash"));
+  ligarColapsaveis(box);
+}
+
+function wireEquipes(equipes) {
+  document.querySelectorAll("[data-eq]").forEach(b => {
+    b.onclick = () => {
+      save("neg_pag_equipe", 1, b.dataset.eq);
+      save("neg_pag_aba", 1, b.dataset.eq);
+      render();
+    };
+  });
+}
+
+/* ---------- 2/3) lançamento + pago/não pago ---------- */
+function wireLancamento(eq, membros) {
+  $("#pgAdd").onclick = () => {
+    const colabId = $("#pgColab").value;
+    const m = membros.find(x => String(x.id) === String(colabId));
+    const evId = $("#pgEvento").value;
+    const ev = eventos().find(x => String(x.id) === String(evId));
+    const valor = parseFloat(($("#pgVal").value || "0").replace(",", ".")) || 0;
+    if (!m || !valor) { $("#pgMsg").textContent = "Escolha o colaborador e o cachê."; return; }
+    const lista = pagamentos();
+    lista.push({ id: Date.now(), equipeId: eq.id, colabId: m.id, colab: m.nome,
+      eventoId: evId, evento: ev ? ev.nome : "", valor,
+      data: $("#pgData").value, obs: $("#pgObs").value.trim(), pago: false });
+    save(K_PAG, 1, lista);
+    $("#pgMsg").textContent = `Cachê de ${m.nome} lançado.`;
+    render();
+  };
+}
+
+function renderPagamentos(eq) {
+  const box = $("#pgLista"); if (!box) return;
+  const lista = pagamentos().filter(p => String(p.equipeId) === String(eq.id));
+  if (!lista.length) { box.innerHTML = '<div class="note">Nenhum cachê lançado para esta equipe.</div>'; return; }
+  const total = lista.reduce((t, p) => t + p.valor, 0);
+  const pago = lista.filter(p => p.pago).reduce((t, p) => t + p.valor, 0);
+  box.innerHTML = `<div class="row"><span>Total da equipe</span><b>R$ ${fmt(total, 2)}</b></div>
+    <div class="row"><span>Pago</span><b style="color:var(--up)">R$ ${fmt(pago, 2)}</b></div>
+    <div class="row"><span>A pagar</span><b style="color:var(--dn)">R$ ${fmt(total - pago, 2)}</b></div>
+    <div style="margin-top:8px">` +
+    lista.map(p => `<div class="row">
+      <span><b>${esc(p.colab)}</b> <small style="color:var(--mut)">${esc(p.evento || "sem evento")}${p.data ? " · " + p.data.split("-").reverse().join("/") : ""}${p.obs ? " · " + esc(p.obs) : ""}</small></span>
+      <b><span style="color:var(--gold2)">R$ ${fmt(p.valor, 2)}</span>
+      <button class="btn ${p.pago ? "" : "gh"}" data-pg="${p.id}" style="padding:5px 10px;font-size:11px;
+        ${p.pago ? "background:var(--up);color:#fff" : "color:var(--dn);border-color:var(--dn)"}">${p.pago ? "PAGO ✓" : "NÃO PAGO"}</button></b>
+    </div>`).join("") + `</div>`;
+  box.querySelectorAll("[data-pg]").forEach(b => {
+    b.onclick = () => {
+      const lista2 = pagamentos();
+      const p = lista2.find(x => String(x.id) === String(b.dataset.pg));
+      if (!p) return;
+      p.pago = !p.pago;
+      p._ed = Date.now();
+      p.data = p.data || new Date().toISOString().slice(0, 10);
+      save(K_PAG, 1, lista2);
+      /* 4) conecta com a planilha de custos do evento (e.gastos) */
+      sincronizarComEvento(p);
+      sincronizarTudo();          // fluxo geral: contas a pagar × custos variáveis
+      render();
+    };
+  });
+}
+
+/* 4) o cachê pago entra como gasto operacional do evento (custo real) */
+function sincronizarComEvento(p) {
+  if (!p.eventoId) return;
+  const evs = eventos();
+  const ev = evs.find(x => String(x.id) === String(p.eventoId));
+  if (!ev) return;
+  ev.gastos = ev.gastos || [];
+  const gid = "pag_" + p.id;
+  const existente = ev.gastos.find(g => g.id === gid);
+  if (p.pago) {
+    const gasto = { id: gid, desc: `Cachê — ${p.colab}`, valor: p.valor,
+      data: p.data || new Date().toISOString().slice(0, 10), comprovante: null, caminho: null };
+    if (existente) Object.assign(existente, gasto);
+    else ev.gastos.push(gasto);
+  } else if (existente) {
+    ev.gastos.splice(ev.gastos.indexOf(existente), 1);
+  }
+  save("neg_eventos", 1, evs);
+}
+
+/* ---------- 5) dashboard financeiro por evento (gráfico individual) ---------- */
+function renderDashboardsEm(evs, container) {
+  if (!container) return;
+  const comDados = evs.filter(e => (e.gastos || []).length || (e.contratado || 0) > 0);
+  container.innerHTML = `<div class="card">
+    <h3>5 · Dashboard financeiro dos eventos</h3>
+    <div class="sub">Cada evento com seu controle individual — toque no nome para revelar os dados.</div>
+    ${comDados.length ? comDados.map(e => dashEvento(e)).join("") : '<div class="note">Cadastre eventos e lançamentos para ver os gráficos.</div>'}
+  </div>`;
+  ligarColapsaveis(container);
+}
+
+function dashEvento(e) {
+  const contratado = parseFloat(e.contratado || 0) || 0;
+  const recebido = parseFloat(e.recebido || 0) || 0;
+  const custos = (e.gastos || []).reduce((t, g) => t + (parseFloat(g.valor || 0) || 0), 0);
+  const resultado = recebido - custos;
+  const margem = recebido > 0 ? (resultado / recebido) * 100 : 0;
+  /* gráfico de barras horizontais: recebido × custos (SVG próprio) */
+  const maxV = Math.max(recebido, custos, 1);
+  const W = 420, barW = 150;
+  const barra = (label, v, cor) => {
+    const w = Math.max(4, (v / maxV) * barW);
+    return `<div class="row"><span>${label}</span><span style="display:flex;align-items:center;gap:8px">
+      <svg width="${barW + 60}" height="16" style="flex-shrink:0">
+        <rect x="0" y="1" width="${w.toFixed(0)}" height="14" rx="3" fill="${cor}"/>
+        <text x="${(w + 6).toFixed(0)}" y="12" fill="var(--txt)" font-size="10">R$ ${fmt(v, 0)}</text>
+      </svg></span></div>`;
+  };
+  return `<div class="card" style="margin-top:10px;background:var(--navy3)">
+    <div class="colap-titulo" data-colap="dash_${e.id}">
+      <b>${esc(e.nome)}</b>
+      <span style="display:flex;align-items:center;gap:8px">
+        <span class="tag mid">${esc(e.status || "")}</span>
+        <span class="colap-seta" data-seta="dash_${e.id}">▶</span>
+      </span>
+    </div>
+    <div class="colap-painel" data-painel="dash_${e.id}">
+      ${barra("Recebido", recebido, "#3f9d6b")}
+      ${barra("Custos", custos, "#c0564a")}
+      <div class="row"><span>Contratado</span><b>R$ ${fmt(contratado, 2)}</b></div>
+      <div class="row"><span>Resultado (recebido − custos)</span><b style="color:${resultado >= 0 ? "var(--up)" : "var(--dn)"}">R$ ${fmt(resultado, 2)}</b></div>
+      <div class="row"><span>Margem</span><b style="color:${margem >= 0 ? "var(--up)" : "var(--dn)"}">${margem.toFixed(1).replace(".", ",")}%</b></div>
+    </div>
+  </div>`;
+}
+
+
+
+return { init };
+})();
 /* ===== modules/equipe.js ===== */
 MOD['modules/equipe'] = (function() {
 /* módulo Equipe — gestão de equipe para eventos BW.
