@@ -4,7 +4,7 @@
    - fontes de dados (milhas.json): network-first, cai no cache sem rede
    - APIs externas (BCB, er-api): NUNCA cacheadas — passam direto
    Versão no nome do cache: subir CACHE a cada publicação de conteúdo. */
-const CACHE = "bw-mesa-v18";
+const CACHE = "bw-mesa-v19";
 const SHELL = [
   "./",
   "./index.html",
@@ -35,6 +35,7 @@ const SHELL = [
   "./preco.html",
   "./fluxo.html",
   "./login.html",
+  "./assets/bw-sync.js",
   "./manifest.json",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
@@ -56,18 +57,35 @@ self.addEventListener("fetch", e => {
   const url = new URL(e.request.url);
   if (e.request.method !== "GET") return;
 
-  /* APIs externas: sempre rede, sem cache */
-  if (url.origin !== location.origin &&
-      /olinda\.bcb\.gov\.br|open\.er-api\.com/.test(url.hostname)) return;
+  /* FORA do site: só as bibliotecas do CDN usam cache. Todo o resto (Supabase,
+     BCB, câmbio, notícias…) vai DIRETO para a rede. (13/11/2026) Antes, as
+     leituras do Supabase caíam no "cache primeiro" e cada aparelho via a
+     nuvem DESATUALIZADA — a principal causa dos dados "sumindo". */
+  if (url.origin !== location.origin) {
+    if (!/(^|\.)cdn\.jsdelivr\.net$/.test(url.hostname)) return;
+    e.respondWith(
+      caches.match(e.request).then(hit => {
+        const rede = fetch(e.request).then(r => {
+          if (r && r.ok) { const cp = r.clone(); caches.open(CACHE).then(c => c.put(e.request, cp)); }
+          return r;
+        }).catch(() => hit);
+        return hit || rede;
+      })
+    );
+    return;
+  }
 
-  /* páginas com conteúdo que muda: rede primeiro (cadastro/presença) */
-  if (url.pathname.endsWith("cadastro.html") || url.pathname.endsWith("equipe.html")) {
+  /* páginas e código do próprio site: REDE PRIMEIRO, cache só sem internet.
+     (13/11/2026) O "cache primeiro" deixava aparelhos rodando versão velha
+     do site — inclusive a sincronia antiga que sobrescrevia a nuvem. */
+  if (url.origin === location.origin &&
+      (e.request.mode === "navigate" || /\.(html|js|css|json)$/.test(url.pathname) || url.pathname.endsWith("/"))) {
     e.respondWith(
       fetch(e.request).then(r => {
         const cp = r.clone();
         caches.open(CACHE).then(c => c.put(e.request, cp));
         return r;
-      }).catch(() => caches.match(e.request))
+      }).catch(() => caches.match(e.request, { ignoreSearch: true }))
     );
     return;
   }

@@ -12,7 +12,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Brightway">
-<link rel="stylesheet" href="assets/brightway.css?v=4">
+<link rel="stylesheet" href="assets/brightway.css?v=5">
 <style>
 :root{
   /* Identidade Brightway — paleta oficial */
@@ -315,6 +315,7 @@ footer b{color:var(--gold)}
 </div>
 <script src="assets/layout.js?v=4"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="assets/bw-sync.js?v=20261113a"></script>
 <script src="https://cdn.jsdelivr.net/npm/pdfmake@0.2.20/build/pdfmake.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
@@ -363,6 +364,7 @@ function load(key, versao = 1, padrao = null) {
 
 function save(key, versao, valor) {
   try {
+    if (window.BWSync) valor = window.BWSync.antesDeSalvar(key, versao, valor);   // carimbo/lápide + envio automático
     localStorage.setItem(`${PREFIX}${key}_v${versao}`, JSON.stringify(valor));
     return true;
   } catch (e) {
@@ -714,224 +716,13 @@ return { cadastrar, clienteSB, configurado, configurar, credenciais, entrar, ent
 })();
 /* ===== core/nuvem.js ===== */
 MOD['core/nuvem'] = (function() {
-/* core/nuvem.js — sincronização dos dados pessoais com a conta Supabase.
-   Contrato: o navegador continua sendo a fonte imediata (localStorage via
-   core/store); a nuvem é a cópia sincronizada. Cada chave (fx_alerts,
-   fx_diario) é uma linha em public.user_data com RLS — cada usuário só
-   acessa as próprias linhas. */
-const {  load, save  } = MOD['core/store'];
-const {  credenciais  } = MOD['core/auth'];
-
-/* lê a sessão do cliente supabase-js carregado no template */
-async function sb() {
-  if (!window.supabase) return null;
-  const c = credenciais();
-  if (!c.url || !c.anon) return null;
-  return window.supabase.createClient(c.url, c.anon);
-}
-
-/* ---- baixar: nuvem -> navegador ---- */
-async function baixar() {
-  const c = await sb(); if (!c) return { ok: false, msg: "sem cliente" };
-  try {
-    const { data: sess } = await c.auth.getSession();
-    if (!sess || !sess.session) return { ok: false, msg: "sem sessão" };
-    const { data, error } = await c.from("user_data").select("chave, dados, atualizado_em");
-    if (error) return { ok: false, msg: error.message };
-    let n = 0; const porChave = {};
-    (data || []).forEach(r => {
-      if (Array.isArray(r.dados)) {
-        /* MESCLA em vez de sobrescrever: união por id — o que existe só no
-           aparelho NÃO é perdido; o que existe só na nuvem é trazido */
-        const locais = load(r.chave, 1, []);
-        const porId = new Map(locais.map(o => [String(o.id), o]));
-        let trazidos = 0;
-        (r.dados || []).forEach(o => {
-          if (!porId.has(String(o.id))) { porId.set(String(o.id), o); trazidos++; }
-        });
-        const mesclado = colapsarDuplicados(r.chave, [...porId.values()]);
-        save(r.chave, 1, mesclado);
-        n += mesclado.length;
-        porChave[r.chave] = `${trazidos} novo(s) de ${mesclado.length}`;
-      }
-    });
-    const rotulos = { fx_alerts: "alertas", fx_diario: "operações de diário" };
-    const partes = Object.entries(porChave)
-      .map(([k, v]) => `${v} ${rotulos[k] || k}`).join(" e ");
-    return { ok: true, msg: `Baixado da nuvem: ${partes || "nada ainda"}`, registros: n };
-  } catch (e) { return { ok: false, msg: String(e.message || e) }; }
-}
-
-/* ---- subir: navegador -> nuvem, com MESCLAGEM por id ----
-   Lê o que já está na nuvem e junta com o que existe aqui (união por id).
-   Assim sincronizar em um aparelho NUNCA apaga o que o outro criou —
-   cada lado mantém seus registros e recebe os do outro. */
-async function subir(chave) {
-  const c = await sb(); if (!c) return { ok: false, msg: "sem cliente" };
-  try {
-    const { data: sess } = await c.auth.getSession();
-    if (!sess || !sess.session) return { ok: false, msg: "sem sessão" };
-    const local = load(chave, 1, []);
-    const { data: remota, error: eLer } = await c.from("user_data")
-      .select("dados").eq("chave", chave).maybeSingle();
-    if (eLer) return { ok: false, msg: eLer.message };
-    const naNuvem = (remota && Array.isArray(remota.dados)) ? remota.dados : [];
-    const ids = new Set(naNuvem.map(x => x && x.id));
-    const novos = local.filter(x => x && !ids.has(x.id));
-    const mesclado = naNuvem.concat(novos).sort((a, b) => (a.id || 0) - (b.id || 0));
-    if (novos.length) save(chave, 1, mesclado);   // o aparelho também recebe a união
-    const { error } = await c.from("user_data").upsert(
-      { chave, dados: mesclado, atualizado_em: new Date().toISOString() },
-      { onConflict: "user_id,chave" }
-    );
-    if (error) return { ok: false, msg: error.message };
-    return { ok: true, msg: `${chave}: ${mesclado.length} registros na nuvem` +
-      (novos.length ? ` (+${novos.length} novo(s) do aparelho)` : "") };
-  } catch (e) { return { ok: false, msg: String(e.message || e) }; }
-}
-
-/* ---- sincronizar tudo: BIDIRECIONAL (mescla nuvem ↔ local em todas as chaves)
-   Regra do dono: a sincronia é automática — ao abrir/atualizar a página,
-   ao salvar qualquer lançamento e pelo botão ☰ Sincronizar. ---- */
-const CHAVES_SYNC = ["fx_alerts", "fx_diario", "casa_orcamento", "casa_contas", "casa_reserva", "neg_fluxo", "casa_fixos", "neg_equipe_colaboradores", "neg_equipe_equipes", "neg_equipe_eventos", "neg_equipe_cadastros", "neg_fixos", "neg_eventos", "neg_equipe_pagamentos", "neg_clientes", "neg_cli_cadastros", "dd_colecoes", "dd_registros"];
-
-/* ---- duplicados: chave natural por tipo de lista ----
-   A união por id faz o mesmo dado cadastrado duas vezes voltar da nuvem ou
-   do outro aparelho. Para as listas de pessoas/empresas existe chave natural
-   (nome + documento/telefone): o merge colapsa em UM registro. */
-const CHAVE_NATURAL = {
-  neg_clientes: ["nome", "cnpj"],
-  neg_equipe_colaboradores: ["nome", "tel"],
-};
-
-const norm = s => String(s == null ? "" : s).normalize("NFD")
-  .replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, " ")
-  .replace(/[^\w\s@.\/-]/g, "").trim().toLowerCase();
-
-function colapsarDuplicados(chave, lista) {
-  const campos = CHAVE_NATURAL[chave];
-  if (!campos) return lista;
-  const porChave = new Map();
-  lista.forEach(o => {
-    if (!o) return;
-    /* só junta quando há identidade suficiente — nome sozinho não basta */
-    const doc = norm(o[campos[1]]).replace(/\D/g, "");
-    if (!norm(o[campos[0]]) || !doc) { porChave.set("__id_" + o.id, o); return; }
-    const k = norm(o[campos[0]]) + "|" + doc;
-    if (!porChave.has(k)) { porChave.set(k, Object.assign({}, o)); return; }
-    /* duplicado: completa os campos vazios que o outro já tem */
-    const alvo = porChave.get(k);
-    Object.keys(o).forEach(c => {
-      if ((alvo[c] === "" || alvo[c] == null) && o[c]) alvo[c] = o[c];
-    });
-  });
-  return [...porChave.values()];
-}
-
-/* mescla UMA chave: união por id (nuvem + local), grava nos dois lados */
-async function mesclarChave(chave) {
-  const { data: sess } = await (await sb()).auth.getSession();
-  if (!sess || !sess.session) return { chave, novos: 0, subidos: 0 };
-  const { data: remota, error } = await (await sb()).from("user_data")
-    .select("dados").eq("chave", chave).maybeSingle();
-  if (error) return { chave, novos: 0, subidos: 0, erro: error.message };
-  const naNuvem = (remota && Array.isArray(remota.dados)) ? remota.dados : [];
-  const locais = load(chave, 1, []);
-  const porId = new Map(naNuvem.map(o => [String(o.id), o]));
-  let novos = 0, atualizados = 0;
-  locais.forEach(o => {
-    const k = String(o.id);
-    if (!porId.has(k)) { porId.set(k, o); novos++; return; }
-    /* ÚLTIMA EDIÇÃO VENCE: se o item existe nos dois lados, o de carimbo
-       _ed mais recente ganha (edições se propagam entre aparelhos) */
-    const rem = porId.get(k);
-    const edL = o._ed || 0, edR = rem._ed || 0;
-    if (edL > edR && JSON.stringify(o) !== JSON.stringify(rem)) {
-      porId.set(k, o); atualizados++;
-    }
-  });
-  const mesclado = colapsarDuplicados(chave, [...porId.values()]);
-  const mudouLocal = mesclado.length !== locais.length;
-  if (mudouLocal) save(chave, 1, mesclado);   // aparelho recebe o que faltava
-  const subidos = mesclado.length - naNuvem.length;
-  if (mesclado.length !== naNuvem.length || JSON.stringify(mesclado) !== JSON.stringify(naNuvem)) {
-    await (await sb()).from("user_data").upsert(
-      { chave, dados: mesclado, atualizado_em: new Date().toISOString() },
-      { onConflict: "user_id,chave" });
-  }
-  return { chave, novos, subidos };
-}
-
-/* ENVIAR (ordem do usuário): o aparelho onde o botão foi apertado MANDA —
-   seus dados sobrescrevem a nuvem em todas as chaves. Os outros aparelhos
-   recebem ao abrir/atualizar (F5). */
-async function enviarTudo() {
-  const res = [];
-  for (const k of CHAVES_SYNC) {
-    const c = await sb();
-    const { data: sess } = await c.auth.getSession();
-    if (!sess || !sess.session) return { ok: false, msg: "Entre com sua conta para sincronizar." };
-    const local = load(k, 1, []);
-    const { error } = await c.from("user_data").upsert(
-      { chave: k, dados: local, atualizado_em: new Date().toISOString() },
-      { onConflict: "user_id,chave" });
-    res.push({ chave: k, ok: !error, erro: error ? error.message : null });
-  }
-  const falhas = res.filter(r => !r.ok);
-  const total = res.reduce((t, r) => t + (load(r.chave, 1, []).length), 0);
-  if (falhas.length) return { ok: false, msg: "Falha em " + falhas.length + " chave(s): " + falhas[0].erro };
-  return { ok: true, msg: `✓ Enviado: ${total} registros — os outros aparelhos atualizam ao abrir (F5)` };
-}
-
-/* RECEBER (F5/abrir): o aparelho ADOTA a conta como está (a última ordem vence).
-   Regra do dono: quem apertou Sincronizar deu a ordem — os outros seguem.
-   (Itens que existem só aqui e não na nuvem são removidos: a nuvem é a verdade.) */
-async function receberTudo() {
-  const res = [];
-  for (const k of CHAVES_SYNC) {
-    const c = await sb();
-    const { data: sess } = await c.auth.getSession();
-    if (!sess || !sess.session) return { ok: false, msg: "sem sessão" };
-    const { data: remota, error } = await c.from("user_data")
-      .select("dados").eq("chave", k).maybeSingle();
-    if (error) { res.push({ chave: k, novos: 0 }); continue; }
-    const naNuvem = (remota && Array.isArray(remota.dados)) ? remota.dados : [];
-    const locais = load(k, 1, []);
-    const antes = new Set(locais.map(o => String(o.id)));
-    const depois = new Set(naNuvem.map(o => String(o.id)));
-    let novos = 0, removidos = 0;
-    naNuvem.forEach(o => { if (!antes.has(String(o.id))) novos++; });
-    locais.forEach(o => { if (!depois.has(String(o.id))) removidos++; });
-    /* grava SÓ se mudou de verdade (evita writes e loops) */
-    if (novos + removidos > 0) save(k, 1, naNuvem);
-    res.push({ chave: k, novos, removidos });
-  }
-  const novos = res.reduce((t, r) => t + (r.novos || 0), 0);
-  const removidos = res.reduce((t, r) => t + (r.removidos || 0), 0);
-  return { ok: true, msg: `✓ Recebido: ${novos} novo(s), ${removidos} removido(s)`,
-    totalMudou: novos + removidos };
-}
-
-async function sincronizarTudo() {
-  const res = [];
-  for (const k of CHAVES_SYNC) res.push(await mesclarChave(k));
-  const novos = res.reduce((t, r) => t + (r.novos || 0), 0);
-  const subidos = res.reduce((t, r) => t + (r.subidos || 0), 0);
-  return { detalhes: res, novos, subidos,
-    msg: `✓ Sincronizado: ${novos} trazido(s) da conta · ${subidos} enviado(s)` +
-      (novos + subidos === 0 ? " — tudo atualizado" : "") };
-}
-
-/* ---- estado: logado e com tabela acessível? ---- */
-async function disponivel() {
-  const c = await sb(); if (!c) return false;
-  try {
-    const { data: sess } = await c.auth.getSession();
-    return !!(sess && sess.session);
-  } catch (e) { return false; }
-}
-
-return { CHAVES_SYNC, baixar, disponivel, enviarTudo, receberTudo, sincronizarTudo, subir };
+/* core/nuvem.js — DELEGA para assets/bw-sync.js (13/11/2026): mescla segura
+   item a item entre aparelhos. Nenhuma função sobrescreve a nuvem às cegas. */
+const S = window.BWSync || {};
+const nada = async () => ({ ok: false, msg: "Sincronização indisponível (recarregue a página).", totalMudou: 0 });
+return { CHAVES_SYNC: S.CHAVES || [], baixar: S.baixar || nada, disponivel: S.disponivel || (async () => false),
+  enviarTudo: S.enviarTudo || nada, receberTudo: S.receberTudo || nada,
+  sincronizarTudo: S.sincronizarTudo || nada, subir: S.subir || nada };
 })();
 /* ===== core/colap.js ===== */
 MOD['core/colap'] = (function() {
@@ -1099,6 +890,273 @@ async function bootComum() {
 }
 
 return { avisoSemDados, bootComum, iniciarDados, montarCabecalho, preencherCodigos, preencherProgramas, refreshPagina, registrarSW, wireHeader };
+})();
+/* ===== modules/exportar.js ===== */
+MOD['modules/exportar'] = (function() {
+/* módulo Exportar — gera PDF mensal das listas de gestão no próprio navegador.
+   Usa pdfmake (servido do site, sem CDN externa): tabela + resumo + padrão BW. */
+const {  load  } = MOD['core/store'];
+const {  fmt  } = MOD['core/format'];
+
+const MES = (() => {
+  const d = new Date();
+  return d.toISOString().slice(0, 7);   // AAAA-MM
+})();
+
+function linhas(key, cols) {
+  return load(key, 1, []).map(o => cols.map(c => {
+    const i = cols.indexOf(c);
+    return String(o["c" + i] ?? "");
+  }));
+}
+
+function disponivel() {
+  return typeof window.pdfMake !== "undefined";
+}
+
+/* desenha o gráfico de barras por categoria como VETORES do pdfmake (sem imagem) */
+function desenhoBarras(dados) {
+  const porCat = {};
+  dados.forEach(o => {
+    if (!(o.c2 || "").toLowerCase().startsWith("despesa")) return;
+    const cat = o.c1 || "Sem categoria";
+    porCat[cat] = (porCat[cat] || 0) + (parseFloat((o.c3 || "0").replace(",", ".")) || 0);
+  });
+  const pares = Object.entries(porCat).sort((a, b) => b[1] - a[1]).slice(0, 8);
+  if (!pares.length) return null;
+  const max = pares[0][1];
+  return {
+    table: { widths: ["35%", "65%", "25%"], body: [
+      [{ text: "Categoria", bold: true, color: "#fff", fillColor: "#0b1220", fontSize: 8 },
+       { text: "", fillColor: "#0b1220" },
+       { text: "Valor", bold: true, color: "#fff", fillColor: "#0b1220", fontSize: 8, alignment: "right" }],
+      ...pares.map(([cat, v]) => [
+        { text: cat, fontSize: 8 },
+        { canvas: [{ type: "rect", x: 0, y: 3, w: Math.max(4, (v / max) * 120), h: 8, color: "#d4a94a" }] },
+        { text: "R$ " + fmt(v, 2), fontSize: 8, alignment: "right" },
+      ]),
+    ] }, margin: [0, 6, 0, 10],
+  };
+}
+
+/* desenha a evolução mensal (receitas × despesas) como vetores do pdfmake */
+function desenhoEvolucao() {
+  const orc = load("casa_orcamento", 1, []);
+  const meses = [...new Set(orc.map(o => (o.c4 || "").slice(0, 7)))].filter(Boolean).sort();
+  if (meses.length < 2) return null;
+  const porMes = {};
+  orc.forEach(o => {
+    const m = (o.c4 || "").slice(0, 7);
+    const v = parseFloat((o.c3 || "0").replace(",", ".")) || 0;
+    if (!porMes[m]) porMes[m] = { rec: 0, desp: 0 };
+    if ((o.c2 || "").toLowerCase().startsWith("receita")) porMes[m].rec += v;
+    else porMes[m].desp += v;
+  });
+  const maxV = Math.max(...meses.flatMap(m => [porMes[m].rec, porMes[m].desp]), 1);
+  const linhas = meses.map(m => [
+    { text: m, fontSize: 8 },
+    { text: "R$ " + fmt(porMes[m].rec, 2), fontSize: 8, color: "#1e8e5a", alignment: "right" },
+    { text: "R$ " + fmt(porMes[m].desp, 2), fontSize: 8, color: "#b8860b", alignment: "right" },
+  ]);
+  return {
+    table: { widths: ["34%", "33%", "33%"], body: [
+      [{ text: "Mês", bold: true, color: "#fff", fillColor: "#0b1220", fontSize: 8 },
+       { text: "Receitas", bold: true, color: "#fff", fillColor: "#0b1220", fontSize: 8, alignment: "right" },
+       { text: "Despesas", bold: true, color: "#fff", fillColor: "#0b1220", fontSize: 8, alignment: "right" }],
+      ...linhas,
+    ] }, margin: [0, 6, 0, 10],
+  };
+}
+
+/* gera o PDF do relatório mensal (chama pdfMake.createPdf) */
+async function exportarMes(titulo, key, cols, resumo, desenhos = []) {
+  if (!disponivel()) throw new Error("Biblioteca de PDF não carregou — recarregue a página.");
+  const dados = linhas(key, cols);
+  const corpo = [
+    cols.map(c => ({ text: c.split(" (")[0], bold: true, fillColor: "#0b1220", color: "#fff", fontSize: 9 })),
+    ...dados.map(r => r.map(v => ({ text: v, fontSize: 9 }))),
+  ];
+  const doc = {
+    defaultStyle: { font: "Roboto", fontSize: 10 },
+    header: {
+      margin: [40, 30, 40, 0],
+      columns: [
+        { text: "BW AUDIOVISUAL", bold: true, color: "#b8860b", fontSize: 11 },
+        { text: `${titulo} — ${MES}`, alignment: "right", color: "#55627a", fontSize: 10 },
+      ],
+    },
+    content: [
+      { text: titulo, fontSize: 16, bold: true, margin: [0, 20, 0, 4] },
+      { text: `Mês de referência: ${MES}`, color: "#55627a", margin: [0, 0, 0, 12] },
+      ...(desenhos || []),
+      ...(resumo ? [{ table: { widths: ["*", "*"], body: resumo.map(r => [
+        { text: r[0], color: "#55627a" }, { text: r[1], bold: true, alignment: "right" },
+      ]) }, margin: [0, 0, 0, 14] }] : []),
+      ...(dados.length ? [{
+        table: { widths: cols.map(() => "*"), body: corpo, headerRows: 1 },
+        layout: "lightHorizontalLines",
+      }] : [{ text: "Nenhum lançamento neste período.", italics: true, color: "#8a93a6" }]),
+    ],
+    footer: {
+      margin: [40, 10, 40, 20],
+      columns: [
+        { text: "Mesa de Câmbio & Milhas — BW Audiovisual", color: "#8a93a6", fontSize: 8 },
+        { text: `gerado em ${new Date().toLocaleString("pt-BR")}`, alignment: "right", color: "#8a93a6", fontSize: 8 },
+      ],
+    },
+  };
+  window.pdfMake.createPdf(doc).download(`${titulo.replace(/\s+/g, "-").toLowerCase()}-${MES}.pdf`);
+}
+
+/* resumos prontos por lista */
+function resumoOrcamento() {
+  const cols = ["Descrição", "Categoria", "Tipo (receita/despesa)", "Valor", "Mês (2026-11)"];
+  const dados = load("casa_orcamento", 1, []);
+  let rec = 0, desp = 0;
+  dados.forEach(o => {
+    const v = parseFloat((o.c3 || "0").replace(",", ".")) || 0;
+    if ((o.c2 || "").toLowerCase().startsWith("receita")) rec += v; else desp += v;
+  });
+  return [["Receitas", "R$ " + fmt(rec, 2)], ["Despesas", "R$ " + fmt(desp, 2)], ["Saldo", "R$ " + fmt(rec - desp, 2)]];
+}
+
+function resumoContas() {
+  const dados = load("casa_contas", 1, []);
+  const abertas = dados.filter(o => (o.c3 || "").toLowerCase() !== "s");
+  const total = abertas.reduce((t, o) => t + (parseFloat((o.c1 || "0").replace(",", ".")) || 0), 0);
+  return [["Total de contas", String(dados.length)], ["Em aberto", `${abertas.length} (R$ ${fmt(total, 2)})`]];
+}
+
+function resumoReserva() {
+  const dados = load("casa_reserva", 1, []);
+  const total = dados.reduce((t, o) => t + (parseFloat((o.c1 || "0").replace(",", ".")) || 0), 0);
+  return [["Total acumulado", "R$ " + fmt(total, 2)]];
+}
+
+function resumoFluxo() {
+  const dados = load("neg_fluxo", 1, []);
+  let ent = 0, sai = 0;
+  dados.forEach(o => {
+    const v = parseFloat((o.c2 || "0").replace(",", ".")) || 0;
+    if ((o.c1 || "").toLowerCase().startsWith("entrada")) ent += v; else sai += v;
+  });
+  return [["Entradas", "R$ " + fmt(ent, 2)], ["Saídas", "R$ " + fmt(sai, 2)], ["Saldo", "R$ " + fmt(ent - sai, 2)]];
+}
+
+return { desenhoBarras, desenhoEvolucao, disponivel, exportarMes, resumoContas, resumoFluxo, resumoOrcamento, resumoReserva };
+})();
+/* ===== modules/sincronia.js ===== */
+MOD['modules/sincronia'] = (function() {
+/* módulo Sincronia — conecta TODOS os fluxos financeiros da plataforma ao
+   Fluxo de Caixa geral (neg_fluxo). Lançamento automático com descrição
+   inteligente: contas a pagar (pendente) × custos variáveis (pago).
+   Id determinístico por origem → nunca duplica, atualiza e remove junto. */
+const {  load, save  } = MOD['core/store'];
+const nuvem = MOD['core/nuvem'];
+
+const SB_PUBLIC = "https://zdtnetplvdonogmdvarx.supabase.co/storage/v1/object/public/eventos-midia";
+
+/* lê o fluxo e garante um lançamento (por id de origem) */
+function garantir(fluxo, id, item) {
+  const existente = fluxo.find(o => o.id === id);
+  if (item === null) {                       // remover
+    if (existente) fluxo.splice(fluxo.indexOf(existente), 1);
+    return true;
+  }
+  if (existente) {                           // atualizar (mantém posição)
+    const antes = JSON.stringify(existente);
+    Object.assign(existente, item);
+    return JSON.stringify(existente) !== antes;   // atualização também é mudança
+  }
+  fluxo.push(Object.assign({ id }, item));   // criar
+  return true;
+}
+
+/* sincroniza TUDO: cachês (pagos e pendentes), gastos de eventos, receitas */
+function sincronizarTudo() {
+  const eventos = load("neg_eventos", 1, []);
+  const pags = load("neg_equipe_pagamentos", 1, []);
+  const fluxo = load("neg_fluxo", 1, []);
+  let mudou = 0;
+
+  /* 1) CACHÊS (PAGAMENTO EQUIPE):
+        não pago → "Contas a pagar — cachê de X (evento)"
+        pago     → "Custos variáveis — cachê de X (evento)"          */
+  const idsCache = new Set();
+  pags.forEach(p => {
+    const fid = "cache_" + p.id;
+    idsCache.add(fid);
+    const ev = eventos.find(e => String(e.id) === String(p.eventoId));
+    const evNome = ev ? ev.nome : (p.evento || "evento");
+    const pago = !!p.pago;
+    const item = {
+      c0: p.data || new Date().toISOString().slice(0, 10),
+      c1: "Saída",
+      c2: String(p.valor || 0),
+      c3: pago ? `Custos variáveis — cachê de ${p.colab} (${evNome})`
+               : `Contas a pagar — cachê de ${p.colab} (${evNome})`,
+      fonte: pago ? "pago" : "pendente",
+    };
+    if (garantir(fluxo, fid, item)) mudou++;
+  });
+  /* remove lançamentos de cachês excluídos */
+  fluxo.filter(o => String(o.id).startsWith("cache_") && !idsCache.has(o.id))
+    .forEach(o => { garantir(fluxo, o.id, null); mudou++; });
+
+  /* 2) GASTOS OPERACIONAIS dos eventos (com ou sem comprovante):
+        "Custos variáveis — <desc> (evento)"                          */
+  const idsGasto = new Set();
+  eventos.forEach(e => (e.gastos || []).forEach(g => {
+    const gid = g.id || ("gasto_" + e.id + "_" + (g.desc || "") + "_" + (g.data || ""));
+    const fid = "gasto_" + gid;
+    idsGasto.add(fid);
+    if (String(fid).startsWith("gasto_pag_")) return;   // cachês já tratados acima
+    const item = {
+      c0: g.data || new Date().toISOString().slice(0, 10),
+      c1: "Saída",
+      c2: String(g.valor || 0),
+      c3: `Custos variáveis — ${g.desc} (${e.nome})`,
+      fonte: g.comprovante ? "comprovado" : "pago",
+    };
+    if (garantir(fluxo, fid, item)) mudou++;
+  }));
+  fluxo.filter(o => String(o.id).startsWith("gasto_") && !idsGasto.has(o.id) && !String(o.id).startsWith("gasto_pag_"))
+    .forEach(o => { garantir(fluxo, o.id, null); mudou++; });
+
+  /* 3) RECEITAS de eventos (quando marcado recebido) */
+  const idsRec = new Set();
+  eventos.forEach(e => {
+    const recebido = parseFloat(e.recebido || 0) || 0;
+    const fid = "receita_" + e.id;
+    if (recebido > 0) {
+      idsRec.add(fid);
+      const item = {
+        c0: e.data || new Date().toISOString().slice(0, 10),
+        c1: "Entrada",
+        c2: String(recebido),
+        c3: `Receita de evento — ${e.nome}`,
+        fonte: "recebido",
+      };
+      if (garantir(fluxo, fid, item)) mudou++;
+    }
+  });
+  fluxo.filter(o => String(o.id).startsWith("receita_") && !idsRec.has(o.id))
+    .forEach(o => { garantir(fluxo, o.id, null); mudou++; });
+
+  if (mudou) save("neg_fluxo", 1, fluxo);
+  /* emenda o ENVIO automático (regra do dono: salvou = ordem de enviar) */
+  try { nuvem.enviarTudo(); } catch (e) { }
+  return mudou;
+}
+
+/* quantos lançamentos da sincronia existem (para o painel) */
+function contagem() {
+  return load("neg_fluxo", 1, []).filter(o =>
+    String(o.id).startsWith("cache_") || String(o.id).startsWith("gasto_") ||
+    String(o.id).startsWith("receita_")).length;
+}
+
+return { SB_PUBLIC, contagem, sincronizarTudo };
 })();
 /* ===== modules/negocio.js ===== */
 MOD['modules/negocio'] = (function() {

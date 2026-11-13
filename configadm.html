@@ -269,6 +269,7 @@ footer b{color:var(--gold)}
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="assets/bw-sync.js?v=20261113a"></script>
 <script>/* Mesa de Câmbio & Milhas — BW (bundle de módulos, gerado) */
 const MOD = {};
 /* ===== core/format.js ===== */
@@ -312,6 +313,7 @@ function load(key, versao = 1, padrao = null) {
 
 function save(key, versao, valor) {
   try {
+    if (window.BWSync) valor = window.BWSync.antesDeSalvar(key, versao, valor);   // carimbo/lápide + envio automático
     localStorage.setItem(`${PREFIX}${key}_v${versao}`, JSON.stringify(valor));
     return true;
   } catch (e) {
@@ -660,6 +662,16 @@ async function testarConexao() {
 }
 
 return { cadastrar, clienteSB, configurado, configurar, credenciais, entrar, entrarComGoogle, recuperar, sair, sessao, sessaoLocal, testarConexao, trocarSenha, usuarioAtual };
+})();
+/* ===== core/nuvem.js ===== */
+MOD['core/nuvem'] = (function() {
+/* core/nuvem.js — DELEGA para assets/bw-sync.js (13/11/2026): mescla segura
+   item a item entre aparelhos. Nenhuma função sobrescreve a nuvem às cegas. */
+const S = window.BWSync || {};
+const nada = async () => ({ ok: false, msg: "Sincronização indisponível (recarregue a página).", totalMudou: 0 });
+return { CHAVES_SYNC: S.CHAVES || [], baixar: S.baixar || nada, disponivel: S.disponivel || (async () => false),
+  enviarTudo: S.enviarTudo || nada, receberTudo: S.receberTudo || nada,
+  sincronizarTudo: S.sincronizarTudo || nada, subir: S.subir || nada };
 })();
 /* ===== core/bootcommon.js ===== */
 MOD['core/bootcommon'] = (function() {

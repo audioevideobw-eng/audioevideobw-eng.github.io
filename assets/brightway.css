@@ -135,3 +135,10 @@ a{color:var(--bw-ambar);text-decoration:none} a:hover{color:#FFD08A}
   .bw-grid,.bw-grid-compacto{grid-template-columns:1fr}
 }
 @media(min-width:900px){ .bw-abas{display:none} }
+
+/* (13/11/2026) formulários no celular: as linhas de 3 colunas estouravam a tela
+   (campos e o botão "Adicionar" cortados). */
+body .frow > div, body .frow3 > div { min-width: 0; }
+body .frow input, body .frow select, body .frow3 input, body .frow3 select { width: 100%; min-width: 0; box-sizing: border-box; }
+@media (max-width: 640px) { body .frow3 { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 420px) { body .frow, body .frow3 { grid-template-columns: 1fr; } }
