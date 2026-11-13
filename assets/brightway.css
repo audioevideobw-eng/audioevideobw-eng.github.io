@@ -64,7 +64,7 @@ a{color:var(--bw-ambar);text-decoration:none} a:hover{color:#FFD08A}
 .bw-kpi .valor{font-size:28px;font-weight:600;margin-top:8px;color:var(--bw-marfim)}
 .bw-kpi .nota{font-size:13px;margin-top:4px;color:var(--bw-texto-3)}
 .bw-kpi .nota.ok{color:var(--bw-ok)} .bw-kpi .nota.alerta{color:var(--bw-alerta)}
-.bw-tool-card{display:flex;flex-direction:column;gap:10px;background:var(--bw-card-bg);
+.menu-card,.bw-tool-card{display:flex;flex-direction:column;gap:10px;background:var(--bw-card-bg);
   border:1px solid var(--bw-card-borda);border-radius:var(--bw-raio);padding:20px;
   color:var(--bw-marfim);transition:border-color .15s}
 .bw-tool-card:hover{border-color:rgba(255,181,71,.35)}
