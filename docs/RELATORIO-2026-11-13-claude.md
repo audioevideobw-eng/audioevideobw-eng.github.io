@@ -2,7 +2,7 @@
 
 **Autor:** Claude (revisão, testes e correção de bugs)
 **Para:** MAESTRO (Adapta) e quem mais mantiver o site
-**Commits:** `391ffcb` (sincronia + ferramentas), `ed3be73` (AGENTS.md), `76c7031` (logo e ícones)
+**Commits:** `391ffcb` (sincronia + ferramentas), `ed3be73` (AGENTS.md), `76c7031` (logo e ícones), blindagem após a regeração do MAESTRO (item 10)
 
 Este relatório explica **o que estava errado, por que estava errado, o que foi feito e a regra que fica**.
 Leia antes de gerar ou publicar páginas de novo. As regras resumidas estão no `AGENTS.md`.
@@ -209,3 +209,44 @@ GitHub: tem que aparecer a imagem.
   tempo, vence a versão mais recente do evento inteiro. Se isso incomodar, o próximo passo é mesclar também
   as sublistas por id.
 - `neg_equipe_presencas_local` e configurações (tokens, URLs de planilha) continuam só no aparelho, de propósito.
+
+---
+
+## 10. Regeneração do MAESTRO às 15:41 (o que voltou a quebrar e como foi blindado)
+
+O MAESTRO publicou uma nova geração das páginas (`a4f83e0`, "Incorporadas as correções de 13/11"). Ela
+partiu da versão certa, mas ficou **incompleta**. Testada com os mesmos cenários, **a sincronia parou de funcionar**:
+
+| O que o MAESTRO gerou | Efeito |
+|---|---|
+| `BWSync.antesDeSalvar(key, valor)` — **faltou o argumento `versao`** | O gancho ignorava a gravação: sem carimbo `_ed`, sem lápide e **sem envio automático**. Nada subia ao salvar. |
+| `enviarTudo`/`receberTudo` delegam, mas `subir`, `sincronizarTudo` e `mesclarChave` **voltaram ao código antigo** com `upsert` | Gravações sem trava e sem lápides (exclusões voltam; corrida entre aparelhos perde dados). |
+| `modules/sincronia` (preco), `modules/ocr` (negocio), `modules/pagamento` (eventos), `core/nuvem` (configadm) **sumiram de novo** | Essas páginas voltaram a travar ao abrir. |
+| Logo voltou para `brightway-logo.png` em 34 px/17 px | Funciona (o PNG agora é real), mas ficava minúscula por causa da margem da arte. |
+| `sw.js` voltou para `CACHE = v19` e tirou a logo nova da lista | Menor: a lógica de rede do SW foi mantida. |
+
+### Blindagem (para não depender de cada regeração acertar)
+Toda a proteção agora mora em `assets/bw-sync.js`, que funciona **mesmo que o bundle esteja antigo ou errado**:
+
+1. `antesDeSalvar` aceita as duas formas: `(key, versao, valor)` e `(key, valor)`.
+2. **Gancho no `localStorage.setItem`**: qualquer gravação de `bw_<chave>_v1` de uma chave sincronizada passa
+   pela marcação de edição/exclusão e agenda o envio — o bundle chamando o gancho ou não (é idempotente).
+3. **Desvio de `upsert`**: o cliente Supabase único intercepta `from("user_data").upsert({chave, ...})` de
+   chaves sincronizadas e transforma em mescla segura. Código antigo que "sobe a lista inteira" não
+   sobrescreve mais nada.
+4. A logo: `icons/brightway-logo.png` agora É o letreiro recortado com fundo transparente (a arte original
+   completa ficou em `icons/brightway-logo-original.png`). Qualquer página que aponte para
+   `brightway-logo.png` mostra certo. `manifest.json` usa `icon-192.png` no lugar da logo larga.
+5. Os módulos faltantes foram reincluídos em configadm, eventos, negocio e preco. `sw.js` → `v21`.
+
+Prova: com o `bw-sync.js` anterior + as páginas do MAESTRO, os testes falham ("PC salva evento → vai para a
+nuvem" ❌). Com o `bw-sync.js` blindado, os 12 cenários passam e as 31 páginas abrem sem erro.
+
+### O que o MAESTRO precisa corrigir no gerador (para as próximas vezes)
+- Chamar `window.BWSync.antesDeSalvar(key, versao, valor)` com os **três** argumentos (ou simplesmente não chamar: o gancho do `setItem` já cobre).
+- Gerar `core/nuvem` **só** como delegação (o bloco curto do item 4) — sem `upsert`, sem `mesclarChave`.
+- Montar o bundle a partir das **dependências reais** de cada página: todo `MOD['x']` usado precisa do bloco
+  `MOD['x'] = ...` antes. Faltaram de novo: `modules/sincronia` (preco), `modules/ocr` (negocio),
+  `modules/pagamento` (eventos), `core/nuvem` (configadm).
+- Antes de publicar: abrir cada página e verificar o console (zero erros).
+- Não reduzir o `CACHE` do `sw.js` (só subir) e anotar o que fez no diário do `AGENTS.md`.

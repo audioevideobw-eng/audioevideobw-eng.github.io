@@ -44,11 +44,36 @@
     Object.keys(s).forEach(function (k) { try { novo[k] = s[k]; } catch (e) { } });
     novo.createClient = function (url, key, opts) {
       var id = String(url || "").replace(/\/+$/, "") + "|" + key;
-      if (!cache[id]) cache[id] = original.call(s, url, key, opts);
+      if (!cache[id]) cache[id] = blindar(original.call(s, url, key, opts));
       return cache[id];
     };
     novo.__bwUnico = true;
     try { window.supabase = novo; } catch (e) { }
+  }
+  /* BLINDAGEM: código antigo (de qualquer versão gerada das páginas) que ainda
+     faça upsert da lista inteira em user_data é desviado para a mescla segura.
+     Assim nenhuma regeração do bundle volta a apagar dados de outro aparelho. */
+  function blindar(cli) {
+    try {
+      var fromOriginal = cli.from.bind(cli);
+      cli.from = function (tabela) {
+        var b = fromOriginal(tabela);
+        if (tabela !== TABELA || !b || typeof b.upsert !== "function") return b;
+        var upOriginal = b.upsert.bind(b);
+        b.upsert = function (payload, opts) {
+          var ch = payload && !Array.isArray(payload) && payload.chave;
+          if (ch && CHAVES.indexOf(ch) >= 0) {
+            var p = sincronizar([ch]).then(function (r) {
+              return { data: null, error: r && r.ok === false && !r.semSessao ? { message: r.msg } : null };
+            });
+            return { then: function (a, b2) { return p.then(a, b2); }, catch: function (f) { return p.catch(f); } };
+          }
+          return upOriginal(payload, opts);
+        };
+        return b;
+      };
+    } catch (e) { }
+    return cli;
   }
   unificarCliente();
 
@@ -56,8 +81,11 @@
     try { var r = localStorage.getItem(k); return r == null ? padrao : JSON.parse(r); }
     catch (e) { return padrao; }
   }
+  var interno = false;
   function gravar(k, v) {
+    interno = true;
     try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e) { return false; }
+    finally { interno = false; }
   }
   function credenciais() {
     var anon = ler(PREFIX + "fx_supabase_anon_v1", "") || "";
@@ -118,6 +146,8 @@
 
   /* ---------- 3. gancho do core/store.save ---------- */
   function antesDeSalvar(key, versao, valor) {
+    /* tolera a chamada antiga/errada antesDeSalvar(key, valor) */
+    if (arguments.length === 2) { valor = versao; versao = VER; }
     if (Number(versao) !== VER || CHAVES.indexOf(key) < 0) return valor;
     try {
       var antes = ler(PREFIX + key + "_v" + VER, null);
@@ -148,6 +178,21 @@
     } catch (e) { console.warn("BWSync: gancho falhou", e); }
     return valor;
   }
+
+  /* rede de segurança: TODA gravação de uma chave sincronizada passa por aqui,
+     chame o bundle o antesDeSalvar ou não (idempotente se chamar). */
+  try {
+    var setOriginal = Storage.prototype.setItem;
+    Storage.prototype.setItem = function (k, v) {
+      if (!interno && this === window.localStorage) {
+        var m = /^bw_(.+)_v1$/.exec(k);
+        if (m && CHAVES.indexOf(m[1]) >= 0) {
+          try { v = JSON.stringify(antesDeSalvar(m[1], VER, JSON.parse(v))); } catch (e) { }
+        }
+      }
+      return setOriginal.call(this, k, v);
+    };
+  } catch (e) { }
 
   /* ---------- 4. mescla ---------- */
   var CHAVE_NATURAL = { neg_clientes: ["nome", "cnpj"], neg_equipe_colaboradores: ["nome", "tel"] };

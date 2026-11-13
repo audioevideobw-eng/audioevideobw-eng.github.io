@@ -11,9 +11,9 @@ O dono é a BW Audiovisual. Este arquivo é o combinado entre as duas. Leia **an
 ## O que NÃO pode ser desfeito
 - `assets/bw-sync.js`: é a sincronização entre celular e PC. Toda página que usa o Supabase precisa
   carregar `<script src="assets/bw-sync.js?v=...">` logo DEPOIS do supabase-js e ANTES do bundle.
-- `core/store.save` precisa chamar `window.BWSync.antesDeSalvar(key, versao, valor)` antes do `localStorage.setItem`.
-- `core/nuvem` só delega para `window.BWSync`. **Nunca** faça upsert da lista inteira por cima da nuvem
-  (isso apagava os lançamentos feitos em outro aparelho).
+- `core/store.save` precisa chamar `window.BWSync.antesDeSalvar(key, versao, valor)` (TRÊS argumentos) antes do `localStorage.setItem`.
+- `core/nuvem` só delega para `window.BWSync` — TODAS as funções (enviarTudo, receberTudo, sincronizarTudo,
+  subir, baixar). **Nunca** faça upsert da lista inteira por cima da nuvem (isso apagava lançamentos de outro aparelho).
 - `sw.js`: o Supabase e as APIs externas NÃO passam pelo cache. Páginas, JS e CSS usam rede primeiro.
 - Cada página precisa incluir no bundle TODOS os módulos que usa (`MOD['...']`), inclusive o `$` no boot.
 - Imagens (PNG/JPG/WEBP) precisam ir para o GitHub como ARQUIVO BINÁRIO, nunca como texto base64
@@ -36,3 +36,7 @@ O dono é a BW Audiovisual. Este arquivo é o combinado entre as duas. Leia **an
 - 13/11/2026 · Claude: logo e ícones do app estavam salvos como texto base64 (imagem quebrada) → convertidos
   para PNG de verdade; nova `icons/brightway-logo-web.png` (só o letreiro, fundo transparente) nas páginas; sw.js v20.
 - 13/11/2026 · Claude: relatório completo dos erros, causas e soluções em `docs/RELATORIO-2026-11-13-claude.md`.
+- 13/11/2026 15:41 · MAESTRO: regerou as páginas incorporando parte das correções.
+- 13/11/2026 · Claude: a regeração das 15:41 deixou a sincronia sem envio (antesDeSalvar sem `versao`; subir/
+  sincronizarTudo antigos) e tirou módulos de preco/negocio/eventos/configadm. Blindagem no bw-sync.js (gancho no
+  setItem + desvio de upsert), módulos reincluídos, logo = letreiro, sw v21. Detalhes: docs/RELATORIO-2026-11-13-claude.md, item 10.
