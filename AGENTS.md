@@ -34,6 +34,7 @@ O dono é a BW Audiovisual. Este arquivo é o combinado entre as duas. Leia **an
 - Claude: revisão, testes e correção de bugs.
 
 ## Diário de mudanças
+- 13/11/2026 16:14 · MAESTRO: corrigido o gerador conforme a seção 10: verificador de IMPORTS REAL (resolve caminhos relativos e falha o build se faltar módulo — pegou as 4 faltas exatas), store com 3 argumentos, nuvem só delegação, mcp_push RECUSA binários (PNG via push_files/git trees), PNGs restaurados como binário real (commit efeea132, confirmado via git trees).
 - 13/11/2026 · Claude: nova sincronia segura (assets/bw-sync.js), sw.js sem cache do Supabase, módulos
   faltando nos bundles (casa, preco, negocio, eventos, configadm), `$` no boot (app, equipe, eventos,
   financeiro), formulários no celular (brightway.css v5).
