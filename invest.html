@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<!-- build 2026-11-13T15:39:47 -->
+<!-- build 2026-11-13T15:58:10 -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Rendimento de investimentos — Brightway</title>
@@ -363,7 +363,7 @@ function save(key, versao, valor) {
   try {
     /* sincronização segura: avisa o BWSync antes de gravar (13/11) */
     if (window.BWSync && typeof window.BWSync.antesDeSalvar === "function") {
-      try { window.BWSync.antesDeSalvar(key, valor); } catch (e) { }
+      try { window.BWSync.antesDeSalvar(key, versao, valor); } catch (e) { }
     }
     localStorage.setItem(`${PREFIX}${key}_v${versao}`, JSON.stringify(valor));
     return true;
@@ -716,233 +716,64 @@ return { cadastrar, clienteSB, configurado, configurar, credenciais, entrar, ent
 })();
 /* ===== core/nuvem.js ===== */
 MOD['core/nuvem'] = (function() {
-/* core/nuvem.js — sincronização dos dados pessoais com a conta Supabase.
-   Contrato: o navegador continua sendo a fonte imediata (localStorage via
-   core/store); a nuvem é a cópia sincronizada. Cada chave (fx_alerts,
-   fx_diario) é uma linha em public.user_data com RLS — cada usuário só
-   acessa as próprias linhas. */
-const {  load, save  } = MOD['core/store'];
-const {  credenciais  } = MOD['core/auth'];
+/* core/nuvem.js — Brightway: DELEGAÇÃO para o BWSync (13/11, seção 10 do
+   relatório do Claude). Nenhuma gravação direta na nuvem aqui: o bw-sync.js
+   faz a mescla segura item a item (nunca sobrescrever a lista inteira).
+   Os nomes exportados são mantidos para os módulos continuarem chamando. */
+const {  load  } = MOD['core/store'];
 
-/* lê a sessão do cliente supabase-js carregado no template */
-async function sb() {
-  if (!window.supabase) return null;
-  const c = credenciais();
-  if (!c.url || !c.anon) return null;
-  return window.supabase.createClient(c.url, c.anon);
-}
+const CHAVES_SYNC = ["fx_alerts", "fx_diario", "casa_orcamento", "casa_contas", "casa_reserva", "neg_fluxo", "casa_fixos", "neg_equipe_colaboradores", "neg_equipe_equipes", "neg_equipe_eventos", "neg_equipe_cadastros", "neg_fixos", "neg_eventos", "neg_equipe_pagamentos", "neg_clientes", "neg_cli_cadastros"];
 
-/* ---- baixar: nuvem -> navegador ---- */
+function bs() { return (typeof window !== "undefined" && window.BWSync) ? window.BWSync : null; }
+
+/* baixar: mescla a nuvem no aparelho (delega) */
 async function baixar() {
-  const c = await sb(); if (!c) return { ok: false, msg: "sem cliente" };
-  try {
-    const { data: sess } = await c.auth.getSession();
-    if (!sess || !sess.session) return { ok: false, msg: "sem sessão" };
-    const { data, error } = await c.from("user_data").select("chave, dados, atualizado_em");
-    if (error) return { ok: false, msg: error.message };
-    let n = 0; const porChave = {};
-    (data || []).forEach(r => {
-      if (Array.isArray(r.dados)) {
-        /* MESCLA em vez de sobrescrever: união por id — o que existe só no
-           aparelho NÃO é perdido; o que existe só na nuvem é trazido */
-        const locais = load(r.chave, 1, []);
-        const porId = new Map(locais.map(o => [String(o.id), o]));
-        let trazidos = 0;
-        (r.dados || []).forEach(o => {
-          if (!porId.has(String(o.id))) { porId.set(String(o.id), o); trazidos++; }
-        });
-        const mesclado = colapsarDuplicados(r.chave, [...porId.values()]);
-        save(r.chave, 1, mesclado);
-        n += mesclado.length;
-        porChave[r.chave] = `${trazidos} novo(s) de ${mesclado.length}`;
-      }
-    });
-    const rotulos = { fx_alerts: "alertas", fx_diario: "operações de diário" };
-    const partes = Object.entries(porChave)
-      .map(([k, v]) => `${v} ${rotulos[k] || k}`).join(" e ");
-    return { ok: true, msg: `Baixado da nuvem: ${partes || "nada ainda"}`, registros: n };
-  } catch (e) { return { ok: false, msg: String(e.message || e) }; }
+  const b = bs(); if (!b) return { ok: false, msg: "sem BWSync" };
+  try { return await b.sincronizar(CHAVES_SYNC); } catch (e) { return { ok: false, msg: String(e.message || e) }; }
 }
 
-/* ---- subir: navegador -> nuvem, com MESCLAGEM por id ----
-   Lê o que já está na nuvem e junta com o que existe aqui (união por id).
-   Assim sincronizar em um aparelho NUNCA apaga o que o outro criou —
-   cada lado mantém seus registros e recebe os do outro. */
+/* subir: envia o aparelho para a nuvem (delega — mescla item a item) */
 async function subir(chave) {
-  const c = await sb(); if (!c) return { ok: false, msg: "sem cliente" };
-  try {
-    const { data: sess } = await c.auth.getSession();
-    if (!sess || !sess.session) return { ok: false, msg: "sem sessão" };
-    const local = load(chave, 1, []);
-    const { data: remota, error: eLer } = await c.from("user_data")
-      .select("dados").eq("chave", chave).maybeSingle();
-    if (eLer) return { ok: false, msg: eLer.message };
-    const naNuvem = (remota && Array.isArray(remota.dados)) ? remota.dados : [];
-    const ids = new Set(naNuvem.map(x => x && x.id));
-    const novos = local.filter(x => x && !ids.has(x.id));
-    const mesclado = naNuvem.concat(novos).sort((a, b) => (a.id || 0) - (b.id || 0));
-    if (novos.length) save(chave, 1, mesclado);   // o aparelho também recebe a união
-    const { error } = await c.from("user_data").upsert(
-      { chave, dados: mesclado, atualizado_em: new Date().toISOString() },
-      { onConflict: "user_id,chave" }
-    );
-    if (error) return { ok: false, msg: error.message };
-    return { ok: true, msg: `${chave}: ${mesclado.length} registros na nuvem` +
-      (novos.length ? ` (+${novos.length} novo(s) do aparelho)` : "") };
-  } catch (e) { return { ok: false, msg: String(e.message || e) }; }
+  const b = bs(); if (!b) return { ok: false, msg: "sem BWSync" };
+  try { return await b.sincronizar(chave ? [chave] : CHAVES_SYNC); } catch (e) { return { ok: false, msg: String(e.message || e) }; }
 }
 
-/* ---- sincronizar tudo: BIDIRECIONAL (mescla nuvem ↔ local em todas as chaves)
-   Regra do dono: a sincronia é automática — ao abrir/atualizar a página,
-   ao salvar qualquer lançamento e pelo botão ☰ Sincronizar. ---- */
-const CHAVES_SYNC = ["fx_alerts", "fx_diario", "casa_orcamento", "casa_contas", "casa_reserva", "neg_fluxo", "casa_fixos", "neg_equipe_colaboradores", "neg_equipe_equipes", "neg_equipe_eventos", "neg_equipe_cadastros", "neg_fixos", "neg_eventos", "neg_equipe_pagamentos", "neg_clientes", "neg_cli_cadastros", "dd_colecoes", "dd_registros"];
-
-/* ---- duplicados: chave natural por tipo de lista ----
-   A união por id faz o mesmo dado cadastrado duas vezes voltar da nuvem ou
-   do outro aparelho. Para as listas de pessoas/empresas existe chave natural
-   (nome + documento/telefone): o merge colapsa em UM registro. */
-const CHAVE_NATURAL = {
-  neg_clientes: ["nome", "cnpj"],
-  neg_equipe_colaboradores: ["nome", "tel"],
-};
-
-const norm = s => String(s == null ? "" : s).normalize("NFD")
-  .replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, " ")
-  .replace(/[^\w\s@.\/-]/g, "").trim().toLowerCase();
-
-function colapsarDuplicados(chave, lista) {
-  const campos = CHAVE_NATURAL[chave];
-  if (!campos) return lista;
-  const porChave = new Map();
-  lista.forEach(o => {
-    if (!o) return;
-    /* só junta quando há identidade suficiente — nome sozinho não basta */
-    const doc = norm(o[campos[1]]).replace(/\D/g, "");
-    if (!norm(o[campos[0]]) || !doc) { porChave.set("__id_" + o.id, o); return; }
-    const k = norm(o[campos[0]]) + "|" + doc;
-    if (!porChave.has(k)) { porChave.set(k, Object.assign({}, o)); return; }
-    /* duplicado: completa os campos vazios que o outro já tem */
-    const alvo = porChave.get(k);
-    Object.keys(o).forEach(c => {
-      if ((alvo[c] === "" || alvo[c] == null) && o[c]) alvo[c] = o[c];
-    });
-  });
-  return [...porChave.values()];
-}
-
-/* mescla UMA chave: união por id (nuvem + local), grava nos dois lados */
-async function mesclarChave(chave) {
-  const { data: sess } = await (await sb()).auth.getSession();
-  if (!sess || !sess.session) return { chave, novos: 0, subidos: 0 };
-  const { data: remota, error } = await (await sb()).from("user_data")
-    .select("dados").eq("chave", chave).maybeSingle();
-  if (error) return { chave, novos: 0, subidos: 0, erro: error.message };
-  const naNuvem = (remota && Array.isArray(remota.dados)) ? remota.dados : [];
-  const locais = load(chave, 1, []);
-  const porId = new Map(naNuvem.map(o => [String(o.id), o]));
-  let novos = 0, atualizados = 0;
-  locais.forEach(o => {
-    const k = String(o.id);
-    if (!porId.has(k)) { porId.set(k, o); novos++; return; }
-    /* ÚLTIMA EDIÇÃO VENCE: se o item existe nos dois lados, o de carimbo
-       _ed mais recente ganha (edições se propagam entre aparelhos) */
-    const rem = porId.get(k);
-    const edL = o._ed || 0, edR = rem._ed || 0;
-    if (edL > edR && JSON.stringify(o) !== JSON.stringify(rem)) {
-      porId.set(k, o); atualizados++;
-    }
-  });
-  const mesclado = colapsarDuplicados(chave, [...porId.values()]);
-  const mudouLocal = mesclado.length !== locais.length;
-  if (mudouLocal) save(chave, 1, mesclado);   // aparelho recebe o que faltava
-  const subidos = mesclado.length - naNuvem.length;
-  if (mesclado.length !== naNuvem.length || JSON.stringify(mesclado) !== JSON.stringify(naNuvem)) {
-    await (await sb()).from("user_data").upsert(
-      { chave, dados: mesclado, atualizado_em: new Date().toISOString() },
-      { onConflict: "user_id,chave" });
-  }
-  return { chave, novos, subidos };
-}
-
-/* ENVIAR (ordem do usuário): o aparelho onde o botão foi apertado MANDA —
-   seus dados sobrescrevem a nuvem em todas as chaves. Os outros aparelhos
-   recebem ao abrir/atualizar (F5). */
+/* enviarTudo: ORDEM do dono — o aparelho manda (delega; o BWSync mescla) */
 async function enviarTudo() {
-  /* 13/11: delega para o BWSync (sincronização segura item a item — nunca
-     sobrescrever a lista inteira na nuvem) */
-  if (window.BWSync && typeof window.BWSync.enviarTudo === "function") {
-    try { return await window.BWSync.enviarTudo(); } catch (e) { }
-  }
-  const res = [];
-  for (const k of CHAVES_SYNC) {
-    const c = await sb();
-    const { data: sess } = await c.auth.getSession();
-    if (!sess || !sess.session) return { ok: false, msg: "Entre com sua conta para sincronizar." };
-    const local = load(k, 1, []);
-    const { error } = await c.from("user_data").upsert(
-      { chave: k, dados: local, atualizado_em: new Date().toISOString() },
-      { onConflict: "user_id,chave" });
-    res.push({ chave: k, ok: !error, erro: error ? error.message : null });
-  }
-  const falhas = res.filter(r => !r.ok);
-  const total = res.reduce((t, r) => t + (load(r.chave, 1, []).length), 0);
-  if (falhas.length) return { ok: false, msg: "Falha em " + falhas.length + " chave(s): " + falhas[0].erro };
-  return { ok: true, msg: `✓ Enviado: ${total} registros — os outros aparelhos atualizam ao abrir (F5)` };
+  const b = bs(); if (!b) return { ok: false, msg: "Entre com sua conta para sincronizar." };
+  try { return await b.sincronizar(CHAVES_SYNC); } catch (e) { return { ok: false, msg: String(e.message || e) }; }
 }
 
-/* RECEBER (F5/abrir): o aparelho ADOTA a conta como está (a última ordem vence).
-   Regra do dono: quem apertou Sincronizar deu a ordem — os outros seguem.
-   (Itens que existem só aqui e não na nuvem são removidos: a nuvem é a verdade.) */
+/* receberTudo: seguir a conta (delega; o BWSync mescla) */
 async function receberTudo() {
-  /* 13/11: delega para o BWSync (mescla segura — nunca perde dados locais) */
-  if (window.BWSync && typeof window.BWSync.sincronizar === "function") {
-    try { return await window.BWSync.sincronizar(); } catch (e) { }
-  }
-  const res = [];
-  for (const k of CHAVES_SYNC) {
-    const c = await sb();
-    const { data: sess } = await c.auth.getSession();
-    if (!sess || !sess.session) return { ok: false, msg: "sem sessão" };
-    const { data: remota, error } = await c.from("user_data")
-      .select("dados").eq("chave", k).maybeSingle();
-    if (error) { res.push({ chave: k, novos: 0 }); continue; }
-    const naNuvem = (remota && Array.isArray(remota.dados)) ? remota.dados : [];
-    const locais = load(k, 1, []);
-    const antes = new Set(locais.map(o => String(o.id)));
-    const depois = new Set(naNuvem.map(o => String(o.id)));
-    let novos = 0, removidos = 0;
-    naNuvem.forEach(o => { if (!antes.has(String(o.id))) novos++; });
-    locais.forEach(o => { if (!depois.has(String(o.id))) removidos++; });
-    /* grava SÓ se mudou de verdade (evita writes e loops) */
-    if (novos + removidos > 0) save(k, 1, naNuvem);
-    res.push({ chave: k, novos, removidos });
-  }
-  const novos = res.reduce((t, r) => t + (r.novos || 0), 0);
-  const removidos = res.reduce((t, r) => t + (r.removidos || 0), 0);
-  return { ok: true, msg: `✓ Recebido: ${novos} novo(s), ${removidos} removido(s)`,
-    totalMudou: novos + removidos };
+  return baixar();
 }
 
+/* sincronizarTudo: bidirecional (delega) */
 async function sincronizarTudo() {
-  const res = [];
-  for (const k of CHAVES_SYNC) res.push(await mesclarChave(k));
-  const novos = res.reduce((t, r) => t + (r.novos || 0), 0);
-  const subidos = res.reduce((t, r) => t + (r.subidos || 0), 0);
-  return { detalhes: res, novos, subidos,
-    msg: `✓ Sincronizado: ${novos} trazido(s) da conta · ${subidos} enviado(s)` +
-      (novos + subidos === 0 ? " — tudo atualizado" : "") };
+  return baixar();
 }
 
-/* ---- estado: logado e com tabela acessível? ---- */
+/* disponivel: logado? (o BWSync sabe) */
 async function disponivel() {
-  const c = await sb(); if (!c) return false;
-  try {
-    const { data: sess } = await c.auth.getSession();
-    return !!(sess && sess.session);
-  } catch (e) { return false; }
+  const b = bs();
+  if (b && typeof b.disponivel === "function") {
+    try { return await b.disponivel(); } catch (e) { return false; }
+  }
+  return false;
 }
 
-return { CHAVES_SYNC, baixar, disponivel, enviarTudo, receberTudo, sincronizarTudo, subir };
+/* credenciais usadas pelos módulos (o BWSync cria o cliente único) */
+function credenciais() {
+  const b = bs();
+  if (b && typeof b.credenciais === "function") {
+    try { const c = b.credenciais(); if (c) return c; } catch (e) { }
+  }
+  try { return JSON.parse(localStorage.getItem("bw_creds") || "null") || { url: "", anon: "" }; }
+  catch (e) { return { url: "", anon: "" }; }
+}
+
+return { CHAVES_SYNC, baixar, credenciais, disponivel, enviarTudo, receberTudo, sincronizarTudo, subir };
 })();
 /* ===== core/colap.js ===== */
 MOD['core/colap'] = (function() {
