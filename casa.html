@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<!-- build 2026-11-13T15:58:10 -->
+<!-- build 2026-11-13T16:19:05 -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Gestão de casa — Brightway</title>
@@ -831,6 +831,76 @@ function ligarColapsaveis(root = document) {
 }
 
 return { colapsavel, ligarColapsaveis };
+})();
+/* ===== core/push.js ===== */
+MOD['core/push'] = (function() {
+/* core/push.js — notificações push dos alertas de preço.
+   O usuário ativa uma vez; a inscrição (endpoint + chaves) fica na nuvem,
+   na linha do próprio usuário (tabela user_data, chave 'fx_push').
+   A automação das 2h lê as inscrições e envia o push se um alvo foi atingido. */
+const {  load, save, remove  } = MOD['core/store'];
+const {  credenciais  } = MOD['core/auth'];
+
+const KEY = "fx_push_ok", VER = 1;
+/* publicKey VAPID da BW (pública por design; a privada fica no cofre) */
+const VAPID_PUBLIC = "BEd-DZh9yqmiVBY-RSlwTM4-7CPFkJ2ntyidjqz9hic25IQq2DyJgChq1EoOllL04973eULfzyDCpVMDIv6tpS0";
+
+function ativo() { return load(KEY, VER, false); }
+
+/* ativa: pede permissão, inscreve no pushManager e sobe a inscrição p/ nuvem */
+async function ativar() {
+  if (!("serviceWorker" in navigator) || !("PushManager" in window))
+    throw new Error("Este navegador não suporta notificações (abra no Chrome/Safari).");
+  const reg = await navigator.serviceWorker.register("sw.js");
+  const perm = await Notification.requestPermission();
+  if (perm !== "granted") throw new Error("Permissão negada — libere nas configurações do navegador.");
+  const c = credenciais();
+  const sub = await reg.pushManager.subscribe({
+    userVisibleOnly: true,
+    applicationServerKey: urlB64ToUint8(VAPID_PUBLIC),
+  });
+  const j = sub.toJSON();
+  /* grava a inscrição na nuvem (linha fx_push do usuário) */
+  const sb = window.supabase && c.url && c.anon ? window.supabase.createClient(c.url, c.anon) : null;
+  if (!sb) throw new Error("Entre com sua conta antes de ativar as notificações.");
+  const { error } = await sb.from("user_data").upsert(
+    { chave: "fx_push", dados: j, atualizado_em: new Date().toISOString() },
+    { onConflict: "user_id,chave" }
+  );
+  if (error) throw error;
+  save(KEY, VER, true);
+  return true;
+}
+
+/* desativa: remove a inscrição da nuvem e local */
+async function desativar() {
+  try {
+    const reg = await navigator.serviceWorker.getRegistration();
+    if (reg) {
+      const sub = await reg.pushManager.getSubscription();
+      if (sub) await sub.unsubscribe();
+    }
+  } catch (e) { }
+  const c = credenciais();
+  const sb = window.supabase && c.url && c.anon ? window.supabase.createClient(c.url, c.anon) : null;
+  if (sb) {
+    try {
+      const { data: sess } = await sb.auth.getSession();
+      if (sess && sess.session)
+        await sb.from("user_data").delete().eq("chave", "fx_push");
+    } catch (e) { }
+  }
+  remove(KEY, VER);
+}
+
+function urlB64ToUint8(b64) {
+  const pad = "=".repeat((4 - (b64.length % 4)) % 4);
+  const base = (b64 + pad).replace(/-/g, "+").replace(/_/g, "/");
+  const raw = atob(base);
+  return Uint8Array.from(raw, c => c.charCodeAt(0));
+}
+
+return { ativar, ativo, desativar };
 })();
 /* ===== core/bootcommon.js ===== */
 MOD['core/bootcommon'] = (function() {
