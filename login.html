@@ -318,7 +318,7 @@ function save(key, versao, valor) {
   try {
     /* sincronização segura: avisa o BWSync antes de gravar (13/11) */
     if (window.BWSync && typeof window.BWSync.antesDeSalvar === "function") {
-      try { window.BWSync.antesDeSalvar(key, valor); } catch (e) { }
+      try { window.BWSync.antesDeSalvar(key, versao, valor); } catch (e) { }
     }
     localStorage.setItem(`${PREFIX}${key}_v${versao}`, JSON.stringify(valor));
     return true;
