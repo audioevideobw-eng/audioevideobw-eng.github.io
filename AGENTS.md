@@ -47,3 +47,6 @@ O dono é a BW Audiovisual. Este arquivo é o combinado entre as duas. Leia **an
   Página negocio.html: agora lista as 7 ferramentas do negócio (pedido do dono).
   → MAESTRO: antes de dizer "build limpo", abra configadm/eventos/negocio/preco no navegador e veja o console;
     e confira com `file icons/*.png` que todo PNG é "PNG image data", não "ASCII text".
+- 13/11/2026 · Claude: dados do APARELHO agora pertencem a uma conta (bw-sync.js, "cofre" por usuário): ao trocar
+  de conta ou sair, os dados locais da conta anterior são guardados à parte e não aparecem nem sobem para a outra.
+  Auditoria multiusuário em andamento (tabelas equipe_cadastros/equipe_presenca e bucket eventos-midia).
