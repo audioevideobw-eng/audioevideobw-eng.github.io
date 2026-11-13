@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<!-- build 2026-11-13T15:58:10 -->
+<!-- build 2026-11-13T16:19:05 -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Meu negócio — Brightway</title>
@@ -280,14 +280,10 @@ footer b{color:var(--gold)}
   <h2 id="negocio" style="margin-top:0">Ferramentas do negócio</h2>
   <div class="card">
     <h3>MEU NEGÓCIO — ferramentas</h3>
-    <div class="sub">Todas as ferramentas do negócio — cada uma em sua própria página.</div>
+    <div class="sub">Cada ferramenta em sua própria página.</div>
     <div class="menu-grid">
-      <a class="menu-card" href="eventos.html"><b>Eventos</b><small>Agenda, cadastro e painel de todos os eventos — status, valores e tipos.</small></a>
-      <a class="menu-card" href="evento.html"><b>Dossiê do evento</b><small>Ficha completa de um evento: equipe, checklist, mídia, relatório e PDF.</small></a>
-      <a class="menu-card" href="equipe.html"><b>Gestão de pessoas</b><small>Colaboradores, equipes por evento, escala em PDF, presença e cachês.</small></a>
-      <a class="menu-card" href="financeiro.html"><b>Financeiro de eventos</b><small>Pagamentos da equipe, gastos e recebimentos de cada evento.</small></a>
-      <a class="menu-card" href="fluxo.html"><b>Fluxo de caixa da empresa</b><small>Entradas, saídas e saldo do período — com planilha conectada.</small></a>
       <a class="menu-card" href="preco.html"><b>Calculadora de preço e margem</b><small>Custo + imposto do Simples + margem → preço de venda sugerido.</small></a>
+      <a class="menu-card" href="fluxo.html"><b>Fluxo de caixa da empresa</b><small>Entradas, saídas e saldo do período — com planilha conectada.</small></a>
       <a class="menu-card" href="leitor.html"><b>Leitor de comprovantes</b><small>Foto da nota → a IA lê e lança o custo no evento.</small></a>
     </div>
   </div>
@@ -801,6 +797,76 @@ function ligarColapsaveis(root = document) {
 
 return { colapsavel, ligarColapsaveis };
 })();
+/* ===== core/push.js ===== */
+MOD['core/push'] = (function() {
+/* core/push.js — notificações push dos alertas de preço.
+   O usuário ativa uma vez; a inscrição (endpoint + chaves) fica na nuvem,
+   na linha do próprio usuário (tabela user_data, chave 'fx_push').
+   A automação das 2h lê as inscrições e envia o push se um alvo foi atingido. */
+const {  load, save, remove  } = MOD['core/store'];
+const {  credenciais  } = MOD['core/auth'];
+
+const KEY = "fx_push_ok", VER = 1;
+/* publicKey VAPID da BW (pública por design; a privada fica no cofre) */
+const VAPID_PUBLIC = "BEd-DZh9yqmiVBY-RSlwTM4-7CPFkJ2ntyidjqz9hic25IQq2DyJgChq1EoOllL04973eULfzyDCpVMDIv6tpS0";
+
+function ativo() { return load(KEY, VER, false); }
+
+/* ativa: pede permissão, inscreve no pushManager e sobe a inscrição p/ nuvem */
+async function ativar() {
+  if (!("serviceWorker" in navigator) || !("PushManager" in window))
+    throw new Error("Este navegador não suporta notificações (abra no Chrome/Safari).");
+  const reg = await navigator.serviceWorker.register("sw.js");
+  const perm = await Notification.requestPermission();
+  if (perm !== "granted") throw new Error("Permissão negada — libere nas configurações do navegador.");
+  const c = credenciais();
+  const sub = await reg.pushManager.subscribe({
+    userVisibleOnly: true,
+    applicationServerKey: urlB64ToUint8(VAPID_PUBLIC),
+  });
+  const j = sub.toJSON();
+  /* grava a inscrição na nuvem (linha fx_push do usuário) */
+  const sb = window.supabase && c.url && c.anon ? window.supabase.createClient(c.url, c.anon) : null;
+  if (!sb) throw new Error("Entre com sua conta antes de ativar as notificações.");
+  const { error } = await sb.from("user_data").upsert(
+    { chave: "fx_push", dados: j, atualizado_em: new Date().toISOString() },
+    { onConflict: "user_id,chave" }
+  );
+  if (error) throw error;
+  save(KEY, VER, true);
+  return true;
+}
+
+/* desativa: remove a inscrição da nuvem e local */
+async function desativar() {
+  try {
+    const reg = await navigator.serviceWorker.getRegistration();
+    if (reg) {
+      const sub = await reg.pushManager.getSubscription();
+      if (sub) await sub.unsubscribe();
+    }
+  } catch (e) { }
+  const c = credenciais();
+  const sb = window.supabase && c.url && c.anon ? window.supabase.createClient(c.url, c.anon) : null;
+  if (sb) {
+    try {
+      const { data: sess } = await sb.auth.getSession();
+      if (sess && sess.session)
+        await sb.from("user_data").delete().eq("chave", "fx_push");
+    } catch (e) { }
+  }
+  remove(KEY, VER);
+}
+
+function urlB64ToUint8(b64) {
+  const pad = "=".repeat((4 - (b64.length % 4)) % 4);
+  const base = (b64 + pad).replace(/-/g, "+").replace(/_/g, "/");
+  const raw = atob(base);
+  return Uint8Array.from(raw, c => c.charCodeAt(0));
+}
+
+return { ativar, ativo, desativar };
+})();
 /* ===== core/bootcommon.js ===== */
 MOD['core/bootcommon'] = (function() {
 /* core/bootcommon.js — base comum de boot das páginas do painel multi-página.
@@ -1200,6 +1266,183 @@ function resumoFluxo() {
 
 return { desenhoBarras, desenhoEvolucao, disponivel, exportarMes, resumoContas, resumoFluxo, resumoOrcamento, resumoReserva };
 })();
+/* ===== modules/ocr.js ===== */
+MOD['modules/ocr'] = (function() {
+/* módulo OCR — leitor de comprovantes fiscais por IA LOCAL (no navegador).
+   A foto NUNCA sai do aparelho: Tesseract.js faz o OCR local e a heurística
+   extrai valor, data e descrição. O gestor escolhe ONDE lançar (evento) antes,
+   e o custo entra nos gastos do evento + no Fluxo de Caixa geral (sincronia). */
+const {  $, esc, fmt  } = MOD['core/format'];
+const {  load, save  } = MOD['core/store'];
+const {  sincronizarTudo  } = MOD['modules/sincronia'];
+const nuvem = MOD['core/nuvem'];
+const auth = MOD['core/auth'];
+
+const SB_PUBLIC = "https://zdtnetplvdonogmdvarx.supabase.co/storage/v1/object/public/eventos-midia";
+
+/* promessa com tempo limite — nada trava a página */
+function comTempo(p, ms) {
+  return Promise.race([p, new Promise(resolve => setTimeout(() => resolve(null), ms))]);
+}
+
+/* heurística de leitura: valor total, data e descrição a partir do texto do OCR */
+function lerComprovante(texto) {
+  let t = (texto || "").replace(/\s+/g, " ");
+  /* remove CNPJ/CPF/CEP/telefone antes de procurar valores (não são o total) */
+  t = t.replace(/\d{2}\.\d{3}\.\d{3}\/\d{4}-?\d{0,2}/g, " ")
+       .replace(/\d{3}\.\d{3}\.\d{3}-\d{2}/g, " ")
+       .replace(/\d{5}-?\d{3}/g, " ")
+       .replace(/\(\d{2}\)\s?\d{4,5}-?\d{4}/g, " ");
+  let valor = null;
+  const reVal = /(?:R\$\s*)?(\d{1,5}(?:\.\d{3})*[,\.]\d{2})/g;
+  let m;
+  while ((m = reVal.exec(t)) !== null) {
+    const n = parseFloat(m[1].replace(/\./g, "").replace(",", "."));
+    if (!isNaN(n) && n >= 1 && n <= 500000 && (valor === null || n > valor)) valor = n;
+  }
+  let data = null;
+  const mD1 = t.match(/(\d{2})\/(\d{2})\/(\d{4})/);
+  if (mD1) data = `${mD1[3]}-${mD1[2]}-${mD1[1]}`;
+  else {
+    const mD2 = t.match(/(\d{4})-(\d{2})-(\d{2})/);
+    if (mD2) data = mD2[0];
+  }
+  let desc = null;
+  const chaves = ["combustivel", "combustível", "posto", "gasolina", "diesel", "etanol",
+    "lanche", "alimentacao", "alimentação", "restaurante", "mercado", "supermercado",
+    "hotel", "pousada", "estacionamento", "pedagio", "pedágio", "uber", "taxi", "táxi",
+    "frete", "transportadora", "material", "loja", "farmacia", "farmácia", "locacao", "locação"];
+  const linha = t.split(/[.\n]/).find(l => chaves.some(c => l.toLowerCase().includes(c)));
+  if (linha) {
+    const lixo = /^(cnpj|cpf|data|nota|fiscal|valor|total|rs|r\$|emissao|emissão|nº|n°)$/i;
+    const palavras = linha.trim().split(" ")
+      .filter(w => w.length > 2 && !/\d/.test(w) && !lixo.test(w))
+      .slice(0, 4);
+    desc = palavras.join(" ").slice(0, 40) || null;
+  }
+  return { valor, data, desc };
+}
+
+function init() {
+  render();
+}
+
+function render() {
+  const box = $("#ocrBox"); if (!box) return;
+  const evs = load("neg_eventos", 1, []);
+  box.innerHTML = `
+    <div class="card">
+      <h3>1 · Onde lançar o custo</h3>
+      <div class="sub">Escolha o evento — o custo entra nos gastos dele e no Fluxo de Caixa geral automaticamente.</div>
+      <div style="margin-top:8px">
+        <select id="ocrEvento" style="width:100%;max-width:420px">
+          ${evs.length ? evs.map(e => `<option value="${e.id}">${esc(e.nome)}${e.data ? " · " + e.data.split("-").reverse().join("/") : ""}</option>`).join("")
+            : "<option value=''>— nenhum evento cadastrado —</option>"}
+        </select>
+        ${evs.length ? "" : '<div class="note">Cadastre um evento na área de Eventos primeiro.</div>'}
+      </div>
+    </div>
+    <div class="card" style="margin-top:14px">
+      <h3>2 · Foto do comprovante</h3>
+      <div class="sub">Tire a foto (ou escolha da galeria). A leitura acontece no aparelho — nada é enviado para a internet.</div>
+      <input type="file" id="ocrFoto" accept="image/*" capture="environment" style="padding:8px;margin-top:8px">
+      <div class="note" id="ocrStatus">Aguardando a foto…</div>
+    </div>
+    <div class="card" style="margin-top:14px;display:none" id="ocrDadosCard">
+      <h3>3 · Confira e lance</h3>
+      <div class="frow3">
+        <div><label>Descrição</label><input id="ocrDesc" type="text" placeholder="Ex.: Combustível"></div>
+        <div><label>Valor (R$)</label><input id="ocrVal" type="number" step="0.01" min="0" placeholder="0,00"></div>
+        <div><label>Data</label><input id="ocrData" type="date"></div>
+      </div>
+      <button class="btn" id="ocrLancar" style="margin-top:12px">+ Lançar no evento</button>
+      <div class="note" id="ocrMsg"></div>
+    </div>`;
+  $("#ocrFoto").onchange = ev => lerFoto(ev.target.files[0]);
+  const lancar = $("#ocrLancar");
+  if (lancar) lancar.onclick = lancarGasto;
+}
+
+let FOTO_ATUAL = null;   // arquivo escolhido (para anexar como comprovante)
+
+async function lerFoto(f) {
+  const st = $("#ocrStatus");
+  if (!f) return;
+  FOTO_ATUAL = f;
+  if (!window.Tesseract) { st.innerHTML = "Leitor não carregou — recarregue a página (F5)."; return; }
+  st.innerHTML = '<span class="spin"></span> Preparando a leitura… (a foto não sai do aparelho)';
+  try {
+    const r = await comTempo(window.Tesseract.recognize(f, "por", {
+      logger: m => {
+        if (m.status === "recognizing text" && $("#ocrStatus"))
+          $("#ocrStatus").innerHTML = `<span class="spin"></span> Lendo o comprovante… ${Math.round((m.progress || 0) * 100)}%`;
+      },
+    }), 90000);
+    if (!r) throw new Error("tempo esgotado");
+    const dados = lerComprovante(r.data.text || "");
+    $("#ocrDadosCard").style.display = "block";
+    if (dados.valor) $("#ocrVal").value = dados.valor.toFixed(2);
+    if (dados.data) $("#ocrData").value = dados.data;
+    if (dados.desc) $("#ocrDesc").value = dados.desc;
+    st.innerHTML = dados.valor
+      ? `✓ Lido! Confira abaixo: <b>R$ ${fmt(dados.valor, 2)}</b>${dados.data ? " · " + dados.data.split("-").reverse().join("/") : ""} — corrija se precisar e lance.`
+      : "Não identifiquei o valor com segurança — preencha abaixo manualmente.";
+  } catch (e) {
+    st.innerHTML = "Não consegui ler (" + (e.message || e) + "). Preencha manualmente abaixo.";
+    $("#ocrDadosCard").style.display = "block";
+  }
+}
+
+async function lancarGasto() {
+  const evId = $("#ocrEvento").value;
+  const ev = load("neg_eventos", 1, []).find(x => String(x.id) === String(evId));
+  const desc = ($("#ocrDesc").value || "Custo de comprovante").trim();
+  const valor = parseFloat(($("#ocrVal").value || "0").replace(",", ".")) || 0;
+  const data = $("#ocrData").value || new Date().toISOString().slice(0, 10);
+  if (!ev) { $("#ocrMsg").textContent = "Escolha o evento (passo 1)."; return; }
+  if (!valor) { $("#ocrMsg").textContent = "Informe o valor."; return; }
+  $("#ocrMsg").textContent = "Lançando…";
+  /* anexa a foto como comprovante do gasto (se logado) */
+  let comprovante = null, caminho = null;
+  try {
+    const auth = MOD["core/auth"];
+    const cred = auth.credenciais();
+    const sb = window.supabase.createClient(cred.url, cred.anon);
+    const { data: sess } = await sb.auth.getSession();
+    if (sess && sess.session && FOTO_ATUAL) {
+      const cp = `${ev.id}/comprovantes/${Date.now()}_${FOTO_ATUAL.name}`;
+      const up = await comTempo(sb.storage.from("eventos-midia").upload(cp, FOTO_ATUAL), 60000);
+      if (!up.error) { comprovante = `${SB_PUBLIC}/${cp}`; caminho = cp; }
+    }
+  } catch (e) { }
+  /* lança nos gastos do evento */
+  const l2 = load("neg_eventos", 1, []);
+  const alvo = l2.find(x => String(x.id) === String(evId));
+  alvo.gastos = alvo.gastos || [];
+  alvo.gastos.push({ desc, valor, data, comprovante, caminho,
+    origem: "IA — foto do comprovante" });
+  save("neg_eventos", 1, l2);
+  /* fluxo geral + indicadores */
+  const mudou = sincronizarTudo();
+  /* SOBE PARA A NUVEM automaticamente (sem depender do botão sincronizar) */
+  let nuvemOk = false;
+  try {
+    const r = await nuvem.enviarTudo();
+    nuvemOk = !!r.ok;
+  } catch (e) { }
+  $("#ocrMsg").innerHTML = `✓ Lançado em <b>${esc(ev.nome)}</b>: R$ ${fmt(valor, 2)} · ${esc(desc)}` +
+    (comprovante ? ' · 🧾 comprovante salvo (abre no dossiê e no relatório)' : ' · ⚠️ sem comprovante (entre com sua conta)') +
+    (nuvemOk ? ' · ☁️ sincronizado com a conta' : ' · ⚠️ toque em ↑ Enviar para subir à conta') +
+    ` · <a href="?ev=${ev.id}" style="color:var(--gold2)">abrir o evento</a>` +
+    (mudou ? ` · Fluxo de Caixa atualizado.` : "");
+  $("#ocrDadosCard").style.display = "none";
+  $("#ocrFoto").value = "";
+  FOTO_ATUAL = null;
+  $("#ocrStatus").innerHTML = "Aguardando a foto…";
+}
+
+return { init, lerComprovante };
+})();
 /* ===== modules/negocio.js ===== */
 MOD['modules/negocio'] = (function() {
 /* módulo Negocio — calculadora de preço/margem, fluxo de caixa e carteira.
@@ -1492,183 +1735,6 @@ function init() {
 }
 
 return { CATEGORIAS_NEG, calcularPreco, expandirFixosNeg, init, initCategorias, initExportar, initFluxo, initPlanilha, initPreco, initSyncRapido, renderFixosNeg, renderFluxo, setUrlSheets, urlSheets };
-})();
-/* ===== modules/ocr.js ===== */
-MOD['modules/ocr'] = (function() {
-/* módulo OCR — leitor de comprovantes fiscais por IA LOCAL (no navegador).
-   A foto NUNCA sai do aparelho: Tesseract.js faz o OCR local e a heurística
-   extrai valor, data e descrição. O gestor escolhe ONDE lançar (evento) antes,
-   e o custo entra nos gastos do evento + no Fluxo de Caixa geral (sincronia). */
-const {  $, esc, fmt  } = MOD['core/format'];
-const {  load, save  } = MOD['core/store'];
-const {  sincronizarTudo  } = MOD['modules/sincronia'];
-const nuvem = MOD['core/nuvem'];
-const auth = MOD['core/auth'];
-
-const SB_PUBLIC = "https://zdtnetplvdonogmdvarx.supabase.co/storage/v1/object/public/eventos-midia";
-
-/* promessa com tempo limite — nada trava a página */
-function comTempo(p, ms) {
-  return Promise.race([p, new Promise(resolve => setTimeout(() => resolve(null), ms))]);
-}
-
-/* heurística de leitura: valor total, data e descrição a partir do texto do OCR */
-function lerComprovante(texto) {
-  let t = (texto || "").replace(/\s+/g, " ");
-  /* remove CNPJ/CPF/CEP/telefone antes de procurar valores (não são o total) */
-  t = t.replace(/\d{2}\.\d{3}\.\d{3}\/\d{4}-?\d{0,2}/g, " ")
-       .replace(/\d{3}\.\d{3}\.\d{3}-\d{2}/g, " ")
-       .replace(/\d{5}-?\d{3}/g, " ")
-       .replace(/\(\d{2}\)\s?\d{4,5}-?\d{4}/g, " ");
-  let valor = null;
-  const reVal = /(?:R\$\s*)?(\d{1,5}(?:\.\d{3})*[,\.]\d{2})/g;
-  let m;
-  while ((m = reVal.exec(t)) !== null) {
-    const n = parseFloat(m[1].replace(/\./g, "").replace(",", "."));
-    if (!isNaN(n) && n >= 1 && n <= 500000 && (valor === null || n > valor)) valor = n;
-  }
-  let data = null;
-  const mD1 = t.match(/(\d{2})\/(\d{2})\/(\d{4})/);
-  if (mD1) data = `${mD1[3]}-${mD1[2]}-${mD1[1]}`;
-  else {
-    const mD2 = t.match(/(\d{4})-(\d{2})-(\d{2})/);
-    if (mD2) data = mD2[0];
-  }
-  let desc = null;
-  const chaves = ["combustivel", "combustível", "posto", "gasolina", "diesel", "etanol",
-    "lanche", "alimentacao", "alimentação", "restaurante", "mercado", "supermercado",
-    "hotel", "pousada", "estacionamento", "pedagio", "pedágio", "uber", "taxi", "táxi",
-    "frete", "transportadora", "material", "loja", "farmacia", "farmácia", "locacao", "locação"];
-  const linha = t.split(/[.\n]/).find(l => chaves.some(c => l.toLowerCase().includes(c)));
-  if (linha) {
-    const lixo = /^(cnpj|cpf|data|nota|fiscal|valor|total|rs|r\$|emissao|emissão|nº|n°)$/i;
-    const palavras = linha.trim().split(" ")
-      .filter(w => w.length > 2 && !/\d/.test(w) && !lixo.test(w))
-      .slice(0, 4);
-    desc = palavras.join(" ").slice(0, 40) || null;
-  }
-  return { valor, data, desc };
-}
-
-function init() {
-  render();
-}
-
-function render() {
-  const box = $("#ocrBox"); if (!box) return;
-  const evs = load("neg_eventos", 1, []);
-  box.innerHTML = `
-    <div class="card">
-      <h3>1 · Onde lançar o custo</h3>
-      <div class="sub">Escolha o evento — o custo entra nos gastos dele e no Fluxo de Caixa geral automaticamente.</div>
-      <div style="margin-top:8px">
-        <select id="ocrEvento" style="width:100%;max-width:420px">
-          ${evs.length ? evs.map(e => `<option value="${e.id}">${esc(e.nome)}${e.data ? " · " + e.data.split("-").reverse().join("/") : ""}</option>`).join("")
-            : "<option value=''>— nenhum evento cadastrado —</option>"}
-        </select>
-        ${evs.length ? "" : '<div class="note">Cadastre um evento na área de Eventos primeiro.</div>'}
-      </div>
-    </div>
-    <div class="card" style="margin-top:14px">
-      <h3>2 · Foto do comprovante</h3>
-      <div class="sub">Tire a foto (ou escolha da galeria). A leitura acontece no aparelho — nada é enviado para a internet.</div>
-      <input type="file" id="ocrFoto" accept="image/*" capture="environment" style="padding:8px;margin-top:8px">
-      <div class="note" id="ocrStatus">Aguardando a foto…</div>
-    </div>
-    <div class="card" style="margin-top:14px;display:none" id="ocrDadosCard">
-      <h3>3 · Confira e lance</h3>
-      <div class="frow3">
-        <div><label>Descrição</label><input id="ocrDesc" type="text" placeholder="Ex.: Combustível"></div>
-        <div><label>Valor (R$)</label><input id="ocrVal" type="number" step="0.01" min="0" placeholder="0,00"></div>
-        <div><label>Data</label><input id="ocrData" type="date"></div>
-      </div>
-      <button class="btn" id="ocrLancar" style="margin-top:12px">+ Lançar no evento</button>
-      <div class="note" id="ocrMsg"></div>
-    </div>`;
-  $("#ocrFoto").onchange = ev => lerFoto(ev.target.files[0]);
-  const lancar = $("#ocrLancar");
-  if (lancar) lancar.onclick = lancarGasto;
-}
-
-let FOTO_ATUAL = null;   // arquivo escolhido (para anexar como comprovante)
-
-async function lerFoto(f) {
-  const st = $("#ocrStatus");
-  if (!f) return;
-  FOTO_ATUAL = f;
-  if (!window.Tesseract) { st.innerHTML = "Leitor não carregou — recarregue a página (F5)."; return; }
-  st.innerHTML = '<span class="spin"></span> Preparando a leitura… (a foto não sai do aparelho)';
-  try {
-    const r = await comTempo(window.Tesseract.recognize(f, "por", {
-      logger: m => {
-        if (m.status === "recognizing text" && $("#ocrStatus"))
-          $("#ocrStatus").innerHTML = `<span class="spin"></span> Lendo o comprovante… ${Math.round((m.progress || 0) * 100)}%`;
-      },
-    }), 90000);
-    if (!r) throw new Error("tempo esgotado");
-    const dados = lerComprovante(r.data.text || "");
-    $("#ocrDadosCard").style.display = "block";
-    if (dados.valor) $("#ocrVal").value = dados.valor.toFixed(2);
-    if (dados.data) $("#ocrData").value = dados.data;
-    if (dados.desc) $("#ocrDesc").value = dados.desc;
-    st.innerHTML = dados.valor
-      ? `✓ Lido! Confira abaixo: <b>R$ ${fmt(dados.valor, 2)}</b>${dados.data ? " · " + dados.data.split("-").reverse().join("/") : ""} — corrija se precisar e lance.`
-      : "Não identifiquei o valor com segurança — preencha abaixo manualmente.";
-  } catch (e) {
-    st.innerHTML = "Não consegui ler (" + (e.message || e) + "). Preencha manualmente abaixo.";
-    $("#ocrDadosCard").style.display = "block";
-  }
-}
-
-async function lancarGasto() {
-  const evId = $("#ocrEvento").value;
-  const ev = load("neg_eventos", 1, []).find(x => String(x.id) === String(evId));
-  const desc = ($("#ocrDesc").value || "Custo de comprovante").trim();
-  const valor = parseFloat(($("#ocrVal").value || "0").replace(",", ".")) || 0;
-  const data = $("#ocrData").value || new Date().toISOString().slice(0, 10);
-  if (!ev) { $("#ocrMsg").textContent = "Escolha o evento (passo 1)."; return; }
-  if (!valor) { $("#ocrMsg").textContent = "Informe o valor."; return; }
-  $("#ocrMsg").textContent = "Lançando…";
-  /* anexa a foto como comprovante do gasto (se logado) */
-  let comprovante = null, caminho = null;
-  try {
-    const auth = MOD["core/auth"];
-    const cred = auth.credenciais();
-    const sb = window.supabase.createClient(cred.url, cred.anon);
-    const { data: sess } = await sb.auth.getSession();
-    if (sess && sess.session && FOTO_ATUAL) {
-      const cp = `${ev.id}/comprovantes/${Date.now()}_${FOTO_ATUAL.name}`;
-      const up = await comTempo(sb.storage.from("eventos-midia").upload(cp, FOTO_ATUAL), 60000);
-      if (!up.error) { comprovante = `${SB_PUBLIC}/${cp}`; caminho = cp; }
-    }
-  } catch (e) { }
-  /* lança nos gastos do evento */
-  const l2 = load("neg_eventos", 1, []);
-  const alvo = l2.find(x => String(x.id) === String(evId));
-  alvo.gastos = alvo.gastos || [];
-  alvo.gastos.push({ desc, valor, data, comprovante, caminho,
-    origem: "IA — foto do comprovante" });
-  save("neg_eventos", 1, l2);
-  /* fluxo geral + indicadores */
-  const mudou = sincronizarTudo();
-  /* SOBE PARA A NUVEM automaticamente (sem depender do botão sincronizar) */
-  let nuvemOk = false;
-  try {
-    const r = await nuvem.enviarTudo();
-    nuvemOk = !!r.ok;
-  } catch (e) { }
-  $("#ocrMsg").innerHTML = `✓ Lançado em <b>${esc(ev.nome)}</b>: R$ ${fmt(valor, 2)} · ${esc(desc)}` +
-    (comprovante ? ' · 🧾 comprovante salvo (abre no dossiê e no relatório)' : ' · ⚠️ sem comprovante (entre com sua conta)') +
-    (nuvemOk ? ' · ☁️ sincronizado com a conta' : ' · ⚠️ toque em ↑ Enviar para subir à conta') +
-    ` · <a href="?ev=${ev.id}" style="color:var(--gold2)">abrir o evento</a>` +
-    (mudou ? ` · Fluxo de Caixa atualizado.` : "");
-  $("#ocrDadosCard").style.display = "none";
-  $("#ocrFoto").value = "";
-  FOTO_ATUAL = null;
-  $("#ocrStatus").innerHTML = "Aguardando a foto…";
-}
-
-return { init, lerComprovante };
 })();
 /* ===== negocio_main.js ===== */
 MOD['negocio_main'] = (function() {
