@@ -6,6 +6,7 @@ O dono é a BW Audiovisual. Este arquivo é o combinado entre as duas. Leia **an
 ## Antes de começar
 1. Puxe a versão MAIS RECENTE do GitHub (branch main). Nunca publique a partir de uma cópia antiga.
 2. Leia o "Diário de mudanças" no fim deste arquivo para ver o que a outra IA fez.
+3. Relatórios técnicos detalhados ficam na pasta `docs/` (comece por `docs/RELATORIO-2026-11-13-claude.md`).
 
 ## O que NÃO pode ser desfeito
 - `assets/bw-sync.js`: é a sincronização entre celular e PC. Toda página que usa o Supabase precisa
@@ -34,3 +35,4 @@ O dono é a BW Audiovisual. Este arquivo é o combinado entre as duas. Leia **an
   financeiro), formulários no celular (brightway.css v5).
 - 13/11/2026 · Claude: logo e ícones do app estavam salvos como texto base64 (imagem quebrada) → convertidos
   para PNG de verdade; nova `icons/brightway-logo-web.png` (só o letreiro, fundo transparente) nas páginas; sw.js v20.
+- 13/11/2026 · Claude: relatório completo dos erros, causas e soluções em `docs/RELATORIO-2026-11-13-claude.md`.
