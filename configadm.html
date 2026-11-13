@@ -269,7 +269,7 @@ footer b{color:var(--gold)}
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<script src="assets/bw-sync.js?v=20261113c"></script>
+<script src="assets/bw-sync.js"></script>
 <script>/* Mesa de Câmbio & Milhas — BW (bundle de módulos, gerado) */
 const MOD = {};
 /* ===== core/format.js ===== */
@@ -726,6 +726,111 @@ function credenciais() {
 }
 
 return { CHAVES_SYNC, baixar, credenciais, disponivel, enviarTudo, receberTudo, sincronizarTudo, subir };
+})();
+/* ===== core/colap.js ===== */
+MOD['core/colap'] = (function() {
+/* core/colap.js — listas de dados cadastrados começam OMITIDAS (economiza
+   espaço conforme a base cresce); o título clicável (seta) revela/omite. */
+const {  esc  } = MOD['core/format'];
+
+/* envolve um bloco HTML em um colapsável fechado.
+   titulo: texto do h3; conteudo: HTML interno (tabela, cards…); id: único. */
+function colapsavel(id, titulo, conteudo, extra = "") {
+  return `<div class="card" ${extra}>
+    <div class="colap-titulo" data-colap="${id}">
+      <h3>${esc(titulo)}</h3><span class="colap-seta" data-seta="${id}">▶</span>
+    </div>
+    <div class="colap-sub" style="color:var(--mut);font-size:12px;margin-top:2px" data-sub="${id}"></div>
+    <div class="colap-painel" data-painel="${id}">${conteudo}</div>
+  </div>`;
+}
+
+/* liga os títulos clicáveis de um container (chamar após render) */
+function ligarColapsaveis(root = document) {
+  root.querySelectorAll("[data-colap]").forEach(t => {
+    t.onclick = () => {
+      const id = t.dataset.colap;
+      const painel = root.querySelector(`[data-painel="${id}"]`);
+      const seta = root.querySelector(`[data-seta="${id}"]`);
+      if (!painel) return;
+      const abrindo = !painel.classList.contains("aberto");
+      painel.classList.toggle("aberto", abrindo);
+      if (seta) seta.classList.toggle("aberta", abrindo);
+    };
+  });
+}
+
+return { colapsavel, ligarColapsaveis };
+})();
+/* ===== core/push.js ===== */
+MOD['core/push'] = (function() {
+/* core/push.js — notificações push dos alertas de preço.
+   O usuário ativa uma vez; a inscrição (endpoint + chaves) fica na nuvem,
+   na linha do próprio usuário (tabela user_data, chave 'fx_push').
+   A automação das 2h lê as inscrições e envia o push se um alvo foi atingido. */
+const {  load, save, remove  } = MOD['core/store'];
+const {  credenciais  } = MOD['core/auth'];
+
+const KEY = "fx_push_ok", VER = 1;
+/* publicKey VAPID da BW (pública por design; a privada fica no cofre) */
+const VAPID_PUBLIC = "BEd-DZh9yqmiVBY-RSlwTM4-7CPFkJ2ntyidjqz9hic25IQq2DyJgChq1EoOllL04973eULfzyDCpVMDIv6tpS0";
+
+function ativo() { return load(KEY, VER, false); }
+
+/* ativa: pede permissão, inscreve no pushManager e sobe a inscrição p/ nuvem */
+async function ativar() {
+  if (!("serviceWorker" in navigator) || !("PushManager" in window))
+    throw new Error("Este navegador não suporta notificações (abra no Chrome/Safari).");
+  const reg = await navigator.serviceWorker.register("sw.js");
+  const perm = await Notification.requestPermission();
+  if (perm !== "granted") throw new Error("Permissão negada — libere nas configurações do navegador.");
+  const c = credenciais();
+  const sub = await reg.pushManager.subscribe({
+    userVisibleOnly: true,
+    applicationServerKey: urlB64ToUint8(VAPID_PUBLIC),
+  });
+  const j = sub.toJSON();
+  /* grava a inscrição na nuvem (linha fx_push do usuário) */
+  const sb = window.supabase && c.url && c.anon ? window.supabase.createClient(c.url, c.anon) : null;
+  if (!sb) throw new Error("Entre com sua conta antes de ativar as notificações.");
+  const { error } = await sb.from("user_data").upsert(
+    { chave: "fx_push", dados: j, atualizado_em: new Date().toISOString() },
+    { onConflict: "user_id,chave" }
+  );
+  if (error) throw error;
+  save(KEY, VER, true);
+  return true;
+}
+
+/* desativa: remove a inscrição da nuvem e local */
+async function desativar() {
+  try {
+    const reg = await navigator.serviceWorker.getRegistration();
+    if (reg) {
+      const sub = await reg.pushManager.getSubscription();
+      if (sub) await sub.unsubscribe();
+    }
+  } catch (e) { }
+  const c = credenciais();
+  const sb = window.supabase && c.url && c.anon ? window.supabase.createClient(c.url, c.anon) : null;
+  if (sb) {
+    try {
+      const { data: sess } = await sb.auth.getSession();
+      if (sess && sess.session)
+        await sb.from("user_data").delete().eq("chave", "fx_push");
+    } catch (e) { }
+  }
+  remove(KEY, VER);
+}
+
+function urlB64ToUint8(b64) {
+  const pad = "=".repeat((4 - (b64.length % 4)) % 4);
+  const base = (b64 + pad).replace(/-/g, "+").replace(/_/g, "/");
+  const raw = atob(base);
+  return Uint8Array.from(raw, c => c.charCodeAt(0));
+}
+
+return { ativar, ativo, desativar };
 })();
 /* ===== core/bootcommon.js ===== */
 MOD['core/bootcommon'] = (function() {
