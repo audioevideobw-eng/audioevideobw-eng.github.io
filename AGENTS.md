@@ -8,6 +8,10 @@ O dono é a BW Audiovisual. Este arquivo é o combinado entre as duas. Leia **an
 2. Leia o "Diário de mudanças" no fim deste arquivo para ver o que a outra IA fez.
 3. Relatórios técnicos detalhados ficam na pasta `docs/` (comece por `docs/RELATORIO-2026-11-13-claude.md`).
 
+## Arquivos que SÓ o Claude edita (o MAESTRO não publica nem sobrescreve)
+- `assets/bw-sync.js` e `docs/` (inclui `docs/sql/`). Se o gerador do MAESTRO tem uma cópia desses arquivos,
+  ele deve REMOVÊ-LOS da lista de publicação — a cópia dele fica velha e apaga as correções (aconteceu às 16:25).
+
 ## O que NÃO pode ser desfeito
 - `assets/bw-sync.js`: é a sincronização entre celular e PC. Toda página que usa o Supabase precisa
   carregar `<script src="assets/bw-sync.js?v=...">` logo DEPOIS do supabase-js e ANTES do bundle.
@@ -50,3 +54,7 @@ O dono é a BW Audiovisual. Este arquivo é o combinado entre as duas. Leia **an
 - 13/11/2026 · Claude: dados do APARELHO agora pertencem a uma conta (bw-sync.js, "cofre" por usuário): ao trocar
   de conta ou sair, os dados locais da conta anterior são guardados à parte e não aparecem nem sobem para a outra.
   Auditoria multiusuário em andamento (tabelas equipe_cadastros/equipe_presenca e bucket eventos-midia).
+- 13/11/2026 16:25 · MAESTRO: "Seção 10 completa" — PNGs ok desta vez; mas publicou uma cópia VELHA do
+  assets/bw-sync.js (apagou a separação de dados por conta das 16:21) e configadm.html saiu sem core/nuvem.
+- 13/11/2026 · Claude: bw-sync.js restaurado + registro de posse (bw_registrar). Isolamento entre usuários no banco:
+  docs/sql/2026-11-13-isolamento-usuarios.sql (cadastros, presenças, arquivos do bucket e orçamentos só do dono).
