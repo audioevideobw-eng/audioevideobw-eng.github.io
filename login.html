@@ -628,7 +628,9 @@ async function boot() {
     if (!u && (qs.has("confirmado") || qs.has("code") || /error_description/.test(location.hash + location.search))) {
       const erro = (new URLSearchParams(location.hash.slice(1)).get("error_description")) || qs.get("error_description");
       const msg = $("#lMsg");
-      if (msg) msg.innerHTML = erro && !/code verifier|both auth code/i.test(erro)
+      if (msg && erro && (qs.has("google") || /external|provider|oauth/i.test(erro))) msg.innerHTML =
+        `<div class="note" style="color:var(--dn)">Não foi possível entrar com o Google agora. Use e-mail e senha ou tente de novo em alguns minutos.</div>`;
+      else if (msg) msg.innerHTML = erro && !/code verifier|both auth code/i.test(erro)
         ? `<div class="note" style="color:var(--dn)">O link expirou ou já foi usado. Entre com seu e-mail e senha ou peça um novo em "Esqueci a senha".</div>`
         : `<div class="note" style="color:var(--up);font-size:14px">✓ E-mail confirmado! Agora entre com seu e-mail e senha${/iPhone|iPad/.test(navigator.userAgent) ? " — se você instalou o app, abra o app Brightway e entre por lá" : ""}.</div>`;
       history.replaceState(null, "", location.pathname);
