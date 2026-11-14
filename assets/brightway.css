@@ -171,3 +171,33 @@ body .frow input, body .frow select, body .frow3 input, body .frow3 select { wid
 .bw-auth .links a:hover{color:var(--gold,#FFB547)}
 .bw-topo .acoes{align-items:center}
 .bw-topo-logado:empty{display:none}
+
+/* 14/11 (Claude): botões de acesso — só a palavra-chave, com profundidade (relevo discreto) */
+body a.menu-card, body a.bw-tool-card{
+  position:relative;display:flex;align-items:center;justify-content:space-between;gap:12px;
+  min-height:82px;padding:18px 20px 18px 22px;border-radius:16px;text-decoration:none;color:#F5F1EA;
+  background:linear-gradient(180deg,rgba(255,255,255,.075) 0%,rgba(255,255,255,.015) 55%,rgba(0,0,0,.12) 100%),#12151d;
+  border:1px solid rgba(245,241,234,.10);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.10),inset 0 -3px 0 rgba(0,0,0,.35),
+    0 1px 2px rgba(0,0,0,.45),0 12px 24px -14px rgba(0,0,0,.85);
+  transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease;overflow:hidden}
+body a.menu-card::before, body a.bw-tool-card::before{
+  content:"";position:absolute;left:18px;right:18px;top:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(255,181,71,.55),transparent);opacity:.55}
+body a.menu-card::after, body a.bw-tool-card::after{
+  content:"";flex:none;width:9px;height:9px;border-top:2px solid #FFB547;border-right:2px solid #FFB547;
+  transform:rotate(45deg);opacity:.75;margin-right:4px;transition:transform .18s ease,opacity .18s ease}
+body a.menu-card .nome, body a.bw-tool-card .nome{
+  font-size:14px;font-weight:700;letter-spacing:.12em;line-height:1.3;color:#F5F1EA;
+  text-shadow:0 1px 0 rgba(0,0,0,.5)}
+body a.menu-card:hover, body a.bw-tool-card:hover{
+  transform:translateY(-2px);border-color:rgba(255,181,71,.45);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.14),inset 0 -3px 0 rgba(0,0,0,.35),
+    0 2px 4px rgba(0,0,0,.45),0 18px 30px -14px rgba(0,0,0,.9),0 10px 26px -14px rgba(255,181,71,.35)}
+body a.menu-card:hover::after, body a.bw-tool-card:hover::after{transform:translateX(3px) rotate(45deg);opacity:1}
+body a.menu-card:active, body a.bw-tool-card:active{
+  transform:translateY(1px);
+  box-shadow:inset 0 2px 8px rgba(0,0,0,.55),inset 0 -1px 0 rgba(255,255,255,.04),0 1px 2px rgba(0,0,0,.4)}
+body a.menu-card:focus-visible, body a.bw-tool-card:focus-visible{outline:2px solid #FFB547;outline-offset:3px}
+@media (prefers-reduced-motion:reduce){body a.menu-card, body a.bw-tool-card{transition:none}}
+@media (max-width:640px){body a.menu-card, body a.bw-tool-card{min-height:68px;padding:16px 18px}}
