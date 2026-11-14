@@ -36,6 +36,38 @@ O dono é a BW Audiovisual. Este arquivo é o combinado entre as duas. Leia **an
 - Imagens do MAESTRO: entregar como arquivo PNG/JPG/WEBP de verdade (não base64), com o nome sugerido.
 - As regras de "O que NÃO pode ser desfeito" continuam valendo para qualquer código sugerido.
 
+## PENTE FINO (obrigatório — regra do dono, 14/11/2026)
+Toda criação, alteração ou teste de rotina passa por TODOS os itens abaixo. Cada um é um bug que já aconteceu.
+Os marcados (auto) o vigia confere sozinho a cada publicação (`python3 docs/vigia/vigia.py`, seção 7);
+os outros são conferidos no navegador, logado, em 1280 px E 390 px.
+
+**Dados e sincronia**
+1. Salvar → recarregar → o item continua lá E chegou na nuvem (`user_data`). Lista colapsável abre sozinha ao adicionar (auto).
+2. Mensagem "✓ salvo" aparece DEPOIS do re-render, não antes (auto para fixos).
+3. Apagar algo que gerou itens (fixo → contas/lançamentos) apaga também os futuros gerados (auto).
+4. Nada de upsert da lista inteira; bw-sync.js carregado depois do supabase-js e antes do bundle (auto).
+5. Chave nova de dados do usuário → entra em `CHAVES` do bw-sync.js.
+
+**Login e segurança**
+6. Nenhum `localhost` no código; cadastro com `emailRedirectTo`; volta do Google com `?google=1`; PKCE ligado (auto).
+7. Nenhum segredo no site: só `sb_publishable_…`; nunca service_role, `sb_secret_`, `GOCSPX-` (auto).
+8. Conferir no Supabase → Logs → Auth depois de mexer em login (ex.: "invalid_client", "Unable to exchange").
+9. Supabase → URL Configuration = site real; Google Cloud → Público = "Em produção".
+10. Tabela nova no Supabase → RLS ligado com regra por `auth.uid()` antes de usar.
+
+**Visual e celular**
+11. Toda página nova carrega brightway.css + layout.js (menu lateral) — exceções: login, cadastro, baixar, privacidade, painel (auto).
+12. Mesma versão `?v=` de CSS/JS em todas as páginas + `CACHE` do sw.js subido (auto).
+13. Nenhum estouro horizontal em 390 px (grades com `min-width:0`) (auto parcial — conferir no navegador).
+14. Nenhum id repetido no HTML (auto). Selo LOGADO aparece no topo e no menu (auto: layout copia #userBox).
+15. Botões de acesso = galeria com ícone + PALAVRA-CHAVE, sem texto pequeno (auto).
+16. Ícones do app quadrados e do tamanho declarado no manifest; imagens binárias (auto).
+
+**Como testar no navegador (rotina)**
+- Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
+- Medir `scrollWidth - clientWidth` em 390 px → 0.
+- Criar um item de TESTE, recarregar, conferir na nuvem, apagar o item de teste. Nunca mexer em dados reais do dono sem pedir.
+
 ## Diário de mudanças
 - 13/11/2026 16:14 · MAESTRO: corrigido o gerador conforme a seção 10: verificador de IMPORTS REAL (resolve caminhos relativos e falha o build se faltar módulo — pegou as 4 faltas exatas), store com 3 argumentos, nuvem só delegação, mcp_push RECUSA binários (PNG via push_files/git trees), PNGs restaurados como binário real (commit efeea132, confirmado via git trees).
 - 13/11/2026 · Claude: nova sincronia segura (assets/bw-sync.js), sw.js sem cache do Supabase, módulos
@@ -123,6 +155,8 @@ O dono é a BW Audiovisual. Este arquivo é o combinado entre as duas. Leia **an
 - 14/11/2026 · Claude: login Google testado OK depois da chave nova (log "Login" 20:04; conta do dono com e-mail+google
   vinculados). Selo LOGADO sumia na home quando o cabeçalho era preenchido antes do layout mover o #userBox → layout.js v10 copia
   o conteúdo. sw v39.
+- 14/11/2026 · Claude: PENTE FINO virou regra (seção acima) e checagem automática no vigia (seção 7: segredos, localhost,
+  PKCE, ícones, versões ?v=, ids repetidos, listas/fixos, celular, selo, galeria, páginas obrigatórias). single.html: #fixosBox duplicado.
 
 ## Pendências (dono)
 - [x] (14/11 20:03, dono) Google: gerar NOVO client secret no Google Cloud (Clients → cliente OAuth) e colar em Supabase → Authentication →

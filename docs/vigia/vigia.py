@@ -98,6 +98,87 @@ for j in ["manifest.json", "milhas.json", "noticias.json"]:
         except Exception as e:
             problemas.append(f"{j}: JSON inválido ({e})")
 
+# 7) PENTE FINO — bugs já encontrados não podem voltar (14/11/2026). Ver AGENTS.md › "Pente fino".
+todos = {p: ler(p) for p in PAGINAS}
+css = ler("assets/brightway.css") if os.path.exists("assets/brightway.css") else ""
+lay = ler("assets/layout.js") if os.path.exists("assets/layout.js") else ""
+# 7.1 nenhum segredo no site
+for arq in PAGINAS + ["assets/bw-sync.js", "assets/layout.js", "sw.js"]:
+    if os.path.exists(arq):
+        t = ler(arq)
+        for seg, nome in [(r"sb_secret_[A-Za-z0-9_-]{12,}", "chave secreta do Supabase"), (r"GOCSPX-[A-Za-z0-9_-]{12,}", "client secret do Google"),
+                          (r"eyJ[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]*c2VydmljZV9yb2xl", "chave service_role (JWT)")]:
+            if re.search(seg, t):
+                problemas.append(f"{arq}: contém {nome} — NUNCA publique segredos")
+# 7.2 login: nada apontando para localhost; cadastro com emailRedirectTo; PKCE ligado
+for p, t in todos.items():
+    if re.search(r"https?://localhost|127\.0\.0\.1", t):
+        problemas.append(f"{p}: aponta para localhost (links de e-mail/login quebram no celular)")
+lg = todos.get("login.html", "")
+if lg and "signUp(" in lg and "emailRedirectTo" not in lg:
+    problemas.append("login.html: signUp sem emailRedirectTo (confirmação de e-mail volta para o Site URL/localhost)")
+if lg and "?google=1" not in lg:
+    problemas.append("login.html: volta do Google sem ?google=1 (não vai direto ao painel)")
+if 'flowType: "pkce"' not in sync:
+    problemas.append("assets/bw-sync.js: login PKCE desligado (flowType pkce)")
+# 7.3 ícones do app: quadrados e do tamanho declarado
+try:
+    man = json.loads(ler("manifest.json"))
+    for ic in man.get("icons", []):
+        src = ic.get("src", "")
+        if not os.path.exists(src):
+            problemas.append(f"manifest.json: ícone {src} não existe"); continue
+        with open(src, "rb") as f:
+            cab = f.read(24)
+        w, h = int.from_bytes(cab[16:20], "big"), int.from_bytes(cab[20:24], "big")
+        dec = ic.get("sizes", "")
+        if w != h or dec != f"{w}x{h}":
+            problemas.append(f"manifest.json: ícone {src} é {w}x{h} mas declara '{dec}' (precisa ser quadrado e do tamanho certo)")
+except Exception as e:
+    problemas.append(f"manifest.json: não deu para conferir ícones ({e})")
+# 7.4 mesma versão de CSS/JS em todas as páginas (cache velho = 'site bugado')
+for nome in ["assets/brightway.css", "assets/layout.js"]:
+    vs = {v for t in todos.values() for v in re.findall(re.escape(nome) + r"\?v=(\w+)", t)}
+    if len(vs) > 1:
+        problemas.append(f"{nome} com versões diferentes entre páginas: {sorted(vs)} (suba o ?v= em TODAS)")
+# 7.5 ids duplicados no HTML fixo (o JS pega o primeiro e ignora o segundo)
+for p, t in todos.items():
+    corpo = re.sub(r"<script.*?</script>", "", t, flags=re.S)
+    ids = re.findall(r'\bid="([^"$`{}]+)"', corpo)
+    rep = sorted({i for i in ids if ids.count(i) > 1})
+    if rep:
+        problemas.append(f"{p}: id repetido no HTML: {', '.join(rep[:5])}")
+# 7.6 listas que escondem o que acabou de ser salvo / mensagem que some
+for p, t in todos.items():
+    if "function ligarColapsaveis" in t and "ui_colap" not in t:
+        problemas.append(f"{p}: core/colap antigo (lista fecha e esconde o item recém-salvo)")
+    if "Fixo criado —" in t:
+        problemas.append(f"{p}: mensagem de fixo antes do re-render (some da tela — parece que não salvou)")
+    if "window.__delFixo" in t and "apaga também" not in t:
+        problemas.append(f"{p}: apagar fixo deixa contas/lançamentos futuros órfãos")
+# 7.7 layout: celular, selo LOGADO, galeria
+if "min-width:0" not in css:
+    problemas.append("assets/brightway.css: sem min-width:0 nas grades (estoura a tela no celular)")
+if lay and "slot.innerHTML = orig.innerHTML" not in lay:
+    problemas.append("assets/layout.js: não copia o #userBox (selo LOGADO some)")
+if lay and "APP DOWNLOAD" not in lay:
+    problemas.append("assets/layout.js: sumiu o botão APP DOWNLOAD do menu")
+for p in ["index.html", "negocio.html"]:
+    t = todos.get(p, "")
+    if re.search(r'class="(menu-card|bw-tool-card)"[^>]*>(?!<span class="ico">)', t):
+        problemas.append(f"{p}: botão de acesso fora do padrão (galeria: ícone + PALAVRA-CHAVE, sem texto pequeno)")
+    if '<span class="desc">' in t:
+        problemas.append(f"{p}: botão de acesso com descrição (texto pequeno) — o dono pediu só a palavra-chave")
+# 7.8 páginas públicas obrigatórias
+for p in ["baixar.html", "privacidade.html", "financeiro-painel.html"]:
+    if p not in todos:
+        problemas.append(f"{p} sumiu (link de instalação / política exigida pelo Google / painel financeiro)")
+# 7.9 páginas com o visual novo (menu lateral) — exceto as de propósito
+SEM_MENU = {"login.html", "cadastro.html", "baixar.html", "privacidade.html", "financeiro-painel.html", "ferramentas.html", "single.html"}
+for p, t in todos.items():
+    if p not in SEM_MENU and "assets/layout.js" not in t:
+        problemas.append(f"{p}: sem o visual novo (não carrega assets/layout.js)")
+
 # relatório
 print("VIGIA DO BRIGHTWAY")
 print(f"{len(PAGINAS)} páginas conferidas.")
