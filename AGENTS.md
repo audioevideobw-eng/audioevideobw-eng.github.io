@@ -47,6 +47,7 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
 3. Apagar algo que gerou itens (fixo → contas/lançamentos) apaga também os futuros gerados (auto).
 4. Nada de upsert da lista inteira; bw-sync.js carregado depois do supabase-js e antes do bundle (auto).
 5. Chave nova de dados do usuário → entra em `CHAVES` do bw-sync.js.
+5b. Sair e entrar de novo (e-mail ↔ Google, mesma conta) → os dados continuam na tela.
 
 **Login e segurança**
 6. Nenhum `localhost` no código; cadastro com `emailRedirectTo`; volta do Google com `?google=1`; PKCE ligado (auto).
@@ -157,6 +158,9 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
   o conteúdo. sw v39.
 - 14/11/2026 · Claude: PENTE FINO virou regra (seção acima) e checagem automática no vigia (seção 7: segredos, localhost,
   PKCE, ícones, versões ?v=, ids repetidos, listas/fixos, celular, selo, galeria, páginas obrigatórias). single.html: #fixosBox duplicado.
+- 14/11/2026 · Claude: "entrei com Google e os dados não estão lá" — mesma conta (1 usuário no Auth), mas ao SAIR os dados do
+  aparelho iam para o cofre da conta e, ao ENTRAR de novo (aparelho sem dono), o cofre não era aberto. garantirDono agora
+  restaura o cofre (juntando listas por id) e todo SIGNED_IN dispara sincronia completa + recarrega se trouxe dados. sw v40.
 
 ## Pendências (dono)
 - [x] (14/11 20:03, dono) Google: gerar NOVO client secret no Google Cloud (Clients → cliente OAuth) e colar em Supabase → Authentication →

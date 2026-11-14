@@ -294,8 +294,21 @@
     try { pacote = JSON.parse(localStorage.getItem(COFRE + uid) || "null"); } catch (e) { }
     if (!pacote) return 0;
     interno = true;
-    try { Object.keys(pacote).forEach(function (k) { localStorage.setItem(k, pacote[k]); }); }
-    finally { interno = false; }
+    try {
+      Object.keys(pacote).forEach(function (k) {
+        var atual = localStorage.getItem(k);
+        if (atual == null) { localStorage.setItem(k, pacote[k]); return; }
+        /* 14/11: já existe algo local → junta listas por id (nada se perde), senão fica o local */
+        try {
+          var a = JSON.parse(atual), b = JSON.parse(pacote[k]);
+          if (ehLista(a) && ehLista(b)) {
+            var ids = {}; a.forEach(function (o) { if (o.id != null) ids[String(o.id)] = 1; });
+            b.forEach(function (o) { if (o.id == null || !ids[String(o.id)]) a.push(o); });
+            localStorage.setItem(k, JSON.stringify(a));
+          }
+        } catch (e) { }
+      });
+    } finally { interno = false; }
     localStorage.removeItem(COFRE + uid);
     return Object.keys(pacote).length;
   }
@@ -303,7 +316,13 @@
   function garantirDono(uid) {
     var atual = localStorage.getItem(DONO);
     if (atual === uid) return false;
-    if (!atual) { localStorage.setItem(DONO, uid); return false; }   // 1ª vez: dados locais são desta conta
+    if (!atual) {                                                    // ninguém dono do aparelho agora
+      /* 14/11: quem SAIU e ENTROU de novo (ex.: e-mail → Google, mesma conta) tem os dados guardados
+         no cofre dela — antes eles ficavam presos lá e "sumiam" da tela */
+      var volta = restaurarConta(uid);
+      localStorage.setItem(DONO, uid);
+      return volta > 0;
+    }
     guardarConta(atual);
     restaurarConta(uid);
     localStorage.setItem(DONO, uid);
@@ -548,6 +567,15 @@
     var cl = cliente();
     if (cl && cl.auth && cl.auth.onAuthStateChange) cl.auth.onAuthStateChange(function (ev) {
       if (ev === "SIGNED_OUT") aoSair();
+      /* 14/11: acabou de ENTRAR (senha, Google ou link do e-mail) → traz tudo da nuvem já e mostra */
+      if (ev === "SIGNED_IN" && !window.__bwEntrou) {
+        window.__bwEntrou = true;
+        setTimeout(function () {
+          sincronizar(CHAVES).then(function (r) {
+            if (r && r.ok && r.totalMudou > 0 && !/login\.html/.test(location.pathname) && !digitando()) location.reload();
+          });
+        }, 0);
+      }
     });
   } catch (e) { }
 
