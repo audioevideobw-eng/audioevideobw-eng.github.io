@@ -1,25 +1,18 @@
 {
+  "id": "./",
   "name": "Brightway — BW Audiovisual",
   "short_name": "Brightway",
-  "description": "Painel de câmbio, milhas e ferramentas de viagem da BW Audiovisual.",
-  "start_url": "./",
+  "description": "Gestão do negócio, da casa e dos investimentos — Brightway.",
+  "start_url": "./?origem=app",
   "scope": "./",
   "display": "standalone",
+  "orientation": "portrait",
   "background_color": "#06080D",
   "theme_color": "#06080D",
   "lang": "pt-BR",
   "icons": [
-    {
-      "src": "icons/brightway-icone.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "icons/brightway-logo.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any"
-    }
+    { "src": "icons/app-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/app-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/app-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ]
 }

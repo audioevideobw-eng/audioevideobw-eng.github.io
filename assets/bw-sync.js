@@ -43,6 +43,10 @@
     var novo = {};
     Object.keys(s).forEach(function (k) { try { novo[k] = s[k]; } catch (e) { } });
     novo.createClient = function (url, key, opts) {
+      /* 14/11: login seguro (PKCE) — o Google/links de e-mail devolvem um código de uso único,
+         trocado por sessão só neste navegador; nenhum token fica exposto na barra de endereço. */
+      opts = Object.assign({}, opts || {});
+      opts.auth = Object.assign({ flowType: "pkce" }, opts.auth || {});
       var id = String(url || "").replace(/\/+$/, "") + "|" + key;
       if (!cache[id]) cache[id] = blindar(original.call(s, url, key, opts));
       return cache[id];

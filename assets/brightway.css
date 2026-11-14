@@ -222,3 +222,26 @@ body a.menu-card .nome, body a.bw-tool-card .nome{font-size:13px;letter-spacing:
   body a.menu-card, body a.bw-tool-card{aspect-ratio:auto;min-height:128px;padding:16px}
   body a.menu-card .nome, body a.bw-tool-card .nome{font-size:12px;letter-spacing:.08em}
 }
+
+/* 14/11 (Claude): botão APP DOWNLOAD (menu) + aviso de instalação */
+.bw-app-dl{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;margin:14px 0 4px;min-height:48px;
+  border-radius:14px;border:1px solid rgba(255,181,71,.45);cursor:pointer;font-family:inherit;
+  font-size:12.5px;font-weight:700;letter-spacing:.14em;color:#06080D;
+  background:linear-gradient(180deg,#FFC872 0%,#FFB547 55%,#E89A2C 100%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.45),inset 0 -2px 0 rgba(0,0,0,.18),0 10px 22px -12px rgba(255,181,71,.7);
+  transition:transform .15s ease,box-shadow .15s ease}
+.bw-app-dl svg{fill:none;stroke:#06080D;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.bw-app-dl:hover{transform:translateY(-1px)}
+.bw-app-dl:active{transform:translateY(1px);box-shadow:inset 0 2px 6px rgba(0,0,0,.3)}
+.bw-app-modal{position:fixed;inset:0;z-index:200;background:rgba(3,4,8,.72);backdrop-filter:blur(6px);
+  display:flex;align-items:flex-end;justify-content:center;padding:16px}
+@media(min-width:700px){.bw-app-modal{align-items:center}}
+.bw-app-modal .caixa{width:100%;max-width:420px;background:#11141B;border:1px solid rgba(245,241,234,.12);border-radius:20px;
+  padding:22px;color:#F5F1EA;box-shadow:0 30px 60px -20px rgba(0,0,0,.8)}
+.bw-app-modal img{border-radius:16px;display:block;margin-bottom:12px}
+.bw-app-modal h3{margin:0 0 10px;font-size:18px}
+.bw-app-modal ol{margin:0 0 12px;padding-left:20px;line-height:1.8;font-size:14.5px}
+.bw-app-modal p{font-size:14px;line-height:1.6;margin:0 0 12px}
+.bw-app-modal .nota{color:#9aa0ab;font-size:12.5px}
+.bw-app-modal .alerta{color:#FFB547}
+.bw-app-modal .bw-btn{width:100%}

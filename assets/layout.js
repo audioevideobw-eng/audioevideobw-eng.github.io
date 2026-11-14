@@ -3,6 +3,46 @@
    (2) o menu usa data-slot e MOVE os originais (#menuSync, #userBox, #btnVoltar)
    — sem duplicar ids, os handlers presos aos ids continuam funcionando. */
 (function(){
+  /* 14/11 (Claude): instalação do app (PWA). Android/Chrome/Edge: usa o pedido nativo do navegador.
+     iPhone/iPad: o iOS não deixa site instalar sozinho — mostramos o passo a passo do Safari. */
+  window.addEventListener("beforeinstallprompt", function(e){ e.preventDefault(); window.__bwInstall = e; });
+  window.addEventListener("appinstalled", function(){ window.__bwInstall = null; try { localStorage.setItem("ui_app_instalado", "1"); } catch (x) { } });
+  try { if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(function(){}); } catch (x) { }
+  function instalado(){ return (window.matchMedia && matchMedia("(display-mode: standalone)").matches) || navigator.standalone === true; }
+  function avisoApp(titulo, html){
+    var v = document.getElementById("bwAppModal"); if (v) v.remove();
+    v = document.createElement("div"); v.id = "bwAppModal"; v.className = "bw-app-modal";
+    v.innerHTML = '<div class="caixa" role="dialog" aria-modal="true" aria-label="' + titulo + '"><img src="icons/app-192.png" alt="" width="64" height="64">' +
+      '<h3>' + titulo + '</h3>' + html + '<button class="bw-btn bw-btn--primario" id="bwAppOk">Entendi</button></div>';
+    v.onclick = function(e){ if (e.target === v || e.target.id === "bwAppOk") v.remove(); };
+    document.body.appendChild(v);
+  }
+  window.bwInstalarApp = function(){
+    var ua = navigator.userAgent || "";
+    var ios = /iPhone|iPad|iPod/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+    if (instalado()) { avisoApp("App já instalado", "<p>Você já está usando o Brightway como aplicativo neste aparelho.</p>"); return; }
+    if (window.__bwInstall) {
+      var ev = window.__bwInstall; window.__bwInstall = null;
+      ev.prompt();
+      ev.userChoice.then(function(r){ if (r && r.outcome === "accepted") avisoApp("Instalando…", "<p>O ícone do <b>Brightway</b> vai aparecer na tela inicial do aparelho.</p>"); });
+      return;
+    }
+    if (ios) {
+      var safari = !/CriOS|FxiOS|EdgiOS|OPiOS|GSA/.test(ua);
+      avisoApp("Instalar no iPhone / iPad", (safari ? "" : '<p class="alerta">Abra este site no <b>Safari</b> — no iPhone só ele instala apps de site.</p>') +
+        '<ol><li>Toque em <b>Compartilhar</b> <span class="ico-ios">⬆︎</span> (barra de baixo do Safari).</li>' +
+        '<li>Role e toque em <b>Adicionar à Tela de Início</b>.</li><li>Toque em <b>Adicionar</b>. Pronto!</li></ol>');
+      return;
+    }
+    if (/Android/i.test(ua)) {
+      avisoApp("Instalar no Android", '<ol><li>Toque no menu <b>⋮</b> do navegador (canto de cima).</li>' +
+        '<li>Toque em <b>Instalar app</b> (ou <b>Adicionar à tela inicial</b>).</li><li>Confirme em <b>Instalar</b>.</li></ol>' +
+        '<p class="nota">Use o <b>Chrome</b>. Se o app já estiver instalado, a opção não aparece.</p>');
+      return;
+    }
+    avisoApp("Instalar no computador", '<p>No <b>Chrome</b> ou <b>Edge</b>: clique no ícone de instalar <b>⊕</b> no fim da barra de endereço, ou no menu <b>⋮ → Transmitir, salvar e compartilhar → Instalar página como app</b>.</p>' +
+      '<p class="nota">No celular, abra este mesmo endereço e toque em <b>APP DOWNLOAD</b>.</p>');
+  };
   function init(){
   var PAGINA = (location.pathname.split("/").pop() || "index.html").replace(".html", "");
   if (PAGINA === "index" || PAGINA === "") PAGINA = "index";
@@ -60,10 +100,11 @@
   var menu = '<aside class="bw-menu" id="bwMenu">' +
     '<div class="logo"><a href="./" aria-label="Brightway, início"><div role="img" aria-label="BRIGHTWAY" style="font-family:Michroma,sans-serif;font-size:17px;line-height:1;letter-spacing:.16em;color:#F5F1EA;white-space:nowrap;margin-right:-.16em">BRIGHTW<svg viewBox="0 0 80 72" aria-hidden="true" style="width:.8em;height:.72em;vertical-align:baseline;overflow:visible;margin-right:.16em"><defs><linearGradient id="rdM" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#FFB547" stop-opacity=".04"/><stop offset="1" stop-color="#FFB547" stop-opacity=".55"/></linearGradient></defs><path d="M4 72 L37 8 L43 8 L76 72 Z" fill="url(#rdM)"/><path d="M4.5 70 L37.5 8 M75.5 70 L42.5 8" stroke="#FFB547" stroke-width="8" stroke-linecap="square" fill="none"/><path d="M40 68 L40 24" stroke="#FFF4DC" stroke-width="3" stroke-dasharray="8 6"/><path d="M40 -16 L42.8 -.8 L58 2 L42.8 4.8 L40 20 L37.2 4.8 L22 2 L37.2 -.8 Z" fill="#FFF8EA"/></svg>Y</div></a></div>' +
     itens +
+    '<button type="button" class="bw-app-dl" onclick="window.bwInstalarApp()"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M5 21h14"/></svg><span>APP DOWNLOAD</span></button>' +
     '<div class="sync-card">' +
       '<div class="linha"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/></svg><span data-slot="menuSync">Sincronizado</span></div>' +
       '<div class="info">Celular e PC atualizados — automático ao abrir e ao salvar.</div>' +
-      '<a href="app.html">Instalar no celular</a>' +
+      '<a href="#" onclick="window.bwInstalarApp();return false">Instalar no celular</a>' +
     '</div>' +
     '<div data-slot="userBox" style="font-size:11px;color:var(--txt2);padding:10px 12px 0"></div>' +
     '</aside>';

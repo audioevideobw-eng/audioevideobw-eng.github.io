@@ -6,8 +6,8 @@
 <title>Acesso — Brightway — BW Audiovisual</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#06080D">
-<link rel="icon" type="image/png" href="icons/brightway-icone.png">
-<link rel="apple-touch-icon" href="icons/brightway-icone.png">
+<link rel="icon" type="image/png" href="icons/favicon-64.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <style>
 :root{
   /* Identidade Brightway — paleta oficial */
@@ -217,7 +217,7 @@ footer b{color:var(--gold)}
 @media(max-width:899px){#evDossie{grid-template-columns:1fr}}
 @media(max-width:899px){#loginGrid{grid-template-columns:1fr!important;min-height:0!important;margin-top:20px!important;gap:24px!important}}
 </style>
-<link rel="stylesheet" href="assets/brightway.css?v=11">
+<link rel="stylesheet" href="assets/brightway.css?v=12">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Michroma&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 </head>
@@ -420,7 +420,7 @@ async function entrarComGoogle() {
   const sb = clienteSB(); if (!sb) throw new Error("Autenticação não configurada.");
   const { error } = await sb.auth.signInWithOAuth({
     provider: "google",
-    options: { redirectTo: location.origin + location.pathname },
+    options: { redirectTo: location.origin + location.pathname + "?google=1" },
   });
   if (error) throw error;
 }
@@ -618,7 +618,11 @@ async function boot() {
   const top = $("#lTop");
   if (!top) return;
   try {
+    const sb = auth.clienteSB();
+    if (sb) sb.auth.onAuthStateChange(ev => { if (ev === "PASSWORD_RECOVERY") { window.__lModo && window.__lModo("trocar"); } });
     const u = await auth.usuarioAtual();
+    /* voltou do Google já logado → vai direto para o painel */
+    if (u && /[?&]google=1/.test(location.search) && !location.hash.startsWith("#recuperar")) { location.replace("./"); return; }
     if (u) {
       top.innerHTML = `
         <div class="card" style="margin:16px 0 14px">
