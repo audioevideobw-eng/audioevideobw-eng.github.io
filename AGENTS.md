@@ -29,9 +29,12 @@ O dono é a BW Audiovisual. Este arquivo é o combinado entre as duas. Leia **an
 2. Abra as páginas e confira que nenhuma dá erro de JavaScript.
 3. Anote no diário abaixo: data, quem foi, o que mudou (1 ou 2 linhas).
 
-## Divisão de tarefas (combinada com o dono)
-- MAESTRO: funcionalidades novas e visual.
-- Claude: revisão, testes e correção de bugs.
+## Divisão de tarefas (decisão do dono, 14/11/2026 — vale daqui pra frente)
+- **Só o Claude altera e publica** no GitHub (branch main). Nenhuma outra IA faz commit, push ou regeração do site.
+- MAESTRO (Adapta): ajuda a DESENVOLVER — ideias, rascunhos de telas e código, textos e imagens. Entrega o material
+  para o dono, que passa ao Claude; o Claude revisa, testa e publica.
+- Imagens do MAESTRO: entregar como arquivo PNG/JPG/WEBP de verdade (não base64), com o nome sugerido.
+- As regras de "O que NÃO pode ser desfeito" continuam valendo para qualquer código sugerido.
 
 ## Diário de mudanças
 - 13/11/2026 16:14 · MAESTRO: corrigido o gerador conforme a seção 10: verificador de IMPORTS REAL (resolve caminhos relativos e falha o build se faltar módulo — pegou as 4 faltas exatas), store com 3 argumentos, nuvem só delegação, mcp_push RECUSA binários (PNG via push_files/git trees), PNGs restaurados como binário real (commit efeea132, confirmado via git trees).
@@ -76,6 +79,8 @@ O dono é a BW Audiovisual. Este arquivo é o combinado entre as duas. Leia **an
   lê as tabelas fin_* do Supabase, alimentadas pela planilha Google do dono via Apps Script). Link "Painel Financeiro" no menu
   "Meu negócio" de todas as páginas + card no negocio.html (agora 8 cards; vigia confere). sw v23.
   → MAESTRO: inclua o link do menu e o card nas FONTES do gerador, e não sobrescreva financeiro-painel.html.
+- 14/11/2026 · Dono: a partir de agora só o Claude altera e publica o site; o MAESTRO só ajuda a desenvolver (ideias, código
+  sugerido, imagens).
 
 ## Pendências (dono)
 - [ ] Teste de segurança 2A: cadastrar "Teste Colab" pelo link de colaborador numa janela anônima → deve aparecer
