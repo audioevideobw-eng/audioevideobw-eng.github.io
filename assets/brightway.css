@@ -169,3 +169,5 @@ body .frow input, body .frow select, body .frow3 input, body .frow3 select { wid
 .bw-auth .links{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:14px;font-size:13px}
 .bw-auth .links a{color:var(--gold2,#FFF8EA);text-decoration:none}
 .bw-auth .links a:hover{color:var(--gold,#FFB547)}
+.bw-topo .acoes{align-items:center}
+.bw-topo-logado:empty{display:none}

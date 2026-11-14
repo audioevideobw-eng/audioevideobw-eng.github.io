@@ -110,6 +110,19 @@
   body.appendChild(abasEl);
   var mais = abasEl.querySelector('[data-aba="mais"]');
   if (mais) mais.onclick = function(e){ e.preventDefault(); var m = document.querySelector("#bwMenu"); if (m) { m.style.display = "block"; m.style.position = "fixed"; m.style.inset = "0"; m.style.zIndex = "70"; m.style.width = "100%"; var x = document.createElement("button"); x.textContent = "✕ Fechar"; x.style.cssText = "margin:0 0 10px;background:rgba(255,181,71,.1);color:var(--gold);border:1px solid rgba(255,181,71,.25);border-radius:12px;padding:12px;width:100%;font-weight:600"; x.onclick = function(){ m.style.display = "none"; x.remove(); }; m.insertBefore(x, m.firstChild); } };
+  /* 14/11 (Claude): selo LOGADO também no topo (no celular o menu lateral fica escondido) */
+  var ub = document.getElementById("userBox"), acoes = document.querySelector(".bw-topo .acoes");
+  if (ub && acoes) {
+    var selo = document.createElement("span");
+    selo.className = "bw-topo-logado";
+    acoes.insertBefore(selo, acoes.firstChild);
+    var copiar = function(){
+      var l = ub.querySelector(".bw-logado");
+      selo.innerHTML = l ? '<a href="login.html" class="bw-logado" title="' + (l.getAttribute("title") || "") + '"><i></i>LOGADO</a>' : "";
+    };
+    copiar();
+    try { new MutationObserver(copiar).observe(ub, { childList: true, subtree: true }); } catch (e) { }
+  }
   var vb = document.getElementById("btnVoltar");
   if (vb) vb.onclick = function(){ history.back(); };
   }
