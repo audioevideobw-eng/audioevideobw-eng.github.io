@@ -79,7 +79,7 @@ for p in PAGINAS:
 
 # 4) pedidos do dono
 neg = ler("negocio.html") if os.path.exists("negocio.html") else ""
-for h in ["eventos.html", "evento.html", "equipe.html", "financeiro.html", "fluxo.html", "preco.html", "leitor.html"]:
+for h in ["eventos.html", "evento.html", "equipe.html", "financeiro.html", "fluxo.html", "preco.html", "leitor.html", "financeiro-painel.html"]:
     if f'class="menu-card" href="{h}"' not in neg:
         problemas.append(f"negocio.html: falta o card da ferramenta {h} (o dono pediu TODAS as ferramentas do negócio)")
 if os.path.exists("app.html") and "rs.find(" in ler("app.html"):
