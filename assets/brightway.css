@@ -174,7 +174,7 @@ body .frow input, body .frow select, body .frow3 input, body .frow3 select { wid
 
 /* 14/11 (Claude): botões de acesso — só a palavra-chave, com profundidade (relevo discreto) */
 body a.menu-card, body a.bw-tool-card{
-  position:relative;display:flex;align-items:center;justify-content:space-between;gap:12px;
+  position:relative;display:flex;flex-direction:row;align-items:center;justify-content:space-between;gap:12px;text-align:left;
   min-height:82px;padding:18px 20px 18px 22px;border-radius:16px;text-decoration:none;color:#F5F1EA;
   background:linear-gradient(180deg,rgba(255,255,255,.075) 0%,rgba(255,255,255,.015) 55%,rgba(0,0,0,.12) 100%),#12151d;
   border:1px solid rgba(245,241,234,.10);
