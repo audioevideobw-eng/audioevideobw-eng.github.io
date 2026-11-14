@@ -129,7 +129,7 @@
   ["menuSync", "userBox", "btnVoltar"].forEach(function(id){
     var slot = shell.querySelector('[data-slot="' + id + '"]');
     var orig = document.getElementById(id);
-    if (slot && orig) { slot.removeAttribute("data-slot"); slot.id = id; orig.remove(); }
+    if (slot && orig) { slot.removeAttribute("data-slot"); slot.id = id; if (id === "userBox" && orig.innerHTML.trim()) slot.innerHTML = orig.innerHTML; orig.remove(); }
   });
   /* abas do celular */
   var abasEl = document.createElement("nav");
