@@ -116,6 +116,8 @@ O dono é a BW Audiovisual. Este arquivo é o combinado entre as duas. Leia **an
   Supabase → Authentication → URL Configuration (Site URL + Redirect URLs). sw v37.
 - 14/11/2026 · Claude: página pública `privacidade.html` (Política de Privacidade/LGPD) para a tela de consentimento do Google;
   Google Cloud → Branding: nome do app "Brightway" + página inicial + política (autorizado pelo dono).
+  Google Cloud → Público: app estava em "Testando" com 0 usuários de teste (login Google bloqueado para todos) → publicado
+  "Em produção" a pedido do dono. Verificação de marca não disponível: exige domínio próprio (o login usa *.supabase.co).
 
 ## Pendências (dono)
 - [x] (14/11 19:31, Claude com autorização do dono) Supabase → Authentication → URL Configuration: Site URL = https://audioevideobw-eng.github.io e Redirect URLs com
