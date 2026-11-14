@@ -785,16 +785,28 @@ function colapsavel(id, titulo, conteudo, extra = "") {
 
 /* liga os títulos clicáveis de um container (chamar após render) */
 function ligarColapsaveis(root = document) {
+  /* 14/11 (Claude): lembra o que o usuário abriu e ABRE a lista sozinho quando ele
+     adiciona algo dentro do cartão — antes a lista recém-salva ficava escondida
+     e parecia que "não salvou". */
+  let est = {};
+  try { est = JSON.parse(localStorage.getItem("ui_colap") || "{}") || {}; } catch (e) { }
+  const guardar = (id, v) => { try { const e = JSON.parse(localStorage.getItem("ui_colap") || "{}") || {}; e[id] = v; localStorage.setItem("ui_colap", JSON.stringify(e)); } catch (e) { } };
   root.querySelectorAll("[data-colap]").forEach(t => {
-    t.onclick = () => {
-      const id = t.dataset.colap;
-      const painel = root.querySelector(`[data-painel="${id}"]`);
-      const seta = root.querySelector(`[data-seta="${id}"]`);
-      if (!painel) return;
-      const abrindo = !painel.classList.contains("aberto");
-      painel.classList.toggle("aberto", abrindo);
-      if (seta) seta.classList.toggle("aberta", abrindo);
-    };
+    const id = t.dataset.colap;
+    const painel = root.querySelector(`[data-painel="${id}"]`);
+    const seta = root.querySelector(`[data-seta="${id}"]`);
+    if (!painel) return;
+    const abrir = v => { painel.classList.toggle("aberto", v); if (seta) seta.classList.toggle("aberta", v); };
+    if (est[id]) abrir(true);
+    t.onclick = () => { const v = !painel.classList.contains("aberto"); abrir(v); guardar(id, v); };
+    const card = t.closest(".card");
+    if (card && !card.dataset.colapLigado) {
+      card.dataset.colapLigado = "1";
+      card.addEventListener("click", ev => {
+        const b = ev.target.closest("button, .btn");
+        if (b && !b.closest("[data-colap]")) guardar(id, true);
+      }, true);
+    }
   });
 }
 
@@ -1022,16 +1034,28 @@ function colapsavel(id, titulo, conteudo, extra = "") {
 
 /* liga os títulos clicáveis de um container (chamar após render) */
 function ligarColapsaveis(root = document) {
+  /* 14/11 (Claude): lembra o que o usuário abriu e ABRE a lista sozinho quando ele
+     adiciona algo dentro do cartão — antes a lista recém-salva ficava escondida
+     e parecia que "não salvou". */
+  let est = {};
+  try { est = JSON.parse(localStorage.getItem("ui_colap") || "{}") || {}; } catch (e) { }
+  const guardar = (id, v) => { try { const e = JSON.parse(localStorage.getItem("ui_colap") || "{}") || {}; e[id] = v; localStorage.setItem("ui_colap", JSON.stringify(e)); } catch (e) { } };
   root.querySelectorAll("[data-colap]").forEach(t => {
-    t.onclick = () => {
-      const id = t.dataset.colap;
-      const painel = root.querySelector(`[data-painel="${id}"]`);
-      const seta = root.querySelector(`[data-seta="${id}"]`);
-      if (!painel) return;
-      const abrindo = !painel.classList.contains("aberto");
-      painel.classList.toggle("aberto", abrindo);
-      if (seta) seta.classList.toggle("aberta", abrindo);
-    };
+    const id = t.dataset.colap;
+    const painel = root.querySelector(`[data-painel="${id}"]`);
+    const seta = root.querySelector(`[data-seta="${id}"]`);
+    if (!painel) return;
+    const abrir = v => { painel.classList.toggle("aberto", v); if (seta) seta.classList.toggle("aberta", v); };
+    if (est[id]) abrir(true);
+    t.onclick = () => { const v = !painel.classList.contains("aberto"); abrir(v); guardar(id, v); };
+    const card = t.closest(".card");
+    if (card && !card.dataset.colapLigado) {
+      card.dataset.colapLigado = "1";
+      card.addEventListener("click", ev => {
+        const b = ev.target.closest("button, .btn");
+        if (b && !b.closest("[data-colap]")) guardar(id, true);
+      }, true);
+    }
   });
 }
 
@@ -1809,8 +1833,8 @@ function renderFixos() {
     setTimeout(() => enviarTudo(), 300);
     save(FIXOS_KEY, 1, fixos);
     const n = expandirFixos();
-    $("#fxMsg").textContent = `Fixo criado — ${n} conta(s) gerada(s) automaticamente.`;
     renderFixos();
+    $("#fxMsg").textContent = `✓ Fixo "${f.c0}" salvo — ${n} conta(s) gerada(s) automaticamente.`;
     render();
   };
   window.__delFixo = id => {
