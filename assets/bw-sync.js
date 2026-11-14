@@ -585,6 +585,33 @@
       navigator.serviceWorker.getRegistrations().then(function (rs) { rs.forEach(function (r) { r.update(); }); });
   } catch (e) { }
 
+  /* ---------- 8b. documentos privados (contratos, NF-e, comprovantes) ----------
+     14/11: ficam no bucket PRIVADO eventos-docs. O endereço guardado no evento é só
+     um marcador; na hora de abrir, o app pede ao Supabase um link temporário (10 min),
+     que só sai para o dono logado. */
+  var DOCS = "/storage/v1/object/public/eventos-docs/";
+  function caminhoDoc(url) {
+    var i = String(url || "").indexOf(DOCS);
+    return i < 0 ? null : decodeURIComponent(String(url).slice(i + DOCS.length).split("?")[0]);
+  }
+  async function urlSegura(url) {
+    var cam = caminhoDoc(url);
+    if (!cam) return url;
+    var c = cliente(); if (!c) return null;
+    var r = await c.storage.from("eventos-docs").createSignedUrl(cam, 600);
+    return (r && r.data && r.data.signedUrl) || null;
+  }
+  document.addEventListener("click", function (e) {
+    var a = e.target && e.target.closest && e.target.closest("a[href]");
+    if (!a || !caminhoDoc(a.getAttribute("href"))) return;
+    e.preventDefault(); e.stopImmediatePropagation();
+    var janela = window.open("", "_blank");
+    urlSegura(a.getAttribute("href")).then(function (u) {
+      if (u) { if (janela) janela.location = u; else location.href = u; }
+      else { if (janela) janela.close(); alert("Entre com a sua conta para abrir este documento."); }
+    });
+  }, true);
+
   /* ---------- 9. API (mesmas assinaturas do core/nuvem antigo) ---------- */
   async function disponivel() { var c = cliente(); return !!(c && await sessaoOk(c)); }
   function subir(chave) { return sincronizar([chave]); }
@@ -596,6 +623,7 @@
     disponivel: disponivel,
     sincronizar: sincronizar,
     subir: subir,
+    urlSegura: urlSegura,
     /* nomes antigos: TODOS agora mesclam (nenhum sobrescreve) */
     enviarTudo: function () { return sincronizar(CHAVES); },
     receberTudo: function () { return sincronizar(CHAVES); },

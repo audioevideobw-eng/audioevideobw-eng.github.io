@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Brightway — BW Audiovisual</title>
-<link rel="stylesheet" href="assets/brightway.css?v=12">
+<link rel="stylesheet" href="assets/brightway.css?v=13">
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#06080D">
 <link rel="icon" type="image/png" href="icons/favicon-64.png">
@@ -228,7 +228,7 @@ footer b{color:var(--gold)}
       <a href="negocio.html">Ferramentas do negócio</a>
       <a href="eventos.html">Eventos</a>
       <a href="equipe.html">Gestão de pessoas</a>
-      <a href="financeiro-painel.html">Painel Financeiro</a>
+      <a href="financeiro-painel.html" class="so-admin">Painel Financeiro</a>
     </div>
     <div class="nav-col"><b>Gestão de casa</b>
       <a href="orcamento.html">Orçamento familiar</a>
@@ -256,7 +256,7 @@ footer b{color:var(--gold)}
     </div>
     <div class="nav-col"><b>Conta</b>
       <a href="login.html">Acesso</a>
-      <a href="configadm.html">Configuração</a>
+      <a href="configadm.html" class="so-admin">Configuração</a>
       <div id="userBox" style="font-size:11px;color:var(--mut);padding:2px 8px"></div>
     </div>
   </nav>
@@ -1242,8 +1242,8 @@ async function lancarGasto() {
     const { data: sess } = await sb.auth.getSession();
     if (sess && sess.session && FOTO_ATUAL) {
       const cp = `${ev.id}/comprovantes/${Date.now()}_${FOTO_ATUAL.name}`;
-      const up = await comTempo(sb.storage.from("eventos-midia").upload(cp, FOTO_ATUAL), 60000);
-      if (!up.error) { comprovante = `${SB_PUBLIC}/${cp}`; caminho = cp; }
+      const up = await comTempo(sb.storage.from("eventos-docs").upload(cp, FOTO_ATUAL), 60000);
+      if (!up.error) { comprovante = `${"https://zdtnetplvdonogmdvarx.supabase.co/storage/v1/object/public/eventos-docs"}/${cp}`; caminho = cp; }
     }
   } catch (e) { }
   /* lança nos gastos do evento */
@@ -1295,6 +1295,6 @@ const {  stamp  } = MOD['core/ui'];
 
 return {  };
 })();</script>
-<script src="assets/layout.js?v=10"></script>
+<script src="assets/layout.js?v=11"></script>
 </body>
 </html>

@@ -245,3 +245,6 @@ body a.menu-card .nome, body a.bw-tool-card .nome{font-size:13px;letter-spacing:
 .bw-app-modal .nota{color:#9aa0ab;font-size:12.5px}
 .bw-app-modal .alerta{color:#FFB547}
 .bw-app-modal .bw-btn{width:100%}
+
+/* 14/11 (Claude): itens só da administração BW — escondidos para os demais (layout.js confere is_bw_admin) */
+html:not(.bw-admin) .so-admin{display:none!important}

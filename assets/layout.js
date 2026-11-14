@@ -3,6 +3,22 @@
    (2) o menu usa data-slot e MOVE os originais (#menuSync, #userBox, #btnVoltar)
    — sem duplicar ids, os handlers presos aos ids continuam funcionando. */
 (function(){
+  /* 14/11 (Claude): itens só da administração BW (Painel Financeiro, Configuração) ficam
+     escondidos para os demais usuários. Quem decide é o Supabase (is_bw_admin). */
+  try { if (localStorage.getItem("ui_admin") === "1") document.documentElement.classList.add("bw-admin"); } catch (x) { }
+  function conferirAdmin(){
+    var S = window.BWSync, c = S && S.cliente && S.cliente();
+    if (!c) return;
+    c.auth.getSession().then(function(r){
+      if (!r || !r.data || !r.data.session) { document.documentElement.classList.remove("bw-admin"); try { localStorage.removeItem("ui_admin"); } catch (x) { } return; }
+      return c.rpc("is_bw_admin").then(function(a){
+        var sim = !!(a && a.data === true);
+        document.documentElement.classList.toggle("bw-admin", sim);
+        try { sim ? localStorage.setItem("ui_admin", "1") : localStorage.removeItem("ui_admin"); } catch (x) { }
+      });
+    }).catch(function(){ });
+  }
+  if (document.readyState === "complete") setTimeout(conferirAdmin, 300); else window.addEventListener("load", function(){ setTimeout(conferirAdmin, 300); });
   /* 14/11 (Claude): instalação do app (PWA). Android/Chrome/Edge: usa o pedido nativo do navegador.
      iPhone/iPad: o iOS não deixa site instalar sozinho — mostramos o passo a passo do Safari. */
   window.addEventListener("beforeinstallprompt", function(e){ e.preventDefault(); window.__bwInstall = e; });
@@ -78,7 +94,8 @@
     if (c.id === CAT && SUBPAGINAS[c.id]) {
       html += SUBPAGINAS[c.id].map(function(s){
         var a = s[0] === PAGINA ? ' style="color:var(--gold)"' : "";
-        return '<a class="bw-sub" href="' + s[0] + '.html"' + a + '>' + s[1] + '</a>';
+        var adm = (s[0] === "financeiro-painel" || s[0] === "configadm") ? " so-admin" : "";
+        return '<a class="bw-sub' + adm + '" href="' + s[0] + '.html"' + a + '>' + s[1] + '</a>';
       }).join("");
     }
     return html;

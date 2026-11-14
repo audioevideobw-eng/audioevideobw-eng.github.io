@@ -13,7 +13,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Brightway">
-<link rel="stylesheet" href="assets/brightway.css?v=12">
+<link rel="stylesheet" href="assets/brightway.css?v=13">
 <style>
 :root{
   /* Identidade Brightway — paleta oficial */
@@ -243,7 +243,7 @@ footer b{color:var(--gold)}
       <a href="negocio.html">Ferramentas do negócio</a>
       <a href="eventos.html" class="on">Eventos</a>
       <a href="equipe.html">Gestão de pessoas</a>
-      <a href="financeiro-painel.html">Painel Financeiro</a>
+      <a href="financeiro-painel.html" class="so-admin">Painel Financeiro</a>
     </div>
     <div class="nav-col"><b>Gestão de casa</b>
       <a href="orcamento.html">Orçamento familiar</a>
@@ -271,7 +271,7 @@ footer b{color:var(--gold)}
     </div>
     <div class="nav-col"><b>Conta</b>
       <a href="login.html">Acesso</a>
-      <a href="configadm.html">Configuração</a>
+      <a href="configadm.html" class="so-admin">Configuração</a>
       <div id="userBox" style="font-size:11px;color:var(--mut);padding:2px 8px"></div>
     </div>
   </nav>
@@ -299,7 +299,7 @@ footer b{color:var(--gold)}
     Não é recomendação de investimento.
   </footer>
 </div>
-<script src="assets/layout.js?v=10"></script>
+<script src="assets/layout.js?v=11"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="assets/bw-sync.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/pdfmake@0.2.20/build/pdfmake.min.js"></script>
@@ -2972,9 +2972,9 @@ function wireGastos(e) {
       const { data: sess } = await sb.auth.getSession();
       if (sess && sess.session) {
         const cp = `${e.id}/comprovantes/${Date.now()}_${f.name}`;
-        const { error } = await sb.storage.from("eventos-midia").upload(cp, f);
+        const { error } = await sb.storage.from("eventos-docs").upload(cp, f);
         if (!error) {
-          comprovante = `${SB_PUBLIC}/${cp}`;
+          comprovante = `${"https://zdtnetplvdonogmdvarx.supabase.co/storage/v1/object/public/eventos-docs"}/${cp}`;
           caminho = cp;
         } else {
           box.querySelector("#gLista").innerHTML = `<div class="note">Foto não subiu (${esc(error.message)}) — o gasto será salvo sem comprovante.</div>`;
@@ -2997,7 +2997,7 @@ function wireGastos(e) {
     const alvo = l2.find(x => String(x.id) === String(id));
     const [rem] = alvo.gastos.splice(i, 1);
     salvarEventos(l2);
-    if (rem.caminho && sb) sb.storage.from("eventos-midia").remove([rem.caminho]);
+    if (rem.caminho && sb) sb.storage.from(/\/(comprovantes|contratos|nfe)\//.test(rem.caminho) ? "eventos-docs" : "eventos-midia").remove([rem.caminho]);
     wireGastos(alvo);
   };
 }
@@ -3062,7 +3062,7 @@ function wireContrato(e) {
     if (del) del.onclick = () => {
       const l2 = eventos();
       const alvo = l2.find(x => String(x.id) === String(e.id));
-      if (alvo.contratoArq && alvo.contratoArq.caminho && sb) sb.storage.from("eventos-midia").remove([alvo.contratoArq.caminho]);
+      if (alvo.contratoArq && alvo.contratoArq.caminho && sb) sb.storage.from(/\/contratos\//.test(alvo.contratoArq.url || "") && /eventos-docs/.test(alvo.contratoArq.url || "") ? "eventos-docs" : "eventos-midia").remove([alvo.contratoArq.caminho]);
       alvo.contratoArq = null;
       salvarEventos(l2);
       renderC();
@@ -3081,11 +3081,11 @@ function wireContrato(e) {
     if (!sess.data || !sess.data.session) { document.querySelector("#ctBox").innerHTML = '<div class="note">Entre com sua conta para anexar o contrato.</div>'; return; }
     document.querySelector("#ctBox").innerHTML = '<div class="note">Enviando contrato…</div>';
     const cp = e.id + "/contratos/" + Date.now() + "_" + f.name;
-    const up = await sb.storage.from("eventos-midia").upload(cp, f);
+    const up = await sb.storage.from("eventos-docs").upload(cp, f);
     if (up.error) { document.querySelector("#ctBox").innerHTML = '<div class="note">Erro: ' + esc(up.error.message) + '</div>'; renderC(); return; }
     const l2 = eventos();
     const alvo = l2.find(x => String(x.id) === String(e.id));
-    alvo.contratoArq = { nome: f.name, url: SB_PUBLIC + "/" + cp, caminho: cp };
+    alvo.contratoArq = { nome: f.name, url: "https://zdtnetplvdonogmdvarx.supabase.co/storage/v1/object/public/eventos-docs" + "/" + cp, caminho: cp };
     salvarEventos(l2);
     renderC();
   };
@@ -3120,11 +3120,11 @@ function wireNFE(e) {
     if (!sess.data || !sess.data.session) { document.querySelector("#nfeBox").innerHTML = '<div class="note">Entre com sua conta para anexar a NF-e.</div>'; return; }
     document.querySelector("#nfeBox").innerHTML = '<div class="note">Enviando NF-e…</div>';
     const cp = e.id + "/nfe/" + Date.now() + "_" + f.name;
-    const up = await sb.storage.from("eventos-midia").upload(cp, f);
+    const up = await sb.storage.from("eventos-docs").upload(cp, f);
     if (up.error) { document.querySelector("#nfeBox").innerHTML = '<div class="note">Erro: ' + esc(up.error.message) + '</div>'; renderNFE(); return; }
     const l2 = eventos();
     const alvo = l2.find(x => String(x.id) === String(e.id));
-    alvo.nfe = { nome: f.name, url: SB_PUBLIC + "/" + cp, caminho: cp, numero: document.querySelector("#nfeNum").value.trim() };
+    alvo.nfe = { nome: f.name, url: "https://zdtnetplvdonogmdvarx.supabase.co/storage/v1/object/public/eventos-docs" + "/" + cp, caminho: cp, numero: document.querySelector("#nfeNum").value.trim() };
     salvarEventos(l2);
     renderNFE();
   };
@@ -3132,7 +3132,7 @@ function wireNFE(e) {
     a.onclick = () => {
       const l2 = eventos();
       const alvo = l2.find(x => String(x.id) === String(e.id));
-      if (alvo.nfe && alvo.nfe.caminho && sb) sb.storage.from("eventos-midia").remove([alvo.nfe.caminho]);
+      if (alvo.nfe && alvo.nfe.caminho && sb) sb.storage.from(/eventos-docs/.test(alvo.nfe.url || "") ? "eventos-docs" : "eventos-midia").remove([alvo.nfe.caminho]);
       alvo.nfe = null;
       salvarEventos(l2);
       renderNFE();
@@ -3246,15 +3246,29 @@ function wireGaleriaLink(e) {
     const box = $("#galeriaBox");
     const midia = (eventos().find(x => String(x.id) === String(e.id)) || {}).midia || [];
     if (!midia.length) { box.innerHTML = '<div class="note">Envie fotos primeiro — a galeria usa as fotos do evento.</div>'; return; }
-    /* cria a página da galeria no próprio painel: cadastro.html?galeria=ID */
-    const link = location.origin + location.pathname.replace(/[^/]*$/, "cadastro.html") + "?galeria=" + e.id;
+    /* 14/11: link SECRETO — um código aleatório guardado no Supabase (bw_galerias);
+       sem ele ninguém vê as fotos, nem sabendo o número do evento */
+    box.innerHTML = '<div class="note"><span class="spin"></span> Gerando link seguro…</div>';
+    const cli = window.BWSync && window.BWSync.cliente && window.BWSync.cliente();
+    if (!cli) { box.innerHTML = '<div class="note">Entre com a sua conta para gerar o link.</div>'; return; }
+    let tok = null;
+    try {
+      const ja = await cli.from("bw_galerias").select("token").eq("evento_id", String(e.id)).limit(1);
+      tok = ja.data && ja.data[0] && ja.data[0].token;
+      if (!tok) {
+        const nova = await cli.from("bw_galerias").insert({ evento_id: String(e.id) }).select("token").single();
+        if (nova.error) throw nova.error;
+        tok = nova.data.token;
+      }
+    } catch (err) { box.innerHTML = '<div class="note">Não consegui gerar o link (' + esc(err.message || String(err)) + '). Entre com a sua conta e tente de novo.</div>'; return; }
+    const link = location.origin + location.pathname.replace(/[^/]*$/, "cadastro.html") + "?g=" + tok;
     box.innerHTML = `<div class="note">
       <input type="text" readonly value="${esc(link)}" style="width:100%;font-size:11px" onclick="this.select()">
       <div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap">
         <button class="btn gh" style="padding:6px 10px;font-size:11px" onclick="navigator.clipboard.writeText('${link}').then(()=>{this.textContent='✓ Copiado!'})">Copiar</button>
         <a class="btn gh" style="padding:6px 10px;font-size:11px" target="_blank" href="https://wa.me/?text=${encodeURIComponent("Fotos do evento " + e.nome + ": " + link)}">Enviar pelo WhatsApp</a>
       </div>
-      <div class="note">O cliente vê as fotos do evento — sem acessar a plataforma.</div>
+      <div class="note">O cliente vê só as fotos deste evento, com este link — sem acessar a plataforma. Documentos nunca aparecem.</div>
     </div>`;
   };
 }
@@ -3372,6 +3386,9 @@ function comTempo(p, ms) {
    fotos de celular (5-20 MB) viram ~200-400 KB, e o PDF não trava o celular. */
 async function urlParaDataUrl(url) {
   try {
+    /* 14/11: documentos privados → link temporário do dono */
+    if (window.BWSync && window.BWSync.urlSegura) url = await window.BWSync.urlSegura(url);
+    if (!url) return null;
     const r = await comTempo(fetch(url), 20000);
     if (!r || !r.ok) return null;
     let blob = await r.blob();

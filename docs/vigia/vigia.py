@@ -80,7 +80,7 @@ for p in PAGINAS:
 # 4) pedidos do dono
 neg = ler("negocio.html") if os.path.exists("negocio.html") else ""
 for h in ["eventos.html", "evento.html", "equipe.html", "financeiro.html", "fluxo.html", "preco.html", "leitor.html", "financeiro-painel.html"]:
-    if f'class="menu-card" href="{h}"' not in neg:
+    if not re.search(r'class="menu-card[^"]*" href="' + re.escape(h) + '"', neg):
         problemas.append(f"negocio.html: falta o card da ferramenta {h} (o dono pediu TODAS as ferramentas do negócio)")
 if os.path.exists("app.html") and "rs.find(" in ler("app.html"):
     problemas.append("app.html: botão 'Sincronizar agora' voltou com o erro rs.find")
@@ -169,12 +169,32 @@ for p in ["index.html", "negocio.html"]:
         problemas.append(f"{p}: botão de acesso fora do padrão (galeria: ícone + PALAVRA-CHAVE, sem texto pequeno)")
     if '<span class="desc">' in t:
         problemas.append(f"{p}: botão de acesso com descrição (texto pequeno) — o dono pediu só a palavra-chave")
+# 7.7b segurança para o público (14/11): documentos privados, galeria por token, itens de admin escondidos
+for p, t in todos.items():
+    if re.search(r'from\("eventos-midia"\)\.upload\([^)]*', t) and re.search(r'/(comprovantes|contratos|nfe)/', t):
+        for m in re.finditer(r'const cp = [^\n]*/(comprovantes|contratos|nfe)/[^\n]*\n[^\n]*from\("([a-z-]+)"\)\.upload', t):
+            if m.group(2) != "eventos-docs":
+                problemas.append(f"{p}: {m.group(1)} enviado para bucket público ({m.group(2)}) — documentos vão para eventos-docs (privado)")
+    if "?galeria=\" + e.id" in t or '"?galeria=" + e.id' in t:
+        problemas.append(f"{p}: galeria por número do evento (adivinhável) — use o link secreto bw_galerias (?g=TOKEN)")
+    for alvo in ["financeiro-painel.html", "configadm.html"]:
+        for m in re.finditer(r'<a [^>]*href="' + re.escape(alvo) + r'"[^>]*>', t):
+            if "so-admin" not in m.group(0):
+                problemas.append(f"{p}: link para {alvo} sem 'so-admin' (aparece para usuários comuns)")
+if "urlSegura" not in sync:
+    problemas.append("assets/bw-sync.js: sem urlSegura (documentos privados não abrem)")
+if "html:not(.bw-admin) .so-admin" not in css:
+    problemas.append("assets/brightway.css: sem a regra que esconde itens de admin")
+lgx = todos.get("login.html", "")
+if lgx and ("bw_excluir_minha_conta" not in lgx or "lExportar" not in lgx):
+    problemas.append("login.html: sem 'Baixar meus dados' / 'Excluir minha conta' (LGPD)")
+
 # 7.8 páginas públicas obrigatórias
-for p in ["baixar.html", "privacidade.html", "financeiro-painel.html"]:
+for p in ["baixar.html", "privacidade.html", "termos.html", "financeiro-painel.html"]:
     if p not in todos:
         problemas.append(f"{p} sumiu (link de instalação / política exigida pelo Google / painel financeiro)")
 # 7.9 páginas com o visual novo (menu lateral) — exceto as de propósito
-SEM_MENU = {"login.html", "cadastro.html", "baixar.html", "privacidade.html", "financeiro-painel.html", "ferramentas.html", "single.html"}
+SEM_MENU = {"login.html", "cadastro.html", "baixar.html", "privacidade.html", "termos.html", "financeiro-painel.html", "ferramentas.html", "single.html"}
 for p, t in todos.items():
     if p not in SEM_MENU and "assets/layout.js" not in t:
         problemas.append(f"{p}: sem o visual novo (não carrega assets/layout.js)")

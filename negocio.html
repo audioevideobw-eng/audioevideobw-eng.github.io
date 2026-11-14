@@ -13,7 +13,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Brightway">
-<link rel="stylesheet" href="assets/brightway.css?v=12">
+<link rel="stylesheet" href="assets/brightway.css?v=13">
 <style>
 :root{
   /* Identidade Brightway — paleta oficial */
@@ -243,7 +243,7 @@ footer b{color:var(--gold)}
       <a href="negocio.html" class="on">Ferramentas do negócio</a>
       <a href="eventos.html">Eventos</a>
       <a href="equipe.html">Gestão de pessoas</a>
-      <a href="financeiro-painel.html">Painel Financeiro</a>
+      <a href="financeiro-painel.html" class="so-admin">Painel Financeiro</a>
     </div>
     <div class="nav-col"><b>Gestão de casa</b>
       <a href="orcamento.html">Orçamento familiar</a>
@@ -271,7 +271,7 @@ footer b{color:var(--gold)}
     </div>
     <div class="nav-col"><b>Conta</b>
       <a href="login.html">Acesso</a>
-      <a href="configadm.html">Configuração</a>
+      <a href="configadm.html" class="so-admin">Configuração</a>
       <div id="userBox" style="font-size:11px;color:var(--mut);padding:2px 8px"></div>
     </div>
   </nav>
@@ -284,7 +284,7 @@ footer b{color:var(--gold)}
     <h3>MEU NEGÓCIO — ferramentas</h3>
     <div class="sub">Cada ferramenta em sua própria página.</div>
     <div class="bw-grid">
-      <a class="menu-card" href="financeiro-painel.html" title="Receita, lucro, clientes e pagamentos de eventos — atualiza sozinho com a planilha."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg></span><span class="nome">PAINEL FINANCEIRO</span></a>
+      <a class="menu-card so-admin" href="financeiro-painel.html" title="Receita, lucro, clientes e pagamentos de eventos — atualiza sozinho com a planilha."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg></span><span class="nome">PAINEL FINANCEIRO</span></a>
       <a class="menu-card" href="eventos.html" title="Dossiê completo: ficha, equipe, checklist, mídia, relatório e financeiro."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></span><span class="nome">EVENTOS</span></a>
       <a class="menu-card" href="evento.html" title="O evento individual: ficha, equipe, checklist, mídia, relatório e financeiro."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l5 5v13H6z"/><path d="M14 3v6h6M9 13h7M9 17h5"/></svg></span><span class="nome">DOSSIÊ</span></a>
       <a class="menu-card" href="equipe.html" title="Colaboradores, equipes por evento, PDF da escala e alertas."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.5 3-5.5 6.5-5.5s6.5 2 6.5 5.5"/><circle cx="17.5" cy="9" r="2.5"/><path d="M16 14.6c3 .2 5.5 1.9 5.5 5.4"/></svg></span><span class="nome">GESTÃO DE PESSOAS</span></a>
@@ -304,7 +304,7 @@ footer b{color:var(--gold)}
     Não é recomendação de investimento.
   </footer>
 </div>
-<script src="assets/layout.js?v=10"></script>
+<script src="assets/layout.js?v=11"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="assets/bw-sync.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/pdfmake@0.2.20/build/pdfmake.min.js"></script>
@@ -1430,8 +1430,8 @@ async function lancarGasto() {
     const { data: sess } = await sb.auth.getSession();
     if (sess && sess.session && FOTO_ATUAL) {
       const cp = `${ev.id}/comprovantes/${Date.now()}_${FOTO_ATUAL.name}`;
-      const up = await comTempo(sb.storage.from("eventos-midia").upload(cp, FOTO_ATUAL), 60000);
-      if (!up.error) { comprovante = `${SB_PUBLIC}/${cp}`; caminho = cp; }
+      const up = await comTempo(sb.storage.from("eventos-docs").upload(cp, FOTO_ATUAL), 60000);
+      if (!up.error) { comprovante = `${"https://zdtnetplvdonogmdvarx.supabase.co/storage/v1/object/public/eventos-docs"}/${cp}`; caminho = cp; }
     }
   } catch (e) { }
   /* lança nos gastos do evento */

@@ -217,7 +217,7 @@ footer b{color:var(--gold)}
 @media(max-width:899px){#evDossie{grid-template-columns:1fr}}
 @media(max-width:899px){#loginGrid{grid-template-columns:1fr!important;min-height:0!important;margin-top:20px!important;gap:24px!important}}
 </style>
-<link rel="stylesheet" href="assets/brightway.css?v=12">
+<link rel="stylesheet" href="assets/brightway.css?v=13">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Michroma&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 </head>
@@ -245,7 +245,7 @@ footer b{color:var(--gold)}
   </div>
 
   <footer>
-    <b>Brightway — BW Audiovisual</b>
+    <b>Brightway — BW Audiovisual</b> · <a href="termos.html" style="color:var(--mut)">Termos de Uso</a> · <a href="privacidade.html" style="color:var(--mut)">Privacidade</a>
   </footer>
 </div>
 
@@ -649,11 +649,64 @@ async function boot() {
             <a href="./" class="bw-btn bw-btn--primario">Ir para o painel</a>
             <button class="bw-btn bw-btn--vidro" id="lSair">Sair</button>
           </div>
+          <details style="margin-top:14px">
+            <summary style="cursor:pointer;color:var(--mut);font-size:13px">Minha conta e meus dados</summary>
+            <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+              <button class="bw-btn bw-btn--vidro" id="lExportar">Baixar meus dados</button>
+              <button class="bw-btn bw-btn--vidro" id="lExcluir" style="color:var(--dn);border-color:rgba(242,104,107,.4)">Excluir minha conta</button>
+            </div>
+            <div class="note" id="lContaMsg" style="margin-top:8px">Seus dados são só seus: baixe uma cópia quando quiser ou apague a conta e tudo o que está nela (LGPD).</div>
+          </details>
         </div>`;
       const s = $("#lSair");
       if (s) s.onclick = async () => { await auth.sair(); location.reload(); };
+      ligarConta(u);
     }
   } catch (e) { /* sem supabase configurado — a tela de login segue normal */ }
+}
+
+/* 14/11: minha conta — baixar meus dados e excluir a conta (LGPD) */
+function ligarConta(u) {
+  const msg = t => { const m = $("#lContaMsg"); if (m) m.textContent = t; };
+  const cli = () => window.BWSync && window.BWSync.cliente && window.BWSync.cliente();
+  const ex = $("#lExportar");
+  if (ex) ex.onclick = async () => {
+    msg("Juntando seus dados…");
+    const pacote = { conta: u.email, gerado_em: new Date().toISOString(), nuvem: {}, aparelho: {} };
+    try { const r = await cli().from("user_data").select("chave, dados, atualizado_em"); (r.data || []).forEach(l => { pacote.nuvem[l.chave] = l.dados; }); } catch (e) { }
+    for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (/^bw_/.test(k) && !/session|supabase/.test(k)) { try { pacote.aparelho[k] = JSON.parse(localStorage.getItem(k)); } catch (e) { pacote.aparelho[k] = localStorage.getItem(k); } } }
+    const blob = new Blob([JSON.stringify(pacote, null, 2)], { type: "application/json" });
+    const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
+    a.download = "brightway-meus-dados-" + new Date().toISOString().slice(0, 10) + ".json"; a.click();
+    msg("✓ Arquivo baixado com todos os seus dados.");
+  };
+  const del = $("#lExcluir");
+  if (del) del.onclick = async () => {
+    const ok = window.prompt("Isto apaga a sua conta e TODOS os seus dados (eventos, contas, equipe, arquivos). Não dá para desfazer.\n\nPara confirmar, digite EXCLUIR:");
+    if (ok !== "EXCLUIR") { msg("Exclusão cancelada."); return; }
+    const c = cli(); if (!c) { msg("Sem conexão com o servidor."); return; }
+    msg("Apagando arquivos…");
+    try {
+      const evs = await c.from("bw_eventos").select("evento_id");
+      for (const ev of (evs.data || [])) {
+        for (const bucket of ["eventos-midia", "eventos-docs"]) {
+          for (const sub of ["", "/comprovantes", "/contratos", "/nfe"]) {
+            const pasta = ev.evento_id + sub;
+            const l = await c.storage.from(bucket).list(pasta, { limit: 1000 });
+            const nomes = (l.data || []).filter(o => o.id).map(o => pasta + "/" + o.name);
+            if (nomes.length) await c.storage.from(bucket).remove(nomes);
+          }
+        }
+      }
+      msg("Apagando a conta…");
+      const r = await c.rpc("bw_excluir_minha_conta");
+      if (r.error) throw r.error;
+      const ks = []; for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (/^bw_|^bwsync_|^ui_/.test(k)) ks.push(k); }
+      ks.forEach(k => localStorage.removeItem(k));
+      try { await c.auth.signOut(); } catch (e) { }
+      document.body.innerHTML = '<div style="max-width:420px;margin:80px auto;padding:24px;text-align:center;color:#F5F1EA;font-family:Inter,sans-serif"><h2>Conta excluída</h2><p style="color:#9aa0ab">Sua conta e todos os seus dados foram apagados.</p><a href="login.html" style="color:#FFB547">Voltar</a></div>';
+    } catch (e) { msg("Não consegui excluir: " + (e.message || e)); }
+  };
 }
 
 boot();

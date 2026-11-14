@@ -53,13 +53,19 @@ button:disabled{opacity:.6;cursor:wait}
   var TOKEN = (params.get("t") || params.get("cadastro") || "").trim();
   var EV_ID = params.get("ev") || "";
   var EV_NOME = params.get("nome") || "";
-  var GALERIA = params.get("galeria") || "";
+  var GALERIA = params.get("g") || "";
+  var GALERIA_ANTIGA = params.get("galeria") || "";
   var CLI_TOKEN = params.get("cliente") || "";
   var SB_URL = "https://zdtnetplvdonogmdvarx.supabase.co";
   var SB_ANON = "sb_publishable_qJ2mIx1hcn_ZH75-yxJiDA_OI-EHyIU";
   function $(s){ return document.querySelector(s); }
   function maskCPF(v){ v=(v||"").replace(/\D/g,"").slice(0,11); v=v.replace(/(\d{3})(\d)/,"$1.$2"); v=v.replace(/(\d{3})(\d)/,"$1.$2"); v=v.replace(/(\d{3})(\d{1,2})$/,"$1-$2"); return v; }
   function maskTel(v){ v=(v||"").replace(/\D/g,"").slice(0,11); if(v.length<=10) return v.replace(/(\d{2})(\d{4})(\d{0,4})/,"($1) $2-$3").replace(/[-\s]+$/,""); return v.replace(/(\d{2})(\d{5})(\d{0,4})/,"($1) $2-$3").replace(/[-\s]+$/,""); }
+  if (GALERIA_ANTIGA && !GALERIA) {
+    document.body.innerHTML = '<div class="logo">BW AUDIOVISUAL<small>EVENTOS · TRANSMISSÕES · PRODUÇÃO</small></div>' +
+      '<div class="card"><h1>Link antigo</h1><div class="sub">Por segurança, as galerias agora usam um link novo. Peça o link atualizado a quem organizou o evento.</div></div>';
+    return;
+  }
   if (GALERIA) {
     /* modo GALERIA: o cliente vê as fotos do evento (leitura pública do Storage) */
     document.body.innerHTML = '<div class="logo">BW AUDIOVISUAL<small>EVENTOS · TRANSMISSÕES · PRODUÇÃO</small></div>' +
@@ -70,12 +76,15 @@ button:disabled{opacity:.6;cursor:wait}
     (async function(){
       try {
         var sb = window.supabase.createClient(SB_URL, SB_ANON);
-        var pasta = GALERIA;
-        var res = await sb.storage.from("eventos-midia").list(pasta, { limit: 100 });
-        var fotos = (res.data || []).filter(function(a){ return a.name && a.name.indexOf(".") > 0; });
+        /* 14/11: só com o código secreto do link (bw_galeria_fotos) */
+        var res = await sb.rpc("bw_galeria_fotos", { p_token: GALERIA });
+        var linhas = res.data || [];
+        var pasta = linhas.length ? linhas[0].evento_id : "";
+        var fotos = linhas.map(function(l){ return { name: l.nome }; })
+          .filter(function(a){ return a.name && /\.(jpe?g|png|webp|gif|heic|heif)$/i.test(a.name); });
         document.querySelector("#gNome").textContent = fotos.length + " foto(s) do evento";
         document.querySelector("#gFotos").innerHTML = fotos.map(function(a){
-          var u = SB_URL + "/storage/v1/object/public/eventos-midia/" + pasta + "/" + a.name;
+          var u = SB_URL + "/storage/v1/object/public/eventos-midia/" + encodeURIComponent(pasta) + "/" + encodeURIComponent(a.name);
           return '<a href="' + u + '" target="_blank"><img src="' + u + '" style="width:100%;height:110px;object-fit:cover;border-radius:8px"></a>';
         }).join("");
         if (!fotos.length) document.querySelector("#gMsg").textContent = "Nenhuma foto publicada ainda.";
