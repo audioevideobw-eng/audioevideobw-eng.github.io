@@ -114,6 +114,8 @@ O dono é a BW Audiovisual. Este arquivo é o combinado entre as duas. Leia **an
   emailRedirectTo = login.html?confirmado=1, e a página avisa "✓ E-mail confirmado, entre com e-mail e senha" (no iPhone o link
   abre no Safari, fora do app, então a troca PKCE não acontece ali — a conta já fica confirmada). Dono precisa ajustar
   Supabase → Authentication → URL Configuration (Site URL + Redirect URLs). sw v37.
+- 14/11/2026 · Claude: página pública `privacidade.html` (Política de Privacidade/LGPD) para a tela de consentimento do Google;
+  Google Cloud → Branding: nome do app "Brightway" + página inicial + política (autorizado pelo dono).
 
 ## Pendências (dono)
 - [x] (14/11 19:31, Claude com autorização do dono) Supabase → Authentication → URL Configuration: Site URL = https://audioevideobw-eng.github.io e Redirect URLs com
