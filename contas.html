@@ -301,7 +301,7 @@ footer b{color:var(--gold)}
     Não é recomendação de investimento.
   </footer>
 </div>
-<script src="assets/layout.js?v=5"></script>
+<script src="assets/layout.js?v=6"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="assets/bw-sync.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/pdfmake@0.2.20/build/pdfmake.min.js"></script>
@@ -1840,7 +1840,14 @@ function renderFixos() {
   };
   window.__delFixo = id => {
     save(FIXOS_KEY, 1, load(FIXOS_KEY, 1, []).filter(f => String(f.id) !== String(id)));
+    /* 14/11: apaga também as contas FUTURAS e não pagas que este fixo gerou (o histórico fica) */
+    const hojeTxt = new Date().toISOString().slice(0, 10);
+    const ct = load("casa_contas", 1, []);
+    const resto = ct.filter(c => !(String(c.id).startsWith(`fixo_${id}_`) && (c.c2 || "") >= hojeTxt &&
+      !["s", "sim"].includes(String(c.c3 || "").toLowerCase())));
+    if (resto.length !== ct.length) save("casa_contas", 1, resto);
     renderFixos();
+    try { render(); } catch (e) { }
   };
 }
 

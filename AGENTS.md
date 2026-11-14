@@ -86,6 +86,8 @@ O dono é a BW Audiovisual. Este arquivo é o combinado entre as duas. Leia **an
 - 14/11/2026 · Claude: "custo fixo não salva" — salvava (local + nuvem), mas a lista ficava FECHADA (colapsável) e a
   mensagem de confirmação sumia no re-render. core/colap agora lembra o que foi aberto e abre a lista ao adicionar;
   mensagem "✓ salvo" aparece depois do re-render (contas/casa/orçamento/reserva/fluxo/preço/negócio). casa.html: #fixosBox duplicado removido. sw v25.
+- 14/11/2026 · Claude: apagar um fixo agora apaga também as contas/lançamentos FUTUROS (não pagos) que ele gerou;
+  menu lateral (assets/layout.js v6) ganhou "Painel Financeiro" em Meu negócio. sw v26.
 
 ## Pendências (dono)
 - [ ] Teste de segurança 2A: cadastrar "Teste Colab" pelo link de colaborador numa janela anônima → deve aparecer

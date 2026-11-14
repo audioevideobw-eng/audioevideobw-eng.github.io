@@ -303,7 +303,7 @@ footer b{color:var(--gold)}
     Não é recomendação de investimento.
   </footer>
 </div>
-<script src="assets/layout.js?v=5"></script>
+<script src="assets/layout.js?v=6"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="assets/bw-sync.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/pdfmake@0.2.20/build/pdfmake.min.js"></script>
@@ -1566,7 +1566,13 @@ function renderFixosNeg() {
   };
   window.__delFixoNeg = id => {
     save(FIXOS_NEG, 1, load(FIXOS_NEG, 1, []).filter(f => String(f.id) !== String(id)));
+    /* 14/11: apaga também os lançamentos FUTUROS que este fixo gerou (o histórico fica) */
+    const hojeTxt = new Date().toISOString().slice(0, 10);
+    const fl = load(FLUXO, 1, []);
+    const resto = fl.filter(o => !(String(o.id).startsWith(`fixo_${id}_`) && (o.c0 || "") >= hojeTxt));
+    if (resto.length !== fl.length) save(FLUXO, 1, resto);
     renderFixosNeg();
+    try { renderFluxo(); } catch (e) { }
   };
 }
 
