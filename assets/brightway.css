@@ -142,3 +142,7 @@ body .frow > div, body .frow3 > div { min-width: 0; }
 body .frow input, body .frow select, body .frow3 input, body .frow3 select { width: 100%; min-width: 0; box-sizing: border-box; }
 @media (max-width: 640px) { body .frow3 { grid-template-columns: 1fr 1fr; } }
 @media (max-width: 420px) { body .frow, body .frow3 { grid-template-columns: 1fr; } }
+
+/* 14/11 (Claude): itens de grade não estouram a tela no celular (evento.html "Orçamento item a item") */
+.grid2>*,.grid3>*,.frow3>*,.frow2>*{min-width:0}
+.grid2 input,.grid2 select,.frow3 input,.frow3 select{max-width:100%}

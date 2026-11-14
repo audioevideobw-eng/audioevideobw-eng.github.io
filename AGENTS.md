@@ -88,6 +88,8 @@ O dono é a BW Audiovisual. Este arquivo é o combinado entre as duas. Leia **an
   mensagem "✓ salvo" aparece depois do re-render (contas/casa/orçamento/reserva/fluxo/preço/negócio). casa.html: #fixosBox duplicado removido. sw v25.
 - 14/11/2026 · Claude: apagar um fixo agora apaga também as contas/lançamentos FUTUROS (não pagos) que ele gerou;
   menu lateral (assets/layout.js v6) ganhou "Painel Financeiro" em Meu negócio. sw v26.
+- 14/11/2026 · Claude: teste completo (33 páginas, PC e celular): 0 erros de JS; único estouro de layout no celular era
+  evento.html (grade) → brightway.css v6 (min-width:0 nas grades). sw v27.
 
 ## Pendências (dono)
 - [ ] Teste de segurança 2A: cadastrar "Teste Colab" pelo link de colaborador numa janela anônima → deve aparecer
