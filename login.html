@@ -399,7 +399,8 @@ async function cadastrar(email, senha, nome) {
      ela não entra; quem libera é o administrador no painel do Supabase */
   const { data, error } = await sb.auth.signUp({
     email, password: senha,
-    options: { data: { nome: nome || "" } },
+    /* 14/11: o link do e-mail de confirmação volta para o site (antes caía em "localhost") */
+    options: { data: { nome: nome || "" }, emailRedirectTo: location.origin + location.pathname + "?confirmado=1" },
   });
   if (error) throw error;
   return data;
@@ -621,6 +622,18 @@ async function boot() {
     const sb = auth.clienteSB();
     if (sb) sb.auth.onAuthStateChange(ev => { if (ev === "PASSWORD_RECOVERY") { window.__lModo && window.__lModo("trocar"); } });
     const u = await auth.usuarioAtual();
+    /* voltou do link de confirmação do e-mail: no iPhone o link abre no Safari, que não é o app —
+       a conta JÁ está confirmada; é só entrar com e-mail e senha (no app ou aqui) */
+    const qs = new URLSearchParams(location.search);
+    if (!u && (qs.has("confirmado") || qs.has("code") || /error_description/.test(location.hash + location.search))) {
+      const erro = (new URLSearchParams(location.hash.slice(1)).get("error_description")) || qs.get("error_description");
+      const msg = $("#lMsg");
+      if (msg) msg.innerHTML = erro && !/code verifier|both auth code/i.test(erro)
+        ? `<div class="note" style="color:var(--dn)">O link expirou ou já foi usado. Entre com seu e-mail e senha ou peça um novo em "Esqueci a senha".</div>`
+        : `<div class="note" style="color:var(--up);font-size:14px">✓ E-mail confirmado! Agora entre com seu e-mail e senha${/iPhone|iPad/.test(navigator.userAgent) ? " — se você instalou o app, abra o app Brightway e entre por lá" : ""}.</div>`;
+      history.replaceState(null, "", location.pathname);
+    }
+    if (u && qs.has("confirmado")) { location.replace("./"); return; }
     /* voltou do Google já logado → vai direto para o painel */
     if (u && /[?&]google=1/.test(location.search) && !location.hash.startsWith("#recuperar")) { location.replace("./"); return; }
     if (u) {
