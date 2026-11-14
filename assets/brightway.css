@@ -201,3 +201,24 @@ body a.menu-card:active, body a.bw-tool-card:active{
 body a.menu-card:focus-visible, body a.bw-tool-card:focus-visible{outline:2px solid #FFB547;outline-offset:3px}
 @media (prefers-reduced-motion:reduce){body a.menu-card, body a.bw-tool-card{transition:none}}
 @media (max-width:640px){body a.menu-card, body a.bw-tool-card{min-height:68px;padding:16px 18px}}
+
+/* 14/11 (Claude): botões de acesso em GALERIA (blocos lado a lado, ícone + palavra-chave) */
+.bw-grid:has(> a.menu-card), .bw-grid:has(> a.bw-tool-card){
+  grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:14px}
+body a.menu-card, body a.bw-tool-card{
+  flex-direction:column;align-items:flex-start;justify-content:space-between;
+  min-height:0;aspect-ratio:1/1;max-height:200px;padding:18px}
+body a.menu-card::after, body a.bw-tool-card::after{position:absolute;right:18px;top:24px}
+body a.menu-card .ico, body a.bw-tool-card .ico{
+  width:46px;height:46px;border-radius:13px;display:grid;place-items:center;
+  background:linear-gradient(180deg,rgba(255,181,71,.16),rgba(255,181,71,.05));
+  border:1px solid rgba(255,181,71,.28);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 6px 14px -8px rgba(255,181,71,.5)}
+body a.menu-card .ico svg, body a.bw-tool-card .ico svg{width:23px;height:23px;fill:none;stroke:#FFB547;
+  stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+body a.menu-card .nome, body a.bw-tool-card .nome{font-size:13px;letter-spacing:.1em}
+@media (max-width:899px){
+  .bw-grid:has(> a.menu-card), .bw-grid:has(> a.bw-tool-card){grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+  body a.menu-card, body a.bw-tool-card{aspect-ratio:auto;min-height:128px;padding:16px}
+  body a.menu-card .nome, body a.bw-tool-card .nome{font-size:12px;letter-spacing:.08em}
+}
