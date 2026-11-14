@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Baixar o app Brightway</title>
+<meta name="description" content="Instale o app Brightway no seu celular ou computador.">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#06080D">
+<link rel="icon" type="image/png" href="icons/favicon-64.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Brightway">
+<meta property="og:title" content="Brightway — baixe o app">
+<meta property="og:description" content="Seu negócio, sua casa e seus investimentos no mesmo caminho.">
+<meta property="og:image" content="https://audioevideobw-eng.github.io/icons/app-512.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Michroma&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--noite:#06080D;--grafite:#11141B;--ambar:#FFB547;--brilho:#FFF8EA;--marfim:#F5F1EA;--mut:#9aa0ab;--linha:rgba(245,241,234,.10)}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:var(--noite);color:var(--marfim);font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+body{min-height:100vh;display:flex;flex-direction:column;align-items:center;
+  background:radial-gradient(ellipse 70% 45% at 50% 0%,rgba(255,181,71,.16),transparent 70%),var(--noite)}
+.pag{width:100%;max-width:460px;padding:44px 22px calc(40px + env(safe-area-inset-bottom));display:flex;flex-direction:column;align-items:center;text-align:center}
+.icone{width:112px;height:112px;border-radius:26px;box-shadow:0 0 0 1px rgba(255,181,71,.25),0 20px 50px -18px rgba(255,181,71,.55),0 30px 60px -30px rgba(0,0,0,.9)}
+.marca{font-family:Michroma,sans-serif;font-size:22px;letter-spacing:.18em;margin:26px 0 10px;color:var(--marfim)}
+.frase{font-size:16px;line-height:1.5;color:var(--mut);margin:0 0 30px}
+.frase b{color:var(--ambar);font-weight:600}
+.btn{display:flex;align-items:center;justify-content:center;gap:12px;width:100%;min-height:58px;border:0;border-radius:16px;cursor:pointer;
+  font-family:inherit;font-size:15px;font-weight:700;letter-spacing:.12em;text-decoration:none;color:var(--noite);
+  background:linear-gradient(180deg,#FFC872 0%,#FFB547 55%,#E89A2C 100%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.5),inset 0 -3px 0 rgba(0,0,0,.18),0 16px 30px -14px rgba(255,181,71,.75);transition:transform .15s}
+.btn:active{transform:translateY(1px)}
+.btn svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2.3;stroke-linecap:round;stroke-linejoin:round}
+.btn.sec{background:rgba(255,255,255,.05);color:var(--marfim);border:1px solid var(--linha);box-shadow:inset 0 1px 0 rgba(255,255,255,.06)}
+.cartao{width:100%;margin-top:22px;padding:20px;border-radius:20px;background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02)),var(--grafite);
+  border:1px solid var(--linha);text-align:left}
+.cartao h2{font-size:15px;margin:0 0 14px;letter-spacing:.04em}
+.passos{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:14px}
+.passos li{display:flex;gap:14px;align-items:flex-start;font-size:15px;line-height:1.5}
+.passos .n{flex:none;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:13px;color:var(--noite);background:var(--ambar)}
+.tecla{display:inline-flex;align-items:center;gap:6px;padding:2px 9px;border-radius:8px;background:rgba(255,255,255,.08);border:1px solid var(--linha);font-weight:600;white-space:nowrap}
+.tecla svg{width:15px;height:15px;fill:none;stroke:var(--ambar);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.aviso{margin-top:16px;padding:12px 14px;border-radius:12px;font-size:13.5px;line-height:1.5;background:rgba(255,181,71,.08);border:1px solid rgba(255,181,71,.3);color:var(--brilho)}
+.ok{color:#3ecf8e}
+.seta-baixo{display:none}
+.selos{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:26px;font-size:12px;color:var(--mut)}
+.selos span{display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border-radius:999px;border:1px solid var(--linha)}
+.selos svg{width:13px;height:13px;fill:none;stroke:#3ecf8e;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.rodape{margin-top:26px;font-size:12px;color:var(--mut)}
+.rodape a{color:var(--ambar);text-decoration:none}
+[hidden]{display:none!important}
+@media(prefers-reduced-motion:reduce){.btn{transition:none}}
+</style>
+</head>
+<body>
+<main class="pag">
+  <img class="icone" src="icons/app-512.png" alt="Ícone do app Brightway" width="112" height="112">
+  <div class="marca">BRIGHTWAY</div>
+  <p class="frase">Seu negócio, sua casa e seus investimentos no <b>mesmo caminho</b> — agora na tela do seu celular.</p>
+
+  <!-- botão principal (Android / computador com instalação nativa) -->
+  <button class="btn" id="btInstalar" type="button" hidden>
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>
+    INSTALAR O APP
+  </button>
+
+  <!-- já instalado -->
+  <div class="cartao" id="cxInstalado" hidden>
+    <h2 class="ok">✓ O app já está instalado neste aparelho</h2>
+    <a class="btn" href="./">ABRIR O BRIGHTWAY</a>
+  </div>
+
+  <!-- iPhone / iPad -->
+  <div class="cartao" id="cxIOS" hidden>
+    <h2>Instalar no iPhone ou iPad</h2>
+    <div class="aviso" id="avSafari" hidden>Abra este link no <b>Safari</b> — no iPhone, só o Safari instala apps de site. Toque em <b>⋯</b> ou no ícone da bússola e escolha <b>Abrir no Safari</b>.</div>
+    <ol class="passos" style="margin-top:14px">
+      <li><span class="n">1</span><span>Toque em <span class="tecla"><svg viewBox="0 0 24 24"><path d="M12 15V3M8 7l4-4 4 4"/><path d="M5 11v9a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-9"/></svg>Compartilhar</span> na barra do Safari.</span></li>
+      <li><span class="n">2</span><span>Role a lista e toque em <span class="tecla"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M12 8v8M8 12h8"/></svg>Adicionar à Tela de Início</span>.</span></li>
+      <li><span class="n">3</span><span>Toque em <b>Adicionar</b> no canto de cima. O ícone do Brightway aparece na sua tela.</span></li>
+    </ol>
+  </div>
+
+  <!-- Android sem pedido nativo -->
+  <div class="cartao" id="cxAndroid" hidden>
+    <h2>Instalar no Android</h2>
+    <div class="aviso" id="avChrome" hidden>Abra este link no <b>Chrome</b>: toque em <b>⋮</b> e escolha <b>Abrir no navegador</b> / <b>Abrir no Chrome</b>.</div>
+    <ol class="passos" style="margin-top:14px">
+      <li><span class="n">1</span><span>Toque no menu <span class="tecla">⋮</span> no canto de cima do Chrome.</span></li>
+      <li><span class="n">2</span><span>Toque em <span class="tecla">Instalar app</span> (ou <b>Adicionar à tela inicial</b>).</span></li>
+      <li><span class="n">3</span><span>Confirme em <b>Instalar</b>. O ícone do Brightway aparece na sua tela.</span></li>
+    </ol>
+  </div>
+
+  <!-- computador -->
+  <div class="cartao" id="cxPC" hidden>
+    <h2>Instalar no computador</h2>
+    <ol class="passos">
+      <li><span class="n">1</span><span>Use o <b>Chrome</b> ou o <b>Edge</b>.</span></li>
+      <li><span class="n">2</span><span>Clique no ícone de instalar <span class="tecla">⊕</span> no fim da barra de endereço.</span></li>
+      <li><span class="n">3</span><span>Confirme em <b>Instalar</b>.</span></li>
+    </ol>
+    <div class="aviso">No celular, abra este mesmo link: <b>audioevideobw-eng.github.io/baixar</b></div>
+  </div>
+
+  <div class="selos">
+    <span><svg viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg>Sem arquivo para baixar</span>
+    <span><svg viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg>Conexão segura (https)</span>
+    <span><svg viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg>Atualiza sozinho</span>
+  </div>
+  <div class="rodape">Já tem o app? <a href="./">Entrar no Brightway</a></div>
+</main>
+
+<script>
+(function () {
+  "use strict";
+  var $ = function (id) { return document.getElementById(id); };
+  var ua = navigator.userAgent || "";
+  var ios = /iPhone|iPad|iPod/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  var android = /Android/i.test(ua);
+  var dentroDeApp = /Instagram|FBAN|FBAV|FB_IAB|Line\/|WhatsApp|TikTok|musical_ly|Snapchat|LinkedInApp/i.test(ua);
+  var instalado = (window.matchMedia && matchMedia("(display-mode: standalone)").matches) || navigator.standalone === true;
+  var pedido = null;
+
+  try { if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(function () {}); } catch (e) {}
+
+  function mostrar(id) { ["cxInstalado", "cxIOS", "cxAndroid", "cxPC"].forEach(function (x) { $(x).hidden = x !== id; }); }
+
+  if (instalado) { mostrar("cxInstalado"); return; }
+  if (ios) {
+    mostrar("cxIOS");
+    $("avSafari").hidden = !(dentroDeApp || /CriOS|FxiOS|EdgiOS|OPiOS|GSA/.test(ua));
+    return;
+  }
+  /* Android e computador: espera o pedido nativo do navegador; se não vier, mostra o passo a passo */
+  mostrar(android ? "cxAndroid" : "cxPC");
+  if (android) $("avChrome").hidden = !dentroDeApp;
+
+  window.addEventListener("beforeinstallprompt", function (e) {
+    e.preventDefault();
+    pedido = e;
+    $("btInstalar").hidden = false;
+    $(android ? "cxAndroid" : "cxPC").hidden = true;
+  });
+  $("btInstalar").onclick = function () {
+    if (!pedido) return;
+    pedido.prompt();
+    pedido.userChoice.then(function (r) {
+      pedido = null;
+      $("btInstalar").hidden = true;
+      if (r && r.outcome === "accepted") mostrar("cxInstalado");
+      else mostrar(android ? "cxAndroid" : "cxPC");
+    });
+  };
+  window.addEventListener("appinstalled", function () { mostrar("cxInstalado"); $("btInstalar").hidden = true; });
+})();
+</script>
+</body>
+</html>

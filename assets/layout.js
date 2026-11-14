@@ -27,21 +27,8 @@
       ev.userChoice.then(function(r){ if (r && r.outcome === "accepted") avisoApp("Instalando…", "<p>O ícone do <b>Brightway</b> vai aparecer na tela inicial do aparelho.</p>"); });
       return;
     }
-    if (ios) {
-      var safari = !/CriOS|FxiOS|EdgiOS|OPiOS|GSA/.test(ua);
-      avisoApp("Instalar no iPhone / iPad", (safari ? "" : '<p class="alerta">Abra este site no <b>Safari</b> — no iPhone só ele instala apps de site.</p>') +
-        '<ol><li>Toque em <b>Compartilhar</b> <span class="ico-ios">⬆︎</span> (barra de baixo do Safari).</li>' +
-        '<li>Role e toque em <b>Adicionar à Tela de Início</b>.</li><li>Toque em <b>Adicionar</b>. Pronto!</li></ol>');
-      return;
-    }
-    if (/Android/i.test(ua)) {
-      avisoApp("Instalar no Android", '<ol><li>Toque no menu <b>⋮</b> do navegador (canto de cima).</li>' +
-        '<li>Toque em <b>Instalar app</b> (ou <b>Adicionar à tela inicial</b>).</li><li>Confirme em <b>Instalar</b>.</li></ol>' +
-        '<p class="nota">Use o <b>Chrome</b>. Se o app já estiver instalado, a opção não aparece.</p>');
-      return;
-    }
-    avisoApp("Instalar no computador", '<p>No <b>Chrome</b> ou <b>Edge</b>: clique no ícone de instalar <b>⊕</b> no fim da barra de endereço, ou no menu <b>⋮ → Transmitir, salvar e compartilhar → Instalar página como app</b>.</p>' +
-      '<p class="nota">No celular, abra este mesmo endereço e toque em <b>APP DOWNLOAD</b>.</p>');
+    /* iPhone, Android sem o pedido nativo e computador: página de instalação com o passo a passo certo */
+    location.href = "baixar.html";
   };
   function init(){
   var PAGINA = (location.pathname.split("/").pop() || "index.html").replace(".html", "");
