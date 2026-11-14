@@ -146,3 +146,26 @@ body .frow input, body .frow select, body .frow3 input, body .frow3 select { wid
 /* 14/11 (Claude): itens de grade não estouram a tela no celular (evento.html "Orçamento item a item") */
 .grid2>*,.grid3>*,.frow3>*,.frow2>*{min-width:0}
 .grid2 input,.grid2 select,.frow3 input,.frow3 select{max-width:100%}
+
+/* 14/11 (Claude): selo "LOGADO" com luz verde pulsando (no lugar do e-mail) */
+.bw-logado{display:inline-flex;align-items:center;gap:8px;padding:5px 12px 5px 10px;border-radius:999px;
+  background:rgba(62,207,142,.08);border:1px solid rgba(62,207,142,.35);color:#3ecf8e;
+  font-size:11px;font-weight:700;letter-spacing:.14em;text-decoration:none;white-space:nowrap}
+.bw-logado i{position:relative;width:8px;height:8px;border-radius:50%;background:#3ecf8e;box-shadow:0 0 8px #3ecf8e;flex:none}
+.bw-logado i::after{content:"";position:absolute;inset:0;border-radius:50%;background:#3ecf8e;animation:bwPulso 1.8s ease-out infinite}
+@keyframes bwPulso{0%{transform:scale(1);opacity:.7}100%{transform:scale(3);opacity:0}}
+@media (prefers-reduced-motion:reduce){.bw-logado i::after{animation:none}}
+.bw-sair{color:var(--mut,#9aa0ab);font-size:11px;text-decoration:none;margin-left:8px}
+.bw-sair:hover{color:var(--gold,#FFB547)}
+
+/* 14/11 (Claude): tela de login — botões e campos no mesmo padrão */
+.bw-auth h3{font-size:20px;margin:0 0 4px}
+.bw-auth .sub{color:var(--mut,#9aa0ab);font-size:13px}
+.bw-auth input{min-height:48px;border-radius:12px;font-size:15px}
+.bw-auth .bw-btn{width:100%;min-height:50px}
+.bw-auth .bw-btn[disabled]{opacity:.6;cursor:wait}
+.bw-auth .ou{display:flex;align-items:center;gap:12px;margin:16px 0;color:var(--mut,#9aa0ab);font-size:11px;letter-spacing:.2em;text-transform:uppercase}
+.bw-auth .ou::before,.bw-auth .ou::after{content:"";flex:1;height:1px;background:rgba(245,241,234,.12)}
+.bw-auth .links{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:14px;font-size:13px}
+.bw-auth .links a{color:var(--gold2,#FFF8EA);text-decoration:none}
+.bw-auth .links a:hover{color:var(--gold,#FFB547)}

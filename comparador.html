@@ -12,7 +12,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Brightway">
-<link rel="stylesheet" href="assets/brightway.css?v=6">
+<link rel="stylesheet" href="assets/brightway.css?v=7">
 <style>
 :root{
   /* Identidade Brightway — paleta oficial */
@@ -936,8 +936,8 @@ async function montarCabecalho() {
   let u = null;
   try { u = await auth.usuarioAtual(); } catch (e) { }
   if (u) {
-    el.innerHTML = `<a href="login.html" style="color:var(--mut)">${esc(u.email)}</a>` +
-      ` · <a href="#" onclick="window.__sair();return false" style="color:var(--gold2)">sair</a>`;
+    el.innerHTML = `<a href="login.html" class="bw-logado" title="Conta: ${esc(u.email)}"><i></i>LOGADO</a>` +
+      `<a href="#" class="bw-sair" onclick="window.__sair();return false">sair</a>`;
   } else {
     el.innerHTML = `<a href="login.html" class="btn gh" style="display:inline-block;padding:8px 14px;font-size:12px">LOGIN</a>`;
   }

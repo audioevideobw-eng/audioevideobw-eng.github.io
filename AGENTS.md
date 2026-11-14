@@ -92,6 +92,8 @@ O dono é a BW Audiovisual. Este arquivo é o combinado entre as duas. Leia **an
   evento.html (grade) → brightway.css v6 (min-width:0 nas grades). sw v27.
 - 14/11/2026 · Claude: recs, dados, leitor e configadm estavam no visual antigo → paleta Brightway + brightway.css v6 +
   menu lateral (layout.js v6). sw v28.
+- 14/11/2026 · Claude: selo "LOGADO" com luz verde pulsando no lugar do e-mail (montarCabecalho em todas as páginas e login);
+  login.html no padrão (carrega brightway.css; Google e e-mail com botões iguais, divisor "ou com e-mail"). brightway.css v7, sw v29.
 
 ## Pendências (dono)
 - [ ] Teste de segurança 2A: cadastrar "Teste Colab" pelo link de colaborador numa janela anônima → deve aparecer
