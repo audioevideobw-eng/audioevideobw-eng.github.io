@@ -90,6 +90,8 @@ O dono é a BW Audiovisual. Este arquivo é o combinado entre as duas. Leia **an
   menu lateral (assets/layout.js v6) ganhou "Painel Financeiro" em Meu negócio. sw v26.
 - 14/11/2026 · Claude: teste completo (33 páginas, PC e celular): 0 erros de JS; único estouro de layout no celular era
   evento.html (grade) → brightway.css v6 (min-width:0 nas grades). sw v27.
+- 14/11/2026 · Claude: recs, dados, leitor e configadm estavam no visual antigo → paleta Brightway + brightway.css v6 +
+  menu lateral (layout.js v6). sw v28.
 
 ## Pendências (dono)
 - [ ] Teste de segurança 2A: cadastrar "Teste Colab" pelo link de colaborador numa janela anônima → deve aparecer
