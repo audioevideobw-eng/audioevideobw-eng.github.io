@@ -645,7 +645,7 @@ async function boot() {
     const u = await auth.usuarioAtual();
     if (u) {
       top.innerHTML = `
-        <div class="card" style="margin-bottom:14px">
+        <div class="card" style="margin:16px 0 14px">
           <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
             <span class="bw-logado" title="Conta: ${esc(u.email)}"><i></i>LOGADO</span>
             <span style="color:var(--mut);font-size:12.5px">${esc(u.email)}</span>
