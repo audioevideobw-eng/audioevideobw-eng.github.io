@@ -4,7 +4,8 @@
 <!-- build 2026-11-11T15:35:47 -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Meus dados — Mesa BW</title>
+<title>Meus dados — Brightway</title>
+<link rel="stylesheet" href="assets/brightway.css?v=6">
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0b1220">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
@@ -13,9 +14,18 @@
 <meta name="apple-mobile-web-app-title" content="Mesa BW">
 <style>
 :root{
-  --navy:#0b1220; --navy2:#111c2e; --navy3:#16243a; --line:#25344d;
-  --gold:#d4a94a; --gold2:#f0d08a; --txt:#e8eef8; --mut:#8fa2bd;
-  --up:#3ecf8e; --dn:#f2686b; --warn:#e8b84b;
+  /* Identidade Brightway — paleta oficial */
+  --navy:#06080D;   /* Noite — fundo principal */
+  --navy2:#11141B;  /* Grafite — superfícies e cards */
+  --navy3:#191d27;  /* Grafite elevado */
+  --line:#262b36;   /* linhas sutis sobre Grafite */
+  --gold:#FFB547;   /* Âmbar Luz — destaque, a estrada */
+  --gold2:#FFF8EA;  /* Brilho — a estrela */
+  --amber-dark:#C9780F; /* Âmbar Escuro — destaque em fundo claro */
+  --ciano:#3FD0E0;  /* Ciano Tech — acento de tecnologia, uso pontual */
+  --txt:#F5F1EA;    /* Marfim — texto e logotipo */
+  --mut:#9aa0ab;    /* texto secundário */
+  --up:#3ecf8e; --dn:#f2686b; --warn:#FFB547;
   --mono:ui-monospace,SFMono-Regular,Menlo,monospace;
 }
 *{box-sizing:border-box}
@@ -1191,5 +1201,6 @@ const dados = MOD['modules/dados'];
 
 return {  };
 })();</script>
+<script src="assets/layout.js?v=6"></script>
 </body>
 </html>
