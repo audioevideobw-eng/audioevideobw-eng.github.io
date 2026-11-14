@@ -116,7 +116,7 @@ O dono é a BW Audiovisual. Este arquivo é o combinado entre as duas. Leia **an
   Supabase → Authentication → URL Configuration (Site URL + Redirect URLs). sw v37.
 
 ## Pendências (dono)
-- [ ] Supabase → Authentication → URL Configuration: Site URL = https://audioevideobw-eng.github.io e Redirect URLs com
+- [x] (14/11 19:31, Claude com autorização do dono) Supabase → Authentication → URL Configuration: Site URL = https://audioevideobw-eng.github.io e Redirect URLs com
       https://audioevideobw-eng.github.io/** (sem isso, confirmação de e-mail e login Google voltam para "localhost").
 - [ ] Teste de segurança 2A: cadastrar "Teste Colab" pelo link de colaborador numa janela anônima → deve aparecer
       só para o dono em Gestão de pessoas → cadastros recebidos.
