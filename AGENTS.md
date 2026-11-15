@@ -269,6 +269,8 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
   Site: BWSync.registrarAgora — "Gerar link" (colaborador e cliente, em equipe/eventos) e "Link de presença" só mostram o link depois que
   o servidor confirma; links antigos deste aparelho ficam guardados (bwsync_tokens_v1) e continuam valendo. Simulado: link falso recusado,
   link válido aceito, presença em evento falso recusada, 0 cadastros sem dono. sw v54.
+- 15/11/2026 · Claude: "Cadastros recebidos" (colaborador e cliente) só aparecia no APARELHO que criou o link → agora aparece em qualquer
+  aparelho logado; lista de colaboradores não mistura cadastros de cliente. sw v55.
 
 ## Pendências (dono)
 - [x] (15/11 10:02, dono: "faça tudo") Autorizar a automação de NOTÍCIAS (publica noticias.json no site a cada 2 h) — ATIVA.

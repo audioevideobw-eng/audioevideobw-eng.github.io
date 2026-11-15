@@ -1622,7 +1622,7 @@ function initFormulario() {
       <button class="btn" id="cliGerar">${token ? "Gerar novo link" : "Gerar link de cadastro"}</button>
     </div>
     <div class="note" id="cliFMsg"></div>
-    ${token ? '<div style="margin-top:10px"><b style="font-size:12px">Cadastros recebidos:</b><div id="cliCadastros" style="margin-top:6px"></div></div>' : ""}
+    <div style="margin-top:10px"><b style="font-size:12px">Cadastros recebidos:</b><div id="cliCadastros" style="margin-top:6px"></div></div>
   </div>`;
   $("#cliGerar").onclick = async () => {
     /* o link só existe depois que o servidor confirma que ele é DESTA conta (senão os cadastros ficavam sem dono) */
@@ -1637,8 +1637,8 @@ function initFormulario() {
   if (token) {
     const cop = $("#cliCopiar");
     if (cop) cop.onclick = () => navigator.clipboard.writeText(link).then(() => { $("#cliFMsg").textContent = "Link copiado."; });
-    renderCadastros();
   }
+  renderCadastros();   /* 15/11: a lista aparece em QUALQUER aparelho (antes só no que criou o link) */
 }
 
 function renderCadastros() {
@@ -2190,8 +2190,8 @@ function initFormulario() {
       <button class="btn" id="eqGerarLink">${token ? "Gerar novo link" : "Gerar link de cadastro"}</button>
     </div>
     <div class="note" id="eqFormMsg"></div>
-    ${token ? `<div style="margin-top:10px"><b style="font-size:12px">Cadastros recebidos:</b>
-      <div id="eqCadastros" style="margin-top:6px"></div></div>` : ""}
+    <div style="margin-top:10px"><b style="font-size:12px">Cadastros recebidos:</b>
+      <div id="eqCadastros" style="margin-top:6px"></div></div>
   </div>`;
   $("#eqGerarLink").onclick = async () => {
     /* o link só existe depois que o servidor confirma que ele é DESTA conta (senão os cadastros ficavam sem dono) */
@@ -2210,8 +2210,8 @@ function initFormulario() {
         $("#eqFormMsg").textContent = "Link copiado — cole no WhatsApp do colaborador.";
       });
     };
-    renderCadastros();
   }
+  renderCadastros();   /* 15/11: a lista aparece em QUALQUER aparelho (antes só no que criou o link) */
 }
 
 /* cadastros recebidos: lê da tabela equipe_cadastros na nuvem (só o dono lê) */
@@ -2220,7 +2220,7 @@ function renderCadastros() {
   /* lê com a SESSÃO do dono (RLS: leitura só autenticada) */
   const sb = auth.clienteSB ? auth.clienteSB() : null;
   if (!sb) { el.innerHTML = '<div class="note">Configure o Supabase para receber cadastros.</div>'; return; }
-  sb.from("equipe_cadastros").select("*").order("criado_em", { ascending: false })
+  sb.from("equipe_cadastros").select("*").neq("funcao", "cliente").order("criado_em", { ascending: false })
     .then(({ data, error }) => {
       if (error) { el.innerHTML = '<div class="note">Erro ao ler cadastros: ' + esc(error.message) + '</div>'; return; }
       if (!data || !data.length) { el.innerHTML = '<div class="note">Nenhum cadastro recebido ainda.</div>'; return; }
