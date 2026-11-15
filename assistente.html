@@ -249,8 +249,8 @@
   /* alarme: número na resposta que o usuário não escreveu (a IA pequena às vezes troca "800" por "300") */
   function conferirNumeros(saida) {
     var entrada = [].map.call(document.querySelectorAll("[data-form]:not([hidden]) input, [data-form]:not([hidden]) textarea"), function (e) { return e.value; }).join(" ");
-    var tem = {}; (entrada.match(/\d+(?:[.,]\d+)*/g) || []).forEach(function (n) { tem[n.replace(/[.,]/g, "")] = 1; });
-    var novos = (String(saida).match(/\d+(?:[.,]\d+)*/g) || []).filter(function (n) { var k = n.replace(/[.,]/g, ""); return k.length > 1 && !tem[k] && !/^(19|20)\d\d$/.test(k); });
+    var tem = {}; (entrada.match(/\d+(?:[.,]\d+)*/g) || []).forEach(function (n) { tem[n.replace(/[.,]00$/, "").replace(/[.,]/g, "")] = 1; });
+    var novos = (String(saida).match(/\d+(?:[.,]\d+)*/g) || []).filter(function (n) { var k = n.replace(/[.,]00$/, "").replace(/[.,]/g, ""); return k.length > 1 && !tem[k] && !/^(19|20)\d\d$/.test(k); });
     return novos.filter(function (n, i) { return novos.indexOf(n) === i; });
   }
   function comecar() { gerando = true; $("saida").textContent = ""; $("btnGerar").disabled = true; $("btnParar").hidden = false; $("btnCopiar").hidden = true; $("aviso").textContent = "Escrevendo…"; }
