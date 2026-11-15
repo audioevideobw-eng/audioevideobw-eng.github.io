@@ -255,3 +255,9 @@ html:not(.bw-admin) .so-admin{display:none!important}
 .bw-cambio-abas a{flex:none;font-size:12px;font-weight:600;letter-spacing:.04em;padding:8px 14px;border-radius:999px;border:1px solid var(--line,#262b36);color:var(--txt2,#9aa0ab);text-decoration:none;background:rgba(255,255,255,.02)}
 .bw-cambio-abas a:hover{color:var(--gold,#FFB547);border-color:var(--gold,#FFB547)}
 .bw-cambio-abas a.ativo{background:var(--gold,#FFB547);color:#1a1205;border-color:var(--gold,#FFB547)}
+
+/* 14/11 · submenu do menu lateral no arquivo comum (algumas páginas não tinham o estilo e o submenu aparecia sem formato) */
+.bw-menu .bw-sub{display:block;padding:2px 12px 2px 24px;font-size:14px;color:var(--txt2,#9aa0ab);text-decoration:none;min-height:34px;line-height:34px;font-weight:400;letter-spacing:0}
+.bw-menu .bw-sub:hover{color:var(--gold,#FFB547)}
+/* 14/11 · Início no celular: a estrada vira fundo discreto e não fica por cima dos botões */
+@media (max-width:700px){.bw-estrada{width:100%!important;opacity:.18!important}}

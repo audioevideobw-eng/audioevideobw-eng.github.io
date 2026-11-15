@@ -202,7 +202,7 @@ input.busca{font:inherit;font-size:13px;background:var(--navy2);color:var(--txt)
     </section>
 
     <section class="card" style="margin-top:14px">
-      <h2>Pagamentos de eventos</h2><p class="cap">Aba Eventos da planilha</p>
+      <h2>Pagamentos de eventos</h2><p class="cap" id="capEventos">Recebimentos dos seus eventos</p>
       <div class="grid tres" style="margin-top:4px">
         <div class="card"><div class="kl">Pagamentos</div><div class="kv" id="eQtd">—</div></div>
         <div class="card"><div class="kl">Total recebido</div><div class="kv" id="eTotal">—</div></div>
@@ -254,7 +254,8 @@ input.busca{font:inherit;font-size:13px;background:var(--navy2);color:var(--txt)
       r.grupo = "Receita";
       var ev = evs.find(function (e) { return "receita_" + e.id === id || "ev_" + e.id === id; });
       if (/empréstimo|financiamento|aporte|resgate|transferência/i.test(cat)) return r;
-      r.categoria = "Receita de cliente"; r.quem = ev ? (ev.cliente || ev.nome) : (cat.replace(/^Evento:\s*/i, "") || "Sem nome");
+      r.categoria = "Receita de cliente";
+      r.quem = ev ? (ev.cliente || ev.nome) : (/^(Venda de produto|Venda de serviço|Recebimento de cliente|Entrada)$/i.test(cat) ? "Outras entradas" : (cat.replace(/^Evento:\s*/i, "") || "Outras entradas"));
       if (ev) { r._ev = ev; }
       return r;
     }
@@ -358,6 +359,7 @@ input.busca{font:inherit;font-size:13px;background:var(--navy2);color:var(--txt)
       else { LANC = nat.L; EVENTOS = nat.E; }
       $("demoAviso").hidden = !demo;
       [].forEach.call(document.querySelectorAll("#fonteSeg button"), function (b) { b.classList.toggle("on", b.dataset.fonte === FONTE); });
+      $("capEventos").textContent = FONTE === "google" ? "Aba Eventos da planilha" : "Recebimentos dos seus eventos";
       $("subtitulo").textContent = FONTE === "google" ? "Planilha Google conectada (extrato do banco) · atualiza sozinho quando a planilha muda"
         : "Montado com os seus lançamentos da plataforma (Fluxo de caixa, Eventos, Equipe e Custos fixos)";
       $("verGoogle").hidden = !(temGoogle && FONTE === "plataforma");
@@ -394,7 +396,7 @@ input.busca{font:inherit;font-size:13px;background:var(--navy2);color:var(--txt)
     var c = function (x) { return soma(L, function (r) { return r.categoria === x; }); };
     var receita = g("Receita"), custos = -g("Custos dos eventos"), despesas = -g("Despesas e contas");
     var lucro = receita - custos - despesas, invest = -g("Investimento"), socio = -g("Sócio"), terceiros = g("Terceiros");
-    var equip = -soma(L, function (r) { return /^Compra de equipamento/.test(r.categoria || ""); });
+    var equip = Math.max(0, -soma(L, function (r) { return /^Compra de equipamento/.test(r.categoria || ""); }));
     var saldo = lucro - invest - socio + terceiros;
     $("kReceita").textContent = brl(receita);
     $("kCustos").textContent = brl(custos);
