@@ -301,16 +301,16 @@
   $("btnParar").onclick = function () { pedidoN++; terminar(null); };
 
   /* tradução pela API do Chrome (computador), quando existir */
-  async function traduzirChrome(texto, para) {
+  function comPrazo(pr, ms) { return Promise.race([pr, new Promise(function (ok) { setTimeout(function () { ok(null); }, ms); })]); }
+  async function traduzirChrome(texto, para) {   /* em alguns navegadores a API trava: prazo de 3 s e só se já estiver pronta */
     if (!window.Translator) return null;
     try {
-      var a = await Translator.availability({sourceLanguage: "pt", targetLanguage: para});
-      if (a === "unavailable") return null;
-      var t = await Translator.create({sourceLanguage: "pt", targetLanguage: para});
-      return await t.translate(texto);
+      var a = await comPrazo(Translator.availability({sourceLanguage: "pt", targetLanguage: para}), 3000);
+      if (a !== "available") return null;
+      var t = await comPrazo(Translator.create({sourceLanguage: "pt", targetLanguage: para}), 3000); if (!t) return null;
+      return await comPrazo(t.translate(texto), 15000);
     } catch (e) { return null; }
   }
-
   /* a IA pequena erra números se não forem lembrados de forma explícita (teste 14/11: "800 pessoas" virava "300") */
   function reforcarDados(p) {
     if (["legenda", "email", "ideias"].indexOf(MODO) < 0) return p;
@@ -322,7 +322,7 @@
   $("btnGerar").onclick = async function () {
     var p = pedido();
     if (!p) { $("aviso").textContent = "Preencha o campo de texto primeiro."; return; }
-    if (MODO === "traduzir") {
+    if (MODO === "traduzir" && MOTOR !== "nuvem") {
       comecar(); var tr = await traduzirChrome($("trTexto").value.trim(), $("trPara").value);
       if (tr) { terminar(tr); return; }
       if (MOTOR === "modelos") { terminar(null); $("aviso").textContent = "A tradução precisa da IA do Chrome (computador) ou da IA no aparelho — ative-a no topo."; return; }
