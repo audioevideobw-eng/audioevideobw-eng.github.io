@@ -13,7 +13,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Brightway">
-<link rel="stylesheet" href="assets/brightway.css?v=20">
+<link rel="stylesheet" href="assets/brightway.css?v=21">
 <style>
 :root{
   /* Identidade Brightway — paleta oficial */
@@ -2545,6 +2545,12 @@ function init() {
   render();
   wireFormulario();
   initSync();
+  /* 15/11: a AGENDA da tela inicial abre eventos.html?novo=AAAA-MM-DD → formulário já com a data */
+  const novo = new URLSearchParams(location.search).get("novo");
+  if (/^\d{4}-\d{2}-\d{2}$/.test(novo || "")) {
+    const f = $("#evFData"); if (f) { f.value = novo; const b = $("#evNovoBox"); if (b) setTimeout(() => b.scrollIntoView({ behavior: "smooth", block: "start" }), 300);
+      const n = $("#evFNome"); if (n) setTimeout(() => n.focus(), 600); }
+  }
 }
 
 /* ---------- dashboard ---------- */

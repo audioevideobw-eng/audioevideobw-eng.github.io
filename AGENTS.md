@@ -309,6 +309,15 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
   equipes, cachês por colaborador, gastos por categoria, resultado por evento, tipos/status). Escolha lembrada no aparelho (ui_pdf_dossie/ui_pdf_gestao).
   Testes de PDF: escala, orçamento, contas, reserva OK; FLUXO "Exportar em PDF" não fazia nada (initExportar nunca era chamado) → corrigido. sw v61.
 
+- 15/11/2026 · Claude (pedido do dono): AGENDA NA TELA INICIAL. index.html: frase em uma linha + data; AGENDA (modules/agenda no bundle da home) no
+  meio; atalhos EVENTO · LANÇAMENTOS · LER COMPROVANTE · FERRAMENTAS lado a lado (.bw-acao); KPIs e seções continuam abaixo. Agenda: mês/ano
+  (setas, seletores, HOJE), calendário ou lista, filtros (Pagamentos/Eventos/Tarefas), coluna "Próximos dias". Lê casa_contas (vencimento),
+  neg_fluxo (fixo_ e cache_ pendente), neg_eventos (dia, montagem, desmontagem) e tarefas próprias em `agenda_tarefas` (nova chave em CHAVES do
+  bw-sync; repetição diária/semanal/mensal, feitos por data). Toque no dia → folha com o que há no dia + 6 lançamentos: TAREFA, REUNIÃO, CONTA A
+  PAGAR (→ casa_contas), ENTRADA/SAÍDA (→ neg_fluxo), EVENTO (→ eventos.html?novo=DATA, formulário já com a data). BARRA MÁGICA: escreve
+  "dentista sexta 15h" / "pagar luz 180 dia 20" / "recebi R$ 2.500 hoje" e ela entende (datas, horas, valores; \b não serve com acento → limites
+  por espaço). Confete + aviso ao concluir. KPI "Contas a vencer" da home lia os campos errados (c2/c3 "pago") → c1 e c3 "Sim". brightway.css v21, sw v62.
+
 ## Pendências (dono)
 - [x] (15/11 10:02, dono: "faça tudo") Autorizar a automação de NOTÍCIAS (publica noticias.json no site a cada 2 h) — ATIVA.
 - [ ] Milhas: não existe fonte pública automática; atualizar a referência à mão ou criar tela de ADM para lançar as cotações.

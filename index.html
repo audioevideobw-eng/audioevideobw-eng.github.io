@@ -13,7 +13,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Brightway">
-<link rel="stylesheet" href="assets/brightway.css?v=20">
+<link rel="stylesheet" href="assets/brightway.css?v=21">
 <style>
 :root{
   /* Identidade Brightway — paleta oficial */
@@ -276,44 +276,18 @@ footer b{color:var(--gold)}
 </div></header>
 <div class="wrap">
 
-  <!-- Saudação com a estrada -->
-  <div class="bw-card" style="position:relative;overflow:hidden;min-height:300px;display:flex;align-items:center">
-    <svg class="bw-estrada" aria-hidden="true" viewBox="0 0 600 300" preserveAspectRatio="xMidYMid slice" style="position:absolute;right:0;top:0;height:100%;width:58%;opacity:.9">
-      <defs>
-        <linearGradient id="bwEstrada" x1="0" y1="1" x2="0" y2="0">
-          <stop offset="0" stop-color="#FFB547" stop-opacity=".02"/>
-          <stop offset="1" stop-color="#FFB547" stop-opacity=".45"/>
-        </linearGradient>
-        <radialGradient id="bwHalo" cx="50%" cy="18%" r="30%">
-          <stop offset="0" stop-color="#FFB547" stop-opacity=".55"/>
-          <stop offset="1" stop-color="#FFB547" stop-opacity="0"/>
-        </radialGradient>
-      </defs>
-      <g stroke="#F5F1EA" stroke-opacity=".05">
-        <line x1="300" y1="90" x2="60" y2="300"/><line x1="300" y1="90" x2="180" y2="300"/>
-        <line x1="300" y1="90" x2="420" y2="300"/><line x1="300" y1="90" x2="540" y2="300"/>
-        <line x1="300" y1="90" x2="0" y2="240"/><line x1="300" y1="90" x2="600" y2="240"/>
-        <line x1="0" y1="150" x2="600" y2="150" stroke-opacity=".03"/>
-      </g>
-      <line x1="0" y1="90" x2="600" y2="90" stroke="#FFF4DC" stroke-opacity=".55" stroke-width="1"/>
-      <ellipse cx="300" cy="90" rx="120" ry="26" fill="url(#bwHalo)"/>
-      <polygon points="252,300 348,300 306,90 294,90" fill="url(#bwEstrada)" stroke="#FFB547" stroke-width="3"/>
-      <line x1="300" y1="300" x2="300" y2="92" stroke="#FFF4DC" stroke-width="2" stroke-dasharray="10 14"/>
-      <path d="M300 62 L305 84 L327 90 L305 96 L300 118 L295 96 L273 90 L295 84 Z" fill="#FFF8EA"/>
-    </svg>
-    <div style="position:relative;z-index:1;max-width:60%">
-      <span class="bw-chip bw-chip--ciano" id="bwSaudaChip">Sincronizado com o celular</span>
-      <h1 id="bwSauda" style="font-family:'Inter',sans-serif;font-size:40px;font-weight:600;line-height:1.15;margin:14px 0 10px;color:var(--txt)">
-        Boa noite.<br>Seu <span style="color:var(--gold)">caminho</span> de hoje.
-      </h1>
-      <div style="font-size:14px;color:var(--txt2)" id="bwResumo">Carregando o resumo…</div>
-      <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:20px">
-        <a class="bw-btn bw-btn--primario" href="eventos.html">Novo evento</a>
-        <a class="bw-btn bw-btn--vidro" href="leitor.html">Ler comprovante</a>
-        <a class="bw-btn bw-btn--vidro" href="orcamento.html">Lançar despesa</a>
-      </div>
-    </div>
+  <!-- 15/11 (pedido do dono): frase em uma linha · AGENDA no meio · atalhos lado a lado -->
+  <div class="bw-home-topo">
+    <h1 class="bw-home-frase" id="bwSauda">Boa noite. Seu <span>caminho</span> de hoje.</h1>
+    <div class="bw-home-data" id="bwHoje"></div>
   </div>
+  <div id="bwAgenda"></div>
+  <nav class="bw-acoes" aria-label="Atalhos">
+    <a class="bw-acao" href="eventos.html"><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.4 6.8 19.1l1-5.8-4.3-4.1 5.9-.9z"/></svg></span>EVENTO</a>
+    <a class="bw-acao" href="fluxo.html"><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4v16M7 4 3 8M7 4l4 4M17 20V4M17 20l-4-4M17 20l4-4"/></svg></span>LANÇAMENTOS</a>
+    <a class="bw-acao" href="leitor.html"><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3"/><path d="M8 9h8M8 12h8M8 15h5"/></svg></span>LER COMPROVANTE</a>
+    <a class="bw-acao" href="ferramentas.html"><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><path d="M17.5 14v7M14 17.5h7"/></svg></span>FERRAMENTAS</a>
+  </nav>
 
   <!-- 4 KPIs -->
   <div class="bw-grid" style="margin-top:20px" id="bwKpis">
@@ -1107,6 +1081,416 @@ async function bootComum() {
 return { avisoSemDados, bootComum, iniciarDados, montarCabecalho, preencherCodigos, preencherProgramas, refreshPagina, registrarSW, wireHeader };
 })();
 /* ===== home_main.js ===== */
+/* ===== modules/agenda.js ===== */
+MOD['modules/agenda'] = (function() {
+/* 15/11 (Claude, pedido do dono): AGENDA da tela inicial.
+   Tarefas do dia a dia (chave agenda_tarefas, sincronizada) + o que a plataforma já tem:
+   contas da casa (casa_contas), custos fixos e cachês a pagar do negócio (neg_fluxo) e eventos (neg_eventos:
+   dia, montagem e desmontagem). Nada é copiado: os pagamentos e eventos são lidos na hora de cada tela. */
+const {  esc, fmt  } = MOD['core/format'];
+const {  load, save  } = MOD['core/store'];
+
+const K = "agenda_tarefas";
+const MESES = ["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];
+const SEM = ["DOM","SEG","TER","QUA","QUI","SEX","SÁB"];
+const I = {
+  agenda: '<rect x="3" y="4" width="18" height="17" rx="3"/><path d="M8 2v4M16 2v4M3 10h18"/><circle cx="8" cy="15" r="1"/><circle cx="12" cy="15" r="1"/><circle cx="16" cy="15" r="1"/>',
+  tarefa: '<rect x="3" y="3" width="18" height="18" rx="5"/><path d="m8 12 3 3 5-6"/>',
+  trabalho: '<rect x="3" y="7" width="18" height="13" rx="3"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M3 12h18"/>',
+  pessoal: '<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/>',
+  casa: '<path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M10 21v-6h4v6"/>',
+  saude: '<path d="M20.8 8.6a5 5 0 0 0-8.8-3.2 5 5 0 0 0-8.8 3.2c0 5.6 8.8 11.4 8.8 11.4s8.8-5.8 8.8-11.4z"/><path d="M8 11h2l1.5-2 2 4 1.5-2H17"/>',
+  reuniao: '<path d="M15 10.5 21 7v10l-6-3.5"/><rect x="3" y="6" width="12" height="12" rx="3"/>',
+  pagamento: '<rect x="2" y="5" width="20" height="14" rx="3"/><path d="M2 10h20M6 15h4"/>',
+  evento: '<path d="m12 3 2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.4 6.8 19.1l1-5.8-4.3-4.1 5.9-.9z"/>',
+  montagem: '<path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z"/>',
+  mais: '<path d="M12 5v14M5 12h14"/>', esq: '<path d="m15 18-6-6 6-6"/>', dir: '<path d="m9 18 6-6-6-6"/>',
+  lista: '<path d="M8 6h13M8 12h13M8 18h13"/><circle cx="4" cy="6" r="1"/><circle cx="4" cy="12" r="1"/><circle cx="4" cy="18" r="1"/>',
+  grade: '<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>',
+  ok: '<path d="m5 12 5 5 9-10"/>', lixo: '<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>', seta: '<path d="M7 17 17 7M8 7h9v9"/>',
+  entrada: '<path d="M12 19V5M5 12l7-7 7 7"/>', saida: '<path d="M12 5v14M5 12l7 7 7-7"/>',
+  brilho: '<path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M6 18l2.5-2.5M15.5 8.5 18 6"/>',
+  enviar: '<path d="M5 12h14M13 6l6 6-6 6"/>',
+  repete: '<path d="M17 2l4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14M7 22l-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/>'
+};
+const svg = (n, s) => `<svg width="${s || 16}" height="${s || 16}" viewBox="0 0 24 24" aria-hidden="true">${I[n] || ""}</svg>`;
+/* tipos: cor + ícone */
+const CATS = [["tarefa", "Tarefa", "#3FD0E0"], ["trabalho", "Trabalho", "#8AB4FF"], ["pessoal", "Pessoal", "#C59BFF"],
+  ["casa", "Casa", "#5FE0A0"], ["saude", "Saúde", "#FF8A9A"], ["reuniao", "Reunião", "#7FE3D0"]];
+const TIPOS = { pagamento: ["Pagamentos", "#FFB547"], evento: ["Eventos", "#FFD86B"], tarefa: ["Tarefas", "#3FD0E0"] };
+const corCat = c => (CATS.find(x => x[0] === c) || CATS[0])[2];
+
+/* datas sempre no horário LOCAL (toISOString usa UTC e vira o dia depois das 21h no Brasil) */
+const ymd = d => d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+const deYmd = s => { const [a, m, d] = s.split("-").map(Number); return new Date(a, m - 1, d); };
+const HOJE = () => ymd(new Date());
+const num = v => { const n = parseFloat(String(v == null ? "" : v).replace(/[^\d,.-]/g, "").replace(/\.(?=\d{3}(\D|$))/g, "").replace(",", ".")); return isFinite(n) ? n : 0; };
+const ler = k => { const v = load(k, 1, []); return Array.isArray(v) ? v : []; };
+const lerUi = (k, p) => { try { const v = JSON.parse(localStorage.getItem(k)); return v == null ? p : v; } catch (e) { return p; } };
+const gravarUi = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { } };
+
+let ANO, MES, SEL, CAT = "trabalho";
+
+/* ---- coleta tudo de um intervalo de datas (ini/fim em YYYY-MM-DD) ---- */
+function itensEntre(ini, fim) {
+  const out = [];
+  const dentro = d => d && d >= ini && d <= fim;
+  /* tarefas (com repetição semanal/mensal) */
+  ler(K).forEach(t => {
+    if (!t || !t.data) return;
+    const datas = [];
+    if (!t.rep) { if (dentro(t.data)) datas.push(t.data); }
+    else {
+      let d = deYmd(t.data); const lim = deYmd(fim); let n = 0;
+      while (d <= lim && n < 400) {
+        const s = ymd(d); if (s >= ini) datas.push(s);
+        if (t.rep === "semanal") d.setDate(d.getDate() + 7);
+        else if (t.rep === "mensal") { const dia = deYmd(t.data).getDate(); d = new Date(d.getFullYear(), d.getMonth() + 1, 1); d.setDate(Math.min(dia, new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate())); }
+        else d.setDate(d.getDate() + 1);
+        n++;
+      }
+    }
+    datas.forEach(d => out.push({ tipo: "tarefa", cat: t.cat || "tarefa", id: t.id, data: d, hora: t.hora || "", titulo: t.titulo,
+      nota: t.nota || "", rep: t.rep || "", feito: (t.feitos || []).includes(d) }));
+  });
+  /* pagamentos: contas da casa */
+  ler("casa_contas").forEach(c => {
+    if (!dentro(String(c.c2 || "").slice(0, 10))) return;
+    out.push({ tipo: "pagamento", data: c.c2.slice(0, 10), titulo: c.c0 || "Conta", valor: num(c.c1), feito: String(c.c3 || "").toLowerCase() === "sim",
+      onde: "contas.html", sub: "Conta da casa" });
+  });
+  /* pagamentos do negócio: custos fixos e cachês a pagar (Fluxo de caixa) */
+  ler("neg_fluxo").forEach(f => {
+    const id = String(f.id || ""), d = String(f.c0 || "").slice(0, 10);
+    if (!dentro(d) || f.c1 !== "Saída") return;
+    if (/^fixo_/.test(id)) out.push({ tipo: "pagamento", data: d, titulo: String(f.c3 || "Custo fixo").replace(/ \(fixo\)$/, ""), valor: num(f.c2), onde: "fluxo.html", sub: "Custo fixo do negócio" });
+    else if (/^cache_/.test(id) && f.fonte === "pendente") out.push({ tipo: "pagamento", data: d, titulo: String(f.c3 || "Cachê").replace(/^A pagar — /, ""), valor: num(f.c2), onde: "custos.html", sub: "Cachê a pagar" });
+  });
+  /* eventos: dia, montagem e desmontagem */
+  ler("neg_eventos").forEach(e => {
+    if (!e || /cancel/i.test(e.status || "")) return;
+    const link = "eventos.html?ev=" + encodeURIComponent(e.id);
+    if (dentro(e.data)) out.push({ tipo: "evento", data: e.data, titulo: e.nome, sub: [e.local, e.equipeNome].filter(Boolean).join(" · ") || "Evento", onde: link, ico: "evento" });
+    if (e.montagem && e.montagem !== e.data && dentro(e.montagem)) out.push({ tipo: "evento", data: e.montagem, titulo: "Montagem — " + e.nome, sub: e.local || "Montagem", onde: link, ico: "montagem" });
+    if (e.desmontagem && e.desmontagem !== e.data && dentro(e.desmontagem)) out.push({ tipo: "evento", data: e.desmontagem, titulo: "Desmontagem — " + e.nome, sub: e.local || "Desmontagem", onde: link, ico: "montagem" });
+  });
+  const filtro = lerUi("ui_agenda_filtro", { tarefa: 1, pagamento: 1, evento: 1 });
+  const ordem = { evento: 0, pagamento: 1, tarefa: 2 };
+  return out.filter(i => filtro[i.tipo]).sort((a, b) => a.data.localeCompare(b.data) || (ordem[a.tipo] - ordem[b.tipo]) || (a.hora || "99").localeCompare(b.hora || "99"));
+}
+const corItem = i => i.tipo === "tarefa" ? corCat(i.cat) : i.tipo === "pagamento" ? (!i.feito && i.data < HOJE() ? "#FF6B6B" : TIPOS.pagamento[1]) : TIPOS.evento[1];
+const icoItem = i => i.tipo === "tarefa" ? i.cat : i.tipo === "pagamento" ? "pagamento" : (i.ico || "evento");
+
+function init() {
+  const box = document.querySelector("#bwAgenda"); if (!box) return;
+  const h = new Date();
+  ANO = ANO == null ? h.getFullYear() : ANO; MES = MES == null ? h.getMonth() : MES; SEL = SEL || HOJE();
+  render();
+}
+
+function render() {
+  const box = document.querySelector("#bwAgenda"); if (!box) return;
+  const vista = lerUi("ui_agenda_vista", "mes");
+  const filtro = lerUi("ui_agenda_filtro", { tarefa: 1, pagamento: 1, evento: 1 });
+  const anos = []; for (let a = new Date().getFullYear() - 2; a <= new Date().getFullYear() + 3; a++) anos.push(a);
+  if (!anos.includes(ANO)) anos.push(ANO);
+  const hoje = HOJE();
+  const doHoje = itensEntre(hoje, hoje);
+  const pend = doHoje.filter(i => !i.feito).length;
+  box.innerHTML = `<div class="ag">
+    <div class="ag-barra">
+      <div class="ag-titulo"><span class="ico">${svg("agenda", 20)}</span><div><b>AGENDA</b><small>${pend ? pend + " item(ns) para hoje" : "Nada pendente hoje"}</small></div></div>
+      <button class="ag-btn" data-nav="-1" aria-label="Mês anterior">${svg("esq")}</button>
+      <select class="ag-sel" data-mes aria-label="Mês">${MESES.map((m, i) => `<option value="${i}" ${i === MES ? "selected" : ""}>${m[0].toUpperCase() + m.slice(1)}</option>`).join("")}</select>
+      <select class="ag-sel" data-ano aria-label="Ano">${anos.sort().map(a => `<option ${a === ANO ? "selected" : ""}>${a}</option>`).join("")}</select>
+      <button class="ag-btn" data-nav="1" aria-label="Próximo mês">${svg("dir")}</button>
+      <button class="ag-btn" data-hoje>HOJE</button>
+      <button class="ag-btn ${vista === "mes" ? "on" : ""}" data-vista="mes" title="Calendário">${svg("grade")}</button>
+      <button class="ag-btn ${vista === "lista" ? "on" : ""}" data-vista="lista" title="Lista">${svg("lista")}</button>
+    </div>
+    <div class="ag-filtros">${Object.entries(TIPOS).map(([k, [n, c]]) =>
+      `<span class="ag-chip ${filtro[k] ? "" : "off"}" data-filtro="${k}" style="color:${c}"><i style="background:${c}"></i><span style="color:var(--bw-texto-2)">${n}</span></span>`).join("")}</div>
+    <div class="ag-magica"><span class="brilho">${svg("brilho", 20)}</span>
+      <input id="agMagica" type="text" maxlength="160" autocomplete="off" placeholder="Escreva do seu jeito: “dentista sexta 15h” · “pagar luz 180 dia 20”" aria-label="Lançar escrevendo">
+      <button class="ag-btn pri" id="agMagicaBtn" aria-label="Salvar">${svg("enviar")}</button></div>
+    <div class="ag-entendi" id="agEntendi"></div>
+    <div class="ag-corpo">
+      <div>${vista === "lista" ? lista() : grade()}</div>
+      <div class="ag-lado" id="agLado">${lado()}</div>
+    </div>
+  </div>`;
+  ligar(box);
+}
+
+function grade() {
+  const ini = new Date(ANO, MES, 1), fimMes = new Date(ANO, MES + 1, 0);
+  const g0 = new Date(ini); g0.setDate(1 - ini.getDay());
+  const g1 = new Date(fimMes); g1.setDate(fimMes.getDate() + (6 - fimMes.getDay()));
+  const itens = itensEntre(ymd(g0), ymd(g1));
+  const porDia = {}; itens.forEach(i => (porDia[i.data] = porDia[i.data] || []).push(i));
+  const hoje = HOJE(); let html = "";
+  for (let d = new Date(g0); d <= g1; d.setDate(d.getDate() + 1)) {
+    const s = ymd(d), its = porDia[s] || [];
+    const cls = ["ag-dia", d.getMonth() !== MES ? "fora" : "", s === hoje ? "hoje" : "", s === SEL ? "sel" : "", (d.getDay() === 0 || d.getDay() === 6) ? "fds" : ""].join(" ");
+    html += `<button class="${cls}" data-dia="${s}" aria-label="${d.getDate()} de ${MESES[d.getMonth()]}${its.length ? ", " + its.length + " item(ns)" : ""}">
+      <span class="n">${d.getDate()}</span>
+      ${its.slice(0, 2).map(i => `<span class="ag-mini ${i.feito ? "feito" : ""}"><i style="background:${corItem(i)};color:${corItem(i)}"></i>${esc(i.titulo)}</span>`).join("")}
+      ${its.length > 2 ? `<span class="ag-mais">+${its.length - 2}</span>` : ""}
+      <span class="ag-pontos">${its.slice(0, 4).map(i => `<i style="background:${corItem(i)};color:${corItem(i)}"></i>`).join("")}</span>
+    </button>`;
+  }
+  return `<div class="ag-sem">${SEM.map(s => `<span>${s}</span>`).join("")}</div><div class="ag-grade">${html}</div>`;
+}
+
+function lista() {
+  const ini = ymd(new Date(ANO, MES, 1)), fim = ymd(new Date(ANO, MES + 1, 0));
+  const itens = itensEntre(ini, fim);
+  if (!itens.length) return `<div class="ag-vazio">Nada em ${MESES[MES]} de ${ANO}. Toque num dia no calendário para criar uma tarefa.</div>`;
+  let html = "", atual = "";
+  itens.forEach(i => {
+    if (i.data !== atual) { atual = i.data; const d = deYmd(i.data);
+      html += `<div class="grupo">${d.toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long" })}${i.data === HOJE() ? " · hoje" : ""}</div>`; }
+    html += item(i);
+  });
+  return `<div class="ag-lista">${html}</div>`;
+}
+
+function item(i) {
+  const cor = corItem(i);
+  const extra = i.tipo === "tarefa"
+    ? [i.hora, i.rep ? (i.rep === "semanal" ? "toda semana" : i.rep === "mensal" ? "todo mês" : "todo dia") : "", i.nota].filter(Boolean).join(" · ") || (CATS.find(c => c[0] === i.cat) || CATS[0])[1]
+    : i.tipo === "pagamento" ? [i.sub, i.valor ? "R$ " + fmt(i.valor, 2) : "", i.feito ? "pago" : (i.data < HOJE() ? "vencido" : "")].filter(Boolean).join(" · ")
+    : i.sub;
+  return `<div class="ag-item ${i.feito ? "feito" : ""}">
+    ${i.tipo === "tarefa" ? `<button class="ag-check ${i.feito ? "on" : ""}" data-feito="${esc(i.id)}" data-d="${i.data}" aria-label="Marcar como feita">${i.feito ? svg("ok", 14) : ""}</button>` : ""}
+    <span class="ic" style="color:${cor}">${svg(icoItem(i), 17)}</span>
+    <span class="tx"><b>${esc(i.titulo)}</b><small>${esc(extra || "")}</small></span>
+    ${i.tipo === "tarefa" ? `<button class="x" data-apagar="${esc(i.id)}" title="Apagar tarefa" aria-label="Apagar tarefa">${svg("lixo", 15)}</button>`
+      : `<a class="ir" href="${esc(i.onde)}" title="Abrir">${svg("seta", 15)}</a>`}
+  </div>`;
+}
+
+function lado() {
+  /* coluna lateral: o que vem pela frente (14 dias) */
+  const h = new Date(), fim = new Date(h.getFullYear(), h.getMonth(), h.getDate() + 14);
+  const its = itensEntre(HOJE(), ymd(fim)).filter(i => !i.feito);
+  let html = "", atual = "";
+  its.slice(0, 14).forEach(i => {
+    if (i.data !== atual) { atual = i.data; const n = Math.round((deYmd(i.data) - deYmd(HOJE())) / 864e5);
+      html += `<div class="grupo">${n === 0 ? "Hoje" : n === 1 ? "Amanhã" : deYmd(i.data).toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "2-digit" })}</div>`; }
+    html += item(i);
+  });
+  return `<h4>Próximos dias</h4><div class="sub">Tarefas, pagamentos e eventos das próximas 2 semanas</div>
+    <div class="ag-lista">${html || '<div class="ag-vazio">Tudo em dia por aqui ✨<br>Toque num dia do calendário para lançar algo.</div>'}</div>`;
+}
+
+/* ---------- FOLHA DE LANÇAMENTO: toque no dia → opções ---------- */
+const TILES = [["tarefa", "TAREFA", "#3FD0E0", "tarefa"], ["reuniao", "REUNIÃO", "#7FE3D0", "reuniao"], ["conta", "CONTA A PAGAR", "#FFB547", "pagamento"],
+  ["entrada", "ENTRADA", "#5FE0A0", "entrada"], ["saida", "SAÍDA", "#FF8A9A", "saida"], ["evento", "EVENTO", "#FFD86B", "evento"]];
+let FOLHA_DIA = null, FOLHA_TILE = null;
+function abrirFolha(dia, tile) {
+  FOLHA_DIA = dia; FOLHA_TILE = tile || null;
+  let fundo = document.querySelector("#agFolha");
+  if (!fundo) {
+    fundo = document.createElement("div"); fundo.id = "agFolha"; fundo.className = "ag-folha-fundo";
+    fundo.setAttribute("role", "dialog"); fundo.setAttribute("aria-modal", "true");
+    fundo.onclick = e => { if (e.target === fundo) fecharFolha(); };
+    document.body.appendChild(fundo);
+    document.addEventListener("keydown", e => { if (e.key === "Escape" && document.querySelector("#agFolha")) fecharFolha(); });
+  }
+  desenharFolha();
+  requestAnimationFrame(() => fundo.classList.add("aberta"));
+}
+function fecharFolha() {
+  const f = document.querySelector("#agFolha"); if (!f) return;
+  f.classList.remove("aberta"); setTimeout(() => f.remove(), 220);
+}
+function desenharFolha() {
+  const fundo = document.querySelector("#agFolha"); if (!fundo) return;
+  const d = deYmd(FOLHA_DIA), n = Math.round((d - deYmd(HOJE())) / 864e5);
+  const its = itensEntre(FOLHA_DIA, FOLHA_DIA);
+  const quando = n === 0 ? "Hoje" : n === 1 ? "Amanhã" : n === -1 ? "Ontem" : n > 0 ? "Daqui a " + n + " dias" : "Há " + (-n) + " dias";
+  fundo.innerHTML = `<div class="ag-folha">
+    <div class="ag-f-topo">
+      <div class="ag-f-dia"><small>${SEM[d.getDay()]}</small><b>${d.getDate()}</b></div>
+      <div class="ag-f-tit"><h3>${d.toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long" })}</h3>
+        <div class="sub">${quando} · ${its.length ? its.length + " item(ns) neste dia" : "dia livre"}</div></div>
+      <button class="ag-f-x" data-fechar aria-label="Fechar">✕</button>
+    </div>
+    ${its.length ? `<div class="ag-f-sec">NESTE DIA</div>${its.map(item).join("")}` : ""}
+    <div class="ag-f-sec">O QUE VOCÊ QUER LANÇAR?</div>
+    <div class="ag-tiles">${TILES.map(([k, nome, c, ic]) => `<button class="ag-tile ${FOLHA_TILE === k ? "on" : ""}" data-tile="${k}" style="--c:${c}">
+      <span class="bolha">${svg(ic, 22)}</span>${nome}</button>`).join("")}</div>
+    <div id="agFForm">${formTile()}</div>
+  </div>`;
+  fundo.querySelector("[data-fechar]").onclick = fecharFolha;
+  fundo.querySelectorAll("[data-tile]").forEach(b => b.onclick = () => {
+    if (b.dataset.tile === "evento") { location.href = "eventos.html?novo=" + FOLHA_DIA; return; }
+    FOLHA_TILE = b.dataset.tile; desenharFolha();
+    const p = document.querySelector("#agFForm input"); if (p) p.focus();
+  });
+  ligarItens(fundo, desenharFolha);
+  ligarForm(fundo);
+}
+function formTile() {
+  const t = FOLHA_TILE; if (!t) return "";
+  const btn = rot => `<button class="ag-salvar" data-salvar>${svg("ok", 18)} ${rot}</button>`;
+  if (t === "tarefa" || t === "reuniao") return `<div class="ag-f-form">
+      <input class="grande" id="fTit" maxlength="120" placeholder="${t === "reuniao" ? "Reunião com…" : "O que precisa ser feito?"}">
+      ${t === "tarefa" ? `<div class="ag-cats">${CATS.filter(c => c[0] !== "reuniao").map(([k, n2, c]) => `<span class="ag-cat ${k === CAT ? "on" : ""}" data-cat="${k}" style="color:${c}">${svg(k, 14)}<span style="color:${k === CAT ? "var(--bw-noite)" : "var(--bw-texto-2)"}">${n2}</span></span>`).join("")}</div>` : ""}
+      <div class="linha"><input id="fHora" type="time" aria-label="Hora"><select id="fRep" aria-label="Repetir"><option value="">Não repete</option><option value="diario">Todo dia</option><option value="semanal">Toda semana</option><option value="mensal">Todo mês</option></select></div>
+      <input id="fNota" maxlength="200" placeholder="${t === "reuniao" ? "Onde / link da chamada (opcional)" : "Observação (opcional)"}">
+      ${btn(t === "reuniao" ? "AGENDAR REUNIÃO" : "ADICIONAR TAREFA")}</div>`;
+  if (t === "conta") return `<div class="ag-f-form">
+      <input class="grande" id="fTit" maxlength="80" placeholder="Qual conta? (luz, internet, aluguel…)">
+      <input id="fVal" type="number" inputmode="decimal" step="0.01" min="0" placeholder="Valor (R$)">
+      <div class="sub" style="font-size:11.5px;color:var(--bw-texto-3)">Vai para CONTAS A PAGAR com vencimento neste dia.</div>
+      ${btn("SALVAR CONTA")}</div>`;
+  return `<div class="ag-f-form">
+      <input class="grande" id="fVal" type="number" inputmode="decimal" step="0.01" min="0" placeholder="Valor (R$)">
+      <input id="fTit" maxlength="80" placeholder="${t === "entrada" ? "De onde veio? (cliente, serviço…)" : "Com o quê? (combustível, material…)"}">
+      <div class="sub" style="font-size:11.5px;color:var(--bw-texto-3)">Vai para o FLUXO DE CAIXA do negócio como ${t === "entrada" ? "entrada" : "saída"} neste dia.</div>
+      ${btn(t === "entrada" ? "LANÇAR ENTRADA" : "LANÇAR SAÍDA")}</div>`;
+}
+function ligarForm(raiz) {
+  raiz.querySelectorAll("[data-cat]").forEach(c => c.onclick = () => { CAT = c.dataset.cat; const f = document.querySelector("#agFForm");
+    const v = (f.querySelector("#fTit") || {}).value; f.innerHTML = formTile(); ligarForm(raiz); if (v) f.querySelector("#fTit").value = v; });
+  const s = raiz.querySelector("[data-salvar]"); if (!s) return;
+  raiz.querySelectorAll("#agFForm input").forEach(i => i.onkeydown = e => { if (e.key === "Enter") s.click(); });
+  s.onclick = () => {
+    const t = FOLHA_TILE, tit = (raiz.querySelector("#fTit").value || "").trim();
+    const val = raiz.querySelector("#fVal") ? parseFloat(raiz.querySelector("#fVal").value) || 0 : 0;
+    if ((t === "tarefa" || t === "reuniao" || t === "conta") && !tit) { raiz.querySelector("#fTit").focus(); return; }
+    if ((t === "conta" || t === "entrada" || t === "saida") && !val) { raiz.querySelector("#fVal").focus(); return; }
+    let msg = "";
+    if (t === "tarefa" || t === "reuniao") {
+      salvarTarefa({ titulo: tit, data: FOLHA_DIA, hora: raiz.querySelector("#fHora").value || "", cat: t === "reuniao" ? "reuniao" : CAT,
+        rep: raiz.querySelector("#fRep").value || "", nota: (raiz.querySelector("#fNota").value || "").trim() });
+      msg = t === "reuniao" ? "Reunião agendada" : "Tarefa adicionada";
+    } else if (t === "conta") { salvarConta(tit, val, FOLHA_DIA); msg = "Conta a pagar salva"; }
+    else { salvarFluxo(t === "entrada" ? "Entrada" : "Saída", val, tit, FOLHA_DIA); msg = (t === "entrada" ? "Entrada" : "Saída") + " lançada no fluxo"; }
+    festa(s); toast("✓ " + msg); FOLHA_TILE = null; render(); desenharFolha();
+  };
+}
+
+/* ---------- gravações (cada uma no lugar de sempre da plataforma) ---------- */
+function salvarTarefa(o) { const l = ler(K); l.push(Object.assign({ id: "tf_" + Date.now(), feitos: [] }, o)); save(K, 1, l); }
+function salvarConta(nome, valor, venc) { const l = ler("casa_contas"); l.push({ id: Date.now(), c0: nome, c1: String(valor), c2: venc, c3: "Não" }); save("casa_contas", 1, l); }
+function salvarFluxo(tipo, valor, desc, data) { const l = ler("neg_fluxo"); l.push({ id: Date.now(), c0: data, c1: tipo, c2: String(valor), c3: desc || (tipo === "Entrada" ? "Entrada" : "Saída") }); save("neg_fluxo", 1, l); }
+
+/* ---------- diversão: confete + aviso ---------- */
+function festa(el) {
+  if (window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const r = el.getBoundingClientRect(), cores = ["#FFB547", "#3FD0E0", "#5FE0A0", "#FFF8EA", "#C59BFF"];
+  for (let i = 0; i < 18; i++) {
+    const p = document.createElement("i"); p.className = "ag-confete";
+    p.style.left = (r.left + r.width / 2) + "px"; p.style.top = (r.top + r.height / 2) + "px"; p.style.background = cores[i % cores.length];
+    const ang = Math.random() * Math.PI * 2, dist = 50 + Math.random() * 90;
+    p.style.setProperty("--x", Math.cos(ang) * dist + "px"); p.style.setProperty("--y", (Math.sin(ang) * dist - 40) + "px");
+    document.body.appendChild(p); setTimeout(() => p.remove(), 950);
+  }
+}
+function toast(t) {
+  let el = document.querySelector(".ag-toast"); if (!el) { el = document.createElement("div"); el.className = "ag-toast"; document.body.appendChild(el); }
+  el.textContent = t; el.classList.add("vis"); clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove("vis"), 2200);
+}
+
+/* ---------- BARRA MÁGICA: escreva do seu jeito ("dentista sexta 15h", "pagar luz 180 dia 20") ---------- */
+const DIAS_SEM = [["domingo", "dom"], ["segunda", "seg"], ["terça", "terca", "ter"], ["quarta", "qua"], ["quinta", "qui"], ["sexta", "sex"], ["sábado", "sabado", "sab", "sáb"]];
+function entender(txt) {
+  /* \b do JavaScript não enxerga letras acentuadas (amanhã, terça, reunião) → limites próprios por espaço/pontuação */
+  const P = src => new RegExp("(\\s)(?:" + src + ")(?=[\\s.,!?;:])", "i");
+  let t = " " + String(txt || "").trim().replace(/\s+/g, " ") + " ", data = null, hora = "", valor = 0, tipo = "tarefa", cat = "tarefa";
+  const tira = re => { t = t.replace(re, " "); };
+  const tem = src => P(src).test(t);
+  const base = new Date(); base.setHours(0, 0, 0, 0);
+  const somar = n => { const d = new Date(base); d.setDate(d.getDate() + n); return d; };
+  let m;
+  if (tem("depois de amanh[ãa]")) { data = somar(2); tira(P("depois de amanh[ãa]")); }
+  else if (tem("amanh[ãa]")) { data = somar(1); tira(P("amanh[ãa]")); }
+  else if (tem("hoje")) { data = somar(0); tira(P("hoje")); }
+  if (!data && (m = t.match(/(\s)(\d{1,2})\/(\d{1,2})(?:\/(\d{2,4}))?(?=[\s.,!?;:])/))) {
+    const a = m[4] ? (m[4].length === 2 ? 2000 + +m[4] : +m[4]) : base.getFullYear();
+    data = new Date(a, +m[3] - 1, +m[2]); if (!m[4] && data < base) data.setFullYear(a + 1); tira(m[0]);
+  }
+  if (!data && (m = t.match(P("dia (\\d{1,2})")))) {
+    const dd = +m[0].replace(/\D/g, ""); data = new Date(base.getFullYear(), base.getMonth(), dd); if (data < base) data = new Date(base.getFullYear(), base.getMonth() + 1, dd); tira(m[0]);
+  }
+  if (!data) DIAS_SEM.some((nomes, i) => nomes.some(nm => { const re = P("(?:na |no |nesta |neste |pr[óo]xim[ao] )?" + nm + "(?:-feira)?");
+    if (!re.test(t)) return false; let dd = (i - base.getDay() + 7) % 7; if (dd === 0) dd = 7; data = somar(dd); tira(re); return true; }));
+  if ((m = t.match(P("(?:[àa]s )?(\\d{1,2})(?:h(\\d{2})?|:(\\d{2}))(?:min)?")))) {
+    const hh = +m[2], mm = +(m[3] || m[4] || 0);
+    if (hh < 24 && mm < 60) { hora = String(hh).padStart(2, "0") + ":" + String(mm).padStart(2, "0"); tira(m[0]); }
+  }
+  if ((m = t.match(/R\$\s*([\d.]+(?:,\d{1,2})?)/i)) || (m = t.match(P("([\\d.]+(?:,\\d{1,2})?) ?(?:reais|conto)")))) { valor = num(m[1] && /\d/.test(m[1]) ? m[1] : m[2]); tira(m[0]); }
+  else if (tem("pagar|conta|boleto|fatura|receber|recebi") && (m = t.match(/(\s)(\d+(?:[.,]\d{1,2})?)(?=[\s.,!?;:])/))) { valor = num(m[2]); tira(m[0]); }
+  if (valor && tem("receber|recebi|entrada")) { tipo = "entrada"; tira(P("receber|recebi|entrada")); }
+  else if (valor && tem("pagar|conta de|conta|boleto|fatura|vence")) { tipo = "conta"; tira(P("pagar|conta de|conta|boleto|fatura|vence")); }
+  else if (tem("reuni[ãa]o|call|meet|videochamada")) cat = "reuniao";
+  else if (tem("m[ée]dic[oa]|dentista|exame|academia|consulta|treino|terapia")) cat = "saude";
+  else if (tem("cliente|or[çc]amento|proposta|evento|grava[çc][ãa]o|edi[çc][ãa]o|editar|transmiss[ãa]o|montagem")) cat = "trabalho";
+  else if (tem("mercado|faxina|casa|lavar|limpar|compras")) cat = "casa";
+  const titulo = t.replace(/\s+/g, " ").trim().replace(/^(de|da|do|no|na|às|as|o|a)\s+/i, "").replace(/\s+(de|da|do|no|na|às|as)$/i, "").trim();
+  return { titulo: titulo ? titulo[0].toUpperCase() + titulo.slice(1) : "", data: ymd(data || deYmd(SEL || HOJE())), hora, valor, tipo, cat };
+}
+function descreve(e) {
+  const d = deYmd(e.data), n = Math.round((d - deYmd(HOJE())) / 864e5);
+  const q = n === 0 ? "hoje" : n === 1 ? "amanhã" : d.toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "2-digit" });
+  const tp = e.tipo === "conta" ? "Conta a pagar" : e.tipo === "entrada" ? "Entrada no caixa" : (CATS.find(c => c[0] === e.cat) || CATS[0])[1];
+  return `Entendi: <b>${esc(tp)}</b> · <b>${esc(e.titulo || "…")}</b> · ${esc(q)}${e.hora ? " · " + e.hora : ""}${e.valor ? " · R$ " + fmt(e.valor, 2) : ""} — Enter para salvar`;
+}
+
+function ligar(box) {
+  box.querySelectorAll("[data-nav]").forEach(b => b.onclick = () => { MES += +b.dataset.nav; if (MES < 0) { MES = 11; ANO--; } if (MES > 11) { MES = 0; ANO++; } render(); });
+  box.querySelector("[data-mes]").onchange = e => { MES = +e.target.value; render(); };
+  box.querySelector("[data-ano]").onchange = e => { ANO = +e.target.value; render(); };
+  box.querySelector("[data-hoje]").onclick = () => { const h = new Date(); ANO = h.getFullYear(); MES = h.getMonth(); SEL = HOJE(); render(); };
+  box.querySelectorAll("[data-vista]").forEach(b => b.onclick = () => { gravarUi("ui_agenda_vista", b.dataset.vista); render(); });
+  box.querySelectorAll("[data-filtro]").forEach(c => c.onclick = () => {
+    const f = lerUi("ui_agenda_filtro", { tarefa: 1, pagamento: 1, evento: 1 }); f[c.dataset.filtro] = f[c.dataset.filtro] ? 0 : 1; gravarUi("ui_agenda_filtro", f); render(); });
+  box.querySelectorAll("[data-dia]").forEach(b => b.onclick = () => {
+    SEL = b.dataset.dia;
+    const d = deYmd(SEL); if (d.getMonth() !== MES) { MES = d.getMonth(); ANO = d.getFullYear(); }
+    render(); abrirFolha(SEL);
+  });
+  ligarItens(box, render);
+  const mg = box.querySelector("#agMagica"), dica = box.querySelector("#agEntendi");
+  if (mg) {
+    const vai = () => {
+      const e = entender(mg.value); if (!e.titulo && !e.valor) { mg.focus(); return; }
+      if (e.tipo === "conta") salvarConta(e.titulo || "Conta", e.valor, e.data);
+      else if (e.tipo === "entrada") salvarFluxo("Entrada", e.valor, e.titulo, e.data);
+      else salvarTarefa({ titulo: e.titulo, data: e.data, hora: e.hora, cat: e.cat, rep: "", nota: "" });
+      festa(mg); toast("✓ " + (e.tipo === "conta" ? "Conta a pagar salva" : e.tipo === "entrada" ? "Entrada lançada" : "Anotado na agenda"));
+      SEL = e.data; const d = deYmd(e.data); ANO = d.getFullYear(); MES = d.getMonth(); render();
+      const m2 = document.querySelector("#agMagica"); if (m2) m2.focus();
+    };
+    mg.oninput = () => { dica.innerHTML = mg.value.trim() ? descreve(entender(mg.value)) : ""; };
+    mg.onkeydown = e => { if (e.key === "Enter") vai(); };
+    box.querySelector("#agMagicaBtn").onclick = vai;
+  }
+}
+/* marcar feito / apagar — usados na agenda e na folha */
+function ligarItens(raiz, depois) {
+  raiz.querySelectorAll("[data-feito]").forEach(b => b.onclick = () => {
+    const lista = ler(K); const t = lista.find(x => String(x.id) === b.dataset.feito); if (!t) return;
+    t.feitos = t.feitos || []; const d = b.dataset.d; const i = t.feitos.indexOf(d);
+    if (i > -1) t.feitos.splice(i, 1); else { t.feitos.push(d); festa(b); toast("✓ Feito! Mandou bem."); }
+    save(K, 1, lista); render(); if (depois !== render) depois();
+  });
+  raiz.querySelectorAll("[data-apagar]").forEach(b => b.onclick = () => {
+    const lista = ler(K); const t = lista.find(x => String(x.id) === b.dataset.apagar); if (!t) return;
+    if (!confirm(`Apagar a tarefa "${t.titulo}"${t.rep ? " (e todas as repetições)" : ""}?`)) return;
+    save(K, 1, lista.filter(x => x !== t)); render(); if (depois !== render) depois();
+  });
+}
+
+/* quando a sincronia traz dados de outro aparelho, a agenda se redesenha */
+window.addEventListener("storage", e => { if (e.key && /agenda_tarefas|casa_contas|neg_fluxo|neg_eventos/.test(e.key)) render(); });
+
+return { init, render, itensEntre, entender };
+})();
+
 MOD['home_main'] = (function() {
 /* home_main.js — boot da página inicial (menu). Sem dados: só sessão e PWA. */
 const {  montarCabecalho, registrarSW, wireHeader  } = MOD['core/bootcommon'];
@@ -1121,7 +1505,10 @@ const {  fmt  } = MOD['core/format'];
   const h = new Date().getHours();
   const sauda = h < 6 ? "Boa madrugada" : h < 12 ? "Bom dia" : h < 18 ? "Boa tarde" : "Boa noite";
   const el = document.querySelector("#bwSauda");
-  if (el) el.innerHTML = sauda + ".<br>Seu <span style=\'color:var(--gold)\'>caminho</span> de hoje.";
+  if (el) el.innerHTML = sauda + ". Seu <span>caminho</span> de hoje.";
+  const hj = document.querySelector("#bwHoje");
+  if (hj) hj.textContent = new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long", year: "numeric" });
+  try { MOD['modules/agenda'].init(); } catch (e) { console.error(e); }
   /* ---- resumo: eventos da semana + contas a vencer ---- */
   try {
     const hoje = new Date();
@@ -1151,8 +1538,9 @@ const {  fmt  } = MOD['core/format'];
     const ke = document.querySelector("#kEv"); if (ke) ke.textContent = String(evs.length);
   } catch (e) { }
   try {
-    const contas = load("casa_contas", 1, []).filter(c => (c.c3 || "") !== "pago");
-    const total = contas.reduce((t, c) => t + (parseFloat(c.c2 || 0) || 0), 0);
+    /* 15/11: casa_contas = c0 nome, c1 valor, c2 vencimento, c3 pago ("Sim"/"Não") */
+    const contas = load("casa_contas", 1, []).filter(c => String(c.c3 || "").toLowerCase() !== "sim");
+    const total = contas.reduce((t, c) => t + (parseFloat(String(c.c1 || 0).replace(",", ".")) || 0), 0);
     const kc = document.querySelector("#kContas"); if (kc) kc.textContent = "R$ " + fmt(total, 2);
   } catch (e) { }
 })();
