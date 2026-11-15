@@ -1281,6 +1281,7 @@ const {  bootComum, avisoSemDados, refreshPagina  } = MOD['core/bootcommon'];
 const ocr = MOD['modules/ocr'];
 const data = MOD['core/data'];
 const {  stamp  } = MOD['core/ui'];
+const {  $  } = MOD['core/format'];   /* faltava: "$ is not defined" no boot (15/11) */
 
 (async function boot() {
   const ok = await bootComum();
