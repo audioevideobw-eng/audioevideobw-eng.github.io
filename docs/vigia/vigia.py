@@ -199,6 +199,11 @@ for p, t in todos.items():
         if f'id="{caixa}"' in t:
             problemas.append(f"{p}: caixa #{caixa} voltou (planilha/sincronizar manual — removida em 14/11)")
 
+# 7.7d página que carrega dados de câmbio precisa entregar o pacote embutido (leitor.html mostrava "Não foi possível carregar os dados de câmbio")
+for p, t in todos.items():
+    if "async function iniciarDados" in t and "avisoSemDados()" in t.split("async function boot")[-1] and not re.search(r"window\.__DATA\s*=", t):
+        problemas.append(f"{p}: carrega câmbio sem window.__DATA (aparece o aviso 'Não foi possível carregar os dados de câmbio')")
+
 fp = todos.get("financeiro-painel.html", "")
 if fp:
     for trecho, msg in [('ler("neg_fluxo")', "não lê os lançamentos da plataforma (neg_fluxo)"),
