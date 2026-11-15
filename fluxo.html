@@ -1625,6 +1625,7 @@ const {  stamp  } = MOD['core/ui'];
   negocio.expandirFixosNeg();
   negocio.renderFixosNeg();
   negocio.renderFluxo();
+  negocio.initExportar();   // 15/11: o botão "Exportar fluxo de caixa em PDF" não fazia nada (faltava ligar)
   if (!ok) { avisoSemDados(); return; }
   stamp(data.DATA);
   const render = async () => negocio.renderFluxo();

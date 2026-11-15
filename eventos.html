@@ -2631,7 +2631,7 @@ function dashboard() {
         `<div class="row"><span>${t}</span><b>${n}</b></div>`).join("") || '<div class="note">Sem eventos ainda.</div>'}
       <button class="btn gh" id="evRelGastos" style="margin-top:10px"><svg width="15" height="15" viewBox="0 0 24 24" aria-hidden="true" style="vertical-align:-3px;margin-right:4px" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 16l4-6 4 3 5-8"/></svg>Relatório mensal de gastos</button>
       <div id="relGastosBox" style="margin-top:8px"></div>
-      <button class="btn gh" id="evRelAnual" style="margin-top:10px"><svg width="15" height="15" viewBox="0 0 24 24" aria-hidden="true" style="vertical-align:-3px;margin-right:4px" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/></svg>Relatório anual (PDF)</button>
+      <button class="btn gh" id="evRelAnual" style="margin-top:10px"><svg width="15" height="15" viewBox="0 0 24 24" aria-hidden="true" style="vertical-align:-3px;margin-right:4px" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/></svg>Relatório de gestão (PDF)</button>
       <div class="note" id="relAnualMsg"></div>
     </div>
   </div>`;
@@ -2642,7 +2642,7 @@ function dashboard() {
   if (hj) hj.onclick = () => { AG_ANO = new Date().getFullYear(); AG_MES = new Date().getMonth(); agendaVisual(); };
   if ($("#agCal")) ligarColapsaveis($("#evDash"));
   const btnA = $("#evRelAnual");
-  if (btnA) btnA.onclick = () => gerarRelatorioAnual();
+  if (btnA) btnA.onclick = () => opcoesRelatorioGestao();
   const btnG = $("#evRelGastos");
   if (btnG) btnG.onclick = () => {
     const mes = new Date().toISOString().slice(0, 7);
@@ -2849,6 +2849,7 @@ function abrirDossie(id) {
       <button class="btn gh" id="dSalvar">Salvar alterações</button>
       <button class="btn gh" id="dPDF"><svg width="15" height="15" viewBox="0 0 24 24" aria-hidden="true" style="vertical-align:-3px;margin-right:4px" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>Dossiê em PDF</button>
     </div>
+    <div id="dPdfOpcoes"></div>
     <div style="margin-top:14px;border-top:1px solid var(--line);padding-top:12px">
       <h3>Histórico do cliente</h3>
       <div id="dHistorico"></div>
@@ -2901,7 +2902,7 @@ function abrirDossie(id) {
     </div>
     <div class="note" id="dMsg"></div>
   </div>`;
-  $("#dPDF").onclick = () => gerarDossiePDF(id);
+  $("#dPDF").onclick = () => opcoesDossiePDF(id);
   $("#dSalvar").onclick = () => {
     const lista = eventos();
     const alvo = lista.find(x => String(x.id) === String(id));
@@ -3500,54 +3501,6 @@ function wireHistorico(e) {
 }
 
 /* ---------- relatório anual de eventos (PDF) ---------- */
-function gerarRelatorioAnual() {
-  const ano = new Date().getFullYear();
-  const dados = eventos().filter(e => (e.data || "").startsWith(ano));
-  const porTipo = {}, porStatus = {};
-  let contratado = 0, recebido = 0;
-  dados.forEach(e => {
-    const t = e.tipo || "Outro"; porTipo[t] = (porTipo[t] || 0) + 1;
-    const st = e.status || "—"; porStatus[st] = (porStatus[st] || 0) + 1;
-    contratado += parseFloat(e.contratado || 0) || 0;
-    recebido += parseFloat(e.recebido || 0) || 0;
-  });
-  const tabela = [["Evento", "Data", "Cliente", "Tipo", "Status", "Contratado", "Recebido"].map(t =>
-    ({ text: t, bold: true, color: "#fff", fillColor: "#0b1220", fontSize: 8 })),
-    ...dados.sort((a, b) => (a.data || "").localeCompare(b.data || "")).map(e => [
-      { text: e.nome, fontSize: 9 }, { text: (e.data || "").split("-").reverse().join("/"), fontSize: 9 },
-      { text: e.cliente || "—", fontSize: 9 }, { text: e.tipo || "—", fontSize: 9 },
-      { text: e.status || "—", fontSize: 9 },
-      { text: "R$ " + fmt(parseFloat(e.contratado || 0) || 0, 2), fontSize: 9, alignment: "right" },
-      { text: "R$ " + fmt(parseFloat(e.recebido || 0) || 0, 2), fontSize: 9, alignment: "right" }]),
-    [{ text: "TOTAL", bold: true, fontSize: 9 }, { text: "" }, { text: "" }, { text: "" }, { text: "" },
-     { text: "R$ " + fmt(contratado, 2), bold: true, fontSize: 9, alignment: "right" },
-     { text: "R$ " + fmt(recebido, 2), bold: true, fontSize: 9, alignment: "right" }]];
-  const doc = {
-    defaultStyle: { font: "Roboto", fontSize: 10 },
-    header: { margin: [40, 30, 40, 0], columns: [
-      { text: "BW AUDIOVISUAL", bold: true, color: "#b8860b", fontSize: 11 },
-      { text: "Relatório anual " + ano, alignment: "right", color: "#55627a", fontSize: 10 }] },
-    content: [
-      { text: "Relatório Anual de Eventos — " + ano, fontSize: 16, bold: true, margin: [0, 20, 0, 4] },
-      { text: `${dados.length} evento(s) no ano`, color: "#55627a", margin: [0, 0, 0, 12] },
-      { table: { widths: ["25%", "25%"], body: [
-        [{ text: "Total contratado", color: "#55627a", fontSize: 9 }, { text: "R$ " + fmt(contratado, 2), bold: true, fontSize: 10 }],
-        [{ text: "Total recebido", color: "#55627a", fontSize: 9 }, { text: "R$ " + fmt(recebido, 2), bold: true, fontSize: 10, color: "#1e8e5a" }],
-        [{ text: "A receber", color: "#55627a", fontSize: 9 }, { text: "R$ " + fmt(contratado - recebido, 2), bold: true, fontSize: 10, color: "#b8860b" }]] }, margin: [0, 0, 0, 12] },
-      { text: "Eventos por tipo", bold: true, margin: [0, 0, 0, 4] },
-      { ul: Object.entries(porTipo).map(([t, n]) => ({ text: `${t}: ${n}`, fontSize: 9 })) },
-      { text: "Eventos por status", bold: true, margin: [0, 8, 0, 4] },
-      { ul: Object.entries(porStatus).map(([t, n]) => ({ text: `${t}: ${n}`, fontSize: 9 })) },
-      { text: "Detalhamento", bold: true, margin: [0, 12, 0, 4] },
-      { table: { widths: ["22%", "12%", "16%", "12%", "12%", "13%", "13%"], body: tabela, headerRows: 1 } },
-    ],
-    footer: { margin: [40, 10, 40, 20], columns: [
-      { text: "BW Audiovisual — eventos, transmissões e produção", color: "#8a93a6", fontSize: 8 },
-      { text: `gerado em ${new Date().toLocaleString("pt-BR")}`, alignment: "right", color: "#8a93a6", fontSize: 8 }] },
-  };
-  window.pdfMake.createPdf(doc).download(`relatorio-anual-eventos-${ano}.pdf`);
-}
-window.__evRelAnual = () => gerarRelatorioAnual();
 
 /* ---------- dossiê PDF completo ---------- */
 /* promessa com tempo limite — o PDF nunca trava esperando uma foto */
@@ -3634,119 +3587,306 @@ async function comporGaleria(fotos) {
   return cv.toDataURL("image/jpeg", 0.8);
 }
 
-async function gerarDossiePDF(id) {
+/* ---------- RELATÓRIOS EM PDF COM OPÇÕES (15/11, pedido do dono) ----------
+   O dono escolhe o que entra: só evento + equipe, equipe + gastos, financeiro, completo… ou marca item a item.
+   A escolha fica lembrada no aparelho (ui_pdf_*). */
+const PDF_TH = t => ({ text: t, bold: true, color: "#fff", fillColor: "#0b1220", fontSize: 8 });
+const PDF_RS = v => "R$ " + fmt(parseFloat(v || 0) || 0, 2);
+const PDF_DT = iso => (iso || "").split("-").reverse().join("/") || "—";
+const PDF_CAB = (titulo) => ({ margin: [40, 30, 40, 0], columns: [
+  { text: "BW AUDIOVISUAL", bold: true, color: "#b8860b", fontSize: 11 },
+  { text: titulo, alignment: "right", color: "#55627a", fontSize: 10 }] });
+const PDF_RODAPE = () => ({ margin: [40, 10, 40, 20], columns: [
+  { text: "BW Audiovisual — eventos, transmissões e produção", color: "#8a93a6", fontSize: 8 },
+  { text: `gerado em ${new Date().toLocaleString("pt-BR")}`, alignment: "right", color: "#8a93a6", fontSize: 8 }] });
+const PDF_SEC = t => ({ text: t, bold: true, margin: [0, 12, 0, 4] });
+const lerOpc = (k, padrao) => { try { const v = JSON.parse(localStorage.getItem(k) || "null"); return Array.isArray(v) ? v : padrao; } catch (e) { return padrao; } };
+const gravarOpc = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { } };
+
+/* painel de opções genérico: itens [[id, rótulo]], atalhos [[rótulo, [ids]]] */
+function painelOpcoes(alvo, chave, itens, atalhos, padrao, extraHTML, aoGerar) {
+  let sel = lerOpc(chave, padrao);
+  /* o cabeçalho (atalhos + campos extras, ex.: ano/mês) é desenhado uma vez; só a lista de itens redesenha */
+  alvo.innerHTML = `<div class="note" style="margin-top:10px">
+      <b>O que entra no PDF?</b>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">${atalhos.map((a, i) =>
+        `<button class="btn gh" data-atalho="${i}" style="padding:6px 10px;font-size:11px">${esc(a[0])}</button>`).join("")}</div>
+      ${extraHTML || ""}
+      <div data-corpo="1"></div></div>`;
+  const corpo = alvo.querySelector("[data-corpo]");
+  alvo.querySelectorAll("[data-atalho]").forEach(b => b.onclick = () => { sel = atalhos[+b.dataset.atalho][1].slice(); gravarOpc(chave, sel); desenhar(); });
+  const desenhar = () => {
+    corpo.innerHTML = `
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:6px;margin-top:10px">${itens.map(([id, rot]) =>
+        `<label style="display:flex;gap:8px;align-items:center;text-transform:none;letter-spacing:0;font-size:12.5px;color:var(--txt,#F5F1EA);margin:0">
+          <input type="checkbox" data-sec="${id}" ${sel.includes(id) ? "checked" : ""} style="width:18px;height:18px;min-height:0;flex:none;margin:0;accent-color:#FFB547"> ${esc(rot)}</label>`).join("")}</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+        <button class="btn" data-gerar="1">📄 GERAR PDF</button>
+        <button class="btn gh" data-fechar="1">Fechar</button>
+      </div>
+      <div data-msg="1" style="margin-top:6px"></div>`;
+    alvo.querySelectorAll("[data-sec]").forEach(c => c.onchange = () => {
+      sel = [...alvo.querySelectorAll("[data-sec]:checked")].map(x => x.dataset.sec); gravarOpc(chave, sel); });
+    alvo.querySelector("[data-fechar]").onclick = () => { alvo.innerHTML = ""; };
+    alvo.querySelector("[data-gerar]").onclick = async () => {
+      const b = alvo.querySelector("[data-gerar]"), m = alvo.querySelector("[data-msg]");
+      if (!sel.length) { m.textContent = "Marque ao menos um item."; return; }
+      b.disabled = true; m.innerHTML = '<span class="spin"></span> Montando o PDF…';
+      try { await aoGerar(new Set(sel), alvo); m.textContent = "✓ PDF gerado."; }
+      catch (e) { m.textContent = "Não consegui gerar o PDF (" + (e.message || e) + ")."; }
+      b.disabled = false;
+    };
+  };
+  desenhar();
+}
+
+/* ===== 1) DOSSIÊ DO EVENTO ===== */
+const DOSSIE_ITENS = [["equipe", "Equipe (nome, função, telefone)"], ["veiculos", "Veículos (equipe e portaria)"],
+  ["presenca", "Confirmações de presença"], ["valores", "Valores (orçado, contratado, recebido)"],
+  ["caches", "Cachês da equipe (pago / a pagar)"], ["gastos", "Gastos do evento"], ["comprovantes", "Fotos dos comprovantes"],
+  ["resultado", "Resultado (recebido − custos, margem)"], ["checklist", "Checklist de produção"],
+  ["documentos", "Documentos (contrato, NF-e)"], ["midia", "Fotos do evento"], ["relatorio", "Relatório e observações"]];
+const DOSSIE_ATALHOS = [["EVENTO + EQUIPE", ["equipe", "veiculos", "presenca"]],
+  ["EQUIPE + GASTOS", ["equipe", "caches", "gastos", "comprovantes"]],
+  ["FINANCEIRO", ["valores", "caches", "gastos", "resultado"]],
+  ["COMPLETO", DOSSIE_ITENS.map(i => i[0])]];
+function opcoesDossiePDF(id) {
+  const alvo = $("#dPdfOpcoes"); if (!alvo) return;
+  painelOpcoes(alvo, "ui_pdf_dossie", DOSSIE_ITENS, DOSSIE_ATALHOS, DOSSIE_ITENS.map(i => i[0]), "", s => gerarDossiePDF(id, s));
+}
+
+async function gerarDossiePDF(id, S) {
+  S = S || new Set(DOSSIE_ITENS.map(i => i[0]));
   const e = eventos().find(x => String(x.id) === String(id));
   if (!e) return;
   const eq = load("neg_equipe_equipes", 1, []).find(q => String(q.id) === String(e.equipeId));
-  const membros = ((eq && eq.membros) || []).map(mid => load("neg_equipe_colaboradores", 1, []).find(c => String(c.id) === String(mid))).filter(Boolean);
+  const colabs = load("neg_equipe_colaboradores", 1, []);
+  const membros = ((eq && eq.membros) || []).map(mid => colabs.find(c => String(c.id) === String(mid))).filter(Boolean);
+  const gastos = e.gastos || [];
+  const caches = load("neg_equipe_pagamentos", 1, []).filter(p => String(p.eventoId) === String(e.id));
+  const custos = gastos.reduce((t, g) => t + (parseFloat(g.valor || 0) || 0), 0);
+  const recebido = parseFloat(e.recebido || 0) || 0, contratado = parseFloat(e.contratado || 0) || 0;
   let presencas = [];
-  try {
-    const auth = MOD["core/auth"];
-    const cred = auth.credenciais();
-    const sb = window.supabase.createClient(cred.url, cred.anon);
-    const { data } = await sb.from("equipe_presenca").select("*").eq("evento_id", String(id));
-    presencas = data || [];
-  } catch (err) { }
-  /* baixa as fotos dos COMPROVANTES dos gastos (recibos) para o PDF */
-  const comprovantes = [];
-  for (const g of (e.gastos || [])) {
-    if (!g.comprovante || comprovantes.length >= 4) continue;
-    const du = await urlParaDataUrl(g.comprovante);
-    if (du) comprovantes.push({ nome: g.desc || g.nome || "comprovante", du });
+  if (S.has("presenca")) {
+    try {
+      const sb = (window.BWSync && window.BWSync.cliente()) || window.supabase.createClient(MOD["core/auth"].credenciais().url, MOD["core/auth"].credenciais().anon);
+      const ids = [String(id)].concat((e.idsAntigos || []).map(String));
+      const { data } = await sb.from("equipe_presenca").select("*").in("evento_id", ids);
+      presencas = data || [];
+    } catch (err) { }
   }
-  const galeriaComp = await comporGaleria(comprovantes);
-  /* baixa as fotos do Storage (CORS liberado) para embutir no PDF */
-  const fotos = [];
-  for (const m of (e.midia || []).slice(0, 9)) {
-    if (!m.url) continue;
-    const du = await urlParaDataUrl(m.url);
-    if (du) fotos.push({ nome: m.nome, du });
+  let galeriaComp = null, galeria = null, nFotos = 0;
+  if (S.has("comprovantes")) {
+    const comps = [];
+    for (const g of gastos) {
+      if (!g.comprovante || comps.length >= 6) continue;
+      const du = await urlParaDataUrl(g.comprovante);
+      if (du) comps.push({ nome: g.desc || "comprovante", du });
+    }
+    galeriaComp = await comporGaleria(comps);
   }
-  /* compõe a GALERIA ÚNICA (grade de miniaturas) — otimiza o PDF */
-  const galeria = await comporGaleria(fotos);
-  const ficha = [["Evento", e.nome], ["Data", (e.data || "").split("-").reverse().join("/")],
-    ["Tipo", e.tipo || "—"], ["Local", e.local || "—"], ["Cliente", e.cliente || "—"],
-    ["Contato", (e.tel || "—") + (e.email ? " · " + e.email : "")],
-    ["Equipe", e.equipeNome || "—"], ["Status", e.status],
-    ["Contrato/OS", e.contrato || "—"]].map(([k, v]) =>
-    [{ text: String(k), color: "#55627a", fontSize: 9 }, { text: String(v), bold: true, fontSize: 9 }]);
-  const fin = [["Orçado", e.orcado], ["Contratado", e.contratado], ["Recebido", e.recebido]]
-    .map(([k, v]) => [{ text: k, color: "#55627a", fontSize: 9 },
-      { text: "R$ " + fmt(parseFloat(v || 0) || 0, 2), bold: true, fontSize: 9 }]);
-  const doc = {
-    defaultStyle: { font: "Roboto", fontSize: 10 },
-    header: { margin: [40, 30, 40, 0], columns: [
-      { text: "BW AUDIOVISUAL", bold: true, color: "#b8860b", fontSize: 11 },
-      { text: "Dossiê do evento", alignment: "right", color: "#55627a", fontSize: 10 }] },
-    content: [
-      { text: "Dossiê — " + e.nome, fontSize: 16, bold: true, margin: [0, 20, 0, 4] },
-      { table: { widths: ["22%", "78%"], body: ficha }, margin: [0, 0, 0, 12] },
-      { text: "Financeiro", bold: true, margin: [0, 0, 0, 4] },
-      { table: { widths: ["22%", "78%"], body: fin }, margin: [0, 0, 0, 12] },
-      { text: "Equipe de trabalho", bold: true, margin: [0, 0, 0, 4] },
-      ...(membros.length ? [{ table: { widths: ["35%", "35%", "30%"], body: [
-        ["Nome", "Função", "Telefone"].map(t => ({ text: t, bold: true, color: "#fff", fillColor: "#0b1220", fontSize: 8 })),
-        ...membros.map(m => [m.nome, m.funcao || "—", m.tel || "—"].map(v => ({ text: String(v), fontSize: 9 }))),
-      ], headerRows: 1 } }] : [{ text: "Sem membros.", italics: true, color: "#8a93a6" }]),
-      ...((e.checklist || []).length ? [
-        { text: "Checklist de produção", bold: true, margin: [0, 12, 0, 4] },
-        { ul: e.checklist.map(i => ({ text: (i.ok ? "✓ " : "• ") + i.t, fontSize: 9, color: i.ok ? "#1e8e5a" : "#1a2233" })) },
-      ] : []),
-      ...(presencas.length ? [
-        { text: "Confirmações de presença", bold: true, margin: [0, 12, 0, 4] },
-        { ul: presencas.map(p => ({ text: `${p.colaborador} (${p.email || "sem e-mail"}) — ${p.resposta === "sim" ? "✓ vai" : p.resposta === "nao" ? "✕ não vai" : "? talvez"}`, fontSize: 9 })) },
-      ] : []),
-      ...((e.gastos || []).length ? [
-        { text: "Gastos operacionais", bold: true, margin: [0, 12, 0, 4] },
-        { table: { widths: ["45%", "20%", "35%"], body: [
-          [{ text: "Descrição", bold: true, color: "#fff", fillColor: "#0b1220", fontSize: 8 },
-           { text: "Valor", bold: true, color: "#fff", fillColor: "#0b1220", fontSize: 8, alignment: "right" },
-           { text: "Comprovante", bold: true, color: "#fff", fillColor: "#0b1220", fontSize: 8 }],
-          ...e.gastos.map(g => [
-            { text: g.desc + (g.data ? " (" + g.data + ")" : ""), fontSize: 9 },
-            { text: "R$ " + fmt(parseFloat(g.valor || 0), 2), fontSize: 9, alignment: "right" },
-            { text: g.comprovante ? "anexado (recibo abaixo)" : "—", fontSize: 8, color: "#55627a" }]),
-          [{ text: "Total", bold: true, fontSize: 9 }, { text: "R$ " + fmt(e.gastos.reduce((t, g) => t + (parseFloat(g.valor || 0) || 0), 0), 2), fontSize: 9, bold: true, alignment: "right" }, { text: "" }],
-        ] } },
-        ...(galeriaComp ? [{ image: galeriaComp, width: 420, alignment: "center", margin: [0, 8, 0, 2] },
-          { text: "Comprovantes fiscais (recibos)", fontSize: 8, color: "#55627a", alignment: "center", margin: [0, 0, 0, 6] }] : []),
-      ] : []),
-      ...(e.nfe ? [
-        { text: "Nota Fiscal Eletrônica", bold: true, margin: [0, 12, 0, 4] },
-        { text: (e.nfe.numero ? "NF-e nº " + e.nfe.numero + " — " : "") + e.nfe.nome + " (anexada ao evento)", fontSize: 9 },
-      ] : []),
-      ...((e.veiculos || []).length ? [
-        { text: "Veículos do evento (portaria)", bold: true, margin: [0, 12, 0, 4] },
-        { table: { widths: ["25%", "35%", "40%"], body: [
-          [{ text: "Placa", bold: true, color: "#fff", fillColor: "#0b1220", fontSize: 8 },
-           { text: "Modelo", bold: true, color: "#fff", fillColor: "#0b1220", fontSize: 8 },
-           { text: "Motorista", bold: true, color: "#fff", fillColor: "#0b1220", fontSize: 8 }],
-          ...e.veiculos.map(v => [
-            { text: v.placa, fontSize: 9, bold: true },
-            { text: v.modelo || "—", fontSize: 9 },
-            { text: v.motorista || "—", fontSize: 9 }]),
-        ] } }] : []),
-      ...(e.contratoArq ? [
-        { text: "Contrato / OS", bold: true, margin: [0, 12, 0, 4] },
-        { text: e.contratoArq.nome + " (anexado ao evento)", fontSize: 9 },
-      ] : []),
-      { text: "Mídia", bold: true, margin: [0, 12, 0, 4] },
-      ...(galeria ? [
-        { image: galeria, width: 500, alignment: "center", margin: [0, 0, 0, 2] },
-        { text: `Galeria do evento — ${fotos.length} foto(s)`, fontSize: 8, color: "#55627a", alignment: "center", margin: [0, 0, 0, 6] },
-      ] : [{ text: (e.midia || []).length ? "Fotos não carregaram para o PDF (veja na página do evento)." : "Nenhuma mídia enviada.", fontSize: 9, color: "#55627a" }]),
-      { text: "Relatório", bold: true, margin: [0, 12, 0, 4] },
-      { text: e.relatorio || "Sem relatório.", fontSize: 9, italics: !e.relatorio },
-      { text: "Observações: " + (e.obs || "—"), fontSize: 9, margin: [0, 12, 0, 0], color: "#55627a" },
-    ],
-    footer: { margin: [40, 10, 40, 20], columns: [
-      { text: "BW Audiovisual — eventos, transmissões e produção", color: "#8a93a6", fontSize: 8 },
-      { text: `gerado em ${new Date().toLocaleString("pt-BR")}`, alignment: "right", color: "#8a93a6", fontSize: 8 }] },
-  };
+  if (S.has("midia")) {
+    const fotos = [];
+    for (const m of (e.midia || []).slice(0, 9)) {
+      if (!m.url) continue;
+      const du = await urlParaDataUrl(m.url);
+      if (du) fotos.push({ nome: m.nome, du });
+    }
+    nFotos = fotos.length; galeria = await comporGaleria(fotos);
+  }
+  const kv = rows => ({ table: { widths: ["28%", "72%"], body: rows.map(([k, v, cor]) =>
+    [{ text: String(k), color: "#55627a", fontSize: 9 }, { text: String(v), bold: true, fontSize: 9, color: cor || "#1a2233" }]) }, margin: [0, 0, 0, 4] });
+  const C = [];
+  C.push({ text: "Dossiê — " + e.nome, fontSize: 16, bold: true, margin: [0, 20, 0, 4] });
+  C.push(kv([["Data", PDF_DT(e.data)], ["Montagem / desmontagem", PDF_DT(e.montagem) + " / " + PDF_DT(e.desmontagem)], ["Tipo", e.tipo || "—"],
+    ["Local", e.local || "—"], ["Cliente", e.cliente || "—"], ["Contato", (e.tel || "—") + (e.email ? " · " + e.email : "")],
+    ["Equipe", (eq && eq.nome) || e.equipeNome || "—"], ["Status", e.status || "—"], ["Contrato/OS", e.contrato || "—"]]));
+  if (S.has("equipe")) {
+    C.push(PDF_SEC("Equipe de trabalho"));
+    C.push(membros.length ? { table: { headerRows: 1, widths: ["30%", "22%", "22%", "26%"], body: [
+      ["Nome", "Função", "Telefone", "E-mail"].map(PDF_TH),
+      ...membros.map(m => [m.nome, m.funcao || "—", m.tel || "—", m.email || "—"].map(v => ({ text: String(v), fontSize: 9 })))] } }
+      : { text: "Sem membros.", italics: true, color: "#8a93a6", fontSize: 9 });
+  }
+  if (S.has("veiculos")) {
+    const vs = (e.veiculos || []).map(v => [v.placa, v.modelo || "—", v.motorista || "—"]);
+    membros.filter(m => m.placa && !vs.some(v => (v[0] || "").toUpperCase() === m.placa.toUpperCase()))
+      .forEach(m => vs.push([m.placa, [m.veiculo, m.cor].filter(Boolean).join(" · ") || "—", m.nome]));
+    C.push(PDF_SEC("Veículos (portaria)"));
+    C.push(vs.length ? { table: { headerRows: 1, widths: ["22%", "40%", "38%"], body: [["Placa", "Modelo", "Motorista"].map(PDF_TH),
+      ...vs.map(v => [{ text: v[0], bold: true, fontSize: 9 }, { text: v[1], fontSize: 9 }, { text: v[2], fontSize: 9 }])] } }
+      : { text: "Nenhum veículo cadastrado.", italics: true, color: "#8a93a6", fontSize: 9 });
+  }
+  if (S.has("presenca")) {
+    C.push(PDF_SEC("Confirmações de presença"));
+    C.push(presencas.length ? { ul: presencas.map(p => ({ text: `${p.colaborador} (${p.email || "sem e-mail"}) — ${p.resposta === "sim" ? "✓ vai" : p.resposta === "nao" ? "✕ não vai" : "? talvez"}${p.observacao ? " · " + p.observacao : ""}`, fontSize: 9 })) }
+      : { text: "Nenhuma confirmação recebida.", italics: true, color: "#8a93a6", fontSize: 9 });
+  }
+  if (S.has("valores")) {
+    C.push(PDF_SEC("Valores do evento"));
+    C.push(kv([["Orçado", PDF_RS(e.orcado)], ["Contratado", PDF_RS(contratado)], ["Recebido", PDF_RS(recebido), "#1e8e5a"],
+      ["A receber", PDF_RS(Math.max(0, contratado - recebido)), "#b8860b"]]));
+  }
+  if (S.has("caches")) {
+    C.push(PDF_SEC("Cachês da equipe"));
+    const tp = caches.filter(p => p.pago).reduce((t, p) => t + (+p.valor || 0), 0), ta = caches.filter(p => !p.pago).reduce((t, p) => t + (+p.valor || 0), 0);
+    C.push(caches.length ? { table: { headerRows: 1, widths: ["40%", "18%", "20%", "22%"], body: [["Colaborador", "Data", "Valor", "Situação"].map(PDF_TH),
+      ...caches.map(p => [{ text: p.colab + (p.obs ? " — " + p.obs : ""), fontSize: 9 }, { text: PDF_DT(p.data), fontSize: 9 },
+        { text: PDF_RS(p.valor), fontSize: 9, alignment: "right" }, { text: p.pago ? "PAGO" : "A PAGAR", fontSize: 9, bold: true, color: p.pago ? "#1e8e5a" : "#c0392b" }]),
+      [{ text: "Pago / a pagar", bold: true, fontSize: 9 }, { text: "" }, { text: PDF_RS(tp), bold: true, fontSize: 9, alignment: "right" }, { text: "a pagar " + PDF_RS(ta), fontSize: 9, color: "#c0392b" }]] } }
+      : { text: "Nenhum cachê lançado para este evento.", italics: true, color: "#8a93a6", fontSize: 9 });
+  }
+  if (S.has("gastos")) {
+    const gs = gastos.filter(g => !String(g.id || "").startsWith("pag_") || !S.has("caches"));
+    C.push(PDF_SEC("Gastos do evento" + (S.has("caches") ? " (sem os cachês, listados acima)" : "")));
+    C.push(gs.length ? { table: { headerRows: 1, widths: ["50%", "16%", "18%", "16%"], body: [["Descrição", "Data", "Valor", "Comprovante"].map(PDF_TH),
+      ...gs.map(g => [{ text: g.desc || "—", fontSize: 9 }, { text: PDF_DT(g.data), fontSize: 9 }, { text: PDF_RS(g.valor), fontSize: 9, alignment: "right" },
+        { text: g.comprovante ? "sim" : "—", fontSize: 8, color: "#55627a" }]),
+      [{ text: "Total", bold: true, fontSize: 9 }, { text: "" }, { text: PDF_RS(gs.reduce((t, g) => t + (parseFloat(g.valor || 0) || 0), 0)), bold: true, fontSize: 9, alignment: "right" }, { text: "" }]] } }
+      : { text: "Nenhum gasto lançado.", italics: true, color: "#8a93a6", fontSize: 9 });
+  }
+  if (S.has("comprovantes")) {
+    C.push(PDF_SEC("Comprovantes"));
+    C.push(galeriaComp ? { image: galeriaComp, width: 420, alignment: "center" }
+      : { text: gastos.some(g => g.comprovante) ? "As fotos não carregaram (entre com a sua conta e tente de novo)." : "Nenhum comprovante anexado.", italics: true, color: "#8a93a6", fontSize: 9 });
+  }
+  if (S.has("resultado")) {
+    const res = recebido - custos, margem = recebido > 0 ? res / recebido * 100 : 0;
+    C.push(PDF_SEC("Resultado do evento"));
+    C.push(kv([["Recebido", PDF_RS(recebido)], ["Custos (gastos + cachês pagos)", PDF_RS(custos)],
+      ["Resultado", PDF_RS(res), res >= 0 ? "#1e8e5a" : "#c0392b"], ["Margem", margem.toFixed(1).replace(".", ",") + "%", res >= 0 ? "#1e8e5a" : "#c0392b"]]));
+  }
+  if (S.has("checklist")) {
+    C.push(PDF_SEC("Checklist de produção"));
+    C.push((e.checklist || []).length ? { ul: e.checklist.map(i => ({ text: (i.ok ? "✓ " : "• ") + i.t, fontSize: 9, color: i.ok ? "#1e8e5a" : "#1a2233" })) }
+      : { text: "Sem checklist.", italics: true, color: "#8a93a6", fontSize: 9 });
+  }
+  if (S.has("documentos")) {
+    C.push(PDF_SEC("Documentos"));
+    C.push(kv([["Contrato / OS", e.contratoArq ? e.contratoArq.nome + " (anexado)" : "—"],
+      ["Nota fiscal", e.nfe ? (e.nfe.numero ? "NF-e nº " + e.nfe.numero + " — " : "") + e.nfe.nome : "—"]]));
+  }
+  if (S.has("midia")) {
+    C.push(PDF_SEC("Fotos do evento"));
+    C.push(galeria ? { stack: [{ image: galeria, width: 500, alignment: "center" }, { text: `${nFotos} foto(s)`, fontSize: 8, color: "#55627a", alignment: "center" }] }
+      : { text: (e.midia || []).length ? "As fotos não carregaram (veja na página do evento)." : "Nenhuma foto enviada.", italics: true, color: "#8a93a6", fontSize: 9 });
+  }
+  if (S.has("relatorio")) {
+    C.push(PDF_SEC("Relatório"));
+    C.push({ text: e.relatorio || "Sem relatório.", fontSize: 9, italics: !e.relatorio });
+    C.push({ text: "Observações: " + (e.obs || "—"), fontSize: 9, margin: [0, 8, 0, 0], color: "#55627a" });
+  }
+  const doc = { defaultStyle: { font: "Roboto", fontSize: 10 }, header: PDF_CAB("Dossiê do evento"), content: C, footer: PDF_RODAPE() };
   const slug = e.nome.replace(/\s+/g, "-").toLowerCase().replace(/[^a-z0-9-]/g, "");
   window.pdfMake.createPdf(doc).download(`dossie-${slug}-${e.data}.pdf`);
+  return doc;
 }
 window.__evPDF = id => gerarDossiePDF(id);
+
+/* ===== 2) RELATÓRIO DE GESTÃO (eventos do período) ===== */
+const GESTAO_ITENS = [["resumo", "Resumo (contratado, recebido, a receber)"], ["lista", "Lista de eventos"],
+  ["equipes", "Equipe de cada evento"], ["caches", "Cachês por colaborador"], ["gastos", "Gastos por categoria"],
+  ["resultado", "Resultado por evento (custos, lucro, margem)"], ["tipos", "Eventos por tipo e status"]];
+const GESTAO_ATALHOS = [["EVENTOS + EQUIPES", ["resumo", "lista", "equipes"]], ["EQUIPE + CACHÊS", ["equipes", "caches"]],
+  ["FINANCEIRO", ["resumo", "caches", "gastos", "resultado"]], ["COMPLETO", GESTAO_ITENS.map(i => i[0])]];
+function opcoesRelatorioGestao() {
+  const alvo = $("#relAnualMsg"); if (!alvo) return;
+  const anos = [...new Set(eventos().map(e => (e.data || "").slice(0, 4)).filter(Boolean))].sort().reverse();
+  const anoAtual = String(new Date().getFullYear());
+  if (!anos.includes(anoAtual)) anos.unshift(anoAtual);
+  const meses = ["Ano todo", "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+  const extra = `<div class="frow" style="margin-top:10px">
+      <div><label>Ano</label><select data-ano="1">${anos.map(a => `<option ${a === anoAtual ? "selected" : ""}>${a}</option>`).join("")}</select></div>
+      <div><label>Período</label><select data-mes="1">${meses.map((m, i) => `<option value="${i}">${m}</option>`).join("")}</select></div></div>`;
+  painelOpcoes(alvo, "ui_pdf_gestao", GESTAO_ITENS, GESTAO_ATALHOS, ["resumo", "lista", "tipos"], extra, (S, box) =>
+    gerarRelatorioGestao(S, box.querySelector("[data-ano]").value, +box.querySelector("[data-mes]").value));
+}
+
+function gerarRelatorioGestao(S, ano, mes) {
+  ano = String(ano || new Date().getFullYear()); mes = +mes || 0;
+  const pref = mes ? ano + "-" + String(mes).padStart(2, "0") : ano;
+  const nomeMes = mes ? ["", "janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"][mes] + " de " + ano : ano;
+  const dados = eventos().filter(e => (e.data || "").startsWith(pref)).sort((a, b) => (a.data || "").localeCompare(b.data || ""));
+  const ids = new Set(dados.map(e => String(e.id)));
+  const equipes = load("neg_equipe_equipes", 1, []), colabs = load("neg_equipe_colaboradores", 1, []);
+  const pags = load("neg_equipe_pagamentos", 1, []).filter(p => ids.has(String(p.eventoId)));
+  const custo = e => (e.gastos || []).reduce((t, g) => t + (parseFloat(g.valor || 0) || 0), 0);
+  let contratado = 0, recebido = 0, custos = 0;
+  dados.forEach(e => { contratado += parseFloat(e.contratado || 0) || 0; recebido += parseFloat(e.recebido || 0) || 0; custos += custo(e); });
+  const C = [{ text: "Relatório de gestão — " + nomeMes, fontSize: 16, bold: true, margin: [0, 20, 0, 4] },
+    { text: `${dados.length} evento(s) no período`, color: "#55627a", margin: [0, 0, 0, 8] }];
+  const vazio = t => ({ text: t, italics: true, color: "#8a93a6", fontSize: 9 });
+  if (S.has("resumo")) {
+    C.push(PDF_SEC("Resumo"));
+    C.push({ table: { widths: ["34%", "30%"], body: [
+      [{ text: "Total contratado", color: "#55627a", fontSize: 9 }, { text: PDF_RS(contratado), bold: true }],
+      [{ text: "Total recebido", color: "#55627a", fontSize: 9 }, { text: PDF_RS(recebido), bold: true, color: "#1e8e5a" }],
+      [{ text: "A receber", color: "#55627a", fontSize: 9 }, { text: PDF_RS(Math.max(0, contratado - recebido)), bold: true, color: "#b8860b" }],
+      [{ text: "Custos (gastos + cachês pagos)", color: "#55627a", fontSize: 9 }, { text: PDF_RS(custos), bold: true, color: "#c0392b" }],
+      [{ text: "Resultado (recebido − custos)", color: "#55627a", fontSize: 9 }, { text: PDF_RS(recebido - custos), bold: true, color: recebido - custos >= 0 ? "#1e8e5a" : "#c0392b" }]] } });
+  }
+  if (S.has("lista")) {
+    C.push(PDF_SEC("Eventos"));
+    C.push(dados.length ? { table: { headerRows: 1, widths: ["26%", "11%", "18%", "13%", "16%", "16%"], body: [
+      ["Evento", "Data", "Cliente", "Status", "Contratado", "Recebido"].map(PDF_TH),
+      ...dados.map(e => [{ text: e.nome, fontSize: 9 }, { text: PDF_DT(e.data), fontSize: 9 }, { text: e.cliente || "—", fontSize: 9 },
+        { text: e.status || "—", fontSize: 9 }, { text: PDF_RS(e.contratado), fontSize: 9, alignment: "right" }, { text: PDF_RS(e.recebido), fontSize: 9, alignment: "right" }])] } }
+      : vazio("Nenhum evento no período."));
+  }
+  if (S.has("equipes")) {
+    C.push(PDF_SEC("Equipe de cada evento"));
+    C.push(dados.length ? { table: { headerRows: 1, widths: ["30%", "22%", "48%"], body: [["Evento", "Equipe", "Membros"].map(PDF_TH),
+      ...dados.map(e => { const q = equipes.find(x => String(x.id) === String(e.equipeId));
+        const ms = ((q && q.membros) || []).map(mid => colabs.find(c => String(c.id) === String(mid))).filter(Boolean);
+        return [{ text: e.nome + "\n" + PDF_DT(e.data), fontSize: 9 }, { text: (q && q.nome) || e.equipeNome || "—", fontSize: 9 },
+          { text: ms.map(m => m.nome + (m.funcao ? " (" + m.funcao + ")" : "")).join(", ") || "—", fontSize: 8.5 }]; })] } }
+      : vazio("Nenhum evento no período."));
+  }
+  if (S.has("caches")) {
+    const por = {};
+    pags.forEach(p => { const k = p.colab || "—"; por[k] = por[k] || { pago: 0, aPagar: 0, n: 0 }; por[k][p.pago ? "pago" : "aPagar"] += +p.valor || 0; por[k].n++; });
+    const linhas = Object.entries(por).sort((a, b) => (b[1].pago + b[1].aPagar) - (a[1].pago + a[1].aPagar));
+    C.push(PDF_SEC("Cachês por colaborador"));
+    C.push(linhas.length ? { table: { headerRows: 1, widths: ["40%", "12%", "24%", "24%"], body: [["Colaborador", "Cachês", "Pago", "A pagar"].map(PDF_TH),
+      ...linhas.map(([n, v]) => [{ text: n, fontSize: 9 }, { text: String(v.n), fontSize: 9, alignment: "center" },
+        { text: PDF_RS(v.pago), fontSize: 9, alignment: "right", color: "#1e8e5a" }, { text: PDF_RS(v.aPagar), fontSize: 9, alignment: "right", color: v.aPagar ? "#c0392b" : "#1a2233" }])] } }
+      : vazio("Nenhum cachê lançado nos eventos do período."));
+  }
+  if (S.has("gastos")) {
+    const cat = {};
+    dados.forEach(e => (e.gastos || []).forEach(g => { if (String(g.id || "").startsWith("pag_")) return; const k = (g.desc || "Outros").trim(); cat[k] = (cat[k] || 0) + (parseFloat(g.valor || 0) || 0); }));
+    const linhas = Object.entries(cat).sort((a, b) => b[1] - a[1]);
+    C.push(PDF_SEC("Gastos por categoria (sem cachês)"));
+    C.push(linhas.length ? { table: { headerRows: 1, widths: ["60%", "40%"], body: [["Categoria", "Total"].map(PDF_TH),
+      ...linhas.map(([k, v]) => [{ text: k, fontSize: 9 }, { text: PDF_RS(v), fontSize: 9, alignment: "right" }])] } }
+      : vazio("Nenhum gasto lançado no período."));
+  }
+  if (S.has("resultado")) {
+    C.push(PDF_SEC("Resultado por evento"));
+    C.push(dados.length ? { table: { headerRows: 1, widths: ["34%", "18%", "18%", "18%", "12%"], body: [["Evento", "Recebido", "Custos", "Resultado", "Margem"].map(PDF_TH),
+      ...dados.map(e => { const r = parseFloat(e.recebido || 0) || 0, c = custo(e), res = r - c;
+        return [{ text: e.nome, fontSize: 9 }, { text: PDF_RS(r), fontSize: 9, alignment: "right" }, { text: PDF_RS(c), fontSize: 9, alignment: "right" },
+          { text: PDF_RS(res), fontSize: 9, alignment: "right", bold: true, color: res >= 0 ? "#1e8e5a" : "#c0392b" },
+          { text: r > 0 ? (res / r * 100).toFixed(1).replace(".", ",") + "%" : "—", fontSize: 9, alignment: "right" }]; })] } }
+      : vazio("Nenhum evento no período."));
+  }
+  if (S.has("tipos")) {
+    const porTipo = {}, porStatus = {};
+    dados.forEach(e => { porTipo[e.tipo || "Outro"] = (porTipo[e.tipo || "Outro"] || 0) + 1; porStatus[e.status || "—"] = (porStatus[e.status || "—"] || 0) + 1; });
+    C.push(PDF_SEC("Eventos por tipo e status"));
+    C.push(dados.length ? { columns: [
+      { ul: Object.entries(porTipo).map(([t, n]) => ({ text: `${t}: ${n}`, fontSize: 9 })) },
+      { ul: Object.entries(porStatus).map(([t, n]) => ({ text: `${t}: ${n}`, fontSize: 9 })) }] } : vazio("Nenhum evento no período."));
+  }
+  const doc = { defaultStyle: { font: "Roboto", fontSize: 10 }, header: PDF_CAB("Relatório de gestão " + nomeMes), content: C, footer: PDF_RODAPE() };
+  window.pdfMake.createPdf(doc).download(`relatorio-gestao-${pref}.pdf`);
+  return doc;
+}
+function gerarRelatorioAnual() { return gerarRelatorioGestao(new Set(["resumo", "lista", "tipos"]), new Date().getFullYear(), 0); }
+window.__evRelAnual = () => opcoesRelatorioGestao();
+window.__evGestaoPDF = gerarRelatorioGestao;
+window.__evDossiePDF = gerarDossiePDF;
+
 
 /* ---------- EDIÇÃO do evento: formulário completo pré-preenchido ---------- */
 window.__evEditar = id => {

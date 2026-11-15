@@ -303,6 +303,12 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
   (4) Menu: Recomendações e Notícias em Investimentos (Início também); "Cadastro" saiu do menu Conta. (5) eventos.html?ev=ID (links do sino)
   abria em branco (escondia o .wrap com o dossiê dentro) → corrigido. layout.js v23, sw v60.
 
+- 15/11/2026 · Claude (pedido do dono): RELATÓRIOS EM PDF COM OPÇÕES. Dossiê do evento (eventos.html → "Dossiê em PDF") abre painel "O que entra no
+  PDF?" com atalhos (EVENTO + EQUIPE, EQUIPE + GASTOS, FINANCEIRO, COMPLETO) e 12 itens (equipe, veículos, presença, valores, cachês, gastos,
+  comprovantes, resultado, checklist, documentos, fotos, relatório). "Relatório anual" virou RELATÓRIO DE GESTÃO (ano + mês, 7 itens: resumo, lista,
+  equipes, cachês por colaborador, gastos por categoria, resultado por evento, tipos/status). Escolha lembrada no aparelho (ui_pdf_dossie/ui_pdf_gestao).
+  Testes de PDF: escala, orçamento, contas, reserva OK; FLUXO "Exportar em PDF" não fazia nada (initExportar nunca era chamado) → corrigido. sw v61.
+
 ## Pendências (dono)
 - [x] (15/11 10:02, dono: "faça tudo") Autorizar a automação de NOTÍCIAS (publica noticias.json no site a cada 2 h) — ATIVA.
 - [ ] Milhas: não existe fonte pública automática; atualizar a referência à mão ou criar tela de ADM para lançar as cotações.
