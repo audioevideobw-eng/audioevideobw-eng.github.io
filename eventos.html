@@ -288,6 +288,9 @@ footer b{color:var(--gold)}
   <div id="evNovoBox" style="margin-top:14px"></div>
   <div id="evDossie" style="margin-top:14px"></div>
   <div id="evEditar" style="margin-top:14px"></div>
+  <h2 style="margin-top:28px">CLIENTES</h2>
+  <div id="cliBox" style="margin-top:14px"></div>
+  <div id="cliFormBox" style="margin-top:14px"></div>
 
 <footer>
     <b>Brightway — BW Audiovisual</b><br>
@@ -298,7 +301,7 @@ footer b{color:var(--gold)}
     Não é recomendação de investimento.
   </footer>
 </div>
-<script src="assets/layout.js?v=22"></script>
+<script src="assets/layout.js?v=23"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="assets/bw-sync.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/pdfmake@0.2.20/build/pdfmake.min.js"></script>
@@ -1412,6 +1415,7 @@ function renderCadastros() {
   /* lê da nuvem (tabela equipe_cadastros, cadastros de CLIENTE) com a sessão do dono */
   const auth = MOD["core/auth"];
   const cred = auth.credenciais();
+  if (!window.supabase) { el.innerHTML = '<div class="note">Sem conexão — os cadastros aparecem quando a internet voltar.</div>'; return; }
   const sb = window.supabase.createClient(cred.url, cred.anon);
   sb.from("equipe_cadastros").select("*").eq("funcao", "cliente").order("criado_em", { ascending: false })
     .then(({ data, error }) => {
@@ -1699,7 +1703,7 @@ const {  enviarTudo  } = MOD['core/nuvem'];
 
 const K_COLAB = "neg_equipe_colaboradores";
 const K_EQUIPES = "neg_equipe_equipes";
-const K_EVENTOS = "neg_equipe_eventos";
+const K_EVENTOS = "neg_eventos";   // 15/11: lista única de eventos (a da página EVENTOS)
 
 const colabs = () => load(K_COLAB, 1, []);
 const equipes = () => load(K_EQUIPES, 1, []);
@@ -1758,7 +1762,7 @@ function renderColaboradores() {
     <div class="frow3" style="margin-top:10px">
       <div><label>Veículo (modelo)</label><input id="cbVeiculo" type="text" placeholder="Ex.: Fiat Toro — usado nos eventos"></div>
       <div><label>Placa</label><input id="cbPlaca" type="text" placeholder="ABC1D23" maxlength="8" style="text-transform:uppercase"></div>
-      <div></div>
+      <div><label>Cor do veículo</label><input id="cbCor" type="text" placeholder="Ex.: prata"></div>
     </div>
     <div class="frow3" style="margin-top:10px">
       <div><label>Nome</label><input id="cbNome" type="text" placeholder="Nome completo"></div>
@@ -1778,7 +1782,7 @@ function renderColaboradores() {
     const m = { id: Date.now(),
       nome: $("#cbNome").value.trim(), funcao: $("#cbFuncao").value.trim(),
       tel: $("#cbTel").value.trim(), email: $("#cbEmail").value.trim(), cpf: $("#cbCPF").value.trim(),
-      veiculo: ($("#cbVeiculo").value || "").trim(), placa: ($("#cbPlaca").value || "").toUpperCase().trim() };
+      veiculo: ($("#cbVeiculo").value || "").trim(), placa: ($("#cbPlaca").value || "").toUpperCase().trim(), cor: ($("#cbCor").value || "").trim() };
     if (!m.nome) { $("#cbMsg").textContent = "Informe ao menos o nome."; return; }
     if (m.cpf && m.cpf.replace(/\D/g, "").length !== 11) { $("#cbMsg").textContent = "CPF incompleto (11 números)."; return; }
     const lista = colabs(); lista.push(m); save(K_COLAB, 1, lista);
@@ -1792,105 +1796,239 @@ function renderColaboradores() {
   };
 }
 
-/* ---------- equipes (grupos) ---------- */
+/* ---------- equipes (grupos) ----------
+   15/11 (Claude, pedido do dono): cada equipe formada agora tem ALTERAR EQUIPE (nome e membros),
+   VEÍCULOS (modelo, placa e cor de cada membro — gravados no cadastro do colaborador, aparecem no
+   PDF da escala) e PDFs DA EQUIPE (bucket PRIVADO eventos-docs, pasta equipe_<id>, registrada na
+   conta com BWSync.registrarAgora; abre por link temporário — PENTE FINO 17). */
+let EQ_MODO = { id: null, tipo: null };   // tipo: "alterar" | "veiculos"
+let EQ_AVISO = "";
+const PASTA_EQ = id => "equipe_" + id;
+const URL_DOCS = "https://zdtnetplvdonogmdvarx.supabase.co/storage/v1/object/public/eventos-docs";
+function avisoEq(t) { EQ_AVISO = t; renderEquipes(); }
+
 function renderEquipes() {
   const box = $("#eqEquipesBox"); if (!box) return;
   const dados = equipes();
-  const nomeColab = id => { const c = colabs().find(x => String(x.id) === String(id)); return c ? c.nome : "?"; };
+  const todos = colabs();
+  const achaColab = id => todos.find(x => String(x.id) === String(id));
+  const veic = c => c && (c.veiculo || c.placa) ? `🚗 ${esc(c.veiculo || "veículo")}${c.placa ? " · " + esc(c.placa) : ""}${c.cor ? " · " + esc(c.cor) : ""}` : "";
+  const cartao = q => {
+    const membros = (q.membros || []).map(achaColab).filter(Boolean);
+    const docs = q.docs || [];
+    const modo = String(EQ_MODO.id) === String(q.id) ? EQ_MODO.tipo : null;
+    let painel = "";
+    if (modo === "alterar") {
+      painel = `<div class="note" style="margin-top:10px">
+        <b>ALTERAR EQUIPE</b>
+        <div class="frow" style="margin-top:6px"><div><label>Nome da equipe</label><input id="eqEdNome" type="text" value="${esc(q.nome)}"></div></div>
+        <div style="display:grid;gap:4px;margin-top:8px">${todos.map(c =>
+          `<label style="display:flex;gap:8px;align-items:center;justify-content:flex-start;text-transform:none;letter-spacing:0;font-size:13px;color:var(--txt,#F5F1EA);margin:0"><input type="checkbox" class="eqEdMembro" style="width:18px;height:18px;min-height:0;flex:none;margin:0" value="${c.id}" ${(q.membros || []).map(String).includes(String(c.id)) ? "checked" : ""}> ${esc(c.nome)} <small style="color:var(--mut)">${esc(c.funcao || "")}</small></label>`).join("")
+          || '<small style="color:var(--mut)">Cadastre colaboradores primeiro.</small>'}</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+          <button class="btn" data-eqsalvar="${q.id}">Salvar alterações</button>
+          <button class="btn gh" data-eqfechar="1">Cancelar</button>
+        </div>
+      </div>`;
+    } else if (modo === "veiculos") {
+      painel = `<div class="note" style="margin-top:10px">
+        <b>VEÍCULOS DA EQUIPE</b>
+        <div class="sub" style="margin-top:2px">O veículo fica no cadastro do colaborador e sai no PDF da escala (útil para liberar a entrada no local).</div>
+        ${membros.length ? membros.map(c => `<div class="frow3" style="margin-top:8px">
+          <div><label>${esc(c.nome)} — veículo (modelo)</label><input type="text" data-vmod="${c.id}" value="${esc(c.veiculo || "")}" placeholder="Ex.: Fiat Toro"></div>
+          <div><label>Placa</label><input type="text" data-vpla="${c.id}" value="${esc(c.placa || "")}" placeholder="ABC1D23" maxlength="8" style="text-transform:uppercase"></div>
+          <div><label>Cor</label><input type="text" data-vcor="${c.id}" value="${esc(c.cor || "")}" placeholder="Ex.: prata"></div>
+        </div>`).join("") : '<div class="note">A equipe não tem membros.</div>'}
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+          <button class="btn" data-vsalvar="${q.id}">Salvar veículos</button>
+          <button class="btn gh" data-eqfechar="1">Cancelar</button>
+        </div>
+      </div>`;
+    }
+    return `<div class="card" style="margin-top:10px;background:var(--navy3)">
+      <b>${esc(q.nome)}</b> <small style="color:var(--mut)">· ${membros.length} membro(s)</small>
+      <div style="margin-top:6px;display:grid;gap:4px">${membros.map(c =>
+        `<div style="font-size:12.5px"><span class="tag mid" style="margin:2px">${esc(c.nome)}</span> <small style="color:var(--mut)">${veic(c)}</small></div>`).join("")}</div>
+      <div style="margin-top:10px"><b style="font-size:12px">PDFs da equipe</b>
+        <div style="margin-top:4px">${docs.length ? docs.map((d, i) =>
+          `<div class="row"><span><a href="${esc(d.url)}" target="_blank" rel="noopener" style="color:var(--gold2)">📄 ${esc(d.nome)}</a></span>
+           <a href="#" data-docdel="${q.id}" data-docidx="${i}" style="color:var(--dn)" title="Remover PDF">✕</a></div>`).join("")
+          : '<small style="color:var(--mut)">Nenhum PDF anexado.</small>'}</div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:6px">
+          <input type="file" accept="application/pdf" data-docarq="${q.id}" style="padding:8px;flex:1;min-width:180px">
+          <button class="btn gh" data-docadd="${q.id}">+ ANEXAR PDF</button>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;align-items:center">
+        <button class="btn gh" data-eqalt="${q.id}">✎ ALTERAR EQUIPE</button>
+        <button class="btn gh" data-eqveic="${q.id}">🚗 VEÍCULOS</button>
+        <a href="#" data-eqdel="${q.id}" style="color:var(--dn)">excluir equipe</a>
+      </div>
+      ${painel}
+    </div>`;
+  };
   box.innerHTML = `<div class="card">
     <div class="colap-titulo" data-colap="equipes">
       <h3>Equipes de trabalho</h3><span class="colap-seta" data-seta="equipes">▶</span>
     </div>
     <div class="sub" style="margin-top:2px">${dados.length} equipe(s) — como grupos: escolha um nome e marque os membros. Toque para revelar/omitir.</div>
     <div class="colap-painel" data-painel="equipes">
-    ${dados.length ? dados.map(q => `<div class="card" style="margin-top:10px;background:var(--navy3)">
-      <b>${esc(q.nome)}</b> <small style="color:var(--mut)">· ${q.membros.length} membro(s)</small>
-      <div style="margin-top:6px">${q.membros.map(id => `<span class="tag mid" style="margin:2px">${esc(nomeColab(id))}</span>`).join("")}</div>
-      <div style="margin-top:8px"><a href="#" onclick="window.__delEquipe('${q.id}');return false" style="color:var(--dn)">excluir equipe</a></div>
-    </div>`).join("") : '<div class="note">Nenhuma equipe criada ainda.</div>'}
+    ${dados.length ? dados.map(cartao).join("") : '<div class="note">Nenhuma equipe criada ainda.</div>'}
+    </div>
     <div class="frow" style="margin-top:10px">
       <div><label>Nome da equipe</label><input id="eqNome" type="text" placeholder="Ex.: Equipe A — Som e imagem"></div>
       <div style="align-self:end"><button class="btn" id="eqAdd">Criar equipe</button></div>
     </div>
     <div style="margin-top:8px"><b style="font-size:12px">Membros (marque os colaboradores):</b>
-      <div style="display:grid;gap:4px;margin-top:6px">${colabs().map(c =>
-        `<label style="display:flex;gap:8px;align-items:center"><input type="checkbox" class="eqMembro" value="${c.id}"> ${esc(c.nome)} <small style="color:var(--mut)">${esc(c.funcao || "")}</small></label>`).join("")
+      <div style="display:grid;gap:4px;margin-top:6px">${todos.map(c =>
+        `<label style="display:flex;gap:8px;align-items:center;justify-content:flex-start;text-transform:none;letter-spacing:0;font-size:13px;color:var(--txt,#F5F1EA);margin:0"><input type="checkbox" class="eqMembro" style="width:18px;height:18px;min-height:0;flex:none;margin:0" value="${c.id}"> ${esc(c.nome)} <small style="color:var(--mut)">${esc(c.funcao || "")}</small></label>`).join("")
         || '<small style="color:var(--mut)">Cadastre colaboradores primeiro.</small>'}</div>
     </div>
-    <div class="note" id="eqMsg"></div>
+    <div class="note" id="eqMsg">${esc(EQ_AVISO)}</div>
   </div>`;
+  EQ_AVISO = "";
+  ligarColapsaveis(box);
+
+  const depois = () => { renderEquipes(); renderEventos(); pagamento.init(); };
   $("#eqAdd").onclick = () => {
     const nome = $("#eqNome").value.trim();
-    const membros = [...document.querySelectorAll(".eqMembro:checked")].map(i => i.value);
+    const membros = [...box.querySelectorAll(".eqMembro:checked")].map(i => i.value);
     if (!nome || !membros.length) { $("#eqMsg").textContent = "Informe o nome e marque ao menos 1 membro."; return; }
-    const lista = equipes(); lista.push({ id: Date.now(), nome, membros }); save(K_EQUIPES, 1, lista);
-    $("#eqMsg").textContent = `Equipe ${nome} criada com ${membros.length} membro(s).`;
-    renderEquipes(); renderEventos();
-    pagamento.init();
+    const lista = equipes(); lista.push({ id: Date.now(), nome, membros, docs: [] }); save(K_EQUIPES, 1, lista);
+    EQ_AVISO = `✓ Equipe criada: ${nome} (${membros.length} membro(s)).`;
+    depois();
   };
-  window.__delEquipe = id => {
-    save(K_EQUIPES, 1, equipes().filter(q => String(q.id) !== String(id)));
-    renderEquipes(); renderEventos();
-    pagamento.init();
-  };
+  box.querySelectorAll("[data-eqalt]").forEach(b => b.onclick = () => { EQ_MODO = { id: b.dataset.eqalt, tipo: "alterar" }; renderEquipes(); });
+  box.querySelectorAll("[data-eqveic]").forEach(b => b.onclick = () => { EQ_MODO = { id: b.dataset.eqveic, tipo: "veiculos" }; renderEquipes(); });
+  box.querySelectorAll("[data-eqfechar]").forEach(b => b.onclick = () => { EQ_MODO = { id: null, tipo: null }; renderEquipes(); });
+  box.querySelectorAll("[data-eqsalvar]").forEach(b => b.onclick = () => {
+    const nome = ($("#eqEdNome").value || "").trim();
+    const membros = [...box.querySelectorAll(".eqEdMembro:checked")].map(i => i.value);
+    if (!nome || !membros.length) { $("#eqMsg").textContent = "Informe o nome e marque ao menos 1 membro."; return; }
+    const lista = equipes(); const q = lista.find(x => String(x.id) === String(b.dataset.eqsalvar)); if (!q) return;
+    q.nome = nome; q.membros = membros; q._ed = Date.now();
+    save(K_EQUIPES, 1, lista);
+    EQ_MODO = { id: null, tipo: null };
+    EQ_AVISO = `✓ Equipe alterada: ${nome} (${membros.length} membro(s)).`;
+    depois();
+  });
+  box.querySelectorAll("[data-vsalvar]").forEach(b => b.onclick = () => {
+    const lista = colabs(); let n = 0;
+    box.querySelectorAll("[data-vmod]").forEach(inp => {
+      const id = inp.dataset.vmod;
+      const c = lista.find(x => String(x.id) === String(id)); if (!c) return;
+      c.veiculo = inp.value.trim();
+      c.placa = ((box.querySelector(`[data-vpla="${id}"]`) || {}).value || "").toUpperCase().trim();
+      c.cor = ((box.querySelector(`[data-vcor="${id}"]`) || {}).value || "").trim();
+      c._ed = Date.now(); if (c.veiculo || c.placa) n++;
+    });
+    save(K_COLAB, 1, lista);
+    EQ_MODO = { id: null, tipo: null };
+    EQ_AVISO = `✓ Veículos salvos (${n} com veículo).`;
+    renderColaboradores(); renderEquipes();
+  });
+  box.querySelectorAll("[data-eqdel]").forEach(a => a.onclick = async ev => {
+    ev.preventDefault();
+    const q = equipes().find(x => String(x.id) === String(a.dataset.eqdel)); if (!q) return;
+    if (!confirm(`Excluir a equipe ${q.nome}?` + ((q.docs || []).length ? " Os PDFs dela também serão apagados." : ""))) return;
+    const sb = window.BWSync && window.BWSync.cliente();
+    if (sb && (q.docs || []).length) { try { await sb.storage.from("eventos-docs").remove(q.docs.map(d => d.caminho).filter(Boolean)); } catch (e) { } }
+    save(K_EQUIPES, 1, equipes().filter(x => String(x.id) !== String(q.id)));
+    EQ_AVISO = `Equipe ${q.nome} excluída.`;
+    depois();
+  });
+  box.querySelectorAll("[data-docadd]").forEach(b => b.onclick = async () => {
+    const id = b.dataset.docadd;
+    const inp = box.querySelector(`[data-docarq="${id}"]`);
+    const f = inp && inp.files && inp.files[0];
+    if (!f) { $("#eqMsg").textContent = "Escolha o arquivo PDF primeiro."; return; }
+    if (!/pdf$/i.test(f.type) && !/\.pdf$/i.test(f.name)) { $("#eqMsg").textContent = "O arquivo precisa ser PDF."; return; }
+    if (f.size > 20 * 1024 * 1024) { $("#eqMsg").textContent = "PDF muito grande (máximo 20 MB)."; return; }
+    const sb = window.BWSync && window.BWSync.cliente();
+    if (!sb || !(await window.BWSync.disponivel())) { $("#eqMsg").textContent = "Entre com sua conta para anexar PDFs."; return; }
+    b.disabled = true; $("#eqMsg").textContent = "Enviando PDF…";
+    /* a pasta da equipe precisa estar registrada como DESTA conta antes do envio (regra 26) */
+    const ok = await window.BWSync.registrarAgora({ eventos: [PASTA_EQ(id)] });
+    if (!ok) { b.disabled = false; $("#eqMsg").textContent = "⚠ Não deu para enviar agora (sem internet ou sem login). Tente de novo."; return; }
+    const nomeLimpo = f.name.normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^\w.-]+/g, "_");
+    const cp = PASTA_EQ(id) + "/" + Date.now() + "_" + nomeLimpo;
+    const up = await sb.storage.from("eventos-docs").upload(cp, f, { contentType: "application/pdf" });
+    b.disabled = false;
+    if (up.error) { $("#eqMsg").textContent = "Erro ao enviar: " + up.error.message; return; }
+    const lista = equipes(); const q = lista.find(x => String(x.id) === String(id));
+    if (!q) return;
+    q.docs = q.docs || [];
+    q.docs.push({ nome: f.name, url: URL_DOCS + "/" + cp, caminho: cp, data: new Date().toISOString().slice(0, 10) });
+    q._ed = Date.now();
+    save(K_EQUIPES, 1, lista);
+    avisoEq(`✓ PDF ${f.name} anexado à equipe ${q.nome}.`);
+  });
+  box.querySelectorAll("[data-docdel]").forEach(a => a.onclick = async ev => {
+    ev.preventDefault();
+    const lista = equipes(); const q = lista.find(x => String(x.id) === String(a.dataset.docdel));
+    const d = q && (q.docs || [])[+a.dataset.docidx]; if (!d) return;
+    if (!confirm(`Remover o PDF ${d.nome}?`)) return;
+    const sb = window.BWSync && window.BWSync.cliente();
+    if (sb && d.caminho) { try { await sb.storage.from("eventos-docs").remove([d.caminho]); } catch (e) { } }
+    q.docs.splice(+a.dataset.docidx, 1); q._ed = Date.now();
+    save(K_EQUIPES, 1, lista);
+    avisoEq(`PDF ${d.nome} removido.`);
+  });
 }
 
-/* ---------- eventos ---------- */
+/* ---------- eventos ----------
+   15/11 (Claude, pedido do dono): UMA lista de eventos só — a da página EVENTOS (neg_eventos).
+   Antes a Gestão de Pessoas tinha a sua própria (neg_equipe_eventos) e o mesmo evento existia duas vezes.
+   PDF da escala, comunicar equipe e link de presença agora ficam no dossiê de cada evento (EVENTOS).
+   A lista antiga é trazida para a nova uma vez (mesmo dia + mesma equipe = o mesmo evento; o id antigo
+   fica em idsAntigos para as confirmações de presença já recebidas continuarem aparecendo). */
+function migrarEventosAntigos() {
+  const antigos = load("neg_equipe_eventos", 1, []);
+  if (!Array.isArray(antigos) || !antigos.length) return 0;
+  const lista = load(K_EVENTOS, 1, []);
+  let n = 0;
+  antigos.forEach(a => {
+    if (lista.some(e => String(e.id) === String(a.id) || (e.idsAntigos || []).map(String).includes(String(a.id)))) return;
+    const igual = lista.find(e => e.data === a.data && String(e.equipeId || "") === String(a.equipeId || "") && a.equipeId);
+    if (igual) {
+      igual.idsAntigos = (igual.idsAntigos || []).concat([String(a.id)]);
+      if (!igual.local && a.local) igual.local = a.local;
+      if (!igual.cliente && a.cliente) igual.cliente = a.cliente;
+    } else {
+      const q = equipes().find(x => String(x.id) === String(a.equipeId));
+      lista.push({ id: a.id, nome: a.nome, data: a.data, local: a.local || "", cliente: a.cliente || "",
+        equipeId: a.equipeId || "", equipeNome: q ? q.nome : "", status: "Confirmado", tipo: "", contratado: 0, recebido: 0 });
+    }
+    n++;
+  });
+  save(K_EVENTOS, 1, lista);
+  save("neg_equipe_eventos", 1, []);
+  return n;
+}
+const idsDoEvento = id => {
+  const e = eventos().find(x => String(x.id) === String(id));
+  return [String(id)].concat(((e && e.idsAntigos) || []).map(String));
+};
+
 function renderEventos() {
   const box = $("#eqEventosBox"); if (!box) return;
-  const dados = eventos().sort((a, b) => (a.data || "").localeCompare(b.data || ""));
   const hoje = new Date().toISOString().slice(0, 10);
+  const prox = eventos().filter(e => (e.data || "") >= hoje).sort((a, b) => (a.data || "").localeCompare(b.data || "")).slice(0, 6);
   box.innerHTML = `<div class="card">
-    <h3>Eventos</h3>
-    <div class="sub">Cada evento recebe uma equipe e gera o PDF da escala. Os alertas chegam no celular (7 dias, 2 dias e no dia).</div>
-    ${dados.length ? dados.map(ev => {
-      const dias = diasAte(ev.data);
+    <h3>Próximos eventos das equipes</h3>
+    <div class="sub">Os eventos ficam em <a href="eventos.html" style="color:var(--gold2)">EVENTOS</a>. No dossiê de cada um: PDF da escala, comunicar a equipe e link de presença.</div>
+    ${prox.length ? prox.map(ev => {
       const eq = equipes().find(q => String(q.id) === String(ev.equipeId));
-      const badge = dias < 0 ? "realizado" : dias === 0 ? "HOJE" : `faltam ${dias} dia(s)`;
-      return `<div class="card" style="margin-top:10px;background:var(--navy3)">
-        <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap">
-          <b>${esc(ev.nome)}</b><span class="tag ${dias < 0 ? "mid" : dias <= 2 ? "dn" : "up"}">${badge}</span>
-        </div>
-        <div style="margin-top:4px;color:var(--mut);font-size:12.5px">
-          📅 ${dataBR(ev.data)} · 📍 ${esc(ev.local || "—")} · 👤 ${esc(ev.cliente || "—")} ·
-          👥 ${eq ? esc(eq.nome) : "sem equipe"}
-        </div>
-        <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
-          <button class="btn gh" onclick="window.__pdfEvento('${ev.id}')">📄 PDF da escala</button>
-          <button class="btn gh" onclick="window.__comunicar('${ev.id}')">💬 Comunicar equipe</button>
-          <button class="btn gh" onclick="window.__linkPresenca('${ev.id}')">🔗 Link de presença</button>
-          <a href="#" onclick="window.__delEvento('${ev.id}');return false" style="color:var(--dn);align-self:center">excluir</a>
-        </div>
-        <div id="com_${ev.id}"></div>
-      </div>`;
-    }).join("") : '<div class="note">Nenhum evento cadastrado.</div>'}
-    <div class="frow3" style="margin-top:12px">
-      <div><label>Nome do evento</label><input id="evNome" type="text" placeholder="Ex.: Casamento — Salão X"></div>
-      <div><label>Data</label><input id="evData" type="date"></div>
-      <div><label>Equipe</label><select id="evEquipe">${equipes().map(q => `<option value="${q.id}">${esc(q.nome)}</option>`).join("") || "<option value=''>—</option>"}</select></div>
-    </div>
-    <div class="frow3">
-      <div><label>Local</label><input id="evLocal" type="text" placeholder="Endereço/local"></div>
-      <div><label>Cliente</label><input id="evCliente" type="text" placeholder="Nome do cliente"></div>
-      <div style="align-self:end"><button class="btn" id="evAdd">Cadastrar evento</button></div>
-    </div>
-    <div class="note" id="evMsg"></div>
+      const dias = diasAte(ev.data);
+      return `<div class="row"><span><b>${esc(ev.nome)}</b> <small style="color:var(--mut)">📅 ${dataBR(ev.data)} · 👥 ${eq ? esc(eq.nome) : "sem equipe"}</small></span>
+        <b><span class="tag ${dias <= 2 ? "dn" : "up"}">${dias === 0 ? "HOJE" : "faltam " + dias + "d"}</span>
+        <a href="eventos.html?ev=${encodeURIComponent(ev.id)}" style="color:var(--gold2);margin-left:8px">abrir ›</a></b></div>`;
+    }).join("") : '<div class="note">Nenhum evento agendado.</div>'}
   </div>`;
-  $("#evAdd").onclick = () => {
-    const ev = { id: Date.now(),
-      nome: $("#evNome").value.trim(), data: $("#evData").value,
-      local: $("#evLocal").value.trim(), cliente: $("#evCliente").value.trim(),
-      equipeId: $("#evEquipe").value };
-    if (!ev.nome || !ev.data) { $("#evMsg").textContent = "Informe nome e data do evento."; return; }
-    if (!ev.equipeId) { $("#evMsg").textContent = "Crie uma equipe antes de cadastrar o evento."; return; }
-    const lista = eventos(); lista.push(ev); save(K_EVENTOS, 1, lista);
-    $("#evMsg").textContent = "Evento cadastrado — os alertas entram no ciclo automático.";
-    renderEventos();
-  };
-  window.__delEvento = id => {
-    save(K_EVENTOS, 1, eventos().filter(e => String(e.id) !== String(id)));
-    renderEventos();
-  };
+}
+
+/* ações do evento (usadas no dossiê da página EVENTOS) */
+function ligarAcoesEvento() {
   window.__pdfEvento = id => gerarPDFEvento(id);
   window.__comunicar = id => comunicar(id);
   window.__linkPresenca = async id => {
@@ -1915,12 +2053,12 @@ function renderEventos() {
   };
   window.__copiarPresenca = id => {
     const inp = document.querySelector("#com_" + id + " input");
-    if (inp) { inp.select(); navigator.clipboard.writeText(inp.value).then(() => { inp.value = "Copiado! Cole no grupo."; setTimeout(() => location.reload(), 800); }); }
+    if (inp) { inp.select(); const v = inp.value; navigator.clipboard.writeText(v).then(() => { inp.value = "Copiado! Cole no grupo."; setTimeout(() => { inp.value = v; }, 1500); }); }
   };
   window.__verPresencas = async id => {
     const c = credenciais();
     const sb = window.supabase.createClient(c.url, c.anon);
-    const { data } = await sb.from("equipe_presenca").select("*").eq("evento_id", String(id));
+    const { data } = await sb.from("equipe_presenca").select("*").in("evento_id", idsDoEvento(id));
     const el = $("#presencas_" + id);
     if (!el) return;
     if (!data || !data.length) { el.innerHTML = '<div class="note">Nenhuma resposta ainda.</div>'; return; }
@@ -1954,12 +2092,13 @@ async function gerarPDFEvento(id) {
   try {
     const c = credenciais();
     const sb = window.supabase.createClient(c.url, c.anon);
-    const { data } = await sb.from("equipe_presenca").select("*").eq("evento_id", String(id));
+    const { data } = await sb.from("equipe_presenca").select("*").in("evento_id", idsDoEvento(id));
     presencas = data || [];
   } catch (e) { }
   const corpo = [
-    ["Nome", "Função", "Telefone", "E-mail", "CPF"].map(t => ({ text: t, bold: true, color: "#fff", fillColor: "#0b1220", fontSize: 8 })),
-    ...membros.map(m => [m.nome, m.funcao || "—", m.tel || "—", m.email || "—", m.cpf || "—"]
+    ["Nome", "Função", "Telefone", "E-mail", "CPF", "Veículo"].map(t => ({ text: t, bold: true, color: "#fff", fillColor: "#0b1220", fontSize: 8 })),
+    ...membros.map(m => [m.nome, m.funcao || "—", m.tel || "—", m.email || "—", m.cpf || "—",
+      (m.veiculo || m.placa) ? [m.veiculo, m.placa, m.cor].filter(Boolean).join(" · ") : "—"]
       .map(v => ({ text: String(v), fontSize: 9 }))),
   ];
   const ficha = [
@@ -1978,7 +2117,7 @@ async function gerarPDFEvento(id) {
       { text: `Evento: ${ev.nome}`, color: "#55627a", margin: [0, 0, 0, 12] },
       { table: { widths: ["22%", "78%"], body: ficha }, margin: [0, 0, 0, 14] },
       { text: "Equipe de trabalho", bold: true, margin: [0, 0, 0, 6] },
-      ...(membros.length ? [{ table: { widths: ["25%", "20%", "20%", "20%", "15%"], body: corpo, headerRows: 1 } }]
+      ...(membros.length ? [{ table: { widths: ["20%", "13%", "15%", "20%", "14%", "18%"], body: corpo, headerRows: 1 } }]
         : [{ text: "A equipe não tem membros cadastrados.", italics: true, color: "#8a93a6" }]),
       ...(presencas.length ? [
         { text: "Confirmações de presença", bold: true, margin: [0, 16, 0, 6] },
@@ -2299,7 +2438,7 @@ function modoCadastro() {
       $("#fNome").value = ""; $("#fFuncao").value = ""; $("#fTel").value = "";
       $("#fEmail").value = ""; $("#fCPF").value = "";
     } catch (e) {
-      $("#fMsg").textContent = "Não consegui enviar (" + (e.message || e) + "). Tente novamente ou avise o administrador.";
+      $("#fMsg").textContent = /LINK_INVALIDO/.test(e.message || "") ? "Este link não está mais ativo. Peça um novo link a quem te enviou." : "Não consegui enviar (" + (e.message || e) + "). Tente novamente ou avise o administrador.";
     }
   };
   return true;
@@ -2307,6 +2446,8 @@ function modoCadastro() {
 
 function init() {
   if (modoCadastro()) return;   // modo do colaborador: só o formulário
+  migrarEventosAntigos();
+  ligarAcoesEvento();
   pagamento.init();
   clientes.init();
   renderColaboradores();
@@ -2318,7 +2459,7 @@ function init() {
   ligarColapsaveis();
 }
 
-return { comunicar, diasAte, gerarPDFEvento, init, initFormulario, initPlanilha, initSync, maskCPF, maskTel, modoCadastro, renderColaboradores, renderEquipes, renderEventos, telWa };
+return { comunicar, diasAte, gerarPDFEvento, init, ligarAcoesEvento, migrarEventosAntigos, initFormulario, initPlanilha, initSync, maskCPF, maskTel, modoCadastro, renderColaboradores, renderEquipes, renderEventos, telWa };
 })();
 /* ===== modules/eventos.js ===== */
 MOD['modules/eventos'] = (function() {
@@ -2385,8 +2526,10 @@ function modoPaginaUnica() {
   if (!id) return false;
   const e = eventos().find(x => String(x.id) === String(id));
   if (!e) return false;
+  /* 15/11: antes escondia o .wrap inteiro — e o dossiê está DENTRO dele → página em branco (links do sino AVISOS).
+     Agora esconde só o resto da página e deixa o dossiê. */
   const main = document.querySelector(".wrap");
-  if (main) main.style.display = "none";
+  if (main) [...main.children].forEach(el => { if (el.id !== "evDossie" && el.tagName !== "FOOTER") el.style.display = "none"; });
   const d = $("#evDossie");
   if (d) {
     d.style.marginTop = "0";
@@ -2397,6 +2540,7 @@ function modoPaginaUnica() {
 }
 
 function init() {
+  equipe.migrarEventosAntigos();   // 15/11: lista única de eventos
   if (modoPaginaUnica()) return;
   render();
   wireFormulario();
@@ -2714,9 +2858,15 @@ function abrirDossie(id) {
       <div id="dAvaliacao"></div>
     </div>
     <div style="margin-top:14px;border-top:1px solid var(--line);padding-top:12px">
-      <h3>Equipe (da Gestão de Pessoas)</h3>
-      ${membros.length ? membros.map(m => `<div class="row"><span>${esc(m.nome)} <small style="color:var(--mut)">${esc(m.funcao || "")}</small></span><b>${m.tel ? `<a href="https://wa.me/55${(m.tel || "").replace(/\D/g, "")}" style="color:var(--gold2)">💬</a>` : ""}</b></div>`).join("")
+      <h3>Equipe (da Gestão de Pessoas)${eq ? " — " + esc(eq.nome) : ""}</h3>
+      ${membros.length ? membros.map(m => `<div class="row"><span>${esc(m.nome)} <small style="color:var(--mut)">${esc(m.funcao || "")}${m.veiculo || m.placa ? " · 🚗 " + esc([m.veiculo, m.placa].filter(Boolean).join(" ")) : ""}</small></span><b>${m.tel ? `<a href="https://wa.me/55${(m.tel || "").replace(/\D/g, "")}" style="color:var(--gold2)">💬</a>` : ""}</b></div>`).join("")
         : '<div class="note">A equipe selecionada não tem membros.</div>'}
+      <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn gh" onclick="window.__pdfEvento('${e.id}')">📄 PDF DA ESCALA</button>
+        <button class="btn gh" onclick="window.__comunicar('${e.id}')">💬 COMUNICAR EQUIPE</button>
+        <button class="btn gh" onclick="window.__linkPresenca('${e.id}')">🔗 LINK DE PRESENÇA</button>
+      </div>
+      <div id="com_${e.id}"></div>
     </div>
     <div style="margin-top:14px;border-top:1px solid var(--line);padding-top:12px">
       <h3>✅ Checklist de produção</h3>
@@ -2799,6 +2949,7 @@ function abrirDossie(id) {
     return '<a href="#' + p[0] + '" class="bw-chip bw-chip--ambar" style="text-decoration:none">' + p[1] + '</a>';
   }).join("");
   box.insertBefore(nav, cab.nextSibling);
+  equipe.ligarAcoesEvento();
   wireChecklist(e);
   wireMidia(e);
   wireGastos(e);
@@ -3030,9 +3181,28 @@ function wireVeiculos(e) {
     '<div><label>Placa</label><input id="vPlaca" type="text" placeholder="ABC1D23" maxlength="8" style="text-transform:uppercase"></div>' +
     '<div><label>Modelo</label><input id="vModelo" type="text" placeholder="Ex.: Fiat Toro"></div>' +
     '<div><label>Motorista</label><input id="vMotorista" type="text" placeholder="Quem dirige"></div></div>' +
-    '<button class="btn gh" id="vAdd" style="margin-top:8px">+ Cadastrar veículo</button>' +
+    '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"><button class="btn gh" id="vAdd">+ Cadastrar veículo</button>' +
+    '<button class="btn gh" id="vEquipe" title="Traz modelo, placa e motorista dos membros da equipe deste evento (cadastro na Gestão de Pessoas)">⇩ PUXAR DA EQUIPE</button></div>' +
     '<div id="vBox" style="margin-top:8px"></div>';
   renderV();
+  /* 15/11 (Claude): os veículos dos colaboradores (Gestão de Pessoas → VEÍCULOS) entram aqui com um toque */
+  document.querySelector("#vEquipe").onclick = () => {
+    const l2 = eventos();
+    const alvo = l2.find(x => String(x.id) === String(e.id)); if (!alvo) return;
+    const q = load("neg_equipe_equipes", 1, []).find(x => String(x.id) === String(alvo.equipeId));
+    const cs = load("neg_equipe_colaboradores", 1, []);
+    const membros = ((q && q.membros) || []).map(mid => cs.find(c => String(c.id) === String(mid))).filter(c => c && c.placa);
+    alvo.veiculos = alvo.veiculos || [];
+    let n = 0;
+    membros.forEach(c => {
+      if (alvo.veiculos.some(v => (v.placa || "").toUpperCase() === c.placa.toUpperCase())) return;
+      alvo.veiculos.push({ placa: c.placa.toUpperCase(), modelo: [c.veiculo, c.cor].filter(Boolean).join(" · "), motorista: c.nome }); n++;
+    });
+    if (n) salvarEventos(l2);
+    renderV();
+    document.querySelector("#vBox").insertAdjacentHTML("afterbegin", '<div class="note">' + (n ? "✓ " + n + " veículo(s) da equipe adicionado(s)." :
+      (q ? "Nenhum veículo novo — cadastre em GESTÃO DE PESSOAS → Equipes → VEÍCULOS." : "Este evento não tem equipe.")) + "</div>");
+  };
   document.querySelector("#vAdd").onclick = () => {
     const placa = (document.querySelector("#vPlaca").value || "").toUpperCase().trim();
     if (!placa) { document.querySelector("#vBox").innerHTML = '<div class="note">Informe a placa.</div>'; return; }
@@ -3682,6 +3852,7 @@ const {  stamp  } = MOD['core/ui'];
 (async function boot() {
   const ok = await bootComum();
   eventos.init();
+  MOD['modules/clientes'].init();   // 15/11: Clientes saiu da Gestão de Pessoas e veio para EVENTOS
   if (!ok) { avisoSemDados(); return; }
   stamp(data.DATA);
   const render = async () => eventos.init();

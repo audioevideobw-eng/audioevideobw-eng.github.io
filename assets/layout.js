@@ -63,18 +63,18 @@
   var SUBPAGINAS = {
     negocio: [["negocio","Ferramentas do negócio"],["financeiro-painel","Painel Financeiro"],["eventos","Eventos"],["equipe","Gestão de pessoas"],["leitor","Leitor de comprovantes"],["preco","Calculadora de preço"],["fluxo","Fluxo de caixa"]],
     casa: [["orcamento","Orçamento familiar"],["contas","Contas a pagar"],["reserva","Reserva de emergência"]],
-    invest: [["investimentos-painel","Painel de Investimentos"],["cambio","Câmbio"],["evento","Evento no exterior"],["milhas","Mercado de milhas"],["meta","Meta de milhas"]],
+    invest: [["investimentos-painel","Painel de Investimentos"],["cambio","Câmbio"],["evento","Evento no exterior"],["milhas","Mercado de milhas"],["meta","Meta de milhas"],["recs","★ Recomendações"],["noticias","Notícias"]],
     mkt: [["marketing","Todas de marketing"],["assistente","Assistente de texto"],["transcricao","Transcrição e legendas"]],
-    ferr: [["ferramentas","Todas as ferramentas"],["pdf","PDF"],["recs","★ Recomendações"],["noticias","Notícias"],["dados","Meus dados"]],
-    conta: [["login","Acesso"],["cadastro","Cadastro"],["configadm","Configuração"]]
+    ferr: [["ferramentas","Todas as ferramentas"],["pdf","PDF"],["dados","Meus dados"]],
+    conta: [["login","Acesso"],["configadm","Configuração"]]
   };
   function categoriaDe(p){
     if (p === "index") return "inicio";
     if (["negocio","financeiro-painel","eventos","equipe","leitor","preco","fluxo","custos"].indexOf(p) > -1) return "negocio";
     if (["orcamento","casa","contas","reserva"].indexOf(p) > -1) return "casa";
-    if (["investimentos-painel","cambio","comparador","serie","calc","viagem","diario","alertas","evento","milhas","meta","invest"].indexOf(p) > -1) return "invest";
+    if (["investimentos-painel","cambio","comparador","serie","calc","viagem","diario","alertas","evento","milhas","meta","invest","recs","noticias"].indexOf(p) > -1) return "invest";
     if (["marketing","assistente","transcricao"].indexOf(p) > -1) return "mkt";
-    if (["ferramentas","pdf","recs","noticias","dados"].indexOf(p) > -1) return "ferr";
+    if (["ferramentas","pdf","dados"].indexOf(p) > -1) return "ferr";
     return "conta";
   }
   var CAT = categoriaDe(PAGINA);

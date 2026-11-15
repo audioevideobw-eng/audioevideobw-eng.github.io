@@ -281,10 +281,8 @@ footer b{color:var(--gold)}
   <h2 id="equipe" style="margin-top:0">GESTÃO DE PESSOAS</h2>
   <div class="card">
     <h3>Equipes para eventos</h3>
-    <div class="sub">Cadastre colaboradores, monte equipes (como grupos) e organize os eventos. Cada evento gera o PDF da escala, dispara alertas no celular e permite comunicar a equipe. Cachês, pagamentos e custos de evento ficam em <a href="custos.html" style="color:var(--gold2)">FLUXO DE CAIXA → CACHÊS E CUSTOS</a>.</div>
+    <div class="sub">Cadastre colaboradores (com veículo) e monte as equipes. Os eventos, a escala em PDF e a presença ficam em <a href="eventos.html" style="color:var(--gold2)">EVENTOS</a>; clientes também. Cachês, pagamentos e custos de evento ficam em <a href="custos.html" style="color:var(--gold2)">FLUXO DE CAIXA → CACHÊS E CUSTOS</a>.</div>
   </div>
-  <div id="cliBox" style="margin-top:14px"></div>
-  <div id="cliFormBox" style="margin-top:14px"></div>
   <div id="eqColabBox"></div>
   <div id="eqFormBox" style="margin-top:14px"></div>
   <div id="eqEquipesBox" style="margin-top:14px"></div>
@@ -299,7 +297,7 @@ footer b{color:var(--gold)}
     Não é recomendação de investimento.
   </footer>
 </div>
-<script src="assets/layout.js?v=22"></script>
+<script src="assets/layout.js?v=23"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="assets/bw-sync.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/pdfmake@0.2.20/build/pdfmake.min.js"></script>
@@ -1640,6 +1638,7 @@ function renderCadastros() {
   /* lê da nuvem (tabela equipe_cadastros, cadastros de CLIENTE) com a sessão do dono */
   const auth = MOD["core/auth"];
   const cred = auth.credenciais();
+  if (!window.supabase) { el.innerHTML = '<div class="note">Sem conexão — os cadastros aparecem quando a internet voltar.</div>'; return; }
   const sb = window.supabase.createClient(cred.url, cred.anon);
   sb.from("equipe_cadastros").select("*").eq("funcao", "cliente").order("criado_em", { ascending: false })
     .then(({ data, error }) => {
@@ -1697,7 +1696,7 @@ const {  enviarTudo  } = MOD['core/nuvem'];
 
 const K_COLAB = "neg_equipe_colaboradores";
 const K_EQUIPES = "neg_equipe_equipes";
-const K_EVENTOS = "neg_equipe_eventos";
+const K_EVENTOS = "neg_eventos";   // 15/11: lista única de eventos (a da página EVENTOS)
 
 const colabs = () => load(K_COLAB, 1, []);
 const equipes = () => load(K_EQUIPES, 1, []);
@@ -1970,62 +1969,59 @@ function renderEquipes() {
   });
 }
 
-/* ---------- eventos ---------- */
+/* ---------- eventos ----------
+   15/11 (Claude, pedido do dono): UMA lista de eventos só — a da página EVENTOS (neg_eventos).
+   Antes a Gestão de Pessoas tinha a sua própria (neg_equipe_eventos) e o mesmo evento existia duas vezes.
+   PDF da escala, comunicar equipe e link de presença agora ficam no dossiê de cada evento (EVENTOS).
+   A lista antiga é trazida para a nova uma vez (mesmo dia + mesma equipe = o mesmo evento; o id antigo
+   fica em idsAntigos para as confirmações de presença já recebidas continuarem aparecendo). */
+function migrarEventosAntigos() {
+  const antigos = load("neg_equipe_eventos", 1, []);
+  if (!Array.isArray(antigos) || !antigos.length) return 0;
+  const lista = load(K_EVENTOS, 1, []);
+  let n = 0;
+  antigos.forEach(a => {
+    if (lista.some(e => String(e.id) === String(a.id) || (e.idsAntigos || []).map(String).includes(String(a.id)))) return;
+    const igual = lista.find(e => e.data === a.data && String(e.equipeId || "") === String(a.equipeId || "") && a.equipeId);
+    if (igual) {
+      igual.idsAntigos = (igual.idsAntigos || []).concat([String(a.id)]);
+      if (!igual.local && a.local) igual.local = a.local;
+      if (!igual.cliente && a.cliente) igual.cliente = a.cliente;
+    } else {
+      const q = equipes().find(x => String(x.id) === String(a.equipeId));
+      lista.push({ id: a.id, nome: a.nome, data: a.data, local: a.local || "", cliente: a.cliente || "",
+        equipeId: a.equipeId || "", equipeNome: q ? q.nome : "", status: "Confirmado", tipo: "", contratado: 0, recebido: 0 });
+    }
+    n++;
+  });
+  save(K_EVENTOS, 1, lista);
+  save("neg_equipe_eventos", 1, []);
+  return n;
+}
+const idsDoEvento = id => {
+  const e = eventos().find(x => String(x.id) === String(id));
+  return [String(id)].concat(((e && e.idsAntigos) || []).map(String));
+};
+
 function renderEventos() {
   const box = $("#eqEventosBox"); if (!box) return;
-  const dados = eventos().sort((a, b) => (a.data || "").localeCompare(b.data || ""));
   const hoje = new Date().toISOString().slice(0, 10);
+  const prox = eventos().filter(e => (e.data || "") >= hoje).sort((a, b) => (a.data || "").localeCompare(b.data || "")).slice(0, 6);
   box.innerHTML = `<div class="card">
-    <h3>Eventos</h3>
-    <div class="sub">Cada evento recebe uma equipe e gera o PDF da escala. Os alertas chegam no celular (7 dias, 2 dias e no dia).</div>
-    ${dados.length ? dados.map(ev => {
-      const dias = diasAte(ev.data);
+    <h3>Próximos eventos das equipes</h3>
+    <div class="sub">Os eventos ficam em <a href="eventos.html" style="color:var(--gold2)">EVENTOS</a>. No dossiê de cada um: PDF da escala, comunicar a equipe e link de presença.</div>
+    ${prox.length ? prox.map(ev => {
       const eq = equipes().find(q => String(q.id) === String(ev.equipeId));
-      const badge = dias < 0 ? "realizado" : dias === 0 ? "HOJE" : `faltam ${dias} dia(s)`;
-      return `<div class="card" style="margin-top:10px;background:var(--navy3)">
-        <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap">
-          <b>${esc(ev.nome)}</b><span class="tag ${dias < 0 ? "mid" : dias <= 2 ? "dn" : "up"}">${badge}</span>
-        </div>
-        <div style="margin-top:4px;color:var(--mut);font-size:12.5px">
-          📅 ${dataBR(ev.data)} · 📍 ${esc(ev.local || "—")} · 👤 ${esc(ev.cliente || "—")} ·
-          👥 ${eq ? esc(eq.nome) : "sem equipe"}
-        </div>
-        <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
-          <button class="btn gh" onclick="window.__pdfEvento('${ev.id}')">📄 PDF da escala</button>
-          <button class="btn gh" onclick="window.__comunicar('${ev.id}')">💬 Comunicar equipe</button>
-          <button class="btn gh" onclick="window.__linkPresenca('${ev.id}')">🔗 Link de presença</button>
-          <a href="#" onclick="window.__delEvento('${ev.id}');return false" style="color:var(--dn);align-self:center">excluir</a>
-        </div>
-        <div id="com_${ev.id}"></div>
-      </div>`;
-    }).join("") : '<div class="note">Nenhum evento cadastrado.</div>'}
-    <div class="frow3" style="margin-top:12px">
-      <div><label>Nome do evento</label><input id="evNome" type="text" placeholder="Ex.: Casamento — Salão X"></div>
-      <div><label>Data</label><input id="evData" type="date"></div>
-      <div><label>Equipe</label><select id="evEquipe">${equipes().map(q => `<option value="${q.id}">${esc(q.nome)}</option>`).join("") || "<option value=''>—</option>"}</select></div>
-    </div>
-    <div class="frow3">
-      <div><label>Local</label><input id="evLocal" type="text" placeholder="Endereço/local"></div>
-      <div><label>Cliente</label><input id="evCliente" type="text" placeholder="Nome do cliente"></div>
-      <div style="align-self:end"><button class="btn" id="evAdd">Cadastrar evento</button></div>
-    </div>
-    <div class="note" id="evMsg"></div>
+      const dias = diasAte(ev.data);
+      return `<div class="row"><span><b>${esc(ev.nome)}</b> <small style="color:var(--mut)">📅 ${dataBR(ev.data)} · 👥 ${eq ? esc(eq.nome) : "sem equipe"}</small></span>
+        <b><span class="tag ${dias <= 2 ? "dn" : "up"}">${dias === 0 ? "HOJE" : "faltam " + dias + "d"}</span>
+        <a href="eventos.html?ev=${encodeURIComponent(ev.id)}" style="color:var(--gold2);margin-left:8px">abrir ›</a></b></div>`;
+    }).join("") : '<div class="note">Nenhum evento agendado.</div>'}
   </div>`;
-  $("#evAdd").onclick = () => {
-    const ev = { id: Date.now(),
-      nome: $("#evNome").value.trim(), data: $("#evData").value,
-      local: $("#evLocal").value.trim(), cliente: $("#evCliente").value.trim(),
-      equipeId: $("#evEquipe").value };
-    if (!ev.nome || !ev.data) { $("#evMsg").textContent = "Informe nome e data do evento."; return; }
-    if (!ev.equipeId) { $("#evMsg").textContent = "Crie uma equipe antes de cadastrar o evento."; return; }
-    const lista = eventos(); lista.push(ev); save(K_EVENTOS, 1, lista);
-    $("#evMsg").textContent = "Evento cadastrado — os alertas entram no ciclo automático.";
-    renderEventos();
-  };
-  window.__delEvento = id => {
-    save(K_EVENTOS, 1, eventos().filter(e => String(e.id) !== String(id)));
-    renderEventos();
-  };
+}
+
+/* ações do evento (usadas no dossiê da página EVENTOS) */
+function ligarAcoesEvento() {
   window.__pdfEvento = id => gerarPDFEvento(id);
   window.__comunicar = id => comunicar(id);
   window.__linkPresenca = async id => {
@@ -2050,12 +2046,12 @@ function renderEventos() {
   };
   window.__copiarPresenca = id => {
     const inp = document.querySelector("#com_" + id + " input");
-    if (inp) { inp.select(); navigator.clipboard.writeText(inp.value).then(() => { inp.value = "Copiado! Cole no grupo."; setTimeout(() => location.reload(), 800); }); }
+    if (inp) { inp.select(); const v = inp.value; navigator.clipboard.writeText(v).then(() => { inp.value = "Copiado! Cole no grupo."; setTimeout(() => { inp.value = v; }, 1500); }); }
   };
   window.__verPresencas = async id => {
     const c = credenciais();
     const sb = window.supabase.createClient(c.url, c.anon);
-    const { data } = await sb.from("equipe_presenca").select("*").eq("evento_id", String(id));
+    const { data } = await sb.from("equipe_presenca").select("*").in("evento_id", idsDoEvento(id));
     const el = $("#presencas_" + id);
     if (!el) return;
     if (!data || !data.length) { el.innerHTML = '<div class="note">Nenhuma resposta ainda.</div>'; return; }
@@ -2089,7 +2085,7 @@ async function gerarPDFEvento(id) {
   try {
     const c = credenciais();
     const sb = window.supabase.createClient(c.url, c.anon);
-    const { data } = await sb.from("equipe_presenca").select("*").eq("evento_id", String(id));
+    const { data } = await sb.from("equipe_presenca").select("*").in("evento_id", idsDoEvento(id));
     presencas = data || [];
   } catch (e) { }
   const corpo = [
@@ -2443,6 +2439,8 @@ function modoCadastro() {
 
 function init() {
   if (modoCadastro()) return;   // modo do colaborador: só o formulário
+  migrarEventosAntigos();
+  ligarAcoesEvento();
   pagamento.init();
   clientes.init();
   renderColaboradores();
@@ -2454,7 +2452,7 @@ function init() {
   ligarColapsaveis();
 }
 
-return { comunicar, diasAte, gerarPDFEvento, init, initFormulario, initPlanilha, initSync, maskCPF, maskTel, modoCadastro, renderColaboradores, renderEquipes, renderEventos, telWa };
+return { comunicar, diasAte, gerarPDFEvento, init, ligarAcoesEvento, migrarEventosAntigos, initFormulario, initPlanilha, initSync, maskCPF, maskTel, modoCadastro, renderColaboradores, renderEquipes, renderEventos, telWa };
 })();
 /* ===== equipe_main.js ===== */
 MOD['equipe_main'] = (function() {
