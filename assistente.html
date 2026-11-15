@@ -192,7 +192,7 @@
       '    if (d.tipo === "carregar") { await carregar(); postMessage({ tipo: "pronto" }); return; }',
       '    const g = await carregar();',
       '    const streamer = new TextStreamer(g.tokenizer, { skip_prompt: true, skip_special_tokens: true, callback_function: (t) => postMessage({ tipo: "parte", id: d.id, t }) });',
-      '    const out = await g(d.mensagens, { max_new_tokens: d.max || 450, do_sample: true, temperature: 0.3, top_p: 0.85, repetition_penalty: 1.1, streamer });',
+      '    const out = await g(d.mensagens, { max_new_tokens: d.max || 450, do_sample: false, repetition_penalty: 1.1, streamer });',
       '    const r = out[0].generated_text; postMessage({ tipo: "fim", id: d.id, texto: Array.isArray(r) ? r[r.length - 1].content : String(r) });',
       '  } catch (e) { postMessage({ tipo: "erro", id: d.id, msg: String(e && e.message || e) }); }',
       '};'
@@ -273,6 +273,14 @@
     } catch (e) { return null; }
   }
 
+  /* a IA pequena erra números se não forem lembrados de forma explícita (teste 14/11: "800 pessoas" virava "300") */
+  function reforcarDados(p) {
+    if (["legenda", "email", "ideias"].indexOf(MODO) < 0) return p;
+    var entrada = [].map.call(document.querySelectorAll("[data-form]:not([hidden]) input, [data-form]:not([hidden]) textarea"), function (e) { return e.value; }).join(" ");
+    var dados = entrada.match(/R\$\s?\d[\d.,]*|\d[\d.,]*\s*%|\d{1,2}\/\d{1,2}(\/\d{2,4})?|\d[\d.,]*\s+[A-Za-zÀ-ú]+/g) || [];
+    dados = dados.map(function (d) { return d.trim(); }).filter(function (d, i, a) { return a.indexOf(d) === i; }).slice(0, 12);
+    return dados.length ? p + "\nCopie exatamente estes dados, sem mudar: " + dados.join("; ") + "." : p;
+  }
   $("btnGerar").onclick = async function () {
     var p = pedido();
     if (!p) { $("aviso").textContent = "Preencha o campo de texto primeiro."; return; }
@@ -286,7 +294,7 @@
       if (["resumo", "revisar"].indexOf(MODO) > -1) { $("aviso").textContent = "Para resumir e revisar é preciso a IA — ative a IA no aparelho no topo (ou use o Chrome do computador)."; return; }
       comecar(); terminar(modeloPronto()); $("aviso").textContent = "Modelo pronto preenchido com o que você escreveu — ajuste à vontade."; return;
     }
-    comecar(); var id = ++pedidoN;
+    comecar(); var id = ++pedidoN; p = reforcarDados(p);
     if (MOTOR === "chrome") {
       try {
         if (!sessaoChrome) sessaoChrome = await LanguageModel.create({initialPrompts: [{role: "system", content: SISTEMA}]});
