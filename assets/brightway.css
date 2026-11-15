@@ -532,3 +532,7 @@ html:not(.bw-admin) .so-admin{display:none!important}
   #bwKpis .valor{font-size:20px}
   #bwKpis .rotulo>span:last-child{width:28px!important;height:28px!important}
 }
+
+/* 15/11: botão MANUAL DO USUÁRIO no menu (mesmo visual do ENVIAR FEEDBACK, mas é link) */
+.bw-manual{text-decoration:none;box-sizing:border-box}
+.bw-manual:hover{text-decoration:none}
