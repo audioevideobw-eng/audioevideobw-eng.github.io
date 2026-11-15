@@ -291,7 +291,7 @@ footer b{color:var(--gold)}
     </div>
     <div class="card">
       <h3>Busca e backup</h3>
-      <div class="sub">Busca em todas as coleções e em todos os campos. Exporta CSV para Excel.</div>
+      <div class="sub">Busca em todas as coleções e em todos os campos. Baixa em CSV para abrir no Excel.</div>
       <label>Buscar</label>
       <input id="ddBusca" placeholder="Digite um nome, telefone, número…">
       <button class="btn gh" id="ddExp" style="margin-top:12px">Baixar tudo em CSV</button>
@@ -998,8 +998,6 @@ function render(busca = "") {
       </div>
       <button class="btn" data-ddadd="${col.id}">Registrar</button>
       <button class="btn gh" data-ddcsv="${col.id}" style="margin-left:8px">Baixar CSV</button>
-      <button class="btn gh" data-ddimp="${col.id}" style="margin-left:8px">Importar CSV</button>
-      <input type="file" accept=".csv,text/csv" data-ddfile="${col.id}" style="display:none">
       <span class="tag neu" style="margin-left:8px">${meus.length} registro(s)</span>`;
 
     html += colapsavel("col_" + col.id, `${col.nome}`, corpo, `data-colid="${col.id}"`);

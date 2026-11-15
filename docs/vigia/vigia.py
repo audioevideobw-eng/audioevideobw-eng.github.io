@@ -188,6 +188,16 @@ if "urlSegura" not in sync:
     problemas.append("assets/bw-sync.js: sem urlSegura (documentos privados não abrem)")
 if "html:not(.bw-admin) .so-admin" not in css:
     problemas.append("assets/brightway.css: sem a regra que esconde itens de admin")
+# 7.7c planilha só entra pelo PAINEL FINANCEIRO (regra do dono, 14/11); recs.html = carteira de investimentos (decisão pendente)
+for p, t in todos.items():
+    if p in ("financeiro-painel.html", "recs.html"):
+        continue
+    if re.search(r'type="file"[^>]*accept="[^"]*(csv|xlsx|xls)', t) or re.search(r'accept="[^"]*(csv|xlsx)[^"]*"[^>]*type="file"', t):
+        problemas.append(f"{p}: envio de planilha fora do PAINEL FINANCEIRO (regra: só o painel recebe planilha)")
+    for caixa in ("orcPlanilha", "negPlanilha", "eqPlanilhaBox", "orcSync", "ctSync", "rsSync", "negSync"):
+        if f'id="{caixa}"' in t:
+            problemas.append(f"{p}: caixa #{caixa} voltou (planilha/sincronizar manual — removida em 14/11)")
+
 fp = todos.get("financeiro-painel.html", "")
 if fp:
     for trecho, msg in [('ler("neg_fluxo")', "não lê os lançamentos da plataforma (neg_fluxo)"),
