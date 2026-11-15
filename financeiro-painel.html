@@ -410,7 +410,7 @@ input.busca{font:inherit;font-size:13px;background:var(--navy2);color:var(--txt)
       var k = nomeCliente(r.quem); porCli[k] = porCli[k] || {v: 0, n: 0}; porCli[k].v += r.valor; porCli[k].n++;
     });
     var cli = Object.keys(porCli).map(function (k) { return {nome: k, v: porCli[k].v, n: porCli[k].n}; }).sort(function (a, b) { return b.v - a.v; });
-    var top2 = cli.slice(0, 2).reduce(function (s, x) { return s + x.v; }, 0);
+    var top2 = cli.filter(function (x) { return x.nome !== "Outras entradas"; }).slice(0, 2).reduce(function (s, x) { return s + x.v; }, 0);
     var p = function (v) { return receita ? v / receita * 100 : 0; };
     anel("aMargem", p(lucro), "#3ecf8e");
     anel("aEquip", p(equip), "#a78bfa");
