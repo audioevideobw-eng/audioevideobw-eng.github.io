@@ -1046,6 +1046,8 @@ const {  stamp  } = MOD['core/ui'];
 const {  $  } = MOD['core/format'];
 
 (async function boot() {
+  /* 15/11: sempre tenta as manchetes mais novas (a automação do GitHub atualiza noticias.json a cada 2 h) */
+  try { const r = await fetch("noticias.json?t=" + Date.now(), { cache: "no-store" }); if (r.ok) { const j = await r.json(); if (j && j.noticias && j.noticias.length) window.__NOTICIAS = j; } } catch (e) { }
   const ok = await bootComum();
   if (!ok) { avisoSemDados(); noticias.init(); return; }
   noticias.init();
