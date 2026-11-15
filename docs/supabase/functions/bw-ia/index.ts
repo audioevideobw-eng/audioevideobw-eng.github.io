@@ -1,0 +1,66 @@
+// IA Brightway (Edge Function "bw-ia") — 15/11/2026, Claude
+// Recebe {sistema, pedido, max} de um usuário LOGADO, chama a Groq com a chave guardada no Supabase
+// (Secret GROQ_API_KEY) e devolve {texto}. A chave nunca vai para o site. Limite: 60 pedidos/dia por conta.
+// {ping:true} só diz se está pronta (tem chave). Nada do texto é gravado.
+import { createClient } from "jsr:@supabase/supabase-js@2";
+
+const LIMITE_DIA = 60;
+const MODELOS = ["openai/gpt-oss-120b", "openai/gpt-oss-20b"];
+const CORS = {
+  "Access-Control-Allow-Origin": "https://audioevideobw-eng.github.io",
+  "Access-Control-Allow-Headers": "authorization, apikey, content-type, x-client-info",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+};
+const resp = (obj: unknown, status = 200) =>
+  new Response(JSON.stringify(obj), { status, headers: { ...CORS, "Content-Type": "application/json" } });
+
+Deno.serve(async (req) => {
+  if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
+  if (req.method !== "POST") return resp({ erro: "metodo" }, 405);
+
+  const url = Deno.env.get("SUPABASE_URL")!;
+  const anon = Deno.env.get("SUPABASE_ANON_KEY")!;
+  const service = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+  const chave = Deno.env.get("GROQ_API_KEY");
+
+  const auth = req.headers.get("Authorization") || "";
+  const usuario = createClient(url, anon, { global: { headers: { Authorization: auth } } });
+  const { data: u } = await usuario.auth.getUser();
+  if (!u?.user) return resp({ erro: "sem_login" }, 401);
+
+  let corpo: { ping?: boolean; sistema?: string; pedido?: string; max?: number } = {};
+  try { corpo = await req.json(); } catch { return resp({ erro: "corpo" }, 400); }
+  if (corpo.ping) return resp({ pronto: !!chave });
+  if (!chave) return resp({ erro: "sem_chave" }, 503);
+
+  const pedido = String(corpo.pedido || "").slice(0, 14000);
+  const sistema = String(corpo.sistema || "").slice(0, 2000);
+  const max = Math.min(Math.max(Number(corpo.max) || 600, 100), 1200);
+  if (!pedido.trim()) return resp({ erro: "vazio" }, 400);
+
+  const adm = createClient(url, service);
+  const { data: ok, error: e1 } = await adm.rpc("bw_ia_contar", { p_dono: u.user.id, p_limite: LIMITE_DIA });
+  if (e1) return resp({ erro: "contador" }, 500);
+  if (!ok) return resp({ erro: "limite" }, 429);
+
+  for (const modelo of MODELOS) {
+    const r = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      method: "POST",
+      headers: { "Authorization": `Bearer ${chave}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: modelo,
+        messages: [{ role: "system", content: sistema }, { role: "user", content: pedido }],
+        temperature: 0.5,
+        max_completion_tokens: max + 1500,   // gpt-oss "pensa" antes de responder; o texto final cabe em `max`
+        reasoning_effort: "low",
+        include_reasoning: false,
+      }),
+    });
+    if (r.status === 429 || r.status >= 500) continue;   // cota/instabilidade: tenta o modelo menor
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) return resp({ erro: "groq", detalhe: j?.error?.message?.slice(0, 200) }, 502);
+    const texto = j?.choices?.[0]?.message?.content || "";
+    if (texto.trim()) return resp({ texto, modelo });
+  }
+  return resp({ erro: "ocupada" }, 503);
+});

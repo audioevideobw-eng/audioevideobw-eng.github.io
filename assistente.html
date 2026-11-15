@@ -161,16 +161,34 @@
     $("motorTxt").innerHTML = html; $("btnAtivar").hidden = !mostrarAtivar;
   }
   async function temWebGPU() { try { return !!(navigator.gpu && await navigator.gpu.requestAdapter()); } catch (e) { return false; } }
+  var CELULAR = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+  var SUPA_FN = "https://zdtnetplvdonogmdvarx.supabase.co/functions/v1/bw-ia";
+  async function tokenSessao() {
+    try { var sb = window.BWSync && BWSync.cliente(); var s = sb ? await sb.auth.getSession() : null; return s && s.data && s.data.session ? s.data.session.access_token : null; } catch (e) { return null; }
+  }
+  async function nuvem(corpo) {   /* IA na nuvem (Groq) pela Edge Function do Supabase — a chave fica guardada no Supabase, nunca no site */
+    var tk = await tokenSessao(); if (!tk) return {erro: "sem_login"};
+    try {
+      var r = await fetch(SUPA_FN, {method: "POST", headers: {"Content-Type": "application/json", "Authorization": "Bearer " + tk, "apikey": "sb_publishable_qJ2mIx1hcn_ZH75-yxJiDA_OI-EHyIU"}, body: JSON.stringify(corpo)});
+      var j = await r.json().catch(function () { return {}; });
+      if (!r.ok) return {erro: j.erro || ("http_" + r.status)};
+      return j;
+    } catch (e) { return {erro: "rede"}; }
+  }
   async function detectar() {
+    var ping = await nuvem({ping: true});
+    if (ping && ping.pronto) { MOTOR = "nuvem"; status("ok", "<b>IA Brightway</b> pronta — funciona em qualquer aparelho."); avisoNuvem(true); return; }
     try {
       if (window.LanguageModel && LanguageModel.availability) {
         var a = await LanguageModel.availability();
         if (a === "available") { MOTOR = "chrome"; status("ok", "<b>IA do Chrome</b> pronta — roda no seu computador."); return; }
       }
     } catch (e) { }
-    try { if (localStorage.getItem("ui_assist_local") === "1" && await temWebGPU()) { ativarLocal(); return; } } catch (e) { }
+    try { if (!CELULAR && localStorage.getItem("ui_assist_local") === "1" && localStorage.getItem("ui_assist_local_ruim") !== "1" && await temWebGPU()) { ativarLocal(); return; } } catch (e) { }
     MOTOR = "modelos";
-    if (await temWebGPU()) status("ambar", "Usando <b>modelos prontos</b>. Para textos feitos pela IA, ative a IA no aparelho (baixa cerca de 1 GB uma única vez; use Wi-Fi).", true);
+    var ruim = false; try { ruim = localStorage.getItem("ui_assist_local_ruim") === "1"; } catch (e) { }
+    if (CELULAR || ruim) status("ambar", "Usando <b>modelos prontos</b>" + (ping && ping.erro === "sem_login" ? " — <a href=\"login.html\" style=\"color:#FFB547\">entre na sua conta</a> para usar a IA Brightway." : ". A IA completa ainda não está disponível neste aparelho."));
+    else if (await temWebGPU()) status("ambar", "Usando <b>modelos prontos</b>. Para textos feitos pela IA, ative a IA no aparelho (baixa cerca de 1 GB uma única vez; use Wi-Fi).", true);
     else status("ambar", "Usando <b>modelos prontos</b>. Este navegador não tem aceleração de vídeo (WebGPU) para a IA no aparelho — use o <b>Google Chrome atualizado</b> no computador ou no Android para textos feitos pela IA.");
   }
   function ativarLocal() {
@@ -202,8 +220,8 @@
       var d = ev.data;
       if (d.tipo === "baixando") { $("barraI").style.width = Math.round(d.pct * 100) + "%"; status("ambar", "Baixando a <b>IA no aparelho</b>: " + Math.round(d.pct * 100) + "% de " + d.mb + " MB (só na primeira vez)…"); }
       else if (d.tipo === "pronto") { MOTOR = "local"; $("barra").hidden = true; try { localStorage.setItem("ui_assist_local", "1"); } catch (e) { } status("ok", "<b>IA no aparelho</b> pronta — roda no seu aparelho, sem enviar nada."); }
-      else if (d.tipo === "parte" && d.id === pedidoN) { $("saida").textContent += d.t; }
-      else if (d.tipo === "fim" && d.id === pedidoN) { terminar(limpar(d.texto)); }
+      else if (d.tipo === "parte" && d.id === pedidoN) { $("saida").textContent += d.t; if (embaralhado($("saida").textContent)) iaQuebrada(); }
+      else if (d.tipo === "fim" && d.id === pedidoN) { if (embaralhado(d.texto)) iaQuebrada(); else terminar(limpar(d.texto)); }
       else if (d.tipo === "erro") {
         if (gerando) { terminar(null); $("aviso").textContent = "A IA falhou: " + d.msg; }
         else { worker = null; MOTOR = "modelos"; $("barra").hidden = true; try { localStorage.removeItem("ui_assist_local"); } catch (e) { }
@@ -212,6 +230,26 @@
     };
     worker.onerror = function (e) { worker = null; MOTOR = "modelos"; $("barra").hidden = true; status("ambar", "Não deu para ativar a IA no aparelho. Usando <b>modelos prontos</b>.", true); };
     worker.postMessage({tipo: "carregar"});
+  }
+  /* em algumas placas de vídeo (celulares, sobretudo) a IA local sai em caracteres sem sentido — detecta e desliga neste aparelho */
+  function embaralhado(t) {
+    t = String(t || ""); if (t.length < 40) return false;
+    var estranhos = (t.match(/[^\u0000-\u024F\u2000-\u206F\u20A0-\u20CF\u2190-\u2BFF\uFE0F\u200D\s]|[\uD800-\uDBFF]/g) || []).length;
+    var emojis = (t.match(/[\uD83C-\uD83E][\uDC00-\uDFFF]/g) || []).length;
+    var letras = (t.match(/[A-Za-zÀ-ÿ]/g) || []).length;
+    return (estranhos - emojis * 2) / t.length > 0.08 || letras / t.length < 0.45 || /[\\|^]{2,}|\+[a-z]+\+/.test(t);
+  }
+  function iaQuebrada() {
+    pedidoN++; try { worker && worker.terminate(); } catch (e) { } worker = null; MOTOR = "modelos";
+    try { localStorage.setItem("ui_assist_local_ruim", "1"); localStorage.removeItem("ui_assist_local"); } catch (e) { }
+    terminar(modeloPronto() || null);
+    $("aviso").textContent = "A IA no aparelho não funciona bem nesta placa de vídeo e foi desligada aqui. Usei um modelo pronto.";
+    status("ambar", "Usando <b>modelos prontos</b> — a IA no aparelho não é compatível com este aparelho.");
+  }
+  function avisoNuvem(sim) {
+    var s = document.querySelector(".tf-seguro span");
+    if (s) s.innerHTML = sim ? "Com a <b>IA Brightway</b>, o texto que você escreve é processado pela Groq (empresa de IA) só para gerar a resposta e <b>não fica guardado na plataforma</b>. Não coloque senhas ou dados bancários. É um rascunho — confira nomes, datas e valores antes de usar."
+                             : "A IA roda <b>no seu aparelho</b>: o texto que você escreve não é enviado para nenhum servidor. É um rascunho — confira nomes, datas e valores antes de publicar ou enviar.";
   }
   $("btnAtivar").onclick = function () {
     if (!confirm("A IA no aparelho baixa cerca de 1 GB uma única vez (depois fica guardada neste navegador). Recomendado usar Wi-Fi. Continuar?")) return;
@@ -295,6 +333,15 @@
       comecar(); terminar(modeloPronto()); $("aviso").textContent = "Modelo pronto preenchido com o que você escreveu — ajuste à vontade."; return;
     }
     comecar(); var id = ++pedidoN; p = reforcarDados(p);
+    if (MOTOR === "nuvem") {
+      var r = await nuvem({sistema: SISTEMA, pedido: p, max: MODO === "ideias" ? 900 : 650});
+      if (id !== pedidoN) return;
+      if (r && r.texto) { terminar(limpar(r.texto)); return; }
+      terminar(null);
+      $("aviso").textContent = r && r.erro === "limite" ? "Você chegou ao limite de textos de hoje na IA Brightway. Amanhã libera de novo." :
+                               r && r.erro === "sem_login" ? "Entre na sua conta para usar a IA Brightway." : "A IA Brightway não respondeu agora. Tente de novo em instantes.";
+      return;
+    }
     if (MOTOR === "chrome") {
       try {
         if (!sessaoChrome) sessaoChrome = await LanguageModel.create({initialPrompts: [{role: "system", content: SISTEMA}]});
