@@ -122,6 +122,7 @@
     '<div class="bw-titulo-pagina">' + (TITULOS[PAGINA] || PAGINA) + '</div></div>' +
     '<div class="acoes">' +
       '<button class="bw-btn bw-btn--vidro" data-slot="btnVoltar" title="Voltar" aria-label="Voltar" style="min-height:44px;padding:0 16px">‹</button>' +
+      '<button type="button" class="bw-sino" id="bwSino" onclick="window.bwAvisos()" title="Avisos" aria-label="Avisos"><span class="bw-icone" style="width:40px;height:40px"><svg width="19" height="19" viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg></span><b class="bw-sino-n" id="bwSinoN" hidden></b></button>' +
       '<button type="button" class="bw-fb-topo" onclick="window.bwFeedback()" title="Enviar feedback" aria-label="Enviar feedback"><span class="bw-icone" style="width:40px;height:40px"><svg width="19" height="19" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span></button>' +
       '<a href="login.html" title="Conta" aria-label="Conta"><span class="bw-icone" style="width:40px;height:40px"><svg width="20" height="20" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></span></a>' +
     '</div></div>';
@@ -236,4 +237,152 @@
       document.getElementById("bwFbOk").onclick = fechar;
     };
   };
+})();
+
+
+/* ===== AVISOS (15/11, Claude): sino no topo com luz pulsando quando há
+   - CONTAS a pagar vencidas ou que vencem em até 3 dias (Contas a pagar: casa_contas; fixos do negócio no Fluxo: fixo_*)
+   - EVENTOS de hoje até 7 dias (com montagem), e o botão LEMBRAR EQUIPE: WhatsApp de cada pessoa, e-mail para todos,
+     texto para o grupo — com data, local e link de CONFIRMAR PRESENÇA (registrado na conta antes de sair).
+   Tudo grátis e no aparelho: lê os dados já sincronizados; nada é enviado sem a pessoa tocar. Aviso do aparelho (Notification)
+   opcional, 1x por dia ao abrir o app. */
+(function () {
+  var DIA = 86400000;
+  function ler(k) { try { var v = JSON.parse(localStorage.getItem("bw_" + k + "_v1") || "[]"); return Array.isArray(v) ? v : []; } catch (e) { return []; } }
+  function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return {"&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;"}[c]; }); }
+  function hoje0() { var d = new Date(); d.setHours(0, 0, 0, 0); return d; }
+  function dias(iso) { if (!/^\d{4}-\d\d-\d\d/.test(iso || "")) return null; var d = new Date(iso.slice(0, 10) + "T00:00"); return Math.round((d - hoje0()) / DIA); }
+  function dataBR(iso) { if (!iso) return "—"; var d = new Date(iso.slice(0, 10) + "T12:00"); return d.toLocaleDateString("pt-BR", {weekday: "short", day: "2-digit", month: "2-digit"}).replace(".", ""); }
+  function quando(n) { return n < 0 ? "venceu há " + (-n) + (n === -1 ? " dia" : " dias") : n === 0 ? "vence HOJE" : n === 1 ? "vence amanhã" : "vence em " + n + " dias"; }
+  function quandoEv(n) { return n === 0 ? "HOJE" : n === 1 ? "amanhã" : "em " + n + " dias"; }
+  function moeda(v) { var n = parseFloat(String(v || "").replace(/[^\d,.-]/g, "").replace(/\.(?=\d{3}(\D|$))/g, "").replace(",", ".")); return isFinite(n) && n ? n.toLocaleString("pt-BR", {style: "currency", currency: "BRL"}) : ""; }
+  function telWa(t) { var d = String(t || "").replace(/\D/g, ""); if (!d) return ""; return (d.length >= 12 && d.indexOf("55") === 0) ? d : "55" + d; }
+
+  function coletar() {
+    var contas = [];
+    ler("casa_contas").forEach(function (c) {
+      if (String(c.c3 || "").toLowerCase() === "sim") return;
+      var n = dias(c.c2); if (n === null || n > 3 || n < -60) return;
+      contas.push({ nome: c.c0 || "Conta", valor: c.c1, venc: c.c2, n: n, onde: "contas.html" });
+    });
+    ler("neg_fluxo").forEach(function (f) {
+      if (!/^fixo_/.test(String(f.id)) || f.c1 !== "Saída") return;
+      var n = dias(f.c0); if (n === null || n < 0 || n > 3) return;
+      contas.push({ nome: String(f.c3 || "Custo fixo").replace(/ \(fixo\)$/, "") + " (negócio)", valor: f.c2, venc: f.c0, n: n, onde: "fluxo.html" });
+    });
+    contas.sort(function (a, b) { return a.n - b.n; });
+    var vistos = {}, eventos = [];
+    ler("neg_eventos").concat(ler("neg_equipe_eventos")).forEach(function (e) {
+      if (!e || vistos[e.id]) return; vistos[e.id] = 1;
+      if (/cancel/i.test(e.status || "")) return;
+      var n = dias(e.data), nm = dias(e.montagem);
+      var prox = [n, nm].filter(function (x) { return x !== null && x >= 0 && x <= 7; });
+      if (!prox.length) return;
+      eventos.push({ ev: e, n: n, nm: nm, min: Math.min.apply(null, prox) });
+    });
+    eventos.sort(function (a, b) { return a.min - b.min; });
+    return { contas: contas, eventos: eventos };
+  }
+
+  function atualizarSino() {
+    var s = document.getElementById("bwSino"), b = document.getElementById("bwSinoN"); if (!s || !b) return;
+    var a = coletar(), urg = a.contas.filter(function (c) { return c.n <= 1; }).length + a.eventos.filter(function (e) { return e.min <= 1; }).length;
+    var tot = a.contas.length + a.eventos.length;
+    b.hidden = !tot; b.textContent = tot > 9 ? "9+" : String(tot);
+    s.classList.toggle("tem", !!tot); s.classList.toggle("urgente", !!urg);
+    s.title = tot ? tot + " aviso(s): contas a vencer e eventos próximos" : "Avisos — nada para os próximos dias";
+    notificarDoAparelho(a);
+  }
+
+  function notificarDoAparelho(a) {
+    try {
+      if (!("Notification" in window) || Notification.permission !== "granted" || localStorage.getItem("ui_avisos_notif") !== "1") return;
+      var hj = new Date().toISOString().slice(0, 10); if (localStorage.getItem("ui_avisos_ultimo") === hj) return;
+      var linhas = a.contas.slice(0, 3).map(function (c) { return "💳 " + c.nome + " — " + quando(c.n); })
+        .concat(a.eventos.slice(0, 3).map(function (e) { return "🎬 " + (e.ev.nome || "Evento") + " — " + quandoEv(e.min); }));
+      if (!linhas.length) return;
+      localStorage.setItem("ui_avisos_ultimo", hj);
+      var t = "Brightway — " + linhas.length + " aviso(s)", o = { body: linhas.join("\n"), icon: "icons/app-192.png", tag: "bw-avisos" };
+      if (navigator.serviceWorker && navigator.serviceWorker.ready) navigator.serviceWorker.ready.then(function (r) { r.showNotification(t, o); }).catch(function () { new Notification(t, o); });
+      else new Notification(t, o);
+    } catch (e) { }
+  }
+
+  function membrosDe(e) {
+    var eq = ler("neg_equipe_equipes").filter(function (q) { return String(q.id) === String(e.equipeId); })[0];
+    var cs = ler("neg_equipe_colaboradores");
+    return ((eq && eq.membros) || []).map(function (mid) { return cs.filter(function (c) { return String(c.id) === String(mid); })[0]; }).filter(Boolean);
+  }
+
+  async function lembrarEquipe(id, alvo) {
+    var e = coletar().eventos.map(function (x) { return x.ev; }).filter(function (x) { return String(x.id) === String(id); })[0];
+    if (!e || !alvo) return;
+    alvo.innerHTML = '<div class="bw-av-sub">Preparando o lembrete…</div>';
+    var link = "";
+    try { if (window.BWSync && await BWSync.registrarAgora({ eventos: [String(e.id)] }))
+      link = location.origin + location.pathname.replace(/[^/]*$/, "") + "cadastro.html?ev=" + encodeURIComponent(e.id) + "&nome=" + encodeURIComponent(e.nome || ""); } catch (x) { }
+    var resp = {};
+    try { var c = window.BWSync && BWSync.cliente(); if (c) { var r = await c.from("equipe_presenca").select("email,colaborador,resposta").eq("evento_id", String(e.id));
+      (r.data || []).forEach(function (p) { resp[(p.email || p.colaborador || "").toLowerCase()] = p.resposta; }); } } catch (x) { }
+    var ms = membrosDe(e);
+    var msg = "Olá! Lembrete do evento *" + (e.nome || "") + "*\n📅 " + dataBR(e.data) + (e.montagem && e.montagem !== e.data ? "\n🔧 Montagem: " + dataBR(e.montagem) : "") +
+      "\n📍 " + (e.local || "local a confirmar") + (link ? "\n\nConfirme sua presença aqui: " + link : "\n\nConfirme sua presença respondendo esta mensagem.") + "\n\nObrigado! — BW";
+    var lista = ms.length ? ms.map(function (m) {
+      var st = resp[(m.email || "").toLowerCase()] || resp[(m.nome || "").toLowerCase()];
+      var selo = st === "sim" ? '<span class="bw-av-ok">✓ confirmou</span>' : st === "nao" ? '<span class="bw-av-no">✗ não vai</span>' : '<span class="bw-av-pend">aguardando</span>';
+      var wa = telWa(m.tel);
+      return '<div class="bw-av-membro"><span>' + esc(m.nome) + " " + selo + "</span>" +
+        (wa ? '<a class="bw-av-bt" target="_blank" rel="noopener" href="https://wa.me/' + wa + "?text=" + encodeURIComponent(msg.replace("Olá!", "Olá, " + String(m.nome || "").split(" ")[0] + "!")) + '">WHATSAPP</a>' : '<span class="bw-av-sub">sem telefone</span>') + "</div>";
+    }).join("") : '<div class="bw-av-sub">Nenhuma equipe ligada a este evento. Escolha a equipe em Eventos para lembrar cada pessoa — ou use o texto para o grupo.</div>';
+    var emails = ms.map(function (m) { return m.email; }).filter(Boolean);
+    alvo.innerHTML = lista + '<div class="bw-av-acoes">' +
+      (emails.length ? '<a class="bw-av-bt" href="mailto:?bcc=' + encodeURIComponent(emails.join(",")) + "&subject=" + encodeURIComponent("Lembrete — " + (e.nome || "evento") + " " + dataBR(e.data)) + "&body=" + encodeURIComponent(msg.replace(/\*/g, "")) + '">E-MAIL PARA TODOS</a>' : "") +
+      '<a class="bw-av-bt" target="_blank" rel="noopener" href="https://wa.me/?text=' + encodeURIComponent(msg) + '">MANDAR NO GRUPO</a></div>' +
+      (link ? "" : '<div class="bw-av-sub">⚠ Sem internet/login agora: a mensagem saiu sem o link de confirmação.</div>');
+  }
+
+  window.bwAvisos = function () {
+    var velho = document.getElementById("bwAv"); if (velho) { velho.remove(); return; }
+    var a = coletar();
+    var d = document.createElement("div"); d.id = "bwAv"; d.className = "bw-fb-fundo";
+    var notifOk = "Notification" in window, ligado = notifOk && Notification.permission === "granted" && localStorage.getItem("ui_avisos_notif") === "1";
+    d.innerHTML = '<div class="bw-fb-caixa bw-av" role="dialog" aria-modal="true" aria-labelledby="bwAvT"><button type="button" class="bw-fb-x" aria-label="Fechar">×</button>' +
+      '<h3 id="bwAvT">AVISOS</h3>' +
+      '<div class="bw-av-tit">CONTAS A VENCER</div>' +
+      (a.contas.length ? a.contas.map(function (c) {
+        return '<a class="bw-av-item ' + (c.n < 0 ? "atraso" : c.n <= 1 ? "urg" : "") + '" href="' + c.onde + '"><span><b>' + esc(c.nome) + "</b><small>" + esc(dataBR(c.venc)) + " · " + quando(c.n) + "</small></span><em>" + esc(moeda(c.valor)) + "</em></a>";
+      }).join("") : '<div class="bw-av-sub">Nenhuma conta vencida ou vencendo nos próximos 3 dias. ✓</div>') +
+      '<div class="bw-av-tit">EVENTOS NOS PRÓXIMOS 7 DIAS</div>' +
+      (a.eventos.length ? a.eventos.map(function (x) {
+        var e = x.ev;
+        return '<div class="bw-av-ev ' + (x.min <= 1 ? "urg" : "") + '"><div class="bw-av-evtop"><a href="eventos.html?ev=' + encodeURIComponent(e.id) + '"><b>' + esc(e.nome || "Evento") + "</b><small>" +
+          esc(dataBR(e.data)) + (x.n !== null && x.n >= 0 ? " · " + quandoEv(x.n) : "") + (e.montagem && e.montagem !== e.data ? " · montagem " + esc(dataBR(e.montagem)) : "") + " · " + esc(e.local || "local a definir") + "</small></a>" +
+          '<button type="button" class="bw-av-bt" data-lembrar="' + esc(e.id) + '">LEMBRAR EQUIPE</button></div><div class="bw-av-equipe" id="bwAvEq_' + esc(e.id) + '"></div></div>';
+      }).join("") : '<div class="bw-av-sub">Nenhum evento nos próximos 7 dias.</div>') +
+      (notifOk ? '<label class="bw-av-notif"><input type="checkbox" id="bwAvNotif"' + (ligado ? " checked" : "") + '> Avisar também no aparelho (1 vez por dia, ao abrir o app)</label>' : "") +
+      "</div>";
+    document.body.appendChild(d);
+    function fechar() { d.remove(); document.removeEventListener("keydown", tecla); }
+    function tecla(ev) { if (ev.key === "Escape") fechar(); }
+    document.addEventListener("keydown", tecla);
+    d.addEventListener("click", function (ev) { if (ev.target === d) fechar(); });
+    d.querySelector(".bw-fb-x").onclick = fechar;
+    [].forEach.call(d.querySelectorAll("[data-lembrar]"), function (b) {
+      b.onclick = function () { var al = document.getElementById("bwAvEq_" + b.dataset.lembrar); if (al && al.innerHTML) { al.innerHTML = ""; return; } lembrarEquipe(b.dataset.lembrar, al); };
+    });
+    var cb = document.getElementById("bwAvNotif");
+    if (cb) cb.onchange = async function () {
+      if (cb.checked) {
+        var p = Notification.permission === "granted" ? "granted" : await Notification.requestPermission();
+        if (p !== "granted") { cb.checked = false; alert("O aparelho não liberou as notificações. Dá para liberar nas configurações do navegador."); return; }
+        localStorage.setItem("ui_avisos_notif", "1"); localStorage.removeItem("ui_avisos_ultimo"); atualizarSino();
+      } else localStorage.removeItem("ui_avisos_notif");
+    };
+  };
+
+  function iniciar() { atualizarSino(); }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", function () { setTimeout(iniciar, 300); }); else setTimeout(iniciar, 300);
+  window.addEventListener("bw-sync-recebido", atualizarSino);
+  window.addEventListener("storage", function (e) { if (e.key && /casa_contas|neg_eventos|neg_fluxo/.test(e.key)) atualizarSino(); });
+  window.bwAtualizarAvisos = atualizarSino;
 })();

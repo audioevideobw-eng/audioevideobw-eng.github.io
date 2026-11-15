@@ -323,3 +323,34 @@ html:not(.bw-admin) .so-admin{display:none!important}
 .bw-fb-caixa textarea{width:100%;min-height:130px;resize:vertical;background:rgba(0,0,0,.3);border:1px solid rgba(245,241,234,.14);border-radius:12px;color:var(--bw-marfim);font:14.5px/1.5 var(--bw-font-texto);padding:11px 13px;box-sizing:border-box}
 .bw-fb-pag{font-size:12px;color:var(--txt2);margin-top:8px}
 .bw-fb-acoes{display:flex;align-items:center;gap:12px;margin-top:14px;flex-wrap:wrap;font-size:13px;color:var(--txt2)}
+
+/* 15/11 (Claude): AVISOS — sino no topo com luz pulsando (contas a vencer / eventos próximos) */
+.bw-sino{position:relative;background:none;border:0;padding:0;cursor:pointer;color:var(--bw-marfim)}
+.bw-sino svg{fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.bw-sino.tem{color:var(--bw-ambar)}
+.bw-sino-n{position:absolute;top:-2px;right:-2px;min-width:18px;height:18px;padding:0 4px;border-radius:9px;background:var(--bw-ambar);color:#1a1205;font:800 10.5px/18px var(--bw-font-texto);text-align:center}
+.bw-sino.urgente .bw-sino-n{background:#f2686b;color:#fff}
+.bw-sino.tem .bw-sino-n::after{content:"";position:absolute;inset:0;border-radius:9px;background:inherit;animation:bwPulso 1.6s ease-out infinite;z-index:-1}
+.bw-av{max-height:86vh;overflow:auto}
+.bw-av-tit{margin:16px 0 8px;font:700 11.5px/1 var(--bw-font-texto);letter-spacing:.12em;color:var(--txt2)}
+.bw-av-sub{font-size:13px;color:var(--txt2);line-height:1.5;margin:6px 0}
+.bw-av-item{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:11px 13px;margin-bottom:6px;border-radius:12px;border:1px solid rgba(245,241,234,.1);background:rgba(255,255,255,.03);color:var(--bw-marfim);text-decoration:none}
+.bw-av-item b,.bw-av-evtop b{display:block;font-size:14px}
+.bw-av-item small,.bw-av-evtop small{display:block;font-size:12px;color:var(--txt2);margin-top:3px}
+.bw-av-item em{font-style:normal;font-weight:700;white-space:nowrap}
+.bw-av-item.urg,.bw-av-ev.urg{border-color:rgba(255,181,71,.55)}
+.bw-av-item.atraso{border-color:rgba(242,104,107,.6);background:rgba(242,104,107,.07)}
+.bw-av-item.atraso small{color:#f2a0a2}
+.bw-av-ev{padding:11px 13px;margin-bottom:6px;border-radius:12px;border:1px solid rgba(245,241,234,.1);background:rgba(255,255,255,.03)}
+.bw-av-evtop{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.bw-av-evtop a{color:var(--bw-marfim);text-decoration:none;min-width:0;flex:1}
+.bw-av-bt{display:inline-flex;align-items:center;justify-content:center;min-height:38px;padding:0 13px;border-radius:999px;border:1px solid rgba(255,181,71,.5);background:rgba(255,181,71,.08);color:var(--bw-ambar);font:700 11.5px/1 var(--bw-font-texto);letter-spacing:.06em;text-decoration:none;cursor:pointer;white-space:nowrap}
+.bw-av-bt:hover{background:rgba(255,181,71,.18)}
+.bw-av-equipe:not(:empty){margin-top:10px;padding-top:10px;border-top:1px dashed rgba(245,241,234,.12)}
+.bw-av-membro{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 0;font-size:13.5px}
+.bw-av-membro>span{min-width:0}
+.bw-av-ok,.bw-av-no,.bw-av-pend{display:inline-block;margin-left:6px;font-size:11px;padding:2px 7px;border-radius:999px}
+.bw-av-ok{background:rgba(62,207,142,.15);color:#3ecf8e}.bw-av-no{background:rgba(242,104,107,.15);color:#f2686b}.bw-av-pend{background:rgba(245,241,234,.08);color:var(--txt2)}
+.bw-av-acoes{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.bw-av-notif{display:flex!important;gap:10px;align-items:center;margin-top:16px;font:500 13px/1.4 var(--bw-font-texto)!important;color:var(--txt2);text-transform:none!important;letter-spacing:normal!important}
+.bw-av-notif input{width:20px!important;height:20px;min-height:0!important;flex:0 0 auto;margin:0;accent-color:var(--bw-ambar)}

@@ -80,6 +80,8 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
 24. Ferramentas de IA/PDF (assistente.html, transcricao.html, pdf.html; categoria MARKETING = marketing.html): a IA e os PDFs rodam NO APARELHO
     (Chrome Gemini Nano / Transformers.js / pdf-lib). Nunca colocar chave de API de IA no site; IA na nuvem só por Edge Function do Supabase
     com a chave guardada lá. Essas ferramentas não gravam nada na conta (só preferências ui_* locais).
+27. AVISOS (layout.js): o sino lê só dados do aparelho (já sincronizados) e nunca envia nada sozinho; link de presença do LEMBRAR EQUIPE
+    passa por BWSync.registrarAgora (regra 26).
 26. Link público (cadastro de colaborador/cliente, presença) só aparece DEPOIS de BWSync.registrarAgora confirmar no servidor;
     o banco recusa link/evento não registrado (LINK_INVALIDO). Nunca gerar link só no aparelho.
 25. FEEDBACK: botão ENVIAR FEEDBACK no menu e no topo (layout.js, todas as páginas) grava em public.bw_feedback (RLS: cada conta só o seu,
@@ -271,6 +273,12 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
   link válido aceito, presença em evento falso recusada, 0 cadastros sem dono. sw v54.
 - 15/11/2026 · Claude: "Cadastros recebidos" (colaborador e cliente) só aparecia no APARELHO que criou o link → agora aparece em qualquer
   aparelho logado; lista de colaboradores não mistura cadastros de cliente. sw v55.
+- 15/11/2026 · Claude (ideias do dono): AVISOS — sino no topo de todas as páginas (layout.js v20) com luz pulsando e número: contas a pagar
+  vencidas/vencendo em até 3 dias (casa_contas não pagas + fixos do negócio no Fluxo) e eventos de hoje a 7 dias (data e montagem).
+  Painel AVISOS: cada conta leva à página dela; cada evento tem LEMBRAR EQUIPE (WhatsApp de cada membro com mensagem pronta — data,
+  montagem, local e link de CONFIRMAR PRESENÇA registrado na hora —, E-MAIL PARA TODOS em cópia oculta, MANDAR NO GRUPO) e mostra quem
+  já confirmou (equipe_presenca). "Avisar também no aparelho": notificação do sistema 1x/dia ao abrir o app (ui_avisos_notif). Tudo grátis,
+  nada sai sem a pessoa tocar. Título repetido ("16 — FLUXO…" + h2 igual) removido de 20 páginas. brightway.css v19, sw v57.
 
 ## Pendências (dono)
 - [x] (15/11 10:02, dono: "faça tudo") Autorizar a automação de NOTÍCIAS (publica noticias.json no site a cada 2 h) — ATIVA.
@@ -285,7 +293,8 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
       cadastro de colaborador só aparece para o dono do link; outra conta e visitante veem 0 em todas as tabelas e buckets; galeria com token
       falso = []; gravar na conta de outro = bloqueado. Nada de teste ficou no banco. Risco menor: equipe_cadastros/equipe_presenca aceitam
       inserção anônima (necessário para o link de colaborador) → RESOLVIDO 15/11: só por link registrado + limite por hora.
-- [ ] Ideias do dono (15/11): (1) ALERTA DE VENCIMENTO das contas fixas (no app com sinal pulsando, e-mail, WhatsApp);
-      (2) LEMBRETE DE EVENTO para a equipe (data, local, confirmação de presença) por WhatsApp e e-mail.
+- [~] Ideias do dono (15/11): FEITO no app (sino AVISOS + notificação do aparelho + LEMBRAR EQUIPE por WhatsApp/e-mail/grupo, grátis).
+      FALTA (decisão do dono): envio AUTOMÁTICO sem abrir o app — e-mail diário (grátis via Gmail com senha de app guardada no Supabase)
+      e WhatsApp automático (só pela API oficial da Meta, paga por conversa).
 - [ ] Futuro (MAESTRO): galeria do cliente por link secreto (hoje as FOTOS ainda são listáveis por quem souber
       usar a API; documentos já estão protegidos).
