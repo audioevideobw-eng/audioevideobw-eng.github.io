@@ -13,7 +13,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Brightway">
-<link rel="stylesheet" href="assets/brightway.css?v=13">
+<link rel="stylesheet" href="assets/brightway.css?v=14">
 <style>
 :root{
   /* Identidade Brightway — paleta oficial */
@@ -285,6 +285,7 @@ footer b{color:var(--gold)}
     <div class="sub">Cadastre colaboradores, monte equipes (como grupos) e organize os eventos. Cada evento gera o PDF da escala, dispara alertas no celular e permite comunicar a equipe.</div>
   </div>
   <div id="pagBox" style="margin-top:14px"></div>
+  <div id="finBox" style="margin-top:14px"></div>
   <div id="cliBox" style="margin-top:14px"></div>
   <div id="cliFormBox" style="margin-top:14px"></div>
   <div id="eqColabBox"></div>
@@ -301,7 +302,7 @@ footer b{color:var(--gold)}
     Não é recomendação de investimento.
   </footer>
 </div>
-<script src="assets/layout.js?v=13"></script>
+<script src="assets/layout.js?v=14"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="assets/bw-sync.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/pdfmake@0.2.20/build/pdfmake.min.js"></script>
@@ -1158,7 +1159,7 @@ function sincronizarTudo() {
   let mudou = 0;
 
   /* 1) CACHÊS (PAGAMENTO EQUIPE):
-        não pago → "Contas a pagar — cachê de X (evento)"
+        não pago → "A pagar — cachê de X (evento)"
         pago     → "Custos variáveis — cachê de X (evento)"          */
   const idsCache = new Set();
   pags.forEach(p => {
@@ -1172,7 +1173,7 @@ function sincronizarTudo() {
       c1: "Saída",
       c2: String(p.valor || 0),
       c3: pago ? `Custos variáveis — cachê de ${p.colab} (${evNome})`
-               : `Contas a pagar — cachê de ${p.colab} (${evNome})`,
+               : `A pagar — cachê de ${p.colab} (${evNome})`,
       fonte: pago ? "pago" : "pendente",
     };
     if (garantir(fluxo, fid, item)) mudou++;
@@ -1261,14 +1262,11 @@ function init() {
      financeiro.html → seção 3 (pagamentos) + seção 5 (dashboard)     */
   const pagina = (location.pathname.split("/").pop() || "index.html").toLowerCase();
   const pb = $("#pagBox"), fb = $("#finBox");
-  if (pagina === "financeiro.html") {
-    if (pb) pb.style.display = "none";
-    if (fb) renderFinBox();
-  } else if (pagina === "equipe.html") {
-    if (fb) fb.style.display = "none";
-    if (pb) renderEquipeBox();
-  }
+  /* 14/11: o Financeiro de eventos foi para a Gestão de pessoas — lançar cachê, PAGO/NÃO PAGO e o resultado de cada evento */
+  if (pb) renderEquipeBox();
+  if (fb) renderFinBox();
 }
+function render() { init(); }
 
 /* ---------- equipe.html: seções 1 (equipes) e 2 (lançar cachê) ---------- */
 function renderEquipeBox() {

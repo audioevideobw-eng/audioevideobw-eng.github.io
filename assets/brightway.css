@@ -248,3 +248,10 @@ body a.menu-card .nome, body a.bw-tool-card .nome{font-size:13px;letter-spacing:
 
 /* 14/11 (Claude): itens só da administração BW — escondidos para os demais (layout.js confere is_bw_admin) */
 html:not(.bw-admin) .so-admin{display:none!important}
+
+/* 14/11 · abas do CÂMBIO (cotação, comparador, série, calculadora, conversor, diário, alertas) */
+.bw-cambio-abas{display:flex;gap:6px;overflow-x:auto;padding:2px 0 12px;margin-bottom:6px;scrollbar-width:none;min-width:0}
+.bw-cambio-abas::-webkit-scrollbar{display:none}
+.bw-cambio-abas a{flex:none;font-size:12px;font-weight:600;letter-spacing:.04em;padding:8px 14px;border-radius:999px;border:1px solid var(--line,#262b36);color:var(--txt2,#9aa0ab);text-decoration:none;background:rgba(255,255,255,.02)}
+.bw-cambio-abas a:hover{color:var(--gold,#FFB547);border-color:var(--gold,#FFB547)}
+.bw-cambio-abas a.ativo{background:var(--gold,#FFB547);color:#1a1205;border-color:var(--gold,#FFB547)}

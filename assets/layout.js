@@ -55,23 +55,23 @@
     { id: "inicio",  nome: "Início",           href: "./", icon: '<path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/>' },
     { id: "negocio", nome: "Meu negócio",       href: "negocio.html", icon: '<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>' },
     { id: "casa",    nome: "Gestão de casa",    href: "orcamento.html", icon: '<path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M9 21v-6h6v6"/>' },
-    { id: "invest",  nome: "Investimentos",     href: "milhas.html", icon: '<path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/>' },
-    { id: "ferr",    nome: "Ferramentas",       href: "calc.html", icon: '<rect x="4" y="2" width="16" height="20" rx="2"/><path d="M8 6h8M8 10h2M12 10h2M16 10h.01M8 14h2M12 14h2M16 14h.01M8 18h2M12 18h2M16 18h.01"/>' },
+    { id: "invest",  nome: "Investimentos",     href: "cambio.html", icon: '<path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/>' },
+    { id: "ferr",    nome: "Ferramentas",       href: "recs.html", icon: '<rect x="4" y="2" width="16" height="20" rx="2"/><path d="M8 6h8M8 10h2M12 10h2M16 10h.01M8 14h2M12 14h2M16 14h.01M8 18h2M12 18h2M16 18h.01"/>' },
     { id: "conta",   nome: "Conta",             href: "login.html", icon: '<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/>' }
   ];
   var SUBPAGINAS = {
-    negocio: [["negocio","Ferramentas do negócio"],["financeiro-painel","Painel Financeiro"],["eventos","Eventos"],["equipe","Gestão de pessoas"],["financeiro","Financeiro de eventos"],["preco","Calculadora de preço"],["fluxo","Fluxo de caixa"]],
+    negocio: [["negocio","Ferramentas do negócio"],["financeiro-painel","Painel Financeiro"],["eventos","Eventos"],["equipe","Gestão de pessoas"],["leitor","Leitor de comprovantes"],["preco","Calculadora de preço"],["fluxo","Fluxo de caixa"]],
     casa: [["orcamento","Orçamento familiar"],["contas","Contas a pagar"],["reserva","Reserva de emergência"]],
-    invest: [["milhas","Mercado de milhas"],["evento","Evento no exterior"],["meta","Meta de milhas"],["comparador","Comparador"],["alertas","Alertas de preço"],["cambio","Câmbio"],["invest","Rendimento"],["serie","Série histórica"],["diario","Diário de câmbio"]],
-    ferr: [["calc","Calculadora"],["viagem","Conversor de viagem"],["leitor","Leitor de comprovantes"],["recs","★ Recomendações"],["noticias","Notícias"],["dados","Meus dados"],["app","App & sincronização"]],
+    invest: [["cambio","Câmbio"],["evento","Evento no exterior"],["milhas","Mercado de milhas"],["meta","Meta de milhas"],["invest","Rendimento"]],
+    ferr: [["recs","★ Recomendações"],["noticias","Notícias"],["dados","Meus dados"]],
     conta: [["login","Acesso"],["cadastro","Cadastro"],["configadm","Configuração"]]
   };
   function categoriaDe(p){
     if (p === "index") return "inicio";
-    if (["negocio","financeiro-painel","eventos","equipe","financeiro","preco","fluxo"].indexOf(p) > -1) return "negocio";
+    if (["negocio","financeiro-painel","eventos","equipe","leitor","preco","fluxo"].indexOf(p) > -1) return "negocio";
     if (["orcamento","casa","contas","reserva"].indexOf(p) > -1) return "casa";
-    if (["milhas","evento","meta","comparador","alertas","cambio","invest","serie","diario"].indexOf(p) > -1) return "invest";
-    if (["calc","viagem","leitor","recs","noticias","dados","app"].indexOf(p) > -1) return "ferr";
+    if (["cambio","comparador","serie","calc","viagem","diario","alertas","evento","milhas","meta","invest"].indexOf(p) > -1) return "invest";
+    if (["recs","noticias","dados"].indexOf(p) > -1) return "ferr";
     return "conta";
   }
   var CAT = categoriaDe(PAGINA);
@@ -148,6 +148,14 @@
     var orig = document.getElementById(id);
     if (slot && orig) { slot.removeAttribute("data-slot"); slot.id = id; if (id === "userBox" && orig.innerHTML.trim()) slot.innerHTML = orig.innerHTML; orig.remove(); }
   });
+  /* 14/11 (Claude): CÂMBIO reúne as ferramentas de moeda em abas (antes eram 7 itens soltos no menu) */
+  var CAMBIO = [["cambio","Cotação"],["comparador","Comparador"],["serie","Série histórica"],["calc","Calculadora"],["viagem","Conversor de viagem"],["diario","Diário"],["alertas","Alertas"]];
+  if (CAMBIO.some(function(c){ return c[0] === PAGINA; })) {
+    var tabs = document.createElement("nav");
+    tabs.className = "bw-cambio-abas"; tabs.setAttribute("aria-label", "Ferramentas de câmbio");
+    tabs.innerHTML = CAMBIO.map(function(c){ return '<a href="' + c[0] + '.html"' + (c[0] === PAGINA ? ' class="ativo" aria-current="page"' : "") + '>' + c[1] + '</a>'; }).join("");
+    var pg = conteudo.querySelector("#bwPagina"); pg.insertBefore(tabs, pg.firstChild);
+  }
   /* abas do celular */
   var abasEl = document.createElement("nav");
   abasEl.className = "bw-abas";

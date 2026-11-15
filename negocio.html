@@ -13,7 +13,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Brightway">
-<link rel="stylesheet" href="assets/brightway.css?v=13">
+<link rel="stylesheet" href="assets/brightway.css?v=14">
 <style>
 :root{
   /* Identidade Brightway — paleta oficial */
@@ -287,7 +287,6 @@ footer b{color:var(--gold)}
       <a class="menu-card" href="financeiro-painel.html" title="Receita, lucro, clientes e pagamentos de eventos — monta sozinho com os seus lançamentos."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg></span><span class="nome">PAINEL FINANCEIRO</span></a>
       <a class="menu-card" href="eventos.html" title="Dossiê completo: ficha, equipe, checklist, mídia, relatório e financeiro."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></span><span class="nome">EVENTOS</span></a>
       <a class="menu-card" href="equipe.html" title="Colaboradores, equipes por evento, PDF da escala e alertas."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.5 3-5.5 6.5-5.5s6.5 2 6.5 5.5"/><circle cx="17.5" cy="9" r="2.5"/><path d="M16 14.6c3 .2 5.5 1.9 5.5 5.4"/></svg></span><span class="nome">GESTÃO DE PESSOAS</span></a>
-      <a class="menu-card" href="financeiro.html" title="Pagamentos da equipe e dashboard financeiro individual por evento."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="6" width="19" height="13" rx="2"/><circle cx="12" cy="12.5" r="3"/><path d="M6 9.5h.01M18 15.5h.01"/></svg></span><span class="nome">FINANCEIRO DE EVENTOS</span></a>
       <a class="menu-card" href="fluxo.html" title="Entradas, saídas e saldo do período."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h13l-3-3M20 16H7l3 3"/></svg></span><span class="nome">FLUXO DE CAIXA</span></a>
       <a class="menu-card" href="preco.html" title="Custo + imposto do Simples + margem → preço de venda sugerido."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg></span><span class="nome">PREÇO E MARGEM</span></a>
       <a class="menu-card" href="leitor.html" title="Foto da nota → a IA lê e lança o custo no evento."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7V5a1 1 0 0 1 1-1h2M17 4h2a1 1 0 0 1 1 1v2M20 17v2a1 1 0 0 1-1 1h-2M7 20H5a1 1 0 0 1-1-1v-2"/><path d="M8 9h8M8 12h8M8 15h5"/></svg></span><span class="nome">COMPROVANTES</span></a>
@@ -303,7 +302,7 @@ footer b{color:var(--gold)}
     Não é recomendação de investimento.
   </footer>
 </div>
-<script src="assets/layout.js?v=13"></script>
+<script src="assets/layout.js?v=14"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="assets/bw-sync.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/pdfmake@0.2.20/build/pdfmake.min.js"></script>
@@ -1052,7 +1051,7 @@ function sincronizarTudo() {
   let mudou = 0;
 
   /* 1) CACHÊS (PAGAMENTO EQUIPE):
-        não pago → "Contas a pagar — cachê de X (evento)"
+        não pago → "A pagar — cachê de X (evento)"
         pago     → "Custos variáveis — cachê de X (evento)"          */
   const idsCache = new Set();
   pags.forEach(p => {
@@ -1066,7 +1065,7 @@ function sincronizarTudo() {
       c1: "Saída",
       c2: String(p.valor || 0),
       c3: pago ? `Custos variáveis — cachê de ${p.colab} (${evNome})`
-               : `Contas a pagar — cachê de ${p.colab} (${evNome})`,
+               : `A pagar — cachê de ${p.colab} (${evNome})`,
       fonte: pago ? "pago" : "pendente",
     };
     if (garantir(fluxo, fid, item)) mudou++;

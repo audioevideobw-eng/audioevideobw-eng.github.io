@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Brightway — BW Audiovisual</title>
-<link rel="stylesheet" href="assets/brightway.css?v=13">
+<link rel="stylesheet" href="assets/brightway.css?v=14">
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#06080D">
 <link rel="icon" type="image/png" href="icons/favicon-64.png">
@@ -1019,7 +1019,7 @@ function sincronizarTudo() {
   let mudou = 0;
 
   /* 1) CACHÊS (PAGAMENTO EQUIPE):
-        não pago → "Contas a pagar — cachê de X (evento)"
+        não pago → "A pagar — cachê de X (evento)"
         pago     → "Custos variáveis — cachê de X (evento)"          */
   const idsCache = new Set();
   pags.forEach(p => {
@@ -1033,7 +1033,7 @@ function sincronizarTudo() {
       c1: "Saída",
       c2: String(p.valor || 0),
       c3: pago ? `Custos variáveis — cachê de ${p.colab} (${evNome})`
-               : `Contas a pagar — cachê de ${p.colab} (${evNome})`,
+               : `A pagar — cachê de ${p.colab} (${evNome})`,
       fonte: pago ? "pago" : "pendente",
     };
     if (garantir(fluxo, fid, item)) mudou++;
@@ -1295,6 +1295,6 @@ const {  stamp  } = MOD['core/ui'];
 
 return {  };
 })();</script>
-<script src="assets/layout.js?v=13"></script>
+<script src="assets/layout.js?v=14"></script>
 </body>
 </html>
