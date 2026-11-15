@@ -70,7 +70,7 @@
   };
   function categoriaDe(p){
     if (p === "index") return "inicio";
-    if (["negocio","financeiro-painel","eventos","equipe","leitor","preco","fluxo"].indexOf(p) > -1) return "negocio";
+    if (["negocio","financeiro-painel","eventos","equipe","leitor","preco","fluxo","custos"].indexOf(p) > -1) return "negocio";
     if (["orcamento","casa","contas","reserva"].indexOf(p) > -1) return "casa";
     if (["investimentos-painel","cambio","comparador","serie","calc","viagem","diario","alertas","evento","milhas","meta","invest"].indexOf(p) > -1) return "invest";
     if (["marketing","assistente","transcricao"].indexOf(p) > -1) return "mkt";
@@ -80,7 +80,7 @@
   var CAT = categoriaDe(PAGINA);
   var TITULOS = { index:"Início", ferramentas:"Ferramentas", negocio:"Ferramentas do negócio", eventos:"Eventos", evento:"Evento no exterior",
     equipe:"Gestão de pessoas", "financeiro-painel":"Painel Financeiro", financeiro:"Financeiro de eventos", preco:"Calculadora de preço",
-    fluxo:"Fluxo de caixa", orcamento:"Orçamento familiar", casa:"Casa", contas:"Contas a pagar",
+    fluxo:"Fluxo de caixa", custos:"Cachês e custos", orcamento:"Orçamento familiar", casa:"Casa", contas:"Contas a pagar",
     reserva:"Reserva de emergência", milhas:"Mercado de milhas", meta:"Meta de milhas",
     comparador:"Comparador de moedas", alertas:"Alertas de preço", cambio:"Câmbio",
     invest:"Simulador de rendimento", "investimentos-painel":"Painel de Investimentos", serie:"Série histórica", diario:"Diário de câmbio", calc:"Calculadora",
@@ -114,7 +114,8 @@
       '<div class="info">Celular e PC atualizados — automático ao abrir e ao salvar.</div>' +
       '<a href="#" onclick="window.bwInstalarApp();return false">Instalar no celular</a>' +
     '</div>' +
-    '<div data-slot="userBox" style="font-size:11px;color:var(--txt2);padding:10px 12px 0"></div>' +
+    '<div class="bw-menu-conta"><div data-slot="userBox" style="font-size:11px;color:var(--txt2)"></div>' +
+      '<button type="button" class="bw-atualizar" onclick="window.bwAtualizar(this)" title="Atualizar a página (sincroniza e recarrega)" aria-label="Atualizar"><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/></svg><span>ATUALIZAR</span></button></div>' +
     '</aside>';
 
   var topo = '<div class="bw-topo">' +
@@ -169,6 +170,14 @@
     ti.innerHTML = '<a href="investimentos-painel.html">Painel de Investimentos</a><a href="invest.html" class="ativo" aria-current="page">Simulador de rendimento</a>';
     var pgi = conteudo.querySelector("#bwPagina"); pgi.insertBefore(ti, pgi.firstChild);
   }
+  /* 15/11 (Claude, pedido do dono): CACHÊS E CUSTOS de evento é uma aba do FLUXO DE CAIXA */
+  if (PAGINA === "fluxo" || PAGINA === "custos") {
+    var tf = document.createElement("nav");
+    tf.className = "bw-cambio-abas"; tf.setAttribute("aria-label", "Fluxo de caixa");
+    tf.innerHTML = '<a href="fluxo.html"' + (PAGINA === "fluxo" ? ' class="ativo" aria-current="page"' : "") + '>Lançamentos</a>' +
+      '<a href="custos.html"' + (PAGINA === "custos" ? ' class="ativo" aria-current="page"' : "") + '>Cachês e custos de evento</a>';
+    var pgf = conteudo.querySelector("#bwPagina"); pgf.insertBefore(tf, pgf.firstChild);
+  }
   /* abas do celular */
   var abasEl = document.createElement("nav");
   abasEl.className = "bw-abas";
@@ -189,9 +198,32 @@
     copiar();
     try { new MutationObserver(copiar).observe(ub, { childList: true, subtree: true }); } catch (e) { }
   }
+  /* 15/11 (Claude, pedido do dono): botão ATUALIZAR ao lado do selo LOGADO — no iPhone (app instalado) não dá para puxar a tela */
+  if (acoes) {
+    var at = document.createElement("button");
+    at.type = "button"; at.className = "bw-atualizar bw-atualizar--topo";
+    at.title = "Atualizar a página (sincroniza e recarrega)"; at.setAttribute("aria-label", "Atualizar");
+    at.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/></svg><span>ATUALIZAR</span>';
+    at.onclick = function(){ window.bwAtualizar(at); };
+    var sl = acoes.querySelector(".bw-topo-logado");
+    acoes.insertBefore(at, sl ? sl.nextSibling : acoes.firstChild);
+  }
   var vb = document.getElementById("btnVoltar");
   if (vb) vb.onclick = function(){ history.back(); };
   }
+  /* ATUALIZAR: envia o que estiver pendente (até 5 s) e recarrega a página com a versão mais nova */
+  window.bwAtualizar = function(btn){
+    document.querySelectorAll(".bw-atualizar").forEach(function(b){ b.classList.add("girando"); b.disabled = true; });
+    var fim = function(){ location.reload(); };
+    try {
+      var S = window.BWSync;
+      if (S && S.sincronizar && S.CHAVES) {
+        Promise.race([S.sincronizar(S.CHAVES), new Promise(function(r){ setTimeout(r, 5000); })]).then(fim, fim);
+        return;
+      }
+    } catch (e) { }
+    fim();
+  };
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
   else init();
 })();

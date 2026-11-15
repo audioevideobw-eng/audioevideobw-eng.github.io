@@ -4,7 +4,7 @@
    - fontes de dados (milhas.json): network-first, cai no cache sem rede
    - APIs externas (BCB, er-api): NUNCA cacheadas — passam direto
    Versão no nome do cache: subir CACHE a cada publicação de conteúdo. */
-const CACHE = "bw-mesa-v58";
+const CACHE = "bw-mesa-v59";
 const SHELL = [
   "./",
   "./index.html",
@@ -33,6 +33,7 @@ const SHELL = [
   "./negocio.html",
   "./preco.html",
   "./fluxo.html",
+  "./custos.html",
   "./login.html",
   "./ferramentas.html",
   "./marketing.html",

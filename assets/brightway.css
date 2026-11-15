@@ -171,6 +171,17 @@ body .frow input, body .frow select, body .frow3 input, body .frow3 select { wid
 .bw-auth .links a:hover{color:var(--gold,#FFB547)}
 .bw-topo .acoes{align-items:center}
 .bw-topo-logado:empty{display:none}
+/* 15/11 (Claude): botão ATUALIZAR ao lado do selo LOGADO (topo e menu) */
+.bw-atualizar{display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:999px;cursor:pointer;
+  background:rgba(255,181,71,.08);border:1px solid rgba(255,181,71,.35);color:var(--gold,#FFB547);
+  font-size:11px;font-weight:700;letter-spacing:.12em;white-space:nowrap;font-family:inherit;min-height:30px}
+.bw-atualizar svg{fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.bw-atualizar:hover{background:rgba(255,181,71,.16)}
+.bw-atualizar.girando svg{animation:bwGira .8s linear infinite}
+.bw-atualizar[disabled]{opacity:.75;cursor:wait}
+@keyframes bwGira{to{transform:rotate(360deg)}}
+.bw-menu-conta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 12px 0}
+@media (max-width:600px){.bw-atualizar--topo span{display:none}.bw-atualizar--topo{padding:7px 9px}}
 
 /* 14/11 (Claude): botões de acesso — só a palavra-chave, com profundidade (relevo discreto) */
 body a.menu-card, body a.bw-tool-card{
