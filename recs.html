@@ -1120,6 +1120,7 @@ const mc = $("#mClear"); if (mc) mc.onclick = () => {
   $("#mStatus").textContent = "Carteira limpa.";
 };
 $("#refresh").onclick = refresh;
+refresh();   /* 15/11: ao abrir já busca a cotação do dia (antes ficava a cotação embutida na publicação até apertar Atualizar) */
 (function tick() {   // mantém o "leitura de agora" vivo
   setInterval(() => { if (!document.hidden) render(); }, 60000);
 })();

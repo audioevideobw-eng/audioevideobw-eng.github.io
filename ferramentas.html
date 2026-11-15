@@ -1115,6 +1115,8 @@ function sincronizarTudo() {
         c3: `Receita de evento — ${e.nome}`,
         fonte: "recebido",
       };
+      /* 15/11: o botão "Marcar recebido" antigo criava também "ev_<id>" → receita contada 2x. Fica só a receita_ */
+      if (fluxo.some(o => o.id === "ev_" + e.id)) { garantir(fluxo, "ev_" + e.id, null); mudou++; }
       if (garantir(fluxo, fid, item)) mudou++;
     }
   });

@@ -1213,6 +1213,8 @@ function sincronizarTudo() {
         c3: `Receita de evento — ${e.nome}`,
         fonte: "recebido",
       };
+      /* 15/11: o botão "Marcar recebido" antigo criava também "ev_<id>" → receita contada 2x. Fica só a receita_ */
+      if (fluxo.some(o => o.id === "ev_" + e.id)) { garantir(fluxo, "ev_" + e.id, null); mudou++; }
       if (garantir(fluxo, fid, item)) mudou++;
     }
   });
@@ -2595,19 +2597,11 @@ function render() {
     if (!alvo) return;
     const estavaPago = pago(alvo);
     alvo.recebido = estavaPago ? 0 : (alvo.contratado || 0);
-    /* receita do evento vai para o fluxo geral (sincronia) */
-    /* integra com o fluxo de caixa do negócio: receita entra/sai automaticamente */
-    const fluxo = load("neg_fluxo", 1, []);
-    const fid = `ev_${alvo.id}`;
-    const existente = fluxo.find(o => o.id === fid);
-    if (!estavaPago && alvo.recebido > 0) {
-      if (existente) { existente.c2 = String(alvo.recebido); }
-      else fluxo.push({ id: fid, c0: (alvo.data || ""), c1: "Entrada",
-        c2: String(alvo.recebido), c3: `Evento: ${alvo.nome}` });
-    } else if (estavaPago && existente) {
-      fluxo.splice(fluxo.indexOf(existente), 1);   // desmarcou: sai do fluxo
+    /* a receita entra no fluxo pela sincronia (receita_<id>); antes este botão criava também ev_<id> → contava 2x (15/11) */
+    if (estavaPago) {   /* desmarcou: some também o lançamento antigo ev_<id>, se existir */
+      const fl = load("neg_fluxo", 1, []), i = fl.findIndex(o => o.id === "ev_" + alvo.id);
+      if (i > -1) { fl.splice(i, 1); save("neg_fluxo", 1, fl); }
     }
-    save("neg_fluxo", 1, fluxo);
     salvarEventos(l2);
     sincronizarTudo();
     render();
