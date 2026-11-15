@@ -162,6 +162,17 @@
     trechos = (tr || []).filter(function (c) { return c.t && c.t.trim(); });
     var dur = +$("info").dataset.dur || 0;
     trechos.forEach(function (c, i) { if (c.f == null) c.f = trechos[i + 1] ? trechos[i + 1].i : (dur || c.i + 4); });
+    /* legenda boa de ler: no máximo ~84 caracteres (2 linhas) por bloco, dividindo o tempo pelo tamanho do texto */
+    var div = [];
+    trechos.forEach(function (c) {
+      var t = c.t.trim(); if (t.length <= 84) { div.push({i: c.i, f: c.f, t: t}); return; }
+      var partes = [], atual = "";
+      t.split(/\s+/).forEach(function (p) { if ((atual + " " + p).trim().length > 84 && atual) { partes.push(atual); atual = p; } else atual = (atual + " " + p).trim(); });
+      if (atual) partes.push(atual);
+      var tot = partes.reduce(function (s, p) { return s + p.length; }, 0), ini = c.i, dd = Math.max(0.5, (c.f - c.i));
+      partes.forEach(function (p) { var fim = ini + dd * p.length / tot; div.push({i: ini, f: fim, t: p}); ini = fim; });
+    });
+    trechos = div;
     $("texto").textContent = trechos.length ? trechos.map(function (c) { return c.t.trim(); }).join("\n") : String(texto || "").trim();
     var seg = Math.round((Date.now() - inicioT) / 1000);
     $("info").textContent = "Áudio de " + Math.floor(dur / 60) + " min " + Math.round(dur % 60) + " s · transcrito em " + seg + " s · " + trechos.length + " trechos de legenda.";

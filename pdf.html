@@ -254,13 +254,17 @@
       $("aPagina").value = aDoc.numPages; await mostrarPagina(); aviso("");
     } catch (e) { aDoc = null; aviso("Não consegui abrir este PDF (" + e.message + ")."); }
   };
+  var tarefa = null;   /* uma pintura por vez no mesmo quadro (trocar de PDF/página rápido travava) */
   async function mostrarPagina() {
     if (!aDoc) return;
+    if (tarefa) { try { tarefa.cancel(); } catch (e) { } try { await tarefa.promise; } catch (e) { } }
     var pg = await aDoc.getPage(+$("aPagina").value), v = pg.getViewport({scale: 1.4}), c = $("aCanvas");
-    c.width = v.width; c.height = v.height; await pg.render({canvasContext: c.getContext("2d"), viewport: v}).promise;
+    c.width = v.width; c.height = v.height;
+    var t = tarefa = pg.render({canvasContext: c.getContext("2d"), viewport: v});
+    try { await t.promise; } catch (e) { if (e && e.name === "RenderingCancelledException") return; throw e; } finally { if (tarefa === t) tarefa = null; }
     aPos = null; atualizarMarca();
   }
-  $("aPagina").onchange = mostrarPagina;
+  $("aPagina").onchange = function () { mostrarPagina().catch(function (e) { aviso("Erro ao mostrar a página: " + e.message); }); };
   $("aTam").oninput = atualizarMarca;
   $("aCanvas").addEventListener("click", function (e) {
     var r = this.getBoundingClientRect(); aPos = {x: (e.clientX - r.left) / r.width, y: (e.clientY - r.top) / r.height}; atualizarMarca();
