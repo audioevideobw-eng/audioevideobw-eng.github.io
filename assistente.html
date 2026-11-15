@@ -259,6 +259,7 @@
   /* ---------- pedidos ---------- */
   var SISTEMA = "Você é o assistente de marketing e atendimento de uma empresa brasileira de audiovisual (transmissão ao vivo de eventos, vídeo, fotografia e eventos). " +
     "Responda SEMPRE em português do Brasil correto, de forma clara e natural. Use EXATAMENTE os nomes, números, datas e valores informados pelo usuário, sem mudar nem inventar nenhum. Não use markdown (sem asteriscos). Entregue só o texto pedido, sem explicações antes ou depois.";
+  function sisDoModo() { return MODO === "traduzir" ? SISTEMA.replace("Responda SEMPRE em português do Brasil correto", "Escreva no idioma pedido pelo usuário") : SISTEMA; }
   function pedido() {
     var v = function (id) { return ($(id).value || "").trim(); };
     if (MODO === "legenda") {
@@ -334,7 +335,7 @@
     }
     comecar(); var id = ++pedidoN; p = reforcarDados(p);
     if (MOTOR === "nuvem") {
-      var r = await nuvem({sistema: SISTEMA, pedido: p, max: MODO === "ideias" ? 900 : 650});
+      var r = await nuvem({sistema: sisDoModo(), pedido: p, max: MODO === "ideias" ? 900 : 650});
       if (id !== pedidoN) return;
       if (r && r.texto) { terminar(limpar(r.texto)); return; }
       terminar(null);
@@ -353,7 +354,7 @@
       } catch (e) { terminar(null); $("aviso").textContent = "A IA do Chrome falhou: " + (e && e.message || e); }
       return;
     }
-    worker.postMessage({tipo: "gerar", id: id, mensagens: [{role: "system", content: SISTEMA}, {role: "user", content: p}], max: MODO === "ideias" ? 650 : 450});
+    worker.postMessage({tipo: "gerar", id: id, mensagens: [{role: "system", content: sisDoModo()}, {role: "user", content: p}], max: MODO === "ideias" ? 650 : 450});
   };
   $("btnCopiar").onclick = function () {
     var t = $("saida").innerText.trim();
