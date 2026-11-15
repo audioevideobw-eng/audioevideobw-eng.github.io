@@ -3645,7 +3645,13 @@ window.__evEditar = id => {
 
 window.__evAbrir = id => abrirDossie(id);
 window.__evDel = id => {
+  /* 15/11: pedia nenhuma confirmação e deixava a receita/gastos do evento no Fluxo de caixa */
+  const ev = eventos().find(x => String(x.id) === String(id));
+  if (!confirm("Excluir o evento \"" + ((ev && ev.nome) || "") + "\"? A receita e os gastos dele também saem do Fluxo de caixa.")) return;
   salvarEventos(eventos().filter(x => String(x.id) !== String(id)));
+  const fl = load("neg_fluxo", 1, []), i = fl.findIndex(o => o.id === "ev_" + id);
+  if (i > -1) { fl.splice(i, 1); save("neg_fluxo", 1, fl); }
+  try { sincronizarTudo(); } catch (e) { }
   render();
 };
 
