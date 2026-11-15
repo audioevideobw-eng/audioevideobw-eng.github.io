@@ -249,9 +249,9 @@ input.busca{font:inherit;font-size:13px;background:var(--navy2);color:var(--txt)
     if (entrada) {
       r.grupo = "Receita";
       var ev = evs.find(function (e) { return "receita_" + e.id === id || "ev_" + e.id === id; });
-      if (ev || /^(Receita de evento|Recebimento de cliente|Venda de serviço|Venda de produto)/i.test(cat)) {
-        r.categoria = "Receita de cliente"; r.quem = ev ? (ev.cliente || ev.nome) : cat;
-      }
+      if (/empréstimo|financiamento|aporte|resgate|transferência/i.test(cat)) return r;
+      r.categoria = "Receita de cliente"; r.quem = ev ? (ev.cliente || ev.nome) : (cat.replace(/^Evento:\s*/i, "") || "Sem nome");
+      if (ev) { r._ev = ev; }
       return r;
     }
     if (/^cache_/.test(id)) { r.grupo = "Custos dos eventos"; r.categoria = "Equipe (cachês)"; var m = cat.match(/cachê de (.+?) \(/); r.quem = m ? m[1] : cat; return r; }
@@ -268,8 +268,8 @@ input.busca{font:inherit;font-size:13px;background:var(--navy2);color:var(--txt)
     var L = fluxo.filter(function (o) { return o.c0 && String(o.c0) <= hoje && o.fonte !== "pendente" && num(o.c2); })
       .map(function (o) { return classificar(o, evs); });
     L.forEach(function (r) { r.mes = per(r.data); });
-    var E = evs.filter(function (e) { return num(e.recebido) > 0; }).map(function (e) {
-      return {data_pagamento: e.data, valor: num(e.recebido), cliente: e.cliente || "", descricao: e.nome || "", data_evento: dt(e.data)};
+    var E = L.filter(function (r) { return r._ev; }).map(function (r) {
+      return {data_pagamento: r.data, valor: r.valor, cliente: r._ev.cliente || "", descricao: r._ev.nome || "", data_evento: dt(r._ev.data)};
     });
     return {L: L, E: E};
   }
