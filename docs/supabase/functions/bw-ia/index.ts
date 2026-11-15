@@ -1,10 +1,11 @@
 // IA Brightway (Edge Function "bw-ia") — 15/11/2026, Claude
 // Recebe {sistema, pedido, max} de um usuário LOGADO, chama a Groq com a chave guardada no Supabase
-// (Secret GROQ_API_KEY) e devolve {texto}. A chave nunca vai para o site. Limite: 60 pedidos/dia por conta.
+// (Secret GROQ_API_KEY) e devolve {texto}. Também transcreve áudio (Content-Type audio/*) com whisper-large-v3-turbo. A chave nunca vai para o site. Limite: 60 pedidos/dia por conta.
 // {ping:true} só diz se está pronta (tem chave). Nada do texto é gravado.
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
-const LIMITE_DIA = 60;
+const LIMITE_DIA = 60;          // textos por dia (conta junto com os pedaços de áudio)
+const LIMITE_AUDIO_DIA = 200;   // pedaços de ~3 min de áudio por dia (~10 h)
 const MODELOS = ["openai/gpt-oss-120b", "openai/gpt-oss-20b"];
 const CORS = {
   "Access-Control-Allow-Origin": "https://audioevideobw-eng.github.io",
@@ -27,6 +28,30 @@ Deno.serve(async (req) => {
   const usuario = createClient(url, anon, { global: { headers: { Authorization: auth } } });
   const { data: u } = await usuario.auth.getUser();
   if (!u?.user) return resp({ erro: "sem_login" }, 401);
+
+  // TRANSCRIÇÃO: o site manda um pedaço de áudio (WAV 16 kHz, até ~3 min) e recebe o texto com os tempos.
+  const tipo = req.headers.get("Content-Type") || "";
+  if (tipo.startsWith("audio/")) {
+    if (!chave) return resp({ erro: "sem_chave" }, 503);
+    const audio = await req.arrayBuffer();
+    if (audio.byteLength > 20 * 1024 * 1024) return resp({ erro: "grande" }, 413);
+    const admA = createClient(url, service);
+    const { data: okA, error: eA } = await admA.rpc("bw_ia_contar", { p_dono: u.user.id, p_limite: LIMITE_AUDIO_DIA });
+    if (eA) return resp({ erro: "contador" }, 500);
+    if (!okA) return resp({ erro: "limite" }, 429);
+    const lang = (new URL(req.url).searchParams.get("lang") || "").slice(0, 2);
+    const fd = new FormData();
+    fd.append("file", new Blob([audio], { type: tipo }), "audio.wav");
+    fd.append("model", "whisper-large-v3-turbo");
+    fd.append("response_format", "verbose_json");
+    fd.append("timestamp_granularities[]", "segment");
+    fd.append("temperature", "0");
+    if (lang) fd.append("language", lang);
+    const r = await fetch("https://api.groq.com/openai/v1/audio/transcriptions", { method: "POST", headers: { "Authorization": `Bearer ${chave}` }, body: fd });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) return resp({ erro: r.status === 429 ? "ocupada" : "groq", detalhe: j?.error?.message?.slice(0, 200) }, r.status === 429 ? 429 : 502);
+    return resp({ texto: j.text || "", trechos: (j.segments || []).map((s: { start: number; end: number; text: string }) => ({ i: s.start, f: s.end, t: s.text })) });
+  }
 
   let corpo: { ping?: boolean; sistema?: string; pedido?: string; max?: number } = {};
   try { corpo = await req.json(); } catch { return resp({ erro: "corpo" }, 400); }

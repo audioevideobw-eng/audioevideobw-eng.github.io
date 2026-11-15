@@ -31,7 +31,8 @@
     </div>
     <div class="tf-grade" style="margin-top:14px">
       <label class="tf-campo"><span>Idioma falado</span><select id="idioma"><option value="portuguese">Português</option><option value="english">Inglês</option><option value="spanish">Espanhol</option><option value="">Detectar sozinho</option></select></label>
-      <label class="tf-campo"><span>Qualidade</span><select id="qual"><option value="onnx-community/whisper-tiny">Rápida (download menor)</option><option value="onnx-community/whisper-base" selected>Equilibrada (recomendada)</option><option value="onnx-community/whisper-small">Precisa (download maior, mais lenta)</option></select></label>
+      <label class="tf-campo"><span>Onde transcrever</span><select id="motor"><option value="nuvem">IA Brightway — mais precisa, ideal no celular</option><option value="local">No aparelho — 100% privado</option></select></label>
+      <label class="tf-campo" id="boxQual"><span>Qualidade (no aparelho)</span><select id="qual"><option value="onnx-community/whisper-tiny">Rápida (download menor)</option><option value="onnx-community/whisper-base" selected>Equilibrada (recomendada)</option><option value="onnx-community/whisper-small">Precisa (download maior, mais lenta)</option></select></label>
     </div>
     <div class="tf-status" style="margin-top:14px"><span class="tf-ponto" id="ponto"></span><span id="st">Escolha um arquivo para começar.</span></div>
     <div class="tf-barra" id="barra" hidden><i id="barraI"></i></div>
@@ -46,13 +47,15 @@
       <button class="bw-btn bw-btn--vidro" id="bTxt" type="button">BAIXAR .TXT</button>
       <button class="bw-btn bw-btn--vidro" id="bSrt" type="button">LEGENDA .SRT</button>
       <button class="bw-btn bw-btn--vidro" id="bVtt" type="button">LEGENDA .VTT</button>
+      <button class="bw-btn bw-btn--primario" id="bShare" type="button" hidden>SALVAR / ENVIAR</button>
       <button class="bw-btn bw-btn--vidro" id="bAssist" type="button">RESUMIR NO ASSISTENTE</button>
       <span class="tf-nota" id="aviso" style="margin:0"></span>
     </div>
+    <p class="tf-nota" id="links"></p>
     <p class="tf-nota">As legendas usam os tempos detectados pela IA. Se você editar o texto acima, os arquivos .srt/.vtt continuam com o texto original (com os tempos certos); o .txt sai com o texto editado.</p>
   </div>
 
-  <div class="tf-seguro"><svg viewBox="0 0 24 24"><path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6z"/><path d="m9 12 2 2 4-4"/></svg><span>A transcrição é feita <b>no seu aparelho</b> (IA Whisper). O áudio e o vídeo não são enviados para nenhum servidor. Na primeira vez a IA é baixada e fica guardada neste navegador.</span></div>
+  <div class="tf-seguro"><svg viewBox="0 0 24 24"><path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6z"/><path d="m9 12 2 2 4-4"/></svg><span id="txtSeguro">A transcrição é feita <b>no seu aparelho</b> (IA Whisper). O áudio e o vídeo não são enviados para nenhum servidor. Na primeira vez a IA é baixada e fica guardada neste navegador.</span></div>
 </div>
 
 <script src="assets/layout.js?v=18"></script>
@@ -81,6 +84,62 @@
   try { var q = localStorage.getItem("ui_transc_qual"); if (q) $("qual").value = q; var idm = localStorage.getItem("ui_transc_idioma"); if (idm != null) $("idioma").value = idm; } catch (e) { }
   $("qual").onchange = function () { try { localStorage.setItem("ui_transc_qual", this.value); } catch (e) { } };
   $("idioma").onchange = function () { try { localStorage.setItem("ui_transc_idioma", this.value); } catch (e) { } };
+
+  /* ---------- motor: IA Brightway (nuvem) ou no aparelho ---------- */
+  var SUPA_FN = "https://zdtnetplvdonogmdvarx.supabase.co/functions/v1/bw-ia";
+  var PUB = "sb_publishable_qJ2mIx1hcn_ZH75-yxJiDA_OI-EHyIU";   /* chave pública (publishable) — a mesma do bw-sync.js */
+  async function tokenSessao() { try { var sb = window.BWSync && BWSync.cliente(); var s = sb ? await sb.auth.getSession() : null; return s && s.data && s.data.session ? s.data.session.access_token : null; } catch (e) { return null; } }
+  var nuvemPronta = false;
+  function trocarMotor() {
+    var nv = $("motor").value === "nuvem";
+    $("boxQual").hidden = nv;
+    $("txtSeguro").innerHTML = nv ? "Com a <b>IA Brightway</b>, o áudio é enviado em pedaços para a Groq (empresa de IA) só para transcrever e <b>não fica guardado na plataforma</b>. Para conversas sigilosas, escolha <b>No aparelho</b>."
+      : "A transcrição é feita <b>no seu aparelho</b> (IA Whisper). O áudio e o vídeo não são enviados para nenhum servidor. Na primeira vez a IA é baixada e fica guardada neste navegador.";
+    try { localStorage.setItem("ui_transc_motor", $("motor").value); } catch (e) { }
+  }
+  $("motor").onchange = trocarMotor;
+  (async function () {
+    var tk = await tokenSessao(), pronto = false;
+    if (tk) { try { var r = await fetch(SUPA_FN, {method: "POST", headers: {"Content-Type": "application/json", "Authorization": "Bearer " + tk, "apikey": PUB}, body: "{\"ping\":true}"}); var j = await r.json(); pronto = !!j.pronto; } catch (e) { } }
+    nuvemPronta = pronto;
+    var pref = null; try { pref = localStorage.getItem("ui_transc_motor"); } catch (e) { }
+    if (!pronto) { $("motor").options[0].disabled = true; $("motor").options[0].text = tk ? "IA Brightway — indisponível agora" : "IA Brightway — entre na sua conta para usar"; $("motor").value = "local"; }
+    else $("motor").value = pref || "nuvem";
+    trocarMotor();
+  })();
+
+  /* WAV 16 kHz mono 16 bits (aceito pela Groq) */
+  function wav(amostras) {
+    var n = amostras.length, buf = new ArrayBuffer(44 + n * 2), v = new DataView(buf), s = function (o, t) { for (var i = 0; i < t.length; i++) v.setUint8(o + i, t.charCodeAt(i)); };
+    s(0, "RIFF"); v.setUint32(4, 36 + n * 2, true); s(8, "WAVE"); s(12, "fmt "); v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+    v.setUint32(24, 16000, true); v.setUint32(28, 32000, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true); s(36, "data"); v.setUint32(40, n * 2, true);
+    for (var i = 0, o = 44; i < n; i++, o += 2) { var x = Math.max(-1, Math.min(1, amostras[i])); v.setInt16(o, x < 0 ? x * 0x8000 : x * 0x7FFF, true); }
+    return new Blob([buf], {type: "audio/wav"});
+  }
+  async function transcreverNuvem(audio, dur) {
+    var tk = await tokenSessao(); if (!tk) throw new Error("entre na sua conta para usar a IA Brightway");
+    var PEDACO = 16000 * 180, total = Math.ceil(audio.length / PEDACO), tudo = [], textos = [];
+    var lang = {portuguese: "pt", english: "en", spanish: "es"}[$("idioma").value] || "";
+    for (var k = 0; k < total; k++) {
+      st("ambar", "Transcrevendo com a IA Brightway: parte " + (k + 1) + " de " + total + "…"); barra(k / total);
+      var corpo = wav(audio.subarray(k * PEDACO, Math.min(audio.length, (k + 1) * PEDACO))), j = null;
+      for (var tent = 0; tent < 3 && !j; tent++) {
+        try {
+          var r = await fetch(SUPA_FN + "?lang=" + lang, {method: "POST", headers: {"Content-Type": "audio/wav", "Authorization": "Bearer " + tk, "apikey": PUB}, body: corpo});
+          var x = await r.json().catch(function () { return {}; });
+          if (r.ok) j = x;
+          else if (x.erro === "limite") throw new Error("você chegou ao limite de transcrição de hoje");
+          else if (tent === 2) throw new Error(x.detalhe || x.erro || ("erro " + r.status));
+          else await new Promise(function (ok) { setTimeout(ok, 2500 * (tent + 1)); });
+        } catch (e) { if (/limite/.test(e.message) || tent === 2) throw e; await new Promise(function (ok) { setTimeout(ok, 2500); }); }
+      }
+      var ini = k * 180;
+      (j.trechos || []).forEach(function (c) { tudo.push({i: ini + (+c.i || 0), f: ini + (+c.f || 0), t: c.t}); });
+      textos.push(j.texto || "");
+    }
+    barra(null);
+    return {texto: textos.join(" "), trechos: tudo};
+  }
 
   function st(cor, html) { $("ponto").className = "tf-ponto" + (cor ? " " + cor : ""); $("st").innerHTML = html; }
   function barra(p) { $("barra").hidden = p == null; if (p != null) $("barraI").style.width = Math.round(p * 100) + "%"; }
@@ -148,8 +207,13 @@
     var d;
     try { d = await decodificar(blob); }
     catch (e) { ocupado = false; st("", "Não consegui ler o áudio deste arquivo. Tente MP3, M4A, WAV ou MP4."); return; }
-    if (!worker) worker = novoWorker();
     inicioT = Date.now(); $("info").dataset.dur = d.dur;
+    if ($("motor").value === "nuvem" && nuvemPronta) {
+      try { var res = await transcreverNuvem(d.audio, d.dur); ocupado = false; mostrar(res.texto, res.trechos); }
+      catch (e) { ocupado = false; barra(null); st("", "Não foi possível transcrever: " + esc(e.message).slice(0, 200) + ". Tente de novo ou escolha <b>No aparelho</b>."); }
+      return;
+    }
+    if (!worker) worker = novoWorker();
     worker.postMessage({modelo: $("qual").value, idioma: $("idioma").value, audio: d.audio}, [d.audio.buffer]);
   }
 
@@ -176,24 +240,54 @@
     $("texto").textContent = trechos.length ? trechos.map(function (c) { return c.t.trim(); }).join("\n") : String(texto || "").trim();
     var seg = Math.round((Date.now() - inicioT) / 1000);
     $("info").textContent = "Áudio de " + Math.floor(dur / 60) + " min " + Math.round(dur % 60) + " s · transcrito em " + seg + " s · " + trechos.length + " trechos de legenda.";
+    try { localStorage.setItem("ui_transc_ultimo", JSON.stringify({nome: nomeBase, texto: $("texto").textContent, trechos: trechos, info: $("info").textContent, quando: Date.now()})); } catch (e) { }
+    prepararEntrega();
     $("resultado").hidden = false; st("ok", "<b>Pronto.</b> Revise o texto — nomes próprios e termos técnicos podem sair errados.");
     $("resultado").scrollIntoView({behavior: "smooth", block: "start"});
   }
-  function baixar(conteudo, nome, tipo) {
-    var a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([conteudo], {type: tipo})); a.download = nome;
-    document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
+  /* entrega do arquivo: no celular o download por link às vezes não acontece (ou some) → além do download,
+     link de reserva que fica na tela e botão SALVAR / ENVIAR (menu de compartilhar do Android/iPhone) */
+  var urls = {};
+  function arquivo(tipo) {
+    if (tipo === "txt") return {nome: nomeBase + ".txt", conteudo: $("texto").innerText.trim() + "\n"};
+    if (!trechos.length) return null;
+    if (tipo === "srt") return {nome: nomeBase + ".srt", conteudo: trechos.map(function (c, i) { return (i + 1) + "\n" + hms(c.i, ",") + " --> " + hms(c.f, ",") + "\n" + c.t.trim() + "\n"; }).join("\n")};
+    return {nome: nomeBase + ".vtt", conteudo: "WEBVTT\n\n" + trechos.map(function (c) { return hms(c.i, ".") + " --> " + hms(c.f, ".") + "\n" + c.t.trim() + "\n"; }).join("\n")};
   }
+  function baixar(tipo) {
+    var a0 = arquivo(tipo); if (!a0) { $("aviso").textContent = "Sem tempos de legenda neste resultado."; return; }
+    if (urls[tipo]) URL.revokeObjectURL(urls[tipo]);
+    urls[tipo] = URL.createObjectURL(new Blob([a0.conteudo], {type: "text/plain;charset=utf-8"}));
+    var a = document.createElement("a"); a.href = urls[tipo]; a.download = a0.nome; a.rel = "noopener";
+    document.body.appendChild(a); a.click(); setTimeout(function () { a.remove(); }, 1000);
+    $("aviso").textContent = "✓ " + a0.nome + " enviado para Downloads.";
+    $("links").innerHTML = "Não apareceu? <a href=\"" + urls[tipo] + "\" download=\"" + esc(a0.nome) + "\" style=\"color:#FFB547\">toque aqui para baixar " + esc(a0.nome) + "</a>" + (navigator.share ? " ou use <b>SALVAR / ENVIAR</b>." : ".");
+  }
+  function prepararEntrega() {
+    var pode = false;
+    try { pode = !!(navigator.canShare && navigator.canShare({files: [new File(["x"], "t.txt", {type: "text/plain"})]})); } catch (e) { }
+    $("bShare").hidden = !pode; $("links").innerHTML = "";
+  }
+  $("bShare").onclick = async function () {
+    var fs = ["srt", "txt"].map(arquivo).filter(Boolean).map(function (a) { return new File([a.conteudo], a.nome, {type: "text/plain"}); });
+    try { await navigator.share({files: fs, title: nomeBase}); $("aviso").textContent = "✓ Enviado."; }
+    catch (e) { if (e && e.name !== "AbortError") { $("aviso").textContent = "Não deu para compartilhar — use os botões de baixar."; } }
+  };
   $("bCopiar").onclick = function () { var t = $("texto").innerText.trim(); (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(function () { $("aviso").textContent = "✓ Copiado"; }, function () { $("aviso").textContent = "Selecione o texto e copie."; }); };
-  $("bTxt").onclick = function () { baixar($("texto").innerText.trim() + "\n", nomeBase + ".txt", "text/plain;charset=utf-8"); };
-  $("bSrt").onclick = function () {
-    if (!trechos.length) { $("aviso").textContent = "Sem tempos de legenda neste resultado."; return; }
-    baixar(trechos.map(function (c, i) { return (i + 1) + "\n" + hms(c.i, ",") + " --> " + hms(c.f, ",") + "\n" + c.t.trim() + "\n"; }).join("\n"), nomeBase + ".srt", "application/x-subrip;charset=utf-8");
-  };
-  $("bVtt").onclick = function () {
-    if (!trechos.length) { $("aviso").textContent = "Sem tempos de legenda neste resultado."; return; }
-    baixar("WEBVTT\n\n" + trechos.map(function (c) { return hms(c.i, ".") + " --> " + hms(c.f, ".") + "\n" + c.t.trim() + "\n"; }).join("\n"), nomeBase + ".vtt", "text/vtt;charset=utf-8");
-  };
+  $("bTxt").onclick = function () { baixar("txt"); };
+  $("bSrt").onclick = function () { baixar("srt"); };
+  $("bVtt").onclick = function () { baixar("vtt"); };
   $("bAssist").onclick = function () { try { sessionStorage.setItem("bw_assist_texto", $("texto").innerText.trim()); } catch (e) { } location.href = "assistente.html#resumo"; };
+
+  /* a última transcrição continua disponível depois de recarregar (só neste aparelho) */
+  try {
+    var ult = JSON.parse(localStorage.getItem("ui_transc_ultimo") || "null");
+    if (ult && ult.texto) {
+      nomeBase = ult.nome || "transcricao"; trechos = ult.trechos || []; $("texto").textContent = ult.texto;
+      $("info").textContent = "Última transcrição (" + new Date(ult.quando).toLocaleString("pt-BR").slice(0, 16) + ") · " + (ult.info || "");
+      prepararEntrega(); $("resultado").hidden = false; st("ok", "Sua última transcrição está abaixo. Escolha um arquivo para transcrever outro.");
+    }
+  } catch (e) { }
 
   /* escolher / arrastar arquivo */
   $("soltar").onclick = function () { $("arq").click(); };
