@@ -249,7 +249,7 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
   (docs/automacoes/noticias.py + .github/workflows/noticias.yml, NÃO publicada: aguarda autorização do dono para commits automáticos).
 
 ## Pendências (dono)
-- [ ] Autorizar a automação de NOTÍCIAS (publica noticias.json no site a cada 2 h). Milhas: decidir fonte das cotações (hoje paradas em 02/11).
+- [x] (15/11 10:02, dono: "faça tudo") Autorizar a automação de NOTÍCIAS (publica noticias.json no site a cada 2 h). Milhas: decidir fonte das cotações (hoje paradas em 02/11).
 - [ ] Conferir EVENTO SICOOB: o fluxo tem "Evento: EVENTO SICOOB" R$ 2.500 como RECEBIDO, mas o evento está marcado como NÃO PAGO.
 - [x] (15/11 09:20, dono) IA Brightway: criar conta grátis em console.groq.com → API Keys → Create; colar em Supabase → Edge Functions → Secrets como GROQ_API_KEY.
 - [x] (14/11 20:03, dono) Google: gerar NOVO client secret no Google Cloud (Clients → cliente OAuth) e colar em Supabase → Authentication →
