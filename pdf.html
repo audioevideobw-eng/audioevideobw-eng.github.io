@@ -246,13 +246,16 @@
     return c;
   }
   async function pdfjs() { await script(PDFJS + "pdf.min.js"); window.pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS + "pdf.worker.min.js"; return window.pdfjsLib; }
+  var aSeq = 0;   /* se outro PDF for escolhido no meio do carregamento, só o último vale */
   aoEscolher.aArq = async function (fs) {
-    aF = fs[0]; aPos = null; aviso("Abrindo…");
+    var meu = ++aSeq, f = fs[0]; aPos = null; aviso("Abrindo…");
     try {
-      var J = await pdfjs(); aDoc = await J.getDocument({data: new Uint8Array(await aF.arrayBuffer())}).promise;
+      var J = await pdfjs(), doc = await J.getDocument({data: new Uint8Array(await f.arrayBuffer())}).promise;
+      if (meu !== aSeq) return;
+      aF = f; aDoc = doc;
       $("aPagina").innerHTML = ""; for (var i = 1; i <= aDoc.numPages; i++) { var o = document.createElement("option"); o.value = i; o.textContent = "Página " + i + " de " + aDoc.numPages; $("aPagina").appendChild(o); }
-      $("aPagina").value = aDoc.numPages; await mostrarPagina(); aviso("");
-    } catch (e) { aDoc = null; aviso("Não consegui abrir este PDF (" + e.message + ")."); }
+      $("aPagina").value = aDoc.numPages; await mostrarPagina(); if (meu === aSeq) aviso("");
+    } catch (e) { if (meu !== aSeq) return; aF = null; aDoc = null; aviso("Não consegui abrir este PDF (" + e.message + ")."); }
   };
   var tarefa = null;   /* uma pintura por vez no mesmo quadro (trocar de PDF/página rápido travava) */
   async function mostrarPagina() {
