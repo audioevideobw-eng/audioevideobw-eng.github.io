@@ -192,7 +192,7 @@
       '    if (d.tipo === "carregar") { await carregar(); postMessage({ tipo: "pronto" }); return; }',
       '    const g = await carregar();',
       '    const streamer = new TextStreamer(g.tokenizer, { skip_prompt: true, skip_special_tokens: true, callback_function: (t) => postMessage({ tipo: "parte", id: d.id, t }) });',
-      '    const out = await g(d.mensagens, { max_new_tokens: d.max || 450, do_sample: true, temperature: 0.7, top_p: 0.9, streamer });',
+      '    const out = await g(d.mensagens, { max_new_tokens: d.max || 450, do_sample: true, temperature: 0.3, top_p: 0.85, repetition_penalty: 1.1, streamer });',
       '    const r = out[0].generated_text; postMessage({ tipo: "fim", id: d.id, texto: Array.isArray(r) ? r[r.length - 1].content : String(r) });',
       '  } catch (e) { postMessage({ tipo: "erro", id: d.id, msg: String(e && e.message || e) }); }',
       '};'
@@ -220,7 +220,7 @@
 
   /* ---------- pedidos ---------- */
   var SISTEMA = "Você é o assistente de marketing e atendimento de uma empresa brasileira de audiovisual (transmissão ao vivo de eventos, vídeo, fotografia e eventos). " +
-    "Responda SEMPRE em português do Brasil, de forma clara e natural. Não invente preços, datas, nomes ou números que não foram informados. Entregue só o texto pedido, sem explicações antes ou depois.";
+    "Responda SEMPRE em português do Brasil correto, de forma clara e natural. Use EXATAMENTE os nomes, números, datas e valores informados pelo usuário, sem mudar nem inventar nenhum. Não use markdown (sem asteriscos). Entregue só o texto pedido, sem explicações antes ou depois.";
   function pedido() {
     var v = function (id) { return ($(id).value || "").trim(); };
     if (MODO === "legenda") {
@@ -245,12 +245,20 @@
     if (MODO === "traduzir") { if (!v("trTexto")) return null; var n = $("trPara").options[$("trPara").selectedIndex].text; return "Traduza para " + n.toLowerCase() + " o texto abaixo. Entregue só a tradução:\n\n" + v("trTexto").slice(0, 8000); }
     return null;
   }
-  function limpar(t) { return String(t || "").replace(/^\s*(Claro|Aqui está|Segue)[^\n]*:\s*\n+/i, "").trim(); }
+  function limpar(t) { return String(t || "").replace(/^\s*(Claro|Aqui está|Segue)[^\n]*:\s*\n+/i, "").replace(/\*\*|__/g, "").replace(/[”"]\s*$/, "").trim(); }
+  /* alarme: número na resposta que o usuário não escreveu (a IA pequena às vezes troca "800" por "300") */
+  function conferirNumeros(saida) {
+    var entrada = [].map.call(document.querySelectorAll("[data-form]:not([hidden]) input, [data-form]:not([hidden]) textarea"), function (e) { return e.value; }).join(" ");
+    var tem = {}; (entrada.match(/\d+(?:[.,]\d+)*/g) || []).forEach(function (n) { tem[n.replace(/[.,]/g, "")] = 1; });
+    var novos = (String(saida).match(/\d+(?:[.,]\d+)*/g) || []).filter(function (n) { var k = n.replace(/[.,]/g, ""); return k.length > 1 && !tem[k] && !/^(19|20)\d\d$/.test(k); });
+    return novos.filter(function (n, i) { return novos.indexOf(n) === i; });
+  }
   function comecar() { gerando = true; $("saida").textContent = ""; $("btnGerar").disabled = true; $("btnParar").hidden = false; $("btnCopiar").hidden = true; $("aviso").textContent = "Escrevendo…"; }
   function terminar(texto) {
     gerando = false; $("btnGerar").disabled = false; $("btnParar").hidden = true;
     if (texto != null) $("saida").textContent = texto;
     $("btnCopiar").hidden = !$("saida").textContent.trim(); $("aviso").textContent = texto != null ? "Pronto — revise antes de usar." : "";
+    if (texto != null && MOTOR !== "modelos") { var nv = conferirNumeros(texto); if (nv.length) { $("aviso").textContent = "⚠ Atenção: o texto tem número(s) que você não informou (" + nv.join(", ") + ") — confira e corrija antes de usar."; $("aviso").style.color = "#FFB547"; } else $("aviso").style.color = ""; }
   }
   $("btnParar").onclick = function () { pedidoN++; terminar(null); };
 
