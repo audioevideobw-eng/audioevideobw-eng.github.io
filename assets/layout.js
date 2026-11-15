@@ -94,7 +94,7 @@
     if (c.id === CAT && SUBPAGINAS[c.id]) {
       html += SUBPAGINAS[c.id].map(function(s){
         var a = s[0] === PAGINA ? ' style="color:var(--gold)"' : "";
-        var adm = (s[0] === "financeiro-painel" || s[0] === "configadm") ? " so-admin" : "";
+        var adm = (s[0] === "configadm") ? " so-admin" : "";
         return '<a class="bw-sub' + adm + '" href="' + s[0] + '.html"' + a + '>' + s[1] + '</a>';
       }).join("");
     }

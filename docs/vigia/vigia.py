@@ -177,7 +177,10 @@ for p, t in todos.items():
                 problemas.append(f"{p}: {m.group(1)} enviado para bucket público ({m.group(2)}) — documentos vão para eventos-docs (privado)")
     if "?galeria=\" + e.id" in t or '"?galeria=" + e.id' in t:
         problemas.append(f"{p}: galeria por número do evento (adivinhável) — use o link secreto bw_galerias (?g=TOKEN)")
-    for alvo in ["financeiro-painel.html", "configadm.html"]:
+    for m in re.finditer(r'<a [^>]*href="financeiro-painel\.html"[^>]*>', t):
+        if "so-admin" in m.group(0):
+            problemas.append(f"{p}: PAINEL FINANCEIRO escondido com so-admin — ele é de todas as contas desde 14/11")
+    for alvo in ["configadm.html"]:
         for m in re.finditer(r'<a [^>]*href="' + re.escape(alvo) + r'"[^>]*>', t):
             if "so-admin" not in m.group(0):
                 problemas.append(f"{p}: link para {alvo} sem 'so-admin' (aparece para usuários comuns)")
@@ -185,6 +188,14 @@ if "urlSegura" not in sync:
     problemas.append("assets/bw-sync.js: sem urlSegura (documentos privados não abrem)")
 if "html:not(.bw-admin) .so-admin" not in css:
     problemas.append("assets/brightway.css: sem a regra que esconde itens de admin")
+fp = todos.get("financeiro-painel.html", "")
+if fp:
+    for trecho, msg in [('ler("neg_fluxo")', "não lê os lançamentos da plataforma (neg_fluxo)"),
+                        ('data-acao="baixar"', "sem BAIXAR PLANILHA"), ('data-acao="enviar"', "sem ENVIAR PLANILHA"),
+                        ("BWSync.antesDeSalvar(\"neg_fluxo\", 1, lista)", "ENVIAR PLANILHA grava sem avisar o BWSync (3 argumentos)"),
+                        ('o.fonte !== "pendente"', "conta cachês ainda não pagos como gasto realizado")]:
+        if trecho not in fp:
+            problemas.append("financeiro-painel.html: " + msg)
 lgx = todos.get("login.html", "")
 if lgx and ("bw_excluir_minha_conta" not in lgx or "lExportar" not in lgx):
     problemas.append("login.html: sem 'Baixar meus dados' / 'Excluir minha conta' (LGPD)")

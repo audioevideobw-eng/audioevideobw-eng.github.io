@@ -86,6 +86,17 @@ input.busca{font:inherit;font-size:13px;background:var(--navy2);color:var(--txt)
 .muted{color:var(--mut)}
 .pos{color:var(--up)} .neg{color:var(--dn)}
 .carregando{opacity:.55;transition:opacity .2s}
+.acoes{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.acoes .btn{font-size:11px;letter-spacing:.08em;font-weight:600;padding:9px 14px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:999px;overflow:hidden}
+.seg button{font:inherit;font-size:11px;letter-spacing:.06em;font-weight:600;padding:8px 12px;background:var(--navy2);color:var(--mut);border:0;cursor:pointer}
+.seg button.on{background:var(--gold);color:#1a1205}
+.ajuda{margin-top:14px}
+.ajuda ol{margin:8px 0 0;padding-left:20px;color:var(--mut);font-size:13px;line-height:1.7}
+.ajuda b{color:var(--txt)}
+.previa{margin-top:12px;padding:14px;border:1px solid var(--gold);border-radius:12px;background:rgba(255,181,71,.06);font-size:13px}
+.previa .acoes{margin-top:10px}
+.msg{font-size:12px;color:var(--up);margin-top:8px;min-height:1em}
 .hd-logo{flex:1 1 auto;min-width:0;display:flex;justify-content:center}.hd-logo img{height:34px;max-width:100%;object-fit:contain;display:block}
 @media(max-width:560px){.hd-logo img{height:24px}#btnAtualizar{font-size:0;padding:8px 10px}#btnAtualizar::before{content:"↻";font-size:14px}.vivo #vivoTxt{display:none}}
 </style>
@@ -106,24 +117,51 @@ input.busca{font:inherit;font-size:13px;background:var(--navy2);color:var(--txt)
 <main class="wrap">
   <section class="aviso card" id="semLogin" hidden>
     <h2>Faça login para ver o Painel Financeiro</h2>
-    <p>Os dados financeiros são privados e só aparecem para a conta dona da plataforma.</p>
+    <p>Os dados financeiros são privados: cada conta vê só os próprios números.</p>
     <a class="btn" href="login.html">Entrar na plataforma</a>
   </section>
 
   <section class="aviso card" id="semDados" hidden>
-    <h2>Ainda não há dados sincronizados</h2>
-    <p>Abra a planilha <b>Finanças BW — Painel Financeiro</b> no Google Sheets e use o menu <b>Painel BW › Sincronizar agora</b>.</p>
+    <h2>Seu painel aparece aqui</h2>
+    <p>Lance entradas e saídas no <b>FLUXO DE CAIXA</b> ou registre seus <b>EVENTOS</b> (recebido, gastos e cachês da equipe). O painel monta os números sozinho.</p>
+    <div class="acoes" style="justify-content:center">
+      <a class="btn" href="fluxo.html">FLUXO DE CAIXA</a>
+      <a class="btn" href="eventos.html">EVENTOS</a>
+      <button class="btn" type="button" data-acao="enviar">ENVIAR PLANILHA</button>
+      <button class="btn" type="button" id="verGoogle" hidden>VER PLANILHA GOOGLE</button>
+    </div>
+    <div class="msg" id="msgVazio"></div>
   </section>
+  <input type="file" id="arqPlanilha" accept=".xlsx,.xls,.csv" hidden>
 
   <div id="painel" hidden>
     <section class="hero">
       <h1>PAINEL <span>FINANCEIRO</span></h1>
-      <p>Conta Sicoob da Audio e Vídeo BW · atualiza sozinho quando a planilha muda (no PC ou no celular)</p>
+      <p id="subtitulo">Montado com os seus lançamentos da plataforma · atualiza sozinho</p>
       <p class="take" id="frase">—</p>
       <div class="filtros">
         <label for="fPeriodo">Período</label>
         <select class="sel" id="fPeriodo"><option value="">Ano todo</option></select>
+        <span class="seg" id="fonteSeg" hidden><button type="button" data-fonte="plataforma">PLATAFORMA</button><button type="button" data-fonte="google">PLANILHA GOOGLE</button></span>
         <span class="muted" style="font-size:12px" id="atualizadoEm"></span>
+      </div>
+      <div class="acoes">
+        <button class="btn" type="button" data-acao="baixar">⬇ BAIXAR PLANILHA</button>
+        <button class="btn" type="button" data-acao="enviar">⬆ ENVIAR PLANILHA</button>
+        <button class="btn" type="button" id="btnAjuda">? COMO FUNCIONA</button>
+      </div>
+      <div class="msg" id="msgPlanilha"></div>
+      <div class="previa" id="previa" hidden></div>
+      <div class="ajuda card" id="ajuda" hidden>
+        <h2>Como funciona o Painel Financeiro</h2>
+        <ol>
+          <li><b>Lance na plataforma:</b> entradas e saídas no FLUXO DE CAIXA; recebimentos, gastos e cachês em EVENTOS e EQUIPE; contas que se repetem em CUSTOS FIXOS. Tudo entra aqui sozinho.</li>
+          <li><b>Escolha a categoria</b> de cada lançamento — é ela que separa receita, custos dos eventos, despesas e pró-labore.</li>
+          <li><b>Contam só os valores já realizados:</b> lançamentos com data até hoje. Cachês ainda não pagos e fixos futuros ficam de fora até acontecerem.</li>
+          <li><b>BAIXAR PLANILHA</b> gera um Excel com todos os lançamentos (abre no Excel, Google Planilhas ou Numbers).</li>
+          <li>Para editar pela planilha: altere, inclua linhas novas (deixe o ID vazio) ou escreva <b>SIM</b> na coluna "Apagar?". Depois use <b>ENVIAR PLANILHA</b>: a plataforma mostra o resumo e só grava quando você confirmar.</li>
+          <li>Linhas automáticas (eventos, cachês e fixos) se editam na própria ferramenta — na planilha elas vêm marcadas e são ignoradas no envio.</li>
+        </ol>
       </div>
     </section>
 
@@ -189,6 +227,52 @@ input.busca{font:inherit;font-size:13px;background:var(--navy2);color:var(--txt)
   var reduz = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   var LANC = [], EVENTOS = [], META = null, gM = null, gD = null;
+  var G_LANC = [], G_EVENTOS = [], FONTE = "plataforma";
+  var hojeISO = function () { var d = new Date(); return d.getFullYear() + "-" + ("0" + (d.getMonth() + 1)).slice(-2) + "-" + ("0" + d.getDate()).slice(-2); };
+  var num = function (v) { if (typeof v === "number") return v; var t = String(v == null ? "" : v).trim(); if (/,\d{1,2}$/.test(t)) t = t.replace(/\./g, "").replace(",", "."); return parseFloat(t.replace(/[^0-9.\-]/g, "")) || 0; };
+  var per = function (d) { return /^\d{4}-\d{2}/.test(String(d || "")) ? String(d).slice(0, 7) : ""; };
+  var perNome = function (p) { return MESES[Number(p.slice(5, 7)) - 1] + "/" + p.slice(2, 4); };
+  var AUTO = /^(cache_|gasto_|receita_|fixo_|ev_)/;
+  function ler(k) { try { var v = JSON.parse(localStorage.getItem("bw_" + k + "_v1") || "[]"); return Array.isArray(v) ? v : []; } catch (e) { return []; } }
+  function origem(o) {
+    var id = String(o.id || "");
+    if (/^cache_/.test(id)) return "Cachê da equipe (automático)";
+    if (/^gasto_/.test(id)) return "Gasto de evento (automático)";
+    if (/^(receita_|ev_)/.test(id)) return "Receita de evento (automático)";
+    if (/^fixo_/.test(id)) return "Custo fixo (automático)";
+    return "Manual";
+  }
+  /* lançamento do Fluxo de caixa → linha do painel */
+  function classificar(o, evs) {
+    var id = String(o.id || ""), v = num(o.c2), cat = String(o.c3 || "").trim(), entrada = /^entrada/i.test(o.c1 || "");
+    var r = {data: o.c0, descricao: cat, valor: entrada ? v : -v, quem: cat, categoria: cat || (entrada ? "Entrada" : "Saída"), grupo: ""};
+    if (entrada) {
+      r.grupo = "Receita";
+      var ev = evs.find(function (e) { return "receita_" + e.id === id || "ev_" + e.id === id; });
+      if (ev || /^(Receita de evento|Recebimento de cliente|Venda de serviço|Venda de produto)/i.test(cat)) {
+        r.categoria = "Receita de cliente"; r.quem = ev ? (ev.cliente || ev.nome) : cat;
+      }
+      return r;
+    }
+    if (/^cache_/.test(id)) { r.grupo = "Custos dos eventos"; r.categoria = "Equipe (cachês)"; var m = cat.match(/cachê de (.+?) \(/); r.quem = m ? m[1] : cat; return r; }
+    if (/^gasto_/.test(id) || /^Custos variáveis/i.test(cat)) { r.grupo = "Custos dos eventos"; r.categoria = "Gastos dos eventos"; return r; }
+    if (/^(Fornecedor|Transporte|Material de trabalho)/i.test(cat)) { r.grupo = "Custos dos eventos"; return r; }
+    if (/pró-labore|pro-labore|retirada/i.test(cat)) { r.grupo = "Sócio"; r.categoria = "Pró-labore e salários"; return r; }
+    if (/^Equipamento/i.test(cat)) { r.grupo = "Despesas e contas"; r.categoria = "Compra de equipamento"; return r; }
+    r.grupo = "Despesas e contas";
+    if (/^fixo_/.test(id)) r.categoria = "Custos fixos";
+    return r;
+  }
+  function montarNativo() {
+    var fluxo = ler("neg_fluxo"), evs = ler("neg_eventos"), hoje = hojeISO();
+    var L = fluxo.filter(function (o) { return o.c0 && String(o.c0) <= hoje && o.fonte !== "pendente" && num(o.c2); })
+      .map(function (o) { return classificar(o, evs); });
+    L.forEach(function (r) { r.mes = per(r.data); });
+    var E = evs.filter(function (e) { return num(e.recebido) > 0; }).map(function (e) {
+      return {data_pagamento: e.data, valor: num(e.recebido), cliente: e.cliente || "", descricao: e.nome || "", data_evento: dt(e.data)};
+    });
+    return {L: L, E: E};
+  }
 
   $("btnVoltar").onclick = function () { history.length > 1 ? history.back() : (location.href = "./"); };
   $("btnAtualizar").onclick = function () { carregar(); };
@@ -222,10 +306,23 @@ input.busca{font:inherit;font-size:13px;background:var(--navy2);color:var(--txt)
   async function carregar(silencioso) {
     if (!silencioso) document.body.classList.add("carregando");
     try {
-      var res = await Promise.all([lerTudo("fin_lancamentos", "id"), lerTudo("fin_eventos", "id"), sb.from("fin_sync_meta").select("*").eq("id", 1).maybeSingle()]);
-      LANC = res[0].map(function (r) { r.valor = Number(r.valor) || 0; return r; });
-      EVENTOS = res[1].map(function (r) { r.valor = Number(r.valor) || 0; return r; });
+      if (window.BWSync && BWSync.sincronizar) {
+        try { await Promise.race([BWSync.sincronizar(["neg_fluxo", "neg_eventos", "neg_equipe_pagamentos", "neg_fixos"]), new Promise(function (ok) { setTimeout(ok, 6000); })]); } catch (e) { }
+      }
+      var res = await Promise.all([lerTudo("fin_lancamentos", "id"), lerTudo("fin_eventos", "id"), sb.from("fin_sync_meta").select("*").maybeSingle()]);
+      G_LANC = res[0].map(function (r) { r.valor = Number(r.valor) || 0; r.mes = per(r.data) || r.mes; return r; });
+      G_EVENTOS = res[1].map(function (r) { r.valor = Number(r.valor) || 0; return r; });
       META = res[2].data;
+      var temGoogle = G_LANC.length > 0 || G_EVENTOS.length > 0;
+      $("fonteSeg").hidden = !temGoogle;
+      try { FONTE = localStorage.getItem("ui_fin_fonte") || (temGoogle ? "google" : "plataforma"); } catch (e) { FONTE = temGoogle ? "google" : "plataforma"; }
+      if (!temGoogle) FONTE = "plataforma";
+      var nat = montarNativo();
+      if (FONTE === "google") { LANC = G_LANC; EVENTOS = G_EVENTOS; } else { LANC = nat.L; EVENTOS = nat.E; }
+      [].forEach.call(document.querySelectorAll("#fonteSeg button"), function (b) { b.classList.toggle("on", b.dataset.fonte === FONTE); });
+      $("subtitulo").textContent = FONTE === "google" ? "Planilha Google conectada (extrato do banco) · atualiza sozinho quando a planilha muda"
+        : "Montado com os seus lançamentos da plataforma (Fluxo de caixa, Eventos, Equipe e Custos fixos)";
+      $("verGoogle").hidden = !(temGoogle && FONTE === "plataforma");
       if (!LANC.length && !EVENTOS.length) { $("semDados").hidden = false; $("painel").hidden = true; return; }
       $("semDados").hidden = true; $("painel").hidden = false;
       periodos();
@@ -238,11 +335,12 @@ input.busca{font:inherit;font-size:13px;background:var(--navy2);color:var(--txt)
 
   function periodos() {
     var sel = $("fPeriodo"), atual = sel.value;
-    var ms = MESES.filter(function (m) { return LANC.some(function (r) { return r.mes === m; }); });
-    sel.replaceChildren(new Option("Ano todo", ""));
-    ms.forEach(function (m) { sel.append(new Option(m, m)); });
+    var ms = LANC.map(function (r) { return r.mes; }).filter(function (m, i, a) { return /^\d{4}-\d{2}$/.test(m) && a.indexOf(m) === i; }).sort();
+    sel.replaceChildren(new Option("Tudo", ""));
+    ms.forEach(function (m) { sel.append(new Option(perNome(m), m)); });
     sel.value = ms.indexOf(atual) >= 0 ? atual : "";
-    if (META && META.atualizado_em) {
+    $("atualizadoEm").textContent = "";
+    if (FONTE === "google" && META && META.atualizado_em) {
       var d = new Date(META.atualizado_em);
       $("atualizadoEm").textContent = "Planilha sincronizada em " + d.toLocaleDateString("pt-BR") + " às " + d.toLocaleTimeString("pt-BR", {hour: "2-digit", minute: "2-digit"});
     }
@@ -258,7 +356,7 @@ input.busca{font:inherit;font-size:13px;background:var(--navy2);color:var(--txt)
     var c = function (x) { return soma(L, function (r) { return r.categoria === x; }); };
     var receita = g("Receita"), custos = -g("Custos dos eventos"), despesas = -g("Despesas e contas");
     var lucro = receita - custos - despesas, invest = -g("Investimento"), socio = -g("Sócio"), terceiros = g("Terceiros");
-    var equip = -(c("Compra de equipamento (online)") + c("Compra de equipamento (câmeras)"));
+    var equip = -soma(L, function (r) { return /^Compra de equipamento/.test(r.categoria || ""); });
     var saldo = lucro - invest - socio + terceiros;
     $("kReceita").textContent = brl(receita);
     $("kCustos").textContent = brl(custos);
@@ -278,9 +376,9 @@ input.busca{font:inherit;font-size:13px;background:var(--navy2);color:var(--txt)
     anel("aEquip", p(equip), "#a78bfa");
     anel("aTop2", p(top2), "#3FD0E0");
 
-    var periodoTxt = mes ? "Em " + mes : "No ano";
+    var periodoTxt = mes ? "Em " + perNome(mes) : "No período todo";
     $("frase").replaceChildren(
-      document.createTextNode(periodoTxt + " a BW faturou "), b(brl(receita)),
+      document.createTextNode(periodoTxt + " a empresa faturou "), b(brl(receita)),
       document.createTextNode(", lucrou "), b(brl(lucro)),
       document.createTextNode(" (" + pct(p(lucro)) + " da receita) e a conta fechou com "), b(brl(saldo)),
       document.createTextNode(" de sobra.")
@@ -320,7 +418,8 @@ input.busca{font:inherit;font-size:13px;background:var(--navy2);color:var(--txt)
   }
 
   function mensal() {
-    var linhas = MESES.map(function (m) {
+    var pers = LANC.map(function (r) { return r.mes; }).filter(function (m, i, a) { return /^\d{4}-\d{2}$/.test(m) && a.indexOf(m) === i; }).sort();
+    var linhas = pers.map(function (m) {
       var rs = LANC.filter(function (r) { return r.mes === m; });
       if (!rs.length) return null;
       var s = function (x) { return soma(rs, function (r) { return r.grupo === x; }); };
@@ -330,7 +429,7 @@ input.busca{font:inherit;font-size:13px;background:var(--navy2);color:var(--txt)
     var sel = $("fPeriodo").value;
     var cfg = {
       type: "line",
-      data: {labels: linhas.map(function (x) { return x.m; }), datasets: [
+      data: {labels: linhas.map(function (x) { return perNome(x.m); }), datasets: [
         serie("Receita", linhas.map(function (x) { return x.rec; }), "#3FD0E0", true),
         serie("Saídas", linhas.map(function (x) { return x.sai; }), "#f472b6", false),
         Object.assign(serie("Lucro do mês", linhas.map(function (x) { return x.luc; }), "#3ecf8e", false), {borderDash: [6, 4]})
@@ -347,7 +446,7 @@ input.busca{font:inherit;font-size:13px;background:var(--navy2);color:var(--txt)
       },
       plugins: [{id: "brilho", beforeDatasetDraw: function (ch, a) { var x = ch.ctx; x.save(); x.shadowColor = a.meta.dataset.options.borderColor; x.shadowBlur = 12; }, afterDatasetDraw: function (ch) { ch.ctx.restore(); }},
         {id: "destaque", afterDraw: function (ch) {
-          if (!sel) return; var i = ch.data.labels.indexOf(sel); if (i < 0) return;
+          if (!sel) return; var i = ch.data.labels.indexOf(perNome(sel)); if (i < 0) return;
           var px = ch.scales.x.getPixelForValue(i), x = ch.ctx; x.save(); x.strokeStyle = "rgba(255,181,71,.6)"; x.setLineDash([3, 3]);
           x.beginPath(); x.moveTo(px, ch.chartArea.top); x.lineTo(px, ch.chartArea.bottom); x.stroke(); x.restore(); }}]
     };
@@ -364,7 +463,7 @@ input.busca{font:inherit;font-size:13px;background:var(--navy2);color:var(--txt)
 
   function destinos(custos, socio, equip, invest, outras) {
     var d = [["Equipe, fornecedores e aluguel", custos, "#f472b6"], ["Pró-labore e gastos pessoais", socio, "#60a5fa"], ["Compra de equipamento", equip, "#a78bfa"],
-      ["Investimentos (GD + Caixa)", invest, "#FFB547"], ["Contas e outras despesas", outras, "#3ecf8e"]].filter(function (x) { return x[1] > 0; });
+      ["Investimentos", invest, "#FFB547"], ["Contas e outras despesas", outras, "#3ecf8e"]].filter(function (x) { return x[1] > 0; });
     var tot = d.reduce(function (s, x) { return s + x[1]; }, 0) || 1;
     $("totSaidas").textContent = brl(tot);
     if (gD) gD.destroy();
@@ -397,7 +496,7 @@ input.busca{font:inherit;font-size:13px;background:var(--navy2);color:var(--txt)
   function tabela() {
     var mes = $("fPeriodo").value, q = $("busca").value.trim().toLowerCase();
     var E = EVENTOS.filter(function (r) {
-      if (mes && MESES[Number(String(r.data_pagamento || "").slice(5, 7)) - 1] !== mes) return false;
+      if (mes && per(r.data_pagamento) !== mes) return false;
       return !q || ((r.cliente || "") + " " + (r.descricao || "")).toLowerCase().indexOf(q) >= 0;
     }).sort(function (a, b) { return String(b.data_pagamento).localeCompare(String(a.data_pagamento)); });
     var tot = E.reduce(function (s, r) { return s + r.valor; }, 0);
@@ -413,6 +512,122 @@ input.busca{font:inherit;font-size:13px;background:var(--navy2);color:var(--txt)
       return tr;
     }));
   }
+
+  /* ---------- fonte, ajuda ---------- */
+  [].forEach.call(document.querySelectorAll("#fonteSeg button"), function (bt) {
+    bt.onclick = function () { try { localStorage.setItem("ui_fin_fonte", bt.dataset.fonte); } catch (e) { } carregar(); };
+  });
+  $("verGoogle").onclick = function () { try { localStorage.setItem("ui_fin_fonte", "google"); } catch (e) { } carregar(); };
+  $("btnAjuda").onclick = function () { $("ajuda").hidden = !$("ajuda").hidden; };
+
+  /* ---------- BAIXAR / ENVIAR PLANILHA (Excel, sem sair da plataforma) ---------- */
+  var COLS = ["ID", "Data", "Tipo", "Valor", "Categoria", "Origem", "Apagar?"];
+  var CATS = ["Venda de produto", "Venda de serviço", "Recebimento de cliente", "Fornecedor", "Aluguel", "Energia/Água/Internet",
+    "Salários e pró-labore", "Impostos e taxas", "Marketing/Publicidade", "Transporte/Combustível", "Material de trabalho", "Equipamento", "Empréstimo/Financiamento"];
+  function aviso(t, erro) { var m = $("painel").hidden ? $("msgVazio") : $("msgPlanilha"); m.textContent = t; m.style.color = erro ? "var(--dn)" : "var(--up)"; }
+  function carregarXLSX() {
+    if (window.XLSX) return Promise.resolve(window.XLSX);
+    return new Promise(function (ok, falha) {
+      var s = document.createElement("script"); s.src = "https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js";
+      s.onload = function () { ok(window.XLSX); }; s.onerror = function () { falha(new Error("Sem internet para montar a planilha.")); };
+      document.head.append(s);
+    });
+  }
+  async function baixar() {
+    aviso("Montando a planilha…");
+    try {
+      var X = await carregarXLSX();
+      var linhas = ler("neg_fluxo").slice().sort(function (a, b) { return String(a.c0).localeCompare(String(b.c0)); }).map(function (o) {
+        var d = /^\d{4}-\d{2}-\d{2}/.test(o.c0 || "") ? new Date(o.c0 + "T12:00:00") : (o.c0 || "");
+        return [String(o.id), d, /^entrada/i.test(o.c1 || "") ? "Entrada" : "Saída", num(o.c2), o.c3 || "", origem(o) + (o.fonte === "pendente" ? " — a pagar" : ""), ""];
+      });
+      var wb = X.utils.book_new();
+      var ws = X.utils.aoa_to_sheet([COLS].concat(linhas), {cellDates: true});
+      ws["!cols"] = [{wch: 26}, {wch: 12}, {wch: 9}, {wch: 12}, {wch: 44}, {wch: 30}, {wch: 9}];
+      for (var i = 1; i <= linhas.length; i++) { var c = ws[X.utils.encode_cell({r: i, c: 1})]; if (c && c.t === "d") c.z = "dd/mm/yyyy"; var v = ws[X.utils.encode_cell({r: i, c: 3})]; if (v) v.z = "#,##0.00"; }
+      X.utils.book_append_sheet(wb, ws, "Lançamentos");
+      X.utils.book_append_sheet(wb, X.utils.aoa_to_sheet([["Categorias sugeridas"]].concat(CATS.map(function (c) { return [c]; }))), "Categorias");
+      X.utils.book_append_sheet(wb, X.utils.aoa_to_sheet([
+        ["Como usar esta planilha (Brightway)"], [""],
+        ["1. Editar: mude Data, Tipo (Entrada ou Saída), Valor ou Categoria de uma linha Manual."],
+        ["2. Incluir: escreva numa linha nova e deixe a coluna ID vazia."],
+        ["3. Apagar: escreva SIM na coluna Apagar? (só linhas Manuais)."],
+        ["4. Linhas automáticas (eventos, cachês e custos fixos) se editam na própria ferramenta e são ignoradas no envio."],
+        ["5. Na plataforma, abra o PAINEL FINANCEIRO > ENVIAR PLANILHA. Você vê o resumo antes de confirmar."],
+        ["Não mude os nomes das colunas nem a coluna ID."]]), "Como usar");
+      X.writeFile(wb, "Brightway-lancamentos-" + hojeISO() + ".xlsx");
+      aviso("✓ Planilha baixada (" + linhas.length + " lançamentos).");
+    } catch (e) { aviso(e.message || String(e), true); }
+  }
+  function dataDe(v) {
+    if (v instanceof Date && !isNaN(v)) return v.getFullYear() + "-" + ("0" + (v.getMonth() + 1)).slice(-2) + "-" + ("0" + v.getDate()).slice(-2);
+    if (typeof v === "number" && v > 20000 && v < 80000) { var d = new Date(Math.round((v - 25569) * 864e5)); return d.toISOString().slice(0, 10); }
+    var s = String(v || "").trim(), m = s.match(/^(\d{4})-(\d{2})-(\d{2})/); if (m) return m[0];
+    m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/); if (m) return (m[3].length === 2 ? "20" + m[3] : m[3]) + "-" + ("0" + m[2]).slice(-2) + "-" + ("0" + m[1]).slice(-2);
+    return "";
+  }
+  async function lerArquivo(arq) {
+    aviso("Lendo a planilha…");
+    try {
+      var X = await carregarXLSX();
+      var wb = X.read(await arq.arrayBuffer(), {type: "array", cellDates: true});
+      var ws = wb.Sheets["Lançamentos"] || wb.Sheets[wb.SheetNames[0]];
+      var rows = X.utils.sheet_to_json(ws, {defval: "", raw: true});
+      if (!rows.length || !("Valor" in rows[0]) || !("Tipo" in rows[0])) throw new Error("Não reconheci a planilha. Use a que vem em BAIXAR PLANILHA (colunas ID, Data, Tipo, Valor, Categoria).");
+      var atual = ler("neg_fluxo"), porId = {};
+      atual.forEach(function (o) { porId[String(o.id)] = o; });
+      var novos = [], alterados = [], apagar = [], ignorados = 0, erros = [];
+      rows.forEach(function (r, i) {
+        var id = String(r.ID || "").trim(), lin = i + 2;
+        var vazio = !String(r.Valor).trim() && !String(r.Data).trim() && !String(r.Categoria).trim();
+        if (vazio) return;
+        if (id && AUTO.test(id)) { ignorados++; return; }
+        if (/^s(im)?$/i.test(String(r["Apagar?"] || "").trim())) { if (id && porId[id]) apagar.push(id); return; }
+        var item = {c0: dataDe(r.Data), c1: /^e/i.test(String(r.Tipo).trim()) ? "Entrada" : "Saída", c2: String(num(r.Valor)), c3: String(r.Categoria || "").trim()};
+        if (!item.c0) { erros.push("linha " + lin + ": data inválida"); return; }
+        if (!num(r.Valor)) { erros.push("linha " + lin + ": valor vazio"); return; }
+        if (id && porId[id]) {
+          var o = porId[id];
+          if (o.c0 !== item.c0 || o.c1 !== item.c1 || num(o.c2) !== num(item.c2) || (o.c3 || "") !== item.c3) alterados.push([id, item]);
+        } else novos.push(item);
+      });
+      mostrarPrevia({novos: novos, alterados: alterados, apagar: apagar, ignorados: ignorados, erros: erros});
+    } catch (e) { aviso(e.message || String(e), true); }
+    finally { $("arqPlanilha").value = ""; }
+  }
+  function mostrarPrevia(p) {
+    var box = $("previa");
+    if ($("painel").hidden) { $("semDados").append(box); }
+    var tot = p.novos.length + p.alterados.length + p.apagar.length;
+    box.hidden = false; box.replaceChildren();
+    var h = document.createElement("b"); h.textContent = tot ? "Conferir antes de gravar" : "Nada para mudar"; box.append(h);
+    [["Novos lançamentos", p.novos.length], ["Alterados", p.alterados.length], ["Apagados", p.apagar.length],
+     ["Automáticos ignorados (edite na ferramenta)", p.ignorados]].forEach(function (x) {
+      var d = document.createElement("div"); d.textContent = x[0] + ": " + x[1]; box.append(d);
+    });
+    if (p.erros.length) { var e = document.createElement("div"); e.style.color = "var(--dn)"; e.textContent = "Linhas com problema (não serão gravadas): " + p.erros.slice(0, 6).join("; ") + (p.erros.length > 6 ? "…" : ""); box.append(e); }
+    var ac = document.createElement("div"); ac.className = "acoes";
+    var ok = document.createElement("button"); ok.className = "btn"; ok.type = "button"; ok.textContent = "CONFIRMAR E GRAVAR"; ok.disabled = !tot;
+    var no = document.createElement("button"); no.className = "btn"; no.type = "button"; no.textContent = "CANCELAR";
+    no.onclick = function () { box.hidden = true; aviso(""); };
+    ok.onclick = function () { aplicar(p); box.hidden = true; };
+    ac.append(ok, no); box.append(ac); aviso("");
+  }
+  function aplicar(p) {
+    var lista = ler("neg_fluxo"), base = Date.now();
+    p.apagar.forEach(function (id) { lista = lista.filter(function (o) { return String(o.id) !== id; }); });
+    p.alterados.forEach(function (x) { var o = lista.find(function (y) { return String(y.id) === x[0]; }); if (o) Object.assign(o, x[1]); });
+    p.novos.forEach(function (it, i) { lista.push(Object.assign({id: base + i}, it)); });
+    try { if (window.BWSync && BWSync.antesDeSalvar) BWSync.antesDeSalvar("neg_fluxo", 1, lista); } catch (e) { }
+    localStorage.setItem("bw_neg_fluxo_v1", JSON.stringify(lista));
+    try { if (window.BWSync && BWSync.sincronizar) BWSync.sincronizar(["neg_fluxo"]); } catch (e) { }
+    if (FONTE === "google") { try { localStorage.setItem("ui_fin_fonte", "plataforma"); } catch (e) { } }
+    carregar().then(function () { aviso("✓ Gravado: " + p.novos.length + " novos, " + p.alterados.length + " alterados, " + p.apagar.length + " apagados."); });
+  }
+  [].forEach.call(document.querySelectorAll("[data-acao]"), function (bt) {
+    bt.onclick = function () { if (bt.dataset.acao === "baixar") baixar(); else $("arqPlanilha").click(); };
+  });
+  $("arqPlanilha").onchange = function () { var f = this.files && this.files[0]; if (f) lerArquivo(f); };
 
   iniciar();
 })();
