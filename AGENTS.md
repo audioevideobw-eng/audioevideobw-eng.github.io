@@ -341,7 +341,10 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   de data/acentos/módulos duplicados); MANUAL agora tem fonte e gerador: docs/manual/gerar.py (base.pdf + páginas HTML em docs/manual/paginas/,
   renumera rodapés, recusa página que estoura) e docs/manual/telas.py (capturas com a "Produtora Exemplo"). Guia: 28 → 31 páginas — novas
   "A sua agenda", "Relatórios em PDF", "Cachês e custos de evento"; refeitas "Conhecendo a tela", "Meu negócio", "Eventos", "Gestão de pessoas",
-  "Fluxo de caixa". Pendente no manual: diagrama "De onde vêm os números" (Painel Financeiro) ainda cita cachês na Gestão de pessoas.
+  "Fluxo de caixa".
+- 15/11/2026 · Claude: manual — página "Painel Financeiro" refeita (docs/manual/paginas/06a-painel-financeiro.html): o diagrama "De onde vêm
+  os números" agora mostra Cachês e custos de evento (não mais Gestão de pessoas) e lançamentos pela agenda. Conferidas as outras páginas antigas:
+  nada mais desatualizado.
 
 ## Pendências (dono)
 - [x] (15/11 10:02, dono: "faça tudo") Autorizar a automação de NOTÍCIAS (publica noticias.json no site a cada 2 h) — ATIVA.

@@ -24,7 +24,8 @@ PLANO = [("base", 1), ("base", 2), ("base", 3), ("base", 4), ("base", 5),
          "04a-conhecendo-a-tela.html", "04b-agenda.html",
          "05a-meu-negocio.html", "05b-eventos.html", "05c-relatorios-pdf.html", "05d-gestao-de-pessoas.html",
          ("base", 10),
-         "05e-fluxo-de-caixa.html", "05f-caches-e-custos.html"] + [("base", n) for n in range(12, 29)]
+         "05e-fluxo-de-caixa.html", "05f-caches-e-custos.html", ("base", 12),
+         "06a-painel-financeiro.html"] + [("base", n) for n in range(14, 29)]
 
 MODELO = """<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><link rel="stylesheet" href="../estilo.css"></head>
 <body><div class="pagina">{corpo}<div class="rodape"><span>BRIGHTWAY · Guia do usuário</span><span>{n}</span></div></div></body></html>"""
