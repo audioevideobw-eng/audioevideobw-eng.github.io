@@ -55,14 +55,14 @@
     { id: "inicio",  nome: "Início",           href: "./", icon: '<path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/>' },
     { id: "negocio", nome: "Meu negócio",       href: "negocio.html", icon: '<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>' },
     { id: "casa",    nome: "Gestão de casa",    href: "orcamento.html", icon: '<path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M9 21v-6h6v6"/>' },
-    { id: "invest",  nome: "Investimentos",     href: "cambio.html", icon: '<path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/>' },
+    { id: "invest",  nome: "Investimentos",     href: "investimentos-painel.html", icon: '<path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/>' },
     { id: "ferr",    nome: "Ferramentas",       href: "recs.html", icon: '<rect x="4" y="2" width="16" height="20" rx="2"/><path d="M8 6h8M8 10h2M12 10h2M16 10h.01M8 14h2M12 14h2M16 14h.01M8 18h2M12 18h2M16 18h.01"/>' },
     { id: "conta",   nome: "Conta",             href: "login.html", icon: '<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/>' }
   ];
   var SUBPAGINAS = {
     negocio: [["negocio","Ferramentas do negócio"],["financeiro-painel","Painel Financeiro"],["eventos","Eventos"],["equipe","Gestão de pessoas"],["leitor","Leitor de comprovantes"],["preco","Calculadora de preço"],["fluxo","Fluxo de caixa"]],
     casa: [["orcamento","Orçamento familiar"],["contas","Contas a pagar"],["reserva","Reserva de emergência"]],
-    invest: [["cambio","Câmbio"],["evento","Evento no exterior"],["milhas","Mercado de milhas"],["meta","Meta de milhas"],["invest","Rendimento"]],
+    invest: [["investimentos-painel","Painel de Investimentos"],["cambio","Câmbio"],["evento","Evento no exterior"],["milhas","Mercado de milhas"],["meta","Meta de milhas"],["invest","Rendimento"]],
     ferr: [["recs","★ Recomendações"],["noticias","Notícias"],["dados","Meus dados"]],
     conta: [["login","Acesso"],["cadastro","Cadastro"],["configadm","Configuração"]]
   };
@@ -70,7 +70,7 @@
     if (p === "index") return "inicio";
     if (["negocio","financeiro-painel","eventos","equipe","leitor","preco","fluxo"].indexOf(p) > -1) return "negocio";
     if (["orcamento","casa","contas","reserva"].indexOf(p) > -1) return "casa";
-    if (["cambio","comparador","serie","calc","viagem","diario","alertas","evento","milhas","meta","invest"].indexOf(p) > -1) return "invest";
+    if (["investimentos-painel","cambio","comparador","serie","calc","viagem","diario","alertas","evento","milhas","meta","invest"].indexOf(p) > -1) return "invest";
     if (["recs","noticias","dados"].indexOf(p) > -1) return "ferr";
     return "conta";
   }
@@ -80,7 +80,7 @@
     fluxo:"Fluxo de caixa", orcamento:"Orçamento familiar", casa:"Casa", contas:"Contas a pagar",
     reserva:"Reserva de emergência", milhas:"Mercado de milhas", meta:"Meta de milhas",
     comparador:"Comparador de moedas", alertas:"Alertas de preço", cambio:"Câmbio",
-    invest:"Rendimento", serie:"Série histórica", diario:"Diário de câmbio", calc:"Calculadora",
+    invest:"Rendimento", "investimentos-painel":"Painel de Investimentos", serie:"Série histórica", diario:"Diário de câmbio", calc:"Calculadora",
     viagem:"Conversor de viagem", leitor:"Leitor de comprovantes", recs:"Recomendações",
     noticias:"Notícias", dados:"Meus dados", app:"App & sincronização", login:"Acesso",
     configadm:"Configuração" };

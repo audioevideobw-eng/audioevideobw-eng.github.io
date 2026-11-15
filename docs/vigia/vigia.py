@@ -190,7 +190,7 @@ if "html:not(.bw-admin) .so-admin" not in css:
     problemas.append("assets/brightway.css: sem a regra que esconde itens de admin")
 # 7.7c planilha só entra pelo PAINEL FINANCEIRO (regra do dono, 14/11); recs.html = carteira de investimentos (decisão pendente)
 for p, t in todos.items():
-    if p in ("financeiro-painel.html", "recs.html"):
+    if p in ("financeiro-painel.html", "investimentos-painel.html"):
         continue
     tela = re.sub(r"<script[\s\S]*?</script>", "", t)   # só o que aparece na tela (o código embutido sem caixa não aparece)
     if re.search(r'type="file"[^>]*accept="[^"]*(csv|xlsx|xls)', tela) or re.search(r'accept="[^"]*(csv|xlsx)[^"]*"[^>]*type="file"', tela) or "Importar CSV" in t:
@@ -212,11 +212,11 @@ if lgx and ("bw_excluir_minha_conta" not in lgx or "lExportar" not in lgx):
     problemas.append("login.html: sem 'Baixar meus dados' / 'Excluir minha conta' (LGPD)")
 
 # 7.8 páginas públicas obrigatórias
-for p in ["baixar.html", "privacidade.html", "termos.html", "financeiro-painel.html"]:
+for p in ["baixar.html", "privacidade.html", "termos.html", "financeiro-painel.html", "investimentos-painel.html"]:
     if p not in todos:
         problemas.append(f"{p} sumiu (link de instalação / política exigida pelo Google / painel financeiro)")
 # 7.9 páginas com o visual novo (menu lateral) — exceto as de propósito
-SEM_MENU = {"login.html", "cadastro.html", "baixar.html", "privacidade.html", "termos.html", "financeiro-painel.html", "casa.html", "app.html", "financeiro.html"}
+SEM_MENU = {"login.html", "cadastro.html", "baixar.html", "privacidade.html", "termos.html", "financeiro-painel.html", "investimentos-painel.html", "casa.html", "app.html", "financeiro.html"}
 for p, t in todos.items():
     if p not in SEM_MENU and "assets/layout.js" not in t:
         problemas.append(f"{p}: sem o visual novo (não carrega assets/layout.js)")
