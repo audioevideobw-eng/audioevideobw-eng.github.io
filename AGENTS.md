@@ -88,6 +88,12 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
 25. FEEDBACK: botão ENVIAR FEEDBACK no menu e no topo (layout.js, todas as páginas) grava em public.bw_feedback (RLS: cada conta só o seu,
     não dá para enviar em nome de outro; ADM vê todos e muda status; gatilho põe o e-mail real da conta e limita 20/dia). Lista em configadm.html (so-admin).
 
+**Aprendidos em 15/11 (FECHAMENTO, etapa 2)**
+29. Data de "hoje" em código novo = data LOCAL (getFullYear/getMonth/getDate); `toISOString()` vira o dia seguinte depois das 21h.
+30. Todo botão novo de gerar/exportar é CLICADO no teste (o "Exportar fluxo em PDF" ficou sem ligar porque o init não era chamado).
+31. Módulo que existe em mais de uma página (ex.: modules/equipe) é copiado IGUAL em todas; nunca esconder um contêiner que tem
+    dentro o que deve aparecer (esconder os irmãos); regex com palavra acentuada não usa `\b`.
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -95,6 +101,18 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
   Um createClient "anônimo" dentro de uma página logada herda o login e dá falso alarme (aconteceu em 14/11).
 - Arquivo de teste no Storage só sai pela API (o SQL é bloqueado): registre o evento de teste, apague pela API, depois apague o registro no SQL.
 - Criar um item de TESTE, recarregar, conferir na nuvem, apagar o item de teste. Nunca mexer em dados reais do dono sem pedir.
+
+## FECHAMENTO DE CADA ENTREGA (obrigatório — regra do dono, 15/11/2026)
+Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
+1. **TESTAR NA PRÁTICA** — usar a função como o usuário usaria: no site no ar, logado, em 1280 px e 390 px; criar item de TESTE,
+   conferir que chegou na nuvem (`user_data`) e apagar; PDFs gerados de verdade (getBuffer, sem baixar); + todo o PENTE FINO.
+2. **APRENDER COM AS SOLUÇÕES** — todo bug achado no caminho vira item do PENTE FINO (e checagem no vigia quando der) e linha no
+   diário com causa e solução.
+3. **SALVAR O MÉTODO** — a receita que funcionou (como testar, armadilhas, trecho de código) vai para `docs/METODOS.md`,
+   para ser usada nos próximos trabalhos.
+4. **ATUALIZAR O MANUAL DO USUÁRIO** — `docs/Brightway-Guia-do-usuario.pdf`, gerado por `docs/manual/gerar.py` (páginas em
+   `docs/manual/paginas/`, telas com a empresa fictícia "Produtora Exemplo"). Página nova ou alterada → rodar o gerador.
+5. **PUBLICAR** — vigia ✅, diário, commit/push na main, conferir no site no ar e mandar ao dono o resumo do que mudou.
 
 ## Diário de mudanças
 - 13/11/2026 16:14 · MAESTRO: corrigido o gerador conforme a seção 10: verificador de IMPORTS REAL (resolve caminhos relativos e falha o build se faltar módulo — pegou as 4 faltas exatas), store com 3 argumentos, nuvem só delegação, mcp_push RECUSA binários (PNG via push_files/git trees), PNGs restaurados como binário real (commit efeea132, confirmado via git trees).
@@ -317,6 +335,13 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
   PAGAR (→ casa_contas), ENTRADA/SAÍDA (→ neg_fluxo), EVENTO (→ eventos.html?novo=DATA, formulário já com a data). BARRA MÁGICA: escreve
   "dentista sexta 15h" / "pagar luz 180 dia 20" / "recebi R$ 2.500 hoje" e ela entende (datas, horas, valores; \b não serve com acento → limites
   por espaço). Confete + aviso ao concluir. KPI "Contas a vencer" da home lia os campos errados (c2/c3 "pago") → c1 e c3 "Sim". brightway.css v21, sw v62.
+
+- 15/11/2026 · Claude (regra do dono): nova seção FECHAMENTO DE CADA ENTREGA (testar na prática → aprender → salvar método → manual → publicar).
+  Aplicada já: PENTE FINO 29–31 (aprendidos do dia); docs/METODOS.md (receitas de teste local/no ar, PDF sem baixar, Storage privado, armadilhas
+  de data/acentos/módulos duplicados); MANUAL agora tem fonte e gerador: docs/manual/gerar.py (base.pdf + páginas HTML em docs/manual/paginas/,
+  renumera rodapés, recusa página que estoura) e docs/manual/telas.py (capturas com a "Produtora Exemplo"). Guia: 28 → 31 páginas — novas
+  "A sua agenda", "Relatórios em PDF", "Cachês e custos de evento"; refeitas "Conhecendo a tela", "Meu negócio", "Eventos", "Gestão de pessoas",
+  "Fluxo de caixa". Pendente no manual: diagrama "De onde vêm os números" (Painel Financeiro) ainda cita cachês na Gestão de pessoas.
 
 ## Pendências (dono)
 - [x] (15/11 10:02, dono: "faça tudo") Autorizar a automação de NOTÍCIAS (publica noticias.json no site a cada 2 h) — ATIVA.
