@@ -469,8 +469,10 @@
         var l = ler(PREFIX + k + "_v1", []);
         if (Array.isArray(l)) l.forEach(function (e) { if (e && e.id != null && e.id !== "") ids.push(String(e.id)); });
       });
+      /* todos os links que este aparelho já criou (os antigos continuam valendo) + os atuais */
       var toks = ["neg_equipe_token", "neg_cli_token"].map(function (k) { return ler(PREFIX + k + "_v1", ""); })
-        .filter(function (t) { return typeof t === "string" && t.length >= 6; });
+        .concat(ler("bwsync_tokens_v1", []) || [])
+        .filter(function (t, i, arr) { return typeof t === "string" && t.length >= 6 && arr.indexOf(t) === i; });
       ids = ids.filter(function (x, i) { return ids.indexOf(x) === i; }).sort();
       if (!ids.length && !toks.length) return;
       var assinatura = uid + "|" + ids.join(",") + "|" + toks.join(",");
@@ -480,6 +482,25 @@
         if (r && !r.error) { reg[uid] = hash(assinatura); gravar("bwsync_registro_v1", reg); }
       }, function () { });
     } catch (e) { }
+  }
+
+  /* 15/11 (Claude): registra NA HORA um link de cadastro (token) ou evento como desta conta.
+     Antes só registrava no fim de uma sincronia completa — um link enviado antes disso deixava
+     o cadastro do colaborador SEM DONO (ninguém via). Devolve true só se o servidor confirmou. */
+  async function registrarAgora(o) {
+    o = o || {};
+    var toks = (o.tokens || []).filter(function (t) { return typeof t === "string" && t.length >= 6; });
+    var evs = (o.eventos || []).map(String).filter(function (x) { return x; });
+    if (toks.length) {
+      var hist = ler("bwsync_tokens_v1", []) || [];
+      toks.forEach(function (t) { if (hist.indexOf(t) < 0) hist.push(t); });
+      gravar("bwsync_tokens_v1", hist.slice(-50));
+    }
+    try {
+      var c = cliente(); if (!c || !(await sessaoOk(c))) return false;
+      var r = await c.rpc("bw_registrar", { p_eventos: evs, p_tokens: toks });
+      return !(r && r.error);
+    } catch (e) { return false; }
   }
 
   /* ---------- 7. agendamento ---------- */
@@ -624,6 +645,7 @@
     sincronizar: sincronizar,
     subir: subir,
     urlSegura: urlSegura,
+    registrarAgora: registrarAgora,
     /* nomes antigos: TODOS agora mesclam (nenhum sobrescreve) */
     enviarTudo: function () { return sincronizar(CHAVES); },
     receberTudo: function () { return sincronizar(CHAVES); },

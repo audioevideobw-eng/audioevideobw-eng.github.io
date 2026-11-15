@@ -1391,10 +1391,16 @@ function initFormulario() {
     <div class="note" id="cliFMsg"></div>
     ${token ? '<div style="margin-top:10px"><b style="font-size:12px">Cadastros recebidos:</b><div id="cliCadastros" style="margin-top:6px"></div></div>' : ""}
   </div>`;
-  $("#cliGerar").onclick = () => {
-    save("neg_cli_token", 1, "cli" + Math.random().toString(36).slice(2, 10));
+  $("#cliGerar").onclick = async () => {
+    /* o link só existe depois que o servidor confirma que ele é DESTA conta (senão os cadastros ficavam sem dono) */
+    const novo = "cli" + Math.random().toString(36).slice(2, 10);
+    const m = $("#cliFMsg"), b = $("#cliGerar"); if (m) m.textContent = "Criando o link…"; if (b) b.disabled = true;
+    const ok = window.BWSync && await window.BWSync.registrarAgora({ tokens: [novo] });
+    if (!ok) { if (m) m.textContent = "⚠ Não deu para criar o link (sem internet ou sem login). Entre na conta e tente de novo."; if (b) b.disabled = false; return; }
+    save("neg_cli_token", 1, novo);
     initFormulario();
   };
+  if (token && window.BWSync) window.BWSync.registrarAgora({ tokens: [token] });   /* garante o link já existente */
   if (token) {
     const cop = $("#cliCopiar");
     if (cop) cop.onclick = () => navigator.clipboard.writeText(link).then(() => { $("#cliFMsg").textContent = "Link copiado."; });
@@ -1888,9 +1894,12 @@ function renderEventos() {
   };
   window.__pdfEvento = id => gerarPDFEvento(id);
   window.__comunicar = id => comunicar(id);
-  window.__linkPresenca = id => {
+  window.__linkPresenca = async id => {
     const ev = eventos().find(e => String(e.id) === String(id));
     if (!ev) return;
+    /* o evento precisa estar registrado como DESTA conta antes de o link sair (senão as respostas ficam sem dono) */
+    const ok = window.BWSync && await window.BWSync.registrarAgora({ eventos: [String(id)] });
+    if (!ok) { const al = $("#com_" + id); if (al) al.innerHTML = '<div class="note" style="margin-top:10px">⚠ Não deu para criar o link agora (sem internet ou sem login). Tente de novo.</div>'; return; }
     const link = location.origin + location.pathname.replace(/[^/]*$/, "cadastro.html") +
       "?ev=" + id + "&nome=" + encodeURIComponent(ev.nome);
     const alvo = $("#com_" + id);
@@ -2181,11 +2190,16 @@ function initFormulario() {
     ${token ? `<div style="margin-top:10px"><b style="font-size:12px">Cadastros recebidos:</b>
       <div id="eqCadastros" style="margin-top:6px"></div></div>` : ""}
   </div>`;
-  $("#eqGerarLink").onclick = () => {
+  $("#eqGerarLink").onclick = async () => {
+    /* o link só existe depois que o servidor confirma que ele é DESTA conta (senão os cadastros ficavam sem dono) */
     const novo = "bw" + Math.random().toString(36).slice(2, 10);
+    const m = $("#eqFormMsg"), b = $("#eqGerarLink"); if (m) m.textContent = "Criando o link…"; if (b) b.disabled = true;
+    const ok = window.BWSync && await window.BWSync.registrarAgora({ tokens: [novo] });
+    if (!ok) { if (m) m.textContent = "⚠ Não deu para criar o link (sem internet ou sem login). Entre na conta e tente de novo."; if (b) b.disabled = false; return; }
     save("neg_equipe_token", 1, novo);
     initFormulario();
   };
+  if (token && window.BWSync) window.BWSync.registrarAgora({ tokens: [token] });   /* garante o link já existente */
   if (token) {
     const cop = $("#eqCopiarLink");
     if (cop) cop.onclick = () => {

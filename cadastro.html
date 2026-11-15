@@ -59,6 +59,11 @@ button:disabled{opacity:.6;cursor:wait}
   var SB_URL = "https://zdtnetplvdonogmdvarx.supabase.co";
   var SB_ANON = "sb_publishable_qJ2mIx1hcn_ZH75-yxJiDA_OI-EHyIU";
   function $(s){ return document.querySelector(s); }
+  /* 15/11: o banco recusa link desconhecido (antes o cadastro entrava "sem dono" e ninguém via) */
+  function erroAmigavel(e){ var m = String((e && e.message) || e || "");
+    if (/LINK_INVALIDO/.test(m)) return "Este link não está mais ativo. Peça um novo link a quem te enviou.";
+    if (/LIMITE/.test(m)) return "Muitos envios por este link agora. Tente de novo daqui a pouco.";
+    return "Não consegui enviar (" + m + "). Verifique a conexão e tente de novo."; }
   function maskCPF(v){ v=(v||"").replace(/\D/g,"").slice(0,11); v=v.replace(/(\d{3})(\d)/,"$1.$2"); v=v.replace(/(\d{3})(\d)/,"$1.$2"); v=v.replace(/(\d{3})(\d{1,2})$/,"$1-$2"); return v; }
   function maskTel(v){ v=(v||"").replace(/\D/g,"").slice(0,11); if(v.length<=10) return v.replace(/(\d{2})(\d{4})(\d{0,4})/,"($1) $2-$3").replace(/[-\s]+$/,""); return v.replace(/(\d{2})(\d{5})(\d{0,4})/,"($1) $2-$3").replace(/[-\s]+$/,""); }
   if (GALERIA_ANTIGA && !GALERIA) {
@@ -125,7 +130,7 @@ button:disabled{opacity:.6;cursor:wait}
         if (res.error) throw res.error;
         document.querySelector("#box").innerHTML = '<h1 style="color:#3f9d6b">✓ Cadastro enviado!</h1><div class="sub">Obrigado! O administrador da BW vai confirmar seus dados.</div>';
       } catch (e) {
-        msg.textContent = "Não consegui enviar (" + (e.message || e) + "). Tente de novo.";
+        msg.textContent = erroAmigavel(e);
         msg.className = "msg err"; btn.disabled = false; btn.textContent = "Enviar cadastro";
       }
     });
@@ -169,7 +174,7 @@ button:disabled{opacity:.6;cursor:wait}
             '<div class="rodape">Pode fechar esta página.</div>';
         })
         .catch(function(e){
-          msg.textContent = "Não consegui enviar (" + (e.message || e) + "). Tente de novo.";
+          msg.textContent = erroAmigavel(e);
           msg.className = "msg err";
           botaoSim.disabled = botaoNao.disabled = false;
         });
@@ -197,7 +202,7 @@ button:disabled{opacity:.6;cursor:wait}
       if (res.error) throw res.error;
       $("#box").innerHTML = '<h1 style="color:var(--up)">✓ Cadastro enviado!</h1><div class="sub">Obrigado, ' + c.nome.split(" ")[0] + '! O administrador da BW vai confirmar sua entrada na equipe. Você pode fechar esta página.</div>';
     } catch (e) {
-      msg.textContent = "Não consegui enviar (" + (e.message || e) + "). Verifique a conexão e tente de novo.";
+      msg.textContent = erroAmigavel(e);
       msg.className = "msg err";
       btn.disabled = false; btn.textContent = "Enviar cadastro";
     }
