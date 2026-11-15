@@ -278,7 +278,7 @@
     if (["legenda", "email", "ideias"].indexOf(MODO) < 0) return p;
     var entrada = [].map.call(document.querySelectorAll("[data-form]:not([hidden]) input, [data-form]:not([hidden]) textarea"), function (e) { return e.value; }).join(" ");
     var dados = entrada.match(/R\$\s?\d[\d.,]*|\d[\d.,]*\s*%|\d{1,2}\/\d{1,2}(\/\d{2,4})?|\d[\d.,]*\s+[A-Za-zÀ-ú]+/g) || [];
-    dados = dados.map(function (d) { return d.trim(); }).filter(function (d, i, a) { return a.indexOf(d) === i; }).slice(0, 12);
+    dados = dados.map(function (d) { return d.trim().replace(/[.,;:]+$/, ""); }).filter(function (d, i, a) { return a.indexOf(d) === i; }).slice(0, 12);
     return dados.length ? p + "\nCopie exatamente estes dados, sem mudar: " + dados.join("; ") + "." : p;
   }
   $("btnGerar").onclick = async function () {
