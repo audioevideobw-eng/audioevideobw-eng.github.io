@@ -305,3 +305,21 @@ html:not(.bw-admin) .so-admin{display:none!important}
 .tf-pagina canvas{display:block;max-width:100%;height:auto;cursor:crosshair}
 .tf-pagina img.tf-marca{position:absolute;pointer-events:none;border:1px dashed #FFB547}
 [hidden]{display:none!important}
+
+/* 15/11 (Claude): botão e janela de FEEDBACK (layout.js) */
+.bw-fb-btn{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;margin:8px 0 4px;min-height:44px;border-radius:14px;
+  border:1px solid rgba(255,181,71,.45);background:rgba(255,181,71,.06);color:var(--bw-ambar);font:700 12px/1 var(--bw-font-texto);letter-spacing:.08em;cursor:pointer}
+.bw-fb-btn svg,.bw-fb-topo svg{fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.bw-fb-btn:hover{background:rgba(255,181,71,.14)}
+.bw-fb-topo{background:none;border:0;padding:0;cursor:pointer;color:var(--bw-marfim)}
+.bw-fb-fundo{position:fixed;inset:0;z-index:100000;background:rgba(3,5,9,.72);display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(3px)}
+.bw-fb-caixa{position:relative;width:min(520px,100%);background:#0E121A;border:1px solid rgba(255,181,71,.3);border-radius:18px;padding:22px;box-shadow:0 20px 60px rgba(0,0,0,.6)}
+.bw-fb-caixa h3{margin:0 0 6px;font-size:15px;letter-spacing:.08em;color:var(--bw-ambar)}
+.bw-fb-sub{margin:0 0 14px;color:var(--txt2);font-size:13.5px;line-height:1.5}
+.bw-fb-x{position:absolute;top:10px;right:12px;background:none;border:0;color:var(--txt2);font-size:24px;cursor:pointer;line-height:1}
+.bw-fb-tipos{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.bw-fb-tipos button{font:600 12px/1 var(--bw-font-texto);letter-spacing:.05em;text-transform:uppercase;padding:10px 13px;border-radius:999px;border:1px solid rgba(245,241,234,.16);background:transparent;color:var(--txt2);cursor:pointer}
+.bw-fb-tipos button.ativo{background:var(--bw-ambar);color:#1a1205;border-color:var(--bw-ambar)}
+.bw-fb-caixa textarea{width:100%;min-height:130px;resize:vertical;background:rgba(0,0,0,.3);border:1px solid rgba(245,241,234,.14);border-radius:12px;color:var(--bw-marfim);font:14.5px/1.5 var(--bw-font-texto);padding:11px 13px;box-sizing:border-box}
+.bw-fb-pag{font-size:12px;color:var(--txt2);margin-top:8px}
+.bw-fb-acoes{display:flex;align-items:center;gap:12px;margin-top:14px;flex-wrap:wrap;font-size:13px;color:var(--txt2)}

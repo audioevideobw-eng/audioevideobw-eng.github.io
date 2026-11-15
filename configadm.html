@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Configuração — Brightway</title>
-<link rel="stylesheet" href="assets/brightway.css?v=16">
+<link rel="stylesheet" href="assets/brightway.css?v=17">
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#06080D">
 <link rel="icon" type="image/png" href="icons/favicon-64.png">
@@ -231,6 +231,13 @@ footer b{color:var(--gold)}
 <div class="wrap">
   <h2 style="margin-top:6px">Configuração do projeto (administrador)</h2>
   <div class="sub">Conecta o painel ao projeto Supabase criado para a BW. Esta página é só sua — os convidados não precisam dela.</div>
+
+  <div class="card so-admin" id="fbCard" style="margin-top:16px">
+    <h3>FEEDBACK DOS USUÁRIOS</h3>
+    <div class="sub">O que chega pelo botão ENVIAR FEEDBACK do app. Marque como lido ou resolvido.</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin:10px 0" id="fbFiltros"></div>
+    <div id="fbLista" style="overflow-x:auto"><div class="note">Carregando…</div></div>
+  </div>
 
   <div class="grid2" style="margin-top:16px">
     <div class="card">
@@ -1138,6 +1145,45 @@ const {  registrarSW  } = MOD['core/bootcommon'];
 
 return {  };
 })();</script>
-<script src="assets/layout.js?v=18"></script>
+<script>
+/* FEEDBACK DOS USUÁRIOS (15/11, Claude): lê public.bw_feedback (RLS: o ADM vê todos) */
+(function () {
+  var lista = document.getElementById("fbLista"), filtros = document.getElementById("fbFiltros"); if (!lista) return;
+  var esc = function (s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return {"&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;"}[c]; }); };
+  var dados = [], filtro = "novo", cor = {Problema: "#f2686b", "Sugestão": "#FFB547", Elogio: "#3ecf8e", "Dúvida": "#7aa7ff"};
+  async function carregar() {
+    try {
+      var c = window.BWSync && BWSync.cliente(); if (!c) return;
+      var r = await c.from("bw_feedback").select("*").order("criado_em", {ascending: false}).limit(300);
+      if (r.error) { lista.innerHTML = '<div class="note">Não deu para ler (' + esc(r.error.message) + ').</div>'; return; }
+      dados = r.data || []; desenhar();
+    } catch (e) { lista.innerHTML = '<div class="note">Erro ao carregar.</div>'; }
+  }
+  function desenhar() {
+    var n = function (st) { return dados.filter(function (d) { return st === "todos" || d.status === st; }).length; };
+    filtros.innerHTML = [["novo", "NOVOS"], ["lido", "LIDOS"], ["resolvido", "RESOLVIDOS"], ["todos", "TODOS"]].map(function (f) {
+      return '<button type="button" class="btn ' + (filtro === f[0] ? "" : "gh") + '" data-f="' + f[0] + '" style="padding:8px 12px;font-size:12px">' + f[1] + " (" + n(f[0]) + ")</button>";
+    }).join("");
+    [].forEach.call(filtros.querySelectorAll("button"), function (b) { b.onclick = function () { filtro = b.dataset.f; desenhar(); }; });
+    var v = dados.filter(function (d) { return filtro === "todos" || d.status === filtro; });
+    if (!v.length) { lista.innerHTML = '<div class="note">Nada por aqui.</div>'; return; }
+    lista.innerHTML = '<table><thead><tr><th>Quando</th><th>Tipo</th><th>Mensagem</th><th>Página · aparelho</th><th>Conta</th><th>Status</th></tr></thead><tbody>' + v.map(function (d) {
+      return "<tr><td style=\"white-space:nowrap\">" + esc(new Date(d.criado_em).toLocaleString("pt-BR", {day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit"})) + "</td>" +
+        '<td><b style="color:' + (cor[d.tipo] || "#ccc") + '">' + esc(d.tipo) + "</b></td><td style=\"min-width:260px;white-space:pre-wrap\">" + esc(d.texto) + "</td>" +
+        "<td style=\"font-size:12px\">" + esc(d.pagina || "") + "<br><span style=\"opacity:.7\">" + esc(d.aparelho || "") + "</span></td><td style=\"font-size:12px\">" + esc(d.email || "") + "</td>" +
+        '<td><select data-id="' + d.id + '">' + ["novo", "lido", "resolvido"].map(function (s) { return "<option" + (s === d.status ? " selected" : "") + ">" + s + "</option>"; }).join("") + "</select></td></tr>";
+    }).join("") + "</tbody></table>";
+    [].forEach.call(lista.querySelectorAll("select[data-id]"), function (sel) {
+      sel.onchange = async function () {
+        var c = BWSync.cliente(), id = +sel.dataset.id, r = await c.from("bw_feedback").update({status: sel.value}).eq("id", id);
+        if (r.error) { alert("Não deu para salvar: " + r.error.message); return; }
+        dados.forEach(function (d) { if (d.id === id) d.status = sel.value; }); desenhar();
+      };
+    });
+  }
+  setTimeout(carregar, 600);
+})();
+</script>
+<script src="assets/layout.js?v=19"></script>
 </body>
 </html>

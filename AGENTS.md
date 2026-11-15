@@ -80,6 +80,8 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
 24. Ferramentas de IA/PDF (assistente.html, transcricao.html, pdf.html; categoria MARKETING = marketing.html): a IA e os PDFs rodam NO APARELHO
     (Chrome Gemini Nano / Transformers.js / pdf-lib). Nunca colocar chave de API de IA no site; IA na nuvem só por Edge Function do Supabase
     com a chave guardada lá. Essas ferramentas não gravam nada na conta (só preferências ui_* locais).
+25. FEEDBACK: botão ENVIAR FEEDBACK no menu e no topo (layout.js, todas as páginas) grava em public.bw_feedback (RLS: cada conta só o seu,
+    não dá para enviar em nome de outro; ADM vê todos e muda status; gatilho põe o e-mail real da conta e limita 20/dia). Lista em configadm.html (so-admin).
 
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
@@ -252,6 +254,11 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
   Ferramentas: título duplicado removido. Relatório: docs/RELATORIO-2026-11-15-claude.md. Manual atualizado (28 p., capítulo Marketing,
   PDF, IA Brightway): docs/Brightway-Guia-do-usuario.pdf. EVENTO SICOOB não alterado (dado financeiro real — decisão do dono).
 
+- 15/11/2026 · Claude: testes de segurança 2A/2B/3 aprovados (ver Pendências). Novo botão ENVIAR FEEDBACK (menu lateral + ícone no topo, todas
+  as páginas): Problema / Sugestão / Elogio / Dúvida, grava a página e o aparelho; tabela bw_feedback (docs/sql/2026-11-15-feedback.sql, rodado —
+  RLS 4 regras + gatilho, simulado: outro usuário só vê o seu, não finge ser outro, visitante 0, ADM vê e marca lido). Lista "FEEDBACK DOS
+  USUÁRIOS" em Configuração (só ADM). layout.js v19, brightway.css v17, sw v53.
+
 ## Pendências (dono)
 - [x] (15/11 10:02, dono: "faça tudo") Autorizar a automação de NOTÍCIAS (publica noticias.json no site a cada 2 h) — ATIVA.
 - [ ] Milhas: não existe fonte pública automática; atualizar a referência à mão ou criar tela de ADM para lançar as cotações.
@@ -261,11 +268,11 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
       Providers → Google → Client Secret (o atual está inválido).
 - [x] (14/11 19:31, Claude com autorização do dono) Supabase → Authentication → URL Configuration: Site URL = https://audioevideobw-eng.github.io e Redirect URLs com
       https://audioevideobw-eng.github.io/** (sem isso, confirmação de e-mail e login Google voltam para "localhost").
-- [ ] Teste de segurança 2A: cadastrar "Teste Colab" pelo link de colaborador numa janela anônima → deve aparecer
-      só para o dono em Gestão de pessoas → cadastros recebidos.
-- [ ] Teste 2B: criar conta de teste (janela anônima, confirmar em Supabase → Authentication → Users), logar e
-      conferir: Eventos vazio, sem o "Teste Colab"; criar "Evento da conta teste" → NÃO pode aparecer para o dono.
-- [ ] Teste 3: galeria do cliente (sem login) mostra só as fotos, nunca contratos/NF-e/comprovantes.
-- [ ] Depois dos testes: apagar a conta de teste e o "Teste Colab".
+- [x] (15/11, Claude) Testes de segurança 2A/2B/3 — simulados no banco (contas e visitante, tudo desfeito no fim) e com fetch cru de visitante:
+      cadastro de colaborador só aparece para o dono do link; outra conta e visitante veem 0 em todas as tabelas e buckets; galeria com token
+      falso = []; gravar na conta de outro = bloqueado. Nada de teste ficou no banco. Risco menor: equipe_cadastros/equipe_presenca aceitam
+      inserção anônima (necessário para o link de colaborador) → possível spam; futuro: limite por token/hora.
+- [ ] Ideias do dono (15/11): (1) ALERTA DE VENCIMENTO das contas fixas (no app com sinal pulsando, e-mail, WhatsApp);
+      (2) LEMBRETE DE EVENTO para a equipe (data, local, confirmação de presença) por WhatsApp e e-mail.
 - [ ] Futuro (MAESTRO): galeria do cliente por link secreto (hoje as FOTOS ainda são listáveis por quem souber
       usar a API; documentos já estão protegidos).
