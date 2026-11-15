@@ -96,6 +96,8 @@ input.busca{font:inherit;font-size:13px;background:var(--navy2);color:var(--txt)
 .ajuda b{color:var(--txt)}
 .previa{margin-top:12px;padding:14px;border:1px solid var(--gold);border-radius:12px;background:rgba(255,181,71,.06);font-size:13px}
 .previa .acoes{margin-top:10px}
+.demo{margin:14px 0 0;padding:12px 14px;border-radius:12px;border:1px dashed var(--gold);background:rgba(255,181,71,.08);font-size:13px;color:var(--txt);display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.demo b{color:var(--gold);letter-spacing:.12em}
 .msg{font-size:12px;color:var(--up);margin-top:8px;min-height:1em}
 .hd-logo{flex:1 1 auto;min-width:0;display:flex;justify-content:center}.hd-logo img{height:34px;max-width:100%;object-fit:contain;display:block}
 @media(max-width:560px){.hd-logo img{height:24px}#btnAtualizar{font-size:0;padding:8px 10px}#btnAtualizar::before{content:"↻";font-size:14px}.vivo #vivoTxt{display:none}}
@@ -145,6 +147,8 @@ input.busca{font:inherit;font-size:13px;background:var(--navy2);color:var(--txt)
         <span class="seg" id="fonteSeg" hidden><button type="button" data-fonte="plataforma">PLATAFORMA</button><button type="button" data-fonte="google">PLANILHA GOOGLE</button></span>
         <span class="muted" style="font-size:12px" id="atualizadoEm"></span>
       </div>
+      <div class="demo" id="demoAviso" hidden><b>EXEMPLO</b><span>Estes números são de um negócio fictício, só para você ver como o painel fica. Eles somem sozinhos no seu primeiro lançamento.</span>
+        <a class="btn" href="fluxo.html">COMEÇAR NO FLUXO DE CAIXA</a><a class="btn" href="eventos.html">EVENTOS</a></div>
       <div class="acoes">
         <button class="btn" type="button" data-acao="baixar">⬇ BAIXAR PLANILHA</button>
         <button class="btn" type="button" data-acao="enviar">⬆ ENVIAR PLANILHA</button>
@@ -263,6 +267,34 @@ input.busca{font:inherit;font-size:13px;background:var(--navy2);color:var(--txt)
     if (/^fixo_/.test(id)) r.categoria = "Custos fixos";
     return r;
   }
+  /* negócio fictício para quem ainda não lançou nada (só na tela, nunca gravado) */
+  function exemplo() {
+    var hoje = new Date(), L = [], E = [];
+    var cli = [["Estúdio Aurora", "Cobertura de evento corporativo"], ["Grupo Horizonte", "Transmissão ao vivo"], ["Escola Ciranda", "Vídeo institucional"], ["Café Bom Dia", "Fotos para redes sociais"]];
+    for (var k = 5; k >= 0; k--) {
+      var d = new Date(hoje.getFullYear(), hoje.getMonth() - k, 1), ano = d.getFullYear(), mes = d.getMonth() + 1;
+      var dia = function (n) { return ano + "-" + ("0" + mes).slice(-2) + "-" + ("0" + Math.min(n, k === 0 ? Math.max(1, hoje.getDate()) : 28)).slice(-2); };
+      var f = 1 + (5 - k) * 0.07;
+      var add = function (data, grupo, categoria, quem, valor) { L.push({data: data, mes: per(data), grupo: grupo, categoria: categoria, quem: quem, descricao: categoria, valor: Math.round(valor)}); };
+      cli.forEach(function (c, i) {
+        if ((k + i) % 3 === 2 && i > 1) return;
+        var v = [4200, 6500, 2800, 1500][i] * f, dt0 = dia(5 + i * 6);
+        add(dt0, "Receita", "Receita de cliente", c[0], v);
+        E.push({data_pagamento: dt0, valor: Math.round(v), cliente: c[0], descricao: c[1], data_evento: dt(dt0)});
+      });
+      add(dia(8), "Custos dos eventos", "Equipe (cachês)", "Equipe", -2100 * f);
+      add(dia(12), "Custos dos eventos", "Fornecedor", "Locadora", -900 * f);
+      add(dia(15), "Custos dos eventos", "Transporte/Combustível", "Posto", -420);
+      add(dia(5), "Despesas e contas", "Aluguel", "Sala comercial", -1300);
+      add(dia(10), "Despesas e contas", "Energia/Água/Internet", "Contas", -380);
+      add(dia(20), "Despesas e contas", "Impostos e taxas", "Simples Nacional", -620 * f);
+      add(dia(18), "Despesas e contas", "Marketing/Publicidade", "Anúncios", -350);
+      if (k === 3) add(dia(22), "Despesas e contas", "Compra de equipamento", "Lente nova", -3200);
+      add(dia(25), "Sócio", "Pró-labore e salários", "Pró-labore", -3000);
+    }
+    return {L: L, E: E};
+  }
+
   function montarNativo() {
     var fluxo = ler("neg_fluxo"), evs = ler("neg_eventos"), hoje = hojeISO();
     var L = fluxo.filter(function (o) { return o.c0 && String(o.c0) <= hoje && o.fonte !== "pendente" && num(o.c2); })
@@ -320,7 +352,11 @@ input.busca{font:inherit;font-size:13px;background:var(--navy2);color:var(--txt)
       try { FONTE = localStorage.getItem("ui_fin_fonte") || (temGoogle ? "google" : "plataforma"); } catch (e) { FONTE = temGoogle ? "google" : "plataforma"; }
       if (!temGoogle) FONTE = "plataforma";
       var nat = montarNativo();
-      if (FONTE === "google") { LANC = G_LANC; EVENTOS = G_EVENTOS; } else { LANC = nat.L; EVENTOS = nat.E; }
+      var demo = false;
+      if (FONTE === "google") { LANC = G_LANC; EVENTOS = G_EVENTOS; }
+      else if (!nat.L.length && !nat.E.length && !ler("neg_fluxo").length) { var ex = exemplo(); LANC = ex.L; EVENTOS = ex.E; demo = true; }
+      else { LANC = nat.L; EVENTOS = nat.E; }
+      $("demoAviso").hidden = !demo;
       [].forEach.call(document.querySelectorAll("#fonteSeg button"), function (b) { b.classList.toggle("on", b.dataset.fonte === FONTE); });
       $("subtitulo").textContent = FONTE === "google" ? "Planilha Google conectada (extrato do banco) · atualiza sozinho quando a planilha muda"
         : "Montado com os seus lançamentos da plataforma (Fluxo de caixa, Eventos, Equipe e Custos fixos)";
