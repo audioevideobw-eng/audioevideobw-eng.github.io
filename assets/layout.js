@@ -359,7 +359,11 @@
           esc(dataBR(e.data)) + (x.n !== null && x.n >= 0 ? " · " + quandoEv(x.n) : "") + (e.montagem && e.montagem !== e.data ? " · montagem " + esc(dataBR(e.montagem)) : "") + " · " + esc(e.local || "local a definir") + "</small></a>" +
           '<button type="button" class="bw-av-bt" data-lembrar="' + esc(e.id) + '">LEMBRAR EQUIPE</button></div><div class="bw-av-equipe" id="bwAvEq_' + esc(e.id) + '"></div></div>';
       }).join("") : '<div class="bw-av-sub">Nenhum evento nos próximos 7 dias.</div>') +
-      (notifOk ? '<label class="bw-av-notif"><input type="checkbox" id="bwAvNotif"' + (ligado ? " checked" : "") + '> Avisar também no aparelho (1 vez por dia, ao abrir o app)</label>' : "") +
+      '<div class="bw-av-tit">AVISOS AUTOMÁTICOS (GRÁTIS)</div>' +
+      (notifOk ? '<label class="bw-av-notif"><input type="checkbox" id="bwAvNotif"' + (ligado ? " checked" : "") + '> Avisar no aparelho (1 vez por dia, ao abrir o app)</label>' : "") +
+      '<label class="bw-av-notif"><input type="checkbox" id="bwAvMail" disabled> Resumo por e-mail todo dia às 7h (contas e eventos)</label>' +
+      '<label class="bw-av-notif"><input type="checkbox" id="bwAvEquipe" disabled> Lembrar a equipe por e-mail na véspera do evento (quem tem e-mail no cadastro)</label>' +
+      '<div class="bw-av-acoes"><button type="button" class="bw-av-bt" id="bwAvTeste">MANDAR TESTE PARA MEU E-MAIL</button></div><div class="bw-av-sub" id="bwAvMsg"></div>' +
       "</div>";
     document.body.appendChild(d);
     function fechar() { d.remove(); document.removeEventListener("keydown", tecla); }
@@ -370,6 +374,32 @@
     [].forEach.call(d.querySelectorAll("[data-lembrar]"), function (b) {
       b.onclick = function () { var al = document.getElementById("bwAvEq_" + b.dataset.lembrar); if (al && al.innerHTML) { al.innerHTML = ""; return; } lembrarEquipe(b.dataset.lembrar, al); };
     });
+    /* e-mail automático (Edge Function bw-avisos + preferência em public.bw_avisos_pref) */
+    (async function () {
+      var msg = document.getElementById("bwAvMsg"), cm = document.getElementById("bwAvMail"), ce = document.getElementById("bwAvEquipe"), bt = document.getElementById("bwAvTeste");
+      var c = null, s = null;
+      try { c = window.BWSync && BWSync.cliente(); s = c ? (await c.auth.getSession()).data.session : null; } catch (x) { }
+      if (!c || !s) { if (msg) msg.innerHTML = 'Entre na sua conta para ligar os e-mails — <a href="login.html" style="color:#FFB547">entrar</a>.'; if (bt) bt.disabled = true; return; }
+      var r = await c.from("bw_avisos_pref").select("email_diario,equipe_vespera").eq("dono", s.user.id).maybeSingle();
+      cm.checked = !!(r.data && r.data.email_diario); ce.checked = !!(r.data && r.data.equipe_vespera); cm.disabled = ce.disabled = false;
+      async function gravar() {
+        cm.disabled = ce.disabled = true; msg.textContent = "Salvando…";
+        var g = await c.from("bw_avisos_pref").upsert({ dono: s.user.id, email_diario: cm.checked, equipe_vespera: ce.checked, atualizado: new Date().toISOString() });
+        cm.disabled = ce.disabled = false;
+        msg.textContent = g.error ? "Não deu para salvar agora. Tente de novo." : (cm.checked || ce.checked ? "✓ Ligado. O primeiro envio é amanhã às 7h." : "✓ E-mails automáticos desligados.");
+      }
+      cm.onchange = gravar; ce.onchange = gravar;
+      bt.onclick = async function () {
+        bt.disabled = true; msg.textContent = "Enviando o teste…";
+        try {
+          var resp = await fetch("https://zdtnetplvdonogmdvarx.supabase.co/functions/v1/bw-avisos", { method: "POST",
+            headers: { "Content-Type": "application/json", Authorization: "Bearer " + s.access_token }, body: JSON.stringify({ modo: "teste" }) });
+          var j = await resp.json(), r0 = (j.relatorio || [])[0] || {};
+          msg.textContent = r0.erro ? "Não deu para enviar: " + r0.erro : r0.resumo ? "✓ Teste enviado — confira sua caixa de entrada (e o spam). " + (r0.equipe ? "Equipe: " + r0.equipe + "." : "") : (j.erro || "Não deu para enviar agora.");
+        } catch (x) { msg.textContent = "Sem conexão. Tente de novo."; }
+        bt.disabled = false;
+      };
+    })();
     var cb = document.getElementById("bwAvNotif");
     if (cb) cb.onchange = async function () {
       if (cb.checked) {
