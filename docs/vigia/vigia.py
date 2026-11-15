@@ -192,7 +192,8 @@ if "html:not(.bw-admin) .so-admin" not in css:
 for p, t in todos.items():
     if p in ("financeiro-painel.html", "recs.html"):
         continue
-    if re.search(r'type="file"[^>]*accept="[^"]*(csv|xlsx|xls)', t) or re.search(r'accept="[^"]*(csv|xlsx)[^"]*"[^>]*type="file"', t):
+    tela = re.sub(r"<script[\s\S]*?</script>", "", t)   # só o que aparece na tela (o código embutido sem caixa não aparece)
+    if re.search(r'type="file"[^>]*accept="[^"]*(csv|xlsx|xls)', tela) or re.search(r'accept="[^"]*(csv|xlsx)[^"]*"[^>]*type="file"', tela) or "Importar CSV" in t:
         problemas.append(f"{p}: envio de planilha fora do PAINEL FINANCEIRO (regra: só o painel recebe planilha)")
     for caixa in ("orcPlanilha", "negPlanilha", "eqPlanilhaBox", "orcSync", "ctSync", "rsSync", "negSync"):
         if f'id="{caixa}"' in t:
