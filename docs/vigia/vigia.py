@@ -79,7 +79,7 @@ for p in PAGINAS:
 
 # 4) pedidos do dono
 neg = ler("negocio.html") if os.path.exists("negocio.html") else ""
-for h in ["eventos.html", "evento.html", "equipe.html", "financeiro.html", "fluxo.html", "preco.html", "leitor.html", "financeiro-painel.html"]:
+for h in ["eventos.html", "equipe.html", "financeiro.html", "fluxo.html", "preco.html", "leitor.html", "financeiro-painel.html"]:
     if not re.search(r'class="menu-card[^"]*" href="' + re.escape(h) + '"', neg):
         problemas.append(f"negocio.html: falta o card da ferramenta {h} (o dono pediu TODAS as ferramentas do negócio)")
 if os.path.exists("app.html") and "rs.find(" in ler("app.html"):
@@ -205,7 +205,7 @@ for p in ["baixar.html", "privacidade.html", "termos.html", "financeiro-painel.h
     if p not in todos:
         problemas.append(f"{p} sumiu (link de instalação / política exigida pelo Google / painel financeiro)")
 # 7.9 páginas com o visual novo (menu lateral) — exceto as de propósito
-SEM_MENU = {"login.html", "cadastro.html", "baixar.html", "privacidade.html", "termos.html", "financeiro-painel.html", "ferramentas.html", "single.html"}
+SEM_MENU = {"login.html", "cadastro.html", "baixar.html", "privacidade.html", "termos.html", "financeiro-painel.html", "casa.html"}
 for p, t in todos.items():
     if p not in SEM_MENU and "assets/layout.js" not in t:
         problemas.append(f"{p}: sem o visual novo (não carrega assets/layout.js)")
