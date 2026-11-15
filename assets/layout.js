@@ -62,7 +62,7 @@
   var SUBPAGINAS = {
     negocio: [["negocio","Ferramentas do negócio"],["financeiro-painel","Painel Financeiro"],["eventos","Eventos"],["equipe","Gestão de pessoas"],["leitor","Leitor de comprovantes"],["preco","Calculadora de preço"],["fluxo","Fluxo de caixa"]],
     casa: [["orcamento","Orçamento familiar"],["contas","Contas a pagar"],["reserva","Reserva de emergência"]],
-    invest: [["investimentos-painel","Painel de Investimentos"],["cambio","Câmbio"],["evento","Evento no exterior"],["milhas","Mercado de milhas"],["meta","Meta de milhas"],["invest","Rendimento"]],
+    invest: [["investimentos-painel","Painel de Investimentos"],["cambio","Câmbio"],["evento","Evento no exterior"],["milhas","Mercado de milhas"],["meta","Meta de milhas"]],
     ferr: [["recs","★ Recomendações"],["noticias","Notícias"],["dados","Meus dados"]],
     conta: [["login","Acesso"],["cadastro","Cadastro"],["configadm","Configuração"]]
   };
@@ -80,7 +80,7 @@
     fluxo:"Fluxo de caixa", orcamento:"Orçamento familiar", casa:"Casa", contas:"Contas a pagar",
     reserva:"Reserva de emergência", milhas:"Mercado de milhas", meta:"Meta de milhas",
     comparador:"Comparador de moedas", alertas:"Alertas de preço", cambio:"Câmbio",
-    invest:"Rendimento", "investimentos-painel":"Painel de Investimentos", serie:"Série histórica", diario:"Diário de câmbio", calc:"Calculadora",
+    invest:"Simulador de rendimento", "investimentos-painel":"Painel de Investimentos", serie:"Série histórica", diario:"Diário de câmbio", calc:"Calculadora",
     viagem:"Conversor de viagem", leitor:"Leitor de comprovantes", recs:"Recomendações",
     noticias:"Notícias", dados:"Meus dados", app:"App & sincronização", login:"Acesso",
     configadm:"Configuração" };
@@ -155,6 +155,13 @@
     tabs.className = "bw-cambio-abas"; tabs.setAttribute("aria-label", "Ferramentas de câmbio");
     tabs.innerHTML = CAMBIO.map(function(c){ return '<a href="' + c[0] + '.html"' + (c[0] === PAGINA ? ' class="ativo" aria-current="page"' : "") + '>' + c[1] + '</a>'; }).join("");
     var pg = conteudo.querySelector("#bwPagina"); pg.insertBefore(tabs, pg.firstChild);
+  }
+  /* 14/11 (Claude): o simulador de rendimento é uma aba do PAINEL DE INVESTIMENTOS */
+  if (PAGINA === "invest") {
+    var ti = document.createElement("nav");
+    ti.className = "bw-cambio-abas"; ti.setAttribute("aria-label", "Investimentos");
+    ti.innerHTML = '<a href="investimentos-painel.html">Painel de Investimentos</a><a href="invest.html" class="ativo" aria-current="page">Simulador de rendimento</a>';
+    var pgi = conteudo.querySelector("#bwPagina"); pgi.insertBefore(ti, pgi.firstChild);
   }
   /* abas do celular */
   var abasEl = document.createElement("nav");

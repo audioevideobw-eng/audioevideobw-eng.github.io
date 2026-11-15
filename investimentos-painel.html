@@ -103,6 +103,10 @@ input.busca{font:inherit;font-size:13px;background:var(--navy2);color:var(--txt)
 @media(max-width:560px){.hd-logo img{height:24px}#btnAtualizar{font-size:0;padding:8px 10px}#btnAtualizar::before{content:"↻";font-size:14px}.vivo #vivoTxt{display:none}}
 </style>
 <style>
+.topo-abas{display:flex;gap:6px;flex-wrap:wrap;margin:18px 0 0}
+.topo-abas a{font-size:12px;font-weight:600;letter-spacing:.04em;padding:8px 14px;border-radius:999px;border:1px solid var(--line);color:var(--mut);text-decoration:none;background:rgba(255,255,255,.02)}
+.topo-abas a:hover{color:var(--gold);border-color:var(--gold)}
+.topo-abas a.ativo{background:var(--gold);color:#1a1205;border-color:var(--gold)}
 .abas{display:flex;gap:6px;overflow-x:auto;padding:4px 0 10px;scrollbar-width:none;min-width:0}
 .abas::-webkit-scrollbar{display:none}
 .abas button{flex:none;font:inherit;font-size:11px;font-weight:600;letter-spacing:.08em;padding:9px 13px;border-radius:999px;border:1px solid var(--line);background:var(--navy2);color:var(--mut);cursor:pointer}
@@ -129,6 +133,7 @@ input.busca{font:inherit;font-size:13px;background:var(--navy2);color:var(--txt)
 </div></header>
 
 <main class="wrap">
+  <nav class="topo-abas" aria-label="Investimentos"><a href="investimentos-painel.html" class="ativo" aria-current="page">Painel de Investimentos</a><a href="invest.html">Simulador de rendimento</a></nav>
   <section class="hero">
     <h1>PAINEL DE <span>INVESTIMENTOS</span></h1>
     <p id="subtitulo">Tudo o que você investe num lugar só — milhas, moedas, renda fixa, Tesouro, fundos, ações, FIIs, previdência e cripto.</p>
