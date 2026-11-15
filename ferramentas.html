@@ -1619,7 +1619,14 @@ function renderFluxo() {
     <div class="row"><span>Saldo do período</span><b style="color:${ent - sai >= 0 ? "var(--up)" : "var(--dn)"}">${fmt(ent - sai, 2)}</b></div>
     <div class="tb-scroll" style="margin-top:10px"><table>
       <thead><tr><th>Data</th><th>Tipo</th><th>Descrição</th><th>Valor</th><th></th></tr></thead>
-      <tbody>${dados.length ? dados.map(o => `<tr><td>${esc(o.c0 || "")}</td><td>${esc(o.c1 || "")}</td><td>${esc(o.c3 || "")}</td><td>${esc(o.c2 || "")}</td><td><a href="#" onclick="window.__delFluxo(${o.id});return false" style="color:var(--dn)">✕</a></td></tr>`).join("")
+      <tbody>${dados.length ? dados.slice().sort((a, b) => String(b.c0 || "").localeCompare(String(a.c0 || ""))).map(o => {
+        /* 15/11: valor em R$, data dd/mm/aaaa; lançamentos automáticos (evento, equipe, fixo) mostram "auto" — antes o ✕ deles dava erro */
+        const auto = /^(cache_|gasto_|receita_|fixo_|ev_)/.test(String(o.id));
+        const v = parseFloat(String(o.c2 || "0").replace(",", ".")) || 0;
+        return `<tr><td style="white-space:nowrap">${esc(String(o.c0 || "").split("-").reverse().join("/"))}</td><td>${esc(o.c1 || "")}</td><td>${esc(o.c3 || "")}</td><td style="text-align:right;white-space:nowrap">R$ ${fmt(v, 2)}</td><td>${auto
+          ? '<span title="Lançado automaticamente — altere no evento, na equipe ou no pagamento fixo" style="color:var(--mut);font-size:11.5px">auto</span>'
+          : `<a href="#" onclick="window.__delFluxo('${esc(String(o.id))}');return false" style="color:var(--dn)" title="Apagar">✕</a>`}</td></tr>`;
+      }).join("")
         : '<tr><td colspan="5" style="color:var(--mut)">Sem lançamentos.</td></tr>'}</tbody>
     </table></div>`;
 }
@@ -1652,7 +1659,11 @@ function initFluxo() {
     if (!obj.c1 && !obj.c2) return;
     dados.push(obj); save(FLUXO, 1, dados); renderFluxo();
   };
-  window.__delFluxo = id => { save(FLUXO, 1, load(FLUXO, 1, []).filter(o => o.id !== id)); renderFluxo(); };
+  window.__delFluxo = id => {
+    const o = load(FLUXO, 1, []).find(x => String(x.id) === String(id));
+    if (!o || !confirm("Apagar o lançamento \"" + (o.c3 || "") + "\" de R$ " + fmt(parseFloat(String(o.c2 || "0").replace(",", ".")) || 0, 2) + "?")) return;
+    save(FLUXO, 1, load(FLUXO, 1, []).filter(x => String(x.id) !== String(id))); renderFluxo();
+  };
 }
 
 /* ---- planilha conectada (mesma mecânica da Casa) ---- */
