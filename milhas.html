@@ -285,7 +285,7 @@ footer b{color:var(--gold)}
       <h3>Quanto pagam hoje pelas suas milhas</h3>
       <div class="sub" id="mUpd">—</div>
       <div id="mProgs"></div>
-      <div class="note">Fonte: cotações agregadas das compradoras (Real Milhas). O preço varia com volume,
+      <div class="note">Fonte: cotações das compradoras (Hotmilhas, Maxmilhas e outras), atualizadas manualmente — não existe cotação oficial em tempo real. O preço varia com volume,
       prazo de pagamento e programa. Vender no prazo menor costuma render menos.</div>
     </div>
     <div class="card">
@@ -1080,9 +1080,11 @@ const prog = id => window.__MILHAS.programs.find(p => p.id === id);
 function renderMilhas() {
   const el = $("#mProgs"); if (!el) return;
   const max = Math.max(...window.__MILHAS.programs.map(p => p.best));
-  $("#mUpd").textContent = "Cotações de " + window.__MILHAS.updated +
-    (window.__MILHAS.live ? " · lidas agora do site" : " · valores embarcados") +
-    " · por 1.000 milhas";
+  /* 15/11: não há fonte pública automática do milheiro — mostra a idade da referência em vez de "lidas agora" */
+  const mU = String(window.__MILHAS.updated || "").match(/(\d{2})\/(\d{2})\/(\d{4})/);
+  const dias = mU ? Math.floor((Date.now() - new Date(+mU[3], +mU[2] - 1, +mU[1])) / 86400000) : null;
+  $("#mUpd").innerHTML = "Referência de " + esc(window.__MILHAS.updated || "—") + " · por 1.000 milhas" +
+    (dias != null && dias > 2 ? ' · <b style="color:var(--warn,#FFB547)">⚠ há ' + dias + ' dias — confira o valor na compradora antes de vender</b>' : "");
   el.innerHTML = window.__MILHAS.programs.map(p => {
     const bs = (p.buyers || []).map(b =>
       `<span style="color:var(--mut);font-size:10.5px">${esc(b.buyer)}: R$ ${b.price.toFixed(2)}</span>`).join(" · ");
