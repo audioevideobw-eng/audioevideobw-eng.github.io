@@ -284,7 +284,7 @@
     var ult = JSON.parse(localStorage.getItem("ui_transc_ultimo") || "null");
     if (ult && ult.texto) {
       nomeBase = ult.nome || "transcricao"; trechos = ult.trechos || []; $("texto").textContent = ult.texto;
-      $("info").textContent = "Última transcrição (" + new Date(ult.quando).toLocaleString("pt-BR").slice(0, 16) + ") · " + (ult.info || "");
+      $("info").textContent = "Última transcrição (" + new Date(ult.quando).toLocaleString("pt-BR", {day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit"}) + ") · " + (ult.info || "");
       prepararEntrega(); $("resultado").hidden = false; st("ok", "Sua última transcrição está abaixo. Escolha um arquivo para transcrever outro.");
     }
   } catch (e) { }
