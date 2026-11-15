@@ -313,7 +313,9 @@ input.busca{font:inherit;font-size:13px;background:var(--navy2);color:var(--txt)
       G_LANC = res[0].map(function (r) { r.valor = Number(r.valor) || 0; r.mes = per(r.data) || r.mes; return r; });
       G_EVENTOS = res[1].map(function (r) { r.valor = Number(r.valor) || 0; return r; });
       META = res[2].data;
-      var temGoogle = G_LANC.length > 0 || G_EVENTOS.length > 0;
+      var adm = false;
+      try { var ra = await sb.rpc("is_bw_admin"); adm = ra.data === true; } catch (e) { }
+      var temGoogle = adm && (G_LANC.length > 0 || G_EVENTOS.length > 0);   /* planilha Google: só o ADM */
       $("fonteSeg").hidden = !temGoogle;
       try { FONTE = localStorage.getItem("ui_fin_fonte") || (temGoogle ? "google" : "plataforma"); } catch (e) { FONTE = temGoogle ? "google" : "plataforma"; }
       if (!temGoogle) FONTE = "plataforma";

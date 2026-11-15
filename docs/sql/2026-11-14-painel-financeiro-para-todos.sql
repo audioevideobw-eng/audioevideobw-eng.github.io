@@ -59,6 +59,7 @@ language plpgsql security definer set search_path = public, extensions as $$
 declare uid uuid := auth.uid(); k text;
 begin
   if uid is null then raise exception 'sem login'; end if;
+  if not public.is_bw_admin() then raise exception 'planilha Google: só o administrador'; end if;
   k := 'bwfin_' || encode(extensions.gen_random_bytes(24), 'hex');
   insert into public.fin_sync_chave (dono, hash)
   values (uid, encode(extensions.digest(k, 'sha256'), 'hex'))
