@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Transcrição e legendas — Brightway</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#06080D">
+<link rel="icon" type="image/png" href="icons/favicon-64.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Brightway">
+<link rel="stylesheet" href="assets/brightway.css?v=16">
+<style>
+.wrap{max-width:1100px;margin:0 auto;padding:0 20px 90px}
+#gravando{color:#f2686b;font-weight:600}
+</style>
+</head>
+<body>
+<header><div class="hd"><button id="btnVoltar" type="button">‹</button><div id="userBox"></div></div></header>
+<div class="wrap">
+  <div class="tf-card" style="margin-top:0">
+    <h3>Transcrição e legendas</h3>
+    <p class="tf-sub">Transforme áudio ou vídeo em texto: briefing do cliente, reunião, entrevista ou o vídeo do evento. Baixe o texto ou as <b>legendas prontas (.srt / .vtt)</b> para o editor de vídeo.</p>
+    <div class="tf-soltar" id="soltar" tabindex="0" role="button" aria-label="Escolher arquivo de áudio ou vídeo"><b>Escolha um áudio ou vídeo</b><br>ou arraste o arquivo para cá (MP3, M4A, WAV, MP4, MOV, áudio do WhatsApp…)</div>
+    <input type="file" id="arq" accept="audio/*,video/*,.ogg,.opus,.m4a,.mp3,.wav,.mp4,.mov,.webm" hidden>
+    <div class="tf-acoes">
+      <button class="bw-btn bw-btn--vidro" id="btnGravar" type="button">● GRAVAR DO MICROFONE</button>
+      <span id="gravando" hidden></span>
+    </div>
+    <div class="tf-grade" style="margin-top:14px">
+      <label class="tf-campo"><span>Idioma falado</span><select id="idioma"><option value="portuguese">Português</option><option value="english">Inglês</option><option value="spanish">Espanhol</option><option value="">Detectar sozinho</option></select></label>
+      <label class="tf-campo"><span>Qualidade</span><select id="qual"><option value="onnx-community/whisper-tiny">Rápida (download menor)</option><option value="onnx-community/whisper-base" selected>Equilibrada (recomendada)</option><option value="onnx-community/whisper-small">Precisa (download maior, mais lenta)</option></select></label>
+    </div>
+    <div class="tf-status" style="margin-top:14px"><span class="tf-ponto" id="ponto"></span><span id="st">Escolha um arquivo para começar.</span></div>
+    <div class="tf-barra" id="barra" hidden><i id="barraI"></i></div>
+  </div>
+
+  <div class="tf-card" id="resultado" hidden>
+    <h3>Resultado</h3>
+    <p class="tf-sub" id="info"></p>
+    <div class="tf-saida" id="texto" contenteditable="true" spellcheck="true" data-vazio="O texto aparece aqui."></div>
+    <div class="tf-acoes">
+      <button class="bw-btn bw-btn--primario" id="bCopiar" type="button">COPIAR</button>
+      <button class="bw-btn bw-btn--vidro" id="bTxt" type="button">BAIXAR .TXT</button>
+      <button class="bw-btn bw-btn--vidro" id="bSrt" type="button">LEGENDA .SRT</button>
+      <button class="bw-btn bw-btn--vidro" id="bVtt" type="button">LEGENDA .VTT</button>
+      <button class="bw-btn bw-btn--vidro" id="bAssist" type="button">RESUMIR NO ASSISTENTE</button>
+      <span class="tf-nota" id="aviso" style="margin:0"></span>
+    </div>
+    <p class="tf-nota">As legendas usam os tempos detectados pela IA. Se você editar o texto acima, os arquivos .srt/.vtt continuam com o texto original (com os tempos certos); o .txt sai com o texto editado.</p>
+  </div>
+
+  <div class="tf-seguro"><svg viewBox="0 0 24 24"><path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6z"/><path d="m9 12 2 2 4-4"/></svg><span>A transcrição é feita <b>no seu aparelho</b> (IA Whisper). O áudio e o vídeo não são enviados para nenhum servidor. Na primeira vez a IA é baixada e fica guardada neste navegador.</span></div>
+</div>
+
+<script src="assets/layout.js?v=18"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="assets/bw-sync.js"></script>
+<script>
+(function () {
+  "use strict";
+  /* TRANSCRIÇÃO (14/11, Claude): Whisper via Transformers.js num Web Worker, no próprio aparelho.
+     WebGPU quando existir; senão WASM. Nada sai do aparelho e nada é gravado na conta. */
+  var $ = function (id) { return document.getElementById(id); };
+  var esc = function (s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return {"&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;"}[c]; }); };
+  var TF = "https://cdn.jsdelivr.net/npm/@huggingface/transformers@4.3.2";
+  var worker = null, trechos = [], nomeBase = "transcricao", ocupado = false, inicioT = 0;
+
+  (async function () {
+    var el = $("userBox"); if (!el) return;
+    try {
+      var sb = window.BWSync && BWSync.cliente(); var s = sb ? await sb.auth.getSession() : null;
+      var u = s && s.data && s.data.session && s.data.session.user;
+      el.innerHTML = u ? '<a href="login.html" class="bw-logado" title="Conta: ' + esc(u.email) + '"><i></i>LOGADO</a>'
+                       : '<a href="login.html" class="bw-btn bw-btn--vidro" style="min-height:34px;padding:0 14px;font-size:12px">LOGIN</a>';
+    } catch (e) { }
+  })();
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(function () { });
+  try { var q = localStorage.getItem("ui_transc_qual"); if (q) $("qual").value = q; var idm = localStorage.getItem("ui_transc_idioma"); if (idm != null) $("idioma").value = idm; } catch (e) { }
+  $("qual").onchange = function () { try { localStorage.setItem("ui_transc_qual", this.value); } catch (e) { } };
+  $("idioma").onchange = function () { try { localStorage.setItem("ui_transc_idioma", this.value); } catch (e) { } };
+
+  function st(cor, html) { $("ponto").className = "tf-ponto" + (cor ? " " + cor : ""); $("st").innerHTML = html; }
+  function barra(p) { $("barra").hidden = p == null; if (p != null) $("barraI").style.width = Math.round(p * 100) + "%"; }
+
+  function novoWorker() {
+    var codigo = [
+      'import { pipeline } from "' + TF + '";',
+      'const cache = {}; const vistos = {};',
+      'async function temGPU() { try { return !!(navigator.gpu && await navigator.gpu.requestAdapter()); } catch (e) { return false; } }',
+      'async function carregar(modelo) {',
+      '  if (cache[modelo]) return cache[modelo];',
+      '  const gpu = await temGPU();',
+      '  const prog = (p) => { if (p.status === "progress" && p.total) { vistos[p.file] = [p.loaded, p.total]; let l = 0, t = 0; for (const k in vistos) { l += vistos[k][0]; t += vistos[k][1]; } postMessage({ tipo: "baixando", pct: t ? l / t : 0, mb: Math.round(t / 1048576) }); } };',
+      '  let p;',
+      '  try { p = await pipeline("automatic-speech-recognition", modelo, gpu ? { device: "webgpu", dtype: { encoder_model: "fp32", decoder_model_merged: "q4" }, progress_callback: prog } : { dtype: "q8", progress_callback: prog }); }',
+      '  catch (e) { if (!gpu) throw e; p = await pipeline("automatic-speech-recognition", modelo, { dtype: "q8", progress_callback: prog }); }',
+      '  cache[modelo] = p; postMessage({ tipo: "carregado", gpu }); return p;',
+      '}',
+      'self.onmessage = async (ev) => {',
+      '  const d = ev.data;',
+      '  try {',
+      '    const p = await carregar(d.modelo);',
+      '    postMessage({ tipo: "transcrevendo" });',
+      '    const op = { chunk_length_s: 30, stride_length_s: 5, return_timestamps: true, task: "transcribe" };',
+      '    if (d.idioma) op.language = d.idioma;',
+      '    const r = await p(d.audio, op);',
+      '    postMessage({ tipo: "fim", texto: r.text, trechos: (r.chunks || []).map(c => ({ i: c.timestamp[0], f: c.timestamp[1], t: c.text })) });',
+      '  } catch (e) { postMessage({ tipo: "erro", msg: String(e && e.message || e) }); }',
+      '};'
+    ].join("\n");
+    var w = new Worker(URL.createObjectURL(new Blob([codigo], {type: "text/javascript"})), {type: "module"});
+    w.onmessage = function (ev) {
+      var d = ev.data;
+      if (d.tipo === "baixando") { barra(d.pct); st("ambar", "Baixando a IA de transcrição: " + Math.round(d.pct * 100) + "% de " + d.mb + " MB (só na primeira vez)…"); }
+      else if (d.tipo === "carregado") { barra(null); }
+      else if (d.tipo === "transcrevendo") { barra(null); st("ambar", "Transcrevendo no seu aparelho… isso leva de alguns segundos a alguns minutos, conforme o tamanho. Pode deixar a aba aberta."); }
+      else if (d.tipo === "fim") { ocupado = false; mostrar(d.texto, d.trechos); }
+      else if (d.tipo === "erro") { ocupado = false; barra(null); st("", "Não foi possível transcrever: " + esc(d.msg).slice(0, 200) + ". Tente a qualidade <b>Rápida</b> ou um arquivo menor."); }
+    };
+    w.onerror = function () { ocupado = false; barra(null); worker = null; st("", "Este navegador não conseguiu rodar a IA. Use o Google Chrome, Edge ou Safari atualizado."); };
+    return w;
+  }
+
+  /* áudio → 16 kHz mono (o que o Whisper espera) */
+  async function decodificar(blob) {
+    var buf = await blob.arrayBuffer();
+    var Ctx = window.AudioContext || window.webkitAudioContext;
+    var ctx; try { ctx = new Ctx({sampleRate: 16000}); } catch (e) { ctx = new Ctx(); }
+    var a = await new Promise(function (ok, erro) { var pr = ctx.decodeAudioData(buf, ok, erro); if (pr && pr.then) pr.then(ok, erro); });
+    try { ctx.close(); } catch (e) { }
+    if (a.sampleRate !== 16000) {
+      var off = new OfflineAudioContext(1, Math.ceil(a.duration * 16000), 16000);
+      var src = off.createBufferSource(); src.buffer = a; src.connect(off.destination); src.start(); a = await off.startRendering();
+    }
+    var n = a.length, mono = new Float32Array(n);
+    for (var c = 0; c < a.numberOfChannels; c++) { var ch = a.getChannelData(c); for (var i = 0; i < n; i++) mono[i] += ch[i] / a.numberOfChannels; }
+    return {audio: mono, dur: a.duration};
+  }
+
+  async function transcrever(blob, nome) {
+    if (ocupado) return;
+    if (blob.size > 700 * 1048576) { st("", "Arquivo muito grande (" + Math.round(blob.size / 1048576) + " MB). Use até 700 MB — ou exporte só o áudio do vídeo."); return; }
+    ocupado = true; nomeBase = (nome || "transcricao").replace(/\.[^.]+$/, ""); $("resultado").hidden = true;
+    st("ambar", "Lendo o áudio de <b>" + esc(nome || "gravação") + "</b>…");
+    var d;
+    try { d = await decodificar(blob); }
+    catch (e) { ocupado = false; st("", "Não consegui ler o áudio deste arquivo. Tente MP3, M4A, WAV ou MP4."); return; }
+    if (!worker) worker = novoWorker();
+    inicioT = Date.now(); $("info").dataset.dur = d.dur;
+    worker.postMessage({modelo: $("qual").value, idioma: $("idioma").value, audio: d.audio}, [d.audio.buffer]);
+  }
+
+  function hms(s, sep) {
+    s = Math.max(0, s || 0); var h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), x = Math.floor(s % 60), ms = Math.round((s - Math.floor(s)) * 1000);
+    var p = function (n, k) { return String(n).padStart(k || 2, "0"); };
+    return p(h) + ":" + p(m) + ":" + p(x) + sep + p(ms, 3);
+  }
+  function mostrar(texto, tr) {
+    trechos = (tr || []).filter(function (c) { return c.t && c.t.trim(); });
+    var dur = +$("info").dataset.dur || 0;
+    trechos.forEach(function (c, i) { if (c.f == null) c.f = trechos[i + 1] ? trechos[i + 1].i : (dur || c.i + 4); });
+    $("texto").textContent = trechos.length ? trechos.map(function (c) { return c.t.trim(); }).join("\n") : String(texto || "").trim();
+    var seg = Math.round((Date.now() - inicioT) / 1000);
+    $("info").textContent = "Áudio de " + Math.floor(dur / 60) + " min " + Math.round(dur % 60) + " s · transcrito em " + seg + " s · " + trechos.length + " trechos de legenda.";
+    $("resultado").hidden = false; st("ok", "<b>Pronto.</b> Revise o texto — nomes próprios e termos técnicos podem sair errados.");
+    $("resultado").scrollIntoView({behavior: "smooth", block: "start"});
+  }
+  function baixar(conteudo, nome, tipo) {
+    var a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([conteudo], {type: tipo})); a.download = nome;
+    document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
+  }
+  $("bCopiar").onclick = function () { var t = $("texto").innerText.trim(); (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(function () { $("aviso").textContent = "✓ Copiado"; }, function () { $("aviso").textContent = "Selecione o texto e copie."; }); };
+  $("bTxt").onclick = function () { baixar($("texto").innerText.trim() + "\n", nomeBase + ".txt", "text/plain;charset=utf-8"); };
+  $("bSrt").onclick = function () {
+    if (!trechos.length) { $("aviso").textContent = "Sem tempos de legenda neste resultado."; return; }
+    baixar(trechos.map(function (c, i) { return (i + 1) + "\n" + hms(c.i, ",") + " --> " + hms(c.f, ",") + "\n" + c.t.trim() + "\n"; }).join("\n"), nomeBase + ".srt", "application/x-subrip;charset=utf-8");
+  };
+  $("bVtt").onclick = function () {
+    if (!trechos.length) { $("aviso").textContent = "Sem tempos de legenda neste resultado."; return; }
+    baixar("WEBVTT\n\n" + trechos.map(function (c) { return hms(c.i, ".") + " --> " + hms(c.f, ".") + "\n" + c.t.trim() + "\n"; }).join("\n"), nomeBase + ".vtt", "text/vtt;charset=utf-8");
+  };
+  $("bAssist").onclick = function () { try { sessionStorage.setItem("bw_assist_texto", $("texto").innerText.trim()); } catch (e) { } location.href = "assistente.html#resumo"; };
+
+  /* escolher / arrastar arquivo */
+  $("soltar").onclick = function () { $("arq").click(); };
+  $("soltar").onkeydown = function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); $("arq").click(); } };
+  $("arq").onchange = function () { var f = this.files && this.files[0]; if (f) transcrever(f, f.name); this.value = ""; };
+  ["dragenter", "dragover"].forEach(function (t) { $("soltar").addEventListener(t, function (e) { e.preventDefault(); $("soltar").classList.add("sobre"); }); });
+  ["dragleave", "drop"].forEach(function (t) { $("soltar").addEventListener(t, function (e) { e.preventDefault(); $("soltar").classList.remove("sobre"); }); });
+  $("soltar").addEventListener("drop", function (e) { var f = e.dataTransfer.files && e.dataTransfer.files[0]; if (f) transcrever(f, f.name); });
+
+  /* gravar do microfone */
+  var rec = null, pedacos = [], tGrav = null, t0 = 0;
+  $("btnGravar").onclick = async function () {
+    if (rec && rec.state === "recording") { rec.stop(); return; }
+    if (!navigator.mediaDevices || !window.MediaRecorder) { st("", "Este navegador não permite gravar. Grave no celular e envie o arquivo."); return; }
+    try {
+      var stream = await navigator.mediaDevices.getUserMedia({audio: true});
+      pedacos = []; rec = new MediaRecorder(stream);
+      rec.ondataavailable = function (e) { if (e.data.size) pedacos.push(e.data); };
+      rec.onstop = function () {
+        stream.getTracks().forEach(function (t) { t.stop(); }); clearInterval(tGrav);
+        $("gravando").hidden = true; $("btnGravar").textContent = "● GRAVAR DO MICROFONE";
+        transcrever(new Blob(pedacos, {type: rec.mimeType || "audio/webm"}), "gravacao-" + new Date().toISOString().slice(0, 16).replace(/[:T]/g, "-"));
+      };
+      rec.start(); t0 = Date.now(); $("btnGravar").textContent = "■ PARAR E TRANSCREVER"; $("gravando").hidden = false;
+      tGrav = setInterval(function () { var s = Math.round((Date.now() - t0) / 1000); $("gravando").textContent = "● gravando " + Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0"); }, 500);
+    } catch (e) { st("", "Sem permissão para usar o microfone."); }
+  };
+})();
+</script>
+</body>
+</html>

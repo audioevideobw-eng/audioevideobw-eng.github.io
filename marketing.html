@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Marketing — Brightway</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#06080D">
+<link rel="icon" type="image/png" href="icons/favicon-64.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Brightway">
+<link rel="stylesheet" href="assets/brightway.css?v=16">
+<style>
+.wrap{max-width:1100px;margin:0 auto;padding:0 20px 90px}
+.motor-bt{margin-left:auto}
+</style>
+</head>
+<body>
+<header><div class="hd"><button id="btnVoltar" type="button">‹</button><div id="userBox"></div></div></header>
+<div class="wrap">
+  <div class="tf-card" style="margin-top:0">
+    <h3>Marketing — escolha a ferramenta</h3>
+    <p class="tf-sub">Textos, ideias e legendas com IA que roda no seu aparelho — sem enviar nada para servidores.</p>
+    <div class="bw-grid">
+      <a class="menu-card" href="assistente.html#legenda" title="Legenda pronta para Instagram, TikTok ou LinkedIn — com hashtags e chamada para orçamento."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M8 9h8M8 13h5"/></svg></span><span class="nome">LEGENDA DE POST</span></a>
+      <a class="menu-card" href="assistente.html#ideias" title="Lista de ideias de posts e vídeos para o seu negócio."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/></svg></span><span class="nome">IDEIAS DE CONTEÚDO</span></a>
+      <a class="menu-card" href="assistente.html#email" title="Proposta, confirmação, agradecimento ou lembrete de pagamento — por e-mail ou WhatsApp."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg></span><span class="nome">E-MAIL AO CLIENTE</span></a>
+      <a class="menu-card" href="assistente.html#revisar" title="Corrige o português ou deixa o texto mais profissional, descontraído ou curto."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></span><span class="nome">REVISAR TEXTO</span></a>
+      <a class="menu-card" href="assistente.html#traduzir" title="Traduz para inglês, espanhol, francês, italiano ou alemão."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h8M8 3v2M6 5c0 4 3 7 6 8M10 5c0 4-3 7-6 8"/><path d="m13 21 4-9 4 9M14.5 18h5"/></svg></span><span class="nome">TRADUZIR</span></a>
+      <a class="menu-card" href="assistente.html#resumo" title="Resume briefing, reunião ou e-mail longo em tópicos ou lista de tarefas."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 10h16M4 14h10M4 18h6"/></svg></span><span class="nome">RESUMIR</span></a>
+      <a class="menu-card" href="transcricao.html" title="Áudio ou vídeo vira texto — briefing, reunião, entrevista."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 17v4M8 21h8"/></svg></span><span class="nome">TRANSCRIÇÃO</span></a>
+      <a class="menu-card" href="transcricao.html" title="Gera legendas .srt / .vtt do vídeo do evento para o editor."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M7 13h3M13 13h4M7 16h6M15 16h2"/></svg></span><span class="nome">LEGENDAS DE VÍDEO</span></a>
+    </div>
+  </div>
+</div>
+
+<script src="assets/layout.js?v=18"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="assets/bw-sync.js"></script>
+<script>
+(function () {
+  "use strict";
+  /* MARKETING (14/11, Claude): galeria da categoria Marketing. */
+  var $ = function (id) { return document.getElementById(id); };
+  var esc = function (s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return {"&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;"}[c]; }); };
+  /* ---------- selo LOGADO ---------- */
+  (async function () {
+    var el = $("userBox"); if (!el) return;
+    try {
+      var sb = window.BWSync && BWSync.cliente(); var s = sb ? await sb.auth.getSession() : null;
+      var u = s && s.data && s.data.session && s.data.session.user;
+      el.innerHTML = u ? '<a href="login.html" class="bw-logado" title="Conta: ' + esc(u.email) + '"><i></i>LOGADO</a>'
+                       : '<a href="login.html" class="bw-btn bw-btn--vidro" style="min-height:34px;padding:0 14px;font-size:12px">LOGIN</a>';
+    } catch (e) { }
+  })();
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(function () { });
+
+})();
+</script>
+</body>
+</html>

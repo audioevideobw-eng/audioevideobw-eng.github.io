@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Assistente de texto — Brightway</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#06080D">
+<link rel="icon" type="image/png" href="icons/favicon-64.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Brightway">
+<link rel="stylesheet" href="assets/brightway.css?v=16">
+<style>
+.wrap{max-width:1100px;margin:0 auto;padding:0 20px 90px}
+.motor-bt{margin-left:auto}
+</style>
+</head>
+<body>
+<header><div class="hd"><button id="btnVoltar" type="button">‹</button><div id="userBox"></div></div></header>
+<div class="wrap">
+  <div class="tf-card" style="margin-top:0">
+    <h3>Assistente de texto</h3>
+    <p class="tf-sub">Legendas de post, ideias de conteúdo, e-mails para clientes, resumos, revisão e tradução. Você escreve o assunto, a IA faz o rascunho e você ajusta antes de usar.</p>
+    <div class="tf-status" id="motor"><span class="tf-ponto" id="motorPonto"></span><span id="motorTxt">Procurando a IA disponível neste aparelho…</span>
+      <button class="bw-btn bw-btn--vidro motor-bt" id="btnAtivar" type="button" hidden>ATIVAR IA NO APARELHO</button></div>
+    <div class="tf-barra" id="barra" hidden><i id="barraI"></i></div>
+  </div>
+
+  <div class="tf-card">
+    <div class="tf-abas" id="abas" role="tablist">
+      <button type="button" data-modo="legenda">Legenda de post</button>
+      <button type="button" data-modo="ideias">Ideias de conteúdo</button>
+      <button type="button" data-modo="email">E-mail ao cliente</button>
+      <button type="button" data-modo="resumo">Resumir</button>
+      <button type="button" data-modo="revisar">Revisar texto</button>
+      <button type="button" data-modo="traduzir">Traduzir</button>
+    </div>
+
+    <div id="fLegenda" data-form="legenda">
+      <div class="tf-grade">
+        <label class="tf-campo" id="boxEvento" hidden><span>Usar um evento</span><select id="lgEvento"><option value="">— escolher —</option></select></label>
+        <label class="tf-campo"><span>Rede</span><select id="lgRede"><option>Instagram</option><option>TikTok</option><option>LinkedIn</option><option>Facebook</option><option>WhatsApp (status)</option></select></label>
+        <label class="tf-campo"><span>Tom</span><select id="lgTom"><option>descontraído</option><option>profissional</option><option>emocionante</option><option>divertido</option></select></label>
+      </div>
+      <label class="tf-campo" style="margin-top:12px"><span>Sobre o quê?</span><textarea id="lgTema" placeholder="Ex.: transmissão ao vivo da convenção da empresa X em BH, 800 pessoas, 3 câmeras e telão de LED."></textarea></label>
+      <div class="tf-acoes"><label class="tf-check"><input type="checkbox" id="lgHash" checked> hashtags</label><label class="tf-check"><input type="checkbox" id="lgEmoji" checked> emojis</label><label class="tf-check"><input type="checkbox" id="lgCta" checked> chamada para orçamento</label></div>
+    </div>
+
+    <div id="fIdeias" data-form="ideias" hidden>
+      <div class="tf-grade">
+        <label class="tf-campo"><span>Rede</span><select id="idRede"><option>Instagram</option><option>TikTok</option><option>YouTube</option><option>LinkedIn</option></select></label>
+        <label class="tf-campo"><span>Quantas ideias</span><select id="idQtd"><option>5</option><option selected>7</option><option>10</option></select></label>
+      </div>
+      <label class="tf-campo" style="margin-top:12px"><span>Seu negócio / tema</span><textarea id="idTema" placeholder="Ex.: transmissão de eventos corporativos, fotografia de formaturas, bastidores de montagem de palco."></textarea></label>
+    </div>
+
+    <div id="fEmail" data-form="email" hidden>
+      <div class="tf-grade">
+        <label class="tf-campo"><span>Objetivo</span><select id="emObj"><option>enviar proposta / orçamento</option><option>confirmar detalhes do evento</option><option>agradecer depois do evento</option><option>lembrar de um pagamento (com gentileza)</option><option>pedir avaliação / depoimento</option><option>responder a um pedido de desconto</option></select></label>
+        <label class="tf-campo"><span>Formato</span><select id="emFmt"><option>e-mail</option><option>mensagem de WhatsApp</option></select></label>
+        <label class="tf-campo"><span>Para (nome)</span><input id="emPara" placeholder="Ex.: Ana, da empresa X"></label>
+      </div>
+      <label class="tf-campo" style="margin-top:12px"><span>Detalhes</span><textarea id="emDet" placeholder="Ex.: evento dia 12/12, transmissão com 3 câmeras, valor R$ 8.500, 50% na assinatura."></textarea></label>
+    </div>
+
+    <div id="fResumo" data-form="resumo" hidden>
+      <label class="tf-campo"><span>Cole o texto</span><textarea id="rsTexto" style="min-height:180px" placeholder="Briefing, transcrição de reunião, contrato, e-mail longo…"></textarea></label>
+      <div class="tf-grade" style="margin-top:12px"><label class="tf-campo"><span>Formato</span><select id="rsFmt"><option>tópicos curtos</option><option>um parágrafo</option><option>lista de tarefas (o que fazer)</option></select></label></div>
+    </div>
+
+    <div id="fRevisar" data-form="revisar" hidden>
+      <label class="tf-campo"><span>Seu texto</span><textarea id="rvTexto" style="min-height:160px"></textarea></label>
+      <div class="tf-grade" style="margin-top:12px"><label class="tf-campo"><span>O que fazer</span><select id="rvAcao"><option>corrigir erros de português</option><option>deixar mais profissional</option><option>deixar mais descontraído</option><option>deixar mais curto</option></select></label></div>
+    </div>
+
+    <div id="fTraduzir" data-form="traduzir" hidden>
+      <label class="tf-campo"><span>Texto em português</span><textarea id="trTexto" style="min-height:140px"></textarea></label>
+      <div class="tf-grade" style="margin-top:12px"><label class="tf-campo"><span>Traduzir para</span><select id="trPara"><option value="en">Inglês</option><option value="es">Espanhol</option><option value="fr">Francês</option><option value="it">Italiano</option><option value="de">Alemão</option></select></label></div>
+    </div>
+
+    <div class="tf-acoes">
+      <button class="bw-btn bw-btn--primario" id="btnGerar" type="button">GERAR</button>
+      <button class="bw-btn bw-btn--vidro" id="btnCopiar" type="button" hidden>COPIAR</button>
+      <button class="bw-btn bw-btn--vidro" id="btnParar" type="button" hidden>PARAR</button>
+      <span id="aviso" class="tf-nota" style="margin:0"></span>
+    </div>
+    <div class="tf-saida" id="saida" contenteditable="true" spellcheck="true" data-vazio="O resultado aparece aqui — você pode editar direto nesta caixa."></div>
+    <div class="tf-seguro"><svg viewBox="0 0 24 24"><path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6z"/><path d="m9 12 2 2 4-4"/></svg><span>A IA roda <b>no seu aparelho</b>: o texto que você escreve não é enviado para nenhum servidor. É um rascunho — confira nomes, datas e valores antes de publicar ou enviar.</span></div>
+  </div>
+</div>
+
+<script src="assets/layout.js?v=18"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="assets/bw-sync.js"></script>
+<script>
+(function () {
+  "use strict";
+  /* ASSISTENTE DE TEXTO (14/11, Claude). Motores, nesta ordem:
+     1) IA do Chrome (Gemini Nano, no próprio computador) — só se já estiver pronta;
+     2) IA no aparelho (Gemma 3 1B via Transformers.js + WebGPU) — o usuário ativa, baixa ~1 GB uma vez;
+     3) modelos prontos (sem IA) para legenda, ideias e e-mail.
+     Nada é enviado a servidor; nada é gravado na conta (só a preferência de aba, local). */
+  var $ = function (id) { return document.getElementById(id); };
+  var esc = function (s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return {"&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;"}[c]; }); };
+  var MODO = "legenda", MOTOR = "modelos", sessaoChrome = null, worker = null, gerando = false, pedidoN = 0;
+  var TF = "https://cdn.jsdelivr.net/npm/@huggingface/transformers@4.3.2";
+  var MODELO = "onnx-community/gemma-3-1b-it-ONNX";
+
+  /* ---------- selo LOGADO ---------- */
+  (async function () {
+    var el = $("userBox"); if (!el) return;
+    try {
+      var sb = window.BWSync && BWSync.cliente(); var s = sb ? await sb.auth.getSession() : null;
+      var u = s && s.data && s.data.session && s.data.session.user;
+      el.innerHTML = u ? '<a href="login.html" class="bw-logado" title="Conta: ' + esc(u.email) + '"><i></i>LOGADO</a>'
+                       : '<a href="login.html" class="bw-btn bw-btn--vidro" style="min-height:34px;padding:0 14px;font-size:12px">LOGIN</a>';
+    } catch (e) { }
+  })();
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(function () { });
+
+  /* ---------- abas ---------- */
+  function trocar(m) {
+    MODO = m;
+    [].forEach.call(document.querySelectorAll("#abas button"), function (b) { b.classList.toggle("ativo", b.dataset.modo === m); });
+    [].forEach.call(document.querySelectorAll("[data-form]"), function (f) { f.hidden = f.dataset.form !== m; });
+    try { localStorage.setItem("ui_assist_aba", m); } catch (e) { }
+    $("aviso").textContent = "";
+  }
+  [].forEach.call(document.querySelectorAll("#abas button"), function (b) { b.onclick = function () { trocar(b.dataset.modo); }; });
+  var inicial = (location.hash || "").replace("#", "");
+  if (!document.querySelector('[data-form="' + inicial + '"]')) { try { inicial = localStorage.getItem("ui_assist_aba") || "legenda"; } catch (e) { inicial = "legenda"; } }
+  trocar(document.querySelector('[data-form="' + inicial + '"]') ? inicial : "legenda");
+  window.addEventListener("hashchange", function () { var h = location.hash.replace("#", ""); if (document.querySelector('[data-form="' + h + '"]')) trocar(h); });
+
+  /* texto vindo da TRANSCRIÇÃO ("usar no assistente") */
+  try { var vindo = sessionStorage.getItem("bw_assist_texto"); if (vindo) { sessionStorage.removeItem("bw_assist_texto"); $("rsTexto").value = vindo; trocar("resumo"); } } catch (e) { }
+
+  /* eventos da conta para a legenda */
+  try {
+    var evs = JSON.parse(localStorage.getItem("bw_neg_eventos_v1") || "[]");
+    if (Array.isArray(evs) && evs.length) {
+      evs.slice().sort(function (a, b) { return String(b.data || "").localeCompare(String(a.data || "")); }).slice(0, 40).forEach(function (e, i) {
+        var o = document.createElement("option"); o.value = String(evs.indexOf(e));
+        o.textContent = (e.nome || "Evento") + (e.data ? " · " + String(e.data).split("-").reverse().join("/") : ""); $("lgEvento").appendChild(o);
+      });
+      $("boxEvento").hidden = false;
+      $("lgEvento").onchange = function () {
+        var e = evs[+this.value]; if (!e) return;
+        var p = [e.tipo ? e.tipo : "Evento", e.nome ? "\"" + e.nome + "\"" : "", e.cliente ? "para " + e.cliente : "", e.local ? "em " + e.local : "",
+                 e.data ? "no dia " + String(e.data).split("-").reverse().join("/") : ""].filter(Boolean).join(" ");
+        $("lgTema").value = p + ".";
+      };
+    }
+  } catch (e) { }
+
+  /* ---------- motores ---------- */
+  function status(cor, html, mostrarAtivar) {
+    $("motorPonto").className = "tf-ponto" + (cor ? " " + cor : "");
+    $("motorTxt").innerHTML = html; $("btnAtivar").hidden = !mostrarAtivar;
+  }
+  async function temWebGPU() { try { return !!(navigator.gpu && await navigator.gpu.requestAdapter()); } catch (e) { return false; } }
+  async function detectar() {
+    try {
+      if (window.LanguageModel && LanguageModel.availability) {
+        var a = await LanguageModel.availability();
+        if (a === "available") { MOTOR = "chrome"; status("ok", "<b>IA do Chrome</b> pronta — roda no seu computador."); return; }
+      }
+    } catch (e) { }
+    try { if (localStorage.getItem("ui_assist_local") === "1" && await temWebGPU()) { ativarLocal(); return; } } catch (e) { }
+    MOTOR = "modelos";
+    if (await temWebGPU()) status("ambar", "Usando <b>modelos prontos</b>. Para textos feitos pela IA, ative a IA no aparelho (baixa cerca de 1 GB uma única vez; use Wi-Fi).", true);
+    else status("ambar", "Usando <b>modelos prontos</b>. Este navegador não tem aceleração de vídeo (WebGPU) para a IA no aparelho — use o <b>Google Chrome atualizado</b> no computador ou no Android para textos feitos pela IA.");
+  }
+  function ativarLocal() {
+    if (worker) return;
+    status("ambar", "Preparando a <b>IA no aparelho</b>…");
+    $("barra").hidden = false;
+    var codigo = [
+      'import { pipeline, TextStreamer } from "' + TF + '";',
+      'let gen = null; const vistos = {};',
+      'async function carregar() {',
+      '  if (gen) return gen;',
+      '  gen = await pipeline("text-generation", "' + MODELO + '", { dtype: "q4", device: "webgpu",',
+      '    progress_callback: (p) => { if (p.status === "progress" && p.total) { vistos[p.file] = [p.loaded, p.total]; let l = 0, t = 0; for (const k in vistos) { l += vistos[k][0]; t += vistos[k][1]; } postMessage({ tipo: "baixando", pct: t ? l / t : 0, mb: Math.round(t / 1048576) }); } } });',
+      '  return gen;',
+      '}',
+      'self.onmessage = async (ev) => {',
+      '  const d = ev.data;',
+      '  try {',
+      '    if (d.tipo === "carregar") { await carregar(); postMessage({ tipo: "pronto" }); return; }',
+      '    const g = await carregar();',
+      '    const streamer = new TextStreamer(g.tokenizer, { skip_prompt: true, skip_special_tokens: true, callback_function: (t) => postMessage({ tipo: "parte", id: d.id, t }) });',
+      '    const out = await g(d.mensagens, { max_new_tokens: d.max || 450, do_sample: true, temperature: 0.7, top_p: 0.9, streamer });',
+      '    const r = out[0].generated_text; postMessage({ tipo: "fim", id: d.id, texto: Array.isArray(r) ? r[r.length - 1].content : String(r) });',
+      '  } catch (e) { postMessage({ tipo: "erro", id: d.id, msg: String(e && e.message || e) }); }',
+      '};'
+    ].join("\n");
+    worker = new Worker(URL.createObjectURL(new Blob([codigo], {type: "text/javascript"})), {type: "module"});
+    worker.onmessage = function (ev) {
+      var d = ev.data;
+      if (d.tipo === "baixando") { $("barraI").style.width = Math.round(d.pct * 100) + "%"; status("ambar", "Baixando a <b>IA no aparelho</b>: " + Math.round(d.pct * 100) + "% de " + d.mb + " MB (só na primeira vez)…"); }
+      else if (d.tipo === "pronto") { MOTOR = "local"; $("barra").hidden = true; try { localStorage.setItem("ui_assist_local", "1"); } catch (e) { } status("ok", "<b>IA no aparelho</b> pronta — roda no seu aparelho, sem enviar nada."); }
+      else if (d.tipo === "parte" && d.id === pedidoN) { $("saida").textContent += d.t; }
+      else if (d.tipo === "fim" && d.id === pedidoN) { terminar(limpar(d.texto)); }
+      else if (d.tipo === "erro") {
+        if (gerando) { terminar(null); $("aviso").textContent = "A IA falhou: " + d.msg; }
+        else { worker = null; MOTOR = "modelos"; $("barra").hidden = true; try { localStorage.removeItem("ui_assist_local"); } catch (e) { }
+          status("ambar", "Não deu para ativar a IA no aparelho (" + esc(d.msg).slice(0, 120) + "). Usando <b>modelos prontos</b>.", true); }
+      }
+    };
+    worker.onerror = function (e) { worker = null; MOTOR = "modelos"; $("barra").hidden = true; status("ambar", "Não deu para ativar a IA no aparelho. Usando <b>modelos prontos</b>.", true); };
+    worker.postMessage({tipo: "carregar"});
+  }
+  $("btnAtivar").onclick = function () {
+    if (!confirm("A IA no aparelho baixa cerca de 1 GB uma única vez (depois fica guardada neste navegador). Recomendado usar Wi-Fi. Continuar?")) return;
+    ativarLocal();
+  };
+
+  /* ---------- pedidos ---------- */
+  var SISTEMA = "Você é o assistente de marketing e atendimento de uma empresa brasileira de audiovisual (transmissão ao vivo de eventos, vídeo, fotografia e eventos). " +
+    "Responda SEMPRE em português do Brasil, de forma clara e natural. Não invente preços, datas, nomes ou números que não foram informados. Entregue só o texto pedido, sem explicações antes ou depois.";
+  function pedido() {
+    var v = function (id) { return ($(id).value || "").trim(); };
+    if (MODO === "legenda") {
+      if (!v("lgTema")) return null;
+      return "Escreva uma legenda para um post no " + v("lgRede") + ", com tom " + v("lgTom") + ", sobre: " + v("lgTema") + "\n" +
+        "Regras: primeira linha que prende a atenção; 3 a 6 linhas curtas" + ($("lgEmoji").checked ? "; use alguns emojis" : "; sem emojis") +
+        ($("lgCta").checked ? "; termine convidando a pedir orçamento pelo direct ou WhatsApp" : "") +
+        ($("lgHash").checked ? "; no final, 5 hashtags relevantes em português" : "; sem hashtags") + ".";
+    }
+    if (MODO === "ideias") {
+      if (!v("idTema")) return null;
+      return "Liste " + v("idQtd") + " ideias de posts para " + v("idRede") + " de um negócio de: " + v("idTema") + ". Para cada ideia: um título curto, o formato (vídeo curto, carrossel, foto, story) e uma frase explicando o conteúdo. Numere as ideias.";
+    }
+    if (MODO === "email") {
+      if (!v("emDet") && !v("emPara")) return null;
+      return "Escreva " + (v("emFmt") === "e-mail" ? "um e-mail (com linha de Assunto no início)" : "uma mensagem curta de WhatsApp") +
+        " para " + (v("emPara") || "o cliente") + ", com o objetivo de " + v("emObj") + ". Detalhes: " + (v("emDet") || "nenhum") +
+        ". Tom cordial e profissional, direto ao ponto. Assine como \"Equipe BW\".";
+    }
+    if (MODO === "resumo") { if (!v("rsTexto")) return null; return "Resuma o texto abaixo em " + v("rsFmt") + ", em português:\n\n" + v("rsTexto").slice(0, 12000); }
+    if (MODO === "revisar") { if (!v("rvTexto")) return null; return "Reescreva o texto abaixo para " + v("rvAcao") + ". Mantenha o sentido e todas as informações. Entregue só o texto final:\n\n" + v("rvTexto").slice(0, 8000); }
+    if (MODO === "traduzir") { if (!v("trTexto")) return null; var n = $("trPara").options[$("trPara").selectedIndex].text; return "Traduza para " + n.toLowerCase() + " o texto abaixo. Entregue só a tradução:\n\n" + v("trTexto").slice(0, 8000); }
+    return null;
+  }
+  function limpar(t) { return String(t || "").replace(/^\s*(Claro|Aqui está|Segue)[^\n]*:\s*\n+/i, "").trim(); }
+  function comecar() { gerando = true; $("saida").textContent = ""; $("btnGerar").disabled = true; $("btnParar").hidden = false; $("btnCopiar").hidden = true; $("aviso").textContent = "Escrevendo…"; }
+  function terminar(texto) {
+    gerando = false; $("btnGerar").disabled = false; $("btnParar").hidden = true;
+    if (texto != null) $("saida").textContent = texto;
+    $("btnCopiar").hidden = !$("saida").textContent.trim(); $("aviso").textContent = texto != null ? "Pronto — revise antes de usar." : "";
+  }
+  $("btnParar").onclick = function () { pedidoN++; terminar(null); };
+
+  /* tradução pela API do Chrome (computador), quando existir */
+  async function traduzirChrome(texto, para) {
+    if (!window.Translator) return null;
+    try {
+      var a = await Translator.availability({sourceLanguage: "pt", targetLanguage: para});
+      if (a === "unavailable") return null;
+      var t = await Translator.create({sourceLanguage: "pt", targetLanguage: para});
+      return await t.translate(texto);
+    } catch (e) { return null; }
+  }
+
+  $("btnGerar").onclick = async function () {
+    var p = pedido();
+    if (!p) { $("aviso").textContent = "Preencha o campo de texto primeiro."; return; }
+    if (MODO === "traduzir") {
+      comecar(); var tr = await traduzirChrome($("trTexto").value.trim(), $("trPara").value);
+      if (tr) { terminar(tr); return; }
+      if (MOTOR === "modelos") { terminar(null); $("aviso").textContent = "A tradução precisa da IA do Chrome (computador) ou da IA no aparelho — ative-a no topo."; return; }
+      gerando = false;
+    }
+    if (MOTOR === "modelos") {
+      if (["resumo", "revisar"].indexOf(MODO) > -1) { $("aviso").textContent = "Para resumir e revisar é preciso a IA — ative a IA no aparelho no topo (ou use o Chrome do computador)."; return; }
+      comecar(); terminar(modeloPronto()); $("aviso").textContent = "Modelo pronto preenchido com o que você escreveu — ajuste à vontade."; return;
+    }
+    comecar(); var id = ++pedidoN;
+    if (MOTOR === "chrome") {
+      try {
+        if (!sessaoChrome) sessaoChrome = await LanguageModel.create({initialPrompts: [{role: "system", content: SISTEMA}]});
+        var s = await sessaoChrome.clone(); var acc = "";
+        var stream = s.promptStreaming(p);
+        for await (var parte of stream) { if (id !== pedidoN) break; acc = parte.startsWith(acc) ? parte : acc + parte; $("saida").textContent = acc; }
+        if (id === pedidoN) terminar(limpar(acc));
+        try { s.destroy(); } catch (e) { }
+      } catch (e) { terminar(null); $("aviso").textContent = "A IA do Chrome falhou: " + (e && e.message || e); }
+      return;
+    }
+    worker.postMessage({tipo: "gerar", id: id, mensagens: [{role: "system", content: SISTEMA}, {role: "user", content: p}], max: MODO === "ideias" ? 650 : 450});
+  };
+  $("btnCopiar").onclick = function () {
+    var t = $("saida").innerText.trim();
+    (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(function () { $("aviso").textContent = "✓ Copiado"; }, function () { $("aviso").textContent = "Selecione o texto e copie."; });
+  };
+
+  /* ---------- modelos prontos (sem IA) ---------- */
+  function modeloPronto() {
+    var v = function (id) { return ($(id).value || "").trim(); };
+    var emo = function (s) { return $("lgEmoji").checked ? s : ""; };
+    if (MODO === "legenda") {
+      var tema = v("lgTema").replace(/\.$/, ""), tom = v("lgTom");
+      var abre = {"descontraído": "Bastidores de mais um evento daqueles " + emo("🎬"), "profissional": "Mais uma entrega concluída com excelência.",
+                  "emocionante": "Tem evento que fica na memória " + emo("✨"), "divertido": "Quando a câmera liga, a mágica acontece " + emo("😎")}[tom] || "Mais um evento incrível!";
+      var txt = abre + "\n\n" + tema.charAt(0).toUpperCase() + tema.slice(1) + ".\n\nCada detalhe pensado para que o público, presente ou online, viva o momento por completo." +
+        ($("lgCta").checked ? "\n\n" + emo("📩 ") + "Vai fazer um evento? Chama no direct ou no WhatsApp e peça seu orçamento." : "");
+      if ($("lgHash").checked) txt += "\n\n#eventoscorporativos #transmissaoaovivo #audiovisual #producaodeeventos #bastidores";
+      return txt;
+    }
+    if (MODO === "ideias") {
+      var base = [["Bastidores da montagem", "vídeo curto", "Time-lapse da equipe montando câmeras, som e telão antes do público chegar."],
+        ["Antes e depois", "carrossel", "O espaço vazio x o evento pronto, com luz e projeção."],
+        ["Um dia de evento em 30 segundos", "vídeo curto", "Cortes rápidos do começo ao fim do dia."],
+        ["Equipamento da semana", "foto", "Mostre uma câmera, mesa ou lente e para que ela serve."],
+        ["Depoimento de cliente", "vídeo curto", "Um cliente contando como foi o evento."],
+        ["Erro comum em transmissões", "carrossel", "Dicas do que evitar (internet, áudio, luz) — gera autoridade."],
+        ["Pergunta da caixinha", "story", "Responda dúvidas do público sobre eventos e transmissões."],
+        ["Quem faz acontecer", "foto", "Apresente uma pessoa da equipe e a função dela."],
+        ["Números do mês", "carrossel", "Quantos eventos, horas de transmissão, cidades atendidas."],
+        ["Por trás da câmera", "vídeo curto", "Ponto de vista do operador durante um momento importante."]];
+      return base.slice(0, +v("idQtd")).map(function (b, i) { return (i + 1) + ". " + b[0] + " (" + b[1] + ") — " + b[2]; }).join("\n") + "\n\n(Modelo pronto — adapte ao tema: " + v("idTema") + ")";
+    }
+    if (MODO === "email") {
+      var para = v("emPara") || "cliente", det = v("emDet"), obj = v("emObj"), zap = v("emFmt") !== "e-mail";
+      var corpo = {"enviar proposta / orçamento": "Segue a nossa proposta para o seu evento. " + (det ? "Resumo: " + det + ". " : "") + "Fico à disposição para ajustar o que for preciso.",
+        "confirmar detalhes do evento": "Passando para confirmar os detalhes do evento" + (det ? ": " + det : "") + ". Pode me confirmar se está tudo certo?",
+        "agradecer depois do evento": "Muito obrigado pela confiança no nosso trabalho! Foi um prazer fazer parte do seu evento." + (det ? " " + det + "." : ""),
+        "lembrar de um pagamento (com gentileza)": "Tudo bem? Passando só para lembrar do pagamento" + (det ? " (" + det + ")" : "") + ". Se já tiver feito, por favor desconsidere.",
+        "pedir avaliação / depoimento": "Ficamos muito felizes com o resultado do seu evento! Se puder, deixe um depoimento curto sobre a experiência — ajuda muito o nosso trabalho.",
+        "responder a um pedido de desconto": "Obrigado pelo interesse! Revisamos a proposta com carinho" + (det ? " (" + det + ")" : "") + ". Podemos ajustar o escopo para caber no seu orçamento sem perder a qualidade — posso te mandar uma opção?"}[obj] || det;
+      return (zap ? "" : "Assunto: " + obj.charAt(0).toUpperCase() + obj.slice(1) + "\n\n") + "Olá, " + para + "!\n\n" + corpo + "\n\n" + (zap ? "Equipe BW" : "Abraços,\nEquipe BW");
+    }
+    return "";
+  }
+
+  detectar();
+})();
+</script>
+</body>
+</html>
