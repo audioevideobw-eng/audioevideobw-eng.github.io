@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CRM — Brightway</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#06080D">
+<link rel="icon" type="image/png" href="icons/favicon-64.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Brightway">
+<link rel="stylesheet" href="assets/brightway.css?v=22">
+<style>
+.wrap{max-width:1100px;margin:0 auto;padding:0 20px 90px}
+.crm-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:4px;min-width:0}
+.crm-kpis .bw-kpi{min-width:0}
+.crm-kpis .valor{font-size:24px}
+.crm-ag{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.crm-ag a{display:flex;justify-content:space-between;gap:10px;padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.03);border:1px solid rgba(245,241,234,.08);color:var(--bw-marfim);text-decoration:none;font-size:14px;min-width:0}
+.crm-ag a span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.crm-ag a small{color:var(--txt2);flex:none}
+.crm-ag a:hover{border-color:var(--bw-ambar)}
+.crm-passos{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-top:6px;min-width:0}
+.crm-passos div{padding:12px 14px;border-radius:14px;background:rgba(255,255,255,.03);border:1px solid rgba(245,241,234,.08);font-size:13.5px;color:var(--txt2);line-height:1.5;min-width:0}
+.crm-passos b{display:block;color:var(--bw-ambar);font-size:12px;letter-spacing:.08em;margin-bottom:4px}
+</style>
+</head>
+<body>
+<header><div class="hd"><button id="btnVoltar" type="button">‹</button><div id="userBox"></div></div></header>
+<div class="wrap">
+  <div class="tf-card" style="margin-top:0">
+    <h3>CRM — captação de clientes</h3>
+    <p class="tf-sub">Do primeiro “oi” ao cliente fiel: funil, agente de vendas com IA, mensagens prontas e indicadores — tudo ligado aos seus eventos.</p>
+    <div class="crm-kpis" id="kpis"></div>
+  </div>
+
+  <div class="tf-card">
+    <h3>AGENTE DE VENDAS</h3>
+    <p class="tf-sub" id="agTxt" style="margin-bottom:0">Revisando os seus contatos…</p>
+    <div class="crm-ag" id="agLista"></div>
+    <div class="tf-acoes"><a class="bw-btn bw-btn--primario" href="captacao.html#agente">ABRIR A FILA DO DIA</a></div>
+  </div>
+
+  <div class="tf-card">
+    <h3>Ferramentas do CRM</h3>
+    <div class="bw-grid">
+      <a class="menu-card" href="captacao.html#funil" title="Os contatos em colunas: novo, conversando, proposta, negociando, fechado e perdido."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h18l-7 8v6l-4 2v-8z"/></svg></span><span class="nome">FUNIL</span></a>
+      <a class="menu-card" href="captacao.html?novo=1" title="Cadastrar um contato novo no funil."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10" cy="8" r="4"/><path d="M3 21c0-4 3-6 7-6M18 14v6M15 17h6"/></svg></span><span class="nome">NOVO CONTATO</span></a>
+      <a class="menu-card" href="captacao.html#colar" title="Cole a conversa do WhatsApp, Instagram ou e-mail e a IA preenche o contato."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M6 18l2.5-2.5M15.5 8.5 18 6"/></svg></span><span class="nome">CAPTURA COM IA</span></a>
+      <a class="menu-card" href="captacao.html#agente" title="A fila do dia: retornos, propostas paradas, pós-venda, indicação e reativação."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="8" width="14" height="11" rx="3"/><path d="M12 4v4M9 13h.01M15 13h.01M9 16h6M3 13v2M21 13v2"/></svg></span><span class="nome">AGENTE DE VENDAS</span></a>
+      <a class="menu-card" href="captacao.html#mensagens" title="Primeiro contato, proposta, retorno, pós-evento, indicação — com o nome do cliente."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M8 9h8M8 13h5"/></svg></span><span class="nome">MENSAGENS PRONTAS</span></a>
+      <a class="menu-card" href="resultados.html" title="Taxa de fechamento, de onde vêm os clientes, motivos de perda e evolução."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg></span><span class="nome">INDICADORES</span></a>
+      <a class="menu-card" href="resultados.html#redes" title="Seguidores e alcance por mês, e quantos clientes cada rede trouxe."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="m8.2 10.8 7.6-3.6M8.2 13.2l7.6 3.6"/></svg></span><span class="nome">REDES SOCIAIS</span></a>
+      <a class="menu-card" href="assistente.html#email" title="Proposta, confirmação ou agradecimento escrito pela IA."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M8 13h8M8 17h5"/></svg></span><span class="nome">PROPOSTA COM IA</span></a>
+      <a class="menu-card" href="eventos.html#cliBox" title="A lista de clientes (a mesma dos eventos)."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.5 3-5.5 6.5-5.5s6.5 2 6.5 5.5"/><circle cx="17.5" cy="9" r="2.5"/><path d="M16 14.6c3 .2 5.5 1.9 5.5 5.4"/></svg></span><span class="nome">CLIENTES</span></a>
+      <a class="menu-card" href="captacao.html#ajustes" title="Seus serviços, assinatura das mensagens e meta de fechamentos."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg></span><span class="nome">AJUSTES</span></a>
+    </div>
+  </div>
+
+  <div class="tf-card">
+    <h3>Como o CRM trabalha para você</h3>
+    <div class="crm-passos">
+      <div><b>1 · CAPTAR</b>Cadastre o contato ou cole a mensagem — a IA preenche. Marque a origem (Instagram, indicação…) para saber o que dá resultado.</div>
+      <div><b>2 · CONVERSAR</b>WhatsApp, ligação, e-mail e Instagram direto da ficha, com mensagens prontas que já trazem o nome do cliente.</div>
+      <div><b>3 · NÃO ESQUECER</b>O agente monta a fila do dia, a agenda mostra os retornos e o sino avisa os atrasados.</div>
+      <div><b>4 · FECHAR</b>Fechou? Vira cliente e evento sozinho. Depois do evento o agente lembra de pedir depoimento e indicação.</div>
+    </div>
+  </div>
+</div>
+
+<script src="assets/layout.js?v=25"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="assets/bw-sync.js"></script>
+<script src="assets/crm.js?v=1"></script>
+<script>
+(function () {
+  "use strict";
+  /* CRM (15/11, Claude): página da categoria — resumo, agente e galeria. */
+  var C = window.BWCRM, esc = C.esc, $ = function (id) { return document.getElementById(id); };
+  (async function () {
+    var el = $("userBox"); if (!el) return;
+    try { var s = await C.sessao();
+      el.innerHTML = s ? '<a href="login.html" class="bw-logado" title="Conta: ' + esc(s.user.email) + '"><i></i>LOGADO</a>'
+                       : '<a href="login.html" class="bw-btn bw-btn--vidro" style="min-height:34px;padding:0 14px;font-size:12px">LOGIN</a>'; } catch (e) { }
+  })();
+  function kpi(rot, val, nota, cls) { return '<div class="bw-kpi"><div class="rotulo">' + rot + '</div><div class="valor">' + val + '</div><div class="nota ' + (cls || "") + '">' + nota + "</div></div>"; }
+  function render() {
+    var h = C.hoje(), ini = h.slice(0, 8) + "01", mes = C.numeros(null, ini, h), tri = C.numeros(null, C.somaDias(h, -90), h);
+    var meta = C.num(C.cfg("cfg_meta", "")), hojeN = C.leads().filter(function (l) { return C.ABERTAS.indexOf(l.etapa) >= 0 && l.prox && l.prox.data && C.dias(l.prox.data) === 0; }).length;
+    $("kpis").innerHTML =
+      kpi("Em aberto", String(mes.abertas), C.moeda(mes.valorAberto) + " em negociação") +
+      kpi("Retornos", String(hojeN + mes.atrasados), mes.atrasados ? mes.atrasados + " atrasado(s)" : "nenhum atrasado", mes.atrasados ? "alerta" : "ok") +
+      kpi("Fechados no mês", String(mes.fechados), meta ? "meta: " + meta + (mes.fechados >= meta ? " ✓ batida" : " · faltam " + (meta - mes.fechados)) : C.moeda(mes.valorFechado), meta && mes.fechados >= meta ? "ok" : "") +
+      kpi("Taxa de fechamento", tri.taxa == null ? "—" : Math.round(tri.taxa * 100) + "%", "últimos 90 dias");
+    var fila = C.filaDoAgente();
+    $("agTxt").textContent = fila.length ? "Separei " + fila.length + " ação(ões) para hoje:" : (C.leads().length ? "✓ Tudo em dia. Nenhum contato precisa de você agora." : "Cadastre o primeiro contato e eu começo a trabalhar.");
+    $("agLista").innerHTML = fila.slice(0, 4).map(function (it) { return '<a href="captacao.html?lead=' + encodeURIComponent(it.leadId) + '"><span>' + esc(it.titulo) + "</span><small>" + esc(it.motivo.split(" · ")[0]) + "</small></a>"; }).join("");
+  }
+  render();
+  window.addEventListener("bw-sync-recebido", render);
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(function () { });
+})();
+</script>
+</body>
+</html>

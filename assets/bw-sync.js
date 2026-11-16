@@ -33,7 +33,8 @@
     "neg_fluxo", "casa_fixos", "neg_equipe_colaboradores", "neg_equipe_equipes",
     "neg_equipe_eventos", "neg_equipe_cadastros", "neg_fixos", "neg_eventos",
     "neg_equipe_pagamentos", "neg_clientes", "neg_cli_cadastros", "dd_colecoes",
-    "dd_registros", "neg_eventos_checklist_modelos", "inv_lancamentos", "agenda_tarefas"];
+    "dd_registros", "neg_eventos_checklist_modelos", "inv_lancamentos", "agenda_tarefas",
+    "mkt_leads", "mkt_modelos", "mkt_redes", "mkt_config"];   /* 15/11: CRM (assets/crm.js) */
 
   /* ---------- 1. cliente Supabase único ---------- */
   function unificarCliente() {

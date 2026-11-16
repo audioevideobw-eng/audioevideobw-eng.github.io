@@ -56,6 +56,7 @@
     { id: "negocio", nome: "Meu negócio",       href: "negocio.html", icon: '<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>' },
     { id: "casa",    nome: "Gestão de casa",    href: "orcamento.html", icon: '<path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M9 21v-6h6v6"/>' },
     { id: "invest",  nome: "Investimentos",     href: "investimentos-painel.html", icon: '<path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/>' },
+    { id: "crm",     nome: "CRM",               href: "crm.html", icon: '<path d="M3 4h18l-7 8v6l-4 2v-8z"/>' },
     { id: "mkt",     nome: "Marketing",         href: "marketing.html", icon: '<path d="M3 11v2a1 1 0 0 0 1 1h2l5 4V6L6 10H4a1 1 0 0 0-1 1z"/><path d="M15 9a4 4 0 0 1 0 6M18 6a8 8 0 0 1 0 12"/>' },
     { id: "ferr",    nome: "Ferramentas",       href: "ferramentas.html", icon: '<rect x="4" y="2" width="16" height="20" rx="2"/><path d="M8 6h8M8 10h2M12 10h2M16 10h.01M8 14h2M12 14h2M16 14h.01M8 18h2M12 18h2M16 18h.01"/>' },
     { id: "conta",   nome: "Conta",             href: "login.html", icon: '<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/>' }
@@ -64,7 +65,8 @@
     negocio: [["negocio","Ferramentas do negócio"],["financeiro-painel","Painel Financeiro"],["eventos","Eventos"],["equipe","Gestão de pessoas"],["leitor","Leitor de comprovantes"],["preco","Calculadora de preço"],["fluxo","Fluxo de caixa"]],
     casa: [["orcamento","Orçamento familiar"],["contas","Contas a pagar"],["reserva","Reserva de emergência"]],
     invest: [["investimentos-painel","Painel de Investimentos"],["cambio","Câmbio"],["evento","Evento no exterior"],["milhas","Mercado de milhas"],["meta","Meta de milhas"],["recs","★ Recomendações"],["noticias","Notícias"]],
-    mkt: [["marketing","Todas de marketing"],["assistente","Assistente de texto"],["transcricao","Transcrição e legendas"]],
+    crm: [["crm","Painel do CRM"],["captacao","Funil de clientes"],["resultados","Indicadores"]],
+    mkt: [["marketing","Todas de marketing"],["fotos","Editor de fotos"],["assistente","Assistente de texto"],["transcricao","Transcrição e legendas"]],
     ferr: [["ferramentas","Todas as ferramentas"],["pdf","PDF"],["dados","Meus dados"]],
     conta: [["login","Acesso"],["configadm","Configuração"]]
   };
@@ -73,7 +75,8 @@
     if (["negocio","financeiro-painel","eventos","equipe","leitor","preco","fluxo","custos"].indexOf(p) > -1) return "negocio";
     if (["orcamento","casa","contas","reserva"].indexOf(p) > -1) return "casa";
     if (["investimentos-painel","cambio","comparador","serie","calc","viagem","diario","alertas","evento","milhas","meta","invest","recs","noticias"].indexOf(p) > -1) return "invest";
-    if (["marketing","assistente","transcricao"].indexOf(p) > -1) return "mkt";
+    if (["crm","captacao","resultados"].indexOf(p) > -1) return "crm";
+    if (["marketing","assistente","transcricao","fotos"].indexOf(p) > -1) return "mkt";
     if (["ferramentas","pdf","dados"].indexOf(p) > -1) return "ferr";
     return "conta";
   }
@@ -86,7 +89,8 @@
     invest:"Simulador de rendimento", "investimentos-painel":"Painel de Investimentos", serie:"Série histórica", diario:"Diário de câmbio", calc:"Calculadora",
     viagem:"Conversor de viagem", leitor:"Leitor de comprovantes", recs:"Recomendações",
     noticias:"Notícias", dados:"Meus dados", app:"App & sincronização", login:"Acesso",
-    configadm:"Configuração", marketing:"Marketing", assistente:"Assistente de texto", transcricao:"Transcrição e legendas", pdf:"Ferramentas de PDF" };
+    configadm:"Configuração", marketing:"Marketing", assistente:"Assistente de texto", transcricao:"Transcrição e legendas", pdf:"Ferramentas de PDF",
+    crm:"CRM", captacao:"Funil de clientes", resultados:"Indicadores", fotos:"Editor de fotos" };
   var NOMES_CAT = {}; CATEGORIAS.forEach(function(c){ NOMES_CAT[c.id] = c.nome; });
 
   var itens = CATEGORIAS.map(function(c){
@@ -315,25 +319,35 @@
       eventos.push({ ev: e, n: n, nm: nm, min: Math.min.apply(null, prox) });
     });
     eventos.sort(function (a, b) { return a.min - b.min; });
-    return { contas: contas, eventos: eventos };
+    /* 15/11: CRM — retornos de clientes atrasados ou para hoje (mkt_leads, etapas em aberto) */
+    var clientes = [];
+    ler("mkt_leads").forEach(function (l) {
+      if (!l || ["novo", "conversa", "proposta", "negociacao"].indexOf(l.etapa) < 0 || !l.prox || !l.prox.data) return;
+      var n = dias(l.prox.data); if (n === null || n > 0 || n < -60) return;
+      clientes.push({ id: l.id, nome: l.nome && l.empresa ? l.nome + " · " + l.empresa : (l.nome || l.empresa || "Contato"), oque: l.prox.oque || "Retornar contato", n: n });
+    });
+    clientes.sort(function (a, b) { return a.n - b.n; });
+    return { contas: contas, eventos: eventos, clientes: clientes };
   }
 
   function atualizarSino() {
     var s = document.getElementById("bwSino"), b = document.getElementById("bwSinoN"); if (!s || !b) return;
-    var a = coletar(), urg = a.contas.filter(function (c) { return c.n <= 1; }).length + a.eventos.filter(function (e) { return e.min <= 1; }).length;
-    var tot = a.contas.length + a.eventos.length;
+    var a = coletar(), urg = a.contas.filter(function (c) { return c.n <= 1; }).length + a.eventos.filter(function (e) { return e.min <= 1; }).length + a.clientes.filter(function (c) { return c.n < 0; }).length;
+    var tot = a.contas.length + a.eventos.length + a.clientes.length;
     b.hidden = !tot; b.textContent = tot > 9 ? "9+" : String(tot);
     s.classList.toggle("tem", !!tot); s.classList.toggle("urgente", !!urg);
     s.title = tot ? tot + " aviso(s): contas a vencer e eventos próximos" : "Avisos — nada para os próximos dias";
+    if (tot && a.clientes.length) s.title = tot + " aviso(s): contas, eventos e retornos de clientes";
     notificarDoAparelho(a);
   }
 
   function notificarDoAparelho(a) {
     try {
       if (!("Notification" in window) || Notification.permission !== "granted" || localStorage.getItem("ui_avisos_notif") !== "1") return;
-      var hj = new Date().toISOString().slice(0, 10); if (localStorage.getItem("ui_avisos_ultimo") === hj) return;
+      var d0 = new Date(), hj = d0.getFullYear() + "-" + String(d0.getMonth() + 1).padStart(2, "0") + "-" + String(d0.getDate()).padStart(2, "0"); if (localStorage.getItem("ui_avisos_ultimo") === hj) return;   /* data LOCAL (pente fino 29) */
       var linhas = a.contas.slice(0, 3).map(function (c) { return "💳 " + c.nome + " — " + quando(c.n); })
-        .concat(a.eventos.slice(0, 3).map(function (e) { return "🎬 " + (e.ev.nome || "Evento") + " — " + quandoEv(e.min); }));
+        .concat(a.eventos.slice(0, 3).map(function (e) { return "🎬 " + (e.ev.nome || "Evento") + " — " + quandoEv(e.min); }))
+        .concat(a.clientes.slice(0, 3).map(function (c) { return "📞 Retornar " + c.nome + (c.n < 0 ? " (atrasado)" : " (hoje)"); }));
       if (!linhas.length) return;
       localStorage.setItem("ui_avisos_ultimo", hj);
       var t = "Brightway — " + linhas.length + " aviso(s)", o = { body: linhas.join("\n"), icon: "icons/app-192.png", tag: "bw-avisos" };
@@ -393,6 +407,9 @@
           esc(dataBR(e.data)) + (x.n !== null && x.n >= 0 ? " · " + quandoEv(x.n) : "") + (e.montagem && e.montagem !== e.data ? " · montagem " + esc(dataBR(e.montagem)) : "") + " · " + esc(e.local || "local a definir") + "</small></a>" +
           '<button type="button" class="bw-av-bt" data-lembrar="' + esc(e.id) + '">LEMBRAR EQUIPE</button></div><div class="bw-av-equipe" id="bwAvEq_' + esc(e.id) + '"></div></div>';
       }).join("") : '<div class="bw-av-sub">Nenhum evento nos próximos 7 dias.</div>') +
+      (a.clientes.length ? '<div class="bw-av-tit">RETORNOS DE CLIENTES (CRM)</div>' + a.clientes.map(function (c) {
+        return '<a class="bw-av-item ' + (c.n < 0 ? "atraso" : "urg") + '" href="captacao.html?lead=' + encodeURIComponent(c.id) + '"><span><b>' + esc(c.nome) + "</b><small>" + esc(c.oque) + " · " + (c.n < 0 ? "atrasado " + (-c.n) + (c.n === -1 ? " dia" : " dias") : "HOJE") + "</small></span><em>ABRIR</em></a>";
+      }).join("") : "") +
       '<div class="bw-av-tit">AVISOS AUTOMÁTICOS (GRÁTIS)</div>' +
       (notifOk ? '<label class="bw-av-notif"><input type="checkbox" id="bwAvNotif"' + (ligado ? " checked" : "") + '> Avisar no aparelho (1 vez por dia, ao abrir o app)</label>' : "") +
       '<label class="bw-av-notif"><input type="checkbox" id="bwAvMail" disabled> Resumo por e-mail todo dia às 7h (contas e eventos)</label>' +
@@ -447,6 +464,6 @@
   function iniciar() { atualizarSino(); }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", function () { setTimeout(iniciar, 300); }); else setTimeout(iniciar, 300);
   window.addEventListener("bw-sync-recebido", atualizarSino);
-  window.addEventListener("storage", function (e) { if (e.key && /casa_contas|neg_eventos|neg_fluxo/.test(e.key)) atualizarSino(); });
+  window.addEventListener("storage", function (e) { if (e.key && /casa_contas|neg_eventos|neg_fluxo|mkt_leads/.test(e.key)) atualizarSino(); });
   window.bwAtualizarAvisos = atualizarSino;
 })();

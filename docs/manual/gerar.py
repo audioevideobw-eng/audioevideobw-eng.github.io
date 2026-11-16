@@ -2,7 +2,7 @@
 """Gera docs/Brightway-Guia-do-usuario.pdf.
 
 Uso (na raiz do repositório):  python3 docs/manual/gerar.py
-- Páginas que não mudaram vêm de docs/manual/base.pdf (manual de 15/11/2026, 28 páginas).
+- Páginas que não mudaram vêm de docs/manual/base.pdf (manual de 15/11/2026, 28 páginas; 15/11 noite: + CRM e editor de fotos).
 - Páginas novas/alteradas são HTML em docs/manual/paginas/ (estilo em docs/manual/estilo.css; telas em docs/manual/telas/,
   geradas por docs/manual/telas.py).
 - O número do rodapé é a posição da página menos 1 (a capa não tem número). Nas páginas antigas o número é trocado por cima.
@@ -25,7 +25,8 @@ PLANO = [("base", 1), ("base", 2), ("base", 3), ("base", 4), ("base", 5),
          "05a-meu-negocio.html", "05b-eventos.html", "05c-relatorios-pdf.html", "05d-gestao-de-pessoas.html",
          ("base", 10),
          "05e-fluxo-de-caixa.html", "05f-caches-e-custos.html", ("base", 12),
-         "06a-painel-financeiro.html"] + [("base", n) for n in range(14, 29)]
+         "06a-painel-financeiro.html"] + [("base", n) for n in range(14, 24)] + \
+        ["09a-crm.html", "09b-funil.html", "09c-indicadores.html", "09d-fotos.html"] + [("base", n) for n in range(24, 29)]
 
 MODELO = """<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><link rel="stylesheet" href="../estilo.css"></head>
 <body><div class="pagina">{corpo}<div class="rodape"><span>BRIGHTWAY · Guia do usuário</span><span>{n}</span></div></div></body></html>"""

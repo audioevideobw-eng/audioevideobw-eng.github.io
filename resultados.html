@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Indicadores — Brightway</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#06080D">
+<link rel="icon" type="image/png" href="icons/favicon-64.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Brightway">
+<link rel="stylesheet" href="assets/brightway.css?v=22">
+<style>
+.wrap{max-width:1100px;margin:0 auto;padding:0 20px 90px}
+/* paleta dos gráficos — validada (scripts/validate_palette.js, modo escuro, fundo #0d1017): ciano, âmbar, lilás, rosa */
+.wrap{--s1:#1C97A6;--s2:#C98322;--s3:#9F78E6;--s4:#D05D72;--grade:rgba(245,241,234,.07);--eixo:#9AA1AE}
+.r-topo{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+.r-topo select{min-height:42px;background:rgba(0,0,0,.28);border:1px solid rgba(245,241,234,.14);border-radius:12px;color:var(--bw-marfim);padding:0 12px;font:14px var(--bw-font-texto)}
+.r-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-top:14px;min-width:0}
+.r-kpis .bw-kpi{min-width:0;padding:16px}
+.r-kpis .valor{font-size:24px}
+.r-exemplo{display:inline-block;margin-top:10px;font:700 11px var(--bw-font-texto);letter-spacing:.1em;color:#1a1205;background:var(--bw-ambar);padding:5px 10px;border-radius:999px}
+.r-duas{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px;min-width:0}
+.r-duas>.tf-card{margin-top:16px}
+.r-barras{display:flex;flex-direction:column;gap:10px;margin-top:6px}
+.r-barra{display:grid;grid-template-columns:minmax(90px,140px) 1fr auto;gap:10px;align-items:center;font-size:13.5px;min-width:0}
+.r-barra span{color:var(--bw-texto-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.r-barra .trilho{height:14px;border-radius:0 4px 4px 0;background:transparent;position:relative;min-width:0}
+.r-barra .trilho i{display:block;height:100%;border-radius:0 4px 4px 0;background:var(--c,var(--s2));min-width:2px}
+.r-barra b{font-weight:600;color:var(--bw-marfim);font-variant-numeric:tabular-nums}
+.r-leg{display:flex;flex-wrap:wrap;gap:14px;font-size:12.5px;color:var(--bw-texto-2);margin:2px 0 8px}
+.r-leg i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.r-svg{width:100%;height:auto;display:block;overflow:visible}
+.r-svg text{fill:var(--eixo);font:11px var(--bw-font-texto)}
+.r-tab{width:100%;border-collapse:collapse;font-size:13.5px}
+.r-tab th{font-size:12px;font-weight:600;color:var(--bw-texto-3);text-align:left;padding:8px 10px;border-bottom:1px solid rgba(245,241,234,.08)}
+.r-tab td{padding:9px 10px;border-top:1px solid rgba(245,241,234,.05);font-variant-numeric:tabular-nums}
+.r-tab td.n,.r-tab th.n{text-align:right}
+.r-mini{display:inline-block;height:8px;border-radius:0 3px 3px 0;background:var(--s1);vertical-align:middle;margin-right:8px}
+.r-dica{position:fixed;z-index:9600;pointer-events:none;background:#1a1f2b;border:1px solid rgba(245,241,234,.16);color:var(--bw-marfim);padding:8px 10px;border-radius:10px;font-size:12.5px;line-height:1.45;box-shadow:0 8px 24px rgba(0,0,0,.45);white-space:pre-line;max-width:240px}
+.r-ia{white-space:pre-wrap;font-size:14px;line-height:1.6;color:var(--bw-texto-2);background:rgba(63,208,224,.05);border:1px solid rgba(63,208,224,.25);border-radius:14px;padding:14px 16px;margin-top:12px}
+.r-ia:empty{display:none}
+.r-ia b{color:#3FD0E0}
+.r-vazio{color:var(--txt2);font-size:13.5px;padding:8px 0}
+</style>
+</head>
+<body>
+<header><div class="hd"><button id="btnVoltar" type="button">‹</button><div id="userBox"></div></div></header>
+<div class="wrap">
+  <div class="tf-card" style="margin-top:0">
+    <div class="r-topo">
+      <h3 style="margin:0">INDICADORES DE CLIENTES</h3>
+      <select id="periodo" aria-label="Período">
+        <option value="mes">Este mês</option><option value="3">Últimos 3 meses</option><option value="6" selected>Últimos 6 meses</option><option value="12">Últimos 12 meses</option><option value="ano">Este ano</option>
+      </select>
+    </div>
+    <p class="tf-sub" style="margin-top:6px">Quantos contatos entram, quantos viram cliente, de onde eles vêm e por que alguns não fecham. O dinheiro detalhado fica no PAINEL FINANCEIRO.</p>
+    <div id="faixaEx"></div>
+    <div class="r-kpis" id="kpis"></div>
+  </div>
+
+  <div class="tf-card">
+    <div class="r-topo"><h3 style="margin:0">✨ ANALISTA IA</h3><button class="bw-btn bw-btn--vidro" id="btIA" type="button" style="min-height:40px">ANALISAR MEUS NÚMEROS</button></div>
+    <p class="tf-sub" style="margin:6px 0 0">Lê os números do período (só totais, sem nomes de clientes) e diz o que está funcionando e o que fazer agora.</p>
+    <div class="r-ia" id="iaSaida"></div>
+  </div>
+
+  <div class="r-duas">
+    <div class="tf-card"><h3>Funil do período</h3><p class="tf-sub">Dos contatos que entraram no período, quantos chegaram a cada etapa.</p><div id="gFunil"></div></div>
+    <div class="tf-card"><h3>Por que não fechou</h3><p class="tf-sub">Motivos dos contatos perdidos no período.</p><div id="gPerda"></div></div>
+  </div>
+
+  <div class="tf-card"><h3>Mês a mês</h3><div class="r-leg"><span><i style="background:var(--s1)"></i>Contatos novos</span><span><i style="background:var(--s2)"></i>Fechados</span></div><div id="gMes"></div></div>
+
+  <div class="tf-card"><h3>De onde vêm os clientes</h3><p class="tf-sub">Contatos e fechamentos por origem — mostra onde vale investir tempo e dinheiro.</p><div id="tOrigem"></div></div>
+  <div class="tf-card"><h3>Por serviço</h3><div id="tServ"></div></div>
+  <div class="tf-card"><h3>Por campanha</h3><div id="tCamp"></div></div>
+
+  <div class="tf-card" id="redes">
+    <h3>REDES SOCIAIS</h3>
+    <p class="tf-sub">Lance os números uma vez por mês (estão nas estatísticas do Instagram, TikTok e YouTube). O gráfico mostra o crescimento e a tabela cruza com os clientes que cada rede trouxe.</p>
+    <div class="tf-grade">
+      <label class="tf-campo"><span>Mês</span><input id="rdMes" type="month"></label>
+      <label class="tf-campo"><span>Rede</span><select id="rdRede"><option>Instagram</option><option>TikTok</option><option>YouTube</option><option>Facebook</option><option>LinkedIn</option></select></label>
+      <label class="tf-campo"><span>Seguidores</span><input id="rdSeg" type="number" min="0" step="1"></label>
+      <label class="tf-campo"><span>Alcance (contas)</span><input id="rdAlc" type="number" min="0" step="1"></label>
+      <label class="tf-campo"><span>Visualizações</span><input id="rdViews" type="number" min="0" step="1"></label>
+      <label class="tf-campo"><span>Interações</span><input id="rdInt" type="number" min="0" step="1"></label>
+    </div>
+    <div class="tf-acoes"><button class="bw-btn bw-btn--primario" id="rdSalvar" type="button">SALVAR MÊS</button><span class="tf-nota" id="rdMsg" style="margin:0"></span></div>
+    <div id="gRedes" style="margin-top:18px"></div>
+    <div id="tRedes" style="margin-top:12px"></div>
+  </div>
+</div>
+
+<script src="assets/layout.js?v=25"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="assets/bw-sync.js"></script>
+<script src="assets/crm.js?v=1"></script>
+<script>
+(function () {
+  "use strict";
+  /* INDICADORES (15/11, Claude): lê mkt_leads e mkt_redes (assets/crm.js). Conta vazia vê EXEMPLO (só na tela). */
+  var C = window.BWCRM, esc = C.esc, $ = function (id) { return document.getElementById(id); };
+  var REDES = ["Instagram", "TikTok", "YouTube", "Facebook", "LinkedIn"], COR = ["var(--s1)", "var(--s2)", "var(--s3)", "var(--s4)", "#7E8796"];
+  (async function () {
+    var el = $("userBox"); if (!el) return;
+    try { var s = await C.sessao();
+      el.innerHTML = s ? '<a href="login.html" class="bw-logado" title="Conta: ' + esc(s.user.email) + '"><i></i>LOGADO</a>'
+                       : '<a href="login.html" class="bw-btn bw-btn--vidro" style="min-height:34px;padding:0 14px;font-size:12px">LOGIN</a>'; } catch (e) { }
+  })();
+
+  /* dica ao passar o dedo/mouse (data-dica) */
+  var dica = document.createElement("div"); dica.className = "r-dica"; dica.hidden = true; document.body.appendChild(dica);
+  function mostrarDica(ev) { var t = ev.target.closest && ev.target.closest("[data-dica]"); if (!t) { dica.hidden = true; return; }
+    dica.textContent = t.getAttribute("data-dica"); dica.hidden = false;
+    var x = (ev.touches ? ev.touches[0].clientX : ev.clientX), y = (ev.touches ? ev.touches[0].clientY : ev.clientY);
+    dica.style.left = Math.min(window.innerWidth - dica.offsetWidth - 8, x + 14) + "px"; dica.style.top = Math.max(8, y - dica.offsetHeight - 12) + "px"; }
+  document.addEventListener("mousemove", mostrarDica); document.addEventListener("touchstart", mostrarDica, { passive: true });
+  document.addEventListener("scroll", function () { dica.hidden = true; }, { passive: true });
+
+  function periodo() {
+    var v = $("periodo").value, h = C.hoje(), ini;
+    if (v === "mes") ini = h.slice(0, 8) + "01";
+    else if (v === "ano") ini = h.slice(0, 5) + "01-01";
+    else { var d = new Date(h + "T12:00"); d.setMonth(d.getMonth() - (+v) + 1); d.setDate(1); ini = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-01"; }
+    return { ini: ini, fim: h };
+  }
+  function pct(x) { return x == null ? "—" : Math.round(x * 100) + "%"; }
+  function kpi(rot, val, nota) { return '<div class="bw-kpi"><div class="rotulo">' + rot + '</div><div class="valor">' + val + '</div><div class="nota">' + (nota || "") + "</div></div>"; }
+  function barras(itens, cor) {
+    var max = Math.max.apply(null, itens.map(function (i) { return i.v; }).concat([1]));
+    return '<div class="r-barras">' + itens.map(function (i) {
+      return '<div class="r-barra" data-dica="' + esc(i.r + ": " + i.v + (i.extra ? "\n" + i.extra : "")) + '"><span>' + esc(i.r) + '</span><div class="trilho"><i style="width:' + (i.v / max * 100) + "%;--c:" + (cor || "var(--s2)") + '"></i></div><b>' + i.v + "</b></div>";
+    }).join("") + "</div>";
+  }
+
+  var DADOS = [], EXEMPLO = false;
+  function render() {
+    DADOS = C.leads(); EXEMPLO = !DADOS.length; if (EXEMPLO) DADOS = C.exemplo();
+    $("faixaEx").innerHTML = EXEMPLO ? '<span class="r-exemplo">EXEMPLO</span> <span class="tf-nota">Números de um negócio fictício para você ver como fica. Some quando você cadastrar o primeiro contato no <a href="captacao.html" style="color:#FFB547">FUNIL</a>.</span>' : "";
+    var p = periodo(), n = C.numeros(DADOS, p.ini, p.fim);
+    $("kpis").innerHTML = kpi("Contatos novos", n.entrou, "no período") + kpi("Propostas", n.propostas, "enviadas no período") +
+      kpi("Fechados", n.fechados, C.moeda(n.valorFechado)) + kpi("Taxa de fechamento", pct(n.taxa), n.fechados + " de " + (n.fechados + n.perdidos) + " decididos") +
+      kpi("Ticket médio", n.fechados ? C.moeda(n.ticket) : "—", "por cliente fechado") + kpi("Tempo até fechar", n.ciclo == null ? "—" : n.ciclo + " dias", "média do 1º contato ao fechamento");
+
+    /* funil: dos que ENTRARAM no período, quantos chegaram a cada etapa */
+    var ent = n.listaEntrou, chegou = function (et) { return ent.filter(function (l) { return (l.etapas || {})[et] || l.etapa === et || (et === "proposta" && (l.etapa === "negociacao" || l.etapa === "fechado")) || (et === "conversa" && l.etapa !== "novo"); }).length; };
+    var fz = [{ r: "Contatos", v: ent.length }, { r: "Conversaram", v: chegou("conversa") }, { r: "Receberam proposta", v: chegou("proposta") }, { r: "Fecharam", v: ent.filter(function (l) { return l.etapa === "fechado"; }).length }];
+    fz.forEach(function (f, i) { if (i && fz[0].v) f.extra = Math.round(f.v / fz[0].v * 100) + "% dos contatos"; });
+    $("gFunil").innerHTML = ent.length ? barras(fz, "var(--s2)") : '<div class="r-vazio">Nenhum contato novo no período.</div>';
+
+    var mot = {}; n.listaPerdidos.forEach(function (l) { var k = l.motivoPerda || "Sem motivo"; mot[k] = (mot[k] || 0) + 1; });
+    var mo = Object.keys(mot).map(function (k) { return { r: k, v: mot[k] }; }).sort(function (a, b) { return b.v - a.v; });
+    $("gPerda").innerHTML = mo.length ? barras(mo, "var(--s4)") : '<div class="r-vazio">Nenhum contato perdido no período. 👏</div>';
+
+    graficoMeses(p);
+    tabela("tOrigem", "origem", "Origem", p);
+    tabela("tServ", "servico", "Serviço", p);
+    tabela("tCamp", "campanha", "Campanha", p, "Preencha o campo Campanha no contato (ex.: “Promo Black Friday”) para comparar suas ações.");
+    renderRedes();
+  }
+
+  function meses(p) {
+    var out = [], d = new Date(p.ini + "T12:00"), fim = p.fim.slice(0, 7);
+    while (true) { var k = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0"); out.push(k); if (k >= fim || out.length > 24) break; d.setMonth(d.getMonth() + 1); }
+    return out;
+  }
+  var MES = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
+  function rotMes(k) { return MES[+k.slice(5) - 1] + "/" + k.slice(2, 4); }
+
+  /* barras agrupadas: contatos × fechados por mês (um eixo, dica ao tocar) */
+  function graficoMeses(p) {
+    var ms = meses(p); if (ms.length < 2) { var d = new Date(p.fim.slice(0, 7) + "-01T12:00"); d.setMonth(d.getMonth() - 1); ms.unshift(d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0")); }
+    var cont = ms.map(function (m) { return DADOS.filter(function (l) { return String(l.criadoEm || "").slice(0, 7) === m; }).length; });
+    var fec = ms.map(function (m) { return DADOS.filter(function (l) { return l.etapa === "fechado" && String(l.fechadoEm || "").slice(0, 7) === m; }).length; });
+    var W = 640, H = 220, L = 30, B = 26, T = 10, max = Math.max.apply(null, cont.concat(fec).concat([1])), passo = Math.max(1, Math.ceil(max / 4)), topo = passo * 4;
+    var gw = (W - L) / ms.length, bw = Math.min(26, gw * 0.32), y = function (v) { return T + (H - T - B) * (1 - v / topo); };
+    var s = '<svg class="r-svg" viewBox="0 0 ' + W + " " + H + '" role="img" aria-label="Contatos novos e fechados por mês">';
+    for (var g = 0; g <= 4; g++) { var yy = y(g * passo); s += '<line x1="' + L + '" x2="' + W + '" y1="' + yy + '" y2="' + yy + '" stroke="var(--grade)"/><text x="' + (L - 6) + '" y="' + (yy + 4) + '" text-anchor="end">' + g * passo + "</text>"; }
+    ms.forEach(function (m, i) {
+      var cx = L + gw * i + gw / 2, x1 = cx - bw - 1, x2 = cx + 1;
+      function barra(x, v, cor, nome) { var h = (H - T - B) * v / topo; if (v <= 0) return ""; var yb = H - B;
+        return '<path d="M' + x + "," + yb + "V" + (yb - h + 4) + "q0,-4 4,-4h" + (bw - 8) + "q4,0 4,4V" + yb + 'z" fill="' + cor + '"/>'; }
+      s += barra(x1, cont[i], "var(--s1)") + barra(x2, fec[i], "var(--s2)");
+      s += '<rect x="' + (L + gw * i) + '" y="' + T + '" width="' + gw + '" height="' + (H - T - B) + '" fill="transparent" data-dica="' + esc(rotMes(m) + "\nContatos novos: " + cont[i] + "\nFechados: " + fec[i]) + '"/>';
+      if (ms.length <= 12 || i % 2 === 0) s += '<text x="' + cx + '" y="' + (H - 8) + '" text-anchor="middle">' + rotMes(m) + "</text>";
+    });
+    s += '<line x1="' + L + '" x2="' + W + '" y1="' + (H - B) + '" y2="' + (H - B) + '" stroke="rgba(245,241,234,.18)"/></svg>';
+    $("gMes").innerHTML = s;
+  }
+
+  function tabela(id, campo, nome, p, vazio) {
+    var grupos = {};
+    DADOS.forEach(function (l) {
+      var k = l[campo]; if (!k) return;
+      var g = grupos[k] = grupos[k] || { k: k, cont: 0, fec: 0, perd: 0, valor: 0 };
+      if (l.criadoEm >= p.ini && l.criadoEm <= p.fim) g.cont++;
+      if (l.etapa === "fechado" && l.fechadoEm >= p.ini && l.fechadoEm <= p.fim) { g.fec++; g.valor += C.num(l.valor); }
+      if (l.etapa === "perdido" && l.perdidoEm >= p.ini && l.perdidoEm <= p.fim) g.perd++;
+    });
+    var gs = Object.keys(grupos).map(function (k) { return grupos[k]; }).filter(function (g) { return g.cont || g.fec || g.perd; }).sort(function (a, b) { return b.valor - a.valor || b.cont - a.cont; });
+    if (!gs.length) { $(id).innerHTML = '<div class="r-vazio">' + (vazio || "Sem dados no período.") + "</div>"; return; }
+    var max = Math.max.apply(null, gs.map(function (g) { return g.cont; }).concat([1]));
+    $(id).innerHTML = '<div class="bw-tabela-wrap"><table class="r-tab"><thead><tr><th>' + nome + '</th><th class="n">Contatos</th><th class="n">Fechados</th><th class="n">Taxa</th><th class="n">Valor fechado</th></tr></thead><tbody>' +
+      gs.map(function (g) { var t = (g.fec + g.perd) ? g.fec / (g.fec + g.perd) : null;
+        return "<tr><td>" + esc(g.k) + '</td><td class="n"><span class="r-mini" style="width:' + Math.max(2, g.cont / max * 60) + 'px"></span>' + g.cont + '</td><td class="n">' + g.fec + '</td><td class="n">' + pct(t) + '</td><td class="n">' + (g.valor ? C.moeda(g.valor) : "—") + "</td></tr>"; }).join("") +
+      "</tbody></table></div>";
+  }
+
+  /* ---------- REDES SOCIAIS ---------- */
+  function redes() { return C.ler("mkt_redes"); }
+  function renderRedes() {
+    var rs = redes().sort(function (a, b) { return (a.mes + a.rede).localeCompare(b.mes + b.rede); });
+    if (!rs.length) { $("gRedes").innerHTML = '<div class="r-vazio">Nenhum mês lançado ainda. Comece pelo mês passado — em 2 ou 3 meses o gráfico mostra a tendência.</div>'; $("tRedes").innerHTML = ""; return; }
+    var ms = []; rs.forEach(function (r) { if (ms.indexOf(r.mes) < 0) ms.push(r.mes); }); ms.sort(); ms = ms.slice(-12);
+    var usadas = REDES.filter(function (rd) { return rs.some(function (r) { return r.rede === rd; }); });
+    var W = 640, H = 220, L = 52, B = 26, T = 14, R = 14;
+    var vals = rs.filter(function (r) { return ms.indexOf(r.mes) >= 0; }).map(function (r) { return C.num(r.seguidores); });
+    var max = Math.max.apply(null, vals.concat([1])), ordem = Math.pow(10, Math.floor(Math.log10(max))), topo = Math.ceil(max / ordem) * ordem;
+    var x = function (i) { return ms.length === 1 ? (L + W - R) / 2 : L + (W - L - R) * i / (ms.length - 1); }, y = function (v) { return T + (H - T - B) * (1 - v / topo); };
+    var s = '<div class="r-leg">' + usadas.map(function (rd) { return '<span><i style="background:' + COR[REDES.indexOf(rd)] + '"></i>' + rd + "</span>"; }).join("") + '</div><svg class="r-svg" viewBox="0 0 ' + W + " " + H + '" role="img" aria-label="Seguidores por mês e rede">';
+    for (var g = 0; g <= 4; g++) { var v = topo * g / 4, yy = y(v); s += '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + yy + '" y2="' + yy + '" stroke="var(--grade)"/><text x="' + (L - 6) + '" y="' + (yy + 4) + '" text-anchor="end">' + (v >= 1000 ? (v / 1000).toLocaleString("pt-BR", { maximumFractionDigits: 1 }) + " mil" : v) + "</text>"; }
+    ms.forEach(function (m, i) { s += '<text x="' + x(i) + '" y="' + (H - 8) + '" text-anchor="middle">' + rotMes(m) + "</text>"; });
+    usadas.forEach(function (rd) {
+      var cor = COR[REDES.indexOf(rd)], pts = ms.map(function (m, i) { var r = rs.filter(function (k) { return k.mes === m && k.rede === rd; })[0]; return r ? [x(i), y(C.num(r.seguidores)), r] : null; });
+      var d = "", ant = false; pts.forEach(function (pt) { if (!pt) { ant = false; return; } d += (ant ? "L" : "M") + pt[0].toFixed(1) + "," + pt[1].toFixed(1); ant = true; });
+      s += '<path d="' + d + '" fill="none" stroke="' + cor + '" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>';
+      pts.forEach(function (pt) { if (!pt) return; var r = pt[2];
+        s += '<circle cx="' + pt[0] + '" cy="' + pt[1] + '" r="4.5" fill="' + cor + '" stroke="#0d1017" stroke-width="2"/><circle cx="' + pt[0] + '" cy="' + pt[1] + '" r="14" fill="transparent" data-dica="' + esc(rd + " · " + rotMes(r.mes) + "\nSeguidores: " + C.num(r.seguidores).toLocaleString("pt-BR") + (r.alcance ? "\nAlcance: " + C.num(r.alcance).toLocaleString("pt-BR") : "") + (r.views ? "\nVisualizações: " + C.num(r.views).toLocaleString("pt-BR") : "")) + '"/>'; });
+      var ult = pts.filter(Boolean).pop(); if (ult && usadas.length <= 4) s += '<text x="' + Math.min(ult[0] + 8, W - 2) + '" y="' + (ult[1] - 8) + '" text-anchor="' + (ult[0] > W - 80 ? "end" : "start") + '" style="fill:var(--bw-texto-2)">' + C.num(ult[2].seguidores).toLocaleString("pt-BR") + "</text>";
+    });
+    $("gRedes").innerHTML = s + "</svg>";
+    /* tabela: último mês de cada rede + crescimento + clientes vindos da rede */
+    var linhas = usadas.map(function (rd) {
+      var dela = rs.filter(function (r) { return r.rede === rd; }), u = dela[dela.length - 1], a = dela[dela.length - 2];
+      var cresc = a && C.num(a.seguidores) ? (C.num(u.seguidores) - C.num(a.seguidores)) / C.num(a.seguidores) : null;
+      var cont = DADOS.filter(function (l) { return l.origem === rd && String(l.criadoEm || "").slice(0, 7) === u.mes; }).length;
+      var fec = DADOS.filter(function (l) { return l.origem === rd && l.etapa === "fechado"; }).length;
+      return "<tr><td>" + rd + " <small style=\"color:var(--txt2)\">" + rotMes(u.mes) + '</small></td><td class="n">' + C.num(u.seguidores).toLocaleString("pt-BR") + '</td><td class="n">' + (cresc == null ? "—" : (cresc >= 0 ? "+" : "") + (cresc * 100).toFixed(1).replace(".", ",") + "%") +
+        '</td><td class="n">' + (u.alcance ? C.num(u.alcance).toLocaleString("pt-BR") : "—") + '</td><td class="n">' + cont + (u.alcance && cont ? ' <small style="color:var(--txt2)">(' + (cont / C.num(u.alcance) * 1000).toFixed(1).replace(".", ",") + "/mil)</small>" : "") + '</td><td class="n">' + fec + "</td></tr>";
+    });
+    $("tRedes").innerHTML = '<div class="bw-tabela-wrap"><table class="r-tab"><thead><tr><th>Rede</th><th class="n">Seguidores</th><th class="n">Cresc.</th><th class="n">Alcance</th><th class="n">Contatos no mês</th><th class="n">Clientes (total)</th></tr></thead><tbody>' + linhas.join("") + "</tbody></table></div>" +
+      '<details style="margin-top:10px"><summary class="tf-nota" style="cursor:pointer">Ver / apagar meses lançados (' + rs.length + ")</summary><ul class=\"tf-lista\">" +
+      rs.slice().reverse().map(function (r) { return "<li><span>" + rotMes(r.mes) + " · " + esc(r.rede) + " · " + C.num(r.seguidores).toLocaleString("pt-BR") + ' seguidores</span><button type="button" class="tf-mini" data-rdel="' + esc(r.id) + '" aria-label="Apagar">✕</button></li>'; }).join("") + "</ul></details>";
+    $("tRedes").querySelectorAll("[data-rdel]").forEach(function (b) { b.onclick = function () { if (!confirm("Apagar este mês?")) return; C.gravar("mkt_redes", redes().filter(function (r) { return r.id !== b.dataset.rdel; })); renderRedes(); }; });
+  }
+  (function () { var d = new Date(); d.setMonth(d.getMonth() - 1); $("rdMes").value = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0"); })();
+  $("rdSalvar").onclick = function () {
+    var mes = $("rdMes").value, rede = $("rdRede").value, seg = C.num($("rdSeg").value);
+    if (!/^\d{4}-\d\d$/.test(mes) || !seg) { $("rdMsg").textContent = "Informe o mês e os seguidores."; return; }
+    var id = "rd_" + mes + "_" + rede.toLowerCase(), l = redes().filter(function (r) { return r.id !== id; });
+    l.push({ id: id, mes: mes, rede: rede, seguidores: seg, alcance: C.num($("rdAlc").value) || "", views: C.num($("rdViews").value) || "", interacoes: C.num($("rdInt").value) || "" });
+    C.gravar("mkt_redes", l); ["rdSeg", "rdAlc", "rdViews", "rdInt"].forEach(function (k) { $(k).value = ""; });
+    renderRedes(); $("rdMsg").textContent = "✓ " + rede + " · " + rotMes(mes) + " salvo";
+  };
+
+  /* ---------- ANALISTA IA (só totais) ---------- */
+  function regrasLocais(p, n) {
+    var dicas = [], o = {}, mot = {};
+    DADOS.forEach(function (l) { if (!l.origem) return; var g = o[l.origem] = o[l.origem] || { c: 0, f: 0 }; if (l.criadoEm >= p.ini) g.c++; if (l.etapa === "fechado" && l.fechadoEm >= p.ini) g.f++; });
+    var melhor = Object.keys(o).filter(function (k) { return o[k].f; }).sort(function (a, b) { return o[b].f - o[a].f; })[0];
+    if (melhor) dicas.push("• " + melhor + " é a origem que mais trouxe clientes fechados (" + o[melhor].f + "). Vale reforçar.");
+    n.listaPerdidos.forEach(function (l) { mot[l.motivoPerda || "?"] = (mot[l.motivoPerda || "?"] || 0) + 1; });
+    var mp = Object.keys(mot).sort(function (a, b) { return mot[b] - mot[a]; })[0];
+    if (mp === "Preço") dicas.push("• O motivo nº 1 de perda é PREÇO: ofereça um pacote enxuto ou parcelamento antes de perder o cliente.");
+    else if (mp === "Sem resposta") dicas.push("• Muitos somem sem responder: use o AGENTE DE VENDAS para retornar em 2–3 dias após a proposta.");
+    else if (mp) dicas.push("• Principal motivo de perda: " + mp + ".");
+    if (n.atrasados) dicas.push("• Há " + n.atrasados + " retorno(s) atrasado(s) no funil — resolva hoje pela fila do agente.");
+    if (n.taxa != null) dicas.push("• Taxa de fechamento: " + pct(n.taxa) + (n.taxa < 0.3 ? " — abaixo de 30%: revise a proposta e o tempo de resposta." : " — boa! Agora o foco é trazer mais contatos."));
+    return dicas.join("\n") || "Ainda há poucos dados no período. Cadastre os contatos com a origem para as análises ficarem certeiras.";
+  }
+  $("btIA").onclick = async function () {
+    var b = this, p = periodo(), n = C.numeros(DADOS, p.ini, p.fim), saida = $("iaSaida");
+    b.disabled = true; saida.textContent = "✨ Analisando…";
+    var resumo = { periodo: p.ini + " a " + p.fim, contatos: n.entrou, propostas: n.propostas, fechados: n.fechados, perdidos: n.perdidos, taxa: pct(n.taxa), ticket: Math.round(n.ticket),
+      cicloDias: n.ciclo, abertos: n.abertas, valorEmAberto: Math.round(n.valorAberto), retornosAtrasados: n.atrasados, metaMensal: C.cfg("cfg_meta", "") || null, origens: {}, motivosPerda: {}, servicos: {} };
+    DADOS.forEach(function (l) {
+      if (l.criadoEm >= p.ini) { var o = resumo.origens[l.origem || "?"] = resumo.origens[l.origem || "?"] || { contatos: 0, fechados: 0 }; o.contatos++; if (l.etapa === "fechado") o.fechados++;
+        var s = resumo.servicos[l.servico || "?"] = resumo.servicos[l.servico || "?"] || { contatos: 0, fechados: 0 }; s.contatos++; if (l.etapa === "fechado") s.fechados++; }
+      if (l.etapa === "perdido" && l.perdidoEm >= p.ini) resumo.motivosPerda[l.motivoPerda || "?"] = (resumo.motivosPerda[l.motivoPerda || "?"] || 0) + 1;
+    });
+    var r = await C.ia("Você é analista comercial de uma pequena empresa brasileira de serviços. Fale direto, em português simples e tom descontraído. Responda com: DESCOBERTAS (3 itens curtos) e O QUE FAZER ESTA SEMANA (3 ações práticas). Use só os números recebidos; não invente." + (EXEMPLO ? " Os dados são de EXEMPLO." : ""),
+      JSON.stringify(resumo), 700);
+    b.disabled = false;
+    if (r.erro) { saida.innerHTML = "<b>Sem IA agora</b> (" + esc(C.erroIA(r.erro)) + ") — análise pelas regras:\n" + esc(regrasLocais(p, n)); return; }
+    saida.innerHTML = esc(r.texto).replace(/\*\*([^*]+)\*\*/g, "<b>$1</b>").replace(/^#+\s*(.+)$/gm, "<b>$1</b>");
+  };
+
+  $("periodo").onchange = function () { try { localStorage.setItem("ui_crm_periodo", this.value); } catch (e) { } $("iaSaida").textContent = ""; render(); };
+  try { var pv = localStorage.getItem("ui_crm_periodo"); if (pv) $("periodo").value = pv; } catch (e) { }
+  render();
+  window.addEventListener("bw-sync-recebido", render);
+  if (location.hash === "#redes") setTimeout(function () { $("redes").scrollIntoView({ behavior: "smooth" }); }, 250);
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(function () { });
+})();
+</script>
+</body>
+</html>

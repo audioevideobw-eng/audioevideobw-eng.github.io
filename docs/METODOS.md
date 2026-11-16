@@ -39,7 +39,28 @@ Tamanho > 0 e sem erro = o pdfmake montou o arquivo. Localmente (T1) confira o `
 - A exclusão de conta (login.html) só apaga subpastas conhecidas (`""`, `/comprovantes`, `/contratos`, `/nfe`) → arquivo novo
   deve ficar na raiz da pasta ou numa dessas.
 
+### T5. Teste automático de uma área inteira (modelo: docs/testes/teste_crm.py)
+- **Quando:** página nova com muitos botões (CRM, editor de fotos).
+- **Como:** T1 + `ok(cond, msg)` acumulando falhas; usar o próprio botão da tela (`pg.click`) e conferir o `localStorage` (`bw_<chave>_v1`).
+  Arquivo baixado: `with pg.expect_download() as d: pg.click(...)` → `zipfile.ZipFile(...).testzip()`; imagem de teste gerada no canvas e
+  passada como `File` (sem depender de arquivos no disco); `input[type=file]` recebe arquivos por `DataTransfer` + `dispatchEvent("change")`.
+- **Armadilha:** `<details>` fechado esconde o campo → abrir com `el.open = true` antes de `fill`. Capturas do manual com `--lang=pt-BR`
+  (senão o campo de data sai como 12/03/2026 no formato americano).
+
+### T6. Gráficos (SVG à mão)
+- Paleta validada com o validador da skill dataviz (modo escuro, fundo #0d1017): ciano #1C97A6, âmbar #C98322, lilás #9F78E6, rosa #D05D72.
+  As cores claras da marca (#3FD0E0, #FFB547) ficam claras demais para barras/linhas no fundo escuro (falham a faixa de luminosidade).
+- Um eixo só; legenda quando há 2+ séries; dica (`data-dica`) ao passar o mouse/tocar; barras com ponta arredondada de 4px.
+
+## IA e agentes (CRM)
+- IA na nuvem = Edge Function `bw-ia` ({sistema, pedido, max} → {texto}); pedir **JSON** e ler com `BWCRM.jsonDe` (aceita texto em volta).
+- Limite de 60 pedidos/dia por conta: o agente manda a fila inteira (até 8 ações) numa chamada só e guarda o resultado do dia em `ui_crm_agente_msgs`.
+- Sempre ter plano B sem IA: captura por regras (`lerTextoRegras`: telefone, e-mail, data "12/12" ou "12 de dezembro", serviço, local),
+  análise por regras no ANALISTA, mensagens prontas no agente.
+
 ## Armadilhas de código já pagas
+
+- **Carimbo com hora:** `toISOString()` em histórico é UTC → para mostrar o dia use `BWCRM.diaLocal(iso)` (pente fino 32).
 
 - **Datas:** `new Date().toISOString().slice(0,10)` é UTC → no Brasil, depois das 21h vira o dia seguinte. Para "hoje" use
   data local (`getFullYear()/getMonth()/getDate()`), como no `modules/agenda`.

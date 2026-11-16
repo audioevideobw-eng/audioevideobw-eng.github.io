@@ -45,6 +45,25 @@ SEED = {
     "agenda_tarefas": [{"id": "tf_1", "titulo": "Editar aftermovie", "data": D(0), "hora": "14:00", "cat": "trabalho", "feitos": []},
                        {"id": "tf_2", "titulo": "Academia", "data": D(0), "hora": "07:00", "cat": "saude", "rep": "semanal", "feitos": [D(0)]},
                        {"id": "tf_3", "titulo": "Reunião com Cliente Alfa", "data": D(1), "hora": "10:00", "cat": "reuniao", "feitos": []}],
+    # 15/11: CRM — contatos fictícios da Produtora Exemplo
+    "mkt_leads": [
+        {"id": "ld_1", "nome": "Paula Reis", "empresa": "Hotel Serra Azul", "tel": "(31) 90000-1001", "servico": "Corporativo", "origem": "Indicação", "indicadoPor": "Cliente Alfa",
+         "etapa": "negociacao", "criadoEm": D(-12), "etapas": {"novo": D(-12), "conversa": D(-11), "proposta": D(-8), "negociacao": D(-4)}, "valor": 12000, "dataEvento": D(18),
+         "prox": {"data": D(0), "oque": "Fechar o valor da transmissão"}, "hist": [{"em": D(-4) + "T15:00:00", "tipo": "reuniao", "txt": "Reunião: querem 3 câmeras e telão"}]},
+        {"id": "ld_2", "nome": "Rafael Costa", "tel": "(31) 90000-1002", "servico": "Casamento", "origem": "Instagram", "etapa": "proposta", "criadoEm": D(-9),
+         "etapas": {"novo": D(-9), "conversa": D(-8), "proposta": D(-6)}, "valor": 7800, "dataEvento": D(95), "hist": [{"em": D(-6) + "T10:00:00", "tipo": "whatsapp", "txt": "WhatsApp: envio da proposta"}]},
+        {"id": "ld_3", "nome": "Júlia Martins", "empresa": "Colégio Horizonte", "tel": "(31) 90000-1003", "servico": "Formatura", "origem": "Site", "etapa": "novo", "criadoEm": D(-1), "etapas": {"novo": D(-1)}, "hist": []},
+        {"id": "ld_4", "nome": "Marcelo Antunes", "tel": "(31) 90000-1004", "servico": "Show", "origem": "TikTok", "etapa": "conversa", "criadoEm": D(-3), "etapas": {"novo": D(-3), "conversa": D(-2)},
+         "valor": 5500, "prox": {"data": D(2), "oque": "Mandar proposta"}, "hist": [{"em": D(-2) + "T09:00:00", "tipo": "ligacao", "txt": "Ligação: show em março, 600 pessoas"}]},
+        {"id": "ld_5", "nome": "Cliente Alfa", "tel": "(31) 3000-0000", "servico": "Corporativo", "origem": "Cliente antigo", "etapa": "fechado", "criadoEm": D(-40), "fechadoEm": D(-30),
+         "etapas": {"novo": D(-40), "proposta": D(-35), "fechado": D(-30)}, "valor": 8500, "dataEvento": D(-5), "eventoId": 500, "hist": []},
+        {"id": "ld_6", "nome": "Sandra Lopes", "tel": "(31) 90000-1006", "servico": "Aniversário", "origem": "Instagram", "etapa": "perdido", "criadoEm": D(-25), "perdidoEm": D(-15),
+         "motivoPerda": "Preço", "etapas": {"novo": D(-25), "proposta": D(-20), "perdido": D(-15)}, "valor": 2800, "hist": []}],
+    "mkt_redes": [{"id": "rd_a", "mes": (hoje.replace(day=1) - datetime.timedelta(days=60)).strftime("%Y-%m"), "rede": "Instagram", "seguidores": 1840, "alcance": 9200},
+                  {"id": "rd_b", "mes": (hoje.replace(day=1) - datetime.timedelta(days=30)).strftime("%Y-%m"), "rede": "Instagram", "seguidores": 1985, "alcance": 12400},
+                  {"id": "rd_c", "mes": (hoje.replace(day=1) - datetime.timedelta(days=60)).strftime("%Y-%m"), "rede": "TikTok", "seguidores": 620, "alcance": 15800},
+                  {"id": "rd_d", "mes": (hoje.replace(day=1) - datetime.timedelta(days=30)).strftime("%Y-%m"), "rede": "TikTok", "seguidores": 910, "alcance": 31000}],
+    "mkt_config": [{"id": "cfg_assinatura", "valor": "Equipe da Produtora Exemplo"}],
 }
 
 
@@ -77,10 +96,10 @@ def main():
     srv = servidor()
     base = f"http://127.0.0.1:{PORTA}/"
     with sync_playwright() as p:
-        b = p.chromium.launch(executable_path="/usr/bin/google-chrome", args=["--no-sandbox"])
+        b = p.chromium.launch(executable_path="/usr/bin/google-chrome", args=["--no-sandbox", "--lang=pt-BR"])
 
         def pagina(w=1280, h=860):
-            c = b.new_context(viewport={"width": w, "height": h}, device_scale_factor=2, service_workers="block")
+            c = b.new_context(viewport={"width": w, "height": h}, device_scale_factor=2, service_workers="block", locale="pt-BR")
             pg = c.new_page(); pg.route("**/*", rota)
             pg.goto(base + "termos.html")
             pg.evaluate("s=>{localStorage.clear();for(const k in s) localStorage.setItem('bw_'+k+'_v1', JSON.stringify(s[k]));"
@@ -132,6 +151,38 @@ def main():
         pg.click('[data-rapido="Combustível"]'); pg.fill("#ctVal", "120"); pg.wait_for_timeout(150)
         foto(pg, "#custoBox .card", "custos-evento.png")
         foto(pg, "#finBox", "custos-pagamentos.png")
+        c.close()
+        # 6) CRM — painel, funil, ficha, agente, indicadores
+        c, pg = pagina(); pg.goto(base + "crm.html"); pg.wait_for_timeout(1200)
+        pg.screenshot(path=os.path.join(SAIDA, "crm-painel.png"))
+        pg.goto(base + "captacao.html"); pg.wait_for_timeout(1200)
+        foto(pg, "#agente", "crm-agente.png")
+        foto(pg, "#funil", "crm-funil.png")
+        pg.goto(base + "captacao.html?lead=ld_1"); pg.wait_for_timeout(900)
+        foto(pg, ".crm-caixa", "crm-ficha.png", 4)
+        pg.goto(base + "captacao.html#colar"); pg.wait_for_timeout(800)
+        pg.fill("#cTxt", "Oi! Aqui é a Ana, da Construtora Alfa. Queria orçamento de transmissão ao vivo da convenção dia 12/12 no Hotel Ouro Minas, umas 300 pessoas. Meu zap é (31) 98888-7777")
+        foto(pg, ".crm-caixa", "crm-colar.png", 4)
+        pg.goto(base + "resultados.html"); pg.wait_for_timeout(1200)
+        foto(pg, ".tf-card", "crm-indicadores.png")
+        foto(pg, ".r-duas", "crm-funil-perda.png")
+        foto(pg, "#redes", "crm-redes.png")
+        c.close()
+        # 7) Editor de fotos (foto gerada na hora: gradiente + texto)
+        c, pg = pagina(); pg.goto(base + "fotos.html"); pg.wait_for_timeout(800)
+        pg.evaluate("""(async()=>{const c=document.createElement('canvas');c.width=3000;c.height=2000;const x=c.getContext('2d');const g=x.createLinearGradient(0,0,3000,2000);
+          g.addColorStop(0,'#3a2a5a');g.addColorStop(.5,'#c0623a');g.addColorStop(1,'#f2c063');x.fillStyle=g;x.fillRect(0,0,3000,2000);
+          x.fillStyle='rgba(0,0,0,.35)';for(let i=0;i<14;i++){x.beginPath();x.arc(200+i*210,1500+Math.sin(i)*120,90,0,7);x.fill();}
+          x.fillStyle='#fff';x.font='bold 160px sans-serif';x.fillText('PALCO',1100,900);
+          const f=await new Promise(r=>c.toBlob(b=>r(new File([b],'palco.jpg',{type:'image/jpeg'})),'image/jpeg',.9));
+          const l=document.createElement('canvas');l.width=500;l.height=120;const lx=l.getContext('2d');lx.fillStyle='#fff';lx.font='bold 84px sans-serif';lx.fillText('EXEMPLO',10,95);
+          const lb=await new Promise(r=>l.toBlob(r,'image/png'));const dt=new DataTransfer();dt.items.add(new File([lb],'logo.png',{type:'image/png'}));
+          const i=document.getElementById('logoArq');i.files=dt.files;i.dispatchEvent(new Event('change'));
+          await window.__fotos.adicionar([f,f]);window.__ok=1;})()""")
+        pg.wait_for_function("window.__ok===1", timeout=20000)
+        pg.click('#fmtChips [data-v="4:5"]'); pg.click('[data-aba="borda"]'); pg.click('#bordaEst [data-v="faixa"]'); pg.fill("#bordaTxt", "@produtoraexemplo")
+        pg.click('[data-aba="filtros"]'); pg.wait_for_timeout(400); pg.click('[data-filtro="dourado"]'); pg.wait_for_timeout(600)
+        foto(pg, ".fx-grade", "fotos-editor.png")
         c.close()
         b.close()
     srv.shutdown()

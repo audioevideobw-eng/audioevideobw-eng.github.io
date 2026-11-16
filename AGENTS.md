@@ -94,6 +94,14 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
 31. Módulo que existe em mais de uma página (ex.: modules/equipe) é copiado IGUAL em todas; nunca esconder um contêiner que tem
     dentro o que deve aparecer (esconder os irmãos); regex com palavra acentuada não usa `\b`.
 
+**Aprendidos em 15/11 à noite (CRM e editor de fotos)**
+32. Carimbo com hora (`new Date().toISOString()`, ex.: histórico de conversa) é UTC: para MOSTRAR ou comparar o dia use o dia LOCAL
+    (`BWCRM.diaLocal`) — uma conversa às 21h45 aparecia como do dia seguinte e o agente achava que o contato tinha falado "amanhã".
+33. Dado novo do usuário (ex.: mkt_leads, mkt_modelos, mkt_redes, mkt_config) → entra em CHAVES do bw-sync E no vigia (7.8a).
+    Editor de fotos (fotos.html) nunca envia fotos para a nuvem (vigia 7.8a).
+34. AGENTE e IA: nada sai sozinho (MANDAR abre o WhatsApp; a pessoa envia); IA em LOTE numa chamada só (limite de 60/dia por conta);
+    a IA recebe só o necessário (o ANALISTA IA recebe só totais, sem nomes de clientes).
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -349,6 +357,20 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
 - 15/11/2026 · Claude (pedido do dono): botão MANUAL DO USUÁRIO no menu lateral (layout.js, todas as páginas; no celular pelo "Mais") →
   baixa/abre docs/Brightway-Guia-do-usuario.pdf (servido pelo GitHub Pages, conferido 200 application/pdf). Manual: "Conhecendo a tela" cita o
   botão; telas refeitas. layout.js v24, brightway.css v22, sw v63.
+
+- 15/11/2026 · Claude (pedido do dono): nova categoria CRM (menu, Início seção 04, Ferramentas) + EDITOR DE FOTOS em Marketing. Base comum
+  `assets/crm.js` (dados mkt_leads/mkt_modelos/mkt_redes/mkt_config em CHAVES do bw-sync). Páginas: `crm.html` (painel: números, agente, galeria),
+  `captacao.html` (FUNIL em colunas com arrastar, LISTA, ficha com temperatura 0–100, WhatsApp com mensagens prontas, ligar/e-mail/Instagram,
+  ✨ IA: O QUE FAZER AGORA?, PROPOSTA COM IA → assistente já preenchido, ✓ FECHAR NEGÓCIO → cria cliente em neg_clientes + evento Confirmado em
+  neg_eventos, MARCAR PERDIDO com motivo, ✨ COLAR MENSAGEM (IA + regras sem internet), aviso de duplicado, AGENTE DE VENDAS com a fila do dia
+  (retornos, primeiro contato, proposta parada, data chegando, depoimento, indicação, reativação; ✨ IA escreve tudo numa chamada),
+  MENSAGENS PRONTAS editáveis, AJUSTES (serviços, assinatura, meta), PEDIDOS DO SITE (so-admin: tabela orcamentos → NOVO CONTATO)),
+  `resultados.html` (INDICADORES: KPIs, funil do período, motivos de perda, mês a mês, origem/serviço/campanha, ✨ ANALISTA IA só com totais,
+  REDES SOCIAIS mensais com gráfico; EXEMPLO só na tela) e `fotos.html` (formato/corte/giro, 9 ajustes, 11 filtros, logo automática
+  branca/preta conforme o fundo, moldura/polaroid/faixa com texto, BAIXAR/ZIP/COMPARTILHAR, MEU PADRÃO; tudo no aparelho). Sino AVISOS ganhou
+  "RETORNOS DE CLIENTES"; AGENDA mostra os retornos; assistente aceita contato vindo do funil. Itens do artigo IT Forum "CRM: 10 itens" aplicados
+  (adoção com exemplo/passo a passo, encaixe por serviços configuráveis, integração com marketing/campanha, canais juntos, dados sem duplicado,
+  celular). Teste: docs/testes/teste_crm.py (39 checagens, 0 falhas). Manual 31 → 35 p. layout.js v25, sw v64. PENTE FINO 32–34.
 
 ## Pendências (dono)
 - [x] (15/11 10:02, dono: "faça tudo") Autorizar a automação de NOTÍCIAS (publica noticias.json no site a cada 2 h) — ATIVA.

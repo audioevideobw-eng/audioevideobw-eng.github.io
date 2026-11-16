@@ -91,7 +91,7 @@
   </div>
 </div>
 
-<script src="assets/layout.js?v=24"></script>
+<script src="assets/layout.js?v=25"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="assets/bw-sync.js"></script>
 <script>
@@ -136,6 +136,10 @@
 
   /* texto vindo da TRANSCRIÇÃO ("usar no assistente") */
   try { var vindo = sessionStorage.getItem("bw_assist_texto"); if (vindo) { sessionStorage.removeItem("bw_assist_texto"); $("rsTexto").value = vindo; trocar("resumo"); } } catch (e) { }
+  /* 15/11: contato vindo do FUNIL DE CLIENTES ("PROPOSTA COM IA") → e-mail já preenchido */
+  try { var ve = JSON.parse(sessionStorage.getItem("bw_assist_email") || "null"); if (ve) { sessionStorage.removeItem("bw_assist_email"); trocar("email");
+    if (ve.para) $("emPara").value = ve.para; if (ve.det) $("emDet").value = ve.det;
+    if (ve.obj) [].forEach.call($("emObj").options, function (o) { if (o.text === ve.obj) $("emObj").value = o.value; }); } } catch (e) { }
 
   /* eventos da conta para a legenda */
   try {
