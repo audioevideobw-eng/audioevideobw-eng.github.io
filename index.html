@@ -1135,7 +1135,7 @@ const svg = (n, s) => `<svg width="${s || 16}" height="${s || 16}" viewBox="0 0 
 /* tipos: cor + ícone */
 const CATS = [["tarefa", "Tarefa", "#3FD0E0"], ["trabalho", "Trabalho", "#8AB4FF"], ["pessoal", "Pessoal", "#C59BFF"],
   ["casa", "Casa", "#5FE0A0"], ["saude", "Saúde", "#FF8A9A"], ["reuniao", "Reunião", "#7FE3D0"]];
-const TIPOS = { pagamento: ["Pagamentos", "#FFB547"], evento: ["Eventos", "#FFD86B"], tarefa: ["Tarefas", "#3FD0E0"] };
+const TIPOS = { pagamento: ["Pagamentos", "#C8102E"], evento: ["Eventos", "#FFD86B"], tarefa: ["Tarefas", "#3FD0E0"] };
 const corCat = c => (CATS.find(x => x[0] === c) || CATS[0])[2];
 
 /* datas sempre no horário LOCAL (toISOString usa UTC e vira o dia depois das 21h no Brasil) */

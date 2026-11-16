@@ -546,6 +546,9 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   → contato vai para Proposta). Chaves neg_propostas/neg_prop_config em CHAVES + vigia. teste_propostas.py (45 checagens × 1280/390, 0 falhas;
   importa os 8 .docx reais). Manual 39 → 40 p. layout.js v29, sw v80. PENTE FINO 55–57.
 
+- 16/11/2026 · Claude (pedido do dono): AGENDA — cor dos PAGAMENTOS trocada de âmbar (#FFB547, parecida com a dos eventos) para vermelho
+  sangue (#C8102E) no calendário, na lista e no filtro; vencido continua em vermelho claro (#FF6B6B). Telas do manual refeitas. sw v81.
+
 ## Pendências (dono)
 - [x] (16/11 11:42) IA CRIATIVA ATIVA: conta Cloudflare do dono (Free, sem cartão), token "Brightway IA criativa 2" (Workers AI Read+Edit) em
       CF_API_TOKEN, CF_ACCOUNT_ID salvo. Teste no ar: "cabelo cacheado ruivo e óculos de sol" → nova versão em 6 s, mesma pessoa/roupa/fundo.
