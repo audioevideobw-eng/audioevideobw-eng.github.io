@@ -143,6 +143,9 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
 49. IA de imagem no aparelho (MediaPipe): segmentador com delegate "CPU" (no iPhone a GPU troca as categorias); efeitos por máscara com
     desfoque que funciona em qualquer navegador (reduzir/ampliar, não ctx.filter); teste local com MÁSCARAS FALSAS conferindo pixel
     (docs/testes/teste_ia_retoque.py) e teste no ar com o modelo real.
+51. Secret colado pelo dono: conferir pelo DIGEST (SHA-256) mostrado em Supabase → Edge Functions → Secrets antes de testar
+    (`printf '%s' valor | sha256sum`); o botão "copiar" da Cloudflare não funciona no painel do app e colava outro conteúdo.
+    O Claude nunca digita chave/token em campo — o dono cola (dica: linha NOME=valor no campo Name separa sozinho).
 50. IA CRIATIVA (decisão do dono, 16/11): a ÚNICA saída do editor de fotos para a internet é assets/fotos-nuvem.js → Edge Function
     bw-ia-imagem (Cloudflare FLUX.2), só depois de confirm() da pessoa, cópia pequena (≤ 504 px), nada guardado, resultado vira foto NOVA
     ao lado da original; nudez/sexual recusado na função; 10/dia por conta (auto: vigia 7.8a).
@@ -507,8 +510,9 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   Novo assets/fotos-nuvem.js (única saída do editor; vigia 7.8a confere). teste_ia_retoque.py (nuvem simulada) 0 falhas. fotos.js v9, sw v78. PENTE FINO 50.
 
 ## Pendências (dono)
-- [ ] (16/11) IA CRIATIVA: entrar/criar conta grátis na Cloudflare (dash.cloudflare.com) → Claude cria o token "Workers AI" e cola em Supabase →
-      Edge Functions → Secrets como CF_ACCOUNT_ID e CF_API_TOKEN. Ficar no plano Free (sem cartão): passou do limite grátis, só para até o dia seguinte.
+- [x] (16/11 11:42) IA CRIATIVA ATIVA: conta Cloudflare do dono (Free, sem cartão), token "Brightway IA criativa 2" (Workers AI Read+Edit) em
+      CF_API_TOKEN, CF_ACCOUNT_ID salvo. Teste no ar: "cabelo cacheado ruivo e óculos de sol" → nova versão em 6 s, mesma pessoa/roupa/fundo.
+- [ ] (16/11, dono) Cloudflare → API Tokens: apagar o token antigo "Brightway IA criativa (Workers AI)" (…8fe6, não é usado).
 - [x] (15/11 10:02, dono: "faça tudo") Autorizar a automação de NOTÍCIAS (publica noticias.json no site a cada 2 h) — ATIVA.
 - [x] (16/11, Claude) Milhas: tela de ADM criada (Configuração → COTAÇÕES DE MILHAS) + automação de hora em hora. Falta o dono lançar as cotações atuais.
 - [x] (16/11, dono: "lancei errado, ainda não recebi") EVENTO SICOOB: removido do Fluxo o lançamento antigo ev_1793873289922 (R$ 2.500
