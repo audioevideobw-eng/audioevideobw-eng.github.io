@@ -471,8 +471,8 @@
       rostos.forEach(function (r) {
         var a = { id: uid("ad"), e: e, op: 100, sombra: tipo !== "olhos", rot: 0 }, cx = r.x + r.w / 2;
         if (tipo === "olhos" && r.olhos) { var o1 = r.olhos[0], o2 = r.olhos[1], d = Math.hypot((o2.x - o1.x), (o2.y - o1.y) / ar);
-          a.cx = (o1.x + o2.x) / 2; a.cy = (o1.y + o2.y) / 2 + d * 0.05 * ar; a.tam = d * 230; a.rot = Math.atan2((o2.y - o1.y) / ar, o2.x - o1.x) * 180 / Math.PI; }
-        else if (tipo === "cabeca") { a.cx = cx; a.tam = r.w * 125; a.cy = r.y - (a.tam / 100) * ar * 0.28; }
+          a.cx = (o1.x + o2.x) / 2; a.tam = d * 175; a.cy = (o1.y + o2.y) / 2 - (a.tam / 100) * ar * 0.06; a.rot = Math.atan2((o2.y - o1.y) / ar, o2.x - o1.x) * 180 / Math.PI; }
+        else if (tipo === "cabeca") { a.cx = cx; a.tam = r.w * (e === "👑" ? 80 : 105); a.cy = r.y + r.h * 0.02 - (a.tam / 100) * ar * 0.42; }
         else if (tipo === "lado") { a.cx = r.x + r.w * 0.85; a.cy = r.y; a.tam = r.w * 55; a.rot = 20; }
         else if (tipo === "orelhas") { a.cx = cx; a.cy = r.y + r.h * 0.35; a.tam = r.w * 150; }
         else { a.cx = cx; a.cy = r.y + r.h / 2; a.tam = r.w * 120; }
