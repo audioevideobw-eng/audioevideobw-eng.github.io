@@ -62,7 +62,7 @@
     { id: "conta",   nome: "Conta",             href: "login.html", icon: '<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/>' }
   ];
   var SUBPAGINAS = {
-    negocio: [["negocio","Ferramentas do negócio"],["financeiro-painel","Painel Financeiro"],["eventos","Eventos"],["equipe","Gestão de pessoas"],["leitor","Leitor de comprovantes"],["preco","Calculadora de preço"],["fluxo","Fluxo de caixa"]],
+    negocio: [["negocio","Ferramentas do negócio"],["financeiro-painel","Painel Financeiro"],["propostas","Gerador de orçamento"],["eventos","Eventos"],["equipe","Gestão de pessoas"],["leitor","Leitor de comprovantes"],["preco","Calculadora de preço"],["fluxo","Fluxo de caixa"]],
     casa: [["orcamento","Orçamento familiar"],["contas","Contas a pagar"],["reserva","Reserva de emergência"]],
     invest: [["investimentos-painel","Painel de Investimentos"],["cambio","Câmbio"],["evento","Evento no exterior"],["milhas","Mercado de milhas"],["meta","Meta de milhas"],["recs","★ Recomendações"],["noticias","Notícias"]],
     crm: [["crm","Painel do CRM"],["captacao","Funil de clientes"],["resultados","Indicadores"]],
@@ -90,7 +90,7 @@
     viagem:"Conversor de viagem", leitor:"Leitor de comprovantes", recs:"Recomendações",
     noticias:"Notícias", dados:"Meus dados", app:"App & sincronização", login:"Acesso",
     configadm:"Configuração", marketing:"Marketing", assistente:"Assistente de texto", transcricao:"Transcrição e legendas", pdf:"Ferramentas de PDF",
-    crm:"CRM", captacao:"Funil de clientes", resultados:"Indicadores", fotos:"Editor de fotos", criador:"Criador IA" };
+    crm:"CRM", captacao:"Funil de clientes", resultados:"Indicadores", fotos:"Editor de fotos", criador:"Criador IA", propostas:"Gerador de orçamento" };
   var NOMES_CAT = {}; CATEGORIAS.forEach(function(c){ NOMES_CAT[c.id] = c.nome; });
 
   var itens = CATEGORIAS.map(function(c){

@@ -79,7 +79,7 @@ for p in PAGINAS:
 
 # 4) pedidos do dono
 neg = ler("negocio.html") if os.path.exists("negocio.html") else ""
-for h in ["eventos.html", "equipe.html", "fluxo.html", "preco.html", "leitor.html", "financeiro-painel.html"]:
+for h in ["eventos.html", "equipe.html", "fluxo.html", "preco.html", "leitor.html", "financeiro-painel.html", "propostas.html"]:
     if not re.search(r'class="menu-card[^"]*" href="' + re.escape(h) + '"', neg):
         problemas.append(f"negocio.html: falta o card da ferramenta {h} (o dono pediu TODAS as ferramentas do negócio)")
 if os.path.exists("app.html") and "rs.find(" in ler("app.html"):
@@ -222,7 +222,7 @@ for p in ["baixar.html", "privacidade.html", "termos.html", "financeiro-painel.h
     if p not in todos:
         problemas.append(f"{p} sumiu (link de instalação / política exigida pelo Google / painel financeiro)")
 # 7.8a CRM (15/11): dados do CRM sincronizam (CHAVES) e as páginas carregam assets/crm.js; nada é enviado sozinho
-for ch in ["mkt_leads", "mkt_modelos", "mkt_redes", "mkt_config", "agenda_feitos"]:
+for ch in ["mkt_leads", "mkt_modelos", "mkt_redes", "mkt_config", "agenda_feitos", "neg_propostas", "neg_prop_config"]:
     if f'"{ch}"' not in sync:
         problemas.append(f"assets/bw-sync.js: chave {ch} fora de CHAVES (o CRM não chega nos outros aparelhos)")
 for p in ["crm.html", "captacao.html", "resultados.html"]:

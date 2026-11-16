@@ -159,6 +159,12 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
 54. Texto sobre arte de IA: a IA desenha SÓ a arte (prompt "sem letras"), o app escreve os textos com fontes de verdade; a IA de textos
     nunca troca o que a pessoa digitou (nome, data, valor, título do evento) e a resposta dela perde a marcação (`**`, `#`).
 
+**Aprendidos em 16/11 (GERADOR DE ORÇAMENTO)**
+55. Leitor de arquivo do usuário (.docx importado) é testado com os ARQUIVOS REAIS dele (sem gravar na conta): o primeiro leitor trocava dia
+    e mês (25/09 → "2026-25-09") e colava o e-mail do rodapé com a palavra seguinte ("…gmail.comEmail").
+56. Valor em R$ do toLocaleString vem com espaço INSEPARÁVEL ("R$\u00a01.950,00"): teste compara depois de trocar \xa0 por espaço.
+57. Prévia, PDF e Word saem do MESMO modelo (assets/propostas.js modelo()) — mudança de conteúdo é feita ali, nunca em só uma das saídas.
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -528,6 +534,17 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   COMPARTILHAR, PACOTE REDES, ABRIR NO EDITOR (ponte IndexedDB bw_ponte → fotos.html#criador). No ar: convite com IA em 13,5 s, post com a
   pessoa da foto num palco em 7 s, PNG/PDF A4/legenda OK. teste_criador.py (32 checagens × 1280/390, 0 falhas). Manual 38 → 39 p.
   layout.js v28, criador.js v4, fotos.js v10, fotos-nuvem.js v2, sw v79. PENTE FINO 52–54. Vigia 7.8a confere o criador.js.
+
+- 16/11/2026 · Claude (pedido do dono, com 8 orçamentos .docx dele): GERADOR DE ORÇAMENTO (propostas.html + assets/propostas.js) em Meu negócio
+  (menu, card em negocio.html e no Início). 7 BOTÕES tirados dos orçamentos reais (Videomaker, Fotografia, Videomaker + fotógrafo, Transmissão
+  para telão de LED, Gravação na íntegra, Curso A→B, Instalação técnica com checklist) — tocar soma serviço; chips de equipe/equipamentos/
+  observações/pagamento; valor total ou detalhado (diárias, desconto R$/%); número ORC-/REC-AAAA-NNN; salva sozinho; prévia ao vivo igual ao PDF.
+  Saídas: PDF (pdfMake, 3 estilos), WORD (.docx de verdade), ENVIAR (compartilhar/WhatsApp/e-mail), QR Pix com valor (BR Code + CRC16).
+  Situação rascunho → enviado → aprovado/recusado; APROVADO cria evento (neg_eventos Confirmado + cliente) e RECIBO (valor por extenso) que pode
+  lançar o recebido no evento. MINHA EMPRESA (logo, CNPJ, Pix, cor, textos), ★ MEUS BOTÕES / SALVAR COMO BOTÃO, ⇪ IMPORTAR .DOCX (lê os
+  orçamentos antigos + copia logo/CNPJ), ✨ MONTAR COM IA e ✨ CAPRICHAR NO TEXTO (bw-ia), FUNIL: 📄 ORÇAMENTO (propostas.html?lead=ID; enviado
+  → contato vai para Proposta). Chaves neg_propostas/neg_prop_config em CHAVES + vigia. teste_propostas.py (45 checagens × 1280/390, 0 falhas;
+  importa os 8 .docx reais). Manual 39 → 40 p. layout.js v29, sw v80. PENTE FINO 55–57.
 
 ## Pendências (dono)
 - [x] (16/11 11:42) IA CRIATIVA ATIVA: conta Cloudflare do dono (Free, sem cartão), token "Brightway IA criativa 2" (Workers AI Read+Edit) em

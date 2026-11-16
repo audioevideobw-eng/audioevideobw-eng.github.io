@@ -153,7 +153,7 @@
   </div>
 </div>
 
-<script src="assets/layout.js?v=28"></script>
+<script src="assets/layout.js?v=29"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="assets/bw-sync.js"></script>
 <script src="assets/crm.js?v=3"></script>
@@ -410,6 +410,7 @@
       (l.email ? '<a class="crm-bt" href="mailto:' + esc(l.email) + '" data-c="email">✉ E-MAIL</a>' : "") +
       (ig ? '<a class="crm-bt" target="_blank" rel="noopener" href="https://instagram.com/' + esc(ig) + '">📸 INSTAGRAM</a>' : "") +
       '<button type="button" class="crm-bt" data-c="ia" style="border-color:rgba(63,208,224,.4);color:#3FD0E0">✨ IA: O QUE FAZER AGORA?</button>' +
+      '<a class="crm-bt" href="propostas.html?lead=' + encodeURIComponent(l.id) + '" style="border-color:rgba(255,181,71,.45);color:#FFB547">📄 ORÇAMENTO</a>' +
       '<button type="button" class="crm-bt" data-c="assist">✍ PROPOSTA COM IA</button>';
     box.querySelector('[data-c="wa"]').onclick = function () { coletar(); escolherModelo(l); };
     box.querySelector('[data-c="ia"]').onclick = async function () {

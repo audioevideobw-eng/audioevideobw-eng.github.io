@@ -150,3 +150,14 @@ Tamanho > 0 e sem erro = o pdfmake montou o arquivo. Localmente (T1) confira o `
 - Entre páginas sem nuvem: IndexedDB `bw_ponte` (put no criador → fotos.html#criador lê, apaga e abre).
 - Teste: rotas simulando bw-ia-imagem (JPEG falso), bw-ia (JSON) e o QR; `service_workers="block"`; conferir corpo do pedido
   (sem `name="imagem"` quando a foto não deve sair), PNG decodificado no tamanho certo, PDF relido com PDFLib.
+
+
+## Gerador de orçamento — um modelo, três saídas (16/11)
+- `modelo(doc)` monta seções neutras (lista, check, duas colunas, chave-valor, investimento); `folhaHTML` (prévia), `defPdf` (pdfMake) e
+  `gerarWord` (docx 9 IIFE, global `docx`, `Packer.toBlob`) só desenham. Prévia: folha de 794 px com `transform:scale` no contêiner.
+- Pix com valor: campos EMV id+tamanho+valor; 26 = GUI `br.gov.bcb.pix` + chave (CNPJ/CPF só dígitos, telefone +55…); 54 valor com ponto;
+  59 nome ≤25 sem acento; 60 cidade ≤15; 62/05 txid; termina "6304" + CRC16-CCITT (0x1021, início 0xFFFF). O teste confere o CRC em Python.
+- Ler .docx no navegador: JSZip → `word/document.xml` → DOMParser com namespace w → um texto por `w:p` (juntar os `w:t`). Logo = maior
+  imagem de `word/media/`. Rodapé em `word/footer*.xml`.
+- Teste sem rede: pdfMake simulado guardando a definição (`window.__defs`), docx e JSZip das cópias locais em /opt/npm-tools/node_modules,
+  `expect_download` para pegar o .docx e abrir o XML com zipfile.

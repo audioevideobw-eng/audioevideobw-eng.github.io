@@ -34,7 +34,8 @@
     "neg_equipe_eventos", "neg_equipe_cadastros", "neg_fixos", "neg_eventos",
     "neg_equipe_pagamentos", "neg_clientes", "neg_cli_cadastros", "dd_colecoes",
     "dd_registros", "neg_eventos_checklist_modelos", "inv_lancamentos", "agenda_tarefas", "agenda_feitos",
-    "mkt_leads", "mkt_modelos", "mkt_redes", "mkt_config"];   /* 15/11: CRM (assets/crm.js) */
+    "mkt_leads", "mkt_modelos", "mkt_redes", "mkt_config",   /* 15/11: CRM (assets/crm.js) */
+    "neg_propostas", "neg_prop_config"];   /* 16/11: GERADOR DE ORÇAMENTO (assets/propostas.js) */
 
   /* ---------- 1. cliente Supabase único ---------- */
   function unificarCliente() {
