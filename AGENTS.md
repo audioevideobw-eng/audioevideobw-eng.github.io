@@ -443,6 +443,9 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   como alterar no celular → cartões com ✎ ALTERAR no próprio cartão, aviso + JUNTAR REPETIDOS, + CAMPO, RENOMEAR, EXCLUIR COLEÇÃO,
   CADASTROS DA PLATAFORMA (colaboradores/clientes oficiais, com CPF/CNH) no topo; saíram o rodapé "Mesa de Câmbio & Milhas" e 3 bibliotecas
   que a página não usava. Teste docs/testes/teste_cadastros.py (31 checagens × 1280/390, 0 falhas). Manual 37 → 38 p. sw v70. PENTE FINO 41–44.
+- 16/11/2026 · Claude: teste no ar (conta do dono): PDF DA EQUIPE "VALE - 17/11" com os 3 PDFs anexados (CRLV, CNH-e ×2) = 4 páginas em 6 s, sem falhas;
+  colaborador de TESTE criado com CPF/CNH → chegou na nuvem → alterado → apagado (sumiu da nuvem). MEUS DADOS: JUNTAR tirou 8 repetidos
+  (19 → 11 registros; cópia em ui_dd_backup neste navegador). Nome do arquivo do PDF sem "---". sw v71.
 
 ## Pendências (dono)
 - [x] (15/11 10:02, dono: "faça tudo") Autorizar a automação de NOTÍCIAS (publica noticias.json no site a cada 2 h) — ATIVA.

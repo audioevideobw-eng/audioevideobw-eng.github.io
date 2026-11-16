@@ -2258,7 +2258,7 @@ async function gerarPDFEquipe(id, semBaixar) {
     content,
     footer: { margin: [40, 10, 40, 20], columns: [{ text: "BW Audiovisual — eventos, transmissões e produção", color: "#8a93a6", fontSize: 8 },
       { text: `gerado em ${new Date().toLocaleString("pt-BR")}`, alignment: "right", color: "#8a93a6", fontSize: 8 }] } };
-  const slug = q.nome.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, "-").toLowerCase().replace(/[^a-z0-9-]/g, "");
+  const slug = q.nome.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, "-").toLowerCase().replace(/[^a-z0-9-]/g, "").replace(/-+/g, "-").replace(/^-|-$/g, "");
   if (window.BWAnexos) return window.BWAnexos.baixar(doc, docs, `equipe-${slug}.pdf`, semBaixar);
   window.pdfMake.createPdf(doc).download(`equipe-${slug}.pdf`);
   return { anexados: 0, falhas: [] };
