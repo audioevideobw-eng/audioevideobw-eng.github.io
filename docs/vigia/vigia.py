@@ -218,7 +218,7 @@ if lgx and ("bw_excluir_minha_conta" not in lgx or "lExportar" not in lgx):
 
 # 7.8 páginas públicas obrigatórias
 for p in ["baixar.html", "privacidade.html", "termos.html", "financeiro-painel.html", "investimentos-painel.html", "marketing.html", "assistente.html", "transcricao.html", "pdf.html",
-          "crm.html", "captacao.html", "resultados.html", "fotos.html"]:
+          "crm.html", "captacao.html", "resultados.html", "fotos.html", "pedido.html"]:
     if p not in todos:
         problemas.append(f"{p} sumiu (link de instalação / política exigida pelo Google / painel financeiro)")
 # 7.8a CRM (15/11): dados do CRM sincronizam (CHAVES) e as páginas carregam assets/crm.js; nada é enviado sozinho
@@ -238,7 +238,7 @@ for p, t2 in todos.items():
     if re.search(r"(?<![\w-])(gsk_[A-Za-z0-9]{20,}|sk-(ant-|proj-)?[A-Za-z0-9_-]*\d[A-Za-z0-9_-]{18,}|AIza[0-9A-Za-z_-]{30,})", t2):
         problemas.append(f"{p}: chave de API de IA no código (vaza para qualquer visitante) — use Edge Function do Supabase")
 # 7.9 páginas com o visual novo (menu lateral) — exceto as de propósito
-SEM_MENU = {"login.html", "cadastro.html", "baixar.html", "privacidade.html", "termos.html", "financeiro-painel.html", "investimentos-painel.html", "casa.html", "app.html", "financeiro.html"}
+SEM_MENU = {"login.html", "cadastro.html", "pedido.html", "baixar.html", "privacidade.html", "termos.html", "financeiro-painel.html", "investimentos-painel.html", "casa.html", "app.html", "financeiro.html"}
 for p, t in todos.items():
     if p not in SEM_MENU and "assets/layout.js" not in t:
         problemas.append(f"{p}: sem o visual novo (não carrega assets/layout.js)")

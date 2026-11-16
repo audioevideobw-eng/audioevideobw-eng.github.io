@@ -49,6 +49,7 @@
       <a class="menu-card" href="captacao.html#funil" title="Os contatos em colunas: novo, conversando, proposta, negociando, fechado e perdido."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h18l-7 8v6l-4 2v-8z"/></svg></span><span class="nome">FUNIL</span></a>
       <a class="menu-card" href="captacao.html?novo=1" title="Cadastrar um contato novo no funil."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10" cy="8" r="4"/><path d="M3 21c0-4 3-6 7-6M18 14v6M15 17h6"/></svg></span><span class="nome">NOVO CONTATO</span></a>
       <a class="menu-card" href="captacao.html#colar" title="Cole a conversa do WhatsApp, Instagram ou e-mail e a IA preenche o contato."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M6 18l2.5-2.5M15.5 8.5 18 6"/></svg></span><span class="nome">CAPTURA COM IA</span></a>
+      <a class="menu-card" href="captacao.html#link" title="Seu link para a bio: o cliente pede orçamento e cai direto no funil."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg></span><span class="nome">PEDIR ORÇAMENTO</span></a>
       <a class="menu-card" href="captacao.html#agente" title="A fila do dia: retornos, propostas paradas, pós-venda, indicação e reativação."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="8" width="14" height="11" rx="3"/><path d="M12 4v4M9 13h.01M15 13h.01M9 16h6M3 13v2M21 13v2"/></svg></span><span class="nome">AGENTE DE VENDAS</span></a>
       <a class="menu-card" href="captacao.html#mensagens" title="Primeiro contato, proposta, retorno, pós-evento, indicação — com o nome do cliente."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M8 9h8M8 13h5"/></svg></span><span class="nome">MENSAGENS PRONTAS</span></a>
       <a class="menu-card" href="resultados.html" title="Taxa de fechamento, de onde vêm os clientes, motivos de perda e evolução."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg></span><span class="nome">INDICADORES</span></a>
@@ -73,7 +74,7 @@
 <script src="assets/layout.js?v=26"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="assets/bw-sync.js"></script>
-<script src="assets/crm.js?v=2"></script>
+<script src="assets/crm.js?v=3"></script>
 <script>
 (function () {
   "use strict";
@@ -99,6 +100,7 @@
     $("agLista").innerHTML = fila.slice(0, 4).map(function (it) { return '<a href="captacao.html?lead=' + encodeURIComponent(it.leadId) + '"><span>' + esc(it.titulo) + "</span><small>" + esc(it.motivo.split(" · ")[0]) + "</small></a>"; }).join("");
   }
   render();
+  setTimeout(async function () { var r = await C.puxarPedidos(); if (r.novos) render(); }, 1800);   /* pedidos novos do link PEDIR ORÇAMENTO */
   window.addEventListener("bw-sync-recebido", render);
   if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(function () { });
 })();

@@ -304,7 +304,46 @@
     return L;
   }
 
+  /* ---------- PEDIR ORÇAMENTO (16/11): link público pedido.html?p=TOKEN → public.bw_pedidos → funil ---------- */
+  var ORIGEM_COMO = { "Instagram": "Instagram", "TikTok": "TikTok", "Indicação": "Indicação", "Google": "Google", "Site": "Site", "Evento / feira": "Evento / feira", "Outro": "Outro" };
+  function linkPedido() { var c = cfg("cfg_link_pedido", null); return c && c.token ? c : null; }
+  function montarLink(c) {
+    var base = location.origin + location.pathname.replace(/[^/]*$/, "") + "pedido.html";
+    var u = base + "?p=" + encodeURIComponent(c.token);
+    if (c.nome) u += "&n=" + encodeURIComponent(c.nome);
+    if (c.whats && soDig(c.whats).length >= 10) u += "&w=" + telWa(c.whats);
+    var s = servicos().filter(function (x) { return x !== "Outro"; }).slice(0, 12); if (s.length) u += "&s=" + encodeURIComponent(s.concat(["Outro"]).join("|"));
+    return u;
+  }
+  async function criarLinkPedido(nome, whats) {
+    var atual = linkPedido(), token = (atual && atual.token) || ("pd" + Math.random().toString(36).slice(2, 8) + Date.now().toString(36).slice(-4));
+    if (!window.BWSync || !(await BWSync.registrarAgora({ tokens: [token] }))) return { erro: "sem_login" };   /* regra 26: só mostra o link depois do servidor */
+    var c = { token: token, nome: String(nome || "").trim().slice(0, 80), whats: String(whats || "").trim(), criado: (atual && atual.criado) || hoje() };
+    salvarCfg("cfg_link_pedido", c);
+    return { link: montarLink(c), c: c };
+  }
+  async function puxarPedidos() {
+    var cl = window.BWSync && BWSync.cliente(); if (!cl || !(await sessao())) return { novos: 0 };
+    var r; try { r = await cl.from("bw_pedidos").select("*").eq("importado", false).order("criado_em", { ascending: true }).limit(100); } catch (e) { return { novos: 0, erro: "rede" }; }
+    if (r.error || !r.data || !r.data.length) return { novos: 0, erro: r.error && r.error.message };
+    var lista = leads(), ids = {}, feitos = [];
+    lista.forEach(function (l) { ids[l.id] = 1; });
+    r.data.forEach(function (o) {
+      var id = "pd_" + o.id; feitos.push(o.id); if (ids[id]) return;
+      var dia = diaLocal(o.criado_em) || hoje(), sv = o.servico || "", ss = servicos();
+      sv = ss.filter(function (s) { return sv && s.toLowerCase() === sv.toLowerCase(); })[0] || sv;
+      lista.push({ id: id, origemId: o.id, nome: o.nome || "", empresa: o.empresa || "", tel: maskTel(o.whatsapp || ""), email: o.email || "", servico: sv,
+        dataEvento: o.data_evento || "", local: o.local || "", convidados: o.convidados || "", origem: ORIGEM_COMO[o.como_conheceu] || "Site", campanha: "Link de orçamento",
+        etapa: "novo", criadoEm: dia, etapas: { novo: dia }, obs: o.mensagem || "", hist: [{ em: o.criado_em || new Date().toISOString(), tipo: "sistema", txt: "Pedido pelo link PEDIR ORÇAMENTO" + (o.como_conheceu ? " (conheceu por: " + o.como_conheceu + ")" : "") }] });
+      ids[id] = 1;
+    });
+    gravar("mkt_leads", lista);
+    try { await cl.from("bw_pedidos").update({ importado: true }).in("id", feitos); } catch (e) { }
+    return { novos: feitos.length };
+  }
+
   window.BWCRM = {
+    linkPedido: linkPedido, montarLink: montarLink, criarLinkPedido: criarLinkPedido, puxarPedidos: puxarPedidos,
     ler: ler, gravar: gravar, leads: leads, salvarLead: salvarLead, apagarLead: apagarLead, cfg: cfg, salvarCfg: salvarCfg,
     ETAPAS: ETAPAS, ABERTAS: ABERTAS, ORIGENS: ORIGENS, MOTIVOS: MOTIVOS, servicos: servicos, etapa: etapa,
     esc: esc, hoje: hoje, diaLocal: diaLocal, somaDias: somaDias, dias: dias, dataBR: dataBR, num: num, moeda: moeda, soDig: soDig, telWa: telWa, maskTel: maskTel,

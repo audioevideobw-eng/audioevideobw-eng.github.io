@@ -119,6 +119,17 @@
     <div id="funilBox"></div>
   </div>
 
+  <div class="tf-card" id="link">
+    <h3>LINK PEDIR ORÇAMENTO</h3>
+    <p class="tf-sub">Um link seu para colocar na bio do Instagram, no WhatsApp e no site. O cliente preenche e o pedido entra aqui no funil como <b>NOVO CONTATO</b> — já com a origem.</p>
+    <div class="tf-grade">
+      <label class="tf-campo"><span>Nome que aparece no link</span><input id="lkNome" maxlength="80" placeholder="Ex.: BW Produções"></label>
+      <label class="tf-campo"><span>Seu WhatsApp (opcional)</span><input id="lkWhats" type="tel" placeholder="Para o cliente falar com você depois de enviar"></label>
+    </div>
+    <div class="tf-acoes"><button class="bw-btn bw-btn--primario" id="lkGerar" type="button">GERAR MEU LINK</button><span class="tf-nota" id="lkMsg" style="margin:0"></span></div>
+    <div id="lkBox"></div>
+  </div>
+
   <div class="tf-card" id="mensagens">
     <h3>MENSAGENS PRONTAS</h3>
     <p class="tf-sub">Use {nome}, {empresa}, {servico}, {data}, {valor} e {assinatura} — o sistema troca pelos dados do contato na hora de mandar.</p>
@@ -145,7 +156,7 @@
 <script src="assets/layout.js?v=26"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="assets/bw-sync.js"></script>
-<script src="assets/crm.js?v=2"></script>
+<script src="assets/crm.js?v=3"></script>
 <script>
 (function () {
   "use strict";
@@ -554,6 +565,7 @@
     var r; try { r = await c.from("orcamentos").select("*").order("created_at", { ascending: false }).limit(200); } catch (e) { r = { error: e }; }
     if (r.error) { if (!silencioso) alert("Não deu para ler os pedidos do site agora."); return; }
     var vistos = []; try { vistos = JSON.parse(localStorage.getItem("ui_crm_orc_vistos") || "[]"); } catch (e) { }
+    (C.cfg("cfg_orc_vistos", []) || []).forEach(function (v) { if (vistos.indexOf(v) < 0) vistos.push(v); });   /* 16/11: lista na conta — outro aparelho não puxa de novo o que foi apagado */
     var lista = C.leads(), ids = {}, novos = 0; lista.forEach(function (l) { ids[l.id] = 1; });
     (r.data || []).forEach(function (o) {
       var id = "orc_" + o.id; if (ids[id] || vistos.indexOf(id) >= 0) return;
@@ -568,6 +580,7 @@
       vistos.push(id); novos++;
     });
     try { localStorage.setItem("ui_crm_orc_vistos", JSON.stringify(vistos.slice(-500))); } catch (e) { }
+    if (novos || (C.cfg("cfg_orc_vistos", []) || []).length !== vistos.length) C.salvarCfg("cfg_orc_vistos", vistos.slice(-500));
     if (novos) { C.gravar("mkt_leads", lista); render(); }
     if (!silencioso || novos) toast(novos ? "✓ " + novos + " pedido(s) do site entraram como NOVO CONTATO" : "Nenhum pedido novo no site");
   }
@@ -626,8 +639,39 @@
   ["fBusca", "fOrigem", "fServ"].forEach(function (id) { $(id).addEventListener(id === "fBusca" ? "input" : "change", render); });
   document.querySelectorAll(".crm-vista button").forEach(function (b) { b.onclick = function () { VISTA = b.dataset.vista; try { localStorage.setItem("ui_crm_vista", VISTA); } catch (e) { } render(); }; });
 
-  encherFiltros(); renderModelos(); renderAjustes(); render();
-  window.addEventListener("bw-sync-recebido", function () { if (!$("crmModal")) { encherFiltros(); renderModelos(); renderAjustes(); render(); } });
+  /* ---------- LINK PEDIR ORÇAMENTO ---------- */
+  function renderLink() {
+    var c = C.linkPedido();
+    $("lkNome").value = (c && c.nome) || C.cfg("cfg_assinatura", "") || "";
+    $("lkWhats").value = (c && c.whats) || "";
+    $("lkGerar").textContent = c ? "ATUALIZAR O LINK" : "GERAR MEU LINK";
+    if (!c) { $("lkBox").innerHTML = ""; return; }
+    var u = C.montarLink(c);
+    $("lkBox").innerHTML = '<div class="crm-ia" style="margin-top:14px;overflow-wrap:anywhere"><b>SEU LINK:</b>\n<a href="' + esc(u) + '" target="_blank" rel="noopener" style="color:#FFB547">' + esc(u) + "</a></div>" +
+      '<div class="tf-acoes"><button type="button" class="crm-bt prim" id="lkCopiar">COPIAR LINK</button>' +
+      (navigator.share ? '<button type="button" class="crm-bt" id="lkShare">COMPARTILHAR</button>' : "") +
+      '<a class="crm-bt" target="_blank" rel="noopener" href="' + esc(u) + '">VER COMO O CLIENTE VÊ</a>' +
+      '<a class="crm-bt wa" target="_blank" rel="noopener" href="https://wa.me/?text=' + encodeURIComponent("Para pedir um orçamento é só preencher aqui: " + u) + '">MANDAR NO WHATSAPP</a></div>' +
+      '<p class="tf-nota">Dica: no Instagram, cole em Editar perfil → Links. Os serviços do link são os de AJUSTES DO SEU NEGÓCIO.</p>';
+    $("lkCopiar").onclick = function () { copiar(u); };
+    if ($("lkShare")) $("lkShare").onclick = function () { navigator.share({ title: "Pedir orçamento", url: u }).catch(function () { }); };
+  }
+  $("lkWhats").oninput = function (ev) { ev.target.value = C.maskTel(ev.target.value); };
+  $("lkGerar").onclick = async function () {
+    var b = this; b.disabled = true; $("lkMsg").textContent = "Registrando o link…";
+    var r = await C.criarLinkPedido($("lkNome").value, $("lkWhats").value);
+    b.disabled = false;
+    if (r.erro) { $("lkMsg").textContent = "Entre na sua conta (e com internet) para gerar o link."; return; }
+    $("lkMsg").textContent = "✓ Link pronto"; renderLink();
+  };
+  async function verPedidos() {
+    var r = await C.puxarPedidos();
+    if (r.novos) { encherFiltros(); render(); toast("📩 " + r.novos + " pedido(s) novo(s) pelo link — estão em NOVO CONTATO"); }
+  }
+
+  encherFiltros(); renderModelos(); renderAjustes(); renderLink(); render();
+  setTimeout(verPedidos, 1800);
+  window.addEventListener("bw-sync-recebido", function () { if (!$("crmModal")) { encherFiltros(); renderModelos(); renderAjustes(); renderLink(); render(); } });
   window.addEventListener("storage", function (e) { if (e.key && /mkt_/.test(e.key) && !$("crmModal")) render(); });
 
   var qs = new URLSearchParams(location.search);

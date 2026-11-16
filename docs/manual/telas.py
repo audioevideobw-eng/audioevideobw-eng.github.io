@@ -65,7 +65,8 @@ SEED = {
                   {"id": "rd_b", "mes": (hoje.replace(day=1) - datetime.timedelta(days=30)).strftime("%Y-%m"), "rede": "Instagram", "seguidores": 1985, "alcance": 12400},
                   {"id": "rd_c", "mes": (hoje.replace(day=1) - datetime.timedelta(days=60)).strftime("%Y-%m"), "rede": "TikTok", "seguidores": 620, "alcance": 15800},
                   {"id": "rd_d", "mes": (hoje.replace(day=1) - datetime.timedelta(days=30)).strftime("%Y-%m"), "rede": "TikTok", "seguidores": 910, "alcance": 31000}],
-    "mkt_config": [{"id": "cfg_assinatura", "valor": "Equipe da Produtora Exemplo"}],
+    "mkt_config": [{"id": "cfg_assinatura", "valor": "Equipe da Produtora Exemplo"},
+                   {"id": "cfg_link_pedido", "valor": {"token": "pdexemplo1", "nome": "Produtora Exemplo", "whats": "(31) 90000-0000"}}],
 }
 
 
@@ -124,11 +125,11 @@ def main():
         pg.click("[data-fechar]"); pg.wait_for_timeout(300)
         pg.fill("#agMagica", "dentista sexta 15h"); pg.wait_for_timeout(200)
         foto(pg, ".ag-magica", "agenda-magica.png", 4)
+        pg.screenshot(path=os.path.join(SAIDA, "agenda-magica-dica.png"), clip={**{k: v for k, v in pg.locator(".ag-magica").bounding_box().items()}, "height": 80})
         # 16/11: abas PENDENTES / AGENDA (vista em lista)
         pg.evaluate("localStorage.setItem('ui_agenda_vista','\"lista\"')"); pg.reload(); pg.wait_for_timeout(1200)
         foto(pg, ".ag-corpo--lista", "agenda-abas.png")
         pg.evaluate("localStorage.setItem('ui_agenda_vista','\"mes\"')"); pg.reload(); pg.wait_for_timeout(800)
-        pg.screenshot(path=os.path.join(SAIDA, "agenda-magica-dica.png"), clip={**{k: v for k, v in pg.locator(".ag-magica").bounding_box().items()}, "height": 80})
         c.close()
         # 2) Início no celular
         c, pg = pagina(390, 844); pg.goto(base + "index.html"); pg.wait_for_timeout(1200)
@@ -174,6 +175,16 @@ def main():
         foto(pg, ".r-duas", "crm-funil-perda.png")
         foto(pg, "#redes", "crm-redes.png")
         c.close()
+        # 6b) Link PEDIR ORÇAMENTO: cartão do dono + formulário do cliente (celular)
+        c, pg = pagina(); pg.goto(base + "captacao.html#link"); pg.wait_for_timeout(1200)
+        pg.evaluate("""document.querySelectorAll('#lkBox a').forEach(a=>{a.textContent=a.textContent.replace(/^https?:\\/\\/[^/]+\\//,'https://audioevideobw-eng.github.io/')})""")
+        foto(pg, "#link", "crm-link.png")
+        c.close()
+        c2, pg = pagina(390, 844)
+        pg.goto(base + "pedido.html?p=pdexemplo1&n=Produtora%20Exemplo&s=Corporativo|Casamento|Formatura|Outro"); pg.wait_for_timeout(800)
+        pg.fill("#nome", "Ana Souza"); pg.fill("#whats", "31988887777"); pg.select_option("#servico", "Corporativo")
+        pg.screenshot(path=os.path.join(SAIDA, "pedido-cliente.png"), full_page=True)
+        c2.close()
         # 7) Editor de fotos (foto gerada na hora: gradiente + texto)
         c, pg = pagina(); pg.goto(base + "fotos.html"); pg.wait_for_timeout(800)
         pg.evaluate("""(async()=>{const c=document.createElement('canvas');c.width=3000;c.height=2000;const x=c.getContext('2d');const g=x.createLinearGradient(0,0,3000,2000);

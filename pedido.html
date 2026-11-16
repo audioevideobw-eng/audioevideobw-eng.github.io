@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pedir orçamento</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#06080D">
+<link rel="icon" type="image/png" href="icons/favicon-64.png">
+<link href="https://fonts.googleapis.com/css2?family=Michroma&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(120% 70% at 50% 0%,#141a27 0%,#06080D 60%);color:#F5F1EA;font-family:Inter,system-ui,sans-serif;min-height:100vh}
+.pag{max-width:560px;margin:0 auto;padding:34px 20px 50px}
+.topo{text-align:center;margin-bottom:22px}
+.topo small{display:block;font:600 11px Inter;letter-spacing:.2em;color:#FFB547}
+.topo h1{margin:10px 0 6px;font-size:26px;line-height:1.2}
+.topo p{margin:0;color:#b8b3ab;font-size:15px;line-height:1.5}
+.cx{background:rgba(255,255,255,.035);border:1px solid rgba(245,241,234,.1);border-radius:20px;padding:20px}
+label{display:block;margin-top:14px;font:600 12px Inter;letter-spacing:.06em;color:#c9c4bc}
+label:first-child{margin-top:0}
+input,select,textarea{width:100%;margin-top:6px;min-height:48px;border-radius:12px;border:1px solid rgba(245,241,234,.16);background:rgba(0,0,0,.3);color:#F5F1EA;padding:0 14px;font:16px Inter}
+textarea{min-height:110px;padding:12px 14px;resize:vertical}
+input:focus,select:focus,textarea:focus{outline:none;border-color:#FFB547}
+.duas{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px}
+.duas label{margin-top:14px}
+@media (max-width:420px){.duas{grid-template-columns:minmax(0,1fr);gap:0}}
+.obr{color:#FFB547}
+.bt{display:flex;width:100%;align-items:center;justify-content:center;gap:8px;margin-top:20px;min-height:54px;border:0;border-radius:14px;background:#FFB547;color:#1a1205;font:700 15px Inter;letter-spacing:.06em;cursor:pointer;text-decoration:none}
+.bt:disabled{opacity:.6}
+.bt.wa{background:#25D366;color:#062b14}
+.msg{margin-top:12px;font-size:14px;min-height:20px;color:#f2a0a2}
+.priv{margin-top:16px;font-size:12px;color:#8f948f;text-align:center;line-height:1.5}
+.ok{text-align:center;padding:30px 10px}
+.ok .ic{width:72px;height:72px;margin:0 auto 14px;border-radius:50%;background:rgba(62,207,142,.15);color:#3ecf8e;display:flex;align-items:center;justify-content:center;font-size:36px}
+.ok h2{margin:0 0 8px}
+.ok p{color:#b8b3ab;margin:0 0 6px}
+.hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+.rod{margin-top:26px;text-align:center;font:600 10px Michroma,sans-serif;letter-spacing:.2em;color:#5d6470}
+.rod a{color:#5d6470;text-decoration:none}
+</style>
+</head>
+<body>
+<main class="pag">
+  <div class="topo"><small>PEDIDO DE ORÇAMENTO</small><h1 id="tNome">Vamos conversar sobre o seu evento?</h1><p id="tSub">Conte o que você precisa — a resposta chega no seu WhatsApp ou e-mail.</p></div>
+  <form class="cx" id="form" novalidate>
+    <label>Seu nome <span class="obr">*</span><input id="nome" autocomplete="name" maxlength="120" required></label>
+    <label>Empresa <span style="color:#8f948f;font-weight:500">(se for)</span><input id="empresa" autocomplete="organization" maxlength="120"></label>
+    <div class="duas">
+      <label>WhatsApp<input id="whats" type="tel" inputmode="tel" autocomplete="tel" maxlength="20" placeholder="(31) 99999-9999"></label>
+      <label>E-mail<input id="email" type="email" autocomplete="email" maxlength="160"></label>
+    </div>
+    <label>O que você precisa<select id="servico"></select></label>
+    <div class="duas">
+      <label>Data do evento<input id="data" type="date"></label>
+      <label>Pessoas (aprox.)<input id="conv" type="number" min="0" max="999999" inputmode="numeric"></label>
+    </div>
+    <label>Local / cidade<input id="local" maxlength="160"></label>
+    <label>Conte mais<textarea id="msg" maxlength="2000" placeholder="Ex.: formatura com 300 convidados, queremos foto e vídeo, horário das 19h às 2h…"></textarea></label>
+    <label>Como você conheceu?<select id="como"><option value="">—</option><option>Instagram</option><option>TikTok</option><option>Indicação</option><option>Google</option><option>Site</option><option>Evento / feira</option><option>Outro</option></select></label>
+    <div class="hp" aria-hidden="true"><label>Não preencha<input id="site" tabindex="-1" autocomplete="off"></label></div>
+    <button class="bt" id="enviar" type="submit">ENVIAR PEDIDO</button>
+    <div class="msg" id="aviso" role="alert"></div>
+    <p class="priv" id="priv">Seus dados vão só para quem te mandou este link, para responder o seu pedido.</p>
+  </form>
+  <p class="rod"><a href="./" id="rod">FEITO COM BRIGHTWAY</a></p>
+</main>
+<script>
+(function () {
+  "use strict";
+  /* PEDIR ORÇAMENTO (16/11, Claude): página pública. Grava em public.bw_pedidos pela API (só a chave publishable;
+     o visitante só INSERE). O dono vem do link registrado (bw_links); link desconhecido → LINK_INVALIDO. */
+  var SB = "https://zdtnetplvdonogmdvarx.supabase.co", KEY = "sb_publishable_qJ2mIx1hcn_ZH75-yxJiDA_OI-EHyIU";
+  var q = new URLSearchParams(location.search), TOKEN = (q.get("p") || "").trim(), NOME = (q.get("n") || "").slice(0, 80), WA = (q.get("w") || "").replace(/\D/g, "");
+  var SERV = (q.get("s") || "").split("|").map(function (s) { return s.trim(); }).filter(Boolean).slice(0, 20);
+  var $ = function (id) { return document.getElementById(id); };
+  if (NOME) { $("tNome").textContent = NOME; document.title = "Pedir orçamento — " + NOME; $("priv").textContent = "Seus dados vão só para " + NOME + ", para responder o seu pedido."; }
+  if (!SERV.length) SERV = ["Evento corporativo", "Casamento", "Formatura", "Aniversário", "Show", "Transmissão ao vivo", "Outro"];
+  $("servico").innerHTML = '<option value="">—</option>' + SERV.map(function (s) { var o = document.createElement("option"); o.textContent = s; return o.outerHTML; }).join("");
+  if (!/^[a-z0-9]{6,40}$/i.test(TOKEN)) { $("form").innerHTML = '<div class="ok"><div class="ic" style="background:rgba(242,104,107,.15);color:#f2686b">!</div><h2>Link incompleto</h2><p>Peça o link de orçamento de novo para quem te enviou.</p></div>'; return; }
+  function tel(v) { v = String(v || "").replace(/\D/g, "").replace(/^55(?=\d{10,11}$)/, "").slice(0, 11); return v.length <= 10 ? v.replace(/(\d{2})(\d{4})(\d{0,4})/, "($1) $2-$3").replace(/[-\s]+$/, "") : v.replace(/(\d{2})(\d{5})(\d{0,4})/, "($1) $2-$3").replace(/[-\s]+$/, ""); }
+  $("whats").addEventListener("input", function () { this.value = tel(this.value); });
+  var hoje = new Date(); $("data").min = hoje.getFullYear() + "-" + String(hoje.getMonth() + 1).padStart(2, "0") + "-" + String(hoje.getDate()).padStart(2, "0");
+  function val(id) { var v = $(id).value.trim(); return v === "" ? null : v; }
+  $("form").addEventListener("submit", async function (ev) {
+    ev.preventDefault(); var av = $("aviso"); av.textContent = "";
+    if ($("site").value) return;   /* robô */
+    var nome = val("nome"), wa = val("whats"), em = val("email");
+    if (!nome || nome.length < 2) { av.textContent = "Escreva o seu nome."; $("nome").focus(); return; }
+    if (!wa && !em) { av.textContent = "Informe o WhatsApp ou o e-mail para receber a resposta."; $("whats").focus(); return; }
+    if (wa && wa.replace(/\D/g, "").length < 10) { av.textContent = "Confira o WhatsApp (com DDD)."; $("whats").focus(); return; }
+    if (em && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)) { av.textContent = "Confira o e-mail."; $("email").focus(); return; }
+    var b = $("enviar"); b.disabled = true; b.textContent = "ENVIANDO…";
+    var corpo = { token: TOKEN, nome: nome, empresa: val("empresa"), whatsapp: wa, email: em, servico: val("servico"), data_evento: val("data"),
+      local: val("local"), convidados: val("conv"), mensagem: val("msg"), como_conheceu: val("como") };
+    try {
+      var r = await fetch(SB + "/rest/v1/bw_pedidos", { method: "POST", headers: { "Content-Type": "application/json", apikey: KEY, Authorization: "Bearer " + KEY, Prefer: "return=minimal" }, body: JSON.stringify(corpo) });
+      if (!r.ok) {
+        var t = await r.text();
+        av.textContent = /LINK_INVALIDO/.test(t) ? "Este link de orçamento não está mais ativo. Peça um link novo para quem te enviou."
+          : /LIMITE/.test(t) ? "Muitos pedidos agora. Tente de novo daqui a pouco." : /CONTATO/.test(t) ? "Informe o WhatsApp ou o e-mail." : "Não deu para enviar agora. Tente de novo.";
+        b.disabled = false; b.textContent = "ENVIAR PEDIDO"; return;
+      }
+    } catch (e) { av.textContent = "Sem internet agora. Confira a conexão e tente de novo."; b.disabled = false; b.textContent = "ENVIAR PEDIDO"; return; }
+    var resumo = "Olá! Acabei de mandar um pedido de orçamento pelo link" + (corpo.servico ? " (" + corpo.servico + ")" : "") + ". Meu nome é " + nome + ".";
+    $("form").innerHTML = '<div class="ok"><div class="ic">✓</div><h2>Pedido enviado!</h2><p>' + (NOME ? NOME.replace(/[<>&]/g, "") : "A equipe") + " recebeu o seu pedido e vai falar com você em breve.</p>" +
+      (WA.length >= 12 ? '<a class="bt wa" target="_blank" rel="noopener" href="https://wa.me/' + WA + "?text=" + encodeURIComponent(resumo) + '">FALAR AGORA NO WHATSAPP</a>' : "") + "</div>";
+    try { window.scrollTo({ top: 0, behavior: "smooth" }); } catch (e) { }
+  });
+})();
+</script>
+</body>
+</html>

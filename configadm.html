@@ -239,6 +239,21 @@ footer b{color:var(--gold)}
     <div id="fbLista" style="overflow-x:auto"><div class="note">Carregando…</div></div>
   </div>
 
+  <div class="card so-admin" id="mlCard" style="margin-top:16px">
+    <h3>COTAÇÕES DE MILHAS</h3>
+    <div class="sub">Quanto cada comprador paga por 1.000 milhas e quantas milhas custa cada rota. Ao salvar, o site é atualizado em até 1 hora
+      (automação "Milhas" no GitHub). O melhor preço e a média são calculados sozinhos.</div>
+    <div class="note" id="mlInfo" style="margin:8px 0">Carregando…</div>
+    <div id="mlProgs"></div>
+    <h3 style="margin-top:18px;font-size:14px">ROTAS (milhas por trecho)</h3>
+    <div id="mlRotas" style="overflow-x:auto"></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
+      <button type="button" class="btn gh" id="mlAddRota" style="padding:8px 12px;font-size:12px">+ ROTA</button>
+      <button type="button" class="btn" id="mlSalvar">SALVAR COTAÇÕES</button>
+    </div>
+    <div class="note" id="mlMsg" style="margin-top:8px"></div>
+  </div>
+
   <div class="grid2" style="margin-top:16px">
     <div class="card">
       <h3>Conexão com o Supabase</h3>
@@ -1182,6 +1197,54 @@ return {  };
     });
   }
   setTimeout(carregar, 600);
+})();
+</script>
+<script>
+/* COTAÇÕES DE MILHAS (16/11, Claude): o ADM lança em public.bw_milhas_ref; .github/workflows/milhas.yml publica milhas.json a cada hora. */
+(function () {
+  var box = document.getElementById("mlProgs"); if (!box) return;
+  var esc = function (s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return {"&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;"}[c]; }); };
+  var D = null, inp = 'style="width:100%;min-width:0;padding:8px 10px;border-radius:9px;border:1px solid rgba(245,241,234,.16);background:rgba(0,0,0,.25);color:inherit"';
+  function desenhar() {
+    box.innerHTML = D.programs.map(function (p, i) {
+      return '<div style="margin-top:12px;padding:12px;border-radius:12px;border:1px solid rgba(245,241,234,.1)"><b style="color:' + esc(p.color || "#FFB547") + '">' + esc(p.name) + "</b> <span class=\"note\">" + esc(p.note || "") + "</span>" +
+        '<table style="width:100%;margin-top:8px"><thead><tr><th>Comprador</th><th>R$ por mil</th><th>Prazo (dias)</th><th></th></tr></thead><tbody>' +
+        p.buyers.map(function (b, j) { return '<tr><td><input ' + inp + ' data-p="' + i + '" data-b="' + j + '" data-k="buyer" value="' + esc(b.buyer) + '"></td><td><input ' + inp + ' type="number" step="0.01" min="0" data-p="' + i + '" data-b="' + j + '" data-k="price" value="' + esc(b.price) + '"></td><td><input ' + inp + ' type="number" step="1" min="0" data-p="' + i + '" data-b="' + j + '" data-k="days" value="' + esc(b.days) + '"></td><td><button type="button" class="btn gh" data-del="' + i + "," + j + '" style="padding:6px 10px">✕</button></td></tr>'; }).join("") +
+        '</tbody></table><button type="button" class="btn gh" data-add="' + i + '" style="padding:6px 12px;font-size:12px;margin-top:6px">+ COMPRADOR</button></div>';
+    }).join("");
+    document.getElementById("mlRotas").innerHTML = '<table style="width:100%"><thead><tr><th>Cidade</th><th>De</th><th>Para</th><th>Milhas</th><th></th></tr></thead><tbody>' +
+      D.rotas.map(function (r, i) { return '<tr><td><input ' + inp + ' data-r="' + i + '" data-k="city" value="' + esc(r.city) + '"></td><td><input ' + inp + ' data-r="' + i + '" data-k="o" maxlength="3" value="' + esc(r.o) + '"></td><td><input ' + inp + ' data-r="' + i + '" data-k="d" maxlength="3" value="' + esc(r.d) + '"></td><td><input ' + inp + ' type="number" step="100" min="0" data-r="' + i + '" data-k="miles" value="' + esc(r.miles) + '"></td><td><button type="button" class="btn gh" data-rdel="' + i + '" style="padding:6px 10px">✕</button></td></tr>'; }).join("") + "</tbody></table>";
+    var raiz = document.getElementById("mlCard");
+    [].forEach.call(raiz.querySelectorAll("input[data-p]"), function (el) { el.oninput = function () { var b = D.programs[+el.dataset.p].buyers[+el.dataset.b]; b[el.dataset.k] = el.type === "number" ? +el.value : el.value; }; });
+    [].forEach.call(raiz.querySelectorAll("input[data-r]"), function (el) { el.oninput = function () { D.rotas[+el.dataset.r][el.dataset.k] = el.type === "number" ? +el.value : el.value.toUpperCase(); if (el.dataset.k === "city") D.rotas[+el.dataset.r].city = el.value; }; });
+    [].forEach.call(raiz.querySelectorAll("[data-add]"), function (b) { b.onclick = function () { D.programs[+b.dataset.add].buyers.push({ buyer: "", price: 0, days: 30 }); desenhar(); }; });
+    [].forEach.call(raiz.querySelectorAll("[data-del]"), function (b) { b.onclick = function () { var x = b.dataset.del.split(","); D.programs[+x[0]].buyers.splice(+x[1], 1); desenhar(); }; });
+    [].forEach.call(raiz.querySelectorAll("[data-rdel]"), function (b) { b.onclick = function () { D.rotas.splice(+b.dataset.rdel, 1); desenhar(); }; });
+  }
+  async function carregar() {
+    var info = document.getElementById("mlInfo"), noSite = null;
+    try { noSite = await fetch("milhas.json?t=" + Date.now(), { cache: "no-store" }).then(function (r) { return r.json(); }); } catch (e) { }
+    var c = window.BWSync && BWSync.cliente(), r = c ? await c.from("bw_milhas_ref").select("dados,atualizado").eq("id", "atual").maybeSingle() : null;
+    D = (r && r.data && r.data.dados) || JSON.parse(JSON.stringify(noSite || { programs: [], rotas: [] }));
+    D.programs = D.programs || []; D.rotas = D.rotas || [];
+    info.textContent = "No site agora: referência de " + (noSite && noSite.updated || "—") + (r && r.data ? " · último lançamento: " + new Date(r.data.atualizado).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }) : " · ainda sem lançamento pelo ADM (valores carregados do site)");
+    desenhar();
+  }
+  document.getElementById("mlAddRota").onclick = function () { D.rotas.push({ o: "CNF", d: "", city: "", miles: 0 }); desenhar(); };
+  document.getElementById("mlSalvar").onclick = async function () {
+    var msg = document.getElementById("mlMsg"), b = this;
+    var ruim = D.programs.some(function (p) { return !p.buyers.filter(function (x) { return x.buyer && +x.price > 0; }).length; });
+    if (ruim) { msg.textContent = "Cada programa precisa de pelo menos 1 comprador com preço."; return; }
+    D.programs.forEach(function (p) { p.buyers = p.buyers.filter(function (x) { return x.buyer && +x.price > 0; }); });
+    D.rotas = D.rotas.filter(function (x) { return x.city && +x.miles > 0; });
+    b.disabled = true; msg.textContent = "Salvando…";
+    var c = BWSync.cliente(), s = (await c.auth.getSession()).data.session;
+    var r = await c.from("bw_milhas_ref").upsert({ id: "atual", dados: D, atualizado: new Date().toISOString(), por: s && s.user.email });
+    b.disabled = false;
+    msg.textContent = r.error ? "Não deu para salvar: " + r.error.message : "✓ Salvo. O site recebe as cotações novas em até 1 hora.";
+    if (!r.error) carregar();
+  };
+  setTimeout(function () { if (document.documentElement.classList.contains("bw-admin")) carregar(); else setTimeout(carregar, 2500); }, 900);
 })();
 </script>
 <script src="assets/layout.js?v=26"></script>

@@ -107,6 +107,11 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
 36. Concluir na AGENDA: tarefa → feitos da tarefa; conta da casa → c3 "Sim"; retorno do CRM → prox.feito; evento/montagem/fixo/cachê →
     agenda_feitos (em CHAVES). Quem mostra avisos (sino, agente do CRM) ignora o que foi concluído.
 
+37. Lista de "já importados" (pedidos do site → funil) fica na CONTA (mkt_config cfg_orc_vistos), não só no aparelho:
+    apagar os testes no PC e abrir o celular trazia os 10 testes de volta.
+38. Página pública que só envia (pedido.html) usa fetch cru no /rest/v1 com a chave publishable (sem supabase-js nem bw-sync);
+    o dono e as regras vêm do gatilho no banco (bw_dono_pedido), nunca do navegador.
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -384,9 +389,20 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   Sino e agente do CRM ignoram o concluído. Teste docs/testes/teste_agenda.py (34 checagens em 1280 e 390 px, 0 falhas).
   Manual: "A sua agenda" refeita. brightway.css v23, layout.js v26, crm.js v2, sw v65. PENTE FINO 35–36.
 
+- 16/11/2026 · Claude (dono: "faça as alterações sugeridas e as pendentes"): (1) FUNIL limpo — os 10 pedidos de teste do site saíram do
+  funil (continuam na tabela orcamentos); lista de importados agora na conta (cfg_orc_vistos). (2) LINK PEDIR ORÇAMENTO: página pública
+  `pedido.html?p=TOKEN&n=…&w=…&s=…` (nome, empresa, WhatsApp/e-mail, serviço, data, pessoas, local, mensagem, como conheceu; robô barrado por
+  campo escondido) → tabela public.bw_pedidos (docs/sql/2026-11-16-pedidos-orcamento.sql, rodado: RLS + 4 regras; visitante só insere; dono pelo
+  bw_links; LINK_INVALIDO; 20/h por link). Funil: cartão LINK PEDIR ORÇAMENTO (GERAR com BWSync.registrarAgora, COPIAR, COMPARTILHAR, WhatsApp);
+  BWCRM.puxarPedidos ao abrir FUNIL/CRM → NOVO CONTATO (origem = "como conheceu", campanha "Link de orçamento") e importado = true. CRM ganhou
+  o card PEDIR ORÇAMENTO. (3) MILHAS: cartão COTAÇÕES DE MILHAS em Configuração (só ADM) grava em public.bw_milhas_ref
+  (docs/sql/2026-11-16-milhas-adm.sql, rodado: leitura pública, gravação is_bw_admin) → automação .github/workflows/milhas.yml (a cada hora,
+  docs/automacoes/milhas.py) publica milhas.json com melhor preço e média calculados. Teste docs/testes/teste_pedido.py (24 checagens, 0 falhas).
+  Manual 35 → 36 p. ("Link PEDIR ORÇAMENTO"). crm.js v3, sw v66. PENTE FINO 37–38.
+
 ## Pendências (dono)
 - [x] (15/11 10:02, dono: "faça tudo") Autorizar a automação de NOTÍCIAS (publica noticias.json no site a cada 2 h) — ATIVA.
-- [ ] Milhas: não existe fonte pública automática; atualizar a referência à mão ou criar tela de ADM para lançar as cotações.
+- [x] (16/11, Claude) Milhas: tela de ADM criada (Configuração → COTAÇÕES DE MILHAS) + automação de hora em hora. Falta o dono lançar as cotações atuais.
 - [ ] Conferir EVENTO SICOOB: o fluxo tem "Evento: EVENTO SICOOB" R$ 2.500 como RECEBIDO, mas o evento está marcado como NÃO PAGO.
 - [x] (15/11 09:20, dono) IA Brightway: criar conta grátis em console.groq.com → API Keys → Create; colar em Supabase → Edge Functions → Secrets como GROQ_API_KEY.
 - [x] (14/11 20:03, dono) Google: gerar NOVO client secret no Google Cloud (Clients → cliente OAuth) e colar em Supabase → Authentication →
