@@ -76,9 +76,10 @@
   var G = normalizar(lerUi("ui_fotos_ultimo", {}));
   var FOTOS = [], ATUAL = -1, ABA = "foto", ESCOPO = "todas", TXT = null, COMPARAR = false, DIV = 0.5;
   var LOGOS = {}, MOLDS = {};   // id -> HTMLImageElement
+  function IA0() { return { cab: "", cabF: 75, roupa: "", roupaF: 75, pele: 0, fundo: "", fundoF: 100 }; }
   function fotoNova(file, im) {
     return { file: file, nome: file.name.replace(/\.[^.]+$/, ""), prev: reduzir(im, 1400), w: im.naturalWidth, h: im.naturalHeight,
-      rot: 0, incl: 0, esp: false, cx: 0, cy: 0, zoom: 100, aj: {}, filtro: null, fundo: { modo: "nenhum", cor: "#ffffff", blur: 18 }, mask: null, adesivos: [] };
+      rot: 0, incl: 0, esp: false, cx: 0, cy: 0, zoom: 100, aj: {}, filtro: null, fundo: { modo: "nenhum", cor: "#ffffff", blur: 18 }, mask: null, adesivos: [], ia: IA0(), seg: null };
   }
 
   /* ================= MINHA MARCA (IndexedDB do aparelho) ================= */
@@ -447,10 +448,15 @@
   }
 
   /* ===== IA NO ROSTO (16/11): acha os rostos da foto no aparelho (MediaPipe Face Detector, Apache-2.0) e encaixa o acessório ===== */
-  var MP = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14", detector = null;
+  var MP = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14", detector = null, mpBase = null;
+  function mpVision() {
+    if (!mpBase) mpBase = import(MP + "/vision_bundle.mjs").then(function (v) { return v.FilesetResolver.forVisionTasks(MP + "/wasm").then(function (fs) { return { v: v, fs: fs }; }); })
+      .catch(function (e) { mpBase = null; throw e; });
+    return mpBase;
+  }
   async function achaRostos(f) {
     if (!detector) {
-      var v = await import(MP + "/vision_bundle.mjs"), fs = await v.FilesetResolver.forVisionTasks(MP + "/wasm");
+      var b0 = await mpVision(), v = b0.v, fs = b0.fs;
       detector = await v.FaceDetector.createFromOptions(fs, { baseOptions: { modelAssetPath: "https://storage.googleapis.com/mediapipe-models/face_detector/blaze_face_short_range/float16/1/blaze_face_short_range.tflite" }, runningMode: "IMAGE", minDetectionConfidence: 0.45 });
     }
     var P = LAY.P, w = Math.round(Math.min(1024, P.w)), hh = Math.round(w * P.h / P.w), c = camadaFoto(f.prev, f, w, hh, true);
@@ -483,6 +489,107 @@
     } catch (er) { $("ocup").hidden = true; toast("Não deu para usar a IA de rosto agora (" + String(er && er.message || er).slice(0, 60) + ")."); }
   }
 
+  /* ===== RETOQUE COM IA (16/11): MediaPipe Multi-class Selfie Segmenter (Apache-2.0), roda NO APARELHO.
+     Separa cabelo, pele, roupa e fundo → cor do cabelo, cor da roupa, pele suave e efeito no fundo. Nada é enviado. ===== */
+  var segmentador = null;
+  var CORES_CAB = [["", "ORIGINAL"], ["#e2bd74", "LOIRO"], ["#efe2bd", "PLATINADO"], ["#a8452b", "RUIVO"], ["#7a4a2c", "CASTANHO"], ["#3a2418", "CHOCOLATE"], ["#141013", "PRETO"], ["#bcbcc4", "GRISALHO"], ["#e566a9", "ROSA"], ["#7b4fd3", "ROXO"], ["#2f6be0", "AZUL"], ["#25a586", "VERDE"]];
+  var CORES_ROUPA = [["", "ORIGINAL"], ["#111216", "PRETO"], ["#f2f0ea", "BRANCO"], ["#1f3a6e", "MARINHO"], ["#c22b2b", "VERMELHO"], ["#d9a441", "MOSTARDA"], ["#2f7d4f", "VERDE"], ["#e8a7b8", "ROSÉ"], ["#8a6a4f", "CAQUI"], ["#6d6f78", "CINZA"]];
+  var FUNDO_IA = [["", "ORIGINAL"], ["pb", "COR SÓ NA PESSOA"], ["desfoque", "DESFOCADO"], ["escuro", "ESCURECIDO"], ["claro", "CLAREADO"]];
+  function iaAtiva(f) { var a = f && f.ia; return !!(f && f.seg && a && (a.cab || a.roupa || a.pele > 0 || a.fundo)); }
+  async function segmentar(f) {
+    if (!segmentador) {
+      var b0 = await mpVision();
+      segmentador = await b0.v.ImageSegmenter.createFromOptions(b0.fs, { baseOptions: { modelAssetPath: "https://storage.googleapis.com/mediapipe-models/image_segmenter/selfie_multiclass_256x256/float32/latest/selfie_multiclass_256x256.tflite", delegate: "CPU" },
+        runningMode: "IMAGE", outputCategoryMask: true, outputConfidenceMasks: false });   // CPU: no iPhone a GPU troca as categorias
+    }
+    var src = reduzir(f.prev, 768), w = src.width, h = src.height, r = segmentador.segment(src), cm = r.categoryMask, cat = cm.getAsUint8Array().slice(0), mw = cm.width, mh = cm.height;
+    cm.close && cm.close();
+    var px = src.getContext("2d", { willReadFrequently: true }).getImageData(0, 0, w, h).data;
+    /* 0 fundo · 1 cabelo · 2 pele do corpo · 3 pele do rosto · 4 roupa · 5 acessórios */
+    var grupos = { cab: [1], pele: [2, 3], roupa: [4], fundo: [0] }, out = {}, achou = {};
+    Object.keys(grupos).forEach(function (k) {
+      var c = document.createElement("canvas"); c.width = mw; c.height = mh; var x = c.getContext("2d"), im = x.createImageData(mw, mh), d = im.data, soma = 0, n = 0;
+      for (var i = 0; i < cat.length; i++) if (grupos[k].indexOf(cat[i]) >= 0) {
+        d[i * 4] = d[i * 4 + 1] = d[i * 4 + 2] = d[i * 4 + 3] = 255; n++;
+        var sx = Math.min(w - 1, Math.round((i % mw) * w / mw)), sy = Math.min(h - 1, Math.round(Math.floor(i / mw) * h / mh)), q = (sy * w + sx) * 4;
+        soma += (0.299 * px[q] + 0.587 * px[q + 1] + 0.114 * px[q + 2]) / 255;
+      }
+      x.putImageData(im, 0, 0);
+      var suave = document.createElement("canvas"); suave.width = mw; suave.height = mh; var sx2 = suave.getContext("2d");
+      sx2.filter = "blur(" + Math.max(1, Math.round(Math.max(mw, mh) / 400)) + "px)"; sx2.drawImage(c, 0, 0); if (sx2.filter === "none" || !sx2.filter) sx2.drawImage(c, 0, 0);
+      c.width = c.height = 1; out[k] = suave; out[k + "L"] = n ? soma / n : 0.4; achou[k] = n / cat.length;
+    });
+    src.width = src.height = 1; out.achou = achou; return out;
+  }
+  function hexHsl(hex) {
+    var r = parseInt(hex.slice(1, 3), 16) / 255, g = parseInt(hex.slice(3, 5), 16) / 255, b = parseInt(hex.slice(5, 7), 16) / 255, mx = Math.max(r, g, b), mn = Math.min(r, g, b), l = (mx + mn) / 2, h = 0, s = 0;
+    if (mx !== mn) { var d = mx - mn; s = l > 0.5 ? d / (2 - mx - mn) : d / (mx + mn); h = mx === r ? (g - b) / d + (g < b ? 6 : 0) : mx === g ? (b - r) / d + 2 : (r - g) / d + 4; h /= 6; }
+    return [h, s, l];
+  }
+  function hslRgb(h, s, l) {
+    if (!s) return [l * 255, l * 255, l * 255];
+    var q = l < 0.5 ? l * (1 + s) : l + s - l * s, p = 2 * l - q;
+    function t(x) { if (x < 0) x += 1; if (x > 1) x -= 1; return x < 1 / 6 ? p + (q - p) * 6 * x : x < 0.5 ? q : x < 2 / 3 ? p + (q - p) * (2 / 3 - x) * 6 : p; }
+    return [t(h + 1 / 3) * 255, t(h) * 255, t(h - 1 / 3) * 255];
+  }
+  function mascaraNaGeo(m, g, f, w, h) { var c = document.createElement("canvas"); c.width = w; c.height = h; desenharFonte(c.getContext("2d"), m, { sw: g.sw, sh: g.sh, s: g.s, dw: g.dw, dh: g.dh, x0: g.x0, y0: g.y0, ang: g.ang }, f); return c; }
+  function desfocado(c, w, h, raio) {   /* desfoque que funciona em qualquer navegador (reduz e amplia) */
+    var k = Math.max(2, raio), sw = Math.max(1, Math.round(w / k)), sh = Math.max(1, Math.round(h / k)), p = document.createElement("canvas"); p.width = sw; p.height = sh;
+    var px = p.getContext("2d"); px.imageSmoothingQuality = "high"; px.drawImage(c, 0, 0, sw, sh);
+    var o = document.createElement("canvas"); o.width = w; o.height = h; var ox = o.getContext("2d"); ox.imageSmoothingQuality = "high"; ox.drawImage(p, 0, 0, w, h); p.width = p.height = 1; return o;
+  }
+  function porCima(ctx, camada, mk, w, h, alfa) {
+    var t = document.createElement("canvas"); t.width = w; t.height = h; var tx = t.getContext("2d"); tx.drawImage(camada, 0, 0); tx.globalCompositeOperation = "destination-in"; tx.drawImage(mk, 0, 0);
+    ctx.save(); ctx.globalAlpha = alfa; ctx.drawImage(t, 0, 0); ctx.restore(); t.width = t.height = 1;
+  }
+  function retoqueIA(x, c, w, h, g, f) {
+    var a = f.ia, S = f.seg, lado = Math.max(w, h), mk = {};
+    function m(k) { return mk[k] || (mk[k] = mascaraNaGeo(S[k], g, f, w, h)); }
+    if (a.pele > 0) { var b1 = desfocado(c, w, h, lado / (180 - a.pele * 0.9)); porCima(x, b1, m("pele"), w, h, Math.min(0.85, a.pele / 100 * 0.9)); b1.width = b1.height = 1; }
+    if (a.fundo === "desfoque") { var b2 = desfocado(c, w, h, lado / (60 - a.fundoF * 0.45)); porCima(x, b2, m("fundo"), w, h, 1); b2.width = b2.height = 1; }
+    var pin = [];
+    if (a.cab) pin.push({ m: m("cab"), t: hexHsl(a.cab), L: S.cabL, k: a.cabF / 100 });
+    if (a.roupa) pin.push({ m: m("roupa"), t: hexHsl(a.roupa), L: S.roupaL, k: a.roupaF / 100 });
+    var fx = a.fundo === "pb" || a.fundo === "escuro" || a.fundo === "claro" ? { m: m("fundo"), k: a.fundoF / 100, modo: a.fundo } : null;
+    if (pin.length || fx) {
+      var im = x.getImageData(0, 0, w, h), d = im.data;
+      pin.forEach(function (p) { p.d = p.m.getContext("2d").getImageData(0, 0, w, h).data; });
+      if (fx) fx.d = fx.m.getContext("2d").getImageData(0, 0, w, h).data;
+      for (var i = 0; i < d.length; i += 4) {
+        for (var j = 0; j < pin.length; j++) {
+          var p = pin[j], al = p.d[i + 3]; if (!al) continue; al = al / 255 * p.k;
+          var r = d[i], gg = d[i + 1], b = d[i + 2], L = (0.299 * r + 0.587 * gg + 0.114 * b) / 255;
+          var Ln = lim(p.t[2] + (L - p.L) * (p.t[2] > 0.6 ? 0.7 : 1.05), 0.02, 0.97), cc = hslRgb(p.t[0], p.t[1] * (0.55 + 0.6 * Math.min(Ln, 1 - Ln) * 2), Ln);
+          d[i] = r + (cc[0] - r) * al; d[i + 1] = gg + (cc[1] - gg) * al; d[i + 2] = b + (cc[2] - b) * al;
+        }
+        if (fx) { var af = fx.d[i + 3]; if (af) { af = af / 255 * fx.k; var r2 = d[i], g2 = d[i + 1], b2_ = d[i + 2];
+          if (fx.modo === "pb") { var y = 0.299 * r2 + 0.587 * g2 + 0.114 * b2_; d[i] = r2 + (y - r2) * af; d[i + 1] = g2 + (y - g2) * af; d[i + 2] = b2_ + (y - b2_) * af; }
+          else if (fx.modo === "escuro") { var e = 1 - 0.65 * af; d[i] = r2 * e; d[i + 1] = g2 * e; d[i + 2] = b2_ * e; }
+          else { var cl = 0.55 * af; d[i] = r2 + (255 - r2) * cl; d[i + 1] = g2 + (255 - g2) * cl; d[i + 2] = b2_ + (255 - b2_) * cl; } } }
+      }
+      x.putImageData(im, 0, 0);
+    }
+    Object.keys(mk).forEach(function (k) { mk[k].width = mk[k].height = 1; });
+  }
+  var analisando = false;
+  async function iaAnalisar(todas) {
+    if (analisando) return; analisando = true;
+    var lista = todas ? FOTOS.filter(function (f) { return !f.seg; }) : [fotoAtual()].filter(function (f) { return f && !f.seg; });
+    if (!lista.length) { analisando = false; painel(); return; }
+    $("ocup").hidden = false;
+    try {
+      for (var i = 0; i < lista.length; i++) {
+        $("ocup").textContent = "✨ A IA está lendo " + (lista.length > 1 ? "a foto " + (i + 1) + " de " + lista.length : "a foto") + " (no seu aparelho" + (segmentador ? "" : "; na 1ª vez baixa ~16 MB") + ")…";
+        await new Promise(function (ok) { setTimeout(ok, 30); });
+        lista[i].seg = await segmentar(lista[i]);
+      }
+      $("ocup").hidden = true; painel(); agendar();
+      var s = fotoAtual().seg; if (s && s.achou.cab < 0.003 && s.achou.pele < 0.003) toast("A IA quase não achou pessoa nesta foto — funciona melhor com 1 a 3 pessoas perto da câmera.");
+      else toast("✨ Pronto: escolha a cor do cabelo, da roupa, a pele e o fundo.");
+    } catch (er) { $("ocup").hidden = true; painel(); toast("Não deu para usar a IA de retoque agora (" + String(er && er.message || er).slice(0, 60) + ")."); }
+    analisando = false;
+  }
+
   /* ===== FOLHA DE OPÇÕES (toque num anexo: foto, logo, moldura) ===== */
   function folha(titulo, ops) {
     var f0 = document.getElementById("edFolha"); if (f0) f0.remove();
@@ -501,10 +608,10 @@
     var f = FOTOS[i]; if (!f) return;
     folha("Foto " + (i + 1) + " de " + FOTOS.length + " · " + f.nome, [
       ["🔁 SUBSTITUIR FOTO (mantém a edição)", function () { substituirEm = i; $("arqTroca").click(); }],
-      ["⧉ DUPLICAR", function () { var c = Object.assign({}, f, { aj: clone(f.aj), fundo: clone(f.fundo), adesivos: clone(f.adesivos || []), mini: f.mini }); FOTOS.splice(i + 1, 0, c); ATUAL = i + 1; atualizarTudo("Foto duplicada"); }],
+      ["⧉ DUPLICAR", function () { var c = Object.assign({}, f, { aj: clone(f.aj), fundo: clone(f.fundo), adesivos: clone(f.adesivos || []), ia: clone(f.ia || IA0()), mini: f.mini }); FOTOS.splice(i + 1, 0, c); ATUAL = i + 1; atualizarTudo("Foto duplicada"); }],
       ["◀ MOVER PARA A ESQUERDA", function () { if (i > 0) { FOTOS.splice(i - 1, 0, FOTOS.splice(i, 1)[0]); ATUAL = i - 1; atualizarTudo(); } }],
       ["MOVER PARA A DIREITA ▶", function () { if (i < FOTOS.length - 1) { FOTOS.splice(i + 1, 0, FOTOS.splice(i, 1)[0]); ATUAL = i + 1; atualizarTudo(); } }],
-      ["✦ COPIAR A EDIÇÃO DESTA PARA TODAS", function () { FOTOS.forEach(function (o) { if (o === f) return; o.aj = clone(f.aj); o.filtro = f.filtro; o.zoom = f.zoom; o.adesivos = clone(f.adesivos || []); }); atualizarTudo("Edição copiada para todas"); }],
+      ["✦ COPIAR A EDIÇÃO DESTA PARA TODAS", function () { FOTOS.forEach(function (o) { if (o === f) return; o.aj = clone(f.aj); o.filtro = f.filtro; o.zoom = f.zoom; o.adesivos = clone(f.adesivos || []); o.ia = clone(f.ia || IA0()); }); atualizarTudo("Edição copiada para todas"); if (iaAtiva(f)) iaAnalisar(true); }],
       ["⇩ BAIXAR SÓ ESTA", function () { var a0 = ATUAL; ATUAL = i; exportar("uma").then(function () { ATUAL = a0; }); }],
       ["🗑 EXCLUIR DO EDITOR", function () { if (!confirm("Tirar esta foto do editor? (o arquivo no seu aparelho não é apagado)")) return; FOTOS.splice(i, 1); ATUAL = Math.min(ATUAL, FOTOS.length - 1); if (!FOTOS.length) { fecharEditor(false); desenharLista(); return; } atualizarTudo("Foto removida"); }, true]
     ]);
@@ -562,6 +669,7 @@
     }
     desenharFonte(x, fonte, g, f);
     if (!sem) aplicarPixels(x, w, h, efetivo(f));
+    if (!sem && iaAtiva(f)) retoqueIA(x, c, w, h, g, f);
     if (sem || !f.mask || f.fundo.modo === "nenhum") return c;
     /* recorte: aplica a máscara da IA e troca o fundo */
     var m = document.createElement("canvas"); m.width = w; m.height = h; var mx = m.getContext("2d");
@@ -725,7 +833,7 @@
 
   /* ================= HISTÓRICO (desfazer / refazer) ================= */
   var HIST = [], HPOS = -1, tHist = 0;
-  function foto2(f) { return { rot: f.rot, incl: f.incl, esp: f.esp, cx: f.cx, cy: f.cy, zoom: f.zoom, aj: clone(f.aj), filtro: f.filtro, fundo: clone(f.fundo), adesivos: clone(f.adesivos || []) }; }
+  function foto2(f) { return { rot: f.rot, incl: f.incl, esp: f.esp, cx: f.cx, cy: f.cy, zoom: f.zoom, aj: clone(f.aj), filtro: f.filtro, fundo: clone(f.fundo), adesivos: clone(f.adesivos || []), ia: clone(f.ia || IA0()) }; }
   function snap() { return { g: JSON.stringify(G), f: JSON.stringify(FOTOS.map(foto2)), m: FOTOS.map(function (f) { return f.mask; }) }; }
   function igual(a, b) { return a && b && a.g === b.g && a.f === b.f && a.m.length === b.m.length && a.m.every(function (m, i) { return m === b.m[i]; }); }
   function marcarHist() { clearTimeout(tHist); tHist = setTimeout(gravarHist, 450); }
@@ -755,7 +863,7 @@
     fundo: '<path d="M4 20 10 9l4 7 2-3 4 7z"/><circle cx="17" cy="6" r="2"/><path d="M3 3l18 18" stroke-dasharray="2 2"/>',
     salvar: '<path d="M12 4v11M7 10l5 5 5-5"/><path d="M5 20h14"/>'
   };
-  var ABAS = [["foto", "CORTE"], ["ajustes", "AJUSTES"], ["filtros", "FILTROS"], ["texto", "TEXTO"], ["logo", "LOGO"], ["borda", "BORDA"], ["adesivos", "ADESIVOS"], ["fundo", "FUNDO IA"], ["salvar", "SALVAR"]];
+  var ABAS = [["foto", "CORTE"], ["ajustes", "AJUSTES"], ["filtros", "FILTROS"], ["texto", "TEXTO"], ["logo", "LOGO"], ["borda", "BORDA"], ["adesivos", "ADESIVOS"], ["fundo", "✨ IA"], ["salvar", "SALVAR"]];
   function desenharAbas() {
     $("abas").innerHTML = ABAS.map(function (a) { return '<button type="button" data-aba="' + a[0] + '" class="' + (a[0] === ABA ? "on" : "") + '" aria-pressed="' + (a[0] === ABA) + '"><svg viewBox="0 0 24 24">' + ICONES[a[0]] + "</svg>" + a[1] + "</button>"; }).join("");
   }
@@ -837,7 +945,17 @@
       h += '<div class="c-tit">OVERLAYS (VALEM PARA TODAS)</div>' + chips("overlay", OVERLAYS, G.overlay) + (G.overlay !== "nenhum" ? sl("ovForca", "Força", 10, 100, G.overlayForca, "%") : "");
       h += '<p class="c-nota">Toque num adesivo para pôr na foto; arraste para posicionar. Cada foto tem os seus adesivos (use EM TODAS AS FOTOS para repetir).</p>';
     } else if (ABA === "fundo") {
-      h += '<p class="c-nota" style="margin-top:0">A IA separa a pessoa/objeto principal do fundo. Roda <b>no seu aparelho</b> (baixa ~25 MB na primeira vez) — a foto não é enviada. Funciona melhor com pessoas.</p>';
+      var IA = f.ia || (f.ia = IA0()), sw = function (x) { return x[0] ? '<i class="sw" style="background:' + x[0] + '"></i>' + x[1] : x[1]; };
+      h += '<div class="c-tit">✨ RETOQUE COM IA</div><p class="c-nota" style="margin-top:0">A IA separa <b>cabelo, pele, roupa e fundo</b> — tudo <b>no seu aparelho</b>, grátis; a foto não é enviada. Melhor com 1 a 3 pessoas perto da câmera.</p>';
+      if (!f.seg) h += '<div class="c-linha"><button type="button" class="chip ok" data-k="iaAnalisar" data-v="esta">✨ ANALISAR ESTA FOTO</button>' + (FOTOS.length > 1 ? '<button type="button" class="chip" data-k="iaAnalisar" data-v="todas">✨ TODAS (' + FOTOS.length + ")</button>" : "") + "</div>";
+      else {
+        h += '<div class="c-tit">COR DO CABELO</div>' + chips("iaCab", CORES_CAB.map(function (x) { return [x[0], sw(x)]; }), IA.cab) + '<div class="cores"><input type="color" data-k="iaCab" value="' + esc(IA.cab || "#e2bd74") + '" aria-label="Outra cor de cabelo"></div>' + (IA.cab ? sl("iaCabF", "Intensidade", 10, 100, IA.cabF, "%") : "");
+        h += '<div class="c-tit">COR DA ROUPA</div>' + chips("iaRoupa", CORES_ROUPA.map(function (x) { return [x[0], sw(x)]; }), IA.roupa) + '<div class="cores"><input type="color" data-k="iaRoupa" value="' + esc(IA.roupa || "#1f3a6e") + '" aria-label="Outra cor de roupa"></div>' + (IA.roupa ? sl("iaRoupaF", "Intensidade", 10, 100, IA.roupaF, "%") : "");
+        h += '<div class="c-tit">PELE SUAVE</div>' + sl("iaPele", "Suavizar", 0, 100, IA.pele, "%");
+        h += '<div class="c-tit">EFEITO NO FUNDO</div>' + chips("iaFundo", FUNDO_IA, IA.fundo) + (IA.fundo ? sl("iaFundoF", "Força", 10, 100, IA.fundoF, "%") : "");
+        h += '<div class="c-linha" style="margin-top:8px">' + (FOTOS.length > 1 ? '<button type="button" class="chip ok" data-k="iaTodas">✨ USAR EM TODAS AS FOTOS</button>' : "") + '<button type="button" class="chip" data-k="iaZerar">↺ SEM RETOQUE</button></div>';
+      }
+      h += '<div class="c-tit">✂ REMOVER FUNDO</div><p class="c-nota" style="margin-top:0">A IA separa a pessoa/objeto principal do fundo. Roda <b>no seu aparelho</b> (baixa ~25 MB na primeira vez) — a foto não é enviada. Funciona melhor com pessoas.</p>';
       h += '<div class="c-linha"><button type="button" class="chip ok" data-k="recortar" data-v="esta">✂ REMOVER FUNDO DESTA</button>' + (FOTOS.length > 1 ? '<button type="button" class="chip ok" data-k="recortar" data-v="todas">✂ DE TODAS (' + FOTOS.length + ")</button>" : "") + "</div>";
       h += '<div class="c-prog" id="iaProg" hidden><i></i></div><p class="c-nota" id="iaMsg"></p>';
       if (f.mask) {
@@ -912,7 +1030,7 @@
     aTodas: function () { var a = adsSel(); if (!a) return; FOTOS.forEach(function (o) { if (o === fotoAtual()) return; var c = clone(a); c.id = uid("ad"); o.adesivos = (o.adesivos || []).concat([c]); }); toast("Adesivo colocado em todas as fotos"); },
     aDel: function () { var f = fotoAtual(); f.adesivos = (f.adesivos || []).filter(function (x) { return x.id !== ADS; }); ADS = null; painel(); },
     overlay: function (v) { G.overlay = v; painel(); }, ovForca: function (v) { G.overlayForca = +v; },
-    zerarTudo: function () { if (!confirm("Voltar tudo ao começo (formato, ajustes, textos, logo e borda)? Suas logos e padrões continuam guardados.")) return; var S = G.saida; G = normalizar({}); G.saida = S; TXT = null; FOTOS.forEach(function (f) { Object.assign(f, { rot: 0, incl: 0, esp: false, cx: 0, cy: 0, zoom: 100, aj: {}, filtro: null }); }); painel(); },
+    zerarTudo: function () { if (!confirm("Voltar tudo ao começo (formato, ajustes, textos, logo e borda)? Suas logos e padrões continuam guardados.")) return; var S = G.saida; G = normalizar({}); G.saida = S; TXT = null; FOTOS.forEach(function (f) { Object.assign(f, { rot: 0, incl: 0, esp: false, cx: 0, cy: 0, zoom: 100, aj: {}, filtro: null, ia: IA0() }); }); painel(); },
     centro: function () { var f = fotoAtual(); f.cx = f.cy = 0; f.zoom = 100; f.incl = 0; painel(); },
     corteTodas: function () { var f = fotoAtual(); FOTOS.forEach(function (o) { if (o !== f && o.rot === f.rot) { o.cx = f.cx; o.cy = f.cy; o.zoom = f.zoom; o.incl = f.incl; } }); toast("Corte copiado para as outras fotos (mesma orientação)."); },
     zoom: function (v) { fotoAtual().zoom = +v; },
@@ -956,6 +1074,13 @@
     bordaSalva: function (v) { var b = KIT.bordas.filter(function (x) { return x.id === v; })[0]; if (b) { G.borda = Object.assign(clone(PADRAO.borda), clone(b.borda)); painel(); toast("Borda “" + b.nome + "” aplicada"); } },
     salvarBorda: async function () { var n = prompt("Nome desta borda:", "Minha borda " + (KIT.bordas.length + 1)); if (!n) return; KIT.bordas.push({ id: uid("bd"), nome: n.slice(0, 40), borda: clone(G.borda) }); await gravarKit(); painel(); toast("✓ Borda guardada em MINHA MARCA"); },
     recortar: function (v) { recortar(v === "todas"); },
+    iaAnalisar: function (v) { iaAnalisar(v === "todas"); },
+    iaCab: function (v) { fotoAtual().ia.cab = v; painelSe(); }, iaCabF: function (v) { fotoAtual().ia.cabF = +v; },
+    iaRoupa: function (v) { fotoAtual().ia.roupa = v; painelSe(); }, iaRoupaF: function (v) { fotoAtual().ia.roupaF = +v; },
+    iaPele: function (v) { fotoAtual().ia.pele = +v; },
+    iaFundo: function (v) { fotoAtual().ia.fundo = v; painel(); }, iaFundoF: function (v) { fotoAtual().ia.fundoF = +v; },
+    iaZerar: function () { fotoAtual().ia = IA0(); painel(); },
+    iaTodas: function () { var ia = fotoAtual().ia; FOTOS.forEach(function (o) { o.ia = clone(ia); }); iaAnalisar(true); toast("Retoque copiado para todas as fotos"); },
     fundoModo: function (v) { fotoAtual().fundo.modo = v; if (v === "transparente" && G.saida.fmt !== "png") { G.saida.fmt = "png"; toast("Arquivo trocado para PNG (guarda a transparência)."); } painel(); },
     fundoCor: function (v) { fotoAtual().fundo.cor = v; }, fundoBlur: function (v) { fotoAtual().fundo.blur = +v; },
     fundoTodas: function () { var fu = fotoAtual().fundo, sem = 0; FOTOS.forEach(function (f) { f.fundo = clone(fu); if (!f.mask) sem++; }); toast(sem ? "Fundo copiado. " + sem + " foto(s) ainda sem recorte — use ✂ DE TODAS." : "Fundo copiado para todas."); },
@@ -968,6 +1093,8 @@
     padrao: function (v) { var p = KIT.padroes.filter(function (x) { return x.id === v; })[0]; if (!p) return; var S = G.saida, ev = G.vars; G = normalizar(p.g); G.saida = S; G.vars = ev; TXT = null; G.textos.forEach(function (t) { carregarFonte(t.fonte); }); painel(); toast("✓ Padrão “" + p.nome + "” aplicado"); },
     salvarPadrao: async function () { var n = prompt("Nome do padrão:", "Padrão " + (KIT.padroes.length + 1)); if (!n) return; var g = clone(G); delete g.saida; delete g.vars; KIT.padroes = KIT.padroes.filter(function (p) { return p.nome !== n; }); KIT.padroes.push({ id: uid("pd"), nome: n.slice(0, 40), g: g }); await gravarKit(); painel(); toast("✓ Padrão guardado em MINHA MARCA"); }
   };
+  var tPainel = 0;
+  function painelSe() { clearTimeout(tPainel); tPainel = setTimeout(function () { var a = document.activeElement; if (!(a && a.type === "color")) painel(); }, 60); }
   function adsSel() { var f = fotoAtual(); return f && (f.adesivos || []).filter(function (x) { return x.id === ADS; })[0]; }
   function txtSel() { return G.textos.filter(function (t) { return t.id === TXT; })[0]; }
   function aplicarAcao(el, ehInput) {
@@ -980,11 +1107,11 @@
     } else if (ACOES[k]) ACOES[k](v);
     else return;
     if (el.type === "range") { var o = el.nextElementSibling; if (o) o.textContent = v + (el.dataset.suf || ""); el.parentNode.classList.toggle("mexido", +v !== 0 && +el.min < 0); }
-    if (el.classList.contains("chip") && el.parentNode && !/^(girar|espelhar|centro|corteTodas|auto1|autoTodas|zerarAj|novoTxt|apagaTxt|baixar|compart|pacote|salvar|recortar|fundoTodas|semRecorte|tirarFundoLogo|marca|limparFoto|addLogo|addMold|maisFotos|zerarTudo|opcoesFoto|aRosto|aAdd|aSelo|aEsp|aSombra|aDup|aFrente|aTodas|aDel)/.test(k)) {
+    if (el.classList.contains("chip") && el.parentNode && !/^(girar|espelhar|centro|corteTodas|auto1|autoTodas|zerarAj|novoTxt|apagaTxt|baixar|compart|pacote|salvar|recortar|fundoTodas|semRecorte|tirarFundoLogo|marca|limparFoto|addLogo|addMold|maisFotos|zerarTudo|opcoesFoto|aRosto|aAdd|aSelo|aEsp|aSombra|aDup|aFrente|aTodas|aDel|iaAnalisar|iaTodas|iaZerar)/.test(k)) {
       el.parentNode.querySelectorAll('.chip[data-k="' + k + '"]').forEach(function (b) { b.classList.toggle("on", b === el); });
     }
     if (el.parentNode && el.parentNode.classList.contains("cores")) el.parentNode.querySelectorAll("button").forEach(function (b) { b.classList.toggle("on", b === el); });
-    if (/^(baixar|compart|pacote|marca|addLogo|addMold|salvarPadrao|salvarBorda|recortar|tirarFundoLogo)/.test(k)) return;
+    if (/^(baixar|compart|pacote|marca|addLogo|addMold|salvarPadrao|salvarBorda|recortar|tirarFundoLogo|iaAnalisar)/.test(k)) return;
     agendar(ehInput);
   }
   $("ctrl").addEventListener("click", function (ev) { var el = ev.target.closest("button[data-k]"); if (el) aplicarAcao(el, false); });
@@ -1217,7 +1344,7 @@
     var arq = this.files && this.files[0], i = substituirEm; this.value = ""; substituirEm = -1; if (!arq || !FOTOS[i]) return;
     try { var copia = new Blob([await arq.arrayBuffer()], { type: arq.type || "image/jpeg" }), im = await abrirImagem(copia, arq.name);
       if (/heic|heif/i.test((arq.type || "") + arq.name)) copia = await new Promise(function (ok) { var c0 = reduzir(im, 8000); c0.toBlob(function (bb) { c0.width = c0.height = 1; ok(bb); }, "image/jpeg", 0.95); });
-      var f = FOTOS[i]; f.file = copia; f.nome = arq.name.replace(/\.[^.]+$/, ""); f.prev = reduzir(im, 1400); f.w = im.naturalWidth; f.h = im.naturalHeight; f.mini = null; f.mask = null; f.cx = f.cy = 0;
+      var f = FOTOS[i]; f.file = copia; f.nome = arq.name.replace(/\.[^.]+$/, ""); f.prev = reduzir(im, 1400); f.w = im.naturalWidth; f.h = im.naturalHeight; f.mini = null; f.mask = null; f.seg = null; f.cx = f.cy = 0;
       atualizarTudo("✓ Foto substituída (a edição foi mantida)"); }
     catch (e) { toast("Não deu para abrir esta foto."); }
   };
@@ -1298,6 +1425,7 @@
 
   (async function () { await lerKit(); await migrarAntigo(); await carregarImgs(); if (!$("ed").hidden) { painel(); agendar(); } })();
   window.__fotos = {   // usado nos testes automáticos
+    iaAtiva: iaAtiva, iaAnalisar: iaAnalisar, IA0: IA0,
     adicionar: adicionar, montar: montar, G: function () { return G; }, FOTOS: FOTOS, abrir: abrirEditor, fechar: fecharEditor, aba: irAba, auto: autoDe,
     desfazer: desfazer, refazer: refazer, gravarHist: gravarHist, hist: function () { return { n: HIST.length, pos: HPOS }; }, acao: function (k, v) { ACOES[k](v); agendar(); },
     kit: function () { return KIT; }, gravarKit: gravarKit, carregarImgs: carregarImgs, LOGOS: LOGOS, exportar: exportar, nomeArquivo: nomeArquivo, mascaraDe: mascaraDe, tirarFundoLogo: tirarFundoLogo,
