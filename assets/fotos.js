@@ -696,7 +696,7 @@
       'const prog = (p) => { if (p.status === "progress" && p.total) { vistos[p.file] = [p.loaded, p.total]; let l = 0, t = 0; for (const k in vistos) { l += vistos[k][0]; t += vistos[k][1]; } postMessage({ tipo: "baixando", pct: t ? l / t : 0, mb: Math.round(t / 1048576) }); } };',
       'async function carregar() {',
       '  if (seg) return seg;',
-      '  if (self.navigator && navigator.gpu) { try { seg = await pipeline("background-removal", "Xenova/modnet", { device: "webgpu", dtype: "fp32", progress_callback: prog }); return seg; } catch (e) { seg = null; } }',
+      '  /* wasm (processador): no WebGPU o MODNet devolve máscara com falhas (testado 16/11) */',
       '  seg = await pipeline("background-removal", "Xenova/modnet", { device: "wasm", dtype: "fp32", progress_callback: prog }); return seg;',
       '}',
       'self.onmessage = async (ev) => {',

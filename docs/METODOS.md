@@ -85,8 +85,8 @@ Tamanho > 0 e sem erro = o pdfmake montou o arquivo. Localmente (T1) confira o `
   com max-height a área da foto mudava de tamanho a cada aba e a foto "pulava". Teste: medir `#cv.getBoundingClientRect().top`
   antes e depois de trocar de aba (`docs/testes/teste_fotos.py`).
 - **IA no aparelho para imagem:** transformers.js `pipeline("background-removal","Xenova/modnet")` num Worker module criado de Blob
-  (igual ao assistente); entrada = `new RawImage(rgba, w, h, 4)` reduzida a 1024 px; a saída RGBA traz a máscara no alfa. WebGPU
-  primeiro, cai para wasm. No teste local a CDN é bloqueada → conferir que o erro vira aviso e o editor não trava.
+  (igual ao assistente); entrada = `new RawImage(rgba, w, h, 4)` reduzida a 1024 px; a saída RGBA traz a máscara no alfa. Use
+  device "wasm": no WebGPU o MODNet devolveu máscara com buracos (testado no ar 16/11, 37% × 53% de pixels sólidos). No teste local a CDN é bloqueada → conferir que o erro vira aviso e o editor não trava.
 - **Logo sem fundo sem IA:** amostrar a cor das bordas, preencher (flood) a partir das bordas com tolerância; opção "buracos" = chave
   de cor global (miolo de O, A, B).
 - **Downloads no teste:** `with pg.expect_download() as dl:` + abrir com PIL/zipfile para conferir tamanho, alfa e nomes.
