@@ -400,6 +400,12 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   docs/automacoes/milhas.py) publica milhas.json com melhor preço e média calculados. Teste docs/testes/teste_pedido.py (24 checagens, 0 falhas).
   Manual 35 → 36 p. ("Link PEDIR ORÇAMENTO"). crm.js v3, sw v66. PENTE FINO 37–38.
 
+- 16/11/2026 · Claude (pedido do dono): TOPO — saiu a trilha "Categoria / Página" (repetia o título); fica só o nome da página.
+  Novo botão ☰ MENU ao lado do feedback (layout.js): no celular abre o menu completo em tela cheia (mesmo da aba "Mais", agora com classe
+  bw-menu-aberto, ✕ Fechar e Esc); no computador recolhe/mostra a coluna do menu (lembrado em ui_menu_recolhido). INÍCIO — RESUMO FINANCEIRO
+  (os 4 KPIs) e as 6 seções numeradas abrem e fecham pela seta, como a AGENDA (lembrado em ui_home_dobras; o conteúdo só é escondido).
+  Teste docs/testes/teste_layout.py (32 checagens, 1280 e 390 px, 0 falhas). Manual: "Conhecendo a tela". brightway.css v24, layout.js v27, sw v67.
+
 ## Pendências (dono)
 - [x] (15/11 10:02, dono: "faça tudo") Autorizar a automação de NOTÍCIAS (publica noticias.json no site a cada 2 h) — ATIVA.
 - [x] (16/11, Claude) Milhas: tela de ADM criada (Configuração → COTAÇÕES DE MILHAS) + automação de hora em hora. Falta o dono lançar as cotações atuais.

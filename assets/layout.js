@@ -125,12 +125,14 @@
     '</aside>';
 
   var topo = '<div class="bw-topo">' +
-    '<div><div class="trilha">' + (CAT === "inicio" ? "Início" : NOMES_CAT[CAT] + " / <b>" + (TITULOS[PAGINA] || PAGINA) + "</b>") + '</div>' +
-    '<div class="bw-titulo-pagina">' + (TITULOS[PAGINA] || PAGINA) + '</div></div>' +
+    /* 16/11 (pedido do dono): só o nome da página — a trilha "Categoria / Página" repetia a mesma informação */
+    '<div><div class="bw-titulo-pagina">' + (CAT === "inicio" ? "Início" : (TITULOS[PAGINA] || PAGINA)) + '</div></div>' +
     '<div class="acoes">' +
       '<button class="bw-btn bw-btn--vidro" data-slot="btnVoltar" title="Voltar" aria-label="Voltar" style="min-height:44px;padding:0 16px">‹</button>' +
       '<button type="button" class="bw-sino" id="bwSino" onclick="window.bwAvisos()" title="Avisos" aria-label="Avisos"><span class="bw-icone" style="width:40px;height:40px"><svg width="19" height="19" viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg></span><b class="bw-sino-n" id="bwSinoN" hidden></b></button>' +
       '<button type="button" class="bw-fb-topo" onclick="window.bwFeedback()" title="Enviar feedback" aria-label="Enviar feedback"><span class="bw-icone" style="width:40px;height:40px"><svg width="19" height="19" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span></button>' +
+      /* 16/11 (pedido do dono): botão MENU ao lado do feedback — no celular abre o menu completo; no computador mostra/esconde o menu lateral */
+      '<button type="button" class="bw-menu-topo" id="bwMenuBtn" onclick="window.bwMenu()" title="Menu" aria-label="Abrir o menu" aria-controls="bwMenu"><span class="bw-icone" style="width:40px;height:40px"><svg width="20" height="20" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg></span></button>' +
       '<a href="login.html" title="Conta" aria-label="Conta"><span class="bw-icone" style="width:40px;height:40px"><svg width="20" height="20" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></span></a>' +
     '</div></div>';
 
@@ -190,7 +192,23 @@
   abasEl.innerHTML = abas;
   body.appendChild(abasEl);
   var mais = abasEl.querySelector('[data-aba="mais"]');
-  if (mais) mais.onclick = function(e){ e.preventDefault(); var m = document.querySelector("#bwMenu"); if (m) { m.style.display = "block"; m.style.position = "fixed"; m.style.inset = "0"; m.style.zIndex = "70"; m.style.width = "100%"; var x = document.createElement("button"); x.textContent = "✕ Fechar"; x.style.cssText = "margin:0 0 10px;background:rgba(255,181,71,.1);color:var(--gold);border:1px solid rgba(255,181,71,.25);border-radius:12px;padding:12px;width:100%;font-weight:600"; x.onclick = function(){ m.style.display = "none"; x.remove(); }; m.insertBefore(x, m.firstChild); } };
+  /* menu completo no celular (aba "Mais" e botão MENU do topo) */
+  function abrirMenuMovel() {
+    var m = document.querySelector("#bwMenu"); if (!m || m.classList.contains("bw-menu-aberto")) return;
+    m.classList.add("bw-menu-aberto"); document.body.style.overflow = "hidden";
+    var x = document.createElement("button"); x.type = "button"; x.className = "bw-menu-fechar"; x.textContent = "✕ Fechar";
+    x.onclick = function(){ m.classList.remove("bw-menu-aberto"); document.body.style.overflow = ""; x.remove(); };
+    m.insertBefore(x, m.firstChild); x.focus();
+  }
+  var celular = function(){ return window.matchMedia("(max-width: 899px)").matches; };
+  window.bwMenu = function(){
+    if (celular()) { var m = document.querySelector("#bwMenu"); if (m && m.classList.contains("bw-menu-aberto")) { var f = m.querySelector(".bw-menu-fechar"); if (f) f.click(); } else abrirMenuMovel(); return; }
+    var rec = document.documentElement.classList.toggle("bw-menu-recolhido");
+    try { localStorage.setItem("ui_menu_recolhido", rec ? "1" : "0"); } catch (e) { }
+  };
+  try { if (localStorage.getItem("ui_menu_recolhido") === "1") document.documentElement.classList.add("bw-menu-recolhido"); } catch (e) { }
+  document.addEventListener("keydown", function(e){ if (e.key === "Escape") { var f = document.querySelector("#bwMenu .bw-menu-fechar"); if (f) f.click(); } });
+  if (mais) mais.onclick = function(e){ e.preventDefault(); abrirMenuMovel(); };
   /* 14/11 (Claude): selo LOGADO também no topo (no celular o menu lateral fica escondido) */
   var ub = document.getElementById("userBox"), acoes = document.querySelector(".bw-topo .acoes");
   if (ub && acoes) {

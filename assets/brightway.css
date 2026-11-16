@@ -557,3 +557,20 @@ html:not(.bw-admin) .so-admin{display:none!important}
 /* 15/11: botão MANUAL DO USUÁRIO no menu (mesmo visual do ENVIAR FEEDBACK, mas é link) */
 .bw-manual{text-decoration:none;box-sizing:border-box}
 .bw-manual:hover{text-decoration:none}
+
+/* 16/11: botão MENU no topo + menu recolhido (computador) / aberto em tela cheia (celular) */
+.bw-menu-topo{background:none;border:0;padding:0;cursor:pointer;color:inherit}
+html.bw-menu-recolhido .bw-menu{display:none}
+@media(max-width:899px){
+  .bw-menu.bw-menu-aberto{display:flex;position:fixed;inset:0;z-index:70;width:100%;height:100%;overflow-y:auto}
+}
+.bw-menu-fechar{margin:0 0 10px;background:rgba(255,181,71,.1);color:var(--bw-ambar);border:1px solid rgba(255,181,71,.25);border-radius:12px;padding:12px;width:100%;font-weight:600;cursor:pointer}
+@media(min-width:900px){.bw-menu-fechar{display:none}}
+/* 16/11: seções da tela inicial abrem e fecham pela seta (como a agenda) */
+.bw-dobra{cursor:pointer;user-select:none;-webkit-user-select:none;margin-bottom:0;border-radius:10px}
+.bw-dobra:focus-visible{outline:2px solid var(--bw-ambar);outline-offset:4px}
+.bw-dobra .chev{margin-left:auto;display:inline-flex;color:var(--bw-texto-3);transition:transform .2s}
+.bw-dobra[aria-expanded="true"] .chev{transform:rotate(90deg);color:var(--bw-ambar)}
+.bw-dobra-corpo{margin-top:14px}
+.bw-dobra-corpo[hidden]{display:none}
+.bw-home-resumo{margin-top:20px}
