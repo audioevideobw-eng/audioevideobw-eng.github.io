@@ -143,6 +143,9 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
 49. IA de imagem no aparelho (MediaPipe): segmentador com delegate "CPU" (no iPhone a GPU troca as categorias); efeitos por máscara com
     desfoque que funciona em qualquer navegador (reduzir/ampliar, não ctx.filter); teste local com MÁSCARAS FALSAS conferindo pixel
     (docs/testes/teste_ia_retoque.py) e teste no ar com o modelo real.
+50. IA CRIATIVA (decisão do dono, 16/11): a ÚNICA saída do editor de fotos para a internet é assets/fotos-nuvem.js → Edge Function
+    bw-ia-imagem (Cloudflare FLUX.2), só depois de confirm() da pessoa, cópia pequena (≤ 504 px), nada guardado, resultado vira foto NOVA
+    ao lado da original; nudez/sexual recusado na função; 10/dia por conta (auto: vigia 7.8a).
 
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
@@ -497,8 +500,15 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   clareado), USAR EM TODAS, SEM RETOQUE; antes/depois e desfazer incluídos; a foto não sai do aparelho. Teste no ar com foto real: análise 2,4 s,
   foto 1600 px em 0,1 s. Cabelo novo/corpo (IA generativa) ficou fora: nada grátis de verdade (Gemini imagem sem cota grátis); opção futura
   Cloudflare Workers AI (10 mil neurônios/dia) via Edge Function. teste_ia_retoque.py 0 falhas; teste_fotos.py 0 falhas. fotos.js v8, sw v77. PENTE FINO 49.
+- 16/11/2026 · Claude (dono: "pode seguir com tudo"): ✨ IA CRIATIVA no editor de fotos (aba ✨ IA): pedido em texto + 12 sugestões (cabelo cacheado,
+  terno, óculos, fundo de palco…) → NOVA VERSÃO ao lado da original. Cloudflare Workers AI FLUX.2 [klein] 4B (~110 neurônios/foto; grátis 10 mil/dia ≈ 90
+  fotos/dia no total) pela Edge Function `bw-ia-imagem` (docs/supabase/functions/bw-ia-imagem/index.ts, publicada pelo painel, Verify JWT desligado — a
+  função confere o login) + contador docs/sql/2026-11-16-ia-imagem.sql (rodado: rls true, 0 regras). Secrets CF_ACCOUNT_ID/CF_API_TOKEN pendentes (dono).
+  Novo assets/fotos-nuvem.js (única saída do editor; vigia 7.8a confere). teste_ia_retoque.py (nuvem simulada) 0 falhas. fotos.js v9, sw v78. PENTE FINO 50.
 
 ## Pendências (dono)
+- [ ] (16/11) IA CRIATIVA: entrar/criar conta grátis na Cloudflare (dash.cloudflare.com) → Claude cria o token "Workers AI" e cola em Supabase →
+      Edge Functions → Secrets como CF_ACCOUNT_ID e CF_API_TOKEN. Ficar no plano Free (sem cartão): passou do limite grátis, só para até o dia seguinte.
 - [x] (15/11 10:02, dono: "faça tudo") Autorizar a automação de NOTÍCIAS (publica noticias.json no site a cada 2 h) — ATIVA.
 - [x] (16/11, Claude) Milhas: tela de ADM criada (Configuração → COTAÇÕES DE MILHAS) + automação de hora em hora. Falta o dono lançar as cotações atuais.
 - [x] (16/11, dono: "lancei errado, ainda não recebi") EVENTO SICOOB: removido do Fluxo o lançamento antigo ev_1793873289922 (R$ 2.500

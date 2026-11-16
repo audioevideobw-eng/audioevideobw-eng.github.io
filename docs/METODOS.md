@@ -129,3 +129,11 @@ Tamanho > 0 e sem erro = o pdfmake montou o arquivo. Localmente (T1) confira o `
 - Desfoque portátil: reduzir a imagem e ampliar de volta (ctx.filter não é garantido no Safari).
 - Teste local sem internet: injetar `f.seg` com máscaras falsas em faixas e conferir pixels (docs/testes/teste_ia_retoque.py);
   no ar: foto de selfie pública do Hugging Face (datasets/Xenova/transformers.js-docs/…/selfie_segmentation_landscape.png).
+
+## IA criativa (imagem) na nuvem grátis — 16/11/2026
+- Cloudflare Workers AI `@cf/black-forest-labs/flux-2-klein-4b`: REST multipart (`prompt`, `input_image_0` < 512×512, `width`/`height` 256–1920),
+  resposta `{result:{image: base64}}`. Custo ≈ 5 neurônios por imagem de entrada + 26 por bloco 512×512 de saída (1024×1280 ≈ 160).
+- Sempre por Edge Function (chave em Secrets); a função confere login (getUser) e conta o uso (bw_ia_img_contar) ANTES de chamar a Cloudflare.
+- Prompt em inglês envolvendo o pedido: "Change ONLY this: … Keep the same person, pose, framing, lighting" (mantém o rosto).
+- Teste local: rota do Playwright responde o ping e devolve um JPEG falso em base64; conferir confirm(), o corpo enviado e a foto nova na posição i+1.
+- Publicar função pelo painel: functions/new → monaco.editor.getModels()[0].setValue(código) + nome → Deploy; SQL: sql/new → setValue → Run.
