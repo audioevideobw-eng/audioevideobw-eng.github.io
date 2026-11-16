@@ -245,6 +245,19 @@ if fnuv:
         problemas.append("assets/fotos-nuvem.js: não pode guardar nada na nuvem (Storage/user_data/BWSync)")
     if "confirm(" not in fotosjs.split("async function iaCriar")[1][:900] if "async function iaCriar" in fotosjs else True:
         problemas.append("assets/fotos.js: a IA criativa precisa pedir confirmação antes de enviar a foto")
+# 16/11: CRIADOR IA — só fala com as Edge Functions bw-ia (textos) e, pelo fotos-nuvem.js, bw-ia-imagem; nada gravado na nuvem;
+# foto só sai no modo "IA coloca a pessoa", com confirmação
+crjs = ler("assets/criador.js") if os.path.exists("assets/criador.js") else ""
+if crjs:
+    urls = {u for u in re.findall(r"https://[^\"'\s)]+", crjs) if "supabase.co" in u}
+    if urls - {"https://zdtnetplvdonogmdvarx.supabase.co/functions/v1/bw-ia"}:
+        problemas.append(f"assets/criador.js: só pode chamar a Edge Function bw-ia ({urls})")
+    if re.search(r"\.upload\(|user_data|antesDeSalvar|registrarAgora|\.storage", crjs):
+        problemas.append("assets/criador.js: o Criador IA não pode guardar nada na nuvem")
+    if "confirm(" not in crjs.split("async function criarIA")[1][:900] if "async function criarIA" in crjs else True:
+        problemas.append("assets/criador.js: precisa pedir confirmação antes de mandar a foto para a IA")
+    if "criador.html" in todos and "assets/fotos-nuvem.js" not in todos["criador.html"]:
+        problemas.append("criador.html: não carrega assets/fotos-nuvem.js")
 for p in ["equipe.html", "eventos.html"]:   # 16/11: PDF da equipe / dossiê juntam os anexos (pente fino 43)
     if p in todos and "assets/bw-anexos.js" not in todos[p]:
         problemas.append(f"{p}: não carrega assets/bw-anexos.js (os PDFs anexados não entram no relatório)")

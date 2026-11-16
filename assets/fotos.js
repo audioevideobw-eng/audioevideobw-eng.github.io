@@ -978,7 +978,7 @@
         h += '<div class="c-tit">EFEITO NO FUNDO</div>' + chips("iaFundo", FUNDO_IA, IA.fundo) + (IA.fundo ? sl("iaFundoF", "Força", 10, 100, IA.fundoF, "%") : "");
         h += '<div class="c-linha" style="margin-top:8px">' + (FOTOS.length > 1 ? '<button type="button" class="chip ok" data-k="iaTodas">✨ USAR EM TODAS AS FOTOS</button>' : "") + '<button type="button" class="chip" data-k="iaZerar">↺ SEM RETOQUE</button></div>';
       }
-      h += '<div class="c-tit">✨ IA CRIATIVA (NA NUVEM)</div><p class="c-nota" style="margin-top:0">Escreva o que mudar — <b>cabelo, roupa, acessório, fundo</b> — e a IA cria uma <b>nova versão</b> ao lado da original. Precisa estar logado; até 10 por dia. Envia uma cópia pequena da foto (nada fica guardado).</p>' +
+      h += '<div class="c-tit">✨ IA CRIATIVA (NA NUVEM)</div><p class="c-nota" style="margin-top:0">Escreva o que mudar — <b>cabelo, roupa, acessório, fundo</b> — e a IA cria uma <b>nova versão</b> ao lado da original. Precisa estar logado; até 15 imagens por dia. Envia uma cópia pequena da foto (nada fica guardado).</p>' +
         (IA_NUVEM === false ? '<p class="c-nota" style="color:#FFB547">A IA criativa ainda está sendo ativada pela Brightway.</p>' : "") +
         '<textarea class="c-campo" data-k="iaPedido" rows="2" maxlength="300" placeholder="ex.: cabelo cacheado e terno azul-marinho" aria-label="O que a IA deve mudar">' + esc(IA_PEDIDO) + '</textarea>' +
         '<div class="c-rolar">' + SUG_IA.map(function (x) { return '<button type="button" class="chip" data-k="iaSug" data-v="' + esc(x) + '">+ ' + esc(x) + "</button>"; }).join("") + "</div>" +
@@ -1455,7 +1455,18 @@
   solta.addEventListener("drop", function (ev) { ev.preventDefault(); adicionar(ev.dataTransfer.files); });
   window.addEventListener("resize", function () { if (!$("ed").hidden) agendar(); });
 
-  (async function () { await lerKit(); await migrarAntigo(); await carregarImgs(); if (!$("ed").hidden) { painel(); agendar(); } })();
+  (async function () { await lerKit(); await migrarAntigo(); await carregarImgs(); if (!$("ed").hidden) { painel(); agendar(); } await doCriador(); })();
+  /* 16/11: "ABRIR NO EDITOR" do CRIADOR IA entrega a imagem pelo IndexedDB do aparelho (bw_ponte) — nada passa pela internet */
+  function doCriador() {
+    if (location.hash !== "#criador" || !window.indexedDB) return Promise.resolve();
+    return new Promise(function (ok) {
+      var r = indexedDB.open("bw_ponte", 1); r.onupgradeneeded = function () { r.result.createObjectStore("arq"); }; r.onerror = function () { ok(); };
+      r.onsuccess = function () { var t = r.result.transaction("arq", "readwrite"), st = t.objectStore("arq"), q = st.get("criador");
+        q.onsuccess = function () { var v = q.result; st.delete("criador"); history.replaceState(null, "", location.pathname);
+          if (v && v.blob) adicionar([new File([v.blob], v.nome || "criacao.jpg", { type: v.blob.type || "image/jpeg" })]).then(ok, ok); else ok(); };
+        q.onerror = function () { ok(); }; };
+    });
+  }
   window.__fotos = {   // usado nos testes automáticos
     iaAtiva: iaAtiva, iaAnalisar: iaAnalisar, IA0: IA0, iaCriar: iaCriar, iaPedido: function (v) { IA_PEDIDO = v; },
     adicionar: adicionar, montar: montar, G: function () { return G; }, FOTOS: FOTOS, abrir: abrirEditor, fechar: fecharEditor, aba: irAba, auto: autoDe,

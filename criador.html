@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Criador IA — Brightway</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#06080D">
+<link rel="icon" type="image/png" href="icons/favicon-64.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Brightway">
+<link rel="stylesheet" href="assets/brightway.css?v=25">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat:wght@500;800&family=Pacifico&family=Playfair+Display:wght@700&family=Michroma&family=Inter:wght@400;600;700&family=Poppins:wght@500;800&family=Anton&family=Righteous&family=Cinzel:wght@700&family=Lobster&family=Dancing+Script:wght@700&family=Great+Vibes&family=Caveat:wght@700&family=Fredoka:wght@600&display=swap" rel="stylesheet">
+<style>
+.wrap{max-width:1180px;margin:0 auto;padding:0 20px 90px}
+.cr-grade{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,440px);gap:18px;align-items:start}
+@media (max-width:920px){.cr-grade{grid-template-columns:minmax(0,1fr)}}
+.cr-tipos{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+@media (max-width:560px){.cr-tipos{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.cr-tipo{display:flex;flex-direction:column;align-items:center;gap:8px;padding:16px 8px;border-radius:16px;border:1px solid rgba(245,241,234,.12);background:linear-gradient(160deg,rgba(255,255,255,.05),rgba(255,255,255,.015));color:#F5F1EA;font:800 13px/1.1 Inter,system-ui,sans-serif;letter-spacing:.06em;cursor:pointer;min-width:0}
+.cr-tipo svg{width:30px;height:30px;stroke:#FFB547;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.cr-tipo.on{border-color:#FFB547;background:linear-gradient(160deg,rgba(255,181,71,.22),rgba(255,181,71,.05));box-shadow:0 0 0 1px #FFB547 inset}
+.cr-chips{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 2px}
+.cr-chip{min-height:36px;padding:0 13px;border-radius:999px;border:1px solid rgba(245,241,234,.16);background:rgba(255,255,255,.04);color:#F5F1EA;font:600 12.5px Inter,system-ui,sans-serif;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.cr-chip.on{background:#FFB547;color:#06080D;border-color:#FFB547}
+.cr-chip i.sw{width:13px;height:13px;border-radius:50%;display:inline-block;border:1px solid rgba(255,255,255,.5)}
+.cr-campos{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 12px}
+@media (max-width:560px){.cr-campos{grid-template-columns:minmax(0,1fr)}}
+.cr-campos label{display:flex;flex-direction:column;gap:4px;font:600 12px Inter,system-ui,sans-serif;color:rgba(245,241,234,.75);min-width:0}
+.cr-campos label.largo{grid-column:1/-1}
+.cr-campos input,.cr-campos textarea,.cr-campos select,.cr-desc{width:100%;box-sizing:border-box;min-height:42px;padding:9px 12px;border-radius:12px;border:1px solid rgba(245,241,234,.16);background:rgba(6,8,13,.55);color:#F5F1EA;font:400 16px Inter,system-ui,sans-serif}
+.cr-campos textarea,.cr-desc{min-height:64px;resize:vertical}
+.cr-tit{font:800 12px Inter,system-ui,sans-serif;letter-spacing:.1em;color:#FFB547;margin:16px 0 6px;text-transform:uppercase}
+.cr-tit:first-child{margin-top:0}
+.cr-foto{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.cr-foto img{width:64px;height:64px;border-radius:14px;object-fit:cover;border:1px solid rgba(245,241,234,.2)}
+.cr-criar{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+.cr-criar .bw-btn{flex:1 1 220px}
+.cr-prev{position:sticky;top:12px}
+.cr-prev::-webkit-scrollbar{width:6px}.cr-prev::-webkit-scrollbar-thumb{background:rgba(245,241,234,.2);border-radius:6px}
+/* celular: a prévia fica presa no topo enquanto os controles rolam (PENTE FINO 39) */
+@media (max-width:920px){
+  html{scroll-padding-top:calc(34vh + 28px);scroll-padding-bottom:96px}
+  .cr-grade{display:flex;flex-direction:column;gap:0;align-items:stretch}
+  .cr-prev,.cr-prev>.tf-card{display:contents;max-height:none;overflow:visible}
+  .cr-palco{order:1;position:sticky;top:0;z-index:40;background:#06080D;border-radius:0 0 16px 16px;min-height:0;padding:6px;margin:0 -4px;box-shadow:0 10px 24px rgba(0,0,0,.5)}
+  .cr-grade .cr-palco canvas{max-height:34vh}
+  .cr-ops{order:2;margin:8px 0}
+  .cr-esq{order:3}
+  .cr-prev .tf-nota{display:none}
+  .cr-ops .cr-op{max-width:84px}
+}
+.cr-palco{background:repeating-conic-gradient(#11151d 0 25%,#0b0e14 0 50%) 0 0/22px 22px;border-radius:16px;border:1px solid rgba(245,241,234,.1);display:flex;align-items:center;justify-content:center;padding:10px;min-height:260px}
+.cr-palco canvas{max-width:100%;max-height:calc(100vh - 300px);border-radius:8px;box-shadow:0 18px 50px rgba(0,0,0,.55);display:block}
+.cr-ops{display:flex;gap:8px;margin:10px 0 4px}
+.cr-op{flex:0 0 72px;width:72px;height:72px;min-width:0;border-radius:12px;border:2px solid transparent;overflow:hidden;cursor:pointer;background:#0b0e14;padding:0}
+.cr-op img{width:100%;height:100%;object-fit:cover;display:block}
+.cr-op.on{border-color:#FFB547}
+.cr-op.carregando{background:linear-gradient(110deg,#11151d 30%,#1d2430 50%,#11151d 70%) 0 0/200% 100%;animation:crbrilho 1.2s linear infinite}
+@keyframes crbrilho{to{background-position:-200% 0}}
+.cr-sl{display:grid;grid-template-columns:92px minmax(0,1fr) 44px;align-items:center;gap:8px;font:600 12px Inter,system-ui,sans-serif;color:rgba(245,241,234,.8);margin:6px 0}
+.cr-sl input{width:100%;accent-color:#FFB547}
+.cr-saida{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.cr-saida .bw-btn{flex:1 1 140px;min-height:44px}
+.cr-msg{font:500 13px Inter,system-ui,sans-serif;color:rgba(245,241,234,.8);min-height:18px;margin-top:8px}
+.cr-legenda{white-space:pre-wrap;background:rgba(6,8,13,.55);border:1px solid rgba(245,241,234,.14);border-radius:12px;padding:12px;font:400 14px/1.5 Inter,system-ui,sans-serif;color:#F5F1EA;margin-top:8px}
+.cr-ocup{position:fixed;inset:0;z-index:9000;background:rgba(6,8,13,.72);display:flex;align-items:center;justify-content:center;color:#F5F1EA;font:600 15px Inter,system-ui,sans-serif;text-align:center;padding:24px}
+.cr-ocup[hidden]{display:none}
+.cr-toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);z-index:9100;background:#151a23;border:1px solid rgba(245,241,234,.18);color:#F5F1EA;padding:11px 16px;border-radius:12px;font:500 14px Inter,system-ui,sans-serif;max-width:min(90vw,460px);text-align:center;box-shadow:0 10px 30px rgba(0,0,0,.5)}
+</style>
+</head>
+<body>
+<header><div class="hd"><button id="btnVoltar" type="button">‹</button><div id="userBox"></div></div></header>
+<div class="wrap">
+  <div class="tf-card" style="margin-top:0">
+    <h3>Criador IA — convites, posts, flyers e cartões</h3>
+    <p class="tf-sub">Escolha o que criar, preencha os dados e a IA faz a arte. Os textos entram por cima com fontes de verdade (sem erro de letra) e você ajusta tudo antes de baixar.</p>
+    <div class="cr-tipos" id="tipos" role="group" aria-label="O que criar"></div>
+    <div class="cr-tit">Modelo</div><div class="cr-chips" id="subtipos"></div>
+  </div>
+
+  <div class="cr-grade">
+    <div class="cr-esq" style="min-width:0">
+      <div class="tf-card">
+        <div class="cr-tit">Dados</div>
+        <div class="cr-campos" id="campos"></div>
+        <div class="cr-criar" style="margin-top:12px"><button type="button" class="bw-btn bw-btn--vidro" id="btnTextosIA">✨ TEXTOS COM IA</button></div>
+      </div>
+      <div class="tf-card">
+        <div class="cr-tit">Foto (opcional)</div>
+        <div class="cr-foto"><img id="fotoMini" alt="" hidden><button type="button" class="bw-btn bw-btn--vidro" id="btnFoto">＋ ESCOLHER FOTO</button><button type="button" class="bw-btn bw-btn--vidro" id="btnSemFoto" hidden>TIRAR FOTO</button>
+          <input type="file" id="arqFoto" accept="image/*" hidden></div>
+        <div id="fotoModoBox" hidden><div class="cr-tit">Como a foto entra</div><div class="cr-chips" id="fotoModo"></div></div>
+        <div class="cr-tit">Estilo</div><div class="cr-chips" id="estilos"></div>
+        <div class="cr-tit">Cores</div><div class="cr-chips" id="paletas"></div>
+        <div class="cr-tit">Descreva do seu jeito (opcional)</div>
+        <textarea class="cr-desc" id="desc" maxlength="300" placeholder="ex.: tema futebol, cores azul e branco, balões e troféu"></textarea>
+        <div class="cr-tit">Formato</div><div class="cr-chips" id="formatos"></div>
+        <div class="cr-criar">
+          <button type="button" class="bw-btn" id="btnCriarIA">✨ CRIAR 3 OPÇÕES COM IA</button>
+          <button type="button" class="bw-btn bw-btn--vidro" id="btnProntos">FUNDOS PRONTOS (SEM IA)</button>
+        </div>
+        <p class="tf-nota" id="notaIA">IA: precisa estar logado (cada opção usa 1 das 15 imagens do dia). Fundos prontos: grátis, sem limite, sem internet.</p>
+      </div>
+      <div class="tf-card"><div class="cr-tit">Ajustes do texto e da arte</div><div id="ajustes"></div></div>
+      <div class="tf-card"><div class="cr-tit">Salvar e enviar</div>
+        <div class="cr-saida">
+          <button type="button" class="bw-btn" id="btnPng">⇩ BAIXAR PNG</button>
+          <button type="button" class="bw-btn bw-btn--vidro" id="btnPdf">⇩ PDF</button>
+          <button type="button" class="bw-btn bw-btn--vidro" id="btnShare">COMPARTILHAR</button>
+          <button type="button" class="bw-btn bw-btn--vidro" id="btnPacote">PACOTE REDES</button>
+          <button type="button" class="bw-btn bw-btn--vidro" id="btnEditor">ABRIR NO EDITOR</button>
+        </div>
+        <div class="cr-msg" id="msg" role="status"></div>
+        <div class="cr-criar"><button type="button" class="bw-btn bw-btn--vidro" id="btnLegenda">✨ LEGENDA / MENSAGEM PARA ENVIAR</button></div>
+        <div id="legendaBox" hidden><div class="cr-legenda" id="legenda"></div>
+          <div class="cr-criar"><button type="button" class="bw-btn bw-btn--vidro" id="btnCopiar">COPIAR TEXTO</button><button type="button" class="bw-btn bw-btn--vidro" id="btnZap">ENVIAR NO WHATSAPP</button></div></div>
+      </div>
+    </div>
+
+    <div class="cr-prev" style="min-width:0">
+      <div class="tf-card" style="margin-top:0">
+        <div class="cr-palco"><canvas id="cv" width="540" height="960" aria-label="Prévia"></canvas></div>
+        <div class="cr-ops" id="ops"></div>
+        <p class="tf-nota" style="margin:8px 0 0">Toque numa das opções para trocar a arte.</p>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="cr-ocup" id="ocup" hidden></div>
+
+<script src="assets/layout.js?v=28"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="assets/bw-sync.js"></script>
+<script src="assets/fotos-nuvem.js?v=2"></script>
+<script src="assets/criador.js?v=3"></script>
+</body>
+</html>

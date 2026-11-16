@@ -1,4 +1,4 @@
-/* IA CRIATIVA do editor de fotos (16/11/2026, Claude) — ÚNICO arquivo do editor que fala com a internet.
+/* IA CRIATIVA do editor de fotos e do CRIADOR IA (16/11/2026, Claude) — ÚNICO arquivo dessas ferramentas que fala com a internet.
    Só roda quando a pessoa toca em ✨ CRIAR NOVA VERSÃO e confirma: manda UMA cópia pequena (≤ 504 px) da foto + o pedido
    para a Edge Function bw-ia-imagem (Cloudflare FLUX.2), que devolve uma nova imagem. Nada fica guardado na nuvem
    (não grava em bucket, tabela nem na conta). Regra 24/40 do AGENTS.md. */
@@ -10,9 +10,11 @@
     try { var r = await fetch(FN, { method: "POST", headers: { "Content-Type": "application/json", "apikey": PUB }, body: JSON.stringify({ ping: true }) });
       var j = await r.json(); return !!j.pronto; } catch (e) { return false; }
   }
-  async function editar(blob, pedido, w, h) {
+  /* extra (CRIADOR IA): { modo: "arte", espaco: "baixo"|"topo"|…, seed } — na arte a foto é opcional (blob = null) */
+  async function editar(blob, pedido, w, h, extra) {
     var s = await sessao(); if (!s) return { erro: "sem_login" };
-    var fd = new FormData(); fd.append("imagem", blob, "foto.jpg"); fd.append("pedido", pedido); fd.append("w", String(w)); fd.append("h", String(h));
+    var fd = new FormData(); if (blob) fd.append("imagem", blob, "foto.jpg"); fd.append("pedido", pedido); fd.append("w", String(w)); fd.append("h", String(h));
+    extra = extra || {}; if (extra.modo) fd.append("modo", extra.modo); if (extra.espaco) fd.append("espaco", extra.espaco); if (extra.seed) fd.append("seed", String(extra.seed));
     try {
       var r = await fetch(FN, { method: "POST", headers: { "Authorization": "Bearer " + s.access_token, "apikey": PUB }, body: fd });
       var j = await r.json().catch(function () { return {}; });
@@ -23,8 +25,9 @@
     } catch (e) { return { erro: "rede" }; }
   }
   var MSG = { sem_login: "Entre na sua conta para usar a IA criativa.", sem_chave: "A IA criativa ainda está sendo ativada pela Brightway.",
-    limite: "Você já criou 10 versões hoje. Amanhã libera de novo.", cota: "A IA criativa atingiu o limite grátis de hoje. Tente amanhã.",
+    limite: "Você já usou as 15 imagens de IA de hoje. Amanhã libera de novo.", cota: "A IA criativa atingiu o limite grátis de hoje. Tente amanhã.",
     proibido: "Esse pedido não é permitido nesta ferramenta.", filtro: "A IA recusou esse pedido. Tente escrever de outro jeito.",
     rede: "Sem internet agora.", grande: "A foto ficou grande demais para enviar." };
-  window.BWFotosNuvem = { editar: editar, pronta: pronta, msg: function (e) { return MSG[e] || "A IA criativa não respondeu agora (" + e + ")."; } };
+  function arte(blob, pedido, w, h, espaco, seed) { return editar(blob, pedido, w, h, { modo: "arte", espaco: espaco, seed: seed }); }
+  window.BWFotosNuvem = { editar: editar, arte: arte, pronta: pronta, msg: function (e) { return MSG[e] || "A IA criativa não respondeu agora (" + e + ")."; } };
 })();
