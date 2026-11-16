@@ -624,7 +624,6 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
       inserção anônima (necessário para o link de colaborador) → RESOLVIDO 15/11: só por link registrado + limite por hora.
 - [~] Ideias do dono (15/11): FEITO no app (sino AVISOS + notificação do aparelho + LEMBRAR EQUIPE por WhatsApp/e-mail/grupo, grátis).
       E-mail automático diário FEITO (15/11, grátis — bw-avisos). WhatsApp automático: só pela API da Meta (paga) — não feito, decisão do dono.
-- [ ] (dono) Teste real do 🔏 ASSINAR com o e-CNPJ da BW: abrir um orçamento → 🔏 ASSINAR → escolher o .pfx → digitar a senha → abrir o PDF
-      no Acrobat (ou validar.iti.gov.br) e conferir "assinatura válida".
+- [x] (16/11 20:05, dono: "funcionou perfeitamente") Teste real do 🔏 ASSINAR com o e-CNPJ da BW (A1, formato antigo 3DES/RC2) — OK.
 - [ ] Futuro (MAESTRO): galeria do cliente por link secreto (hoje as FOTOS ainda são listáveis por quem souber
       usar a API; documentos já estão protegidos).
