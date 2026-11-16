@@ -275,7 +275,7 @@
   $("btIA").onclick = async function () {
     var b = this, p = periodo(), n = C.numeros(DADOS, p.ini, p.fim), saida = $("iaSaida");
     b.disabled = true; saida.textContent = "✨ Analisando…";
-    var resumo = { periodo: p.ini + " a " + p.fim, contatos: n.entrou, propostas: n.propostas, fechados: n.fechados, perdidos: n.perdidos, taxa: pct(n.taxa), ticket: Math.round(n.ticket),
+    var resumo = { periodo: p.ini + " a " + p.fim, contatos: n.entrou, propostas: n.propostas, fechados: n.fechados, perdidos: n.perdidos, taxa: n.taxa == null ? "ainda sem negócios decididos (nem fechado nem perdido)" : pct(n.taxa), ticket: Math.round(n.ticket),
       cicloDias: n.ciclo, abertos: n.abertas, valorEmAberto: Math.round(n.valorAberto), retornosAtrasados: n.atrasados, metaMensal: C.cfg("cfg_meta", "") || null, origens: {}, motivosPerda: {}, servicos: {} };
     DADOS.forEach(function (l) {
       if (l.criadoEm >= p.ini) { var o = resumo.origens[l.origem || "?"] = resumo.origens[l.origem || "?"] || { contatos: 0, fechados: 0 }; o.contatos++; if (l.etapa === "fechado") o.fechados++;
