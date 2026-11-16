@@ -137,3 +137,16 @@ Tamanho > 0 e sem erro = o pdfmake montou o arquivo. Localmente (T1) confira o `
 - Prompt em inglês envolvendo o pedido: "Change ONLY this: … Keep the same person, pose, framing, lighting" (mantém o rosto).
 - Teste local: rota do Playwright responde o ping e devolve um JPEG falso em base64; conferir confirm(), o corpo enviado e a foto nova na posição i+1.
 - Publicar função pelo painel: functions/new → monaco.editor.getModels()[0].setValue(código) + nome → Deploy; SQL: sql/new → setValue → Run.
+
+## CRIADOR IA — arte por IA + texto de verdade — 16/11/2026
+- Arte: `BWFotosNuvem.arte(blobOuNull, prompt, w, h, espaco, seed)` → Edge Function bw-ia-imagem (modo=arte) acrescenta "ABSOLUTELY NO text…"
+  e "keep {espaço} calm" ao prompt. 3 opções = 3 chamadas em paralelo com seeds diferentes (cada uma conta 1 no limite diário).
+- Tamanho da arte: proporção do formato com o lado maior 1440 e múltiplos de 16 (story → 816×1440); o desenho final cobre a área (capa).
+- Texto: blocos com papel (pre/script/nome/destaque/info/peq/cta/contato) × tamanho relativo a uma base (min(W, H×0,62)); encolhe 8% por
+  volta até caber na área; cor automática pela luminância da área; fundo do texto degradê/vidro (desfoque por reduzir-ampliar)/faixa.
+- Data por extenso sem fuso: `new Date(ano, mês-1, dia)` a partir de "aaaa-mm-dd" (nunca `new Date("aaaa-mm-dd")`, que é UTC).
+- QR: biblioteca qrcode-generator (CDN, carregada só quando o QR é ligado) → `qrcode(0,"M")`, `isDark(l,c)` desenhado no canvas.
+- PDF de impressão: pdf-lib, página A5/A4/cartão em pontos e a imagem JPEG cobrindo a página.
+- Entre páginas sem nuvem: IndexedDB `bw_ponte` (put no criador → fotos.html#criador lê, apaga e abre).
+- Teste: rotas simulando bw-ia-imagem (JPEG falso), bw-ia (JSON) e o QR; `service_workers="block"`; conferir corpo do pedido
+  (sem `name="imagem"` quando a foto não deve sair), PNG decodificado no tamanho certo, PDF relido com PDFLib.

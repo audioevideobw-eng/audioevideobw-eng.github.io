@@ -528,7 +528,8 @@
     return "Tipo: " + TIPOS[E.tipo].nome + " — " + sub + ". Estilo: " + estiloAtual()[1] + ".\n" + campos(E.tipo, E.sub).map(function (c) { var v = c[2] === "date" ? fmtData(d[c[0]]) : c[2] === "time" ? fmtHora(d[c[0]]) : d[c[0]]; return v ? c[1] + ": " + v : ""; }).filter(Boolean).join("\n");
   }
   async function textosIA() {
-    var alvo = E.tipo === "convite" ? ["pre", "titulo", "mensagem"] : E.tipo === "cartao" ? ["cargo"] : E.sub === "depoimento" ? ["pre"] : ["pre", "titulo", "subtitulo", "cta"];
+    var dd = dados(), alvo = E.tipo === "convite" ? ["pre", "titulo", "mensagem"] : E.tipo === "cartao" ? ["cargo"] : E.sub === "depoimento" ? ["pre"] : ["pre", "titulo", "subtitulo", "cta"];
+    if (E.tipo !== "convite") alvo = alvo.filter(function (k) { return !(k === "titulo" && String(dd.titulo || "").trim()); });   /* título do evento digitado é dado seu: a IA não troca */
     msg("✨ Escrevendo os textos…");
     var r = await ia("Você escreve textos CURTOS e calorosos para convites e posts, em português do Brasil, com tom descontraído e elegante. Nunca invente datas, valores, nomes ou endereços. Responda SOMENTE um JSON.",
       resumoDados() + "\n\nEscreva os campos " + alvo.join(", ") + " (pre: até 6 palavras; titulo: até 5 palavras; mensagem/subtitulo: até 20 palavras; cta: até 4 palavras; cargo: até 5 palavras). Formato: {" + alvo.map(function (k) { return '"' + k + '":"..."'; }).join(",") + "}. Varie em relação ao texto atual.", 400);
@@ -545,7 +546,7 @@
         "\n\nEscreva a LEGENDA do post para Instagram (até 90 palavras, gancho na 1ª linha, chamada para ação no fim) e depois 8 hashtags em português. Só o texto."), 500);
     msg("");
     if (r.erro) { toast(erroIA(r.erro)); return; }
-    $("legenda").textContent = String(r.texto || "").trim(); $("legendaBox").hidden = false;
+    $("legenda").textContent = String(r.texto || "").replace(/\*\*|__/g, "").replace(/^#+\s*/gm, "").trim(); $("legendaBox").hidden = false;
   }
 
   /* ================= SAÍDA ================= */

@@ -148,7 +148,16 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
     O Claude nunca digita chave/token em campo — o dono cola (dica: linha NOME=valor no campo Name separa sozinho).
 50. IA CRIATIVA (decisão do dono, 16/11): a ÚNICA saída do editor de fotos para a internet é assets/fotos-nuvem.js → Edge Function
     bw-ia-imagem (Cloudflare FLUX.2), só depois de confirm() da pessoa, cópia pequena (≤ 504 px), nada guardado, resultado vira foto NOVA
-    ao lado da original; nudez/sexual recusado na função; 10/dia por conta (auto: vigia 7.8a).
+    ao lado da original; nudez/sexual recusado na função; 15 imagens/dia por conta, somando editor e CRIADOR IA (auto: vigia 7.8a).
+
+**Aprendidos em 16/11 (CRIADOR IA)**
+52. Prévia presa (sticky): só a prévia (+ miniaturas) fica presa — um bloco preso mais alto que a tela é empurrado para fora no fim da
+    página; botões vão para outro cartão. No celular, prévia presa no topo pede `html{scroll-padding-top}` (senão o campo tocado fica
+    escondido atrás dela) e regra do @media precisa ser MAIS específica que a regra base que vem depois (auto: teste_criador.py).
+53. Teste com Playwright e recurso externo (CDN, Edge Function): `service_workers="block"` — o sw.js busca direto na rede e a rota
+    simulada do Playwright não vale (o QR "não aparecia" só no teste).
+54. Texto sobre arte de IA: a IA desenha SÓ a arte (prompt "sem letras"), o app escreve os textos com fontes de verdade; a IA de textos
+    nunca troca o que a pessoa digitou (nome, data, valor, título do evento) e a resposta dela perde a marcação (`**`, `#`).
 
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
@@ -508,6 +517,17 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   fotos/dia no total) pela Edge Function `bw-ia-imagem` (docs/supabase/functions/bw-ia-imagem/index.ts, publicada pelo painel, Verify JWT desligado — a
   função confere o login) + contador docs/sql/2026-11-16-ia-imagem.sql (rodado: rls true, 0 regras). Secrets CF_ACCOUNT_ID/CF_API_TOKEN pendentes (dono).
   Novo assets/fotos-nuvem.js (única saída do editor; vigia 7.8a confere). teste_ia_retoque.py (nuvem simulada) 0 falhas. fotos.js v9, sw v78. PENTE FINO 50.
+- 16/11/2026 · Claude (ideia do dono: "posts e convites com IA… faça bem completo"): nova página CRIADOR IA (criador.html + assets/criador.js) em
+  MARKETING, Ferramentas e Início. 4 tipos: CONVITE (10 modelos), POST (7), FLYER (4), CARTÃO de visita (3); campos de cada um; foto opcional
+  (✨ a IA coloca a pessoa na arte — com confirmação, cópia ≤ 504 px —, FOTO EM MOLDURA ou FOTO DE FUNDO, essas duas sem enviar nada);
+  12 estilos, 9 paletas + MINHA MARCA (lê o kit do editor de fotos no IndexedDB), 7 formatos (story, post, quadrado, paisagem, A5/A4 de
+  impressão, cartão 9×5). ✨ CRIAR 3 OPÇÕES COM IA (bw-ia-imagem modo "arte": sem letras e com espaço livre para o texto; limite agora
+  15 imagens/dia por conta) ou FUNDOS PRONTOS desenhados no aparelho (grátis, sem login). Textos por cima com 8 pares de fontes, posição,
+  fundo do texto (degradê/vidro/faixa/sombra), cores, tamanho, alinhamento, logo e QR code (confirmar no WhatsApp, como chegar, Instagram,
+  site). ✨ TEXTOS COM IA e ✨ LEGENDA/MENSAGEM (bw-ia, só os dados digitados). Saída: PNG, PDF no tamanho de impressão (pdf-lib),
+  COMPARTILHAR, PACOTE REDES, ABRIR NO EDITOR (ponte IndexedDB bw_ponte → fotos.html#criador). No ar: convite com IA em 13,5 s, post com a
+  pessoa da foto num palco em 7 s, PNG/PDF A4/legenda OK. teste_criador.py (32 checagens × 1280/390, 0 falhas). Manual 38 → 39 p.
+  layout.js v28, criador.js v4, fotos.js v10, fotos-nuvem.js v2, sw v79. PENTE FINO 52–54. Vigia 7.8a confere o criador.js.
 
 ## Pendências (dono)
 - [x] (16/11 11:42) IA CRIATIVA ATIVA: conta Cloudflare do dono (Free, sem cartão), token "Brightway IA criativa 2" (Workers AI Read+Edit) em
