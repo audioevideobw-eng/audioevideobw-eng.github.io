@@ -177,3 +177,16 @@ Tamanho > 0 e sem erro = o pdfmake montou o arquivo. Localmente (T1) confira o `
   e a cor vira a da letra. Depois corta as sobras transparentes (margem 4 px) e salva PNG (encolhe 20% por volta até ≤ 450 KB).
 - Teste: desenhar a logo num canvas e exportar como JPEG (fundo "sujo" de verdade); conferir alfa dos cantos, miolo do "O", pixels
   semitransparentes claros (halo) e que logo transparente/sobre foto não é mexida — docs/testes/teste_logo_fundo.py.
+
+
+## Assinar PDF com certificado A1 no navegador (16/11)
+- Abrir o .pfx: `forge.pkcs12.pkcs12FromAsn1(forge.asn1.fromDer(binString), false, senha)`; chave em pkcs8ShroudedKeyBag, certificado
+  = o certBag cuja chave pública tem o mesmo `n`; CN da ICP-Brasil = "NOME:CNPJ/CPF". Senha errada → erro com "MAC"/"password".
+- PDF: pdf-lib cria o dicionário /Sig (Filter Adobe.PPKLite, SubFilter adbe.pkcs7.detached, ByteRange [0 /********** ×3],
+  Contents <0…0> com 24 576 bytes), o widget /FT /Sig na última página e o /AcroForm /SigFlags 3; salvar com useObjectStreams:false.
+  Depois: achar o texto do ByteRange e o "/Contents <", calcular [0, início, fim, resto], escrever com espaços até o mesmo tamanho,
+  assinar os bytes FORA do Contents (forge.pkcs7 detached, SHA-256, atributos contentType/messageDigest/signingTime) e escrever o hex.
+- Teste: certificados criados na hora (python cryptography + `openssl pkcs12 -export -legacy -keypbe PBE-SHA1-3DES -certpbe PBE-SHA1-RC2-40`
+  para imitar os A1 reais); validar com `pdfsig` (poppler) — "Signature is Valid", "Total document signed"; alterar 1 byte → inválido.
+- Sem internet nos testes: `git clone --depth 1 https://github.com/digitalbazaar/forge` + `python3 docs/testes/empacotar_forge.py forge/lib /tmp/forge.js`
+  e rodar com `FORGE=/tmp/forge.js`.

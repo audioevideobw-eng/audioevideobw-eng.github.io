@@ -234,6 +234,17 @@ if crmjs and ("toISOString().slice(0, 10)" in crmjs or "BWSync.antesDeSalvar(k, 
 fotosjs = ler("assets/fotos.js") if os.path.exists("assets/fotos.js") else ""
 if "fotos.html" in todos and re.search(r"\.upload\(|from\(\"user_data\"\)|fetch\(|BWSync\.(antesDeSalvar|registrarAgora)", todos["fotos.html"] + fotosjs):
     problemas.append("fotos.html/assets/fotos.js: o editor não pode enviar fotos para a nuvem (regra 24)")
+# 16/11: ASSINAR COM CERTIFICADO (assets/bw-assinar.js) — o certificado e a senha nunca saem do aparelho: sem fetch/XHR/upload/
+# supabase/BWSync/localStorage no módulo; senha em campo type=password; páginas que assinam carregam o módulo
+assinjs = ler("assets/bw-assinar.js") if os.path.exists("assets/bw-assinar.js") else ""
+if assinjs:
+    if re.search(r"fetch\(|XMLHttpRequest|sendBeacon|\.upload\(|supabase|BWSync\.|localStorage|sessionStorage|WebSocket", assinjs):
+        problemas.append("assets/bw-assinar.js: o certificado/senha não podem sair do aparelho nem ir para o localStorage (só IndexedDB bw_cert, opcional)")
+    if 'type="password"' not in assinjs:
+        problemas.append("assets/bw-assinar.js: o campo da senha precisa ser type=password")
+    for p in ["propostas.html", "pdf.html"]:
+        if p in todos and "assets/bw-assinar.js" not in todos[p]:
+            problemas.append(f"{p}: não carrega assets/bw-assinar.js (botão de assinar com certificado)")
 # 16/11: a IA CRIATIVA é a única saída para a internet do editor — só em assets/fotos-nuvem.js, só para a Edge Function bw-ia-imagem,
 # sem Storage/user_data/BWSync e com confirmação da pessoa antes de enviar (fotos.js)
 fnuv = ler("assets/fotos-nuvem.js") if os.path.exists("assets/fotos-nuvem.js") else ""

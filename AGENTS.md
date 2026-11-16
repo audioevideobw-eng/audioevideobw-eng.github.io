@@ -177,6 +177,15 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
     transparente). Tirar fundo = fundo liso pelas bordas + des-mistura da borda das letras (cor da letra + alfa), senão fica halo branco
     no cabeçalho colorido; a original fica guardada para VOLTAR AO ORIGINAL (auto: teste_logo_fundo.py).
 
+**Aprendidos em 16/11 (certificado digital e abas dos orçamentos)**
+60. CERTIFICADO DIGITAL (assets/bw-assinar.js): o .pfx e a senha NUNCA saem do aparelho (sem fetch/upload/supabase/BWSync/localStorage no
+    módulo — vigia); senha em type=password, limpa depois de cada tentativa e nunca guardada; "lembrar" guarda só o ARQUIVO no IndexedDB
+    bw_cert (opt-in, ESQUECER apaga). Os A1 da ICP-Brasil vêm no formato ANTIGO (chave 3DES + certificados RC2-40): WebCrypto não abre,
+    por isso node-forge. Teste SEMPRE com certificado de TESTE criado na hora (nunca o do dono) e valide com pdfsig ("Signature is Valid").
+    O Claude não digita senha de certificado: o dono digita (auto: teste_assinatura.py).
+61. Lista com situações (orçamentos, eventos): abas que abrem/fecham pela seta (ui_*_abas) e o item MUDA DE ABA SOZINHO quando a situação
+    muda — a aba de destino abre e a tela rola até ele; sempre há botão de voltar (↺ REABRIR / Agendar) (auto: teste_abas_orcamentos.py).
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -577,6 +586,16 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   Logo do dono (do Word) já tinha fora transparente mas o EMBLEMA num QUADRADO BRANCO: ✂ TIRAR FUNDO agora acha o bloco branco que encosta no
   transparente e só tira BLOCO cheio (miolo ≥ 15×15 px) — letreiro branco fino fica. propostas.js v4, sw v84.
 
+- 16/11/2026 · Claude (dono: "assinar com certificado digital" + mandou o e-CNPJ A1): 🔏 ASSINAR COM CERTIFICADO — novo assets/bw-assinar.js
+  (node-forge 1.3.1 + pdf-lib do CDN, tudo no aparelho): abre o .pfx com a senha (formato antigo 3DES/RC2 e moderno AES), confere validade
+  (vencido = recusa), PDF com campo de assinatura adbe.pkcs7.detached SHA-256 + cadeia do arquivo; carimbo na última página acima do rodapé
+  (direita/esquerda), PÁGINA NOVA NO FIM ou sem carimbo; LEMBRAR NESTE APARELHO (só o arquivo, IndexedDB bw_cert) e ESQUECER; BAIXAR/COMPARTILHAR.
+  Botão 🔏 ASSINAR no editor do orçamento e nova aba 🔏 Certificado em Ferramentas → PDF (qualquer PDF). Vigia: o módulo não pode enviar nada.
+  Teste docs/testes/teste_assinatura.py com certificados de TESTE próprios (pdfsig: válido; alterado: inválido; senha errada/arquivo errado/
+  vencido; nada sai do aparelho) — 0 falhas em 1280/390. O certificado do dono NÃO foi usado nem guardado (cópia de trabalho apagada).
+  ORÇAMENTOS: chips de situação viraram abas PENDENTES / APROVADOS (+ RECUSADOS quando há) com seta (ui_prop_abas); ✓ APROVADO/RECUSADO/↺ REABRIR
+  mudam o orçamento de aba sozinho (abre a aba e rola até ele). teste_abas_orcamentos.py 0 falhas. Manual atualizado. propostas.js v6, sw v85. PENTE FINO 60–61.
+
 ## Pendências (dono)
 - [x] (16/11 11:42) IA CRIATIVA ATIVA: conta Cloudflare do dono (Free, sem cartão), token "Brightway IA criativa 2" (Workers AI Read+Edit) em
       CF_API_TOKEN, CF_ACCOUNT_ID salvo. Teste no ar: "cabelo cacheado ruivo e óculos de sol" → nova versão em 6 s, mesma pessoa/roupa/fundo.
@@ -596,5 +615,7 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
       inserção anônima (necessário para o link de colaborador) → RESOLVIDO 15/11: só por link registrado + limite por hora.
 - [~] Ideias do dono (15/11): FEITO no app (sino AVISOS + notificação do aparelho + LEMBRAR EQUIPE por WhatsApp/e-mail/grupo, grátis).
       E-mail automático diário FEITO (15/11, grátis — bw-avisos). WhatsApp automático: só pela API da Meta (paga) — não feito, decisão do dono.
+- [ ] (dono) Teste real do 🔏 ASSINAR com o e-CNPJ da BW: abrir um orçamento → 🔏 ASSINAR → escolher o .pfx → digitar a senha → abrir o PDF
+      no Acrobat (ou validar.iti.gov.br) e conferir "assinatura válida".
 - [ ] Futuro (MAESTRO): galeria do cliente por link secreto (hoje as FOTOS ainda são listáveis por quem souber
       usar a API; documentos já estão protegidos).

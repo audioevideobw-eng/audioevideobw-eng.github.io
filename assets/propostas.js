@@ -261,7 +261,7 @@
     return LIB[nome].reduce(function (p, src) { return p.then(function () { return new Promise(function (ok, erro) { var s = document.createElement("script"); s.src = src; s.onload = ok; s.onerror = function () { erro(new Error("sem internet")); }; document.head.appendChild(s); }); }); }, Promise.resolve());
   }
   var STATUS = { rascunho: "Rascunho", enviado: "Enviado", aprovado: "Aprovado", recusado: "Recusado", emitido: "Recibo" };
-  var FILTRO = "todos", BUSCA = "", DOC = null;
+  var BUSCA = "", DOC = null;
 
   function kpis() {
     var l = docs(), mes = hoje().slice(0, 7), ab = 0, apMes = 0, nAp = 0, nRec = 0, recMes = 0;
@@ -279,15 +279,30 @@
     kpis();
     var e = empresa();
     $("avisoEmpresa").innerHTML = !e.cnpj && !e.fantasia && !e.razao ? '<div class="tf-card" style="margin:0 0 12px;border-color:rgba(255,181,71,.45)"><b>Primeiro passo:</b> preencha <b>⚙ MINHA EMPRESA</b> (nome, CNPJ, contatos, logo e chave Pix) — ou toque em <b>⇪ IMPORTAR .DOCX</b> e traga um orçamento seu: a ferramenta copia a logo e os dados da empresa.</div>' : "";
-    var fs = [["todos", "TODOS"], ["rascunho", "RASCUNHOS"], ["enviado", "ENVIADOS"], ["aprovado", "APROVADOS"], ["recusado", "RECUSADOS"], ["emitido", "RECIBOS"]];
-    $("filtros").innerHTML = fs.map(function (f) { return '<button type="button" class="pr-chip' + (FILTRO === f[0] ? " on" : "") + '" data-a="filtro" data-v="' + f[0] + '">' + f[1] + "</button>"; }).join("") +
-      '<input class="pr-busca" id="busca" type="search" placeholder="Buscar cliente, número, local…" value="' + esc(BUSCA) + '" aria-label="Buscar">';
-    var b = BUSCA.trim().toLowerCase(), l = docs().filter(function (d) {
-      if (FILTRO !== "todos" && d.status !== FILTRO) return false;
+    /* 16/11 (dono): abas PENDENTES / APROVADOS (+ RECUSADOS) que abrem e fecham pela seta, como a AGENDA; o orçamento muda de aba
+       sozinho quando a situação muda (igual EVENTOS: Finalizado → REALIZADOS, Agendar → AGENDA). Aberto/fechado fica em ui_prop_abas. */
+    $("filtros").innerHTML = '<input class="pr-busca" id="busca" type="search" placeholder="Buscar cliente, número, local…" value="' + esc(BUSCA) + '" aria-label="Buscar">';
+    var b = BUSCA.trim().toLowerCase(), todos = docs().filter(function (d) {
       if (!b) return true;
       return [d.numero, d.cliente.nome, d.cliente.empresa, d.datas && d.datas.local, (d.botoes || []).join(" ")].join(" ").toLowerCase().indexOf(b) >= 0;
-    }).sort(function (a, c) { return String(c.atualizado || "").localeCompare(String(a.atualizado || "")); });
-    $("lista").innerHTML = l.length ? l.map(cartao).join("") : '<div class="pr-vazio">' + (docs().length ? "Nada com esse filtro." : "Nenhum orçamento ainda.<br>Toque em <b>＋ NOVO ORÇAMENTO</b> e depois num dos botões (Videomaker, Fotografia, Transmissão para LED…).") + "</div>";
+    }).sort(function (x, c) { return String(c.atualizado || "").localeCompare(String(x.atualizado || "")); });
+    var grupos = [
+      ["pend", "PENDENTES", todos.filter(function (d) { return d.tipo !== "recibo" && (d.status === "rascunho" || d.status === "enviado"); }), "Nada pendente — todos os orçamentos já tiveram resposta ✨"],
+      ["apr", "APROVADOS", todos.filter(function (d) { return d.tipo === "recibo" || d.status === "aprovado" || d.status === "emitido"; }), "Nenhum aprovado ainda — use ✓ APROVADO num orçamento ENVIADO."],
+      ["rec", "RECUSADOS", todos.filter(function (d) { return d.tipo !== "recibo" && d.status === "recusado"; }), ""]
+    ], ab = abasLista();
+    $("lista").innerHTML = !docs().length ? '<div class="pr-vazio">Nenhum orçamento ainda.<br>Toque em <b>＋ NOVO ORÇAMENTO</b> e depois num dos botões (Videomaker, Fotografia, Transmissão para LED…).</div>' :
+      grupos.filter(function (g) { return g[0] !== "rec" || g[2].length; }).map(function (g) {
+        var aberto = ab[g[0]] !== 0;
+        return '<div class="ag-aba-box pr-aba-box ab-' + g[0] + '"><button type="button" class="ag-aba ab-' + g[0] + '" data-a="abaLista" data-v="' + g[0] + '" aria-expanded="' + aberto + '"><span class="nm">' + g[1] + '</span><span class="cont">' + g[2].length + '</span><span class="chev" aria-hidden="true">▸</span></button>' +
+          '<div class="pr-aba-corpo" data-corpo="' + g[0] + '"' + (aberto ? "" : " hidden") + '>' + (g[2].length ? '<div class="pr-lista">' + g[2].map(cartao).join("") + "</div>" : '<div class="pr-vazio">' + (b ? "Nada com essa busca." : g[3]) + "</div>") + "</div></div>";
+      }).join("");
+  }
+  function abasLista() { try { return JSON.parse(localStorage.getItem("ui_prop_abas") || "") || { pend: 1, apr: 1, rec: 0 }; } catch (e) { return { pend: 1, apr: 1, rec: 0 }; } }
+  function abrirAba(id) { var ab = abasLista(); ab[id] = 1; try { localStorage.setItem("ui_prop_abas", JSON.stringify(ab)); } catch (e) { } }
+  function abaDe(d) { return d.tipo === "recibo" || d.status === "aprovado" || d.status === "emitido" ? "apr" : d.status === "recusado" ? "rec" : "pend"; }
+  function mostrarCartao(id) { /* a vista segue o orçamento: abre a aba de destino e rola até ele */
+    setTimeout(function () { var c = document.querySelector('.pr-card[data-bw-card="' + id + '"]'); if (c && c.scrollIntoView) c.scrollIntoView({ block: "center", behavior: "smooth" }); }, 80);
   }
   function cartao(d) {
     var rec = d.tipo === "recibo", v = rec ? num(d.recibo && d.recibo.valor) : total(d), quem = [d.cliente.nome, d.cliente.empresa].filter(Boolean).join(" · ") || "(sem cliente)";
@@ -296,11 +311,12 @@
     if (!rec) {
       if (d.status === "rascunho") ac += '<button type="button" data-a="st" data-v="enviado" data-id="' + d.id + '">ENVIADO</button>';
       if (d.status === "enviado") ac += '<button type="button" data-a="st" data-v="aprovado" data-id="' + d.id + '">✓ APROVADO</button><button type="button" data-a="st" data-v="recusado" data-id="' + d.id + '">RECUSADO</button>';
-      if (d.status === "aprovado") ac += '<button type="button" data-a="recibo" data-id="' + d.id + '">RECIBO</button>' + (d.eventoId ? "" : '<button type="button" data-a="evento" data-id="' + d.id + '">CRIAR EVENTO</button>');
+      if (d.status === "aprovado") ac += '<button type="button" data-a="recibo" data-id="' + d.id + '">RECIBO</button>' + (d.eventoId ? "" : '<button type="button" data-a="evento" data-id="' + d.id + '">CRIAR EVENTO</button>') + '<button type="button" data-a="st" data-v="enviado" data-id="' + d.id + '" title="Volta para PENDENTES">↺ REABRIR</button>';
+      if (d.status === "recusado") ac += '<button type="button" data-a="st" data-v="enviado" data-id="' + d.id + '" title="Volta para PENDENTES">↺ REABRIR</button>';
       ac += '<button type="button" data-a="duplicar" data-id="' + d.id + '">DUPLICAR</button>';
     }
     ac += '<button type="button" data-a="excluir" data-id="' + d.id + '" aria-label="Excluir">✕</button>';
-    return '<div class="pr-card"><div class="topo"><span class="num">' + esc(d.numero || "SEM NÚMERO") + '</span><span class="pr-st st-' + d.status + '">' + esc(STATUS[d.status] || d.status) + "</span></div>" +
+    return '<div class="pr-card" data-bw-card="' + esc(d.id) + '"><div class="topo"><span class="num">' + esc(d.numero || "SEM NÚMERO") + '</span><span class="pr-st st-' + d.status + '">' + esc(STATUS[d.status] || d.status) + "</span></div>" +
       "<h4>" + esc(quem) + '</h4><div class="sub">' + esc(sub || "—") + '</div><div class="val">' + moeda(v) + '</div><div class="acoes">' + ac + "</div></div>";
   }
 
@@ -372,7 +388,7 @@
         '<div class="pr-tit" style="margin-top:12px">Estilo do PDF</div>' + '<div class="pr-sugs">' + [["classico", "CLÁSSICO (escuro + cor)"], ["moderno", "MODERNO (cor da marca)"], ["limpo", "LIMPO (preto e branco)"]].map(function (s) { return '<button type="button" class="pr-chip' + ((d.estilo || "classico") === s[0] ? " on" : "") + '" data-a="poe" data-k="estilo" data-v="' + s[0] + '">' + s[1] + "</button>"; }).join("") + "</div></div>";
     }
     /* ações */
-    var ac = '<button type="button" class="bw-btn" data-a="pdfEd">⇩ PDF</button><button type="button" class="bw-btn bw-btn--vidro" data-a="enviar">ENVIAR</button><button type="button" class="bw-btn bw-btn--vidro" data-a="word">WORD</button><button type="button" class="bw-btn bw-btn--vidro" data-a="verPrevia">👁 PRÉVIA</button>';
+    var ac = '<button type="button" class="bw-btn" data-a="pdfEd">⇩ PDF</button><button type="button" class="bw-btn bw-btn--vidro" data-a="enviar">ENVIAR</button><button type="button" class="bw-btn bw-btn--vidro" data-a="word">WORD</button><button type="button" class="bw-btn bw-btn--vidro" data-a="verPrevia">👁 PRÉVIA</button><button type="button" class="bw-btn bw-btn--vidro" data-a="assinarCert" title="Assinar o PDF com o certificado digital A1 (.pfx) da empresa">🔏 ASSINAR</button>';
     if (!rec) {
       if (d.status === "rascunho") ac += '<button type="button" class="bw-btn bw-btn--vidro" data-a="stEd" data-v="enviado">MARCAR ENVIADO</button>';
       if (d.status === "enviado") ac += '<button type="button" class="bw-btn bw-btn--vidro" data-a="stEd" data-v="aprovado">✓ APROVADO</button><button type="button" class="bw-btn bw-btn--vidro" data-a="stEd" data-v="recusado">RECUSADO</button>';
@@ -553,7 +569,8 @@
     d.status = st; d.atualizado = new Date().toISOString(); if (st === "aprovado") d.aprovadoEm = hoje(); if (st === "enviado") d.enviadoEm = hoje();
     salvarDoc(d); if (DOC && DOC.id === id) { DOC.status = st; DOC.aprovadoEm = d.aprovadoEm; DOC.enviadoEm = d.enviadoEm; desenharForm(); }
     if (st === "enviado" && d.leadId) atualizarLead(d);
-    if (st === "aprovado") setTimeout(function () { posAprovar(d); }, 50); else if (!DOC) desenharLista();
+    abrirAba(abaDe(d));
+    if (st === "aprovado") setTimeout(function () { posAprovar(d); if (!DOC) { desenharLista(); mostrarCartao(id); } }, 50); else if (!DOC) { desenharLista(); mostrarCartao(id); }
   }
   function atualizarLead(d) {   /* proposta enviada: o contato do FUNIL passa para a etapa "Proposta" (se ainda estava antes) */
     var l = ler("mkt_leads"), x = l.filter(function (y) { return String(y.id) === String(d.leadId); })[0]; if (!x) return;
@@ -852,7 +869,7 @@
     var a = b.dataset.a, id = b.dataset.id, v = b.dataset.v, i = +b.dataset.i, l = b.dataset.l;
     var achar = function () { return docs().filter(function (x) { return x.id === id; })[0]; };
     switch (a) {
-      case "filtro": FILTRO = v; desenharLista(); break;
+      case "abaLista": { var ab = abasLista(); ab[v] = ab[v] === 0 ? 1 : 0; try { localStorage.setItem("ui_prop_abas", JSON.stringify(ab)); } catch (e) { } b.setAttribute("aria-expanded", ab[v] ? "true" : "false"); var corpo = document.querySelector('[data-corpo="' + v + '"]'); if (corpo) corpo.hidden = !ab[v]; break; }
       case "abrir": abrir(achar()); break;
       case "pdf": gerarPdf(achar()); break;
       case "st": mudarStatus(id, v); break;
@@ -873,6 +890,11 @@
       case "addItem": DOC.valor.itens.push({ desc: "", qtd: 1, un: "diária", unit: "" }); mudou(true); break;
       case "tiraItem": DOC.valor.itens.splice(i, 1); mudou(true); break;
       case "pdfEd": salvarAtual(); gerarPdf(DOC); break;
+      case "assinarCert": {
+        salvarAtual(); var dA = DOC; if (!window.BWAssinar) { toast("Ferramenta de assinatura não carregou (sem internet?)."); break; }
+        if (!dA.numero) { dA.numero = proxNumero(dA.tipo === "recibo" ? "REC" : "ORC"); salvarDoc(dA); }
+        BWAssinar.abrir({ pdf: function () { return pdfBlob(dA); }, nome: nomeArq(dA, "pdf"), motivo: dA.tipo === "recibo" ? "Recibo" : "Proposta comercial", local: empresa().cidade || "" });
+        break; }
       case "word": salvarAtual(); gerarWord(DOC); break;
       case "enviar": salvarAtual(); enviar(DOC); break;
       case "marcouEnviado": if (DOC) depoisDeEnviar(DOC); setTimeout(fecharModal, 300); break;

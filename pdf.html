@@ -28,6 +28,7 @@
       <button type="button" data-aba="juntar">Juntar</button>
       <button type="button" data-aba="separar">Separar páginas</button>
       <button type="button" data-aba="assinar">Assinar</button>
+      <button type="button" data-aba="certificado">🔏 Certificado</button>
       <button type="button" data-aba="fotos">Fotos → PDF</button>
       <button type="button" data-aba="marca">Marca d'água</button>
     </div>
@@ -71,7 +72,16 @@
         <div><div class="tf-pagina" id="aVer"><canvas id="aCanvas"></canvas><img class="tf-marca" id="aMarca" alt="" hidden></div></div>
       </div>
       <div class="tf-acoes"><button class="bw-btn bw-btn--primario" id="aGo" type="button">ASSINAR E BAIXAR</button></div>
-      <p class="tf-nota">Assinatura desenhada vale como <b>assinatura simples</b> (como assinar e escanear). Para contratos que exigem assinatura digital com certificado (ICP-Brasil), use o gov.br ou o seu certificado digital.</p>
+      <p class="tf-nota">Assinatura desenhada vale como <b>assinatura simples</b> (como assinar e escanear). Para contratos que exigem assinatura digital com certificado (ICP-Brasil), use a aba <b>🔏 Certificado</b>.</p>
+    </section>
+
+    <!-- CERTIFICADO DIGITAL (A1) -->
+    <section data-painel="certificado" hidden>
+      <div class="tf-soltar" data-alvo="cArq" tabindex="0" role="button"><b>Escolha o PDF para assinar com o certificado digital</b><br>contrato, proposta, recibo, NF… (o PDF já assinado com desenho também pode)</div>
+      <input type="file" id="cArq" accept="application/pdf,.pdf" hidden>
+      <p class="tf-nota" id="cInfo"></p>
+      <div class="tf-acoes"><button class="bw-btn bw-btn--primario" id="cGo" type="button">🔏 ASSINAR COM CERTIFICADO</button></div>
+      <p class="tf-nota">Certificado <b>A1</b> (arquivo .pfx ou .p12 — e-CNPJ ou e-CPF ICP-Brasil): assinatura digital com validade jurídica, reconhecida pelo Adobe Acrobat e por validar.iti.gov.br. O certificado e a senha <b>não saem deste aparelho</b>. Certificado A3 (token/cartão) não funciona no navegador — use o programa do token.</p>
     </section>
 
     <!-- FOTOS -> PDF -->
@@ -103,6 +113,7 @@
 <script src="assets/layout.js?v=30"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="assets/bw-sync.js"></script>
+<script src="assets/bw-assinar.js?v=1"></script>
 <script>
 (function () {
   "use strict";
@@ -355,6 +366,14 @@
       baixar(await d.save(), semExt(mF.name) + "-marca.pdf"); aviso("✓ Marca d'água aplicada.", true);
     } catch (e) { aviso("Erro: " + e.message); }
     ocupado(this, false);
+  };
+  /* CERTIFICADO DIGITAL (16/11): tudo no aparelho, pelo assets/bw-assinar.js */
+  var cPdf = null;
+  aoEscolher.cArq = function (fs) { var f = fs[0]; if (!f) return; f.arrayBuffer().then(function (b) { cPdf = { bytes: new Uint8Array(b), nome: f.name }; $("cInfo").textContent = "📄 " + f.name + " (" + Math.round(f.size / 1024) + " KB)"; }); };
+  $("cGo").onclick = function () {
+    if (!cPdf) { aviso("Escolha primeiro o PDF."); return; }
+    if (!window.BWAssinar) { aviso("A ferramenta de assinatura não carregou (sem internet?)."); return; }
+    BWAssinar.abrir({ pdf: cPdf.bytes, nome: cPdf.nome, motivo: "Assinatura do documento" });
   };
 })();
 </script>
