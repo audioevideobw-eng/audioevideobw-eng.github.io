@@ -216,6 +216,7 @@ footer b{color:var(--gold)}
 #evDossie{display:grid;grid-template-columns:2fr 1fr;gap:16px;align-items:start}
 #evDossie>.bw-card:first-child{grid-column:1/-1}
 @media(max-width:899px){#evDossie{grid-template-columns:1fr}}
+.ml-tab{table-layout:fixed}.ml-tab th,.ml-tab td{padding:4px!important}.ml-tab input{font-size:16px}
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Michroma&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -1182,12 +1183,12 @@ return {  };
     [].forEach.call(filtros.querySelectorAll("button"), function (b) { b.onclick = function () { filtro = b.dataset.f; desenhar(); }; });
     var v = dados.filter(function (d) { return filtro === "todos" || d.status === filtro; });
     if (!v.length) { lista.innerHTML = '<div class="note">Nada por aqui.</div>'; return; }
-    lista.innerHTML = '<table><thead><tr><th>Quando</th><th>Tipo</th><th>Mensagem</th><th>Página · aparelho</th><th>Conta</th><th>Status</th></tr></thead><tbody>' + v.map(function (d) {
+    lista.innerHTML = '<div class="tb-scroll" style="overflow-x:auto"><table><thead><tr><th>Quando</th><th>Tipo</th><th>Mensagem</th><th>Página · aparelho</th><th>Conta</th><th>Status</th></tr></thead><tbody>' + v.map(function (d) {
       return "<tr><td style=\"white-space:nowrap\">" + esc(new Date(d.criado_em).toLocaleString("pt-BR", {day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit"})) + "</td>" +
         '<td><b style="color:' + (cor[d.tipo] || "#ccc") + '">' + esc(d.tipo) + "</b></td><td style=\"min-width:260px;white-space:pre-wrap\">" + esc(d.texto) + "</td>" +
         "<td style=\"font-size:12px\">" + esc(d.pagina || "") + "<br><span style=\"opacity:.7\">" + esc(d.aparelho || "") + "</span></td><td style=\"font-size:12px\">" + esc(d.email || "") + "</td>" +
         '<td><select data-id="' + d.id + '">' + ["novo", "lido", "resolvido"].map(function (s) { return "<option" + (s === d.status ? " selected" : "") + ">" + s + "</option>"; }).join("") + "</select></td></tr>";
-    }).join("") + "</tbody></table>";
+    }).join("") + "</tbody></table></div>";
     [].forEach.call(lista.querySelectorAll("select[data-id]"), function (sel) {
       sel.onchange = async function () {
         var c = BWSync.cliente(), id = +sel.dataset.id, r = await c.from("bw_feedback").update({status: sel.value}).eq("id", id);
@@ -1208,11 +1209,11 @@ return {  };
   function desenhar() {
     box.innerHTML = D.programs.map(function (p, i) {
       return '<div style="margin-top:12px;padding:12px;border-radius:12px;border:1px solid rgba(245,241,234,.1)"><b style="color:' + esc(p.color || "#FFB547") + '">' + esc(p.name) + "</b> <span class=\"note\">" + esc(p.note || "") + "</span>" +
-        '<table style="width:100%;margin-top:8px"><thead><tr><th>Comprador</th><th>R$ por mil</th><th>Prazo (dias)</th><th></th></tr></thead><tbody>' +
+        '<table class="ml-tab" style="width:100%;margin-top:8px"><colgroup><col><col style="width:26%"><col style="width:22%"><col style="width:44px"></colgroup><thead><tr><th>Comprador</th><th>R$/mil</th><th>Dias</th><th></th></tr></thead><tbody>' +
         p.buyers.map(function (b, j) { return '<tr><td><input ' + inp + ' data-p="' + i + '" data-b="' + j + '" data-k="buyer" value="' + esc(b.buyer) + '"></td><td><input ' + inp + ' type="number" step="0.01" min="0" data-p="' + i + '" data-b="' + j + '" data-k="price" value="' + esc(b.price) + '"></td><td><input ' + inp + ' type="number" step="1" min="0" data-p="' + i + '" data-b="' + j + '" data-k="days" value="' + esc(b.days) + '"></td><td><button type="button" class="btn gh" data-del="' + i + "," + j + '" style="padding:6px 10px">✕</button></td></tr>'; }).join("") +
         '</tbody></table><button type="button" class="btn gh" data-add="' + i + '" style="padding:6px 12px;font-size:12px;margin-top:6px">+ COMPRADOR</button></div>';
     }).join("");
-    document.getElementById("mlRotas").innerHTML = '<table style="width:100%"><thead><tr><th>Cidade</th><th>De</th><th>Para</th><th>Milhas</th><th></th></tr></thead><tbody>' +
+    document.getElementById("mlRotas").innerHTML = '<table class="ml-tab" style="width:100%"><colgroup><col><col style="width:17%"><col style="width:17%"><col style="width:24%"><col style="width:44px"></colgroup><thead><tr><th>Cidade</th><th>De</th><th>Para</th><th>Milhas</th><th></th></tr></thead><tbody>' +
       D.rotas.map(function (r, i) { return '<tr><td><input ' + inp + ' data-r="' + i + '" data-k="city" value="' + esc(r.city) + '"></td><td><input ' + inp + ' data-r="' + i + '" data-k="o" maxlength="3" value="' + esc(r.o) + '"></td><td><input ' + inp + ' data-r="' + i + '" data-k="d" maxlength="3" value="' + esc(r.d) + '"></td><td><input ' + inp + ' type="number" step="100" min="0" data-r="' + i + '" data-k="miles" value="' + esc(r.miles) + '"></td><td><button type="button" class="btn gh" data-rdel="' + i + '" style="padding:6px 10px">✕</button></td></tr>'; }).join("") + "</tbody></table>";
     var raiz = document.getElementById("mlCard");
     [].forEach.call(raiz.querySelectorAll("input[data-p]"), function (el) { el.oninput = function () { var b = D.programs[+el.dataset.p].buyers[+el.dataset.b]; b[el.dataset.k] = el.type === "number" ? +el.value : el.value; }; });
