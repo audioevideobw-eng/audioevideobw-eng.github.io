@@ -91,7 +91,13 @@ Tamanho > 0 e sem erro = o pdfmake montou o arquivo. Localmente (T1) confira o `
   de cor global (miolo de O, A, B).
 - **Downloads no teste:** `with pg.expect_download() as dl:` + abrir com PIL/zipfile para conferir tamanho, alfa e nomes.
 
+- **Juntar anexos num relatório pdfMake:** `BWAnexos.baixar(def, [{nome,url}], arquivo)` (assets/bw-anexos.js). No teste local o pdfMake
+  é simulado com pdf-lib (`/opt/npm-tools/node_modules/pdf-lib`) e os anexos vêm de rota falsa (`anexos.test`) — confere-se o nº de
+  páginas em `window.__ultimoPDF` (relatório 1 + anexo 3 = 4) e o anexo 404 aparece em `falhas`. Ver docs/testes/teste_cadastros.py.
+- **Campo novo sem mudar o banco:** cadastro público grava extras (CNH) em JSON na coluna `observacao` de equipe_cadastros; quem aprova lê com `extraCad()`.
+
 ## Padrões de interface que o dono aprovou
+- Ação da linha (✎ ALTERAR / ✕) junto do nome; editar abre o formulário com os dados e borda dourada "✎ ALTERANDO: nome".
 - Ferramenta visual (editor): o resultado fica SEMPRE visível — controles embaixo (celular) ou ao lado (PC), nunca rolar a página
   para ver o efeito (pedido do dono 16/11, modelo Lightroom/Snapseed/VSCO).
 - Títulos de acesso = palavra-chave em MAIÚSCULAS; galeria com ícone; sem texto pequeno.

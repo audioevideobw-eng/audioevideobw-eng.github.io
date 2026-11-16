@@ -118,6 +118,16 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
 40. Editor de fotos: kit MINHA MARCA só no IndexedDB do aparelho (exporta/importa .json); assets/fotos.js nunca usa fetch/upload/
     BWSync (vigia 7.8a confere fotos.html + assets/fotos.js).
 
+**Aprendidos em 16/11 (cadastros, PDF da equipe, Meus dados)**
+41. Botões de ação de uma linha (✎ ALTERAR, ✕) ficam JUNTO DO NOME, nunca na última coluna de tabela larga (no celular ficavam escondidos
+    à direita e "não dava para alterar"). Excluir sempre pede confirmação. Lista com muitos campos no celular = cartões (auto: vigia).
+42. Toda função que redesenha uma lista colapsável chama ligarColapsaveis(box) no fim — senão, depois de salvar, a lista fecha e parece
+    que não salvou. A sincronia ao abrir redesenha a página (~1 s): no teste, espere a página assentar antes de digitar.
+43. Relatório que "tem anexos" junta os ARQUIVOS de verdade no fim (assets/bw-anexos.js: pdfMake → getBuffer → pdf-lib, link temporário
+    do bucket privado); arquivo que não abre não trava o PDF — entra na lista "não entrou" mostrada ao usuário (auto: vigia).
+44. Dados repetidos (mesma planilha importada 2x): avisar e oferecer JUNTAR (fica o mais recente + cópia ui_dd_backup); nunca apagar
+    dado do usuário sem ele tocar no botão.
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -423,6 +433,16 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   1280/390, 0 falhas). Manual 36 → 37 p. sw v68. PENTE FINO 39–40.
 - 16/11/2026 · Claude: teste no ar do FUNDO IA — no WebGPU o MODNet devolvia máscara com buracos → recorte só em wasm (5 s numa foto,
   recorte limpo). fotos.js v2, sw v69.
+
+- 16/11/2026 · Claude (pedido do dono): (1) COLABORADORES e CLIENTES com ✎ ALTERAR ao lado do nome (antes o ✕/✎ ficava no fim da tabela,
+  escondido no celular; colaborador nem tinha alterar) + CPF e CNH (número, categoria, validade; cliente: CNPJ ou CPF + CNH); cadastro
+  público (cadastro.html, colaborador e cliente) pede CPF e CNH (CNH vai em JSON na coluna observacao — sem mudar o banco); planilha aceita
+  coluna CNH. (2) 📄 PDF DA EQUIPE em cada equipe: ficha (CPF, CNH, veículo, contatos, próximos eventos) + as páginas dos PDFs anexados
+  juntas no fim (novo assets/bw-anexos.js com pdf-lib). PDF da escala e DOSSIÊ (item novo "Anexos juntos no fim": PDFs da equipe, contrato,
+  NF-e) também. (3) MEUS DADOS (dados.html): estava com a equipe e os clientes importados 2x (19 registros, 9 repetidos) numa tabela larga sem
+  como alterar no celular → cartões com ✎ ALTERAR no próprio cartão, aviso + JUNTAR REPETIDOS, + CAMPO, RENOMEAR, EXCLUIR COLEÇÃO,
+  CADASTROS DA PLATAFORMA (colaboradores/clientes oficiais, com CPF/CNH) no topo; saíram o rodapé "Mesa de Câmbio & Milhas" e 3 bibliotecas
+  que a página não usava. Teste docs/testes/teste_cadastros.py (31 checagens × 1280/390, 0 falhas). Manual 37 → 38 p. sw v70. PENTE FINO 41–44.
 
 ## Pendências (dono)
 - [x] (15/11 10:02, dono: "faça tudo") Autorizar a automação de NOTÍCIAS (publica noticias.json no site a cada 2 h) — ATIVA.

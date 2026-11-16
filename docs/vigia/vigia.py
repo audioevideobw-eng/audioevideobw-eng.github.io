@@ -234,6 +234,12 @@ if crmjs and ("toISOString().slice(0, 10)" in crmjs or "BWSync.antesDeSalvar(k, 
 fotosjs = ler("assets/fotos.js") if os.path.exists("assets/fotos.js") else ""
 if "fotos.html" in todos and re.search(r"\.upload\(|from\(\"user_data\"\)|fetch\(|BWSync\.(antesDeSalvar|registrarAgora)", todos["fotos.html"] + fotosjs):
     problemas.append("fotos.html/assets/fotos.js: o editor não pode enviar fotos para a nuvem (regra 24)")
+for p in ["equipe.html", "eventos.html"]:   # 16/11: PDF da equipe / dossiê juntam os anexos (pente fino 43)
+    if p in todos and "assets/bw-anexos.js" not in todos[p]:
+        problemas.append(f"{p}: não carrega assets/bw-anexos.js (os PDFs anexados não entram no relatório)")
+for p in ["equipe.html", "eventos.html"]:   # 16/11: ALTERAR + CPF/CNH de colaboradores e clientes (pente fino 41)
+    if p in todos and not all(x in todos[p] for x in ["data-colab-ed", "cbCNH", "data-cli-edit", "cCNH"]):
+        problemas.append(f"{p}: colaboradores/clientes sem ✎ ALTERAR ou sem CNH")
 if "fotos.html" in todos and "assets/fotos.js" not in todos["fotos.html"]:
     problemas.append("fotos.html: não carrega assets/fotos.js (o editor)")
 # 7.8b IA no site: nenhuma chave de API de IA no código (Groq/OpenAI/Gemini/Anthropic) — IA na nuvem só por Edge Function

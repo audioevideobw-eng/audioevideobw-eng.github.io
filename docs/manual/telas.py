@@ -22,7 +22,7 @@ hoje = datetime.date.today()
 D = lambda n: (hoje + datetime.timedelta(days=n)).isoformat()
 SEED = {
     "neg_equipe_colaboradores": [
-        {"id": 1, "nome": "Ana Souza", "funcao": "Câmera", "tel": "(31) 90000-0001", "email": "ana@exemplo.com", "veiculo": "Fiat Toro", "placa": "ABC1D23", "cor": "prata"},
+        {"id": 1, "nome": "Ana Souza", "funcao": "Câmera", "tel": "(31) 90000-0001", "email": "ana@exemplo.com", "veiculo": "Fiat Toro", "placa": "ABC1D23", "cor": "prata", "cpf": "000.111.222-33", "cnh": "01234567890", "cnhCat": "B", "cnhVal": "2030-06-30"},
         {"id": 2, "nome": "Bruno Lima", "funcao": "Áudio", "tel": "(31) 90000-0002", "email": "bruno@exemplo.com", "veiculo": "VW Saveiro", "placa": "XYZ9A87", "cor": "branca"},
         {"id": 3, "nome": "Carla Dias", "funcao": "Fotografia", "tel": "(31) 90000-0003", "email": "carla@exemplo.com"}],
     "neg_equipe_equipes": [{"id": 10, "nome": "Equipe Convenção", "membros": ["1", "2", "3"],
@@ -137,6 +137,10 @@ def main():
         c.close()
         # 3) Gestão de pessoas — equipes com ALTERAR, VEÍCULOS e PDFs
         c, pg = pagina(); pg.goto(base + "equipe.html"); pg.wait_for_timeout(1200)
+        pg.evaluate("localStorage.setItem('ui_colap', JSON.stringify({colabs:true,equipes:true}))"); pg.reload(); pg.wait_for_timeout(1500)
+        pg.click('[data-colab-ed="2"]'); pg.wait_for_timeout(400)
+        foto(pg, "#eqColabBox .card", "pessoas-colab.png")
+        pg.click("#cbCancel"); pg.wait_for_timeout(300)
         pg.click('[data-eqveic="10"]'); pg.wait_for_timeout(300)
         foto(pg, "#eqEquipesBox .card", "pessoas-equipes.png")
         c.close()
