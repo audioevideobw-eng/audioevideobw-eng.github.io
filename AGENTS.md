@@ -134,6 +134,10 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
     Campo de digitar com letra ≥ 16 px (menos que isso o iPhone amplia a tela sozinho ao tocar). Teste com toque: p.devices["iPhone 13"].
 46. O topo LOGADO tem mais itens (selo + ATUALIZAR) que o topo do teste local sem login: a varredura (docs/testes/varredura.py) simula o
     selo e mede 1280/390/360 px. Excluir algo que outros itens apontam (equipe → eventos) limpa a referência na hora.
+47. Arquivo escolhido no seletor (input file) é COPIADO para a memória na hora (Blob de arrayBuffer): o iPhone invalida o original depois
+    e o salvar dava "decod". Se mesmo assim não abrir, salva com a prévia e avisa — nunca falha calado.
+48. Arrastar na prévia mede em FRAÇÃO da tela (clientX/largura), não em pixels do canvas: durante o arraste a prévia é refeita em
+    resolução menor e o item "pulava" de lugar (auto: teste_fotos.py, arrastar adesivo/texto/logo).
 
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
@@ -469,6 +473,18 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   "(excluída)" em vermelho. Dados da conta: sem ids repetidos, sem lançamentos órfãos, sem datas/valores inválidos. Todos os testes 0 falhas. sw v73.
   (4) Configuração (ADM) → COTAÇÕES DE MILHAS: as tabelas com campos estouravam 41 px no celular → colunas fixas e campos de 16 px;
   lista de FEEDBACK com rolagem lateral própria. No ar, logado, 390 px: 0 estouro nas 41 páginas. sw v74.
+
+- 16/11/2026 · Claude (dono: "ao salvar a foto dá 'não deu para gerar: decod'" + mais bordas/fontes/filtros, setas, opções em cada anexo,
+  IA e acessórios): (1) SALVAR: o arquivo da foto agora é copiado para a memória ao abrir (o iPhone apagava o original depois do seletor →
+  "decod"); se ainda falhar, salva com a prévia e avisa. (2) BORDAS: 12 temas desenhados no aparelho (praia, amor, festa, aniversário,
+  casamento, formatura, natal, estrelas, tropical, neon, filme, papel rasgado). (3) 18 FONTES e 24 FILTROS. (4) SETAS ▾/▸ em cada seção do
+  painel (lembradas em ui_fotos_dobras). (5) Nova aba ADESIVOS: acessórios, reações, evento, natureza, setas, 8 SELOS (AO VIVO, NOVO…),
+  9 OVERLAYS (luz, bokeh, granulação, filme antigo, arco-íris, degradê da marca, raio de sol, vidro) e ✨ IA NO ROSTO (MediaPipe Face
+  Detector no aparelho: encaixa óculos/chapéu/coroa em cada rosto — testado no ar). (6) Toque na foto aberta (⋯) → SUBSTITUIR (mantém a
+  edição), DUPLICAR, MOVER, COPIAR EDIÇÃO PARA TODAS, BAIXAR, EXCLUIR; toque na logo/moldura em uso (e em MINHA MARCA) → USAR, TIRAR FUNDO,
+  RENOMEAR, SUBSTITUIR, BAIXAR, EXCLUIR. (7) Botões com acabamento novo (degradê, brilho, resposta ao toque). Bug achado no teste: arrastar
+  durante a prévia rápida fazia o item pular → medida em fração. teste_fotos.py: 0 falhas (1280, 390 e iPhone). Manual atualizado. fotos.js v7,
+  sw v76. PENTE FINO 47–48.
 
 ## Pendências (dono)
 - [x] (15/11 10:02, dono: "faça tudo") Autorizar a automação de NOTÍCIAS (publica noticias.json no site a cada 2 h) — ATIVA.

@@ -99,7 +99,13 @@ Tamanho > 0 e sem erro = o pdfmake montou o arquivo. Localmente (T1) confira o `
 - **Teste de toque (iPhone) sem WebKit:** `dev = dict(p.devices["iPhone 13"]); dev.pop("default_browser_type")` → `b.new_context(**dev)` no Chrome;
   `pg.tap()` em cada botão, `elementFromPoint` no centro de cada botão (nada cobrindo) e `window.scrollY` = 0 depois de tentar rolar.
 
+- **Rosto na foto (sem nuvem):** `import(MP + "/vision_bundle.mjs")` (@mediapipe/tasks-vision@0.10.14), `FaceDetector` em modo IMAGE
+  com blaze_face_short_range (storage.googleapis.com/mediapipe-models/...). boundingBox em pixels da imagem passada, keypoints
+  normalizados (os 2 primeiros = olhos; ordene por x). Passe a camada da foto JÁ cortada (camadaFoto) para as frações valerem direto na
+  área da foto.
+
 ## Padrões de interface que o dono aprovou
+- Toque num anexo (foto, logo, moldura) abre uma FOLHA de opções embaixo (estilo app): ações + Cancelar; destrutivo em vermelho no fim.
 - Ação da linha (✎ ALTERAR / ✕) junto do nome; editar abre o formulário com os dados e borda dourada "✎ ALTERANDO: nome".
 - Ferramenta visual (editor): o resultado fica SEMPRE visível — controles embaixo (celular) ou ao lado (PC), nunca rolar a página
   para ver o efeito (pedido do dono 16/11, modelo Lightroom/Snapseed/VSCO).
