@@ -231,8 +231,11 @@ for p in ["crm.html", "captacao.html", "resultados.html"]:
 crmjs = ler("assets/crm.js") if os.path.exists("assets/crm.js") else ""
 if crmjs and ("toISOString().slice(0, 10)" in crmjs or "BWSync.antesDeSalvar(k, 1, v)" not in crmjs):
     problemas.append("assets/crm.js: data em UTC (use data local) ou gravação sem antesDeSalvar")
-if "fotos.html" in todos and re.search(r"\.upload\(|from\(\"user_data\"\)", todos["fotos.html"]):
-    problemas.append("fotos.html: o editor não pode enviar fotos para a nuvem (regra 24)")
+fotosjs = ler("assets/fotos.js") if os.path.exists("assets/fotos.js") else ""
+if "fotos.html" in todos and re.search(r"\.upload\(|from\(\"user_data\"\)|fetch\(|BWSync\.(antesDeSalvar|registrarAgora)", todos["fotos.html"] + fotosjs):
+    problemas.append("fotos.html/assets/fotos.js: o editor não pode enviar fotos para a nuvem (regra 24)")
+if "fotos.html" in todos and "assets/fotos.js" not in todos["fotos.html"]:
+    problemas.append("fotos.html: não carrega assets/fotos.js (o editor)")
 # 7.8b IA no site: nenhuma chave de API de IA no código (Groq/OpenAI/Gemini/Anthropic) — IA na nuvem só por Edge Function
 for p, t2 in todos.items():
     if re.search(r"(?<![\w-])(gsk_[A-Za-z0-9]{20,}|sk-(ant-|proj-)?[A-Za-z0-9_-]*\d[A-Za-z0-9_-]{18,}|AIza[0-9A-Za-z_-]{30,})", t2):

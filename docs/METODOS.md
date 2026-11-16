@@ -81,7 +81,19 @@ Tamanho > 0 e sem erro = o pdfmake montou o arquivo. Localmente (T1) confira o `
 - **Painel de opções que redesenha:** desenhe uma vez o cabeçalho (atalhos, ano/mês) e redesenhe só a lista; senão as escolhas
   dos campos se perdem a cada clique.
 
+- **Editor em tela cheia (fotos.html):** o painel de controles no celular tem ALTURA FIXA (`height:31vh`), não `max-height` —
+  com max-height a área da foto mudava de tamanho a cada aba e a foto "pulava". Teste: medir `#cv.getBoundingClientRect().top`
+  antes e depois de trocar de aba (`docs/testes/teste_fotos.py`).
+- **IA no aparelho para imagem:** transformers.js `pipeline("background-removal","Xenova/modnet")` num Worker module criado de Blob
+  (igual ao assistente); entrada = `new RawImage(rgba, w, h, 4)` reduzida a 1024 px; a saída RGBA traz a máscara no alfa. WebGPU
+  primeiro, cai para wasm. No teste local a CDN é bloqueada → conferir que o erro vira aviso e o editor não trava.
+- **Logo sem fundo sem IA:** amostrar a cor das bordas, preencher (flood) a partir das bordas com tolerância; opção "buracos" = chave
+  de cor global (miolo de O, A, B).
+- **Downloads no teste:** `with pg.expect_download() as dl:` + abrir com PIL/zipfile para conferir tamanho, alfa e nomes.
+
 ## Padrões de interface que o dono aprovou
+- Ferramenta visual (editor): o resultado fica SEMPRE visível — controles embaixo (celular) ou ao lado (PC), nunca rolar a página
+  para ver o efeito (pedido do dono 16/11, modelo Lightroom/Snapseed/VSCO).
 - Títulos de acesso = palavra-chave em MAIÚSCULAS; galeria com ícone; sem texto pequeno.
 - "Toque e abre": tocar no item (ex.: dia da agenda) abre uma folha com o que já existe + blocos grandes do que dá para lançar.
 - Relatório com escolha: atalhos prontos (EVENTO + EQUIPE, FINANCEIRO, COMPLETO) + itens marcáveis; lembrar a escolha (`ui_*`).

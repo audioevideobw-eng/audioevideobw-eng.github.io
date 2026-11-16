@@ -145,37 +145,22 @@ with sync_playwright() as p:
           const fs=[await img(4000,3000,'#c84'),await img(3000,4000,'#48c'),await img(2400,1600,'#8c4')];
           await window.__fotos.adicionar(fs); window.__ok=1; })()""")
         pg.wait_for_function("window.__ok===1", timeout=20000)
-        ok(pg.locator("#thumbs [data-i]").count() == 3 and pg.locator("#palco canvas").count() == 1, "3 fotos carregadas + prévia")
-        # logo
-        pg.evaluate("""(()=>{const c=document.createElement('canvas');c.width=400;c.height=120;const x=c.getContext('2d');x.fillStyle='#FFB547';x.font='bold 90px sans-serif';x.fillText('LOGO',10,95);
-          c.toBlob(b=>{const dt=new DataTransfer();dt.items.add(new File([b],'logo.png',{type:'image/png'}));const i=document.getElementById('logoArq');i.files=dt.files;i.dispatchEvent(new Event('change'));},'image/png');})()""")
-        pg.wait_for_timeout(800)
-        ok(pg.evaluate("window.__fotos.O().logo.on") is True and pg.evaluate("!!localStorage.getItem('ui_fotos_logo')"), "logo enviada, ligada e guardada")
-        pg.click('[data-aba="formato"]'); pg.click('#fmtChips [data-v="4:5"]')
-        pg.click('[data-aba="filtros"]'); pg.wait_for_timeout(300); pg.click('[data-filtro="cinema"]')
-        pg.click('[data-aba="borda"]'); pg.click('#bordaEst [data-v="polaroid"]'); pg.fill("#bordaTxt", "@bwproducoes")
-        pg.click('[data-aba="ajustes"]'); pg.fill("#aj_nitidez", "40"); pg.dispatch_event("#aj_nitidez", "input")
-        pg.wait_for_timeout(500)
-        pg.screenshot(path="/tmp/shot_fotos.png", full_page=True)
-        # tamanho final de uma foto 4:5 polaroid em ALTA
+        ok(len(pg.evaluate("window.__fotos.FOTOS.map(f=>f.nome)")) == 3 and pg.evaluate("!document.getElementById('ed').hidden"), "3 fotos carregadas + editor aberto")
+        # (o editor 2.0 tem teste próprio e completo: docs/testes/teste_fotos.py)
+        pg.click('#abas [data-aba="foto"]'); pg.click('#ctrl [data-k="formato"][data-v="4:5"]')
+        pg.click('#abas [data-aba="borda"]'); pg.click('#ctrl [data-k="bEst"][data-v="polaroid"]'); pg.wait_for_timeout(400)
         dims = pg.evaluate("""(async()=>{const f=window.__fotos.FOTOS[0];const im=await new Promise(r=>{const i=new Image();i.onload=()=>r(i);i.src=URL.createObjectURL(f.file);});
           const c=window.__fotos.montar(im,f,{tam:'alta'});return [c.width,c.height];})()""")
-        ok(dims[0] > 1600 and dims[1] > dims[0], f"foto final 4:5 + polaroid: {dims}")
-        pg.click('[data-aba="salvar"]'); pg.fill("#nomeArq", "Evento Teste")
+        ok(dims[0] > 1600 and abs(dims[0] / dims[1] - 0.8) < 0.01, f"foto final 4:5 + polaroid: {dims}")
+        pg.click('#abas [data-aba="salvar"]'); pg.fill("#sNome", "Evento Teste {n}")
         with pg.expect_download(timeout=60000) as dl:
-            pg.click("#bxTodas")
+            pg.click('#ctrl [data-k="baixarTodas"]')
         d = dl.value; caminho = "/tmp/teste_fotos.zip"; d.save_as(caminho)
         import zipfile
         z = zipfile.ZipFile(caminho); nomes = z.namelist(); bad = z.testzip()
         ok(nomes == ["evento-teste-01.jpg", "evento-teste-02.jpg", "evento-teste-03.jpg"] and bad is None, f"ZIP válido: {nomes}")
-        from io import BytesIO
-        try:
-            from PIL import Image
-            im = Image.open(BytesIO(z.read(nomes[0]))); ok(im.format == "JPEG", f"JPEG {im.size}")
-        except ImportError:
-            ok(z.read(nomes[0])[:2] == b"\xff\xd8", "JPEG válido")
-        pg.click('[data-aba="salvar"]'); pg.fill("#padNome", "Insta BW"); pg.click("#padSalvar")
-        ok("Insta BW" in pg.inner_text("#padLista"), "MEU PADRÃO salvo")
+        ok(z.read(nomes[0])[:2] == b"\xff\xd8", "JPEG válido")
+        pg.evaluate("window.__fotos.fechar(false)")
         ctx.close()
     b.close()
 srv.shutdown()

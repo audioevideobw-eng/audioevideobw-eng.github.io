@@ -112,6 +112,12 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
 38. Página pública que só envia (pedido.html) usa fetch cru no /rest/v1 com a chave publishable (sem supabase-js nem bw-sync);
     o dono e as regras vêm do gatilho no banco (bw_dono_pedido), nunca do navegador.
 
+**Aprendidos em 16/11 (editor de fotos 2.0)**
+39. Ferramenta visual: a prévia fica SEMPRE na tela (painel de controles com altura fixa no celular; nada de rolar a página para ver o
+    efeito) e trocar de aba não muda o tamanho da prévia (auto: teste_fotos.py).
+40. Editor de fotos: kit MINHA MARCA só no IndexedDB do aparelho (exporta/importa .json); assets/fotos.js nunca usa fetch/upload/
+    BWSync (vigia 7.8a confere fotos.html + assets/fotos.js).
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -405,6 +411,16 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   bw-menu-aberto, ✕ Fechar e Esc); no computador recolhe/mostra a coluna do menu (lembrado em ui_menu_recolhido). INÍCIO — RESUMO FINANCEIRO
   (os 4 KPIs) e as 6 seções numeradas abrem e fecham pela seta, como a AGENDA (lembrado em ui_home_dobras; o conteúdo só é escondido).
   Teste docs/testes/teste_layout.py (32 checagens, 1280 e 390 px, 0 falhas). Manual: "Conhecendo a tela". brightway.css v24, layout.js v27, sw v67.
+
+- 16/11/2026 · Claude (pedido do dono): EDITOR DE FOTOS 2.0 (fotos.html + assets/fotos.js). Tela cheia no modelo Lightroom/Snapseed:
+  foto sempre visível, abas embaixo (celular) ou coluna à direita (PC); desfazer/refazer (40 passos), ✦ AUTO (histograma) por foto e em
+  todas, ANTES/DEPOIS com divisor. Abas CORTE (8 formatos incl. capa YouTube, foto inteira + fundo desfocado/cor, arrastar/pinça, girar,
+  espelhar, endireitar), AJUSTES e FILTROS (TODAS AS FOTOS / SÓ ESTA), TEXTO (7 fontes, sombra/caixa/contorno, arrastar, {evento} {data}
+  {n} {@}), LOGO (arrastar, TIRAR FUNDO por cor), BORDA (8 estilos + molduras PNG próprias + MINHAS BORDAS), FUNDO IA (transformers.js
+  Xenova/modnet no aparelho: transparente/cor/desfocado), SALVAR (nome {evento}-{n}, JPG/PNG, ZIP, compartilhar, CARROSSEL 2–3 partes,
+  PACOTE REDES feed+story+quadrado, MEUS PADRÕES). ★ MINHA MARCA = banco de marketing no IndexedDB (empresa, @, cores, logos, molduras,
+  textos, padrões, bordas; exportar/importar kit). Migra logo/padrões do editor antigo. Teste docs/testes/teste_fotos.py (34 checagens ×
+  1280/390, 0 falhas). Manual 36 → 37 p. sw v68. PENTE FINO 39–40.
 
 ## Pendências (dono)
 - [x] (15/11 10:02, dono: "faça tudo") Autorizar a automação de NOTÍCIAS (publica noticias.json no site a cada 2 h) — ATIVA.

@@ -185,22 +185,39 @@ def main():
         pg.fill("#nome", "Ana Souza"); pg.fill("#whats", "31988887777"); pg.select_option("#servico", "Corporativo")
         pg.screenshot(path=os.path.join(SAIDA, "pedido-cliente.png"), full_page=True)
         c2.close()
-        # 7) Editor de fotos (foto gerada na hora: gradiente + texto)
-        c, pg = pagina(); pg.goto(base + "fotos.html"); pg.wait_for_timeout(800)
-        pg.evaluate("""(async()=>{const c=document.createElement('canvas');c.width=3000;c.height=2000;const x=c.getContext('2d');const g=x.createLinearGradient(0,0,3000,2000);
-          g.addColorStop(0,'#3a2a5a');g.addColorStop(.5,'#c0623a');g.addColorStop(1,'#f2c063');x.fillStyle=g;x.fillRect(0,0,3000,2000);
-          x.fillStyle='rgba(0,0,0,.35)';for(let i=0;i<14;i++){x.beginPath();x.arc(200+i*210,1500+Math.sin(i)*120,90,0,7);x.fill();}
-          x.fillStyle='#fff';x.font='bold 160px sans-serif';x.fillText('PALCO',1100,900);
+        # 7) Editor de fotos 2.0 (foto gerada na hora: palco com público)
+        FOTO_JS = """(async()=>{const c=document.createElement('canvas');c.width=3000;c.height=2000;const x=c.getContext('2d');const g=x.createLinearGradient(0,0,3000,2000);
+          g.addColorStop(0,'#2a2040');g.addColorStop(.5,'#8a4a32');g.addColorStop(1,'#d9a255');x.fillStyle=g;x.fillRect(0,0,3000,2000);
+          x.fillStyle='rgba(255,220,150,.25)';for(let i=0;i<6;i++){x.beginPath();x.moveTo(400+i*450,0);x.lineTo(250+i*450,1300);x.lineTo(550+i*450,1300);x.fill();}
+          x.fillStyle='rgba(0,0,0,.45)';for(let i=0;i<16;i++){x.beginPath();x.arc(150+i*190,1650+Math.sin(i)*90,110,0,7);x.fill();}
+          x.fillStyle='#f5f1ea';x.font='bold 150px sans-serif';x.fillText('PALCO',1180,900);
           const f=await new Promise(r=>c.toBlob(b=>r(new File([b],'palco.jpg',{type:'image/jpeg'})),'image/jpeg',.9));
-          const l=document.createElement('canvas');l.width=500;l.height=120;const lx=l.getContext('2d');lx.fillStyle='#fff';lx.font='bold 84px sans-serif';lx.fillText('EXEMPLO',10,95);
+          const l=document.createElement('canvas');l.width=520;l.height=130;const lx=l.getContext('2d');lx.fillStyle='#fff';lx.fillRect(0,0,520,130);lx.fillStyle='#FFB547';lx.font='bold 84px sans-serif';lx.fillText('EXEMPLO',14,98);
           const lb=await new Promise(r=>l.toBlob(r,'image/png'));const dt=new DataTransfer();dt.items.add(new File([lb],'logo.png',{type:'image/png'}));
-          const i=document.getElementById('logoArq');i.files=dt.files;i.dispatchEvent(new Event('change'));
-          await window.__fotos.adicionar([f,f]);window.__ok=1;})()""")
-        pg.wait_for_function("window.__ok===1", timeout=20000)
-        pg.click('#fmtChips [data-v="4:5"]'); pg.click('[data-aba="borda"]'); pg.click('#bordaEst [data-v="faixa"]'); pg.fill("#bordaTxt", "@produtoraexemplo")
-        pg.click('[data-aba="filtros"]'); pg.wait_for_timeout(400); pg.click('[data-filtro="dourado"]'); pg.wait_for_timeout(600)
-        foto(pg, ".fx-grade", "fotos-editor.png")
-        c.close()
+          const i=document.getElementById('arqImg');i.dataset.para='logo';i.files=dt.files;i.dispatchEvent(new Event('change'));
+          await new Promise(r=>setTimeout(r,600));
+          await window.__fotos.adicionar([f,f,f]);window.__ok=1;})()"""
+        for w, h, nome in ((1280, 800, "fotos-editor.png"), (390, 844, "fotos-celular.png")):
+            c, pg = pagina(w, h); pg.goto(base + "fotos.html"); pg.wait_for_timeout(800)
+            pg.on("dialog", lambda d: d.accept("Logo branca"))
+            pg.evaluate(FOTO_JS); pg.wait_for_function("window.__ok===1", timeout=20000); pg.wait_for_timeout(500)
+            pg.evaluate("__fotos.aba('logo')"); pg.wait_for_timeout(200); pg.click('#ctrl [data-k="tirarFundoLogo"][data-v="tudo"]'); pg.wait_for_timeout(700)
+            pg.evaluate("__fotos.aba('foto')"); pg.click('#ctrl [data-k="formato"][data-v="4:5"]')
+            pg.evaluate("__fotos.aba('texto')"); pg.fill("#vEvento", "Convenção Alfa"); pg.click('#ctrl [data-k="novoTxt"][data-v="{evento}"]')
+            pg.click('#ctrl [data-k="testilo"][data-v="caixa"]')
+            pg.evaluate("__fotos.aba('borda')"); pg.click('#ctrl [data-k="bEst"][data-v="faixa"]'); pg.fill("#bTxt", "@produtoraexemplo · {data}")
+            pg.evaluate("__fotos.aba('filtros')"); pg.wait_for_timeout(300); pg.click('#ctrl [data-k="filtro"][data-v="dourado"]')
+            pg.evaluate("__fotos.aba('" + ("ajustes" if w < 900 else "filtros") + "')"); pg.wait_for_timeout(2900)
+            pg.screenshot(path=os.path.join(SAIDA, nome))
+            if w > 900:
+                pg.evaluate("__fotos.comparar(true)"); pg.wait_for_timeout(500)
+                foto(pg, "#palco", "fotos-antes-depois.png", 0)
+                pg.evaluate("__fotos.comparar(false);__fotos.fechar(false)"); pg.wait_for_timeout(300)
+                pg.click("#abrirMarca"); pg.wait_for_timeout(300)
+                pg.fill('#mkCx [data-m="empresa"]', "Produtora Exemplo"); pg.fill('#mkCx [data-m="arroba"]', "@produtoraexemplo")
+                pg.fill("#mkTxt", "Transmissão ao vivo · Produtora Exemplo"); pg.click('#mkCx [data-m="txtAdd"]'); pg.wait_for_timeout(400)
+                foto(pg, ".mk-cx", "fotos-marca.png", 0)
+            c.close()
         b.close()
     srv.shutdown()
     print("Telas salvas em", SAIDA, sorted(os.listdir(SAIDA)))

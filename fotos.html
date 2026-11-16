@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Editor de fotos — Brightway</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#06080D">
@@ -12,46 +12,101 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Brightway">
 <link rel="stylesheet" href="assets/brightway.css?v=24">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat:wght@600;800&family=Oswald:wght@500&family=Pacifico&family=Playfair+Display:wght@700&family=Michroma&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
-.wrap{max-width:1180px;margin:0 auto;padding:0 20px 90px}
-.fx-grade{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:16px;align-items:start;min-width:0}
-@media (max-width:900px){.fx-grade{grid-template-columns:1fr}}
-.fx-palco{position:relative;background:repeating-conic-gradient(#11141b 0 25%,#0d1017 0 50%) 0 0/22px 22px;border-radius:16px;border:1px solid rgba(245,241,234,.08);min-height:260px;display:flex;align-items:center;justify-content:center;overflow:hidden;min-width:0}
-.fx-palco canvas{max-width:100%;max-height:72vh;display:block}
-.fx-vazio{padding:40px 20px;text-align:center;color:var(--txt2);font-size:14px;line-height:1.6}
-.fx-antes{position:absolute;left:12px;bottom:12px;background:rgba(6,8,13,.75);border:1px solid rgba(245,241,234,.2);color:var(--bw-marfim);border-radius:999px;padding:8px 14px;font:600 11px var(--bw-font-texto);letter-spacing:.06em;cursor:pointer;user-select:none;-webkit-user-select:none;touch-action:none}
-.fx-info{position:absolute;right:12px;bottom:12px;background:rgba(6,8,13,.75);color:var(--txt2);border-radius:999px;padding:6px 12px;font-size:11.5px}
-.fx-thumbs{display:flex;gap:8px;overflow-x:auto;padding:10px 0 2px;min-width:0}
-.fx-thumbs button{flex:none;width:64px;height:64px;border-radius:10px;border:2px solid transparent;padding:0;overflow:hidden;background:#11141b;cursor:pointer;position:relative}
-.fx-thumbs button.ativo{border-color:var(--bw-ambar)}
-.fx-thumbs img{width:100%;height:100%;object-fit:cover;display:block}
-.fx-thumbs .x{position:absolute;top:2px;right:2px;width:18px;height:18px;border-radius:50%;background:rgba(0,0,0,.7);color:#fff;font-size:11px;line-height:18px;text-align:center}
-.fx-solta{border:1.5px dashed rgba(255,181,71,.45);border-radius:14px;padding:14px;text-align:center;color:var(--txt2);font-size:13.5px;cursor:pointer}
+.wrap{max-width:1100px;margin:0 auto;padding:0 20px 90px}
+.fx-solta{display:block;border:1.5px dashed rgba(255,181,71,.45);border-radius:14px;padding:16px;text-align:center;color:var(--txt2);font-size:14px;cursor:pointer}
 .fx-solta.sobre{background:rgba(255,181,71,.07)}
-.fx-ctrl{display:flex;flex-direction:column;gap:12px;min-width:0}
-.fx-sl{display:grid;grid-template-columns:110px 1fr 44px;gap:10px;align-items:center;font-size:13px;color:var(--bw-texto-2);min-width:0}
-.fx-sl input[type=range]{width:100%;min-width:0;accent-color:#FFB547}
-.fx-sl output{text-align:right;color:var(--bw-marfim);font-variant-numeric:tabular-nums}
-.fx-chips{display:flex;flex-wrap:wrap;gap:6px}
-.fx-chips button{background:rgba(255,255,255,.04);border:1px solid rgba(245,241,234,.14);color:var(--txt2);border-radius:999px;padding:8px 12px;font:600 11.5px var(--bw-font-texto);letter-spacing:.04em;cursor:pointer}
-.fx-chips button.ativo{background:var(--bw-ambar);border-color:var(--bw-ambar);color:#1a1205}
-.fx-filtros{display:grid;grid-template-columns:repeat(auto-fill,minmax(86px,1fr));gap:8px}
-.fx-filtros button{background:transparent;border:2px solid transparent;border-radius:12px;padding:0;cursor:pointer;color:var(--txt2);font:600 10.5px var(--bw-font-texto);letter-spacing:.04em;overflow:hidden}
-.fx-filtros button canvas{width:100%;aspect-ratio:1;display:block;border-radius:10px;background:#11141b}
-.fx-filtros button span{display:block;padding:5px 2px}
-.fx-filtros button.ativo{border-color:var(--bw-ambar);color:var(--bw-ambar)}
-.fx-pos{display:grid;grid-template-columns:repeat(3,44px);gap:6px}
-.fx-pos button{width:44px;height:44px;border-radius:10px;border:1px solid rgba(245,241,234,.14);background:rgba(255,255,255,.03);cursor:pointer;position:relative}
-.fx-pos button::after{content:"";position:absolute;width:10px;height:10px;border-radius:3px;background:var(--txt2);left:var(--x);top:var(--y);transform:translate(-50%,-50%)}
-.fx-pos button.ativo{border-color:var(--bw-ambar)}.fx-pos button.ativo::after{background:var(--bw-ambar)}
-.fx-cores{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
-.fx-cores button{width:32px;height:32px;border-radius:50%;border:2px solid rgba(245,241,234,.25);cursor:pointer}
-.fx-cores input[type=color]{width:40px;height:34px;border:0;background:transparent;padding:0}
-.fx-logo-prev{width:120px;height:70px;border-radius:10px;background:repeating-conic-gradient(#2a2f3a 0 25%,#1a1e27 0 50%) 0 0/14px 14px;display:flex;align-items:center;justify-content:center;overflow:hidden}
-.fx-logo-prev img{max-width:100%;max-height:100%}
-#abas{flex-wrap:wrap;overflow:visible}
-.fx-linha{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
-.fx-prog{font-size:13px;color:var(--txt2)}
+.fx-lista{display:flex;gap:8px;overflow-x:auto;padding:12px 0 2px;min-width:0}
+.fx-lista img{flex:none;width:72px;height:72px;object-fit:cover;border-radius:10px;border:1px solid rgba(245,241,234,.12)}
+/* ===== EDITOR EM TELA CHEIA (modelo Lightroom / Snapseed / VSCO): a foto nunca sai da tela ===== */
+.ed{position:fixed;inset:0;z-index:90;background:#05070b;display:flex;flex-direction:column;color:var(--bw-marfim);font-family:var(--bw-font-texto)}
+.ed[hidden]{display:none}
+.ed-top{flex:none;display:flex;align-items:center;gap:6px;padding:8px 10px;padding-top:max(8px,env(safe-area-inset-top));border-bottom:1px solid rgba(245,241,234,.07);background:#090c12}
+.ed-top .esp{flex:1}
+.ed-b{min-width:40px;height:40px;border-radius:12px;border:1px solid rgba(245,241,234,.14);background:rgba(255,255,255,.04);color:var(--bw-marfim);
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:0 10px;font:600 11.5px var(--bw-font-texto);letter-spacing:.05em;cursor:pointer;white-space:nowrap}
+.ed-b:disabled{opacity:.35;cursor:default}
+.ed-b.on{background:rgba(255,181,71,.16);border-color:var(--bw-ambar);color:var(--bw-ambar)}
+.ed-b.pri{background:var(--bw-ambar);border-color:var(--bw-ambar);color:#1a1205}
+.ed-b svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+@media (max-width:420px){.ed-b:not(.pri) .rot{display:none}}
+.ed-corpo{flex:1;min-height:0;display:flex;flex-direction:column}
+.ed-palco{flex:1;min-height:0;position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;
+  background:repeating-conic-gradient(#10131a 0 25%,#0b0e14 0 50%) 0 0/22px 22px;touch-action:none}
+.ed-palco canvas{display:block;touch-action:none;box-shadow:0 10px 40px rgba(0,0,0,.45)}
+.ed-dica{position:absolute;left:50%;top:8px;transform:translateX(-50%);background:rgba(6,8,13,.78);color:#cfcac2;font-size:11.5px;padding:6px 12px;border-radius:999px;pointer-events:none;white-space:nowrap;max-width:92%;overflow:hidden;text-overflow:ellipsis}
+.ed-dica:empty{display:none}
+.ed-ocup{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(5,7,11,.65);font-size:14px;color:#fff;text-align:center;padding:20px}
+.ed-ocup[hidden]{display:none}
+.ed-painel{flex:none;display:flex;flex-direction:column;background:#0a0d13;border-top:1px solid rgba(245,241,234,.07);padding-bottom:env(safe-area-inset-bottom);min-height:0}
+.ed-fotos{display:flex;gap:6px;overflow-x:auto;padding:8px 10px 0;flex:none}
+.ed-fotos:empty{display:none}
+.ed-fotos button{flex:none;width:46px;height:46px;border-radius:9px;border:2px solid transparent;padding:0;overflow:hidden;background:#151922;cursor:pointer}
+.ed-fotos button.on{border-color:var(--bw-ambar)}
+.ed-fotos img{width:100%;height:100%;object-fit:cover;display:block}
+.ed-ctrl{height:31vh;min-height:150px;overflow-y:auto;padding:10px 12px 6px;overscroll-behavior:contain}
+.ed-abas{flex:none;display:flex;overflow-x:auto;gap:2px;padding:4px 6px 6px;border-top:1px solid rgba(245,241,234,.06);scrollbar-width:none}
+.ed-abas::-webkit-scrollbar{display:none}
+.ed-abas button{flex:1 0 62px;display:flex;flex-direction:column;align-items:center;gap:4px;padding:7px 4px;border:0;background:none;color:var(--bw-texto-3);font:600 10px var(--bw-font-texto);letter-spacing:.06em;cursor:pointer;border-radius:10px}
+.ed-abas button svg{width:21px;height:21px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.ed-abas button.on{color:var(--bw-ambar);background:rgba(255,181,71,.08)}
+@media (min-width:900px){
+  .ed-corpo{flex-direction:row}
+  .ed-painel{width:400px;border-top:0;border-left:1px solid rgba(245,241,234,.07)}
+  .ed-abas{order:-1;display:grid;grid-template-columns:repeat(4,1fr);border-top:0;border-bottom:1px solid rgba(245,241,234,.06);padding:8px}
+  .ed-ctrl{height:auto;min-height:0;flex:1;padding:14px 16px}
+  .ed-fotos{order:-2;padding:10px 12px 4px}
+}
+/* controles */
+.c-tit{font:700 10.5px var(--bw-font-texto);letter-spacing:.12em;color:var(--bw-texto-3);margin:12px 0 6px}
+.c-tit:first-child{margin-top:0}
+.c-linha{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.c-rolar{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px}
+.chip{flex:none;background:rgba(255,255,255,.04);border:1px solid rgba(245,241,234,.14);color:var(--bw-texto-2);border-radius:999px;padding:8px 12px;font:600 11px var(--bw-font-texto);letter-spacing:.04em;cursor:pointer;white-space:nowrap}
+.chip.on{background:var(--bw-ambar);border-color:var(--bw-ambar);color:#1a1205}
+.chip.ok{border-color:rgba(62,207,142,.45);color:#3ecf8e}
+.chip.perigo{border-color:rgba(242,104,107,.4);color:#f2a0a2}
+.sl{display:grid;grid-template-columns:92px 1fr 36px;gap:8px;align-items:center;font-size:12.5px;color:var(--bw-texto-2);margin:2px 0;min-width:0}
+.sl input{width:100%;min-width:0;accent-color:#FFB547;height:30px}
+.sl output{text-align:right;color:var(--bw-marfim);font-variant-numeric:tabular-nums}
+.sl.mexido span{color:var(--bw-ambar)}
+.cores{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.cores button:not(.chip){width:30px;height:30px;border-radius:50%;border:2px solid rgba(245,241,234,.25);cursor:pointer;padding:0}
+.cores button:not(.chip).on{outline:2px solid var(--bw-ambar);outline-offset:2px}
+.cores input[type=color]{width:38px;height:32px;border:0;background:transparent;padding:0}
+.flt{flex:none;width:74px;background:none;border:2px solid transparent;border-radius:12px;padding:0;cursor:pointer;color:var(--bw-texto-3);font:600 9.5px var(--bw-font-texto);letter-spacing:.04em}
+.flt canvas{width:100%;aspect-ratio:1;display:block;border-radius:10px;background:#151922}
+.flt span{display:block;padding:4px 0}
+.flt.on{border-color:var(--bw-ambar);color:var(--bw-ambar)}
+.grade9{display:grid;grid-template-columns:repeat(3,32px);gap:5px}
+.grade9 button{width:32px;height:32px;border-radius:8px;border:1px solid rgba(245,241,234,.14);background:rgba(255,255,255,.03);cursor:pointer;position:relative;padding:0}
+.grade9 button::after{content:"";position:absolute;width:8px;height:8px;border-radius:2px;background:var(--txt2);left:var(--x);top:var(--y);transform:translate(-50%,-50%)}
+.grade9 button.on{border-color:var(--bw-ambar)}.grade9 button.on::after{background:var(--bw-ambar)}
+.mini-img{flex:none;width:64px;height:64px;border-radius:10px;border:2px solid rgba(245,241,234,.12);background:repeating-conic-gradient(#2a2f3a 0 25%,#1a1e27 0 50%) 0 0/12px 12px;cursor:pointer;padding:4px;display:flex;align-items:center;justify-content:center;position:relative}
+.mini-img img{max-width:100%;max-height:100%}
+.mini-img.on{border-color:var(--bw-ambar)}
+.mini-img .x{position:absolute;top:-7px;right:-7px;width:22px;height:22px;border-radius:50%;background:#2a2f3a;color:#fff;font-size:11px;line-height:22px;text-align:center;border:0;cursor:pointer;padding:0}
+.mini-add{flex:none;width:64px;height:64px;border-radius:10px;border:1.5px dashed rgba(255,181,71,.5);color:var(--bw-ambar);display:flex;align-items:center;justify-content:center;font-size:24px;cursor:pointer;background:none}
+.c-campo{width:100%;min-width:0;min-height:40px;border-radius:10px;border:1px solid rgba(245,241,234,.16);background:rgba(0,0,0,.28);color:var(--bw-marfim);padding:8px 10px;font:15px var(--bw-font-texto)}
+textarea.c-campo{min-height:56px;resize:vertical}
+.c-nota{font-size:12px;color:var(--bw-texto-3);line-height:1.5;margin:6px 0}
+.c-prog{height:6px;border-radius:99px;background:rgba(255,255,255,.08);overflow:hidden;margin:8px 0}
+.c-prog i{display:block;height:100%;width:0;background:var(--bw-ambar);transition:width .2s}
+.escopo{display:inline-flex;border:1px solid rgba(245,241,234,.16);border-radius:999px;overflow:hidden;flex:none}
+.escopo button{background:none;border:0;color:var(--bw-texto-3);padding:7px 11px;font:600 10.5px var(--bw-font-texto);letter-spacing:.05em;cursor:pointer}
+.escopo button.on{background:rgba(255,181,71,.16);color:var(--bw-ambar)}
+/* MINHA MARCA */
+.mk{position:fixed;inset:0;z-index:95;background:rgba(3,5,9,.8);display:flex;align-items:flex-start;justify-content:center;overflow-y:auto;padding:20px 12px}
+.mk[hidden]{display:none}
+.mk-cx{width:100%;max-width:720px;background:#0d1017;border:1px solid rgba(245,241,234,.12);border-radius:20px;padding:20px;position:relative;min-width:0}
+.mk-cx h3{margin:0 44px 4px 0}
+.mk-sec{margin-top:18px}
+.mk-sec h4{margin:0 0 8px;font:700 11px var(--bw-font-texto);letter-spacing:.12em;color:var(--bw-ambar)}
+.mk-x{position:absolute;top:12px;right:12px;width:38px;height:38px;border-radius:50%;border:1px solid rgba(245,241,234,.16);background:none;color:var(--bw-marfim);font-size:20px;cursor:pointer}
+.mk-grid{display:flex;flex-wrap:wrap;gap:10px}
+.mk-duas{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+.toast{position:fixed;left:50%;bottom:120px;transform:translateX(-50%);z-index:99;background:#1a1f2b;border:1px solid rgba(95,224,160,.4);color:#E9FFF3;padding:10px 16px;border-radius:12px;font-size:13.5px;box-shadow:0 10px 30px rgba(0,0,0,.4);max-width:90vw;text-align:center}
 </style>
 </head>
 <body>
@@ -59,471 +114,44 @@
 <div class="wrap">
   <div class="tf-card" style="margin-top:0">
     <h3>EDITOR DE FOTOS</h3>
-    <p class="tf-sub">Logo automática, bordas, ajustes e filtros — numa foto ou em todas do evento de uma vez. Tudo acontece no seu aparelho: as fotos não sobem para lugar nenhum.</p>
+    <p class="tf-sub">Ajuste automático, texto, logo, molduras, recorte de fundo com IA e carrossel — numa foto ou em todas do evento de uma vez. As fotos ficam no seu aparelho: nada é enviado para a nuvem.</p>
     <label class="fx-solta" id="solta"><input id="arquivos" type="file" accept="image/*,.heic,.heif" multiple hidden>📷 <b style="color:var(--bw-marfim)">ESCOLHER FOTOS</b> — ou arraste aqui (pode escolher várias)</label>
-    <div class="fx-thumbs" id="thumbs"></div>
-  </div>
-
-  <div class="fx-grade" style="margin-top:16px">
-    <div>
-      <div class="fx-palco" id="palco"><div class="fx-vazio">Escolha uma ou mais fotos para começar.<br>As mesmas configurações valem para todas — o corte e o giro são de cada foto.</div></div>
+    <div class="fx-lista" id="lista"></div>
+    <div class="tf-acoes">
+      <button type="button" class="bw-btn bw-btn--primario" id="abrirEd" hidden>ABRIR O EDITOR</button>
+      <button type="button" class="bw-btn bw-btn--vidro" id="abrirMarca">★ MINHA MARCA</button>
     </div>
-    <div class="tf-card" style="margin-top:0">
-      <div class="tf-abas" id="abas">
-        <button type="button" data-aba="formato" class="ativo">FORMATO</button><button type="button" data-aba="ajustes">AJUSTES</button><button type="button" data-aba="filtros">FILTROS</button>
-        <button type="button" data-aba="logo">LOGO</button><button type="button" data-aba="borda">BORDA</button><button type="button" data-aba="salvar">SALVAR</button>
-      </div>
+    <p class="tf-nota">Em <b>MINHA MARCA</b> você guarda logos, cores, molduras, textos e padrões da empresa para usar com um toque.</p>
+  </div>
+</div>
 
-      <div class="fx-ctrl" data-painel="formato">
-        <div class="fx-chips" id="fmtChips"></div>
-        <div class="fx-sl"><span>Corte ↔</span><input type="range" id="posX" min="-100" max="100" value="0"><output id="posXo">0</output></div>
-        <div class="fx-sl"><span>Corte ↕</span><input type="range" id="posY" min="-100" max="100" value="0"><output id="posYo">0</output></div>
-        <div class="fx-linha"><button type="button" class="bw-btn bw-btn--vidro" id="girar" style="min-height:40px">↻ GIRAR 90°</button><span class="tf-nota" style="margin:0">Corte e giro valem só para a foto aberta.</span></div>
-      </div>
-
-      <div class="fx-ctrl" data-painel="ajustes" hidden>
-        <div id="sliders"></div>
-        <div class="fx-linha"><button type="button" class="bw-btn bw-btn--vidro" id="zerar" style="min-height:40px">ZERAR AJUSTES</button></div>
-      </div>
-
-      <div class="fx-ctrl" data-painel="filtros" hidden>
-        <div class="fx-filtros" id="filtros"></div>
-        <div class="fx-sl"><span>Intensidade</span><input type="range" id="intens" min="0" max="100" value="100"><output id="intenso">100</output></div>
-      </div>
-
-      <div class="fx-ctrl" data-painel="logo" hidden>
-        <div class="fx-linha">
-          <div class="fx-logo-prev" id="logoPrev"><span class="tf-nota" style="margin:0">sem logo</span></div>
-          <div style="display:flex;flex-direction:column;gap:8px">
-            <label class="bw-btn bw-btn--vidro" style="min-height:40px;cursor:pointer"><input id="logoArq" type="file" accept="image/png,image/webp,image/svg+xml,image/jpeg" hidden>ENVIAR LOGO</label>
-            <label class="tf-check"><input type="checkbox" id="logoOn"> Colocar a logo nas fotos</label>
-          </div>
-        </div>
-        <p class="tf-nota" style="margin:0">Use a logo em PNG com fundo transparente. Ela fica guardada neste aparelho.</p>
-        <div><span class="tf-nota" style="margin:0 0 6px;display:block">POSIÇÃO</span><div class="fx-pos" id="logoPos"></div></div>
-        <div class="fx-chips" id="logoCor"></div>
-        <div class="fx-sl"><span>Tamanho</span><input type="range" id="logoTam" min="5" max="50" value="18"><output id="logoTamo">18%</output></div>
-        <div class="fx-sl"><span>Transparência</span><input type="range" id="logoOp" min="10" max="100" value="90"><output id="logoOpo">90%</output></div>
-        <div class="fx-sl"><span>Margem</span><input type="range" id="logoMar" min="0" max="15" value="4"><output id="logoMaro">4%</output></div>
-      </div>
-
-      <div class="fx-ctrl" data-painel="borda" hidden>
-        <div class="fx-chips" id="bordaEst"></div>
-        <div class="fx-sl"><span>Espessura</span><input type="range" id="bordaEsp" min="1" max="15" value="4"><output id="bordaEspo">4%</output></div>
-        <div class="fx-sl"><span>Cantos</span><input type="range" id="bordaRaio" min="0" max="12" value="0"><output id="bordaRaioo">0%</output></div>
-        <div class="fx-cores" id="bordaCores"><span class="tf-nota" style="margin:0">Cor</span></div>
-        <label class="tf-campo"><span>Texto da faixa / legenda</span><input id="bordaTxt" placeholder="Ex.: @suaempresa · seusite.com.br"></label>
-      </div>
-
-      <div class="fx-ctrl" data-painel="salvar" hidden>
-        <div class="fx-chips" id="tamChips"></div>
-        <div class="fx-sl"><span>Qualidade</span><input type="range" id="qual" min="60" max="100" value="90"><output id="qualo">90</output></div>
-        <label class="tf-campo"><span>Nome dos arquivos</span><input id="nomeArq" placeholder="Ex.: evento-sicoob"></label>
-        <div class="tf-acoes" style="margin-top:0">
-          <button type="button" class="bw-btn bw-btn--primario" id="bxUma">BAIXAR ESTA</button>
-          <button type="button" class="bw-btn bw-btn--vidro" id="bxTodas">BAIXAR TODAS (ZIP)</button>
-          <button type="button" class="bw-btn bw-btn--vidro" id="compartilhar">COMPARTILHAR</button>
-        </div>
-        <div class="fx-prog" id="prog"></div>
-        <div style="border-top:1px solid rgba(245,241,234,.08);padding-top:12px">
-          <span class="tf-nota" style="margin:0 0 6px;display:block">MEU PADRÃO — guarde logo, borda, ajustes e filtro para usar com um toque</span>
-          <div class="fx-linha"><input id="padNome" placeholder="Nome do padrão (ex.: Instagram BW)" style="flex:1;min-width:0;min-height:42px;background:rgba(0,0,0,.28);border:1px solid rgba(245,241,234,.14);border-radius:12px;color:var(--bw-marfim);padding:0 12px"><button type="button" class="bw-btn bw-btn--vidro" id="padSalvar" style="min-height:42px">SALVAR PADRÃO</button></div>
-          <div class="fx-chips" id="padLista" style="margin-top:10px"></div>
-        </div>
-      </div>
+<div class="ed" id="ed" hidden role="dialog" aria-modal="true" aria-label="Editor de fotos">
+  <div class="ed-top">
+    <button type="button" class="ed-b" id="edFechar" title="Fechar o editor" aria-label="Fechar o editor"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    <button type="button" class="ed-b" id="edDesfazer" title="Desfazer" aria-label="Desfazer"><svg viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-3"/></svg></button>
+    <button type="button" class="ed-b" id="edRefazer" title="Refazer" aria-label="Refazer"><svg viewBox="0 0 24 24"><path d="m15 14 5-5-5-5"/><path d="M20 9H9a5 5 0 0 0 0 10h3"/></svg></button>
+    <span class="esp"></span>
+    <button type="button" class="ed-b" id="edAuto" title="Ajuste automático de luz e cor (nesta foto)"><svg viewBox="0 0 24 24"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/><circle cx="12" cy="12" r="3.2"/></svg><span class="rot">AUTO</span></button>
+    <button type="button" class="ed-b" id="edComparar" title="Antes e depois (arraste a barra)"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M12 4v16"/></svg><span class="rot">ANTES</span></button>
+    <button type="button" class="ed-b pri" id="edSalvar" title="Salvar e compartilhar"><svg viewBox="0 0 24 24"><path d="M12 4v11M7 10l5 5 5-5"/><path d="M5 20h14"/></svg><span class="rot">SALVAR</span></button>
+  </div>
+  <div class="ed-corpo">
+    <div class="ed-palco" id="palco"><canvas id="cv" aria-label="Prévia da foto"></canvas><div class="ed-dica" id="dica"></div><div class="ed-ocup" id="ocup" hidden></div></div>
+    <div class="ed-painel">
+      <div class="ed-fotos" id="edFotos"></div>
+      <div class="ed-ctrl" id="ctrl"></div>
+      <nav class="ed-abas" id="abas" aria-label="Ferramentas"></nav>
     </div>
   </div>
 </div>
 
+<div class="mk" id="mk" hidden role="dialog" aria-modal="true" aria-label="Minha marca"><div class="mk-cx" id="mkCx"></div></div>
+<input type="file" id="arqImg" accept="image/png,image/webp,image/jpeg,image/svg+xml" hidden>
+<input type="file" id="arqKit" accept="application/json,.json" hidden>
+
 <script src="assets/layout.js?v=27"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="assets/bw-sync.js"></script>
-<script>
-(function () {
-  "use strict";
-  /* EDITOR DE FOTOS (15/11, Claude) — tudo no aparelho (canvas). Preferências só em ui_* locais (regra 24). */
-  var $ = function (id) { return document.getElementById(id); };
-  var esc = function (s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;" }[c]; }); };
-  (async function () {
-    var el = $("userBox"); if (!el) return;
-    try { var sb = window.BWSync && BWSync.cliente(); var s = sb ? await sb.auth.getSession() : null; var u = s && s.data && s.data.session && s.data.session.user;
-      el.innerHTML = u ? '<a href="login.html" class="bw-logado" title="Conta: ' + esc(u.email) + '"><i></i>LOGADO</a>' : '<a href="login.html" class="bw-btn bw-btn--vidro" style="min-height:34px;padding:0 14px;font-size:12px">LOGIN</a>'; } catch (e) { }
-  })();
-
-  /* ---------- configurações ---------- */
-  var AJ = [["exposicao", "Exposição", -100, 100], ["contraste", "Contraste", -100, 100], ["saturacao", "Saturação", -100, 100], ["temperatura", "Temperatura", -100, 100],
-    ["sombras", "Sombras", -100, 100], ["realces", "Realces", -100, 100], ["desbotar", "Desbotar", 0, 100], ["nitidez", "Nitidez", 0, 100], ["vinheta", "Vinheta", 0, 100]];
-  var FILTROS = {
-    original: { nome: "ORIGINAL", p: {} },
-    cinema: { nome: "CINEMA", p: { contraste: 15, saturacao: -10, temperatura: 5, vinheta: 25 }, split: { s: [0, 70, 90], sf: .22, h: [255, 170, 90], hf: .14 } },
-    pb: { nome: "P&B EVENTO", p: { saturacao: -100, contraste: 25, sombras: -10, vinheta: 15 } },
-    pbsuave: { nome: "P&B SUAVE", p: { saturacao: -100, contraste: -10, desbotar: 25 } },
-    palco: { nome: "PALCO", p: { contraste: 22, sombras: -18, realces: 8, saturacao: 18, vinheta: 35 } },
-    dourado: { nome: "DOURADO", p: { temperatura: 18, contraste: 10, saturacao: 5 }, split: { s: [40, 30, 20], sf: .1, h: [255, 181, 71], hf: .18 } },
-    quente: { nome: "QUENTE", p: { temperatura: 35, saturacao: 10, exposicao: 5 } },
-    frio: { nome: "FRIO", p: { temperatura: -30, contraste: 5 } },
-    vibrante: { nome: "VIBRANTE", p: { saturacao: 35, contraste: 12 } },
-    suave: { nome: "SUAVE", p: { contraste: -18, desbotar: 18, realces: -10, saturacao: -8 } },
-    retro: { nome: "RETRÔ", p: { desbotar: 30, temperatura: 25, saturacao: -20, vinheta: 30 }, split: { s: [40, 60, 80], sf: .12, h: [255, 220, 150], hf: .16 } }
-  };
-  var FORMATOS = [["original", "ORIGINAL", 0], ["4:5", "FEED 4:5", 4 / 5], ["1:1", "QUADRADO", 1], ["9:16", "STORY 9:16", 9 / 16], ["16:9", "16:9", 16 / 9]];
-  var TAMANHOS = [["insta", "INSTAGRAM (1080)", 1080, "w"], ["alta", "ALTA (2048)", 2048, "l"], ["max", "MÁXIMA (4096)", 4096, "l"]];
-  var PADRAO = { formato: "original", aj: {}, filtro: "original", intens: 100, logo: { on: false, pos: "br", cor: "auto", tam: 18, op: 90, mar: 4 },
-    borda: { est: "nenhuma", esp: 4, raio: 0, cor: "#ffffff", txt: "" }, saida: { tam: "alta", qual: 90, nome: "" } };
-  function clone(o) { return JSON.parse(JSON.stringify(o)); }
-  function lerUi(k, p) { try { var v = JSON.parse(localStorage.getItem(k) || "null"); return v == null ? p : v; } catch (e) { return p; } }
-  function gravarUi(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e) { return false; } }
-  var O = Object.assign(clone(PADRAO), lerUi("ui_fotos_ultimo", {}));
-  ["logo", "borda", "saida", "aj"].forEach(function (k) { O[k] = Object.assign(clone(PADRAO[k]), O[k] || {}); });
-  var LOGO = null;   // HTMLImageElement
-  var FOTOS = [], ATUAL = -1;   // {file, nome, prev (canvas reduzido), rot, posX, posY}
-
-  /* ---------- carregar fotos ---------- */
-  function carregarScript(src) { return new Promise(function (ok, erro) { var s = document.createElement("script"); s.src = src; s.onload = ok; s.onerror = erro; document.head.appendChild(s); }); }
-  function decodificar(blob) {
-    return new Promise(function (ok, erro) {
-      var url = URL.createObjectURL(blob), im = new Image();
-      im.onload = function () { ok(im); setTimeout(function () { URL.revokeObjectURL(url); }, 1000); };
-      im.onerror = function () { URL.revokeObjectURL(url); erro(new Error("decod")); };
-      im.src = url;
-    });
-  }
-  async function abrirImagem(f) {
-    try { return await decodificar(f); }
-    catch (e) {
-      if (/heic|heif/i.test(f.type + f.name)) {
-        if (!window.heic2any) await carregarScript("https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js");
-        var b = await window.heic2any({ blob: f, toType: "image/jpeg", quality: 0.95 }); return decodificar(Array.isArray(b) ? b[0] : b);
-      }
-      throw e;
-    }
-  }
-  function reduzir(img, lado) {
-    var s = Math.min(1, lado / Math.max(img.naturalWidth || img.width, img.naturalHeight || img.height));
-    var c = document.createElement("canvas"); c.width = Math.max(1, Math.round((img.naturalWidth || img.width) * s)); c.height = Math.max(1, Math.round((img.naturalHeight || img.height) * s));
-    c.getContext("2d").drawImage(img, 0, 0, c.width, c.height); return c;
-  }
-  async function adicionar(files) {
-    files = [].filter.call(files || [], function (f) { return /^image\//.test(f.type) || /\.(heic|heif)$/i.test(f.name); });
-    if (!files.length) return;
-    $("prog").textContent = "";
-    for (var i = 0; i < files.length; i++) {
-      $("thumbs").insertAdjacentHTML("beforeend", '<button type="button" disabled id="carregando"><span class="tf-nota" style="margin:0;font-size:10px">abrindo…</span></button>');
-      try {
-        var im = await abrirImagem(files[i]);
-        FOTOS.push({ file: files[i], nome: files[i].name.replace(/\.[^.]+$/, ""), prev: reduzir(im, 1400), w: im.naturalWidth, h: im.naturalHeight, rot: 0, posX: 0, posY: 0 });
-      } catch (e) { alert("Não deu para abrir " + files[i].name + "."); }
-      var c = $("carregando"); if (c) c.remove();
-    }
-    if (ATUAL < 0) ATUAL = 0;
-    desenharThumbs(); prevFiltros(); agendar();
-  }
-  function desenharThumbs() {
-    $("thumbs").innerHTML = FOTOS.map(function (f, i) { return '<button type="button" data-i="' + i + '" class="' + (i === ATUAL ? "ativo" : "") + '" aria-label="Foto ' + (i + 1) + '"><img alt="" src="' + f.prev.toDataURL("image/jpeg", 0.5) + '"><span class="x" data-del="' + i + '">✕</span></button>'; }).join("");
-    $("thumbs").querySelectorAll("[data-i]").forEach(function (b) { b.onclick = function (ev) {
-      var d = ev.target.getAttribute("data-del");
-      if (d != null) { FOTOS.splice(+d, 1); ATUAL = Math.min(ATUAL, FOTOS.length - 1); desenharThumbs(); agendar(); return; }
-      ATUAL = +b.dataset.i; desenharThumbs(); sincronizarCorte(); agendar(); }; });
-    $("bxTodas").textContent = "BAIXAR TODAS (ZIP)" + (FOTOS.length ? " · " + FOTOS.length : "");
-  }
-
-  /* ---------- processamento ---------- */
-  function efetivo() {
-    var f = FILTROS[O.filtro] || FILTROS.original, k = O.intens / 100, a = {};
-    AJ.forEach(function (x) { a[x[0]] = (O.aj[x[0]] || 0) + (f.p[x[0]] || 0) * k; });
-    a.split = f.split ? { s: f.split.s, sf: f.split.sf * k, h: f.split.h, hf: f.split.hf * k } : null;
-    return a;
-  }
-  function lutTom(a) {
-    var L = new Uint8ClampedArray(256), ex = Math.pow(2, a.exposicao / 100), ct = a.contraste >= 0 ? 1 + a.contraste / 60 : 1 + a.contraste / 130, fd = a.desbotar * 0.6;
-    for (var v = 0; v < 256; v++) {
-      var x = v * ex; x = (x - 128) * ct + 128;
-      var n = Math.max(0, Math.min(1, x / 255));
-      x += a.sombras / 100 * 70 * Math.pow(1 - n, 2) + a.realces / 100 * 70 * Math.pow(n, 2);
-      x = fd + x * (1 - fd / 255);
-      L[v] = x;
-    }
-    return L;
-  }
-  function aplicarPixels(ctx, w, h, a) {
-    var nulo = !a.exposicao && !a.contraste && !a.saturacao && !a.temperatura && !a.sombras && !a.realces && !a.desbotar && !a.vinheta && !a.split;
-    if (nulo && !a.nitidez) return;
-    var id = ctx.getImageData(0, 0, w, h), d = id.data;
-    if (a.nitidez > 0) nitidez(d, w, h, a.nitidez / 100 * 0.7);
-    if (!nulo) {
-      var L = lutTom(a), sat = 1 + a.saturacao / 100, t = a.temperatura * 0.35, sp = a.split, vg = a.vinheta / 100 * 0.65, cx = w / 2, cy = h / 2, rmax = Math.sqrt(cx * cx + cy * cy);
-      for (var y = 0; y < h; y++) {
-        var dy = (y - cy) * (y - cy);
-        for (var x = 0; x < w; x++) {
-          var i = (y * w + x) * 4, r = L[d[i]], g = L[d[i + 1]], b = L[d[i + 2]];
-          if (t) { r += t; b -= t; }
-          if (sat !== 1) { var cz = 0.299 * r + 0.587 * g + 0.114 * b; r = cz + (r - cz) * sat; g = cz + (g - cz) * sat; b = cz + (b - cz) * sat; }
-          if (sp) { var lum = Math.max(0, Math.min(1, (0.299 * r + 0.587 * g + 0.114 * b) / 255)), ws = (1 - lum) * (1 - lum) * sp.sf, wh = lum * lum * sp.hf;
-            r += (sp.s[0] - r) * ws + (sp.h[0] - r) * wh; g += (sp.s[1] - g) * ws + (sp.h[1] - g) * wh; b += (sp.s[2] - b) * ws + (sp.h[2] - b) * wh; }
-          if (vg) { var dd = Math.sqrt((x - cx) * (x - cx) + dy) / rmax, f = dd < 0.45 ? 1 : 1 - vg * Math.pow((dd - 0.45) / 0.55, 1.6); r *= f; g *= f; b *= f; }
-          d[i] = r; d[i + 1] = g; d[i + 2] = b;
-        }
-      }
-    }
-    ctx.putImageData(id, 0, 0);
-  }
-  function nitidez(d, w, h, k) {
-    var o = new Uint8ClampedArray(d), c = 1 + 4 * k;
-    for (var y = 1; y < h - 1; y++) for (var x = 1; x < w - 1; x++) {
-      var i = (y * w + x) * 4, u = i - w * 4, dn = i + w * 4;
-      for (var ch = 0; ch < 3; ch++) d[i + ch] = o[i + ch] * c - k * (o[u + ch] + o[dn + ch] + o[i - 4 + ch] + o[i + 4 + ch]);
-    }
-  }
-  /* logo tingida (branca/preta) */
-  var tingidas = {};
-  function logoNaCor(cor) {
-    if (!LOGO) return null; if (cor === "original") return LOGO;
-    if (tingidas[cor]) return tingidas[cor];
-    var c = document.createElement("canvas"); c.width = LOGO.naturalWidth; c.height = LOGO.naturalHeight;
-    var x = c.getContext("2d"); x.drawImage(LOGO, 0, 0); x.globalCompositeOperation = "source-in"; x.fillStyle = cor === "branca" ? "#fff" : "#000"; x.fillRect(0, 0, c.width, c.height);
-    return (tingidas[cor] = c);
-  }
-  function luminancia(ctx, x, y, w, h) {
-    try { var d = ctx.getImageData(Math.max(0, x | 0), Math.max(0, y | 0), Math.max(1, w | 0), Math.max(1, h | 0)).data, s = 0, n = 0;
-      for (var i = 0; i < d.length; i += 16) { s += 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2]; n++; } return s / n / 255; } catch (e) { return 0; }
-  }
-  function corTexto(hex) { var m = /^#?([0-9a-f]{6})$/i.exec(hex || ""); if (!m) return "#111"; var n = parseInt(m[1], 16), l = (0.299 * (n >> 16) + 0.587 * (n >> 8 & 255) + 0.114 * (n & 255)) / 255; return l > 0.55 ? "#141414" : "#F5F1EA"; }
-  function rr(ctx, x, y, w, h, r) { ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(x, y, w, h, r); else { ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); } }
-
-  /* monta a foto final: corte → ajustes → logo → borda */
-  function montar(fonte, foto, alvo) {
-    var sw = fonte.width || fonte.naturalWidth, sh = fonte.height || fonte.naturalHeight, rot = foto.rot % 360;
-    var rw = rot % 180 ? sh : sw, rh = rot % 180 ? sw : sh;
-    var ratio = (FORMATOS.filter(function (f) { return f[0] === O.formato; })[0] || FORMATOS[0])[2];
-    var cw = rw, ch = rh;
-    if (ratio) { if (rw / rh > ratio) cw = rh * ratio; else ch = rw / ratio; }
-    var ox = (rw - cw) / 2 * (1 + foto.posX / 100), oy = (rh - ch) / 2 * (1 + foto.posY / 100);
-    var t = TAMANHOS.filter(function (x) { return x[0] === alvo.tam; })[0];
-    var esc1 = alvo.lado ? Math.min(1, alvo.lado / Math.max(cw, ch)) : t[3] === "w" ? Math.min(1, t[2] / cw) : Math.min(1, t[2] / Math.max(cw, ch));
-    var w = Math.max(1, Math.round(cw * esc1)), h = Math.max(1, Math.round(ch * esc1));
-    var c = document.createElement("canvas"); c.width = w; c.height = h;
-    var x = c.getContext("2d", { willReadFrequently: true }); x.imageSmoothingQuality = "high";
-    x.save(); x.scale(esc1, esc1); x.translate(-ox, -oy);
-    x.translate(rw / 2, rh / 2); x.rotate(rot * Math.PI / 180); x.drawImage(fonte, -sw / 2, -sh / 2, sw, sh); x.restore();
-    if (!alvo.semEfeitos) aplicarPixels(x, w, h, efetivo());
-    if (alvo.semEfeitos) return c;
-    /* logo */
-    if (O.logo.on && LOGO) {
-      var lw = w * O.logo.tam / 100, lh = lw * LOGO.naturalHeight / LOGO.naturalWidth, m = Math.min(w, h) * O.logo.mar / 100, p = O.logo.pos;
-      var lx = p[1] === "l" ? m : p[1] === "c" ? (w - lw) / 2 : w - lw - m, ly = p[0] === "t" ? m : p[0] === "m" ? (h - lh) / 2 : h - lh - m;
-      var cor = O.logo.cor; if (cor === "auto") cor = luminancia(x, lx, ly, lw, lh) > 0.55 ? "preta" : "branca";
-      x.globalAlpha = O.logo.op / 100; x.drawImage(logoNaCor(cor), lx, ly, lw, lh); x.globalAlpha = 1;
-    }
-    /* borda */
-    var B = O.borda, raio = Math.min(w, h) * B.raio / 100;
-    if (B.est === "nenhuma" && !raio) return c;
-    var b = Math.round(Math.min(w, h) * B.esp / 100), L = 0, T = 0, R = 0, Bo = 0;
-    if (B.est === "solida") L = T = R = Bo = b;
-    else if (B.est === "polaroid") { L = T = R = b; Bo = Math.round(b * 4.2); }
-    else if (B.est === "faixa") { Bo = Math.round(Math.max(h * 0.085, b * 2)); }
-    var o = document.createElement("canvas"); o.width = w + L + R; o.height = h + T + Bo;
-    var ox2 = o.getContext("2d"); ox2.fillStyle = B.cor || "#fff"; ox2.fillRect(0, 0, o.width, o.height);
-    ox2.save(); if (raio) { rr(ox2, L, T, w, h, raio); ox2.clip(); } ox2.drawImage(c, L, T); ox2.restore();
-    if (B.txt && (B.est === "polaroid" || B.est === "faixa")) {
-      var fs = Math.max(10, Math.round(Bo * (B.est === "faixa" ? 0.38 : 0.26)));
-      ox2.fillStyle = corTexto(B.cor); ox2.font = (B.est === "polaroid" ? "500 " : "600 ") + fs + "px Inter, system-ui, sans-serif"; ox2.textAlign = "center"; ox2.textBaseline = "middle";
-      var txt = B.txt; while (ox2.measureText(txt).width > o.width * 0.9 && txt.length > 4) txt = txt.slice(0, -2);
-      ox2.fillText(txt === B.txt ? txt : txt + "…", o.width / 2, h + T + Bo / 2);
-    }
-    return o;
-  }
-
-  /* ---------- prévia ---------- */
-  var pedido = 0, ANTES = false;
-  function agendar() { if (pedido) return; pedido = requestAnimationFrame(function () { pedido = 0; previa(); }); gravarUi("ui_fotos_ultimo", O); }
-  function previa() {
-    var palco = $("palco");
-    if (ATUAL < 0 || !FOTOS[ATUAL]) { palco.innerHTML = '<div class="fx-vazio">Escolha uma ou mais fotos para começar.<br>As mesmas configurações valem para todas — o corte e o giro são de cada foto.</div>'; return; }
-    var f = FOTOS[ATUAL], lado = Math.min(1400, Math.round(Math.max(palco.clientWidth, 320) * Math.min(2, window.devicePixelRatio || 1)));
-    var c = montar(f.prev, f, { lado: lado, semEfeitos: ANTES });
-    c.setAttribute("aria-label", "Prévia da foto");
-    palco.innerHTML = ""; palco.appendChild(c);
-    palco.insertAdjacentHTML("beforeend", '<button type="button" class="fx-antes" id="antes">SEGURE: ANTES</button><span class="fx-info">' + (ATUAL + 1) + "/" + FOTOS.length + " · " + esc(f.nome) + "</span>");
-    var bt = $("antes");
-    var on = function (ev) { ev.preventDefault(); ANTES = true; previa(); }, off = function () { if (ANTES) { ANTES = false; previa(); } };
-    bt.addEventListener("pointerdown", on); bt.addEventListener("pointerup", off); bt.addEventListener("pointerleave", off); bt.addEventListener("pointercancel", off);
-  }
-  function prevFiltros() {
-    var f = FOTOS[ATUAL]; if (!f) return;
-    var mini = reduzir(f.prev, 160), salvo = O.filtro, salvoI = O.intens, aj = O.aj; O.intens = 100; O.aj = {};
-    $("filtros").querySelectorAll("canvas[data-f]").forEach(function (cv) {
-      O.filtro = cv.dataset.f;
-      var s = Math.min(mini.width, mini.height), c = document.createElement("canvas"); c.width = c.height = s;
-      c.getContext("2d").drawImage(mini, (mini.width - s) / 2, (mini.height - s) / 2, s, s, 0, 0, s, s);
-      var x = c.getContext("2d"); aplicarPixels(x, s, s, efetivo());
-      cv.width = s; cv.height = s; cv.getContext("2d").drawImage(c, 0, 0);
-    });
-    O.filtro = salvo; O.intens = salvoI; O.aj = aj;
-  }
-
-  /* ---------- controles ---------- */
-  function chips(box, lista, atual, aoEscolher) {
-    box.innerHTML = lista.map(function (x) { return '<button type="button" data-v="' + x[0] + '" class="' + (x[0] === atual ? "ativo" : "") + '">' + x[1] + "</button>"; }).join("");
-    box.querySelectorAll("button").forEach(function (b) { b.onclick = function () { box.querySelectorAll("button").forEach(function (k) { k.classList.toggle("ativo", k === b); }); aoEscolher(b.dataset.v); agendar(); }; });
-  }
-  function slider(id, sufixo, ler, gravar) {
-    var el = $(id), out = $(id + "o"); el.value = ler(); out.textContent = el.value + (sufixo || "");
-    el.oninput = function () { gravar(+el.value); out.textContent = el.value + (sufixo || ""); agendar(); };
-  }
-  function montarControles() {
-    chips($("fmtChips"), FORMATOS, O.formato, function (v) { O.formato = v; });
-    $("sliders").innerHTML = AJ.map(function (a) { return '<div class="fx-sl"><span>' + a[1] + '</span><input type="range" id="aj_' + a[0] + '" min="' + a[2] + '" max="' + a[3] + '" value="' + (O.aj[a[0]] || 0) + '"><output id="aj_' + a[0] + 'o">' + (O.aj[a[0]] || 0) + "</output></div>"; }).join("");
-    AJ.forEach(function (a) { slider("aj_" + a[0], "", function () { return O.aj[a[0]] || 0; }, function (v) { O.aj[a[0]] = v; }); });
-    $("filtros").innerHTML = Object.keys(FILTROS).map(function (k) { return '<button type="button" data-filtro="' + k + '" class="' + (k === O.filtro ? "ativo" : "") + '"><canvas data-f="' + k + '" width="1" height="1"></canvas><span>' + FILTROS[k].nome + "</span></button>"; }).join("");
-    $("filtros").querySelectorAll("[data-filtro]").forEach(function (b) { b.onclick = function () { O.filtro = b.dataset.filtro; $("filtros").querySelectorAll("[data-filtro]").forEach(function (k) { k.classList.toggle("ativo", k === b); }); agendar(); }; });
-    slider("intens", "", function () { return O.intens; }, function (v) { O.intens = v; });
-    var POS = [["tl", "8px", "8px"], ["tc", "50%", "8px"], ["tr", "calc(100% - 8px)", "8px"], ["ml", "8px", "50%"], ["mc", "50%", "50%"], ["mr", "calc(100% - 8px)", "50%"], ["bl", "8px", "calc(100% - 8px)"], ["bc", "50%", "calc(100% - 8px)"], ["br", "calc(100% - 8px)", "calc(100% - 8px)"]];
-    $("logoPos").innerHTML = POS.map(function (p) { return '<button type="button" data-p="' + p[0] + '" style="--x:' + p[1] + ";--y:" + p[2] + '" class="' + (p[0] === O.logo.pos ? "ativo" : "") + '" aria-label="Posição ' + p[0] + '"></button>'; }).join("");
-    $("logoPos").querySelectorAll("button").forEach(function (b) { b.onclick = function () { O.logo.pos = b.dataset.p; $("logoPos").querySelectorAll("button").forEach(function (k) { k.classList.toggle("ativo", k === b); }); agendar(); }; });
-    chips($("logoCor"), [["auto", "AUTOMÁTICA"], ["original", "ORIGINAL"], ["branca", "BRANCA"], ["preta", "PRETA"]], O.logo.cor, function (v) { O.logo.cor = v; });
-    slider("logoTam", "%", function () { return O.logo.tam; }, function (v) { O.logo.tam = v; });
-    slider("logoOp", "%", function () { return O.logo.op; }, function (v) { O.logo.op = v; });
-    slider("logoMar", "%", function () { return O.logo.mar; }, function (v) { O.logo.mar = v; });
-    $("logoOn").checked = !!O.logo.on; $("logoOn").onchange = function () { if (this.checked && !LOGO) { this.checked = false; alert("Envie a logo primeiro (ENVIAR LOGO)."); return; } O.logo.on = this.checked; agendar(); };
-    chips($("bordaEst"), [["nenhuma", "SEM BORDA"], ["solida", "MOLDURA"], ["polaroid", "POLAROID"], ["faixa", "FAIXA COM TEXTO"]], O.borda.est, function (v) { O.borda.est = v; });
-    slider("bordaEsp", "%", function () { return O.borda.esp; }, function (v) { O.borda.esp = v; });
-    slider("bordaRaio", "%", function () { return O.borda.raio; }, function (v) { O.borda.raio = v; });
-    var cores = ["#ffffff", "#000000", "#F5F1EA", "#FFB547", "#06080D", "#1C97A6"];
-    $("bordaCores").innerHTML = '<span class="tf-nota" style="margin:0">Cor</span>' + cores.map(function (c) { return '<button type="button" data-c="' + c + '" style="background:' + c + '" aria-label="Cor ' + c + '"></button>'; }).join("") + '<input type="color" id="bordaCor" value="' + esc(O.borda.cor) + '" aria-label="Outra cor">';
-    $("bordaCores").querySelectorAll("[data-c]").forEach(function (b) { b.onclick = function () { O.borda.cor = b.dataset.c; $("bordaCor").value = b.dataset.c; agendar(); }; });
-    $("bordaCor").oninput = function () { O.borda.cor = this.value; agendar(); };
-    $("bordaTxt").value = O.borda.txt || ""; $("bordaTxt").oninput = function () { O.borda.txt = this.value; agendar(); };
-    chips($("tamChips"), TAMANHOS, O.saida.tam, function (v) { O.saida.tam = v; });
-    slider("qual", "", function () { return O.saida.qual; }, function (v) { O.saida.qual = v; });
-    $("nomeArq").value = O.saida.nome || ""; $("nomeArq").oninput = function () { O.saida.nome = this.value; gravarUi("ui_fotos_ultimo", O); };
-    padroes();
-  }
-  function sincronizarCorte() { var f = FOTOS[ATUAL]; if (!f) return; $("posX").value = f.posX; $("posXo").textContent = f.posX; $("posY").value = f.posY; $("posYo").textContent = f.posY; }
-  $("posX").oninput = function () { if (FOTOS[ATUAL]) FOTOS[ATUAL].posX = +this.value; $("posXo").textContent = this.value; agendar(); };
-  $("posY").oninput = function () { if (FOTOS[ATUAL]) FOTOS[ATUAL].posY = +this.value; $("posYo").textContent = this.value; agendar(); };
-  $("girar").onclick = function () { if (FOTOS[ATUAL]) { FOTOS[ATUAL].rot = (FOTOS[ATUAL].rot + 90) % 360; agendar(); } };
-  $("zerar").onclick = function () { O.aj = {}; montarControles(); agendar(); };
-  document.querySelectorAll("#abas button").forEach(function (b) { b.onclick = function () {
-    document.querySelectorAll("#abas button").forEach(function (k) { k.classList.toggle("ativo", k === b); });
-    document.querySelectorAll("[data-painel]").forEach(function (p) { p.hidden = p.dataset.painel !== b.dataset.aba; });
-    if (b.dataset.aba === "filtros") prevFiltros(); }; });
-
-  /* ---------- logo ---------- */
-  function mostrarLogo() { $("logoPrev").innerHTML = LOGO ? '<img alt="Sua logo" src="' + LOGO.src + '">' : '<span class="tf-nota" style="margin:0">sem logo</span>'; }
-  (function () { var d = null; try { d = localStorage.getItem("ui_fotos_logo"); } catch (e) { } if (!d) return; var im = new Image(); im.onload = function () { LOGO = im; tingidas = {}; mostrarLogo(); agendar(); }; im.src = d; })();
-  $("logoArq").onchange = async function () {
-    var f = this.files && this.files[0]; if (!f) return;
-    try {
-      var im = await decodificar(f), c = reduzir(im, 1000), url = c.toDataURL("image/png");
-      var n = new Image(); n.onload = function () { LOGO = n; tingidas = {}; O.logo.on = true; $("logoOn").checked = true; mostrarLogo(); agendar(); }; n.src = url;
-      try { localStorage.setItem("ui_fotos_logo", url); } catch (e) { alert("A logo é grande demais para ficar guardada — ela vale só até fechar a página."); }
-    } catch (e) { alert("Não deu para abrir a logo."); }
-    this.value = "";
-  };
-
-  /* ---------- MEU PADRÃO ---------- */
-  function padroes() {
-    var ps = lerUi("ui_fotos_padroes", []);
-    $("padLista").innerHTML = ps.length ? ps.map(function (p, i) { return '<button type="button" data-pi="' + i + '">' + esc(p.nome) + ' <span data-pdel="' + i + '" style="margin-left:6px;opacity:.7">✕</span></button>'; }).join("") : '<span class="tf-nota" style="margin:0">Nenhum padrão salvo.</span>';
-    $("padLista").querySelectorAll("[data-pi]").forEach(function (b) { b.onclick = function (ev) {
-      var i = +b.dataset.pi, ps2 = lerUi("ui_fotos_padroes", []);
-      if (ev.target.getAttribute("data-pdel") != null) { if (confirm("Apagar o padrão " + ps2[i].nome + "?")) { ps2.splice(i, 1); gravarUi("ui_fotos_padroes", ps2); padroes(); } return; }
-      var p = ps2[i]; if (!p) return; var saida = O.saida;
-      O = Object.assign(clone(PADRAO), clone(p.o)); O.saida = saida; ["logo", "borda", "aj"].forEach(function (k) { O[k] = Object.assign(clone(PADRAO[k]), O[k] || {}); });
-      if (O.logo.on && !LOGO) O.logo.on = false;
-      montarControles(); prevFiltros(); agendar(); $("prog").textContent = "✓ Padrão “" + p.nome + "” aplicado";
-    }; });
-  }
-  $("padSalvar").onclick = function () {
-    var nome = $("padNome").value.trim() || ("Padrão " + new Date().toLocaleDateString("pt-BR"));
-    var ps = lerUi("ui_fotos_padroes", []).filter(function (p) { return p.nome !== nome; }), o = clone(O); delete o.saida;
-    ps.push({ nome: nome, o: o }); gravarUi("ui_fotos_padroes", ps); $("padNome").value = ""; padroes(); $("prog").textContent = "✓ Padrão “" + nome + "” salvo neste aparelho";
-  };
-
-  /* ---------- exportar ---------- */
-  function nomeArquivo(f, i) {
-    var base = (O.saida.nome || "").trim().toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-    var n = base ? base + "-" + String(i + 1).padStart(2, "0") : f.nome.replace(/[^\w.-]+/g, "_") + "-bw";
-    return n + ".jpg";
-  }
-  async function gerar(i) {
-    var f = FOTOS[i], im = await abrirImagem(f.file);
-    var c = montar(im, f, { tam: O.saida.tam });
-    return new Promise(function (ok) { c.toBlob(function (b) { c.width = c.height = 1; ok(b); }, "image/jpeg", O.saida.qual / 100); });
-  }
-  function baixarBlob(blob, nome) {
-    var a = document.createElement("a"), url = URL.createObjectURL(blob); a.href = url; a.download = nome; document.body.appendChild(a); a.click(); a.remove();
-    setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
-  }
-  /* ZIP sem compressão (JPEG já é comprimido) — sem biblioteca externa */
-  var CRC = (function () { var t = new Uint32Array(256); for (var n = 0; n < 256; n++) { var c = n; for (var k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
-  function crc32(u8) { var c = 0xFFFFFFFF; for (var i = 0; i < u8.length; i++) c = CRC[(c ^ u8[i]) & 255] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; }
-  function zip(arqs) {
-    var partes = [], central = [], ofs = 0, enc = new TextEncoder(), agora = new Date();
-    var dt = ((agora.getFullYear() - 1980) << 9) | ((agora.getMonth() + 1) << 5) | agora.getDate(), tm = (agora.getHours() << 11) | (agora.getMinutes() << 5) | (agora.getSeconds() >> 1);
-    arqs.forEach(function (a) {
-      var nome = enc.encode(a.nome), crc = crc32(a.dados), n = a.dados.length;
-      var h = new DataView(new ArrayBuffer(30)); h.setUint32(0, 0x04034b50, true); h.setUint16(4, 20, true); h.setUint16(6, 0x0800, true); h.setUint16(8, 0, true);
-      h.setUint16(10, tm, true); h.setUint16(12, dt, true); h.setUint32(14, crc, true); h.setUint32(18, n, true); h.setUint32(22, n, true); h.setUint16(26, nome.length, true); h.setUint16(28, 0, true);
-      partes.push(h.buffer, nome, a.dados);
-      var c = new DataView(new ArrayBuffer(46)); c.setUint32(0, 0x02014b50, true); c.setUint16(4, 20, true); c.setUint16(6, 20, true); c.setUint16(8, 0x0800, true); c.setUint16(10, 0, true);
-      c.setUint16(12, tm, true); c.setUint16(14, dt, true); c.setUint32(16, crc, true); c.setUint32(20, n, true); c.setUint32(24, n, true); c.setUint16(28, nome.length, true);
-      c.setUint16(30, 0, true); c.setUint16(32, 0, true); c.setUint16(34, 0, true); c.setUint16(36, 0, true); c.setUint32(38, 0, true); c.setUint32(42, ofs, true);
-      central.push(c.buffer, nome); ofs += 30 + nome.length + n;
-    });
-    var tamC = central.reduce(function (s, p) { return s + (p.byteLength || p.length); }, 0);
-    var e = new DataView(new ArrayBuffer(22)); e.setUint32(0, 0x06054b50, true); e.setUint16(8, arqs.length, true); e.setUint16(10, arqs.length, true); e.setUint32(12, tamC, true); e.setUint32(16, ofs, true);
-    return new Blob(partes.concat(central).concat([e.buffer]), { type: "application/zip" });
-  }
-  function semFoto() { if (!FOTOS.length) { alert("Escolha as fotos primeiro."); return true; } return false; }
-  $("bxUma").onclick = async function () {
-    if (semFoto()) return; var b = this; b.disabled = true; $("prog").textContent = "Gerando…";
-    try { var bl = await gerar(ATUAL); baixarBlob(bl, nomeArquivo(FOTOS[ATUAL], ATUAL)); $("prog").textContent = "✓ Pronta (" + (bl.size / 1048576).toFixed(1).replace(".", ",") + " MB)"; }
-    catch (e) { $("prog").textContent = "Não deu para gerar esta foto."; }
-    b.disabled = false;
-  };
-  async function gerarTodas(aoGerar) {
-    var out = [];
-    for (var i = 0; i < FOTOS.length; i++) {
-      $("prog").textContent = "Gerando " + (i + 1) + " de " + FOTOS.length + "…";
-      await new Promise(function (r) { setTimeout(r, 30); });
-      try { var bl = await gerar(i); out.push({ nome: nomeArquivo(FOTOS[i], i), blob: bl }); if (aoGerar) aoGerar(); } catch (e) { }
-    }
-    return out;
-  }
-  $("bxTodas").onclick = async function () {
-    if (semFoto()) return; var b = this; b.disabled = true;
-    var arqs = await gerarTodas(), lista = [];
-    for (var i = 0; i < arqs.length; i++) lista.push({ nome: arqs[i].nome, dados: new Uint8Array(await arqs[i].blob.arrayBuffer()) });
-    var z = zip(lista), base = (O.saida.nome || "fotos").trim().replace(/[^\wÀ-ú-]+/g, "-") || "fotos";
-    baixarBlob(z, base + "-brightway.zip");
-    $("prog").textContent = "✓ " + lista.length + " foto(s) no ZIP (" + (z.size / 1048576).toFixed(1).replace(".", ",") + " MB)"; b.disabled = false;
-    window.__fotosZip = { n: lista.length, bytes: z.size };   // usado no teste automático
-  };
-  $("compartilhar").onclick = async function () {
-    if (semFoto()) return; var b = this;
-    if (!navigator.canShare) { $("prog").textContent = "Este navegador não compartilha arquivos — use BAIXAR."; return; }
-    b.disabled = true; var arqs = await gerarTodas();
-    var files = arqs.map(function (a) { return new File([a.blob], a.nome, { type: "image/jpeg" }); });
-    try {
-      if (!navigator.canShare({ files: files })) throw new Error("nao");
-      await navigator.share({ files: files, title: "Fotos" }); $("prog").textContent = "✓ Enviado para o menu de compartilhar";
-    } catch (e) { $("prog").textContent = e && e.name === "AbortError" ? "Compartilhamento cancelado." : "Não deu para compartilhar " + files.length + " foto(s) de uma vez — tente menos fotos ou use BAIXAR."; }
-    b.disabled = false;
-  };
-
-  /* ---------- entrada de arquivos ---------- */
-  $("arquivos").onchange = function () { adicionar(this.files); this.value = ""; };
-  var solta = $("solta");
-  ["dragenter", "dragover"].forEach(function (t) { solta.addEventListener(t, function (ev) { ev.preventDefault(); solta.classList.add("sobre"); }); });
-  ["dragleave", "drop"].forEach(function (t) { solta.addEventListener(t, function () { solta.classList.remove("sobre"); }); });
-  solta.addEventListener("drop", function (ev) { ev.preventDefault(); adicionar(ev.dataTransfer.files); });
-  window.addEventListener("resize", function () { agendar(); });
-
-  montarControles(); agendar();
-  window.__fotos = { adicionar: adicionar, montar: montar, O: function () { return O; }, FOTOS: FOTOS };   // usado no teste automático
-  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(function () { });
-})();
-</script>
+<script src="assets/fotos.js?v=1"></script>
 </body>
 </html>
