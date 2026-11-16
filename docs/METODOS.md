@@ -118,3 +118,14 @@ Tamanho > 0 e sem erro = o pdfmake montou o arquivo. Localmente (T1) confira o `
 - Gerador: `python3 docs/manual/gerar.py` (precisa de Playwright + Chrome e pypdf). Monta o PDF a partir de `docs/manual/base.pdf`
   (páginas antigas que não mudaram) + páginas HTML de `docs/manual/paginas/` e renumera os rodapés.
 - Telas: `python3 docs/manual/telas.py` sobe o site local, semeia a "Produtora Exemplo" e salva as capturas em `docs/manual/telas/`.
+
+
+## Retoque com IA no aparelho (MediaPipe ImageSegmenter) — 16/11/2026
+- Modelo: `selfie_multiclass_256x256` (0 fundo, 1 cabelo, 2 pele do corpo, 3 pele do rosto, 4 roupa, 5 acessórios), `outputCategoryMask: true`,
+  `delegate: "CPU"` (iPhone + GPU embaralha as categorias). Carregador único `mpVision()` compartilhado com o detector de rostos.
+- Guardar por foto 4 máscaras pequenas (≤768 px, borda suavizada) + a luminância média de cada região; desenhar a máscara com a MESMA
+  geometria da foto (desenharFonte) na hora de montar.
+- Trocar cor sem perder textura: HSL da cor alvo, luminância nova = L_alvo + (L_pixel − L_média) — cabelo preto vira loiro com fios.
+- Desfoque portátil: reduzir a imagem e ampliar de volta (ctx.filter não é garantido no Safari).
+- Teste local sem internet: injetar `f.seg` com máscaras falsas em faixas e conferir pixels (docs/testes/teste_ia_retoque.py);
+  no ar: foto de selfie pública do Hugging Face (datasets/Xenova/transformers.js-docs/…/selfie_segmentation_landscape.png).

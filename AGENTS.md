@@ -139,6 +139,11 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
 48. Arrastar na prévia mede em FRAÇÃO da tela (clientX/largura), não em pixels do canvas: durante o arraste a prévia é refeita em
     resolução menor e o item "pulava" de lugar (auto: teste_fotos.py, arrastar adesivo/texto/logo).
 
+**Aprendidos em 16/11 (retoque com IA)**
+49. IA de imagem no aparelho (MediaPipe): segmentador com delegate "CPU" (no iPhone a GPU troca as categorias); efeitos por máscara com
+    desfoque que funciona em qualquer navegador (reduzir/ampliar, não ctx.filter); teste local com MÁSCARAS FALSAS conferindo pixel
+    (docs/testes/teste_ia_retoque.py) e teste no ar com o modelo real.
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -485,6 +490,13 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   RENOMEAR, SUBSTITUIR, BAIXAR, EXCLUIR. (7) Botões com acabamento novo (degradê, brilho, resposta ao toque). Bug achado no teste: arrastar
   durante a prévia rápida fazia o item pular → medida em fração. teste_fotos.py: 0 falhas (1280, 390 e iPhone). Manual atualizado. fotos.js v7,
   sw v76. PENTE FINO 47–48.
+
+- 16/11/2026 · Claude (dono: "pesquise o melhor e gratuito… faça assim como planejou"): EDITOR DE FOTOS — aba FUNDO IA virou ✨ IA com RETOQUE
+  COM IA no aparelho (MediaPipe Multi-class Selfie Segmenter, Apache-2.0, grátis, ~16 MB uma vez): ANALISAR (esta/todas) → COR DO CABELO
+  (11 cores + escolher), COR DA ROUPA (9 + escolher), intensidade, PELE SUAVE, EFEITO NO FUNDO (cor só na pessoa, desfocado, escurecido,
+  clareado), USAR EM TODAS, SEM RETOQUE; antes/depois e desfazer incluídos; a foto não sai do aparelho. Teste no ar com foto real: análise 2,4 s,
+  foto 1600 px em 0,1 s. Cabelo novo/corpo (IA generativa) ficou fora: nada grátis de verdade (Gemini imagem sem cota grátis); opção futura
+  Cloudflare Workers AI (10 mil neurônios/dia) via Edge Function. teste_ia_retoque.py 0 falhas; teste_fotos.py 0 falhas. fotos.js v8, sw v77. PENTE FINO 49.
 
 ## Pendências (dono)
 - [x] (15/11 10:02, dono: "faça tudo") Autorizar a automação de NOTÍCIAS (publica noticias.json no site a cada 2 h) — ATIVA.
