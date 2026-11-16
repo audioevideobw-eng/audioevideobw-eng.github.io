@@ -108,6 +108,19 @@ with sync_playwright() as p:
         pg.evaluate("async () => { const b = await (" + LOGO_JS + ")('foto'); await __prop.receberLogo(b); }")
         ok(pg.evaluate("__prop.cfg('logoOrig','')") == "" and all(a == 255 for a in pg.evaluate(PIX, pg.evaluate("__prop.cfg('logo','')"))["cantos"]), "logo em fundo de foto (degradê): não tira sozinho")
 
+        # 5b) logo como a do dono: fora transparente, EMBLEMA num QUADRADO BRANCO + letreiro BRANCO numa faixa semitransparente
+        pg.evaluate("__prop.salvarCfg('logo',''); __prop.salvarCfg('logoOrig','')")
+        pg.evaluate("""async () => { const c = document.createElement('canvas'); c.width = 600; c.height = 200; const x = c.getContext('2d');
+          x.fillStyle = '#fff'; x.fillRect(250, 10, 100, 100); x.fillStyle = '#c9a227'; x.beginPath(); x.arc(300, 60, 44, 0, 7); x.fill();
+          x.fillStyle = 'rgba(0,0,0,.35)'; x.fillRect(0, 130, 600, 60); x.fillStyle = '#fff'; x.font = 'bold 44px Arial'; x.textBaseline = 'middle'; x.fillText('BW PRODUCOES', 140, 160);
+          const b = await new Promise(ok => c.toBlob(ok, 'image/png')); await __prop.receberLogo(b); }""")
+        ok(pg.evaluate("__prop.cfg('logoOrig','')") == "", "fora transparente: não mexe sozinho (só pelo botão)")
+        quad = pg.evaluate("""async () => { const u = await __prop.logoSemFundo(__prop.cfg('logo',''), false); if (!u) return null;
+          const im = await new Promise(ok => { const i = new Image(); i.onload = () => ok(i); i.src = u; }); const c = document.createElement('canvas'); c.width = im.naturalWidth; c.height = im.naturalHeight;
+          const x = c.getContext('2d'); x.drawImage(im, 0, 0); const d = x.getImageData(0, 0, c.width, c.height).data; let cima = 0, baixo = 0; for (let i = 0; i < d.length; i += 4) if (d[i+3] > 240 && d[i] > 235 && d[i+1] > 235 && d[i+2] > 235) { if ((i / 4 / c.width | 0) < c.height * 0.55) cima++; else baixo++; }
+          return { quadrado: cima, letreiro: baixo, h: c.height }; }""")
+        ok(quad is not None and quad["quadrado"] < 60 and quad["letreiro"] > 1500, f"quadrado branco do emblema sai e o letreiro branco fica ({quad})")
+
         # 6) orçamento com a logo sem fundo → prévia, PDF e Word
         pg.evaluate("async () => { const b = await (" + LOGO_JS + ")('branco'); await __prop.receberLogo(b); }")
         pg.evaluate("__prop.novoDoc && __prop.abrir(__prop.novoDoc('orcamento'))"); pg.wait_for_timeout(500)

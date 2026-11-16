@@ -574,6 +574,8 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   cortadas, sempre PNG (antes virava JPEG acima de 450 KB). MINHA EMPRESA: ✂ TIRAR FUNDO, + DENTRO DAS LETRAS (miolo do O/A/B),
   ↺ VOLTAR AO ORIGINAL (cfg logoOrig) e miniatura em quadriculado. Logo já transparente ou sobre foto não é mexida sozinha.
   Teste docs/testes/teste_logo_fundo.py (24 checagens × 1280/390, 0 falhas); teste_propostas 0 falhas. Manual atualizado. propostas.js v3, sw v83. PENTE FINO 59.
+  Logo do dono (do Word) já tinha fora transparente mas o EMBLEMA num QUADRADO BRANCO: ✂ TIRAR FUNDO agora acha o bloco branco que encosta no
+  transparente e só tira BLOCO cheio (miolo ≥ 15×15 px) — letreiro branco fino fica. propostas.js v4, sw v84.
 
 ## Pendências (dono)
 - [x] (16/11 11:42) IA CRIATIVA ATIVA: conta Cloudflare do dono (Free, sem cartão), token "Brightway IA criativa 2" (Workers AI Read+Edit) em

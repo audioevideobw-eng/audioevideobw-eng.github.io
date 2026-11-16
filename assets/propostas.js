@@ -632,16 +632,47 @@
   }
   function tirarFundoCanvas(c, tudo) {
     var w = c.width, h = c.height, x = c.getContext("2d", { willReadFrequently: true }), img = x.getImageData(0, 0, w, h), d = img.data;
-    var f = analisarFundo(d, w, h); if (!f) return null;
-    var tol = 40, N = w * h, fora = new Uint8Array(N), p, q;
+    var f = analisarFundo(d, w, h), tol = 40, N = w * h, fora = new Uint8Array(N), p, q, sementes = null;
     function dist(i) { var a = d[i] - f.r, b = d[i + 1] - f.g, cc = d[i + 2] - f.b; return Math.sqrt(a * a + b * b + cc * cc); }
+    if (!f) {
+      /* bordas já transparentes, mas com um BLOCO BRANCO por dentro (ex.: emblema num quadrado branco, logo tirada do Word):
+         o fundo branco começa nos pixels brancos opacos que encostam no transparente */
+      f = { r: 255, g: 255, b: 255 }; sementes = [];
+      for (p = 0; p < N; p++) {
+        if (d[p * 4 + 3] < 230 || dist(p * 4) >= tol) continue;
+        /* encosta no transparente (até 2 px: a borda costuma ter 1 px semitransparente) */
+        var px = p % w, py = (p / w) | 0, encosta = false;
+        for (var ey = -2; ey <= 2 && !encosta; ey++) for (var ex = -2; ex <= 2; ex++) { var X0 = px + ex, Y0 = py + ey; if (X0 >= 0 && Y0 >= 0 && X0 < w && Y0 < h && d[(Y0 * w + X0) * 4 + 3] < 128) { encosta = true; break; } }
+        if (encosta) sementes.push(p);
+      }
+      if (sementes.length < 8) return null;
+    }
+    var opacosAntes = 0; for (p = 0; p < N; p++) if (d[p * 4 + 3] > 20) opacosAntes++;
     /* 1) o que é fundo some: só o que encosta na borda (TIRAR FUNDO) ou toda cor de fundo (+ DENTRO DAS LETRAS) */
-    if (tudo) { for (p = 0; p < N; p++) if (dist(p * 4) < tol) fora[p] = 1; }
+    if (tudo && !sementes) { for (p = 0; p < N; p++) if (dist(p * 4) < tol) fora[p] = 1; }
     else {
       var fila = [], tenta = function (k) { if (k < 0 || k >= N || fora[k]) return; if (dist(k * 4) < tol) { fora[k] = 1; fila.push(k); } };
-      for (p = 0; p < w; p++) { tenta(p); tenta((h - 1) * w + p); } for (p = 0; p < h; p++) { tenta(p * w); tenta(p * w + w - 1); }
+      if (sementes) sementes.forEach(tenta);
+      else { for (p = 0; p < w; p++) { tenta(p); tenta((h - 1) * w + p); } for (p = 0; p < h; p++) { tenta(p * w); tenta(p * w + w - 1); } }
       while (fila.length) { q = fila.pop(); var qx = q % w; if (qx > 0) tenta(q - 1); if (qx < w - 1) tenta(q + 1); tenta(q - w); tenta(q + w); }
+      if (sementes) {
+        /* só sai BLOCO branco (fundo): mancha com miolo cheio de pelo menos (2r+1)² px. Letra branca é traço fino → fica. */
+        var r = Math.max(3, Math.round(Math.min(w, h) * 0.035)), W1 = w + 1, soma = new Int32Array(W1 * (h + 1)), yy0, xx0;
+        for (yy0 = 0; yy0 < h; yy0++) { var lin = 0; for (xx0 = 0; xx0 < w; xx0++) { lin += fora[yy0 * w + xx0]; soma[(yy0 + 1) * W1 + xx0 + 1] = soma[yy0 * W1 + xx0 + 1] + lin; } }
+        var cheio = (2 * r + 1) * (2 * r + 1), rot = new Int32Array(N), nRot = 0, miolo = [0];
+        for (p = 0; p < N; p++) if (fora[p] && !rot[p]) {
+          nRot++; miolo.push(0); var pilha = [p]; rot[p] = nRot;
+          while (pilha.length) {
+            q = pilha.pop(); var cx = q % w, cy = (q / w) | 0;
+            if (cx >= r && cy >= r && cx + r < w && cy + r < h) { var a0 = (cy - r) * W1 + cx - r, a1 = (cy - r) * W1 + cx + r + 1, b0 = (cy + r + 1) * W1 + cx - r, b1 = (cy + r + 1) * W1 + cx + r + 1; if (soma[b1] - soma[a1] - soma[b0] + soma[a0] === cheio) miolo[nRot]++; }
+            [cx > 0 ? q - 1 : -1, cx < w - 1 ? q + 1 : -1, q - w, q + w].forEach(function (v) { if (v >= 0 && v < N && fora[v] && !rot[v]) { rot[v] = nRot; pilha.push(v); } });
+          }
+        }
+        for (p = 0; p < N; p++) if (fora[p] && miolo[rot[p]] < 10) fora[p] = 0;
+      }
     }
+    var saiu = 0; for (p = 0; p < N; p++) if (fora[p] && d[p * 4 + 3] > 20) saiu++;
+    if (!saiu || (sementes && saiu > opacosAntes * 0.7)) return null; /* nada a tirar, ou levaria a logo junto */
     for (p = 0; p < N; p++) if (fora[p]) d[p * 4 + 3] = 0;
     /* 2) borda das letras (2 px em volta do que saiu): a cor misturada com o fundo vira a cor da letra + transparência — sem halo branco */
     var anel = new Uint8Array(N), ix, iy, dx, dy;
@@ -862,7 +893,7 @@
       case "logoEnviar": $("arqLogo").click(); break;
       case "logoKit": var u = await lerKitLogo(); if (!u) { toast("Nenhuma logo em ★ MINHA MARCA (Editor de fotos) neste aparelho."); break; } var bl = await (await fetch(u)).blob(); await receberLogo(bl); abrirEmpresa(); if (DOC) previa(); break;
       case "logoTirar": salvarCfg("logo", ""); salvarCfg("logoOrig", ""); abrirEmpresa(); if (DOC) previa(); break;
-      case "logoFundo": { var base = cfg("logoOrig", "") || cfg("logo", ""); if (!base) break; var sf = await logoSemFundo(base, v === "tudo"); if (!sf) { toast("Esta logo já está sem fundo (ou o fundo não é de uma cor só)."); break; } if (!cfg("logoOrig", "")) salvarCfg("logoOrig", base); salvarCfg("logo", sf); abrirEmpresa(); if (DOC) previa(); toast("✓ Fundo tirado — a logo agora é PNG transparente."); break; }
+      case "logoFundo": { var base = cfg("logoOrig", "") || cfg("logo", ""); if (!base) break; var sf = await logoSemFundo(base, v === "tudo"); if (!sf) { toast("Não achei fundo liso para tirar nesta logo (ou levaria a logo junto). Ela continua como estava."); break; } if (!cfg("logoOrig", "")) salvarCfg("logoOrig", base); salvarCfg("logo", sf); abrirEmpresa(); if (DOC) previa(); toast("✓ Fundo tirado — a logo agora é PNG transparente."); break; }
       case "logoOriginal": { var o = cfg("logoOrig", ""); if (!o) break; salvarCfg("logo", o); salvarCfg("logoOrig", ""); abrirEmpresa(); if (DOC) previa(); toast("Logo original de volta."); break; }
       case "bSobe": if (i > 0) { var lb2 = botoes().slice(), t2 = lb2[i - 1]; lb2[i - 1] = lb2[i]; lb2[i] = t2; salvarBotoes(lb2); abrirBotoes(); } break;
       case "bTira": var lb3 = botoes().slice(); if (confirm("Excluir o botão " + lb3[i].nome + "?")) { lb3.splice(i, 1); salvarBotoes(lb3.length ? lb3 : []); abrirBotoes(); } break;
