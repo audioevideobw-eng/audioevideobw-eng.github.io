@@ -132,6 +132,8 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
 45. Tela cheia por cima da página (editor, folhas): no celular a página de trás precisa SUMIR e TRAVAR (html.ed-aberto: body fixo,
     .bw-shell/.bw-abas escondidos, touchmove e pinça bloqueados fora das áreas que rolam) — no iPhone o topo do editor ficava "travado".
     Campo de digitar com letra ≥ 16 px (menos que isso o iPhone amplia a tela sozinho ao tocar). Teste com toque: p.devices["iPhone 13"].
+46. O topo LOGADO tem mais itens (selo + ATUALIZAR) que o topo do teste local sem login: a varredura (docs/testes/varredura.py) simula o
+    selo e mede 1280/390/360 px. Excluir algo que outros itens apontam (equipe → eventos) limpa a referência na hora.
 
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
@@ -457,6 +459,14 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   (touch-action: manipulation), campos com letra 16 px (o iPhone ampliava a tela ao tocar no texto) e a dica sobre a foto some em 3,5 s.
   teste_fotos.py ganhou a rodada iPhone 13 por toque (24 checagens: 6 botões do topo, 8 abas, slider, MINHA MARCA, fechar/abrir) — 0 falhas.
   fotos.js v3, sw v72. PENTE FINO 45.
+
+- 16/11/2026 · Claude (dono: "faça testes buscando bugs em tudo"): VARREDURA nova (docs/testes/varredura.py: 46 páginas × 1280/390/360 px —
+  erros de JS, console, 404, links internos, estouro, ids repetidos, botões sem nome, imagens) + varredura NO AR logado (41 páginas, erros e
+  estouro) + auditoria dos dados da conta (ids repetidos, lançamentos órfãos, datas/valores inválidos, referências quebradas). Achados e
+  correções: (1) TOPO no celular, logado, estourava 15–45 px em TODAS as páginas (selo + atualizar + 5 botões) → topo compacto ≤480 px e
+  selo só com a luz ≤360 px (brightway.css v25); (2) investimentos-painel travava os gráficos sem a biblioteca Chart (sem internet) → segue
+  sem gráfico; (3) evento "COOP MIX" apontava para uma equipe já excluída → excluir equipe agora tira a equipe dos eventos e a lista mostra
+  "(excluída)" em vermelho. Dados da conta: sem ids repetidos, sem lançamentos órfãos, sem datas/valores inválidos. Todos os testes 0 falhas. sw v73.
 
 ## Pendências (dono)
 - [x] (15/11 10:02, dono: "faça tudo") Autorizar a automação de NOTÍCIAS (publica noticias.json no site a cada 2 h) — ATIVA.

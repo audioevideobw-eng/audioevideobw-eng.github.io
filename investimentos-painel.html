@@ -328,6 +328,7 @@ input.busca{font:inherit;font-size:13px;background:var(--navy2);color:var(--txt)
     $("totPat").textContent = brl0(tot);
     itens = itens.filter(function (x) { return x[1] > 0; });
     if (gC) gC.destroy();
+    if (!window.Chart) return;   /* sem internet para a biblioteca de gráficos: o resto do painel continua */
     gC = new Chart($("gClasse"), {type: "doughnut",
       data: {labels: itens.map(function (x) { return x[0]; }), datasets: [{data: itens.map(function (x) { return Math.round(x[1]); }), backgroundColor: itens.map(function (x) { return COR[x[0]] || "#999"; }), borderColor: "#11141B", borderWidth: 3, hoverOffset: 6}]},
       options: {cutout: "72%", responsive: true, maintainAspectRatio: false, animation: reduz ? false : {duration: 900},
@@ -347,6 +348,7 @@ input.busca{font:inherit;font-size:13px;background:var(--navy2);color:var(--txt)
     });
     var ms = Object.keys(porMes).sort(), acc = 0, serie = ms.map(function (m) { acc += porMes[m]; return Math.round(acc); });
     if (gE) gE.destroy();
+    if (!window.Chart) return;
     gE = new Chart($("gEvolucao"), {type: "line",
       data: {labels: ms.map(function (m) { return MESES[Number(m.slice(5, 7)) - 1] + "/" + m.slice(2, 4); }), datasets: [{label: "Aplicado acumulado", data: serie, borderColor: "#FFB547", borderWidth: 2.5, tension: 0, pointRadius: 3, pointBackgroundColor: "#0b1220", pointBorderColor: "#FFB547", fill: true,
         backgroundColor: function (ctx) { var a = ctx.chart.chartArea; if (!a) return "transparent"; var g = ctx.chart.ctx.createLinearGradient(0, a.top, 0, a.bottom); g.addColorStop(0, "rgba(255,181,71,.28)"); g.addColorStop(1, "rgba(255,181,71,0)"); return g; }}]},

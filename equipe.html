@@ -13,7 +13,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Brightway">
-<link rel="stylesheet" href="assets/brightway.css?v=24">
+<link rel="stylesheet" href="assets/brightway.css?v=25">
 <style>
 :root{
   /* Identidade Brightway — paleta oficial */
@@ -1997,7 +1997,11 @@ function renderEquipes() {
     const sb = window.BWSync && window.BWSync.cliente();
     if (sb && (q.docs || []).length) { try { await sb.storage.from("eventos-docs").remove(q.docs.map(d => d.caminho).filter(Boolean)); } catch (e) { } }
     save(K_EQUIPES, 1, equipes().filter(x => String(x.id) !== String(q.id)));
-    EQ_AVISO = `Equipe ${q.nome} excluída.`;
+    /* 16/11: os eventos dessa equipe ficam sem equipe (antes continuavam apontando para uma equipe que não existe) */
+    const evs = eventos(); let nEv = 0;
+    evs.forEach(e => { if (String(e.equipeId) === String(q.id)) { e.equipeId = ""; e.equipeNome = q.nome + " (excluída)"; e._ed = Date.now(); nEv++; } });
+    if (nEv) save(K_EVENTOS, 1, evs);
+    EQ_AVISO = `Equipe ${q.nome} excluída.` + (nEv ? ` ${nEv} evento(s) ficaram sem equipe — escolha outra no evento.` : "");
     depois();
   });
   box.querySelectorAll("[data-docadd]").forEach(b => b.onclick = async () => {

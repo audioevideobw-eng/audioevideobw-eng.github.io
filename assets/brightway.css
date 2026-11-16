@@ -574,3 +574,13 @@ html.bw-menu-recolhido .bw-menu{display:none}
 .bw-dobra-corpo{margin-top:14px}
 .bw-dobra-corpo[hidden]{display:none}
 .bw-home-resumo{margin-top:20px}
+/* 16/11: topo no celular LOGADO estourava 15–45 px (selo + atualizar + voltar + sino + feedback + menu + conta): tudo mais compacto */
+@media (max-width:480px){
+  .bw-topo{gap:8px}
+  .bw-topo .acoes{gap:5px;flex-wrap:wrap;justify-content:flex-end;min-width:0}
+  .bw-topo .acoes > *{flex:none}
+  .bw-topo .acoes .bw-ibtn,.bw-topo .acoes > button,.bw-topo .acoes > a{max-width:38px}
+  .bw-topo .bw-logado{padding:4px 8px 4px 7px;gap:5px;font-size:10px;letter-spacing:.06em}
+  .bw-topo .acoes .bw-btn--vidro{padding-left:9px;padding-right:9px}
+}
+@media (max-width:360px){.bw-topo .bw-logado{font-size:0;gap:0;padding:6px}.bw-topo .bw-logado i{margin:0}}
