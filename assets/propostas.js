@@ -276,7 +276,8 @@
       .map(function (k) { return '<div class="pr-kpi"><b>' + k[0] + "</b><span>" + k[1] + "</span></div>"; }).join("");
   }
   function desenharLista() {
-    kpis();
+    /* 16/11 (dono): sem valores/indicadores financeiros nesta página (eles ficam no PAINEL FINANCEIRO); as abas mostram as quantidades */
+    var kp = $("kpis"); if (kp) { kp.innerHTML = ""; kp.hidden = true; }
     var e = empresa();
     $("avisoEmpresa").innerHTML = !e.cnpj && !e.fantasia && !e.razao ? '<div class="tf-card" style="margin:0 0 12px;border-color:rgba(255,181,71,.45)"><b>Primeiro passo:</b> preencha <b>⚙ MINHA EMPRESA</b> (nome, CNPJ, contatos, logo e chave Pix) — ou toque em <b>⇪ IMPORTAR .DOCX</b> e traga um orçamento seu: a ferramenta copia a logo e os dados da empresa.</div>' : "";
     /* 16/11 (dono): abas PENDENTES / APROVADOS (+ RECUSADOS) que abrem e fecham pela seta, como a AGENDA; o orçamento muda de aba
@@ -335,16 +336,24 @@
     return '<div class="tf-card"><div class="pr-tit">' + tit + "<small style=\"color:rgba(245,241,234,.5);letter-spacing:0;text-transform:none;font-weight:600\">" + l.length + " ite" + (l.length === 1 ? "m" : "ns") + '</small></div><div class="pr-itens">' +
       l.map(function (x, i) { return '<div class="pr-item"><input class="pr-in" data-l="' + k + '" data-i="' + i + '" value="' + esc(x) + '" aria-label="' + tit + " " + (i + 1) + '"><button type="button" data-a="sobe" data-l="' + k + '" data-i="' + i + '" aria-label="Subir">↑</button><button type="button" data-a="tira" data-l="' + k + '" data-i="' + i + '" aria-label="Tirar">✕</button></div>'; }).join("") +
       '</div><div class="pr-add"><input class="pr-in" data-novo="' + k + '" placeholder="' + esc(ph) + '" aria-label="Novo item"><button type="button" class="bw-btn bw-btn--vidro" data-a="add" data-l="' + k + '" style="min-height:42px">＋</button></div>' +
-      (sug.length ? '<div class="pr-sugs">' + sug.map(function (s) { return '<button type="button" class="pr-chip add" data-a="sug" data-l="' + k + '" data-v="' + esc(s) + '">' + esc(s) + "</button>"; }).join("") + "</div>" : "") + "</div>";
+      ((SUG[k] || []).length ? '<div class="pr-sugs"><button type="button" class="pr-opc" data-a="opcoes" data-l="' + k + '" data-t="' + esc(tit) + '"><span>☰ OPÇÕES PRONTAS</span><b>' + (SUG[k] || []).length + "</b></button></div>" : "") + "</div>";
   }
-  function chipsCampo(k, lista, atual) { return '<div class="pr-sugs">' + lista.map(function (s) { return '<button type="button" class="pr-chip' + (atual === s ? " on" : "") + '" data-a="poe" data-k="' + k + '" data-v="' + esc(s) + '">' + esc(s) + "</button>"; }).join("") + "</div>"; }
+  /* 16/11 (dono): as opções prontas ficam guardadas num BOTÃO por campo (abre a lista), em vez de chips soltos ocupando a tela */
+  var OPC = {};
+  function chipsCampo(k, lista, atual, rot) { OPC[k] = lista; return '<div class="pr-sugs"><button type="button" class="pr-opc" data-a="opcoesCampo" data-k="' + k + '" data-t="' + esc(rot || "") + '"><span>☰ ' + esc(rot ? rot.toUpperCase() + " — OPÇÕES" : "OPÇÕES PRONTAS") + "</span><b>" + lista.length + "</b></button></div>"; }
+  function abrirOpcoes(tipo, k, tit) {
+    var lista = tipo === "lista" ? (SUG[k] || []) : (OPC[k] || []), atual = tipo === "lista" ? (DOC[k] || []).map(function (x) { return x.toLowerCase(); }) : [String(getPath(DOC, k) || "").toLowerCase()];
+    modal('<button type="button" class="pr-x" data-a="fecharModal" aria-label="Fechar">✕</button><h3>' + esc(tit || "Opções prontas") + '</h3><p class="tf-sub">' + (tipo === "lista" ? "Toque para pôr no orçamento (toque de novo para tirar). Pode escolher várias." : "Toque para escolher.") + '</p><div class="pr-opc-lista">' +
+      lista.map(function (o) { var on = atual.indexOf(o.toLowerCase()) >= 0; return '<button type="button" class="pr-opc-it' + (on ? " on" : "") + '" data-a="' + (tipo === "lista" ? "opcLista" : "opcCampo") + '" data-l="' + esc(k) + '" data-v="' + esc(o) + '" data-t="' + esc(tit || "") + '" aria-pressed="' + on + '"><i>' + (on ? "✓" : "+") + "</i><span>" + esc(o) + "</span></button>"; }).join("") +
+      '</div><div class="pr-sugs" style="margin-top:14px"><button type="button" class="bw-btn" data-a="fecharModal">✓ PRONTO</button></div>');
+  }
   function desenharForm() {
     var d = DOC, rec = d.tipo === "recibo", h = "";
     h += '<div class="tf-card" style="margin-top:0"><div class="pr-tit"><span>' + (rec ? "RECIBO" : "ORÇAMENTO") + " " + esc(d.numero || "(número sai ao salvar)") + '</span><span class="pr-st st-' + d.status + '">' + esc(STATUS[d.status]) + "</span></div>" +
       '<div class="pr-sugs" style="margin-top:0"><button type="button" class="pr-chip" data-a="voltar">‹ VOLTAR À LISTA</button>' + (rec ? "" : '<button type="button" class="pr-chip" data-a="ia">✨ MONTAR COM IA</button><button type="button" class="pr-chip" data-a="caprichar">✨ CAPRICHAR NO TEXTO</button>') + "</div></div>";
     if (!rec) {
       h += '<div class="tf-card"><div class="pr-tit">O que você vai fazer? <small style="color:rgba(245,241,234,.5);letter-spacing:0;text-transform:none;font-weight:600">toque para preencher</small></div><div class="pr-botoes">' +
-        botoes().map(function (b) { return '<button type="button" class="pr-bt" data-a="botao" data-v="' + esc(b.id) + '">' + esc(b.nome) + "<small>" + esc(b.desc || "") + (b.valor ? " · " + moeda(b.valor) : "") + "</small></button>"; }).join("") + "</div></div>";
+        botoes().map(function (b) { return '<button type="button" class="pr-bt" data-a="botao" data-v="' + esc(b.id) + '">' + esc(b.nome) + "<small>" + esc(b.desc || "") + "</small></button>"; }).join("") + "</div></div>";
     }
     /* cliente */
     var cl = d.cliente;
@@ -355,7 +364,7 @@
     if (rec) {
       var r = d.recibo;
       h += '<div class="tf-card"><div class="pr-tit">Pagamento</div><div class="pr-campos">' + campoTxt("Valor recebido (R$)", "recibo.valor", r.valor, "text", false, "8.500,00") + campoTxt("Data do pagamento", "recibo.data", r.data, "date") +
-        campoTxt("Referente a", "recibo.referente", r.referente, "textarea", true, "Prestação de serviços de transmissão ao vivo — evento de 18/11/2026") + "</div>" + chipsCampo("recibo.forma", ["Pix", "Transferência", "Dinheiro", "Cartão", "Boleto"], r.forma) +
+        campoTxt("Referente a", "recibo.referente", r.referente, "textarea", true, "Prestação de serviços de transmissão ao vivo — evento de 18/11/2026") + "</div>" + chipsCampo("recibo.forma", ["Pix", "Transferência", "Dinheiro", "Cartão", "Boleto"], r.forma, "Forma de pagamento") +
         '<p class="pr-msg">' + (num(r.valor) ? "Por extenso: <b>" + esc(extenso(r.valor)) + "</b>" : "") + "</p>" +
         (d.refId && (docs().filter(function (x) { return x.id === d.refId; })[0] || {}).eventoId ? '<label class="tf-check" style="margin-top:8px"><input type="checkbox" data-k="lancarEvento"' + (d.lancarEvento !== false ? " checked" : "") + "> Lançar este valor como RECEBIDO no evento (entra no Fluxo e no Painel)</label>" : "") + "</div>";
     } else {
@@ -367,7 +376,7 @@
       var dt = d.datas;
       h += '<div class="tf-card"><div class="pr-tit">Datas e local</div><div class="pr-campos">' + campoTxt("Data do evento (início)", "datas.ini", dt.ini, "date") + campoTxt("Até (se for mais de um dia)", "datas.fim", dt.fim, "date") +
         campoTxt("Local", "datas.local", dt.local, "text", true, "Expominas (Belo Horizonte, MG)") + campoTxt("Montagem", "datas.montagem", dt.montagem, "text", false, "SEM NECESSIDADE") + campoTxt("Testes / ensaios", "datas.ensaio", dt.ensaio, "text", false, "17/11 (equipe completa)") +
-        campoTxt("Horário", "datas.horario", dt.horario, "text", true, "Diária de serviço") + "</div>" + '<div class="pr-tit" style="margin-top:10px">Montagem</div>' + chipsCampo("datas.montagem", SUG.montagem, dt.montagem) + '<div class="pr-tit" style="margin-top:10px">Horário</div>' + chipsCampo("datas.horario", SUG.horario, dt.horario) + "</div>";
+        campoTxt("Horário", "datas.horario", dt.horario, "text", true, "Diária de serviço") + "</div>" + '<div class="pr-sugs pr-opc-linha">' + chipsCampo("datas.montagem", SUG.montagem, dt.montagem, "Montagem").replace(/^<div class="pr-sugs">|<\/div>$/g, "") + chipsCampo("datas.horario", SUG.horario, dt.horario, "Horário").replace(/^<div class="pr-sugs">|<\/div>$/g, "") + "</div>" + "</div>";
       var v = d.valor;
       h += '<div class="tf-card"><div class="pr-tit">Valor</div><div class="pr-sugs" style="margin-top:0"><button type="button" class="pr-chip' + (v.modo !== "itens" ? " on" : "") + '" data-a="modo" data-v="total">SÓ O TOTAL</button><button type="button" class="pr-chip' + (v.modo === "itens" ? " on" : "") + '" data-a="modo" data-v="itens">DETALHADO (DIÁRIAS / ITENS)</button></div>';
       if (v.modo === "itens") {
@@ -381,7 +390,7 @@
       h += '<div class="pr-total"><span>TOTAL</span><b id="totalTxt">' + moeda(total(d)) + "</b></div></div>";
       var e = empresa();
       h += '<div class="tf-card"><div class="pr-tit">Pagamento e validade</div><div class="pr-campos">' + campoTxt("Condição de pagamento", "pagamento", d.pagamento, "text", true, "Até 15 dias após emissão da NF-e") + campoTxt("Validade da proposta (dias)", "validade", d.validade, "number") +
-        '<label style="justify-content:flex-end"><span>&nbsp;</span><span class="tf-check" style="margin:0"><input type="checkbox" data-k="pix"' + (d.pix ? " checked" : "") + (e.pix ? "" : " disabled") + "> QR code Pix com o valor" + (e.pix ? "" : " (cadastre a chave em ⚙ MINHA EMPRESA)") + "</span></label></div>" + chipsCampo("pagamento", SUG.pagamento, d.pagamento) + "</div>";
+        '<label style="justify-content:flex-end"><span>&nbsp;</span><span class="tf-check" style="margin:0"><input type="checkbox" data-k="pix"' + (d.pix ? " checked" : "") + (e.pix ? "" : " disabled") + "> QR code Pix com o valor" + (e.pix ? "" : " (cadastre a chave em ⚙ MINHA EMPRESA)") + "</span></label></div>" + chipsCampo("pagamento", SUG.pagamento, d.pagamento, "Condição de pagamento") + "</div>";
       h += listaEd("obs", "Observações", "Ex.: Material entregue via link do Google Drive");
       h += '<div class="tf-card"><div class="pr-tit">Fechamento e visual</div><div class="pr-campos">' + campoTxt("Texto final", "encerramento", d.encerramento, "textarea", true) + "</div>" +
         '<label class="tf-check" style="margin-top:8px"><input type="checkbox" data-k="aceite"' + (d.aceite !== false ? " checked" : "") + "> Campo de aceite do cliente (\"De acordo\")</label>" +
@@ -884,6 +893,10 @@
       case "add": var inp = $("form").querySelector('[data-novo="' + l + '"]'); if (inp && inp.value.trim()) { DOC[l].push(inp.value.trim()); mudou(true); var n2 = $("form").querySelector('[data-novo="' + l + '"]'); if (n2) n2.focus(); } break;
       case "sug": DOC[l].push(v); mudou(true); break;
       case "poe": setPath(DOC, b.dataset.k, v); mudou(true); break;
+      case "opcoes": abrirOpcoes("lista", l, b.dataset.t); break;
+      case "opcoesCampo": abrirOpcoes("campo", b.dataset.k, b.dataset.t); break;
+      case "opcLista": { var arr = DOC[l] = DOC[l] || [], ix = arr.map(function (x) { return x.toLowerCase(); }).indexOf(v.toLowerCase()); if (ix >= 0) arr.splice(ix, 1); else arr.push(v); mudou(true); abrirOpcoes("lista", l, b.dataset.t); break; }
+      case "opcCampo": setPath(DOC, l, v); mudou(true); fecharModal(); break;
       case "modo": if (v === "itens" && DOC.valor.modo !== "itens" && !(DOC.valor.itens || []).length && num(DOC.valor.total)) DOC.valor.itens = [{ desc: (DOC.botoes || [])[0] ? DOC.botoes[0].charAt(0) + DOC.botoes[0].slice(1).toLowerCase() : "Serviço", qtd: 1, un: "serviço", unit: num(DOC.valor.total) }];
         if (v === "total" && DOC.valor.modo === "itens") { DOC.valor.total = total(DOC); }
         DOC.valor.modo = v; mudou(true); break;

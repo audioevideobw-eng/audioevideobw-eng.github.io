@@ -72,7 +72,7 @@ with sync_playwright() as p:
         pg.goto(BASE + "propostas.html"); pg.wait_for_timeout(700)
         ok(pg.is_visible("#lista") and "Nenhum orçamento" in pg.inner_text("#lista"), "lista vazia com explicação")
         ok("MINHA EMPRESA" in pg.inner_text("#avisoEmpresa"), "aviso de primeiro passo (empresa)")
-        ok(pg.locator("#kpis .pr-kpi").count() == 4, "4 números no topo")
+        ok(pg.locator("#kpis .pr-kpi").count() == 0 and not pg.is_visible("#kpis"), "sem valores financeiros no topo (decisão do dono 16/11)")
         # novo + botões
         pg.click("#btnNovo"); pg.wait_for_timeout(200)
         ok(pg.locator(".pr-bt").count() == 7, "7 botões padrão")
@@ -96,7 +96,7 @@ with sync_playwright() as p:
             ok("R$ 2.820,00" in pg.inner_text("#modalCx").replace("\xa0", " "), "celular: 👁 PRÉVIA abre a folha")
             pg.click('#modalCx [data-a="fecharModal"]')
         # sugestões, itens
-        n0 = len(pg.evaluate("__prop.DOC().obs")); pg.click('.pr-chip.add[data-l="obs"] >> nth=0'); pg.wait_for_timeout(150)
+        n0 = len(pg.evaluate("__prop.DOC().obs")); pg.click('[data-a="opcoes"][data-l="obs"]'); pg.wait_for_timeout(200); pg.click('#modal .pr-opc-it:not(.on) >> nth=0'); pg.wait_for_timeout(150); pg.click('#modal .bw-btn[data-a="fecharModal"]'); pg.wait_for_timeout(150)
         ok(len(pg.evaluate("__prop.DOC().obs")) == n0 + 1, "chip de sugestão adiciona observação")
         pg.click('[data-a="modo"][data-v="itens"]'); pg.wait_for_timeout(150)
         ok(pg.evaluate("__prop.total(__prop.DOC())") == 2820, "modo DETALHADO mantém o total")
@@ -143,7 +143,7 @@ with sync_playwright() as p:
         ok(pg.is_visible('[data-k="lancarEvento"]'), "opção lançar como recebido no evento")
         pg.click('[data-a="voltar"]'); pg.wait_for_timeout(250)
         ok(L("neg_eventos")[0].get("recebido") == "3438", "recibo lançou R$ 3.438 como recebido no evento")
-        ok("R$ 3.438,00" in pg.inner_text("#kpis").replace("\xa0", " "), "números do topo: aprovado/recebido no mês")
+        ok("R$" not in pg.inner_text("#kpis"), "topo continua sem valores")
         # salvar como botão, duplicar, excluir
         pg.click('#lista .pr-card:has(.st-aprovado) [data-a="abrir"]'); pg.wait_for_timeout(200)
         pg.click('[data-a="comoBotao"]'); pg.wait_for_timeout(200)

@@ -70,6 +70,13 @@ textarea.pr-in{min-height:70px;resize:vertical;font-size:15px}
 .pr-add{display:flex;gap:6px}
 .pr-add input{flex:1 1 auto;min-width:0}
 .pr-sugs{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.pr-opc{display:inline-flex;align-items:center;gap:10px;min-height:38px;padding:0 6px 0 14px;border-radius:10px;border:1px solid rgba(255,181,71,.35);background:rgba(255,181,71,.07);color:#F5F1EA;font:700 12px Inter,system-ui,sans-serif;letter-spacing:.05em;cursor:pointer;touch-action:manipulation}
+.pr-opc b{min-width:24px;height:24px;border-radius:999px;background:rgba(255,181,71,.18);color:#FFB547;font-size:11px;display:inline-flex;align-items:center;justify-content:center;padding:0 6px}
+.pr-opc:hover{border-color:#FFB547}
+.pr-opc-lista{display:flex;flex-direction:column;gap:6px;margin-top:10px;max-height:56vh;overflow:auto}
+.pr-opc-it{display:flex;gap:10px;align-items:center;text-align:left;min-height:44px;padding:8px 12px;border-radius:12px;border:1px solid rgba(245,241,234,.12);background:rgba(255,255,255,.03);color:#F5F1EA;font:600 14px Inter,system-ui,sans-serif;cursor:pointer;touch-action:manipulation}
+.pr-opc-it i{font-style:normal;flex:none;width:24px;height:24px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:rgba(255,255,255,.08);font-weight:800}
+.pr-opc-it.on{border-color:rgba(62,207,142,.55);background:rgba(62,207,142,.08)}.pr-opc-it.on i{background:#3ecf8e;color:#0b1a12}
 .pr-tab{width:100%;border-collapse:collapse;font:500 14px Inter,system-ui,sans-serif;color:#F5F1EA}
 .pr-tab td{padding:4px 3px;vertical-align:middle}
 .pr-tab input,.pr-tab select{width:100%;box-sizing:border-box;min-height:40px;padding:6px 8px;border-radius:10px;border:1px solid rgba(245,241,234,.16);background:rgba(6,8,13,.55);color:#F5F1EA;font:400 16px Inter,system-ui,sans-serif}
@@ -162,6 +169,6 @@ textarea.pr-in{min-height:70px;resize:vertical;font-size:15px}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="assets/bw-sync.js"></script>
 <script src="assets/bw-assinar.js?v=1"></script>
-<script src="assets/propostas.js?v=6"></script>
+<script src="assets/propostas.js?v=7"></script>
 </body>
 </html>

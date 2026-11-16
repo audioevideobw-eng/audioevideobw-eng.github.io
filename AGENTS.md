@@ -186,6 +186,9 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
 61. Lista com situações (orçamentos, eventos): abas que abrem/fecham pela seta (ui_*_abas) e o item MUDA DE ABA SOZINHO quando a situação
     muda — a aba de destino abre e a tela rola até ele; sempre há botão de voltar (↺ REABRIR / Agendar) (auto: teste_abas_orcamentos.py).
 
+62. Opções prontas de preenchimento ficam guardadas num BOTÃO por campo (☰ OPÇÕES PRONTAS + número → lista para tocar), nunca como chips
+    soltos ocupando a tela; páginas de documento (orçamento) não mostram indicadores financeiros — eles ficam no PAINEL FINANCEIRO (decisão do dono).
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -595,6 +598,12 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   vencido; nada sai do aparelho) — 0 falhas em 1280/390. O certificado do dono NÃO foi usado nem guardado (cópia de trabalho apagada).
   ORÇAMENTOS: chips de situação viraram abas PENDENTES / APROVADOS (+ RECUSADOS quando há) com seta (ui_prop_abas); ✓ APROVADO/RECUSADO/↺ REABRIR
   mudam o orçamento de aba sozinho (abre a aba e rola até ele). teste_abas_orcamentos.py 0 falhas. Manual atualizado. propostas.js v6, sw v85. PENTE FINO 60–61.
+
+- 16/11/2026 · Claude (pedido do dono): ORÇAMENTO — as sugestões soltas (chips de O que será feito, Equipe, Equipamentos, Observações, Montagem,
+  Horário, Condição de pagamento, Forma de pagamento) viraram botões ☰ OPÇÕES PRONTAS com o número de opções → lista para tocar (põe/tira,
+  várias de uma vez; campo único preenche e fecha). Saíram os valores em R$ dos botões de serviço e os 4 números financeiros do topo da lista
+  ("não é lugar para informações financeiras" — ficam no PAINEL FINANCEIRO; as abas mostram as quantidades). teste_abas_orcamentos.py (+11 checagens)
+  e teste_propostas 0 falhas. Manual atualizado. propostas.js v7, sw v86. PENTE FINO 62.
 
 ## Pendências (dono)
 - [x] (16/11 11:42) IA CRIATIVA ATIVA: conta Cloudflare do dono (Free, sem cartão), token "Brightway IA criativa 2" (Workers AI Read+Edit) em
