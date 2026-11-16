@@ -409,7 +409,8 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
 ## Pendências (dono)
 - [x] (15/11 10:02, dono: "faça tudo") Autorizar a automação de NOTÍCIAS (publica noticias.json no site a cada 2 h) — ATIVA.
 - [x] (16/11, Claude) Milhas: tela de ADM criada (Configuração → COTAÇÕES DE MILHAS) + automação de hora em hora. Falta o dono lançar as cotações atuais.
-- [ ] Conferir EVENTO SICOOB: o fluxo tem "Evento: EVENTO SICOOB" R$ 2.500 como RECEBIDO, mas o evento está marcado como NÃO PAGO.
+- [x] (16/11, dono: "lancei errado, ainda não recebi") EVENTO SICOOB: removido do Fluxo o lançamento antigo ev_1793873289922 (R$ 2.500
+      "recebido"); o evento continua NÃO PAGO. Obs.: a sincronia só limpa ev_ antigo quando o evento está pago — com recebido = 0 ele ficava.
 - [x] (15/11 09:20, dono) IA Brightway: criar conta grátis em console.groq.com → API Keys → Create; colar em Supabase → Edge Functions → Secrets como GROQ_API_KEY.
 - [x] (14/11 20:03, dono) Google: gerar NOVO client secret no Google Cloud (Clients → cliente OAuth) e colar em Supabase → Authentication →
       Providers → Google → Client Secret (o atual está inválido).
