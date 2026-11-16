@@ -78,7 +78,7 @@
     if (semFalar <= 3) { p += 10; por.push("conversa recente"); }
     else if (semFalar > 30) { p -= 30; por.push(semFalar + " dias sem conversa"); }
     else if (semFalar > 14) { p -= 15; por.push(semFalar + " dias sem conversa"); }
-    if (l.prox && l.prox.data && dias(l.prox.data) < 0) { p -= 10; por.push("retorno atrasado"); }
+    if (l.prox && l.prox.data && !l.prox.feito && dias(l.prox.data) < 0) { p -= 10; por.push("retorno atrasado"); }
     p = Math.max(0, Math.min(100, p));
     return { pontos: p, nivel: p >= 65 ? "quente" : p >= 40 ? "morno" : "frio", porque: por.join(" · ") };
   }
@@ -116,7 +116,7 @@
       var aberta = ABERTAS.indexOf(l.etapa) >= 0, semFalar = -dias(ultimoToque(l)), de = dias(l.dataEvento);
       var adiado = l.agente && l.agente.adiadoAte && l.agente.adiadoAte > hj;
       if (aberta && !adiado) {
-        if (l.prox && l.prox.data && dias(l.prox.data) <= 0) {
+        if (l.prox && l.prox.data && !l.prox.feito && dias(l.prox.data) <= 0) {
           var n = dias(l.prox.data);
           add(l, "retorno", "Retornar " + titulo(l), (l.prox.oque || "Retorno combinado") + (n < 0 ? " · atrasado " + (-n) + " dia(s)" : " · hoje"), l.etapa === "proposta" ? "mdl_retorno" : "mdl_primeiro", n < 0 ? 95 : 90);
           return;
@@ -277,7 +277,7 @@
       valorFechado: valorF, ticket: fech.length ? valorF / fech.length : 0,
       ciclo: ciclo.length ? Math.round(ciclo.reduce(function (a, b) { return a + b; }, 0) / ciclo.length) : null,
       abertas: abertas.length, valorAberto: abertas.reduce(function (s, l) { return s + num(l.valor); }, 0),
-      atrasados: abertas.filter(function (l) { return l.prox && l.prox.data && dias(l.prox.data) < 0; }).length,
+      atrasados: abertas.filter(function (l) { return l.prox && l.prox.data && !l.prox.feito && dias(l.prox.data) < 0; }).length,
       listaEntrou: entrou, listaFechados: fech, listaPerdidos: perd
     };
   }

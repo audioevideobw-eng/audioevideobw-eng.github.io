@@ -222,7 +222,7 @@ for p in ["baixar.html", "privacidade.html", "termos.html", "financeiro-painel.h
     if p not in todos:
         problemas.append(f"{p} sumiu (link de instalação / política exigida pelo Google / painel financeiro)")
 # 7.8a CRM (15/11): dados do CRM sincronizam (CHAVES) e as páginas carregam assets/crm.js; nada é enviado sozinho
-for ch in ["mkt_leads", "mkt_modelos", "mkt_redes", "mkt_config"]:
+for ch in ["mkt_leads", "mkt_modelos", "mkt_redes", "mkt_config", "agenda_feitos"]:
     if f'"{ch}"' not in sync:
         problemas.append(f"assets/bw-sync.js: chave {ch} fora de CHAVES (o CRM não chega nos outros aparelhos)")
 for p in ["crm.html", "captacao.html", "resultados.html"]:

@@ -43,6 +43,8 @@ SEED = {
     "neg_fluxo": [{"id": "fixo_a_1", "c0": D(6), "c1": "Saída", "c2": "1500", "c3": "Aluguel do estúdio (fixo)"},
                   {"id": "a1", "c0": D(-2), "c1": "Entrada", "c2": "4250", "c3": "Venda de serviço"}],
     "agenda_tarefas": [{"id": "tf_1", "titulo": "Editar aftermovie", "data": D(0), "hora": "14:00", "cat": "trabalho", "feitos": []},
+                       {"id": "tf_0", "titulo": "Enviar fotos ao cliente", "data": D(-2), "cat": "trabalho", "feitos": []},
+                       {"id": "tf_00", "titulo": "Revisar contrato", "data": D(-1), "cat": "tarefa", "feitos": [D(-1)]},
                        {"id": "tf_2", "titulo": "Academia", "data": D(0), "hora": "07:00", "cat": "saude", "rep": "semanal", "feitos": [D(0)]},
                        {"id": "tf_3", "titulo": "Reunião com Cliente Alfa", "data": D(1), "hora": "10:00", "cat": "reuniao", "feitos": []}],
     # 15/11: CRM — contatos fictícios da Produtora Exemplo
@@ -122,6 +124,10 @@ def main():
         pg.click("[data-fechar]"); pg.wait_for_timeout(300)
         pg.fill("#agMagica", "dentista sexta 15h"); pg.wait_for_timeout(200)
         foto(pg, ".ag-magica", "agenda-magica.png", 4)
+        # 16/11: abas PENDENTES / AGENDA (vista em lista)
+        pg.evaluate("localStorage.setItem('ui_agenda_vista','\"lista\"')"); pg.reload(); pg.wait_for_timeout(1200)
+        foto(pg, ".ag-corpo--lista", "agenda-abas.png")
+        pg.evaluate("localStorage.setItem('ui_agenda_vista','\"mes\"')"); pg.reload(); pg.wait_for_timeout(800)
         pg.screenshot(path=os.path.join(SAIDA, "agenda-magica-dica.png"), clip={**{k: v for k, v in pg.locator(".ag-magica").bounding_box().items()}, "height": 80})
         c.close()
         # 2) Início no celular

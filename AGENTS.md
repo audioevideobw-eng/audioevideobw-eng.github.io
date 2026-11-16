@@ -102,6 +102,11 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
 34. AGENTE e IA: nada sai sozinho (MANDAR abre o WhatsApp; a pessoa envia); IA em LOTE numa chamada só (limite de 60/dia por conta);
     a IA recebe só o necessário (o ANALISTA IA recebe só totais, sem nomes de clientes).
 
+35. Classe CSS de estado/variante nunca repete o nome de um bloco que já existe (a aba AGENDA com class="ag" herdou a moldura do
+    contêiner .ag da agenda inteira) → prefixo próprio (ab-pend / ab-ag).
+36. Concluir na AGENDA: tarefa → feitos da tarefa; conta da casa → c3 "Sim"; retorno do CRM → prox.feito; evento/montagem/fixo/cachê →
+    agenda_feitos (em CHAVES). Quem mostra avisos (sino, agente do CRM) ignora o que foi concluído.
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -371,6 +376,13 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   "RETORNOS DE CLIENTES"; AGENDA mostra os retornos; assistente aceita contato vindo do funil. Itens do artigo IT Forum "CRM: 10 itens" aplicados
   (adoção com exemplo/passo a passo, encaixe por serviços configuráveis, integração com marketing/campanha, canais juntos, dados sem duplicado,
   celular). Teste: docs/testes/teste_crm.py (39 checagens, 0 falhas). Manual 31 → 35 p. layout.js v25, sw v64. PENTE FINO 32–34.
+
+- 16/11/2026 · Claude (pedido do dono): AGENDA da tela inicial com duas abas que abrem/fecham pela seta (lembradas em ui_agenda_abas):
+  PENDENTES (já passou ou é hoje e não foi concluído, até 60 dias, com "atrasado N dias") e AGENDA (o que vem pela frente + o já concluído
+  com ✓ verde; na lista = mês escolhido, ao lado do calendário = 14 dias). Botão ✓ na lateral de TODO item (tarefa, conta da casa = paga,
+  evento/montagem/desmontagem, custo fixo, cachê, retorno do CRM); tocar de novo desfaz. Nova chave agenda_feitos (CHAVES + vigia).
+  Sino e agente do CRM ignoram o concluído. Teste docs/testes/teste_agenda.py (34 checagens em 1280 e 390 px, 0 falhas).
+  Manual: "A sua agenda" refeita. brightway.css v23, layout.js v26, crm.js v2, sw v65. PENTE FINO 35–36.
 
 ## Pendências (dono)
 - [x] (15/11 10:02, dono: "faça tudo") Autorizar a automação de NOTÍCIAS (publica noticias.json no site a cada 2 h) — ATIVA.

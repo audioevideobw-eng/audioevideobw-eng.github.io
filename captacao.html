@@ -11,7 +11,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Brightway">
-<link rel="stylesheet" href="assets/brightway.css?v=22">
+<link rel="stylesheet" href="assets/brightway.css?v=23">
 <style>
 .wrap{max-width:1180px;margin:0 auto;padding:0 20px 90px}
 .crm-topo{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
@@ -142,10 +142,10 @@
   </div>
 </div>
 
-<script src="assets/layout.js?v=25"></script>
+<script src="assets/layout.js?v=26"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="assets/bw-sync.js"></script>
-<script src="assets/crm.js?v=1"></script>
+<script src="assets/crm.js?v=2"></script>
 <script>
 (function () {
   "use strict";
@@ -186,7 +186,7 @@
   function resumo() {
     var ls = C.leads(), ab = ls.filter(function (l) { return C.ABERTAS.indexOf(l.etapa) >= 0; });
     var valor = ab.reduce(function (s, l) { return s + C.num(l.valor); }, 0);
-    var atr = ab.filter(function (l) { return l.prox && l.prox.data && C.dias(l.prox.data) < 0; }).length;
+    var atr = ab.filter(function (l) { return l.prox && l.prox.data && !l.prox.feito && C.dias(l.prox.data) < 0; }).length;
     var quentes = ab.filter(function (l) { var t = C.temperatura(l); return t && t.nivel === "quente"; }).length;
     $("resumo").innerHTML = '<span class="bw-chip bw-chip--ciano">' + ab.length + " em aberto</span>" +
       '<span class="bw-chip bw-chip--ambar">' + C.moeda(valor) + " no funil</span>" +
@@ -196,7 +196,7 @@
 
   /* ---------- cartão ---------- */
   function proxHtml(l) {
-    if (!l.prox || !l.prox.data || C.ABERTAS.indexOf(l.etapa) < 0) return "";
+    if (!l.prox || !l.prox.data || l.prox.feito || C.ABERTAS.indexOf(l.etapa) < 0) return "";
     var n = C.dias(l.prox.data), cls = n < 0 ? "atraso" : n === 0 ? "hoje" : "";
     return '<div class="crm-prox ' + cls + '">↻ ' + (n < 0 ? "atrasado " + (-n) + "d" : n === 0 ? "hoje" : C.dataBR(l.prox.data).slice(0, 5)) + (l.prox.oque ? " · " + esc(l.prox.oque) : "") + "</div>";
   }

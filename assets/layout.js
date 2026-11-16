@@ -297,14 +297,15 @@
   function telWa(t) { var d = String(t || "").replace(/\D/g, ""); if (!d) return ""; return (d.length >= 12 && d.indexOf("55") === 0) ? d : "55" + d; }
 
   function coletar() {
-    var contas = [];
+    var contas = [], FEITOS = {};   /* 16/11: o que foi concluído na AGENDA não aparece mais como aviso */
+    ler("agenda_feitos").forEach(function (f) { if (f && f.id) FEITOS[f.id] = 1; });
     ler("casa_contas").forEach(function (c) {
       if (String(c.c3 || "").toLowerCase() === "sim") return;
       var n = dias(c.c2); if (n === null || n > 3 || n < -60) return;
       contas.push({ nome: c.c0 || "Conta", valor: c.c1, venc: c.c2, n: n, onde: "contas.html" });
     });
     ler("neg_fluxo").forEach(function (f) {
-      if (!/^fixo_/.test(String(f.id)) || f.c1 !== "Saída") return;
+      if (!/^fixo_/.test(String(f.id)) || f.c1 !== "Saída" || FEITOS["fx|" + f.id]) return;
       var n = dias(f.c0); if (n === null || n < 0 || n > 3) return;
       contas.push({ nome: String(f.c3 || "Custo fixo").replace(/ \(fixo\)$/, "") + " (negócio)", valor: f.c2, venc: f.c0, n: n, onde: "fluxo.html" });
     });
@@ -313,7 +314,7 @@
     ler("neg_eventos").concat(ler("neg_equipe_eventos")).forEach(function (e) {
       if (!e || vistos[e.id]) return; vistos[e.id] = 1;
       if (/cancel/i.test(e.status || "")) return;
-      var n = dias(e.data), nm = dias(e.montagem);
+      var n = FEITOS["ev|" + e.id + "|dia"] ? null : dias(e.data), nm = FEITOS["ev|" + e.id + "|mont"] ? null : dias(e.montagem);
       var prox = [n, nm].filter(function (x) { return x !== null && x >= 0 && x <= 7; });
       if (!prox.length) return;
       eventos.push({ ev: e, n: n, nm: nm, min: Math.min.apply(null, prox) });
@@ -322,7 +323,7 @@
     /* 15/11: CRM — retornos de clientes atrasados ou para hoje (mkt_leads, etapas em aberto) */
     var clientes = [];
     ler("mkt_leads").forEach(function (l) {
-      if (!l || ["novo", "conversa", "proposta", "negociacao"].indexOf(l.etapa) < 0 || !l.prox || !l.prox.data) return;
+      if (!l || ["novo", "conversa", "proposta", "negociacao"].indexOf(l.etapa) < 0 || !l.prox || !l.prox.data || l.prox.feito) return;
       var n = dias(l.prox.data); if (n === null || n > 0 || n < -60) return;
       clientes.push({ id: l.id, nome: l.nome && l.empresa ? l.nome + " · " + l.empresa : (l.nome || l.empresa || "Contato"), oque: l.prox.oque || "Retornar contato", n: n });
     });
@@ -464,6 +465,6 @@
   function iniciar() { atualizarSino(); }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", function () { setTimeout(iniciar, 300); }); else setTimeout(iniciar, 300);
   window.addEventListener("bw-sync-recebido", atualizarSino);
-  window.addEventListener("storage", function (e) { if (e.key && /casa_contas|neg_eventos|neg_fluxo|mkt_leads/.test(e.key)) atualizarSino(); });
+  window.addEventListener("storage", function (e) { if (e.key && /casa_contas|neg_eventos|neg_fluxo|mkt_leads|agenda_feitos/.test(e.key)) atualizarSino(); });
   window.bwAtualizarAvisos = atualizarSino;
 })();

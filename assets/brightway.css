@@ -442,6 +442,27 @@ html:not(.bw-admin) .so-admin{display:none!important}
 .ag-item.feito .tx b{text-decoration:line-through;opacity:.55}
 .ag-item a.ir,.ag-item button.x{flex:none;color:var(--bw-texto-3);background:none;border:0;cursor:pointer;font-size:12px;padding:4px}
 .ag-item a.ir:hover{color:var(--bw-ambar)}
+/* 16/11: concluir item + abas PENDENTES / AGENDA com seta */
+.ag-ok{flex:none;width:36px;height:36px;border-radius:50%;border:1.6px solid rgba(245,241,234,.22);background:rgba(255,255,255,.02);color:var(--bw-texto-3);
+  display:inline-flex;align-items:center;justify-content:center;cursor:pointer;padding:0;transition:background .15s,border-color .15s,color .15s}
+.ag-ok:hover{border-color:#3ecf8e;color:#3ecf8e}
+.ag-ok.on{background:#3ecf8e;border-color:#3ecf8e;color:#06180f}
+.ag-item.feito .ic{background:rgba(62,207,142,.12);border-color:rgba(62,207,142,.45)}
+.ag-item.feito .okt{color:#3ecf8e;font-weight:600}
+.ag-item.atraso{border-color:rgba(242,104,107,.35);background:rgba(242,104,107,.05)}
+.ag-lista .grupo .atr{color:#f2a0a2}
+.ag-corpo--lista{display:block}
+.ag-aba-box+.ag-aba-box{margin-top:12px}
+.ag-aba{display:flex;width:100%;align-items:center;gap:10px;background:rgba(255,255,255,.035);border:1px solid rgba(245,241,234,.1);border-radius:14px;
+  padding:12px 14px;color:var(--bw-marfim);font:700 12px/1 var(--bw-font-texto);letter-spacing:.12em;cursor:pointer;text-align:left}
+.ag-aba:hover{border-color:rgba(255,181,71,.45)}
+.ag-aba .nm{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ag-aba .cont{flex:none;font-size:11px;letter-spacing:0;padding:3px 9px;border-radius:999px;background:rgba(63,208,224,.12);color:var(--bw-ciano)}
+.ag-aba.ab-pend .cont{background:rgba(242,104,107,.15);color:#f2a0a2}
+.ag-aba .chev{margin-left:auto;display:inline-flex;color:var(--bw-texto-3);transition:transform .2s}
+.ag-aba[aria-expanded="true"] .chev{transform:rotate(90deg);color:var(--bw-ambar)}
+.ag-aba-corpo{padding-top:8px}
+.ag-aba-corpo[hidden]{display:none}
 .ag-check{flex:none;width:22px;height:22px;border-radius:7px;border:1.6px solid rgba(63,208,224,.7);background:none;cursor:pointer;
   display:inline-flex;align-items:center;justify-content:center;color:var(--bw-noite);padding:0}
 .ag-check.on{background:var(--bw-ciano);border-color:var(--bw-ciano)}

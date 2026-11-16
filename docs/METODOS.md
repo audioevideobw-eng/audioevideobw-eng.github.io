@@ -47,6 +47,9 @@ Tamanho > 0 e sem erro = o pdfmake montou o arquivo. Localmente (T1) confira o `
 - **Armadilha:** `<details>` fechado esconde o campo → abrir com `el.open = true` antes de `fill`. Capturas do manual com `--lang=pt-BR`
   (senão o campo de data sai como 12/03/2026 no formato americano).
 
+- Modelo menor: `docs/testes/teste_agenda.py` semeia o localStorage com `ctx.add_init_script` (só na 1ª carga, marcado em sessionStorage)
+  e clica nos botões por texto (`.ag-item:has-text('Luz') [data-ok]`).
+
 ### T6. Gráficos (SVG à mão)
 - Paleta validada com o validador da skill dataviz (modo escuro, fundo #0d1017): ciano #1C97A6, âmbar #C98322, lilás #9F78E6, rosa #D05D72.
   As cores claras da marca (#3FD0E0, #FFB547) ficam claras demais para barras/linhas no fundo escuro (falham a faixa de luminosidade).

@@ -11,7 +11,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Brightway">
-<link rel="stylesheet" href="assets/brightway.css?v=22">
+<link rel="stylesheet" href="assets/brightway.css?v=23">
 <style>
 .wrap{max-width:1100px;margin:0 auto;padding:0 20px 90px}
 .crm-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:4px;min-width:0}
@@ -70,10 +70,10 @@
   </div>
 </div>
 
-<script src="assets/layout.js?v=25"></script>
+<script src="assets/layout.js?v=26"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="assets/bw-sync.js"></script>
-<script src="assets/crm.js?v=1"></script>
+<script src="assets/crm.js?v=2"></script>
 <script>
 (function () {
   "use strict";
@@ -88,7 +88,7 @@
   function kpi(rot, val, nota, cls) { return '<div class="bw-kpi"><div class="rotulo">' + rot + '</div><div class="valor">' + val + '</div><div class="nota ' + (cls || "") + '">' + nota + "</div></div>"; }
   function render() {
     var h = C.hoje(), ini = h.slice(0, 8) + "01", mes = C.numeros(null, ini, h), tri = C.numeros(null, C.somaDias(h, -90), h);
-    var meta = C.num(C.cfg("cfg_meta", "")), hojeN = C.leads().filter(function (l) { return C.ABERTAS.indexOf(l.etapa) >= 0 && l.prox && l.prox.data && C.dias(l.prox.data) === 0; }).length;
+    var meta = C.num(C.cfg("cfg_meta", "")), hojeN = C.leads().filter(function (l) { return C.ABERTAS.indexOf(l.etapa) >= 0 && l.prox && l.prox.data && !l.prox.feito && C.dias(l.prox.data) === 0; }).length;
     $("kpis").innerHTML =
       kpi("Em aberto", String(mes.abertas), C.moeda(mes.valorAberto) + " em negociação") +
       kpi("Retornos", String(hojeN + mes.atrasados), mes.atrasados ? mes.atrasados + " atrasado(s)" : "nenhum atrasado", mes.atrasados ? "alerta" : "ok") +
