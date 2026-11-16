@@ -86,6 +86,10 @@ with sync_playwright() as p:
         pg.click('#ctrl [data-k="escopo"][data-v="todas"]'); pg.wait_for_timeout(150)
         pg.fill('#ctrl input[data-k="aj:contraste"]', "30"); pg.dispatch_event('#ctrl input[data-k="aj:contraste"]', "input"); pg.wait_for_timeout(200)
         ok(pg.evaluate("__fotos.G().aj.contraste") == 30, "slider de contraste vale para todas")
+        pg.click('#abas [data-aba="filtros"]'); pg.wait_for_timeout(400)
+        ok(pg.locator("#ctrl .flt").count() >= 24, f"{pg.locator('#ctrl .flt').count()} filtros")
+        pg.click('#ctrl .flt[data-v="praia"]'); pg.wait_for_timeout(200); pg.click('#ctrl .flt[data-v="original"]'); pg.wait_for_timeout(200)
+        pg.click('#abas [data-aba="ajustes"]'); pg.wait_for_timeout(200)
         # ANTES / DEPOIS
         pg.click("#edComparar"); pg.wait_for_timeout(500)
         ok(not erros and "comparar" in pg.inner_text("#dica"), "antes/depois com divisor")
@@ -110,6 +114,8 @@ with sync_playwright() as p:
         cy0 = pg.evaluate("__fotos.G().textos[0].cy")
         pg.mouse.move(tb[0], tb[1]); pg.mouse.down(); pg.mouse.move(tb[0], tb[1] - 80, steps=5); pg.mouse.up(); pg.wait_for_timeout(300)
         ok(pg.evaluate("__fotos.G().textos[0].cy") < cy0 - 0.05, "arrastar o texto muda o lugar")
+        ok(pg.locator('#ctrl [data-k="fonte"]').count() >= 18, f"{pg.locator('#ctrl [data-k=fonte]').count()} fontes de texto")
+        pg.click('#ctrl [data-k="fonte"][data-v="Great Vibes"]'); pg.wait_for_timeout(150)
         pg.click('#ctrl [data-k="fonte"][data-v="Bebas Neue"]'); pg.click('#ctrl [data-k="testilo"][data-v="caixa"]'); pg.wait_for_timeout(300)
         ok(not erros, "fonte e estilo CAIXA")
         # LOGO: enviar, tirar fundo
@@ -121,16 +127,61 @@ with sync_playwright() as p:
           return [x.getImageData(2,2,1,1).data[3], x.getImageData(c.width/2,c.height/2,1,1).data[3], x.getImageData(c.width*0.2,c.height/2,1,1).data[3]]})()""")
         ok(alfa[0] == 0 and alfa[1] == 0 and alfa[2] == 255, f"TIRAR FUNDO + BURACOS: fundo e miolo transparentes, logo inteira {alfa}")
         ok(pg.evaluate("!!__fotos.lay().logo"), "logo desenhada na foto")
+        pg.click('#ctrl [data-k="logoSel"]'); pg.wait_for_timeout(250)
+        ok(pg.locator("#edFolha").count() == 1 and "RENOMEAR" in pg.inner_text("#edFolha") and "SUBSTITUIR" in pg.inner_text("#edFolha"), "tocar na logo em uso abre as opções")
+        pg.click('#edFolha button:has-text("Cancelar")'); pg.wait_for_timeout(150)
         # BORDAS (todas) + moldura PNG
         pg.click('#abas [data-aba="borda"]'); pg.wait_for_timeout(200)
         for est in ("solida", "dupla", "polaroid", "faixa", "cinema", "cantos", "sombra"):
             pg.click(f'#ctrl [data-k="bEst"][data-v="{est}"]'); pg.wait_for_timeout(180)
         ok(not erros, "8 estilos de borda sem erro")
+        for est in ("praia", "amor", "festa", "aniversario", "casamento", "formatura", "natal", "noite", "tropical", "neon", "filme", "rasgado"):
+            pg.click(f'#ctrl [data-k="bEst"][data-v="{est}"]'); pg.wait_for_timeout(150)
+        ok(not erros and pg.evaluate("__fotos.G().borda.esp") >= 7, "12 bordas temáticas (praia, amor, festa…) sem erro")
+        pg.click('#ctrl [data-k="bEst"][data-v="praia"]'); pg.wait_for_timeout(300)
+        pg.screenshot(path=f"/tmp/fotos_praia_{largura}.png")
+        # setas de abrir/fechar: fecha TEMAS, recarrega o painel e continua fechada
+        tit = pg.locator('#ctrl .c-tit.dobra:has-text("TEMAS")')
+        tit.click(); pg.wait_for_timeout(150)
+        ok(pg.evaluate("document.querySelector('#ctrl .c-tit.dobra[aria-expanded=false]') && document.querySelector('#ctrl .c-tit.dobra[aria-expanded=false]').nextElementSibling.hidden"), "seta fecha a seção TEMAS")
+        pg.evaluate("__fotos.aba('foto')"); pg.evaluate("__fotos.aba('borda')"); pg.wait_for_timeout(200)
+        ok(pg.evaluate("[...document.querySelectorAll('#ctrl .c-tit.dobra')].find(e=>/TEMAS/.test(e.textContent)).getAttribute('aria-expanded')") == "false", "seção fechada continua fechada (lembrada)")
+        pg.locator('#ctrl .c-tit.dobra:has-text("TEMAS")').click(); pg.wait_for_timeout(150)
         pg.evaluate("document.getElementById('arqImg').dataset.para='moldura'"); pg.set_input_files("#arqImg", os.path.join(TMP, "moldura.png")); pg.wait_for_timeout(900)
         ok(pg.evaluate("__fotos.kit().molduras.length") == 1 and pg.evaluate("!!__fotos.G().borda.png"), "moldura PNG própria aplicada")
         pg.click('#ctrl [data-k="salvarBorda"]'); pg.wait_for_timeout(400)
         ok(pg.evaluate("__fotos.kit().bordas.length") == 1, "GUARDAR ESTA BORDA → MINHAS BORDAS")
         pg.click('#ctrl [data-k="mold"][data-v=""]'); pg.click('#ctrl [data-k="bEst"][data-v="nenhuma"]'); pg.wait_for_timeout(200)
+        # ADESIVOS: acessório, selo, arrastar, apagar; overlays
+        pg.click('#abas [data-aba="adesivos"]'); pg.wait_for_timeout(250)
+        pg.click('#ctrl [data-k="aAdd"][data-v="🕶️"]'); pg.wait_for_timeout(250)
+        ok(len(pg.evaluate("__fotos.FOTOS[__fotos.FOTOS.length?0:0].adesivos")) >= 1 and pg.evaluate("__fotos.lay().ades.length") >= 1, "adesivo (óculos) colocado na foto")
+        ab = pg.evaluate("(()=>{const t=__fotos.lay().ades[0],c=document.getElementById('cv'),r=c.getBoundingClientRect(),k=r.width/c.width;return [r.x+(t.x+t.w/2)*k,r.y+(t.y+t.h/2)*k]})()")
+        cx0 = pg.evaluate("__fotos.FOTOS[0].adesivos[0].cx")
+
+        pg.mouse.move(ab[0], ab[1]); pg.mouse.down(); pg.mouse.move(ab[0] + 50, ab[1], steps=4); pg.mouse.up(); pg.wait_for_timeout(250)
+        ok(pg.evaluate("__fotos.FOTOS[0].adesivos[0].cx") > cx0 + 0.03, "arrastar o adesivo")
+        pg.fill('#ctrl input[data-k="aTam"]', "30"); pg.dispatch_event('#ctrl input[data-k="aTam"]', "input"); pg.wait_for_timeout(150)
+        ok(pg.evaluate("__fotos.FOTOS[0].adesivos[0].tam") == 30, "tamanho do adesivo")
+        pg.click('#ctrl [data-k="aSelo"][data-v="0"]'); pg.wait_for_timeout(200)
+        ok(any(a.get("selo") == "AO VIVO" for a in pg.evaluate("__fotos.FOTOS[0].adesivos")), "selo AO VIVO")
+        pg.click('#ctrl [data-k="aDel"]'); pg.wait_for_timeout(200)
+        ok(len(pg.evaluate("__fotos.FOTOS[0].adesivos")) == 1, "apagar adesivo")
+        for ov in ("luz", "luzfria", "bokeh", "grao", "poeira", "arco", "gradiente", "sol", "vidro"):
+            pg.click(f'#ctrl [data-k="overlay"][data-v="{ov}"]'); pg.wait_for_timeout(120)
+        ok(not erros, "9 overlays sem erro")
+        pg.click('#ctrl [data-k="overlay"][data-v="nenhum"]'); pg.wait_for_timeout(120)
+        # OPÇÕES DA FOTO (toque no anexo já aberto)
+        n0 = pg.evaluate("__fotos.FOTOS.length")
+        pg.click('#edFotos [data-i="0"]'); pg.wait_for_timeout(250)
+        ok(pg.locator("#edFolha").count() == 1 and "SUBSTITUIR" in pg.inner_text("#edFolha") and "EXCLUIR" in pg.inner_text("#edFolha"), "tocar na foto aberta abre as opções")
+        pg.click('#edFolha button:has-text("DUPLICAR")'); pg.wait_for_timeout(300)
+        ok(pg.evaluate("__fotos.FOTOS.length") == n0 + 1, "DUPLICAR")
+        pg.evaluate("__fotos.opcoesFoto(1)"); pg.wait_for_timeout(200); pg.click('#edFolha button:has-text("EXCLUIR")'); pg.wait_for_timeout(300)
+        ok(pg.evaluate("__fotos.FOTOS.length") == n0, "EXCLUIR (com confirmação)")
+        pg.evaluate("__fotos.opcoesFoto(0)"); pg.wait_for_timeout(200); pg.click('#edFolha button:has-text("Cancelar")'); pg.wait_for_timeout(200)
+        ok(pg.locator("#edFolha").count() == 0, "Cancelar fecha as opções")
+        pg.evaluate("document.querySelector('#edFotos [data-i=\"0\"]').classList.contains('on') || document.querySelector('#edFotos [data-i=\"0\"]').click()"); pg.wait_for_timeout(200)
         # FUNDO: a IA (CDN bloqueada no teste) falha com mensagem clara; máscara simulada → PNG transparente
         pg.click('#abas [data-aba="fundo"]'); pg.wait_for_timeout(200)
         pg.click('#ctrl [data-k="recortar"][data-v="esta"]'); pg.wait_for_timeout(2500)
@@ -148,10 +199,14 @@ with sync_playwright() as p:
         arq = dl.value.path(); im = Image.open(arq)
         ok(dl.value.suggested_filename.startswith("congresso-teste-01") and im.mode == "RGBA" and im.getpixel((3, 3))[3] == 0 and im.size[0] / im.size[1] == 0.8,
            f"BAIXAR ESTA: {dl.value.suggested_filename} {im.size} {im.mode} canto alfa={im.getpixel((3, 3))[3] if im.mode=='RGBA' else '-'}")
+        # arquivo original "sumiu" (iPhone): salvar mesmo assim, com aviso, em vez de "Não deu para gerar: decod"
+        pg.evaluate("__fotos.FOTOS[1].file = new Blob(['lixo'], {type:'image/jpeg'}); __fotos.FOTOS[1].__x=1")
+        pg.evaluate("__fotos.FOTOS.length > 1 && 0")
         # ZIP de todas
         pg.click('#ctrl [data-k="sFmt"][data-v="jpg"]'); pg.wait_for_timeout(100)
         with pg.expect_download() as dl: pg.click('#ctrl [data-k="baixarTodas"]')
         z = zipfile.ZipFile(dl.value.path()); nomes = z.namelist()
+        ok("qualidade da prévia" in pg.inner_text("#prog") and "decod" not in pg.inner_text("#prog"), f"arquivo ilegível → salva com a prévia e avisa: {pg.inner_text('#prog')[:90]}")
         ok(len(nomes) == 3 and Image.open(io.BytesIO(z.read(nomes[1]))).size == (1080, 1350) or len(nomes) == 3, f"ZIP com 3 fotos: {nomes}")
         # PACOTE REDES
         with pg.expect_download() as dl: pg.click('#ctrl [data-k="pacote"]')
@@ -175,6 +230,9 @@ with sync_playwright() as p:
         pg.evaluate("__fotos.fechar(false)"); pg.wait_for_timeout(300)
         pg.click("#abrirMarca"); pg.wait_for_timeout(300)
         ok(pg.locator("#mk:not([hidden])").count() == 1 and pg.locator("#mkCx .mini-img").count() == 2, "MINHA MARCA: logo e moldura guardadas")
+        pg.click('#mkCx [data-m="moldOp"]'); pg.wait_for_timeout(250)
+        ok(pg.locator("#edFolha").count() == 1 and "MOLDURA" in pg.inner_text("#edFolha").upper(), "MINHA MARCA: tocar na moldura abre as opções")
+        pg.click('#edFolha button:has-text("Cancelar")'); pg.wait_for_timeout(150)
         pg.fill('#mkCx [data-m="arroba"]', "bwproducoes"); pg.dispatch_event('#mkCx [data-m="arroba"]', "change"); pg.wait_for_timeout(200)
         with pg.expect_download() as dl: pg.click('#mkCx [data-m="exportar"]')
         ok(dl.value.suggested_filename.endswith(".json"), "EXPORTAR KIT (.json)")
@@ -218,7 +276,7 @@ with sync_playwright() as p:
     ok(abs(top1 - top0) < 1 and pg.evaluate("window.scrollY") == 0, f"página não rola por trás ({top0}→{top1}, scrollY={pg.evaluate('window.scrollY')})")
     # cada aba por toque: o painel muda e a foto continua no mesmo lugar
     cvtop = pg.evaluate("document.getElementById('cv').getBoundingClientRect().top")
-    esperado = {"foto": "FORMATO", "ajustes": "Exposição", "filtros": "Intensidade", "texto": "ADICIONAR", "logo": "SUAS LOGOS", "borda": "ESTILO", "fundo": "REMOVER FUNDO", "salvar": "TAMANHO"}
+    esperado = {"foto": "FORMATO", "ajustes": "Exposição", "filtros": "Intensidade", "texto": "ADICIONAR", "logo": "SUAS LOGOS", "borda": "ESTILO", "adesivos": "ACESSÓRIOS", "fundo": "REMOVER FUNDO", "salvar": "TAMANHO"}
     for aba, palavra in esperado.items():
         pg.locator(f'#abas [data-aba="{aba}"]').scroll_into_view_if_needed(); pg.tap(f'#abas [data-aba="{aba}"]'); pg.wait_for_timeout(350)
         txt = pg.inner_text("#ctrl")

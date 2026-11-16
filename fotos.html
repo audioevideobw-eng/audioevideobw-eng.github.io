@@ -12,7 +12,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Brightway">
 <link rel="stylesheet" href="assets/brightway.css?v=25">
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat:wght@600;800&family=Oswald:wght@500&family=Pacifico&family=Playfair+Display:wght@700&family=Michroma&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat:wght@600;800&family=Oswald:wght@500&family=Pacifico&family=Playfair+Display:wght@700&family=Michroma&family=Inter:wght@400;600;700&family=Poppins:wght@800&family=Anton&family=Righteous&family=Abril+Fatface&family=Cinzel:wght@700&family=Lobster&family=Dancing+Script:wght@700&family=Great+Vibes&family=Satisfy&family=Caveat:wght@700&family=Permanent+Marker&display=swap" rel="stylesheet">
 <style>
 .wrap{max-width:1100px;margin:0 auto;padding:0 20px 90px}
 .fx-solta{display:block;border:1.5px dashed rgba(255,181,71,.45);border-radius:14px;padding:16px;text-align:center;color:var(--txt2);font-size:14px;cursor:pointer}
@@ -61,13 +61,18 @@ html.ed-aberto .bw-shell,html.ed-aberto .bw-abas,html.ed-aberto .bw-menu{display
 @media (min-width:900px){
   .ed-corpo{flex-direction:row}
   .ed-painel{width:400px;border-top:0;border-left:1px solid rgba(245,241,234,.07)}
-  .ed-abas{order:-1;display:grid;grid-template-columns:repeat(4,1fr);border-top:0;border-bottom:1px solid rgba(245,241,234,.06);padding:8px}
+  .ed-abas{order:-1;display:grid;grid-template-columns:repeat(5,1fr);border-top:0;border-bottom:1px solid rgba(245,241,234,.06);padding:8px}
   .ed-ctrl{height:auto;min-height:0;flex:1;padding:14px 16px}
   .ed-fotos{order:-2;padding:10px 12px 4px}
 }
 /* controles */
 .c-tit{font:700 10.5px var(--bw-font-texto);letter-spacing:.12em;color:var(--bw-texto-3);margin:12px 0 6px}
 .c-tit:first-child{margin-top:0}
+.c-tit.dobra{display:flex;justify-content:space-between;align-items:center;cursor:pointer;padding:6px 2px;margin:8px 0 4px;border-top:1px solid rgba(245,241,234,.06);-webkit-user-select:none;user-select:none}
+.c-tit.dobra:first-child{border-top:0}
+.c-tit.dobra i{font-style:normal;color:var(--bw-ambar);font-size:14px;padding:0 4px}
+.c-tit.dobra:hover{color:var(--bw-marfim)}
+.c-sec[hidden]{display:none}
 .c-linha{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
 .c-rolar{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px}
 .chip{flex:none;background:rgba(255,255,255,.04);border:1px solid rgba(245,241,234,.14);color:var(--bw-texto-2);border-radius:999px;padding:8px 12px;font:600 11px var(--bw-font-texto);letter-spacing:.04em;cursor:pointer;white-space:nowrap}
@@ -114,6 +119,33 @@ textarea.c-campo{min-height:56px;resize:vertical}
 .mk-grid{display:flex;flex-wrap:wrap;gap:10px}
 .mk-duas{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
 .toast{position:fixed;left:50%;bottom:120px;transform:translateX(-50%);z-index:99;background:#1a1f2b;border:1px solid rgba(95,224,160,.4);color:#E9FFF3;padding:10px 16px;border-radius:12px;font-size:13.5px;box-shadow:0 10px 30px rgba(0,0,0,.4);max-width:90vw;text-align:center}
+
+/* 16/11: folha de opções (toque num anexo), emojis, selos e acabamento mais moderno */
+.ed-folha{position:fixed;inset:0;z-index:97;background:rgba(3,5,9,.55);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);display:flex;align-items:flex-end;justify-content:center;animation:edFade .18s ease}
+.ed-folha-cx{width:100%;max-width:460px;margin:0 10px calc(10px + env(safe-area-inset-bottom));background:linear-gradient(180deg,#151a24,#0e1219);border:1px solid rgba(245,241,234,.12);border-radius:22px;padding:8px;display:flex;flex-direction:column;gap:4px;box-shadow:0 20px 60px rgba(0,0,0,.5);animation:edSobe .22s cubic-bezier(.2,.9,.3,1)}
+.ed-folha-tit{font:700 11px var(--bw-font-texto);letter-spacing:.12em;color:var(--bw-texto-3);text-align:center;padding:10px 8px 8px;text-transform:uppercase;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ed-folha button{min-height:48px;border-radius:14px;border:0;background:rgba(255,255,255,.04);color:var(--bw-marfim);font:600 14px var(--bw-font-texto);text-align:left;padding:0 16px;cursor:pointer;transition:background .15s}
+.ed-folha button:hover{background:rgba(255,181,71,.12)}
+.ed-folha button.perigo{color:#ff8a8d}
+.ed-folha button.fechar{text-align:center;margin-top:4px;background:rgba(255,255,255,.08);font-weight:700}
+@keyframes edFade{from{opacity:0}}@keyframes edSobe{from{transform:translateY(30px);opacity:0}}
+@media (min-width:900px){.ed-folha{align-items:center}}
+.ed-fotos button{position:relative}
+.ed-fotos .mais{position:absolute;right:2px;bottom:2px;width:18px;height:18px;border-radius:50%;background:var(--bw-ambar);color:#1a1205;font:900 11px/18px var(--bw-font-texto);font-style:normal;text-align:center}
+.c-emoji{display:grid;grid-template-columns:repeat(auto-fill,minmax(44px,1fr));gap:6px}
+.c-emoji button{height:44px;border-radius:12px;border:1px solid rgba(245,241,234,.1);background:rgba(255,255,255,.035);font-size:24px;cursor:pointer;transition:transform .12s,background .12s;font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif}
+.c-emoji button:active{transform:scale(.9)}.c-emoji button:hover{background:rgba(255,181,71,.12)}
+.chip.selo{font-weight:800;letter-spacing:.06em}
+.mini-img .mini-op{all:unset;cursor:pointer;display:flex;align-items:center;justify-content:center;width:100%;height:100%}
+.mini-img .mini-op img{max-width:100%;max-height:100%}
+/* acabamento: botões com brilho sutil e resposta ao toque */
+.ed .chip{transition:transform .12s,background .15s,border-color .15s;background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02))}
+.ed .chip:active{transform:scale(.96)}
+.ed .chip.on{background:linear-gradient(180deg,#ffc56b,#FFB547);box-shadow:0 4px 14px rgba(255,181,71,.25)}
+.ed-b{transition:transform .12s,background .15s}.ed-b:active{transform:scale(.94)}
+.ed-b.pri{background:linear-gradient(180deg,#ffc56b,#FFB547);box-shadow:0 6px 18px rgba(255,181,71,.3)}
+.ed-abas button{transition:color .15s,background .15s}
+.ed-abas button.on svg{filter:drop-shadow(0 0 6px rgba(255,181,71,.55))}
 </style>
 </head>
 <body>
@@ -155,10 +187,11 @@ textarea.c-campo{min-height:56px;resize:vertical}
 <div class="mk" id="mk" hidden role="dialog" aria-modal="true" aria-label="Minha marca"><div class="mk-cx" id="mkCx"></div></div>
 <input type="file" id="arqImg" accept="image/png,image/webp,image/jpeg,image/svg+xml" hidden>
 <input type="file" id="arqKit" accept="application/json,.json" hidden>
+<input type="file" id="arqTroca" accept="image/*,.heic,.heif" hidden>
 
 <script src="assets/layout.js?v=27"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="assets/bw-sync.js"></script>
-<script src="assets/fotos.js?v=3"></script>
+<script src="assets/fotos.js?v=6"></script>
 </body>
 </html>
