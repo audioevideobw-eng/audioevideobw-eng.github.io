@@ -165,6 +165,13 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
 56. Valor em R$ do toLocaleString vem com espaço INSEPARÁVEL ("R$\u00a01.950,00"): teste compara depois de trocar \xa0 por espaço.
 57. Prévia, PDF e Word saem do MESMO modelo (assets/propostas.js modelo()) — mudança de conteúdo é feita ali, nunca em só uma das saídas.
 
+**Aprendidos em 16/11 (CONCLUIR e cores das condições)**
+58. Botão que muda a CONDIÇÃO de algo (finalizar, recebido, pago, aprovado…) usa a animação comum do layout.js (BWConcluir): o ouvinte
+    reconhece data-fin/data-agd/data-pago/data-pg/__togglePago/data-a="st"; botão novo usa data-bw-status="ok|volta" + data-bw-msg + data-bw-id,
+    e o cartão/linha leva data-bw-card="ID" (para acender em verde mesmo depois do redesenho/troca de aba). Voltar atrás = sem confete.
+    Cores das condições em .tag: up verde (feito/recebido/pago), dn vermelho (não recebido/não pago), mid âmbar (andamento), azul
+    (confirmado), cinza (orçamento). A AGENDA (.ag) faz a própria festa — o ouvinte ignora o que está dentro dela (auto: teste_concluir.py).
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -548,6 +555,14 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
 
 - 16/11/2026 · Claude (pedido do dono): AGENDA — cor dos PAGAMENTOS trocada de âmbar (#FFB547, parecida com a dos eventos) para vermelho
   sangue (#C8102E) no calendário, na lista e no filtro; vencido continua em vermelho claro (#FF6B6B). Telas do manual refeitas. sw v81.
+- 16/11/2026 · Claude (pedido do dono: "faça a animação da tarefa concluída em todo botão que altera a condição"): animação comum
+  BWConcluir no layout.js (confete + cartão acende em VERDE + aviso, a mesma da AGENDA) em EVENTOS (Finalizado, Marcar recebido, salvar o
+  dossiê como Realizado/Entregue), cachês PAGO (custos/equipe/eventos), contas da casa/orçamento/reserva (Marcar pago), orçamentos (ENVIADO,
+  APROVADO) e FECHAR NEGÓCIO no CRM; voltar atrás (não pago, Agendar, recusado, reabrir) = aviso discreto em vermelho, sem confete.
+  CORES DAS CONDIÇÕES: RECEBIDO ✓ verde, NÃO RECEBIDO vermelho (antes "NÃO PAGO" sem cor), Confirmado azul, Em produção âmbar,
+  Realizado/Entregue verde, Orçamento cinza; "faltam Nd" âmbar quando faltam ≤ 3 dias; "Marcar pago" das contas em vermelho.
+  Teste docs/testes/teste_concluir.py (16 checagens × 1280/390, 0 falhas); agenda/propostas/crm/cadastros 0 falhas. brightway.css v26,
+  layout.js v30, sw v82. PENTE FINO 58.
 
 ## Pendências (dono)
 - [x] (16/11 11:42) IA CRIATIVA ATIVA: conta Cloudflare do dono (Free, sem cartão), token "Brightway IA criativa 2" (Workers AI Read+Edit) em

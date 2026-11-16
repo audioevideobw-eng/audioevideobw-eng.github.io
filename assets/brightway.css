@@ -584,3 +584,21 @@ html.bw-menu-recolhido .bw-menu{display:none}
   .bw-topo .acoes .bw-btn--vidro{padding-left:9px;padding-right:9px}
 }
 @media (max-width:360px){.bw-topo .bw-logado{font-size:0;gap:0;padding:6px}.bw-topo .bw-logado i{margin:0}}
+
+/* ===== CONCLUIR (16/11): cartão acende em VERDE ao mudar a condição (mesma linguagem da AGENDA) ===== */
+@keyframes bwViraVerde{0%{box-shadow:0 0 0 0 rgba(62,207,142,.0);background-color:rgba(62,207,142,.0)}
+  25%{box-shadow:0 0 0 3px rgba(62,207,142,.75),0 0 28px rgba(62,207,142,.45);background-color:rgba(62,207,142,.16)}
+  100%{box-shadow:0 0 0 0 rgba(62,207,142,0);background-color:rgba(62,207,142,0)}}
+@keyframes bwViraVolta{0%,100%{box-shadow:0 0 0 0 rgba(255,107,107,0)}30%{box-shadow:0 0 0 2px rgba(255,107,107,.55)}}
+.bw-vira-verde{animation:bwViraVerde 1.4s ease-out}
+.bw-vira-volta{animation:bwViraVolta 1s ease-out}
+.ag-toast.volta{border-color:rgba(255,107,107,.4);color:#FF9A9A}
+@media (prefers-reduced-motion:reduce){.bw-vira-verde,.bw-vira-volta{animation:none}}
+
+/* ===== CORES DAS CONDIÇÕES (16/11): verde = feito/recebido/pago; vermelho = não recebido/não pago/atrasado;
+   âmbar = em andamento; azul = confirmado; cinza = rascunho/orçamento. Vale para .tag e .bw-chip em toda a plataforma. ===== */
+.tag.up,.tag.ok,.bw-st--ok{color:#3ecf8e!important;border:1px solid rgba(62,207,142,.45)!important;background:rgba(62,207,142,.12)!important}
+.tag.dn,.tag.nao,.bw-st--nao{color:#FF7A7A!important;border:1px solid rgba(255,107,107,.45)!important;background:rgba(255,107,107,.12)!important}
+.tag.mid,.tag.and,.bw-st--and{color:#FFB547!important;border:1px solid rgba(255,181,71,.4)!important;background:rgba(255,181,71,.1)!important}
+.tag.azul,.bw-st--azul{color:#8AB4FF!important;border:1px solid rgba(138,180,255,.45)!important;background:rgba(138,180,255,.12)!important}
+.tag.cinza,.bw-st--cinza{color:#B8BDC8!important;border:1px solid rgba(184,189,200,.35)!important;background:rgba(184,189,200,.08)!important}

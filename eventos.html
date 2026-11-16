@@ -13,7 +13,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Brightway">
-<link rel="stylesheet" href="assets/brightway.css?v=25">
+<link rel="stylesheet" href="assets/brightway.css?v=26">
 <style>
 :root{
   /* Identidade Brightway — paleta oficial */
@@ -301,7 +301,7 @@ footer b{color:var(--gold)}
     Não é recomendação de investimento.
   </footer>
 </div>
-<script src="assets/layout.js?v=29"></script>
+<script src="assets/layout.js?v=30"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="assets/bw-sync.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/pdfmake@0.2.20/build/pdfmake.min.js"></script>
@@ -1610,7 +1610,7 @@ function renderPagamentos(eq) {
     <div class="row"><span>Pago</span><b style="color:var(--up)">R$ ${fmt(pago, 2)}</b></div>
     <div class="row"><span>A pagar</span><b style="color:var(--dn)">R$ ${fmt(total - pago, 2)}</b></div>
     <div style="margin-top:8px">` +
-    lista.map(p => `<div class="row">
+    lista.map(p => `<div class="row" data-bw-card="${esc(p.id)}">
       <span><b>${esc(p.colab)}</b> <small style="color:var(--mut)">${esc(p.evento || "sem evento")}${p.data ? " · " + p.data.split("-").reverse().join("/") : ""}${p.obs ? " · " + esc(p.obs) : ""}</small></span>
       <b><span style="color:var(--gold2)">R$ ${fmt(p.valor, 2)}</span>
       <button class="btn ${p.pago ? "" : "gh"}" data-pg="${p.id}" style="padding:5px 10px;font-size:11px;
@@ -1686,7 +1686,7 @@ function dashEvento(e) {
     <div class="colap-titulo" data-colap="dash_${e.id}">
       <b>${esc(e.nome)}</b>
       <span style="display:flex;align-items:center;gap:8px">
-        <span class="tag mid">${esc(e.status || "")}</span>
+        <span class="tag ${(s => s === "Entregue" || s === "Realizado" ? "up" : s === "Em produção" ? "mid" : s === "Confirmado" ? "azul" : "cinza")(e.status)}">${esc(e.status || "")}</span>
         <span class="colap-seta" data-seta="dash_${e.id}">▶</span>
       </span>
     </div>
@@ -2808,6 +2808,8 @@ function dashboard() {
 }
 
 /* ---------- lista de eventos ---------- */
+/* 16/11 (dono): cor de cada condição — cinza orçamento, azul confirmado, âmbar em produção, verde realizado/entregue */
+window.__evCorStatus = s => s === "Entregue" || s === "Realizado" ? "up" : s === "Em produção" ? "mid" : s === "Confirmado" ? "azul" : "cinza";
 function render() {
   dashboard();
   const box = $("#evLista"); if (!box) return;
@@ -2816,7 +2818,7 @@ function render() {
   const finalizados = dados.filter(e => e.status === "Realizado" || e.status === "Entregue");
   const agenda = dados.filter(e => !(e.status === "Realizado" || e.status === "Entregue"));
   const aba = load("neg_eventos_aba", 1, "agenda");
-  const cor = s => s === "Entregue" ? "up" : s === "Realizado" ? "mid" : s === "Em produção" ? "dn" : "mid";
+  const cor = window.__evCorStatus;
   const pago = e => (parseFloat(e.contratado || 0) || 0) > 0 && (parseFloat(e.recebido || 0) || 0) >= (parseFloat(e.contratado || 0) || 0);
   const card = e => {
     const dias = e.data ? Math.round((new Date(e.data + "T12:00") - new Date(hoje + "T12:00")) / 86400000) : null;
@@ -2827,12 +2829,12 @@ function render() {
          <button class="btn gh" data-pago="${e.id}">${sit ? "Marcar não pago" : "Marcar recebido"}</button>`
       : `<button class="btn gh" data-fin="${e.id}"><svg width="15" height="15" viewBox="0 0 24 24" aria-hidden="true" style="vertical-align:-3px;margin-right:4px" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>Finalizado</button>
          <button class="btn gh" data-pago="${e.id}">${sit ? "Marcar não pago" : "Marcar recebido"}</button>`;
-    return `<div class="card" style="margin-top:10px;background:var(--navy3)">
+    return `<div class="card" data-bw-card="${esc(e.id)}" style="margin-top:10px;background:var(--navy3)">
       <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap">
         <b>${esc(e.nome)}</b>
         <span><span class="tag ${cor(e.status)}">${esc(e.status)}</span>
-        <span class="tag ${sit ? "up" : "dn"}">${sit ? "RECEBIDO" : "NÃO PAGO"}</span>
-        ${badge ? `<span class="tag mid">${badge}</span>` : ""}</span>
+        <span class="tag ${sit ? "up" : "dn"}">${sit ? "RECEBIDO ✓" : "NÃO RECEBIDO"}</span>
+        ${badge ? `<span class="tag ${dias < 0 ? "cinza" : dias <= 3 ? "mid" : "azul"}">${badge}</span>` : ""}</span>
       </div>
       <div style="margin-top:4px;color:var(--mut);font-size:12.5px">
         ${esc((e.data || "").split("-").reverse().join("/"))} · ${esc(e.local || "—")} ·
@@ -2968,7 +2970,7 @@ function abrirDossie(id) {
   box.innerHTML = `<div class="card">
     <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px">
       <h3>${esc(e.nome)}</h3>
-      <span class="tag mid">${esc(e.status)}</span>
+      <span class="tag ${window.__evCorStatus(e.status)}">${esc(e.status)}</span>
     </div>
     <div class="frow3" style="margin-top:10px">
       <div><label>Status</label><select id="dStatus">${STATUS.map(s => `<option ${s === e.status ? "selected" : ""}>${s}</option>`).join("")}</select></div>
@@ -3038,12 +3040,18 @@ function abrirDossie(id) {
   $("#dSalvar").onclick = () => {
     const lista = eventos();
     const alvo = lista.find(x => String(x.id) === String(id));
+    const antes = alvo.status, antesRec = parseFloat(alvo.recebido || 0) || 0;
     alvo.status = $("#dStatus").value;
     alvo.contratado = $("#dContratado").value;
     alvo.recebido = $("#dRecebido").value;
     salvarEventos(lista);
     $("#dMsg").textContent = "Alterações salvas.";
     render();
+    /* 16/11: mudou para Realizado/Entregue ou passou a ter recebido → a mesma festa da AGENDA */
+    const fim = st => st === "Realizado" || st === "Entregue";
+    const recAgora = parseFloat(alvo.recebido || 0) || 0;
+    if (window.BWConcluir && ((fim(alvo.status) && !fim(antes)) || (recAgora > antesRec)))
+      BWConcluir.festa($("#dSalvar"), fim(alvo.status) && !fim(antes) ? "✓ Evento " + alvo.status.toUpperCase() + "!" : "✓ Recebimento salvo!");
   };
   $("#dSalvarRel").onclick = () => {
     const lista = eventos();
@@ -3065,7 +3073,7 @@ function abrirDossie(id) {
     '<path d="M300 62 L305 84 L327 90 L305 96 L300 118 L295 96 L273 90 L295 84 Z" fill="#FFF8EA"/></svg>' +
     '<div style="position:relative;z-index:1">' +
     '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">' +
-    '<span class="bw-chip bw-chip--ambar">' + esc(e.status || "—") + '</span>' +
+    '<span class="tag ' + (window.__evCorStatus ? window.__evCorStatus(e.status) : "mid") + '" style="font-size:11.5px;padding:5px 12px">' + esc(e.status || "—") + '</span>' +
     (e.tipo ? '<span class="bw-chip bw-chip--ciano">' + esc(e.tipo) + '</span>' : "") + '</div>' +
     '<div style="font-family:Inter,sans-serif;font-size:32px;font-weight:600;color:var(--txt)">' + esc(e.nome) + '</div>' +
     '<div style="margin-top:8px;display:flex;gap:16px;flex-wrap:wrap;font-size:13.5px;color:var(--txt2)">' +

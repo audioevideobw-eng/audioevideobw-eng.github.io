@@ -13,7 +13,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Brightway">
-<link rel="stylesheet" href="assets/brightway.css?v=25">
+<link rel="stylesheet" href="assets/brightway.css?v=26">
 <style>
 :root{
   /* Identidade Brightway — paleta oficial */
@@ -297,7 +297,7 @@ footer b{color:var(--gold)}
     Não é recomendação de investimento.
   </footer>
 </div>
-<script src="assets/layout.js?v=29"></script>
+<script src="assets/layout.js?v=30"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="assets/bw-sync.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/pdfmake@0.2.20/build/pdfmake.min.js"></script>
@@ -1368,7 +1368,7 @@ function renderPagamentos(eq) {
     <div class="row"><span>Pago</span><b style="color:var(--up)">R$ ${fmt(pago, 2)}</b></div>
     <div class="row"><span>A pagar</span><b style="color:var(--dn)">R$ ${fmt(total - pago, 2)}</b></div>
     <div style="margin-top:8px">` +
-    lista.map(p => `<div class="row">
+    lista.map(p => `<div class="row" data-bw-card="${esc(p.id)}">
       <span><b>${esc(p.colab)}</b> <small style="color:var(--mut)">${esc(p.evento || "sem evento")}${p.data ? " · " + p.data.split("-").reverse().join("/") : ""}${p.obs ? " · " + esc(p.obs) : ""}</small></span>
       <b><span style="color:var(--gold2)">R$ ${fmt(p.valor, 2)}</span>
       <button class="btn ${p.pago ? "" : "gh"}" data-pg="${p.id}" style="padding:5px 10px;font-size:11px;
@@ -1444,7 +1444,7 @@ function dashEvento(e) {
     <div class="colap-titulo" data-colap="dash_${e.id}">
       <b>${esc(e.nome)}</b>
       <span style="display:flex;align-items:center;gap:8px">
-        <span class="tag mid">${esc(e.status || "")}</span>
+        <span class="tag ${(s => s === "Entregue" || s === "Realizado" ? "up" : s === "Em produção" ? "mid" : s === "Confirmado" ? "azul" : "cinza")(e.status)}">${esc(e.status || "")}</span>
         <span class="colap-seta" data-seta="dash_${e.id}">▶</span>
       </span>
     </div>

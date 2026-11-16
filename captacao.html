@@ -11,7 +11,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Brightway">
-<link rel="stylesheet" href="assets/brightway.css?v=25">
+<link rel="stylesheet" href="assets/brightway.css?v=26">
 <style>
 .wrap{max-width:1180px;margin:0 auto;padding:0 20px 90px}
 .crm-topo{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
@@ -153,7 +153,7 @@
   </div>
 </div>
 
-<script src="assets/layout.js?v=29"></script>
+<script src="assets/layout.js?v=30"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="assets/bw-sync.js"></script>
 <script src="assets/crm.js?v=3"></script>
@@ -494,6 +494,7 @@
       var ok = modal("<h3>🎉 Negócio fechado!</h3><p class=\"tf-sub\">" + esc(C.titulo(l)) + (l.eventoId ? " já está em <b>EVENTOS</b>" : "") + (l.clienteId ? " e na lista de <b>CLIENTES</b>" : "") + ".</p>" +
         '<div class="tf-acoes">' + (mdl ? '<a class="crm-bt wa" target="_blank" rel="noopener" id="okWa">💬 CONFIRMAR PARA O CLIENTE</a>' : "") +
         (l.eventoId ? '<a class="crm-bt prim" href="eventos.html?ev=' + encodeURIComponent(l.eventoId) + '">ABRIR O EVENTO →</a>' : "") + "</div>");
+      try { if (window.BWConcluir) BWConcluir.festa(ok.querySelector("h3") || ok, "✓ Negócio fechado!"); } catch (e) { }
       var w = ok.querySelector("#okWa"); if (w) { w.href = C.linkWhats(l, C.preencher(mdl.texto, l)); w.onclick = function () { registrar(l, "whatsapp", "WhatsApp: confirmação de fechamento"); }; }
       try { if (window.bwAtualizarAvisos) window.bwAtualizarAvisos(); } catch (e) { }
     };

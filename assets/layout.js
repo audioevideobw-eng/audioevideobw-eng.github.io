@@ -486,3 +486,80 @@
   window.addEventListener("storage", function (e) { if (e.key && /casa_contas|neg_eventos|neg_fluxo|mkt_leads|agenda_feitos/.test(e.key)) atualizarSino(); });
   window.bwAtualizarAvisos = atualizarSino;
 })();
+
+/* ===== CONCLUIR (16/11, pedido do dono): a mesma animação da AGENDA (confete + verde) em TODO botão que muda a condição
+   de algo na plataforma — evento Finalizado, Marcar recebido, cachê PAGO, conta paga, orçamento APROVADO…
+   Como funciona: um ouvinte único (fase de captura, antes do botão redesenhar a lista) reconhece o botão, guarda o lugar do toque,
+   e depois do redesenho acende em verde o cartão/linha marcado com data-bw-card="ID". Voltar atrás (não pago, agendar, desfazer)
+   = só um aviso discreto, sem confete. Botões novos: data-bw-status="ok|volta" + data-bw-msg="texto" + data-bw-id="ID". ===== */
+(function () {
+  var CORES = ["#FFB547", "#3FD0E0", "#5FE0A0", "#FFF8EA", "#C59BFF"];
+  var calmo = function () { return window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches; };
+  function confete(x, y) {
+    if (calmo()) return;
+    for (var i = 0; i < 18; i++) {
+      var p = document.createElement("i"); p.className = "ag-confete";
+      p.style.left = x + "px"; p.style.top = y + "px"; p.style.background = CORES[i % CORES.length];
+      var ang = Math.random() * Math.PI * 2, dist = 50 + Math.random() * 90;
+      p.style.setProperty("--x", Math.cos(ang) * dist + "px"); p.style.setProperty("--y", (Math.sin(ang) * dist - 40) + "px");
+      document.body.appendChild(p); (function (q) { setTimeout(function () { q.remove(); }, 950); })(p);
+    }
+  }
+  function aviso(t, volta) {
+    var el = document.querySelector(".ag-toast"); if (!el) { el = document.createElement("div"); el.className = "ag-toast"; document.body.appendChild(el); }
+    el.textContent = t; el.classList.toggle("volta", !!volta); el.classList.add("vis");
+    clearTimeout(el._t); el._t = setTimeout(function () { el.classList.remove("vis"); }, 2200);
+  }
+  function acender(id, x, y, volta) {
+    var cls = volta ? "bw-vira-volta" : "bw-vira-verde";
+    /* espera o redesenho da lista (síncrono, mas algumas telas redesenham no próximo quadro) */
+    setTimeout(function () {
+      var alvo = null;
+      if (id) { try { alvo = document.querySelector('[data-bw-card="' + String(id).replace(/["\\]/g, "") + '"]'); } catch (e) { } }
+      if (!alvo && x != null) { var em = document.elementFromPoint(x, y); alvo = em && em.closest(".card,.bw-card,tr,.row,.pr-card,.ag-item"); }
+      if (!alvo) return;
+      alvo.classList.remove("bw-vira-verde", "bw-vira-volta"); void alvo.offsetWidth; alvo.classList.add(cls);
+      setTimeout(function () { alvo.classList.remove(cls); }, 1500);
+      var rb = alvo.getBoundingClientRect();
+      if (!volta && (rb.bottom < 0 || rb.top > innerHeight)) {   /* mudou de aba (ex.: foi para REALIZADOS): mostra onde está */
+        try { alvo.scrollIntoView({ block: "center", behavior: calmo() ? "auto" : "smooth" }); } catch (e) { }
+      }
+    }, 60);
+  }
+  /* reconhece o botão e diz o que aconteceu: [ok?, mensagem, id] — null = não é botão de condição */
+  function ler(b) {
+    var t = (b.textContent || "").replace(/\s+/g, " ").trim().toLowerCase(), d = b.dataset || {}, oc = b.getAttribute("onclick") || "";
+    if (b.closest(".ag")) return null;                                   /* a AGENDA já faz a dela */
+    if (d.bwStatus) return [d.bwStatus !== "volta", d.bwMsg || (d.bwStatus !== "volta" ? "✓ Feito!" : "Desfeito"), d.bwId];
+    if (d.fin) return [true, "✓ Evento finalizado! Foi para EVENTOS REALIZADOS.", d.fin];
+    if (d.agd) return [false, "Evento voltou para a AGENDA DE EVENTOS", d.agd];
+    if (d.pago) return /não pago|nao pago/.test(t) ? [false, "Marcado como NÃO RECEBIDO", d.pago] : [true, "✓ Recebido!", d.pago];
+    if (d.pg) return /^pago/.test(t) ? [false, "Cachê voltou para NÃO PAGO", d.pg] : [true, "✓ Cachê pago!", d.pg];
+    if (/__togglePago\(/.test(oc)) { var m = oc.match(/__togglePago\('([^']*)'/); return /marcar pago/.test(t) ? [true, "✓ Conta paga!", m && m[1]] : [false, "Conta voltou para NÃO PAGA", m && m[1]]; }
+    if ((d.a === "st" || d.a === "stEd") && d.v) {
+      if (d.v === "aprovado") return [true, "✓ Orçamento APROVADO!", d.id];
+      if (d.v === "enviado") return /reabrir/.test(t) ? [false, "Orçamento reaberto", d.id] : [true, "✓ Marcado como ENVIADO", d.id];
+      if (d.v === "recusado") return [false, "Orçamento marcado como RECUSADO", d.id];
+    }
+    return null;
+  }
+  document.addEventListener("click", function (ev) {
+    var b = ev.target && ev.target.closest && ev.target.closest("button,a,[role=button]"); if (!b) return;
+    var r = ler(b); if (!r) return;
+    var x = ev.clientX, y = ev.clientY;
+    if (!x && !y) { var bb = b.getBoundingClientRect(); x = bb.left + bb.width / 2; y = bb.top + bb.height / 2; }
+    /* o clique do botão roda depois desta captura; o efeito vem logo em seguida, quando já se sabe que deu certo */
+    setTimeout(function () {
+      if (r[0]) confete(x, y);
+      aviso(r[1], !r[0]); acender(r[2], x, y, !r[0]);
+    }, 0);
+  }, true);
+  window.BWConcluir = {
+    /* para fluxos com janela (ex.: FECHAR NEGÓCIO no CRM): BWConcluir.festa(elemento, "mensagem") */
+    festa: function (el, msg) {
+      var bb = el && el.getBoundingClientRect ? el.getBoundingClientRect() : { left: innerWidth / 2, top: innerHeight / 2, width: 0, height: 0 };
+      confete(bb.left + bb.width / 2, bb.top + Math.min(bb.height, 120) / 2); if (msg) aviso(msg);
+    },
+    aviso: aviso, acender: acender
+  };
+})();

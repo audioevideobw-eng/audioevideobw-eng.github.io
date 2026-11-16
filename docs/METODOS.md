@@ -161,3 +161,10 @@ Tamanho > 0 e sem erro = o pdfmake montou o arquivo. Localmente (T1) confira o `
   imagem de `word/media/`. Rodapé em `word/footer*.xml`.
 - Teste sem rede: pdfMake simulado guardando a definição (`window.__defs`), docx e JSZip das cópias locais em /opt/npm-tools/node_modules,
   `expect_download` para pegar o .docx e abrir o XML com zipfile.
+
+
+## Animação de CONCLUIR em botões de condição (16/11)
+- Comum a todas as páginas: `assets/layout.js` → `BWConcluir` (ouvinte de clique em fase de CAPTURA + `setTimeout(0)` para agir depois
+  do handler do botão; confete `.ag-confete`, aviso `.ag-toast`, cartão `.bw-vira-verde`). Cartão marcado com `data-bw-card="ID"`.
+- Fluxo com janela (ex.: FECHAR NEGÓCIO): chamar `BWConcluir.festa(elemento, "mensagem")` no fim.
+- Teste: espiar com MutationObserver em `document` (no init script ainda não existe documentElement) — docs/testes/teste_concluir.py.
