@@ -601,6 +601,7 @@
     var c = function (rot, k, v, ph, larg, tipo) { return '<label class="' + (larg ? "largo" : "") + '"><span>' + rot + '</span><input class="pr-in" type="' + (tipo || "text") + '" data-emp="' + k + '" value="' + esc(v) + '" placeholder="' + esc(ph || "") + '"></label>'; };
     modal('<button type="button" class="pr-x" data-a="fecharModal" aria-label="Fechar">✕</button><h3>⚙ Minha empresa</h3><p class="tf-sub">Aparece no cabeçalho, na assinatura e no rodapé de todos os orçamentos e recibos. Fica na sua conta (celular e computador).</p>' +
       '<div class="pr-tit" style="margin-top:12px">Logo</div><div class="pr-sugs" style="align-items:center">' + (logo ? '<img class="pr-logo-mini" alt="Logo" src="' + logo + '">' : "") + '<button type="button" class="pr-chip" data-a="logoEnviar">' + (logo ? "TROCAR LOGO" : "ENVIAR LOGO") + '</button><button type="button" class="pr-chip" data-a="logoKit">USAR DA ★ MINHA MARCA</button>' + (logo ? '<button type="button" class="pr-chip" data-a="logoTirar">TIRAR</button>' : "") + "</div>" +
+      (logo ? '<div class="pr-sugs" style="align-items:center"><button type="button" class="pr-chip" data-a="logoFundo" data-v="borda" title="Tira o fundo liso em volta da logo">✂ TIRAR FUNDO</button><button type="button" class="pr-chip" data-a="logoFundo" data-v="tudo" title="Tira também o fundo de dentro das letras (O, A, B…)">✂ TIRAR FUNDO + DENTRO DAS LETRAS</button>' + (cfg("logoOrig", "") ? '<button type="button" class="pr-chip" data-a="logoOriginal">↺ VOLTAR AO ORIGINAL</button>' : "") + '</div><p class="tf-sub" style="margin:4px 0 0">O quadriculado é a parte transparente: a logo fica por cima da cor do cabeçalho do orçamento.</p>' : "") +
       '<div class="pr-campos" style="margin-top:12px">' + c("Nome fantasia", "fantasia", e.fantasia, "BW Produções") + c("Razão social", "razao", e.razao, "Áudio e Vídeo BW Ltda") + c("CNPJ", "cnpj", e.cnpj, "00.000.000/0001-00") + c("Responsável (assina)", "resp", e.resp, "Marcos Bonfá") +
       c("Telefone / WhatsApp", "tel", e.tel, "(31) 99999-0000", false, "tel") + c("E-mail", "email", e.email, "contato@empresa.com", false, "email") + c("Site / Instagram", "site", e.site, "@suaempresa") + c("Cidade", "cidade", e.cidade, "Belo Horizonte") +
       c("Título dos orçamentos", "titulo", e.titulo, "Proposta para prestação de serviços", true) + "</div>" +
@@ -611,12 +612,73 @@
       '<div class="pr-sugs" style="margin-top:14px"><button type="button" class="bw-btn" data-a="fecharEmpresa">✓ PRONTO</button></div>', true);
   }
   function salvarEmpresaCampo(k, v) { var e = empresa(); e[k] = v; salvarCfg("empresa", e); }
+  /* LOGO SEM FUNDO (16/11): tira o fundo liso (branco ou outra cor) pelas bordas, limpa o halo claro nas bordas das letras
+     (des-mistura da cor do fundo), corta as sobras transparentes e salva sempre em PNG (JPEG perderia a transparência). */
+  function imgDe(src) { return new Promise(function (ok, erro) { var x = new Image(); x.onload = function () { ok(x); }; x.onerror = erro; x.src = src; }); }
+  function pngLimitado(c) {
+    var url = c.toDataURL("image/png");
+    while (url.length > 450000 && c.width > 120) { var k = 0.8, n = document.createElement("canvas"); n.width = Math.round(c.width * k); n.height = Math.round(c.height * k); n.getContext("2d").drawImage(c, 0, 0, n.width, n.height); c = n; url = c.toDataURL("image/png"); }
+    return url;
+  }
+  function analisarFundo(d, w, h) {
+    var am = [], k, passo = Math.max(1, Math.round(Math.max(w, h) / 64));
+    for (k = 0; k < w; k += passo) am.push(k * 4, ((h - 1) * w + k) * 4);
+    for (k = 0; k < h; k += passo) am.push(k * w * 4, (k * w + w - 1) * 4);
+    var op = am.filter(function (i) { return d[i + 3] > 200; });
+    if (op.length < am.length * 0.6) return null; /* bordas já transparentes */
+    var r = 0, g = 0, b = 0; op.forEach(function (i) { r += d[i]; g += d[i + 1]; b += d[i + 2]; }); r /= op.length; g /= op.length; b /= op.length;
+    var perto = op.filter(function (i) { return Math.abs(d[i] - r) + Math.abs(d[i + 1] - g) + Math.abs(d[i + 2] - b) < 60; }).length;
+    return { r: r, g: g, b: b, liso: perto / op.length > 0.85 };
+  }
+  function tirarFundoCanvas(c, tudo) {
+    var w = c.width, h = c.height, x = c.getContext("2d", { willReadFrequently: true }), img = x.getImageData(0, 0, w, h), d = img.data;
+    var f = analisarFundo(d, w, h); if (!f) return null;
+    var tol = 40, N = w * h, fora = new Uint8Array(N), p, q;
+    function dist(i) { var a = d[i] - f.r, b = d[i + 1] - f.g, cc = d[i + 2] - f.b; return Math.sqrt(a * a + b * b + cc * cc); }
+    /* 1) o que é fundo some: só o que encosta na borda (TIRAR FUNDO) ou toda cor de fundo (+ DENTRO DAS LETRAS) */
+    if (tudo) { for (p = 0; p < N; p++) if (dist(p * 4) < tol) fora[p] = 1; }
+    else {
+      var fila = [], tenta = function (k) { if (k < 0 || k >= N || fora[k]) return; if (dist(k * 4) < tol) { fora[k] = 1; fila.push(k); } };
+      for (p = 0; p < w; p++) { tenta(p); tenta((h - 1) * w + p); } for (p = 0; p < h; p++) { tenta(p * w); tenta(p * w + w - 1); }
+      while (fila.length) { q = fila.pop(); var qx = q % w; if (qx > 0) tenta(q - 1); if (qx < w - 1) tenta(q + 1); tenta(q - w); tenta(q + w); }
+    }
+    for (p = 0; p < N; p++) if (fora[p]) d[p * 4 + 3] = 0;
+    /* 2) borda das letras (2 px em volta do que saiu): a cor misturada com o fundo vira a cor da letra + transparência — sem halo branco */
+    var anel = new Uint8Array(N), ix, iy, dx, dy;
+    for (p = 0; p < N; p++) if (!fora[p]) { ix = p % w; iy = (p / w) | 0; achou: for (dy = -2; dy <= 2; dy++) for (dx = -2; dx <= 2; dx++) { var X = ix + dx, Y = iy + dy; if (X >= 0 && Y >= 0 && X < w && Y < h && fora[Y * w + X]) { anel[p] = 1; break achou; } } }
+    var novos = [];
+    for (p = 0; p < N; p++) if (anel[p]) {
+      ix = p % w; iy = (p / w) | 0; var dp = dist(p * 4), melhor = -1, dm = dp;
+      for (dy = -3; dy <= 3; dy++) for (dx = -3; dx <= 3; dx++) { var X2 = ix + dx, Y2 = iy + dy; if (X2 < 0 || Y2 < 0 || X2 >= w || Y2 >= h) continue; var k2 = Y2 * w + X2; if (fora[k2] || anel[k2]) continue; var dk = dist(k2 * 4); if (dk > dm) { dm = dk; melhor = k2; } }
+      if (melhor < 0) { for (dy = -3; dy <= 3; dy++) for (dx = -3; dx <= 3; dx++) { var X3 = ix + dx, Y3 = iy + dy; if (X3 < 0 || Y3 < 0 || X3 >= w || Y3 >= h) continue; var k3 = Y3 * w + X3; if (fora[k3]) continue; var d3 = dist(k3 * 4); if (d3 > dm) { dm = d3; melhor = k3; } } }
+      if (melhor < 0 || dm < dp + 8) continue;
+      var al = Math.max(0, Math.min(1, dp / dm)); novos.push(p, melhor, al);
+    }
+    for (var t = 0; t < novos.length; t += 3) { var i0 = novos[t] * 4, i1 = novos[t + 1] * 4, al2 = novos[t + 2]; d[i0] = d[i1]; d[i0 + 1] = d[i1 + 1]; d[i0 + 2] = d[i1 + 2]; d[i0 + 3] = Math.min(d[i0 + 3], Math.round(255 * al2)); }
+    x.putImageData(img, 0, 0);
+    /* corta as sobras transparentes (a logo fica do tamanho certo no cabeçalho) */
+    var x0 = w, y0 = h, x1 = -1, y1 = -1, yy, xx;
+    for (yy = 0; yy < h; yy++) for (xx = 0; xx < w; xx++) if (d[(yy * w + xx) * 4 + 3] > 12) { if (xx < x0) x0 = xx; if (xx > x1) x1 = xx; if (yy < y0) y0 = yy; if (yy > y1) y1 = yy; }
+    if (x1 < 0) return null; /* sumiu tudo: tolerância não serve para esta logo */
+    var m = 4; x0 = Math.max(0, x0 - m); y0 = Math.max(0, y0 - m); x1 = Math.min(w - 1, x1 + m); y1 = Math.min(h - 1, y1 + m);
+    var n = document.createElement("canvas"); n.width = x1 - x0 + 1; n.height = y1 - y0 + 1; n.getContext("2d").drawImage(c, x0, y0, n.width, n.height, 0, 0, n.width, n.height);
+    return n;
+  }
+  async function logoSemFundo(url, tudo) {
+    var im = await imgDe(url), c = document.createElement("canvas"); c.width = im.naturalWidth; c.height = im.naturalHeight; c.getContext("2d").drawImage(im, 0, 0);
+    var n = tirarFundoCanvas(c, tudo); return n ? pngLimitado(n) : "";
+  }
+  function temFundoLiso(url) {
+    return imgDe(url).then(function (im) { var c = document.createElement("canvas"); c.width = im.naturalWidth; c.height = im.naturalHeight; var x = c.getContext("2d", { willReadFrequently: true }); x.drawImage(im, 0, 0); var f = analisarFundo(x.getImageData(0, 0, c.width, c.height).data, c.width, c.height); return !!(f && f.liso); }).catch(function () { return false; });
+  }
   async function receberLogo(blob) {
-    var u = URL.createObjectURL(blob), im = await new Promise(function (ok, erro) { var x = new Image(); x.onload = function () { ok(x); }; x.onerror = erro; x.src = u; });
+    var u = URL.createObjectURL(blob), im = await imgDe(u);
     var k = Math.min(1, 600 / Math.max(im.naturalWidth, im.naturalHeight)), c = document.createElement("canvas"); c.width = Math.round(im.naturalWidth * k); c.height = Math.round(im.naturalHeight * k);
     c.getContext("2d").drawImage(im, 0, 0, c.width, c.height); URL.revokeObjectURL(u);
-    var url = c.toDataURL("image/png"); if (url.length > 450000) url = c.toDataURL("image/jpeg", 0.88);
-    salvarCfg("logo", url); return url;
+    var orig = pngLimitado(c), url = orig;
+    /* fundo liso (branco de JPG/Word)? já entra sem fundo; a original fica guardada para VOLTAR AO ORIGINAL */
+    if (await temFundoLiso(orig)) { var sem = await logoSemFundo(orig, false); if (sem) { url = sem; toast("✓ Logo sem fundo (PNG transparente). Não ficou bom? Toque em VOLTAR AO ORIGINAL."); } }
+    salvarCfg("logoOrig", url !== orig ? orig : ""); salvarCfg("logo", url); return url;
   }
   function lerKitLogo() {
     return new Promise(function (ok) {
@@ -799,7 +861,9 @@
       case "estiloPadrao": salvarEmpresaCampo("estilo", v); abrirEmpresa(); break;
       case "logoEnviar": $("arqLogo").click(); break;
       case "logoKit": var u = await lerKitLogo(); if (!u) { toast("Nenhuma logo em ★ MINHA MARCA (Editor de fotos) neste aparelho."); break; } var bl = await (await fetch(u)).blob(); await receberLogo(bl); abrirEmpresa(); if (DOC) previa(); break;
-      case "logoTirar": salvarCfg("logo", ""); abrirEmpresa(); if (DOC) previa(); break;
+      case "logoTirar": salvarCfg("logo", ""); salvarCfg("logoOrig", ""); abrirEmpresa(); if (DOC) previa(); break;
+      case "logoFundo": { var base = cfg("logoOrig", "") || cfg("logo", ""); if (!base) break; var sf = await logoSemFundo(base, v === "tudo"); if (!sf) { toast("Esta logo já está sem fundo (ou o fundo não é de uma cor só)."); break; } if (!cfg("logoOrig", "")) salvarCfg("logoOrig", base); salvarCfg("logo", sf); abrirEmpresa(); if (DOC) previa(); toast("✓ Fundo tirado — a logo agora é PNG transparente."); break; }
+      case "logoOriginal": { var o = cfg("logoOrig", ""); if (!o) break; salvarCfg("logo", o); salvarCfg("logoOrig", ""); abrirEmpresa(); if (DOC) previa(); toast("Logo original de volta."); break; }
       case "bSobe": if (i > 0) { var lb2 = botoes().slice(), t2 = lb2[i - 1]; lb2[i - 1] = lb2[i]; lb2[i] = t2; salvarBotoes(lb2); abrirBotoes(); } break;
       case "bTira": var lb3 = botoes().slice(); if (confirm("Excluir o botão " + lb3[i].nome + "?")) { lb3.splice(i, 1); salvarBotoes(lb3.length ? lb3 : []); abrirBotoes(); } break;
       case "bPadrao": if (confirm("Voltar aos 7 botões padrão? Os seus botões serão apagados.")) { salvarBotoes([]); abrirBotoes(); } break;
@@ -858,6 +922,6 @@
   window.addEventListener("bw-sync-recebido", function () { if (!DOC) desenharLista(); });
   window.__prop = { docs: docs, novoDoc: novoDoc, modelo: modelo, total: total, extenso: extenso, pixPayload: pixPayload, crc16: crc16, interpretar: interpretar, paragrafos: paragrafos, aplicarBotao: aplicarBotao,
     botoes: botoes, abrir: abrir, DOC: function () { return DOC; }, salvarAtual: salvarAtual, gerarPdf: gerarPdf, gerarWord: gerarWord, importar: importar, mudarStatus: mudarStatus, criarEvento: criarEvento,
-    reciboDe: reciboDe, lancarNoEvento: lancarNoEvento, salvarSeMexeu: salvarSeMexeu, empresa: empresa, salvarCfg: salvarCfg, cfg: cfg, folhaHTML: folhaHTML, fechar: fechar, defPdf: defPdf, iaMontar: iaMontar };
+    reciboDe: reciboDe, lancarNoEvento: lancarNoEvento, salvarSeMexeu: salvarSeMexeu, empresa: empresa, salvarCfg: salvarCfg, cfg: cfg, folhaHTML: folhaHTML, fechar: fechar, defPdf: defPdf, iaMontar: iaMontar, receberLogo: receberLogo, logoSemFundo: logoSemFundo };
   if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(function () { });
 })();

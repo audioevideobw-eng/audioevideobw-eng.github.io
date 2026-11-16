@@ -172,6 +172,11 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
     Cores das condições em .tag: up verde (feito/recebido/pago), dn vermelho (não recebido/não pago), mid âmbar (andamento), azul
     (confirmado), cinza (orçamento). A AGENDA (.ag) faz a própria festa — o ouvinte ignora o que está dentro dela (auto: teste_concluir.py).
 
+**Aprendidos em 16/11 (logo sem fundo no orçamento)**
+59. Imagem que precisa de transparência (logo) é salva SEMPRE em PNG — reduzir o tamanho para caber, nunca trocar para JPEG (perde o
+    transparente). Tirar fundo = fundo liso pelas bordas + des-mistura da borda das letras (cor da letra + alfa), senão fica halo branco
+    no cabeçalho colorido; a original fica guardada para VOLTAR AO ORIGINAL (auto: teste_logo_fundo.py).
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -563,6 +568,12 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   Realizado/Entregue verde, Orçamento cinza; "faltam Nd" âmbar quando faltam ≤ 3 dias; "Marcar pago" das contas em vermelho.
   Teste docs/testes/teste_concluir.py (16 checagens × 1280/390, 0 falhas); agenda/propostas/crm/cadastros 0 falhas. brightway.css v26,
   layout.js v30, sw v82. PENTE FINO 58.
+
+- 16/11/2026 · Claude (pedido do dono: "a logo dos orçamentos está com fundo branco, quero PNG transparente"): GERADOR DE ORÇAMENTO —
+  logo com fundo liso (JPG, Word, ★ MINHA MARCA) entra SEM FUNDO sozinha: fundo pelas bordas, borda das letras sem halo branco, sobras
+  cortadas, sempre PNG (antes virava JPEG acima de 450 KB). MINHA EMPRESA: ✂ TIRAR FUNDO, + DENTRO DAS LETRAS (miolo do O/A/B),
+  ↺ VOLTAR AO ORIGINAL (cfg logoOrig) e miniatura em quadriculado. Logo já transparente ou sobre foto não é mexida sozinha.
+  Teste docs/testes/teste_logo_fundo.py (24 checagens × 1280/390, 0 falhas); teste_propostas 0 falhas. Manual atualizado. propostas.js v3, sw v83. PENTE FINO 59.
 
 ## Pendências (dono)
 - [x] (16/11 11:42) IA CRIATIVA ATIVA: conta Cloudflare do dono (Free, sem cartão), token "Brightway IA criativa 2" (Workers AI Read+Edit) em

@@ -168,3 +168,12 @@ Tamanho > 0 e sem erro = o pdfmake montou o arquivo. Localmente (T1) confira o `
   do handler do botão; confete `.ag-confete`, aviso `.ag-toast`, cartão `.bw-vira-verde`). Cartão marcado com `data-bw-card="ID"`.
 - Fluxo com janela (ex.: FECHAR NEGÓCIO): chamar `BWConcluir.festa(elemento, "mensagem")` no fim.
 - Teste: espiar com MutationObserver em `document` (no init script ainda não existe documentElement) — docs/testes/teste_concluir.py.
+
+
+## Tirar o fundo de uma logo no navegador (16/11)
+- Cor do fundo = média das bordas opacas (amostra ~64 pontos por lado); só age se ≥ 85% das amostras estão perto dessa cor (fundo liso).
+- Fundo: busca em largura a partir das bordas com distância RGB < 40 (TIRAR FUNDO) ou todo pixel perto da cor (+ DENTRO DAS LETRAS).
+- Borda sem halo: em até 2 px do que saiu, pega o vizinho (raio 3) mais longe da cor do fundo = cor da letra; alfa = dist(pixel)/dist(letra)
+  e a cor vira a da letra. Depois corta as sobras transparentes (margem 4 px) e salva PNG (encolhe 20% por volta até ≤ 450 KB).
+- Teste: desenhar a logo num canvas e exportar como JPEG (fundo "sujo" de verdade); conferir alfa dos cantos, miolo do "O", pixels
+  semitransparentes claros (halo) e que logo transparente/sobre foto não é mexida — docs/testes/teste_logo_fundo.py.
