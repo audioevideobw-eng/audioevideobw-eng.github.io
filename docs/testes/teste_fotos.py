@@ -187,6 +187,65 @@ with sync_playwright() as p:
         pg.set_input_files("#arquivos", FOTOS[:1]); pg.wait_for_timeout(1200)
         pg.screenshot(path=f"/tmp/fotos_{largura}.png")
         ctx.close()
+
+    # ===== iPhone (toque): menu de cima e todas as abas, com a página de trás travada =====
+    print("\n=== iPhone 13 (toque) ===")
+    dev = dict(p.devices["iPhone 13"]); dev.pop("default_browser_type", None)
+    ctx = b.new_context(**dev, service_workers="block", locale="pt-BR", accept_downloads=True)
+    ctx.route("**/*", rota)
+    pg = ctx.new_page(); erros = []; pg.on("pageerror", lambda e: erros.append(str(e))); pg.on("dialog", lambda d: d.accept("Teste"))
+    pg.goto(BASE + "fotos.html"); pg.wait_for_timeout(800)
+    pg.set_input_files("#arquivos", FOTOS); pg.wait_for_timeout(1500)
+    ok(pg.evaluate("document.documentElement.classList.contains('ed-aberto') && getComputedStyle(document.querySelector('.bw-shell')).display==='none' && getComputedStyle(document.querySelector('.bw-abas')||document.body).display!=='flex'"),
+       "editor aberto: página de trás escondida e travada")
+    cob = pg.evaluate("""(()=>{const r=[];['edFechar','edDesfazer','edRefazer','edAuto','edComparar','edSalvar'].forEach(id=>{const e=document.getElementById(id),b=e.getBoundingClientRect();
+      if(b.top<0||b.bottom>innerHeight)r.push(id+' fora da tela');const el=document.elementFromPoint(b.x+b.width/2,b.y+b.height/2);if(!el||!e.contains(el))r.push(id+' coberto por '+(el&&(el.className||el.tagName)))});return r})()""")
+    ok(not cob, f"botões do topo visíveis e livres {cob}")
+    # toque em cada botão do topo
+    pg.tap("#edAuto"); pg.wait_for_timeout(500)
+    ok(len(pg.evaluate("Object.keys(__fotos.FOTOS[0].aj)")) > 0, "toque em AUTO funciona")
+    pg.evaluate("__fotos.gravarHist()"); pg.tap("#edDesfazer"); pg.wait_for_timeout(400)
+    ok(len(pg.evaluate("Object.keys(__fotos.FOTOS[0].aj)")) == 0, "toque em DESFAZER funciona")
+    pg.tap("#edRefazer"); pg.wait_for_timeout(400)
+    ok(len(pg.evaluate("Object.keys(__fotos.FOTOS[0].aj)")) > 0, "toque em REFAZER funciona")
+    pg.tap("#edComparar"); pg.wait_for_timeout(400); ok(pg.evaluate("document.getElementById('edComparar').classList.contains('on')"), "toque em ANTES liga a comparação")
+    pg.tap("#edComparar"); pg.wait_for_timeout(300)
+    pg.tap("#edSalvar"); pg.wait_for_timeout(300); ok(pg.locator('#abas [data-aba="salvar"].on').count() == 1, "toque em SALVAR abre a aba SALVAR")
+    # tentar rolar a página (arrastar no topo e nos controles): nada sai do lugar
+    top0 = pg.evaluate("document.getElementById('edFechar').getBoundingClientRect().top")
+    pg.evaluate("window.scrollTo(0,400)"); pg.mouse.wheel(0, 600); pg.wait_for_timeout(300)
+    top1 = pg.evaluate("document.getElementById('edFechar').getBoundingClientRect().top")
+    ok(abs(top1 - top0) < 1 and pg.evaluate("window.scrollY") == 0, f"página não rola por trás ({top0}→{top1}, scrollY={pg.evaluate('window.scrollY')})")
+    # cada aba por toque: o painel muda e a foto continua no mesmo lugar
+    cvtop = pg.evaluate("document.getElementById('cv').getBoundingClientRect().top")
+    esperado = {"foto": "FORMATO", "ajustes": "Exposição", "filtros": "Intensidade", "texto": "ADICIONAR", "logo": "SUAS LOGOS", "borda": "ESTILO", "fundo": "REMOVER FUNDO", "salvar": "TAMANHO"}
+    for aba, palavra in esperado.items():
+        pg.locator(f'#abas [data-aba="{aba}"]').scroll_into_view_if_needed(); pg.tap(f'#abas [data-aba="{aba}"]'); pg.wait_for_timeout(350)
+        txt = pg.inner_text("#ctrl")
+        ok(palavra.lower() in txt.lower() and abs(pg.evaluate("document.getElementById('cv').getBoundingClientRect().top") - cvtop) < 2, f"aba {aba.upper()} por toque (foto parada)")
+    # campo de texto não dá zoom no iPhone (letra ≥ 16 px)
+    pg.tap('#abas [data-aba="texto"]'); pg.wait_for_timeout(300)
+    ok(pg.evaluate("parseFloat(getComputedStyle(document.getElementById('vEvento')).fontSize)") >= 16, "campos com letra ≥ 16 px (o iPhone não amplia a tela)")
+    pg.tap('#ctrl [data-k="novoTxt"][data-v=""]'); pg.wait_for_timeout(400)
+    ok(pg.evaluate("parseFloat(getComputedStyle(document.querySelector('#ctrl textarea')).fontSize)") >= 16, "caixa do texto com letra ≥ 16 px")
+    # slider por toque
+    pg.tap('#abas [data-aba="ajustes"]'); pg.wait_for_timeout(300)
+    sl = pg.locator('#ctrl input[data-k="aj:saturacao"]').bounding_box()
+    pg.tap('#ctrl input[data-k="aj:saturacao"]', position={"x": sl["width"] * 0.85, "y": sl["height"] / 2}); pg.wait_for_timeout(300)
+    ok(pg.evaluate("(__fotos.G().aj.saturacao||0)+(__fotos.FOTOS[0].aj.saturacao||0)") > 30, "slider responde ao toque")
+    # MINHA MARCA abre e fecha por toque; o editor continua
+    pg.tap('#abas [data-aba="logo"]'); pg.wait_for_timeout(300); pg.tap('#ctrl [data-k="marca"]'); pg.wait_for_timeout(300)
+    ok(pg.locator("#mk:not([hidden])").count() == 1, "MINHA MARCA abre por cima do editor")
+    pg.tap('#mkCx [data-m="fechar"]'); pg.wait_for_timeout(300)
+    ok(pg.locator("#mk[hidden]").count() == 1 and pg.locator("#ed:not([hidden])").count() == 1, "fecha e volta ao editor")
+    # fechar o editor devolve a página
+    pg.tap("#edFechar"); pg.wait_for_timeout(400)
+    ok(not pg.evaluate("document.documentElement.classList.contains('ed-aberto')") and pg.evaluate("getComputedStyle(document.querySelector('.bw-shell')).display") != "none", "✕ fecha e a página volta ao normal")
+    pg.tap("#abrirEd"); pg.wait_for_timeout(600)
+    ok(pg.locator("#ed:not([hidden])").count() == 1, "ABRIR O EDITOR de novo")
+    pg.screenshot(path="/tmp/fotos_iphone.png")
+    ok(not erros, f"nenhum erro de JS {erros[:3]}")
+    ctx.close()
     b.close()
 srv.shutdown()
 print("\nFALHAS:", len(falhas)); [print(" -", f) for f in falhas]

@@ -96,6 +96,9 @@ Tamanho > 0 e sem erro = o pdfmake montou o arquivo. Localmente (T1) confira o `
   páginas em `window.__ultimoPDF` (relatório 1 + anexo 3 = 4) e o anexo 404 aparece em `falhas`. Ver docs/testes/teste_cadastros.py.
 - **Campo novo sem mudar o banco:** cadastro público grava extras (CNH) em JSON na coluna `observacao` de equipe_cadastros; quem aprova lê com `extraCad()`.
 
+- **Teste de toque (iPhone) sem WebKit:** `dev = dict(p.devices["iPhone 13"]); dev.pop("default_browser_type")` → `b.new_context(**dev)` no Chrome;
+  `pg.tap()` em cada botão, `elementFromPoint` no centro de cada botão (nada cobrindo) e `window.scrollY` = 0 depois de tentar rolar.
+
 ## Padrões de interface que o dono aprovou
 - Ação da linha (✎ ALTERAR / ✕) junto do nome; editar abre o formulário com os dados e borda dourada "✎ ALTERANDO: nome".
 - Ferramenta visual (editor): o resultado fica SEMPRE visível — controles embaixo (celular) ou ao lado (PC), nunca rolar a página

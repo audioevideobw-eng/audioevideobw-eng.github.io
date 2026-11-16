@@ -128,6 +128,11 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
 44. Dados repetidos (mesma planilha importada 2x): avisar e oferecer JUNTAR (fica o mais recente + cópia ui_dd_backup); nunca apagar
     dado do usuário sem ele tocar no botão.
 
+**Aprendidos em 16/11 (editor de fotos no iPhone)**
+45. Tela cheia por cima da página (editor, folhas): no celular a página de trás precisa SUMIR e TRAVAR (html.ed-aberto: body fixo,
+    .bw-shell/.bw-abas escondidos, touchmove e pinça bloqueados fora das áreas que rolam) — no iPhone o topo do editor ficava "travado".
+    Campo de digitar com letra ≥ 16 px (menos que isso o iPhone amplia a tela sozinho ao tocar). Teste com toque: p.devices["iPhone 13"].
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -446,6 +451,12 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
 - 16/11/2026 · Claude: teste no ar (conta do dono): PDF DA EQUIPE "VALE - 17/11" com os 3 PDFs anexados (CRLV, CNH-e ×2) = 4 páginas em 6 s, sem falhas;
   colaborador de TESTE criado com CPF/CNH → chegou na nuvem → alterado → apagado (sumiu da nuvem). MEUS DADOS: JUNTAR tirou 8 repetidos
   (19 → 11 registros; cópia em ui_dd_backup neste navegador). Nome do arquivo do PDF sem "---". sw v71.
+
+- 16/11/2026 · Claude (dono: "no celular o menu de cima do editor de fotos fica travado"): com o editor aberto a página de trás agora some e
+  não rola (body fixo + touchmove/pinça bloqueados fora da foto e dos controles), topo do editor acima de tudo, toque sem atraso
+  (touch-action: manipulation), campos com letra 16 px (o iPhone ampliava a tela ao tocar no texto) e a dica sobre a foto some em 3,5 s.
+  teste_fotos.py ganhou a rodada iPhone 13 por toque (24 checagens: 6 botões do topo, 8 abas, slider, MINHA MARCA, fechar/abrir) — 0 falhas.
+  fotos.js v3, sw v72. PENTE FINO 45.
 
 ## Pendências (dono)
 - [x] (15/11 10:02, dono: "faça tudo") Autorizar a automação de NOTÍCIAS (publica noticias.json no site a cada 2 h) — ATIVA.

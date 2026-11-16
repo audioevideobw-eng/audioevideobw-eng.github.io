@@ -20,9 +20,15 @@
 .fx-lista{display:flex;gap:8px;overflow-x:auto;padding:12px 0 2px;min-width:0}
 .fx-lista img{flex:none;width:72px;height:72px;object-fit:cover;border-radius:10px;border:1px solid rgba(245,241,234,.12)}
 /* ===== EDITOR EM TELA CHEIA (modelo Lightroom / Snapseed / VSCO): a foto nunca sai da tela ===== */
-.ed{position:fixed;inset:0;z-index:90;background:#05070b;display:flex;flex-direction:column;color:var(--bw-marfim);font-family:var(--bw-font-texto)}
+.ed{position:fixed;top:0;left:0;right:0;bottom:0;height:100%;height:100dvh;overscroll-behavior:none;-webkit-user-select:none;user-select:none;z-index:90;background:#05070b;display:flex;flex-direction:column;color:var(--bw-marfim);font-family:var(--bw-font-texto)}
 .ed[hidden]{display:none}
-.ed-top{flex:none;display:flex;align-items:center;gap:6px;padding:8px 10px;padding-top:max(8px,env(safe-area-inset-top));border-bottom:1px solid rgba(245,241,234,.07);background:#090c12}
+/* 16/11: celular (iPhone) — com o editor aberto, a página de trás some e não rola (o topo do editor ficava "travado"/coberto) */
+html.ed-aberto,html.ed-aberto body{overflow:hidden!important;overscroll-behavior:none;height:100%}
+html.ed-aberto body{position:fixed;left:0;right:0;width:100%}
+html.ed-aberto .bw-shell,html.ed-aberto .bw-abas,html.ed-aberto .bw-menu{display:none!important}
+.ed button,.ed input,.ed select,.ed textarea,.mk button{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.ed input,.ed textarea{-webkit-user-select:text;user-select:text}
+.ed-top{flex:none;position:relative;z-index:3;display:flex;align-items:center;gap:6px;padding:8px 10px;padding-top:max(8px,env(safe-area-inset-top));border-bottom:1px solid rgba(245,241,234,.07);background:#090c12}
 .ed-top .esp{flex:1}
 .ed-b{min-width:40px;height:40px;border-radius:12px;border:1px solid rgba(245,241,234,.14);background:rgba(255,255,255,.04);color:var(--bw-marfim);
   display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:0 10px;font:600 11.5px var(--bw-font-texto);letter-spacing:.05em;cursor:pointer;white-space:nowrap}
@@ -35,8 +41,9 @@
 .ed-palco{flex:1;min-height:0;position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;
   background:repeating-conic-gradient(#10131a 0 25%,#0b0e14 0 50%) 0 0/22px 22px;touch-action:none}
 .ed-palco canvas{display:block;touch-action:none;box-shadow:0 10px 40px rgba(0,0,0,.45)}
-.ed-dica{position:absolute;left:50%;top:8px;transform:translateX(-50%);background:rgba(6,8,13,.78);color:#cfcac2;font-size:11.5px;padding:6px 12px;border-radius:999px;pointer-events:none;white-space:nowrap;max-width:92%;overflow:hidden;text-overflow:ellipsis}
+.ed-dica{transition:opacity .4s;position:absolute;left:50%;top:8px;transform:translateX(-50%);background:rgba(6,8,13,.78);color:#cfcac2;font-size:11.5px;padding:6px 12px;border-radius:999px;pointer-events:none;white-space:nowrap;max-width:92%;overflow:hidden;text-overflow:ellipsis}
 .ed-dica:empty{display:none}
+.ed-dica.some{opacity:0}
 .ed-ocup{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(5,7,11,.65);font-size:14px;color:#fff;text-align:center;padding:20px}
 .ed-ocup[hidden]{display:none}
 .ed-painel{flex:none;display:flex;flex-direction:column;background:#0a0d13;border-top:1px solid rgba(245,241,234,.07);padding-bottom:env(safe-area-inset-bottom);min-height:0}
@@ -88,7 +95,7 @@
 .mini-img.on{border-color:var(--bw-ambar)}
 .mini-img .x{position:absolute;top:-7px;right:-7px;width:22px;height:22px;border-radius:50%;background:#2a2f3a;color:#fff;font-size:11px;line-height:22px;text-align:center;border:0;cursor:pointer;padding:0}
 .mini-add{flex:none;width:64px;height:64px;border-radius:10px;border:1.5px dashed rgba(255,181,71,.5);color:var(--bw-ambar);display:flex;align-items:center;justify-content:center;font-size:24px;cursor:pointer;background:none}
-.c-campo{width:100%;min-width:0;min-height:40px;border-radius:10px;border:1px solid rgba(245,241,234,.16);background:rgba(0,0,0,.28);color:var(--bw-marfim);padding:8px 10px;font:15px var(--bw-font-texto)}
+.c-campo{width:100%;min-width:0;min-height:40px;border-radius:10px;border:1px solid rgba(245,241,234,.16);background:rgba(0,0,0,.28);color:var(--bw-marfim);padding:8px 10px;font:16px var(--bw-font-texto)}
 textarea.c-campo{min-height:56px;resize:vertical}
 .c-nota{font-size:12px;color:var(--bw-texto-3);line-height:1.5;margin:6px 0}
 .c-prog{height:6px;border-radius:99px;background:rgba(255,255,255,.08);overflow:hidden;margin:8px 0}
@@ -152,6 +159,6 @@ textarea.c-campo{min-height:56px;resize:vertical}
 <script src="assets/layout.js?v=27"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="assets/bw-sync.js"></script>
-<script src="assets/fotos.js?v=2"></script>
+<script src="assets/fotos.js?v=3"></script>
 </body>
 </html>

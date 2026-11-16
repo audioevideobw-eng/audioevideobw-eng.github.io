@@ -363,6 +363,7 @@
   }
 
   /* ================= PRÉVIA ================= */
+  var tDica = 0;
   var cv = $("cv"), LAY = null, pedido = 0, tFull = 0, RAPIDO = false;
   function agendar(rapido) {
     if (rapido) { RAPIDO = true; clearTimeout(tFull); tFull = setTimeout(function () { RAPIDO = false; agendar(); }, 220); }
@@ -393,7 +394,8 @@
     c.width = c.height = 1;
     var s = Math.min(pw / W, ph / H); cv.style.width = Math.round(W * s) + "px"; cv.style.height = Math.round(H * s) + "px";
     var dicas = { foto: "Arraste a foto para escolher o corte · pinça ou roda do mouse = zoom", texto: G.textos.length ? "Arraste o texto na foto para mudar de lugar" : "", logo: G.logo.on ? "Arraste a logo na foto para mudar de lugar" : "" };
-    $("dica").textContent = COMPARAR ? "Arraste para comparar antes e depois" : (dicas[ABA] || (FOTOS.length > 1 ? (ATUAL + 1) + " de " + FOTOS.length + " · " + f.nome : ""));
+    var nova = COMPARAR ? "Arraste para comparar antes e depois" : (dicas[ABA] || (FOTOS.length > 1 ? (ATUAL + 1) + " de " + FOTOS.length + " · " + f.nome : ""));
+    if ($("dica").textContent !== nova) { $("dica").textContent = nova; $("dica").classList.remove("some"); clearTimeout(tDica); tDica = setTimeout(function () { $("dica").classList.add("some"); }, 3500); }
   }
 
   /* ---------- arrastar na prévia (corte, texto, logo, comparar) ---------- */
@@ -897,17 +899,26 @@
   };
 
   /* ================= ABRIR / FECHAR O EDITOR ================= */
+  var ROLAGEM = 0;
+  /* iPhone: pinça/duplo toque fora da foto dava zoom na PÁGINA e o topo do editor ficava fora do lugar */
+  ["gesturestart", "gesturechange"].forEach(function (t) { document.addEventListener(t, function (ev) { if (!$("ed").hidden) ev.preventDefault(); }, { passive: false }); });
+  document.addEventListener("touchmove", function (ev) {
+    if ($("ed").hidden || !$("mk").hidden) return;
+    if (ev.touches && ev.touches.length > 1 && !ev.target.closest("#palco")) { ev.preventDefault(); return; }
+    if (!ev.target.closest("#ctrl, #abas, #edFotos, #palco, .c-rolar, textarea")) ev.preventDefault();   // fora das áreas que rolam, nada se mexe
+  }, { passive: false });
   function abrirEditor() {
     if (!FOTOS.length) return;
     if (ATUAL < 0) ATUAL = 0;
-    $("ed").hidden = false; document.documentElement.style.overflow = "hidden";
+    ROLAGEM = window.scrollY || 0;
+    $("ed").hidden = false; document.documentElement.classList.add("ed-aberto"); document.body.style.top = -ROLAGEM + "px";
     if (!history.state || !history.state.bwEd) history.pushState({ bwEd: 1 }, "");
     desenharAbas(); desenharTiras(); painel(); G.textos.forEach(function (t) { carregarFonte(t.fonte); });
     if (HPOS < 0) gravarHist(); botoesHist();
     requestAnimationFrame(function () { previa(); });
   }
   function fecharEditor(doHistorico) {
-    $("ed").hidden = true; document.documentElement.style.overflow = ""; COMPARAR = false; $("edComparar").classList.remove("on");
+    $("ed").hidden = true; document.documentElement.classList.remove("ed-aberto"); document.body.style.top = ""; window.scrollTo(0, ROLAGEM || 0); COMPARAR = false; $("edComparar").classList.remove("on");
     if (!doHistorico && history.state && history.state.bwEd) history.back();
   }
   window.addEventListener("popstate", function () { if (!$("mk").hidden) { fecharMarca(); if (!$("ed").hidden) history.pushState({ bwEd: 1 }, ""); return; } if (!$("ed").hidden) fecharEditor(true); });
