@@ -24,9 +24,17 @@ class Q(http.server.SimpleHTTPRequestHandler):
 os.chdir(RAIZ); socketserver.TCPServer.allow_reuse_address = True
 srv = socketserver.TCPServer(("127.0.0.1", PORTA), Q); threading.Thread(target=srv.serve_forever, daemon=True).start()
 BASE = f"http://127.0.0.1:{PORTA}/"
+import base64, io as _io
+_b = _io.BytesIO(); Image.new("RGB", (640, 800), (230, 60, 160)).save(_b, "JPEG"); FAKE = base64.b64encode(_b.getvalue()).decode()
+PEDIDOS = []
 def rota(r):
     u = r.request.url
     if "127.0.0.1" in u: return r.continue_()
+    if "functions/v1/bw-ia-imagem" in u:
+        if r.request.method == "OPTIONS": return r.fulfill(status=200, body="ok")
+        if "application/json" in (r.request.headers.get("content-type") or ""): return r.fulfill(body='{"pronto":true,"limite":10}', content_type="application/json")
+        PEDIDOS.append(r.request.post_data_buffer or b"")
+        return r.fulfill(body='{"imagem":"' + FAKE + '"}', content_type="application/json")
     if "supabase-js" in u: return r.fulfill(body=STUB_SB, content_type="application/javascript")
     return r.abort()
 falhas = []
@@ -46,7 +54,7 @@ with sync_playwright() as p:
     for largura, altura in ((1280, 860), (390, 844)):
         print(f"\n=== {largura}px ===")
         ctx = b.new_context(viewport={"width": largura, "height": altura}, service_workers="block", accept_downloads=True); ctx.route("**/*", rota)
-        pg = ctx.new_page(); erros = []; pg.on("pageerror", lambda e: erros.append(str(e))); pg.on("dialog", lambda d: d.accept())
+        pg = ctx.new_page(); erros = []; pg.on("pageerror", lambda e: erros.append(str(e))); dlg = []; pg.on("dialog", lambda d: (dlg.append(d.message), d.accept()))
         pg.goto(BASE + "fotos.html"); pg.wait_for_timeout(600)
         pg.set_input_files("#arquivos", [f"{TMP}/pessoa.jpg", f"{TMP}/pessoa2.jpg"]); pg.wait_for_timeout(1300)
         pg.click('#abas [data-aba="fundo"]'); pg.wait_for_timeout(300)
@@ -90,7 +98,20 @@ with sync_playwright() as p:
         ok(not erros, f"sem erro de JS {erros[:2]}")
         ok(pg.evaluate("document.documentElement.scrollWidth-document.documentElement.clientWidth") <= 0, "sem estouro horizontal")
         pg.screenshot(path=f"{TMP}/ia_{largura}.png")
+        # IA CRIATIVA (nuvem simulada): pede confirmação, manda cópia pequena + pedido e põe a nova versão AO LADO da original
+        pg.evaluate("BWSync.cliente=()=>({auth:{getSession:async()=>({data:{session:{access_token:'t'}}})}})")
+        pg.evaluate("__fotos.aba('fundo')"); pg.wait_for_timeout(200)
+        ok(pg.locator('#ctrl [data-k="iaCriar"]').count() == 1 and pg.locator('#ctrl textarea[data-k="iaPedido"]').count() == 1, "seção ✨ IA CRIATIVA aparece com campo e botão")
+        pg.click('#ctrl .chip[data-k="iaSug"] >> nth=0'); pg.click('#ctrl .chip[data-k="iaSug"] >> nth=6')
+        ok(pg.input_value('#ctrl textarea[data-k="iaPedido"]') == "cabelo cacheado, terno azul-marinho", "sugestões se somam no pedido")
+        dlg.clear()
+        n0 = pg.evaluate("__fotos.FOTOS.length"); antes_n = len(PEDIDOS)
+        pg.click('#ctrl [data-k="iaCriar"]'); pg.wait_for_timeout(1500)
+        ok(dlg and "nuvem" in dlg[0], "pede confirmação antes de enviar a foto")
+        ok(len(PEDIDOS) == antes_n + 1 and b"cabelo cacheado" in PEDIDOS[-1], "enviou 1 pedido com o texto")
+        ok(pg.evaluate("__fotos.FOTOS.length") == n0 + 1 and pg.evaluate("__fotos.FOTOS[1].nome").endswith("-ia"), "nova versão entrou logo depois da original")
         # sem retoque
+        pg.evaluate("__fotos.FOTOS.splice(1,1)"); pg.evaluate("document.querySelector('#edFolha')&&document.querySelector('#edFolha').remove()"); pg.click('#edFotos [data-i="0"]'); pg.wait_for_timeout(300)
         pg.click('#ctrl [data-k="iaZerar"]'); pg.wait_for_timeout(300)
         ok(not pg.evaluate("__fotos.iaAtiva(__fotos.FOTOS[0])"), "↺ SEM RETOQUE desliga tudo")
         ctx.close()

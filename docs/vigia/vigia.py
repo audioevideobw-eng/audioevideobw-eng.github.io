@@ -234,6 +234,17 @@ if crmjs and ("toISOString().slice(0, 10)" in crmjs or "BWSync.antesDeSalvar(k, 
 fotosjs = ler("assets/fotos.js") if os.path.exists("assets/fotos.js") else ""
 if "fotos.html" in todos and re.search(r"\.upload\(|from\(\"user_data\"\)|fetch\(|BWSync\.(antesDeSalvar|registrarAgora)", todos["fotos.html"] + fotosjs):
     problemas.append("fotos.html/assets/fotos.js: o editor não pode enviar fotos para a nuvem (regra 24)")
+# 16/11: a IA CRIATIVA é a única saída para a internet do editor — só em assets/fotos-nuvem.js, só para a Edge Function bw-ia-imagem,
+# sem Storage/user_data/BWSync e com confirmação da pessoa antes de enviar (fotos.js)
+fnuv = ler("assets/fotos-nuvem.js") if os.path.exists("assets/fotos-nuvem.js") else ""
+if fnuv:
+    urls = set(re.findall(r"https://[^\"']+", fnuv))
+    if urls - {"https://zdtnetplvdonogmdvarx.supabase.co/functions/v1/bw-ia-imagem"}:
+        problemas.append(f"assets/fotos-nuvem.js: só pode falar com a Edge Function bw-ia-imagem ({urls})")
+    if re.search(r"\.upload\(|user_data|antesDeSalvar|registrarAgora|storage", fnuv):
+        problemas.append("assets/fotos-nuvem.js: não pode guardar nada na nuvem (Storage/user_data/BWSync)")
+    if "confirm(" not in fotosjs.split("async function iaCriar")[1][:900] if "async function iaCriar" in fotosjs else True:
+        problemas.append("assets/fotos.js: a IA criativa precisa pedir confirmação antes de enviar a foto")
 for p in ["equipe.html", "eventos.html"]:   # 16/11: PDF da equipe / dossiê juntam os anexos (pente fino 43)
     if p in todos and "assets/bw-anexos.js" not in todos[p]:
         problemas.append(f"{p}: não carrega assets/bw-anexos.js (os PDFs anexados não entram no relatório)")

@@ -571,6 +571,29 @@
     }
     Object.keys(mk).forEach(function (k) { mk[k].width = mk[k].height = 1; });
   }
+  /* ===== IA CRIATIVA (16/11, opcional, NA NUVEM): pedido em texto → nova versão da foto (Cloudflare FLUX.2 pela Edge Function
+     bw-ia-imagem). A conexão fica em assets/fotos-nuvem.js; aqui só preparamos a cópia pequena e recebemos a imagem nova. ===== */
+  var SUG_IA = ["cabelo cacheado", "cabelo curto moderno", "cabelo loiro e longo", "barba bem feita", "sem barba", "óculos de sol", "terno azul-marinho", "vestido de festa elegante", "camisa social branca", "fundo de palco com luzes", "fundo de praia ao pôr do sol", "fundo de escritório moderno"];
+  var IA_PEDIDO = "", iaConfirmou = false, criando = false, IA_NUVEM = null;
+  async function iaCriar() {
+    var f = fotoAtual(); if (!f || criando) return;
+    var p = IA_PEDIDO.trim(); if (!p) { toast("Escreva o que a IA deve mudar (ex.: cabelo cacheado)."); return; }
+    if (!window.BWFotosNuvem) { toast("Recarregue a página para usar a IA criativa."); return; }
+    if (!iaConfirmou && !confirm("A IA criativa envia uma cópia pequena desta foto para a IA Brightway na nuvem e devolve uma NOVA versão (a original continua no editor). Nada fica guardado lá.\n\nUse só fotos que você tem permissão de editar. Continuar?")) return;
+    iaConfirmou = true; criando = true; $("ocup").hidden = false; $("ocup").textContent = "✨ A IA está criando a nova versão (10 a 30 s)…";
+    try {
+      var src = reduzir(f.prev, 504), b = await new Promise(function (ok) { src.toBlob(ok, "image/jpeg", 0.9); });
+      var k = 1024 / Math.max(src.width, src.height), w = Math.round(src.width * k / 16) * 16, h = Math.round(src.height * k / 16) * 16; src.width = src.height = 1;
+      var r = await BWFotosNuvem.editar(b, p, w, h);
+      if (r.erro) { toast(BWFotosNuvem.msg(r.erro)); return; }
+      var i0 = FOTOS.indexOf(f), arq = new File([r.blob], f.nome + "-ia." + (r.blob.type === "image/png" ? "png" : "jpg"), { type: r.blob.type });
+      await adicionar([arq], false);
+      var nova = FOTOS.pop(); if (!nova) return;
+      Object.assign(nova, { rot: f.rot, esp: f.esp, incl: f.incl, aj: clone(f.aj), filtro: f.filtro, adesivos: clone(f.adesivos || []), iaNuvem: p });
+      FOTOS.splice(i0 + 1, 0, nova); ATUAL = i0 + 1; atualizarTudo("✨ Nova versão criada ao lado da original");
+    } catch (e) { toast("A IA criativa não respondeu agora."); }
+    finally { $("ocup").hidden = true; criando = false; }
+  }
   var analisando = false;
   async function iaAnalisar(todas) {
     if (analisando) return; analisando = true;
@@ -955,6 +978,12 @@
         h += '<div class="c-tit">EFEITO NO FUNDO</div>' + chips("iaFundo", FUNDO_IA, IA.fundo) + (IA.fundo ? sl("iaFundoF", "Força", 10, 100, IA.fundoF, "%") : "");
         h += '<div class="c-linha" style="margin-top:8px">' + (FOTOS.length > 1 ? '<button type="button" class="chip ok" data-k="iaTodas">✨ USAR EM TODAS AS FOTOS</button>' : "") + '<button type="button" class="chip" data-k="iaZerar">↺ SEM RETOQUE</button></div>';
       }
+      h += '<div class="c-tit">✨ IA CRIATIVA (NA NUVEM)</div><p class="c-nota" style="margin-top:0">Escreva o que mudar — <b>cabelo, roupa, acessório, fundo</b> — e a IA cria uma <b>nova versão</b> ao lado da original. Precisa estar logado; até 10 por dia. Envia uma cópia pequena da foto (nada fica guardado).</p>' +
+        (IA_NUVEM === false ? '<p class="c-nota" style="color:#FFB547">A IA criativa ainda está sendo ativada pela Brightway.</p>' : "") +
+        '<textarea class="c-campo" data-k="iaPedido" rows="2" maxlength="300" placeholder="ex.: cabelo cacheado e terno azul-marinho" aria-label="O que a IA deve mudar">' + esc(IA_PEDIDO) + '</textarea>' +
+        '<div class="c-rolar">' + SUG_IA.map(function (x) { return '<button type="button" class="chip" data-k="iaSug" data-v="' + esc(x) + '">+ ' + esc(x) + "</button>"; }).join("") + "</div>" +
+        '<div class="c-linha" style="margin-top:8px"><button type="button" class="chip ok" data-k="iaCriar">✨ CRIAR NOVA VERSÃO</button></div>';
+      if (IA_NUVEM === null && window.BWFotosNuvem) { IA_NUVEM = undefined; BWFotosNuvem.pronta().then(function (v) { IA_NUVEM = v; if (!v && ABA === "fundo") painel(); }); }
       h += '<div class="c-tit">✂ REMOVER FUNDO</div><p class="c-nota" style="margin-top:0">A IA separa a pessoa/objeto principal do fundo. Roda <b>no seu aparelho</b> (baixa ~25 MB na primeira vez) — a foto não é enviada. Funciona melhor com pessoas.</p>';
       h += '<div class="c-linha"><button type="button" class="chip ok" data-k="recortar" data-v="esta">✂ REMOVER FUNDO DESTA</button>' + (FOTOS.length > 1 ? '<button type="button" class="chip ok" data-k="recortar" data-v="todas">✂ DE TODAS (' + FOTOS.length + ")</button>" : "") + "</div>";
       h += '<div class="c-prog" id="iaProg" hidden><i></i></div><p class="c-nota" id="iaMsg"></p>';
@@ -1075,6 +1104,9 @@
     salvarBorda: async function () { var n = prompt("Nome desta borda:", "Minha borda " + (KIT.bordas.length + 1)); if (!n) return; KIT.bordas.push({ id: uid("bd"), nome: n.slice(0, 40), borda: clone(G.borda) }); await gravarKit(); painel(); toast("✓ Borda guardada em MINHA MARCA"); },
     recortar: function (v) { recortar(v === "todas"); },
     iaAnalisar: function (v) { iaAnalisar(v === "todas"); },
+    iaPedido: function (v) { IA_PEDIDO = v; },
+    iaSug: function (v) { IA_PEDIDO = IA_PEDIDO.trim() ? IA_PEDIDO.trim().replace(/[,.]$/, "") + ", " + v : v; var t = $("ctrl").querySelector('textarea[data-k="iaPedido"]'); if (t) t.value = IA_PEDIDO; },
+    iaCriar: function () { iaCriar(); },
     iaCab: function (v) { fotoAtual().ia.cab = v; painelSe(); }, iaCabF: function (v) { fotoAtual().ia.cabF = +v; },
     iaRoupa: function (v) { fotoAtual().ia.roupa = v; painelSe(); }, iaRoupaF: function (v) { fotoAtual().ia.roupaF = +v; },
     iaPele: function (v) { fotoAtual().ia.pele = +v; },
@@ -1107,11 +1139,11 @@
     } else if (ACOES[k]) ACOES[k](v);
     else return;
     if (el.type === "range") { var o = el.nextElementSibling; if (o) o.textContent = v + (el.dataset.suf || ""); el.parentNode.classList.toggle("mexido", +v !== 0 && +el.min < 0); }
-    if (el.classList.contains("chip") && el.parentNode && !/^(girar|espelhar|centro|corteTodas|auto1|autoTodas|zerarAj|novoTxt|apagaTxt|baixar|compart|pacote|salvar|recortar|fundoTodas|semRecorte|tirarFundoLogo|marca|limparFoto|addLogo|addMold|maisFotos|zerarTudo|opcoesFoto|aRosto|aAdd|aSelo|aEsp|aSombra|aDup|aFrente|aTodas|aDel|iaAnalisar|iaTodas|iaZerar)/.test(k)) {
+    if (el.classList.contains("chip") && el.parentNode && !/^(girar|espelhar|centro|corteTodas|auto1|autoTodas|zerarAj|novoTxt|apagaTxt|baixar|compart|pacote|salvar|recortar|fundoTodas|semRecorte|tirarFundoLogo|marca|limparFoto|addLogo|addMold|maisFotos|zerarTudo|opcoesFoto|aRosto|aAdd|aSelo|aEsp|aSombra|aDup|aFrente|aTodas|aDel|iaAnalisar|iaTodas|iaZerar|iaSug|iaCriar)/.test(k)) {
       el.parentNode.querySelectorAll('.chip[data-k="' + k + '"]').forEach(function (b) { b.classList.toggle("on", b === el); });
     }
     if (el.parentNode && el.parentNode.classList.contains("cores")) el.parentNode.querySelectorAll("button").forEach(function (b) { b.classList.toggle("on", b === el); });
-    if (/^(baixar|compart|pacote|marca|addLogo|addMold|salvarPadrao|salvarBorda|recortar|tirarFundoLogo|iaAnalisar)/.test(k)) return;
+    if (/^(baixar|compart|pacote|marca|addLogo|addMold|salvarPadrao|salvarBorda|recortar|tirarFundoLogo|iaAnalisar|iaPedido|iaSug|iaCriar)/.test(k)) return;
     agendar(ehInput);
   }
   $("ctrl").addEventListener("click", function (ev) { var el = ev.target.closest("button[data-k]"); if (el) aplicarAcao(el, false); });
@@ -1425,7 +1457,7 @@
 
   (async function () { await lerKit(); await migrarAntigo(); await carregarImgs(); if (!$("ed").hidden) { painel(); agendar(); } })();
   window.__fotos = {   // usado nos testes automáticos
-    iaAtiva: iaAtiva, iaAnalisar: iaAnalisar, IA0: IA0,
+    iaAtiva: iaAtiva, iaAnalisar: iaAnalisar, IA0: IA0, iaCriar: iaCriar, iaPedido: function (v) { IA_PEDIDO = v; },
     adicionar: adicionar, montar: montar, G: function () { return G; }, FOTOS: FOTOS, abrir: abrirEditor, fechar: fecharEditor, aba: irAba, auto: autoDe,
     desfazer: desfazer, refazer: refazer, gravarHist: gravarHist, hist: function () { return { n: HIST.length, pos: HPOS }; }, acao: function (k, v) { ACOES[k](v); agendar(); },
     kit: function () { return KIT; }, gravarKit: gravarKit, carregarImgs: carregarImgs, LOGOS: LOGOS, exportar: exportar, nomeArquivo: nomeArquivo, mascaraDe: mascaraDe, tirarFundoLogo: tirarFundoLogo,
