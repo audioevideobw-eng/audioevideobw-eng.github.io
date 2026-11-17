@@ -683,6 +683,11 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   app instalado na tela de início (reconhecimento do navegador não funciona): grava e transcreve pela bw-ia. NÃO testado em iPhone real
   (sem aparelho) — aguarda o dono. layout.js v42, sw v98.
 
+- 16/11/2026 23:55 · Claude (dono, iPhone com o app instalado: "ouço o barulho ao tocar, a resposta aparece, mas a voz não toca"; Android e PC OK):
+  bw-agente.js v13–v14 — 🔊 OUVIR A VOZ agora mostra um diagnóstico na tela (versão, voz, se o aparelho começou a falar, erro) e a sessão de
+  áudio do iPhone volta para "playback" depois do microfone (navigator.audioSession; antes ficava no modo chamada). Aguardando a linha
+  de diagnóstico do dono; plano B = voz neural tocada como áudio. layout.js v44, sw v100.
+
 ## Pendências (dono)
 - [x] (16/11 11:42) IA CRIATIVA ATIVA: conta Cloudflare do dono (Free, sem cartão), token "Brightway IA criativa 2" (Workers AI Read+Edit) em
       CF_API_TOKEN, CF_ACCOUNT_ID salvo. Teste no ar: "cabelo cacheado ruivo e óculos de sol" → nova versão em 6 s, mesma pessoa/roupa/fundo.

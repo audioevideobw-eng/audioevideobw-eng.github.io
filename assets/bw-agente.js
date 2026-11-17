@@ -440,6 +440,7 @@
   }
   var falaId = 0, destravado = 0, micFim = 0, srRuim = false;
   var IOS = /iPhone|iPad|iPod/i.test(navigator.userAgent || "") || (/Macintosh/i.test(navigator.userAgent || "") && navigator.maxTouchPoints > 1);
+  function sessaoAudio(t) { try { if (navigator.audioSession && navigator.audioSession.type !== t) navigator.audioSession.type = t; } catch (e) { } }   /* iPhone: depois do microfone o som fica preso no modo "chamada" (mudo/baixinho) → volta para "playback" */
   function destravar() {   /* 16/11: iPhone e Android só deixam o site FALAR se a primeira fala nascer dentro de um toque → fala muda no toque */
     if (!window.speechSynthesis || !ui("voz", true)) return;
     try { speechSynthesis.resume(); if (destravado) return; var u = new SpeechSynthesisUtterance(""); u.volume = 0; u.lang = "pt-BR"; speechSynthesis.speak(u); destravado = Date.now(); } catch (e) { }
@@ -448,6 +449,7 @@
   function falar(txt, depois) {
     var meu = ++falaId, fim = false, seguir = function () { if (fim) return; fim = true; if (depois && meu === falaId) setTimeout(function () { if (meu === falaId) depois(); }, 250); };
     if (!ui("voz", true) || !window.speechSynthesis || !txt) { seguir(); return; }
+    if (!ouvindo) sessaoAudio("playback");
     try {
       var limpo = String(txt).replace(/R\$ ?/g, "").replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}✓✕➤↗📊💬🤔]/gu, "").replace(/(\d{1,2}):00\b/g, "$1 horas").replace(/\s+/g, " ").slice(0, 600);
       var ocupado = speechSynthesis.speaking || speechSynthesis.pending; if (ocupado) speechSynthesis.cancel();
@@ -477,8 +479,8 @@
     if (!SR || srRuim || painel.hidden || ouvindo || !ESTADO.acoes.some(function (a) { return !a.feito && /gasto|receita|entrada|conta_pagar|tarefa|custo_evento/.test(a.tipo); })) return;
     ouvindo = true; fab.classList.add("ouvindo");
     status('<span class="bwg-onda"><i></i><i></i><i></i><i></i></span> Diga <b>"sim"</b> para lançar, <b>"não"</b> para cancelar — ou toque nos botões.');
-    var r = ""; try { r = sa(await ouvirNavegador(function () { })); } catch (e) { }
-    ouvindo = false; fab.classList.remove("ouvindo");
+    sessaoAudio("play-and-record"); var r = ""; try { r = sa(await ouvirNavegador(function () { })); } catch (e) { }
+    ouvindo = false; fab.classList.remove("ouvindo"); micFim = Date.now(); sessaoAudio("playback");
     var rt = r.trim().replace(/^(tio claudio|claudio)[ ,]*/, "");
     if (/^(sim|s|isso|pode|confirm|lanc|ok|beleza|certo|manda|bora|claro|positivo|uhum|aham)( |$)/.test(rt) || / (pode lancar|confirmo|isso mesmo)/.test(" " + rt)) lancarTodas(continuar);
     else if (/^(nao|cancel|esquece|deixa|para)( |$)/.test(rt) && rt.split(" ").length <= 3) { ESTADO.acoes = []; desenharAcoes(); status("Cancelado. Nada foi lançado."); falar("Tudo bem, cancelei.", continuar); }
@@ -599,14 +601,14 @@
     if (/Mac OS X/i.test(ua)) return "No Mac: Ajustes do Sistema → Acessibilidade → Conteúdo Falado → Voz do sistema → Gerenciar vozes → Português (Brasil) → “Felipe”.";
     return "No computador, o navegador Microsoft Edge traz a voz masculina “Antonio” (natural), de graça.";
   }
-  var VERSAO = 13;
+  var VERSAO = 14;
   function testeSom() {   /* fala DIRETO no toque (sem espera) e mostra na tela o que o aparelho respondeu — para achar por que não sai som */
     var d = painel.querySelector("#bwgDiag"), linha = function (t) { if (d) d.textContent = "v" + VERSAO + " · " + t; };
     if (!window.speechSynthesis) { linha("este navegador não tem voz (speechSynthesis)"); return; }
     try {
-      falaId++; speechSynthesis.cancel(); try { speechSynthesis.resume(); } catch (e) { }
+      falaId++; sessaoAudio("playback"); speechSynthesis.cancel(); try { speechSynthesis.resume(); } catch (e) { }
       var v = melhorVoz(), u = new SpeechSynthesisUtterance("Opa! Aqui é o Tio Cláudio. Bora organizar esse dia, uai?"); u.lang = v ? v.lang : "pt-BR"; if (v) u.voice = v; u.volume = 1; u.rate = +ui("velocidade", 1.05) || 1.05; u.pitch = tomDe(v);
-      var info = (v ? v.name : "voz padrão") + " · " + vozes().length + " vozes pt" + (navigator.standalone ? " · app instalado" : "");
+      var info = (v ? v.name : "voz padrão") + " · " + vozes().length + " vozes pt" + (navigator.standalone ? " · app instalado" : "") + (navigator.audioSession ? " · sessão " + navigator.audioSession.type : " · sem audioSession") + (micFim ? " · mic usado" : "");
       linha("pedindo som… " + info);
       u.onstart = function () { linha("✓ o aparelho COMEÇOU a falar · " + info + " — se não ouviu, é volume/silencioso"); };
       u.onend = function () { linha("✓ fala terminada · " + info); };
@@ -636,7 +638,7 @@
   async function ouvir(emConversa) {
     calar(); var fala = painel.querySelector(".bwg-fala"); fala.textContent = "";
     if (!SR && !(navigator.mediaDevices && window.MediaRecorder)) { status("Seu navegador não tem reconhecimento de voz — escreva o pedido abaixo."); return; }
-    ouvindo = true; fab.classList.add("ouvindo"); bip(true);
+    ouvindo = true; fab.classList.add("ouvindo"); bip(true); sessaoAudio("play-and-record");
     status('<span class="bwg-onda"><i></i><i></i><i></i><i></i></span> ' + (emConversa ? "Tô ouvindo… pode falar (ou diga “tchau”)" : "Ouvindo… pode falar com o Tio Cláudio (toque no robô para parar)"));
     try {
       var txt;
@@ -649,11 +651,11 @@
         }
       } else txt = await ouvirGravando(function (p) { status(esc(p)); });
       micFim = Date.now();
-      ouvindo = false; fab.classList.remove("ouvindo");
+      ouvindo = false; fab.classList.remove("ouvindo"); sessaoAudio("playback");
       if (!txt) { status(emConversa ? "Fim da conversa. Toque no robô quando precisar." : "Não ouvi nada. Toque em 🎙 e fale de novo, ou escreva."); return; }
       fala.textContent = txt; processar(txt, true);
     } catch (e) {
-      ouvindo = false; fab.classList.remove("ouvindo");
+      ouvindo = false; fab.classList.remove("ouvindo"); micFim = Date.now(); sessaoAudio("playback");
       var m = String(e && e.message || e);
       status(/not-allowed|denied|Permission/i.test(m) ? "O microfone está bloqueado. Libere o microfone para este site (cadeado na barra de endereço) ou escreva abaixo."
         : /no-speech|aborted/.test(m) && emConversa ? "Fim da conversa. Toque no robô quando precisar."
