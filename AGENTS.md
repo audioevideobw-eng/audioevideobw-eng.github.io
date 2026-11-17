@@ -736,7 +736,20 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   BW REELS PRO no ar com a IA REAL (logado): 5 ganchos + roteiro + legenda em 4,5 s; número do próprio usuário ficava sem fonte e a IA fez
   citação sem autor → corrigidos (reels.js v2, sw v106); depois inventou o autor "Especialista em eventos" → citação da IA vira texto (reels.js v3, sw v107). Conferido no ar: número próprio com fonte, validação OK. PENTE FINO 74.
 
+- 17/11/2026 · Claude (dono mandou 5 vídeos de referência + "faça bem organizado… exemplos visuais: motions de texto, histórias com
+  personagens usando o motor, personagens com IA de fora"): BW REELS PRO ganhou a galeria 🎬 MODELOS / O QUE VAMOS CRIAR? (abre sozinha
+  na 1ª vez e no + NOVO) com 3 categorias e VÍDEO DE EXEMPLO em cada modelo (assets/reels-exemplos/*.mp4+jpg, 1,2 MB, gerados dos MESMOS
+  roteiros em assets/reels-modelos.js): MOTION DE TEXTO (5 modelos + A IA CRIA PARA MIM), HISTÓRIAS COM PERSONAGENS (4 modelos) e
+  PERSONAGEM COM IA (modelo com 3 cenas de clipe + MONTE O SEU PERSONAGEM: prompts de imagem e vídeo, ✨ CAPRICHAR COM IA, passo a passo,
+  Flux/Higgsfield/Kling/Veo). Motor (Studio → reels-motor.js v2): nova cena `personagem` — 6 personagens originais (Bê, Ana, Léo, Bia, Rui,
+  Robô), 7 ações, balões em sequência, até 2 por cena, cenários raios/palco/bolinhas, entradas; nos 3 motores. Aba CENA: escolha com desenho,
+  ação, cor da roupa, 4 falas, cenário e entrada. IA de roteiro em modo personagem (resposta corrigida se vier personagem/ação inexistente).
+  Studio: motor/animar.mjs (qualquer HTML animado → MP4/MOV com --checar/--folha/--alfa), skill animacao-por-codigo, /animar,
+  modelos/animacoes/personagem-bw.html; zip e tutorial em downloads/ atualizados. sw.js: vídeo/áudio e Range fora do cache (Safari).
+  teste_reels.py 58 checagens × 1280/390 (0 falhas), varredura 49 páginas 0 achados, vigia ✅. Manual 41 → 42 p. sw v108. PENTE FINO 75–77.
+
 ## Pendências (dono)
+- [ ] (17/11) BW REELS PRO › 🎬 MODELOS: dono testar a galeria e um modelo de personagem no iPhone (vídeos de exemplo tocando) e mandar opinião.
 - [ ] (17/11) BW REELS PRO: dono testar no ar — instalar o motor pelo ⚙ MOTOR NO PC, abrir o BW Reels Render e fazer um RENDERIZAR NO PC;
       conferir a IA real (ganchos/roteiro em JSON) logado.
 - [x] (16/11 11:42) IA CRIATIVA ATIVA: conta Cloudflare do dono (Free, sem cartão), token "Brightway IA criativa 2" (Workers AI Read+Edit) em

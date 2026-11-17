@@ -81,7 +81,7 @@
   }
   function novoProjeto() {
     return {id: uid(), nome: "", briefing: {assunto: "", nicho: "Eventos corporativos", cta: "", publico: "", perfil: "", fatos: ""},
-      ganchos: [], ganchoEsc: -1, fatos: [], legenda: "", roteiro: roteiroBase(), atualizado: Date.now()};
+      ganchos: [], ganchoEsc: -1, fatos: [], legenda: "", roteiro: roteiroBase(), modo: "texto", atualizado: Date.now()};
   }
 
   var tSalvar = null;
@@ -254,8 +254,8 @@
   $("chkZonas").onchange = function () { $("zonaT").hidden = $("zonaB").hidden = !this.checked; try { localStorage.setItem("ui_reels_zonas", this.checked ? "1" : "0"); } catch (e) { } };
 
   /* ---------- linha do tempo ---------- */
-  var NOMES = {gancho: "Gancho", texto: "Texto", midia: "Mídia", dado: "Dado", lista: "Lista", citacao: "Citação", cta: "Chamada"};
-  function resumo(c) { return c.texto || c.titulo || (c.tipo === "dado" ? (c.prefixo || "") + " " + (c.valor != null ? c.valor : "") + " " + (c.rotulo || "") : "") || (c.midia ? (MID.find(function (m) { return m.caminho === c.midia; }) || {}).nome || "mídia" : "—"); }
+  var NOMES = {gancho: "Gancho", texto: "Texto", midia: "Mídia", dado: "Dado", lista: "Lista", citacao: "Citação", cta: "Chamada", personagem: "Personagem"};
+  function resumo(c) { if (c.tipo === "personagem") { var f = (c.falas && c.falas[0] && c.falas[0].texto) || c.balao; var el = c.elenco && c.elenco.length ? c.elenco : [{personagem: c.personagem || "be"}]; return f || el.map(function (a) { return (M.PERSONAGENS[a.personagem] || {nome: "?"}).nome.split(" ")[0]; }).join(" e "); } return c.texto || c.titulo || (c.tipo === "dado" ? (c.prefixo || "") + " " + (c.valor != null ? c.valor : "") + " " + (c.rotulo || "") : "") || (c.midia ? (MID.find(function (m) { return m.caminho === c.midia; }) || {}).nome || "mídia" : "—"); }
   var ERROS_CENA = {};
   function desenharLinha() {
     var cs = P.roteiro.cenas, tot = cs.reduce(function (s, c) { return s + (Number(c.duracao) || 0); }, 0);
@@ -279,20 +279,22 @@
   /* ---------- editor da cena ---------- */
   var CAMPOS = {
     gancho: ["gTexto", "gEnfase", "gChamada"], texto: ["gTexto", "gEnfase", "gSub"], midia: ["gTexto", "gEnfase"],
-    dado: ["gDado"], lista: ["gTexto", "gItens", "gEnfase"], citacao: ["gTexto", "gAutor", "gEnfase"], cta: ["gTexto", "gEnfase", "gAcao"]
+    dado: ["gDado"], lista: ["gTexto", "gItens", "gEnfase"], citacao: ["gTexto", "gAutor", "gEnfase"], cta: ["gTexto", "gEnfase", "gAcao"],
+    personagem: ["gTexto", "gEnfase", "gPers"]
   };
   function textoPrincipal(c) { return c.tipo === "texto" || c.tipo === "lista" ? (c.titulo || "") : (c.texto || ""); }
   function desenharCena() {
     var c = P.roteiro.cenas[SEL];
     $("cenaVazia").hidden = !!c; $("cenaForm").hidden = !c; if (!c) return;
-    ["gTexto", "gEnfase", "gSub", "gChamada", "gItens", "gDado", "gAutor", "gAcao"].forEach(function (g) { $(g).hidden = (CAMPOS[c.tipo] || []).indexOf(g) < 0; });
+    ["gTexto", "gEnfase", "gSub", "gChamada", "gItens", "gDado", "gAutor", "gAcao", "gPers"].forEach(function (g) { $(g).hidden = (CAMPOS[c.tipo] || []).indexOf(g) < 0; });
     $("cTipo").value = c.tipo; $("cDur").value = c.duracao;
     $("cTexto").value = textoPrincipal(c); $("cEnfase").value = (c.enfase || []).join(", "); $("cSub").value = c.subtitulo || ""; $("cChamada").value = c.chamada || "";
     $("cItens").value = (c.itens || []).join("\n"); $("cValor").value = c.valor != null ? c.valor : ""; $("cCasas").value = c.casas || 0;
     $("cPref").value = c.prefixo || ""; $("cSuf").value = c.sufixo || ""; $("cRotulo").value = c.rotulo || ""; $("cFonte").value = c.fonte || "";
     $("cAutor").value = c.autor || ""; $("cAcao").value = c.acao || ""; $("cMov").value = c.movimento || ""; $("cTrans").value = c.transicao || "";
     $("cIni").value = c.inicioNoArquivo || 0; $("cFala").value = c.fala || "";
-    $("cTexto").previousElementSibling.textContent = c.tipo === "lista" ? "Título da lista" : c.tipo === "citacao" ? "Frase" : "Texto na tela";
+    $("cTexto").previousElementSibling.textContent = c.tipo === "lista" ? "Título da lista" : c.tipo === "citacao" ? "Frase" : c.tipo === "personagem" ? "Texto no alto da tela (opcional)" : "Texto na tela";
+    if (c.tipo === "personagem") desenharPers(c);
     desenharMidias();
     $("cEsq").disabled = SEL === 0; $("cDir").disabled = SEL >= P.roteiro.cenas.length - 1;
   }
@@ -319,12 +321,67 @@
     if ($("cTrans").value) n.transicao = $("cTrans").value;
     if ($("cFala").value.trim()) n.fala = $("cFala").value.trim();
     if (tipo === "midia" && !n.texto) delete n.texto;
+    if (tipo === "personagem") { if (!n.texto) delete n.texto; lerPers(n); }
     P.roteiro.cenas[SEL] = n;
   }
-  ["cTipo", "cMidia", "cMov", "cTrans"].forEach(function (id) { $(id).addEventListener("change", function () { lerCena(); salvar(); desenharCena(); atualizar(); }); });
+  ["cTipo", "cMidia", "cMov", "cTrans"].forEach(function (id) { $(id).addEventListener("change", function () {
+    var era = (P.roteiro.cenas[SEL] || {}).tipo;
+    if (id === "cTipo" && this.value === "personagem" && era !== "personagem") { var d0 = Number(P.roteiro.cenas[SEL].duracao) || 3.5; P.roteiro.cenas[SEL] = {tipo: "personagem", duracao: Math.max(3, d0), personagem: "be", acao: "acena", balao: "Oi! Olha só isso", cenario: "raios", entrada: "pula"}; salvar(); desenharCena(); atualizar(); return; }
+    lerCena(); salvar(); desenharCena(); atualizar(); }); });
   ["cDur", "cTexto", "cEnfase", "cSub", "cChamada", "cItens", "cValor", "cCasas", "cPref", "cSuf", "cRotulo", "cFonte", "cAutor", "cAcao", "cIni", "cFala"].forEach(function (id) {
     $(id).addEventListener("input", function () { lerCena(); salvar(); atualizar(); });
   });
+
+  /* ---------- cena PERSONAGEM (motor desenha e anima) ---------- */
+  var NOMES_ACAO = {parado: "Parado", acena: "Acena", fala: "Fala", aponta: "Aponta", comemora: "Comemora", pensa: "Pensa", surpresa: "Se assusta"};
+  var PS = {a: "be", b: ""};
+  var corDe = function (id, cores) { var p = M.PERSONAGENS[id]; if (!p) return "#FFB547"; var c = Object.assign({}, p.cores, cores || {}); return p.desenho === "pessoa" ? c.roupa : c.detalhe; };
+  function miniPers(id) { return M.svgPersonagem(id).replace(/id="bwLente"/g, 'id="bwL' + id + '"').replace(/url\(#bwLente\)/g, "url(#bwL" + id + ")"); }
+  function elencoDe(c) { return c.elenco && c.elenco.length ? c.elenco : [{personagem: c.personagem || "be", acao: c.acao}]; }
+  function desenharPers(c) {
+    var el = elencoDe(c); PS.a = el[0].personagem || "be"; PS.b = el[1] ? el[1].personagem || "be" : "";
+    var ids = Object.keys(M.PERSONAGENS);
+    var botao = function (id, sel, grupo) { return '<button type="button" class="ps-bt' + (id === sel ? " on" : "") + '" data-ps="' + grupo + '" data-id="' + id + '" aria-pressed="' + (id === sel) + '"><span>' + miniPers(id) + '</span>' + esc(M.PERSONAGENS[id].nome.split(" ")[0]) + '</button>'; };
+    $("psA").innerHTML = ids.map(function (id) { return botao(id, PS.a, "a"); }).join("");
+    $("psB").innerHTML = '<button type="button" class="ps-bt nada' + (!PS.b ? " on" : "") + '" data-ps="b" data-id="" aria-pressed="' + !PS.b + '"><span>—</span>Ninguém</button>' + ids.map(function (id) { return botao(id, PS.b, "b"); }).join("");
+    var ops = M.ACOES.map(function (a) { return '<option value="' + a + '">' + NOMES_ACAO[a] + '</option>'; }).join("");
+    $("psAcaoA").innerHTML = '<option value="">Automático (fala quando tem balão)</option>' + ops; $("psAcaoB").innerHTML = $("psAcaoA").innerHTML;
+    $("psAcaoA").value = el[0].acao || ""; $("psAcaoB").value = el[1] && el[1].acao || "";
+    $("psCorA").value = corDe(PS.a, el[0].cores); $("psCorB").value = corDe(PS.b || "be", el[1] && el[1].cores);
+    $("psLinhaB").hidden = !PS.b;
+    var falas = c.falas && c.falas.length ? c.falas : (c.balao ? [{quem: 0, texto: c.balao}] : []);
+    var nomeA = M.PERSONAGENS[PS.a].nome.split(" ")[0], nomeB = PS.b ? M.PERSONAGENS[PS.b].nome.split(" ")[0] : "";
+    var linhas = ""; for (var k = 0; k < 4; k++) { var f = falas[k] || {quem: k % 2 && PS.b ? 1 : 0, texto: ""};
+      linhas += '<div class="ps-fala"><select id="psQuem' + k + '" aria-label="Quem fala ' + (k + 1) + '"><option value="0">' + esc(nomeA) + '</option>' + (PS.b ? '<option value="1"' + (f.quem === 1 ? " selected" : "") + '>' + esc(nomeB) + '</option>' : "") + '</select>' +
+        '<input id="psFala' + k + '" aria-label="Fala ' + (k + 1) + '" value="' + esc(f.texto) + '" placeholder="' + (k ? "(opcional)" : "ex.: Seu evento ao vivo!") + '"></div>'; }
+    $("psFalas").innerHTML = linhas;
+    $("psCenario").value = c.cenario || "raios"; $("psEntrada").value = c.entrada || "pula";
+  }
+  function lerPers(n) {
+    var coresDe = function (id, cor) { var p = M.PERSONAGENS[id]; if (!p || cor.toLowerCase() === String(corDe(id)).toLowerCase()) return null; var o = {}; o[p.desenho === "pessoa" ? "roupa" : "detalhe"] = cor; return o; };
+    var a = {personagem: PS.a}; if ($("psAcaoA").value) a.acao = $("psAcaoA").value; var ca = coresDe(PS.a, $("psCorA").value); if (ca) a.cores = ca;
+    var el = [a];
+    if (PS.b) { var b = {personagem: PS.b}; if ($("psAcaoB").value) b.acao = $("psAcaoB").value; var cb = coresDe(PS.b, $("psCorB").value); if (cb) b.cores = cb; el.push(b); }
+    n.elenco = el;
+    var falas = []; for (var k = 0; k < 4; k++) { var t = ($("psFala" + k) || {}).value; if (t && t.trim()) falas.push({quem: PS.b ? Number($("psQuem" + k).value) || 0 : 0, texto: t.trim()}); }
+    if (falas.length) n.falas = falas;
+    n.cenario = $("psCenario").value; n.entrada = $("psEntrada").value;
+  }
+  ["psA", "psB"].forEach(function (id) {
+    $(id).addEventListener("click", function (e) {
+      var b = e.target.closest("[data-ps]"); if (!b) return;
+      lerCena(); var c = P.roteiro.cenas[SEL]; var el = elencoDe(c).map(function (x) { return Object.assign({}, x); });
+      if (b.dataset.ps === "a") { el[0] = {personagem: b.dataset.id}; }
+      else if (!b.dataset.id) { el = [el[0]]; (c.falas || []).forEach(function (f) { f.quem = 0; }); }
+      else { el[1] = {personagem: b.dataset.id}; }
+      c.elenco = el; delete c.personagem; delete c.acao; salvar(); desenharCena(); atualizar();
+    });
+  });
+  ["psAcaoA", "psAcaoB", "psCenario", "psEntrada"].forEach(function (id) { $(id).addEventListener("change", function () { lerCena(); salvar(); atualizar(); }); });
+  ["psCorA", "psCorB"].forEach(function (id) { $(id).addEventListener("input", function () { lerCena(); salvar(); atualizar(); }); });
+  $("psFalas").addEventListener("input", function () { lerCena(); salvar(); atualizar(); });
+  $("psFalas").addEventListener("change", function () { lerCena(); salvar(); atualizar(); });
+
   function mover(d) { var cs = P.roteiro.cenas, j = SEL + d; if (j < 0 || j >= cs.length) return; var x = cs[SEL]; cs[SEL] = cs[j]; cs[j] = x; SEL = j; salvar(); desenharTudo(); atualizar(); }
   $("cEsq").onclick = function () { mover(-1); };
   $("cDir").onclick = function () { mover(1); };
@@ -375,7 +432,10 @@
     var s = await sessao(); if (!s) return {erro: "sem_login"};
     var b = P.briefing;
     var pedido = "Assunto: " + b.assunto + "\nNicho: " + b.nicho + "\nPúblico: " + (b.publico || "não informado") + "\nChamada final: " + (b.cta || "seguir o perfil") +
-      "\nPerfil: " + (b.perfil || "") + "\nNúmeros e fatos que o usuário pode provar: " + (b.fatos || "nenhum") + "\nIdioma: português do Brasil, tom descontraído e direto.";
+      "\nPerfil: " + (b.perfil || "") + "\nNúmeros e fatos que o usuário pode provar: " + (b.fatos || "nenhum") + "\nIdioma: português do Brasil, tom descontraído e direto." +
+      (P.modo === "personagem" ? "\nFORMATO: HISTÓRIA COM PERSONAGENS. Use principalmente cenas do tipo personagem: {\"tipo\":\"personagem\",\"duracao\":4,\"elenco\":[{\"personagem\":\"ana\"},{\"personagem\":\"be\"}],\"falas\":[{\"quem\":0,\"texto\":\"...\"},{\"quem\":1,\"texto\":\"...\"}],\"cenario\":\"palco\"}. " +
+        "Personagens: be (mascote câmera), ana, leo, bia, rui, robo; ações (campo acao em cada item do elenco): parado, acena, fala, aponta, comemora, pensa, surpresa; cenario: raios, palco, bolinhas. " +
+        "No máximo 2 personagens por cena, falas curtas (até 10 palavras), no máximo 2,5 palavras por segundo. Conte uma mini-história: problema, virada, solução. Pode misturar 1 cena lista. A última cena é cta." : "");
     try {
       var r = await fetch(FN_IA, {method: "POST", headers: {"Content-Type": "application/json", "Authorization": "Bearer " + s.access_token, "apikey": CHAVE_PUB},
         body: JSON.stringify({sistema: SISTEMA, pedido: pedido, max: 1200})});
@@ -384,12 +444,23 @@
       var d = extrairJSON(j.texto); return d ? {dados: d} : {erro: "formato"};
     } catch (e) { return {erro: "rede"}; }
   }
-  var TIPOS_OK = ["texto", "lista", "dado", "citacao", "cta"];
+  var TIPOS_OK = ["texto", "lista", "dado", "citacao", "cta", "personagem"];
   function normalizarCenas(lista, b) {
     var out = [];
     (lista || []).forEach(function (c) {
       if (!c || TIPOS_OK.indexOf(c.tipo) < 0) return;
       var n = {tipo: c.tipo, duracao: Math.max(2.5, Math.min(6, Number(c.duracao) || 3.5))};
+      if (c.tipo === "personagem") {
+        var IDS = Object.keys(M.PERSONAGENS);
+        var el = (Array.isArray(c.elenco) && c.elenco.length ? c.elenco : [{personagem: c.personagem, acao: c.acao}]).slice(0, 2).map(function (a) {
+          var o = {personagem: IDS.indexOf(a && a.personagem) >= 0 ? a.personagem : "be"}; if (a && M.ACOES.indexOf(a.acao) >= 0) o.acao = a.acao; return o; });
+        var fs = (Array.isArray(c.falas) ? c.falas : (c.balao ? [{quem: 0, texto: c.balao}] : [])).map(function (f) { return {quem: el.length > 1 && Number(f && f.quem) === 1 ? 1 : 0, texto: palavras(f && f.texto).slice(0, 14).join(" ")}; }).filter(function (f) { return f.texto; }).slice(0, 4);
+        n.elenco = el; if (fs.length) n.falas = fs;
+        n.cenario = ["raios", "palco", "bolinhas"].indexOf(c.cenario) >= 0 ? c.cenario : "raios";
+        n.entrada = out.length && out[out.length - 1].tipo === "personagem" ? "nenhuma" : "pula";
+        var pw = fs.reduce(function (s2, f) { return s2 + palavras(f.texto).length; }, 0); n.duracao = Math.max(n.duracao, Math.min(8, pw / 2.4 + 1));
+        out.push(n); return;
+      }
       ["titulo", "subtitulo", "texto", "autor", "acao", "rotulo", "fonte", "prefixo", "sufixo", "fala"].forEach(function (k) { if (c[k] != null && String(c[k]).trim()) n[k] = String(c[k]).trim(); });
       if (Array.isArray(c.enfase)) n.enfase = c.enfase.map(String).slice(0, 2);
       if (c.tipo === "lista") n.itens = (Array.isArray(c.itens) ? c.itens : []).map(String).filter(Boolean).slice(0, 4);
@@ -575,6 +646,80 @@
   $("fLegenda").addEventListener("input", function () { P.legenda = this.value; salvar(); });
   $("btCopiar").onclick = function () { var t = $("fLegenda").value; if (!t) return; (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(function () { $("btCopiar").textContent = "✓ COPIADA"; setTimeout(function () { $("btCopiar").textContent = "COPIAR LEGENDA"; }, 1800); }).catch(function () { $("fLegenda").select(); }); };
 
+
+  /* ---------- galeria de MODELOS ("O que vamos criar?") ---------- */
+  var MOD = window.BWReelsModelos || {categorias: [], modelos: [], ferramentasIA: []};
+  var CAT = "texto", OBS = null;
+  function abrirModelos(cat) {
+    CAT = cat || CAT;
+    $("glCats").innerHTML = MOD.categorias.map(function (c) {
+      return '<button type="button" role="tab" class="gl-cat' + (c.id === CAT ? " on" : "") + '" data-cat="' + c.id + '" aria-selected="' + (c.id === CAT) + '"><i>' + c.icone + '</i><span><b>' + esc(c.nome) + '</b><small>' + esc(c.desc) + '</small></span></button>';
+    }).join("");
+    var cards = MOD.modelos.filter(function (m) { return m.cat === CAT; }).map(function (m) {
+      return '<div class="gl-mod"><div class="vis" style="background-image:url(assets/reels-exemplos/' + m.id + '.jpg)"><video muted loop playsinline preload="none" poster="assets/reels-exemplos/' + m.id + '.jpg" data-src="assets/reels-exemplos/' + m.id + '.mp4" aria-label="Exemplo: ' + esc(m.nome) + '"></video><em>EXEMPLO</em></div>' +
+        '<div class="tx"><b>' + esc(m.nome) + '</b><small>' + esc(m.desc) + '</small><button type="button" class="rl-bt pri peq" data-usar="' + m.id + '">USAR ESTE MODELO</button></div></div>';
+    });
+    if (CAT === "texto") cards.unshift('<div class="gl-mod zero"><div class="vis">✨</div><div class="tx"><b>A IA CRIA PARA MIM</b><small>Diga o assunto: a IA Brightway escreve 5 ganchos e o roteiro. Você escolhe e ajusta.</small><button type="button" class="rl-bt pri peq" data-usar="__ia">COMEÇAR</button></div></div>');
+    if (CAT === "ia") cards.unshift('<div class="gl-mod"><div class="vis" style="background-image:url(assets/reels-exemplos/demo-ia.jpg)"><video muted loop playsinline preload="none" poster="assets/reels-exemplos/demo-ia.jpg" data-src="assets/reels-exemplos/demo-ia.mp4" aria-label="Como funciona"></video><em>COMO FUNCIONA</em></div><div class="tx"><b>3 PASSOS</b><small>Crie a imagem, anime numa IA de vídeo e monte aqui com textos e chamada.</small></div></div>');
+    $("glGrade").innerHTML = cards.join("");
+    $("glIA").hidden = CAT !== "ia";
+    if (CAT === "ia") { $("glFerr").innerHTML = (MOD.ferramentasIA || []).map(function (f) { return '<li><b>' + esc(f.nome) + '</b> — ' + esc(f.papel) + (f.url ? ' · <a href="' + f.url + '" target="_blank" rel="noopener">abrir ↗</a>' : "") + '</li>'; }).join(""); gerarPrompts(); }
+    $("folhaModelos").hidden = false;
+    tocarExemplos();
+  }
+  function tocarExemplos() {
+    var vids = [].slice.call(document.querySelectorAll("#folhaModelos video"));
+    var liga = function (v, on) { if (on) { if (!v.src) v.src = v.dataset.src; var pr = v.play(); if (pr && pr.catch) pr.catch(function () { }); } else if (!v.paused) v.pause(); };
+    if (OBS) OBS.disconnect();
+    if ("IntersectionObserver" in window) { OBS = new IntersectionObserver(function (es) { es.forEach(function (e) { liga(e.target, e.isIntersecting); }); }, {root: $("folhaModelos").firstElementChild, threshold: 0.35}); vids.forEach(function (v) { OBS.observe(v); }); }
+    else vids.forEach(function (v) { liga(v, true); });
+  }
+  function fecharModelos() { $("folhaModelos").hidden = true; [].forEach.call(document.querySelectorAll("#folhaModelos video"), function (v) { v.pause(); }); if (OBS) OBS.disconnect(); }
+  $("btModelos").onclick = function () { abrirModelos(); };
+  $("btFecharModelos").onclick = fecharModelos;
+  $("folhaModelos").addEventListener("click", async function (e) {
+    if (e.target === this) { fecharModelos(); return; }
+    var c = e.target.closest("[data-cat]"); if (c) { abrirModelos(c.dataset.cat); return; }
+    var cp = e.target.closest("[data-copiar]"); if (cp) { var t = $(cp.dataset.copiar).value; if (navigator.clipboard) navigator.clipboard.writeText(t).then(function () { cp.textContent = "✓ COPIADO"; setTimeout(function () { cp.textContent = "COPIAR"; }, 1600); }).catch(function () { $(cp.dataset.copiar).select(); }); else $(cp.dataset.copiar).select(); return; }
+    var u = e.target.closest("[data-usar]"); if (!u) return;
+    salvar();
+    var novo = novoProjeto();
+    if (u.dataset.usar === "__ia") { novo.modo = "texto"; fecharModelos(); await abrir(novo); trocarAba("criar"); trocarPasso("assunto"); $("fAssunto").focus(); return; }
+    var m = MOD.modelos.find(function (x) { return x.id === u.dataset.usar; }); if (!m) return;
+    novo.modo = m.cat; novo.nome = m.nome.charAt(0) + m.nome.slice(1).toLowerCase(); novo.roteiro = JSON.parse(JSON.stringify(m.roteiro)); novo.modelo = m.id;
+    (novo.roteiro.fontes || []).forEach(function (f) { novo.fatos.push({afirmacao: f.afirmacao, fonte: f.url}); });
+    fecharModelos(); await abrir(novo); T = 1.5; posicionar(1.5);
+    trocarAba(m.cat === "ia" ? "midia" : "cena"); SEL = 0; desenharTudo();
+    if (m.cat === "ia") setTimeout(function () { alert("Modelo aberto! Importe aqui os clipes do seu personagem de IA e, na aba CENA, escolha cada clipe em “Fundo / mídia”."); }, 200);
+  });
+
+  /* prompts para o personagem de IA (montados no aparelho; ✨ opcional pela IA Brightway) */
+  var IA_CAMPOS = ["iaNome", "iaEstilo", "iaAparencia", "iaRoupa", "iaCenario", "iaAcao", "iaFala"];
+  function lerIA() { var o = {}; IA_CAMPOS.forEach(function (id) { o[id] = ($(id).value || "").trim(); }); try { localStorage.setItem("ui_reels_ia", JSON.stringify(o)); } catch (e) { } return o; }
+  function gerarPrompts() {
+    var o = lerIA(), nome = o.iaNome || "the character", ap = o.iaAparencia || "friendly original character", roupa = o.iaRoupa ? ", wearing " + o.iaRoupa : "";
+    $("iaPImg").value = "Character sheet of " + nome + ": " + ap + roupa + ". " + o.iaEstilo + ". Full body, front view, three-quarter view and side view, plus 3 facial expressions (happy, surprised, talking). " +
+      "Plain light background, consistent proportions and colors, no text, no logos, original design (not based on any existing character or real person).";
+    $("iaPVid").value = "Use the reference image: same character, same face, same outfit. " + nome + " " + (o.iaAcao || "waves at the camera and smiles") + ", " + (o.iaCenario ? "in " + o.iaCenario : "in a clean studio set") + ". " +
+      "Vertical 9:16, 5 to 8 seconds, slow camera push-in, natural motion, " + o.iaEstilo.split(",")[0] + ", no text on screen." + (o.iaFala ? ' The character says in Brazilian Portuguese: "' + o.iaFala + '"' : "");
+  }
+  IA_CAMPOS.forEach(function (id) { $(id).addEventListener("input", gerarPrompts); $(id).addEventListener("change", gerarPrompts); });
+  try { var iaS = JSON.parse(localStorage.getItem("ui_reels_ia") || "{}"); IA_CAMPOS.forEach(function (id) { if (iaS[id]) $(id).value = iaS[id]; }); } catch (e) { }
+  $("btIaPrompts").onclick = gerarPrompts;
+  $("btIaMelhorar").onclick = async function () {
+    gerarPrompts(); var s = await sessao(); if (!s) { alert("Entre na sua conta para a IA Brightway caprichar nos prompts. Os prompts acima já funcionam."); return; }
+    var bt = this; bt.disabled = true; bt.textContent = "✨ ESCREVENDO…";
+    try {
+      var r = await fetch(FN_IA, {method: "POST", headers: {"Content-Type": "application/json", "Authorization": "Bearer " + s.access_token, "apikey": CHAVE_PUB},
+        body: JSON.stringify({sistema: "Você escreve prompts em inglês para IAs de imagem e de vídeo (Flux, Kling, Higgsfield, Veo). Responda SÓ com JSON {\"imagem\":\"...\",\"video\":\"...\"}. " +
+          "imagem = ficha de personagem ORIGINAL (vistas de frente, 3/4, lado e 3 expressões, fundo liso, sem texto). video = clipe vertical 9:16 de 5 a 8 s usando a imagem como referência, mesmo rosto e roupa, movimento de câmera e ação. " +
+          "Nunca baseie em personagem famoso, marca ou pessoa real. Mantenha a fala, se houver, em português do Brasil entre aspas.", pedido: JSON.stringify(lerIA()), max: 600})});
+      var j = await r.json().catch(function () { return {}; }); var d = extrairJSON(j.texto);
+      if (d && d.imagem && d.video) { $("iaPImg").value = String(d.imagem); $("iaPVid").value = String(d.video); } else alert("A IA não respondeu agora. Os prompts montados no aparelho continuam valendo.");
+    } catch (e) { alert("Sem conexão com a IA agora. Os prompts montados no aparelho continuam valendo."); }
+    bt.disabled = false; bt.textContent = "✨ CAPRICHAR COM IA";
+  };
+
   /* ---------- projetos ---------- */
   async function abrir(p) {
     parar(); P = p; SEL = 0; T = 1.5;   /* parado no início a cena ainda está entrando: mostra 1,5 s */
@@ -586,7 +731,7 @@
     try { localStorage.setItem("ui_reels_ultimo", P.id); } catch (e) { }
   }
   function desenharTudo() { desenharLinha(); desenharCena(); desenharMidias(); if (PASSO === "gancho") desenharGanchos(); if (PASSO === "estilo") desenharEstilo(); }
-  $("btNovo").onclick = async function () { salvar(); await abrir(novoProjeto()); trocarAba("criar"); $("fAssunto").focus(); };
+  $("btNovo").onclick = function () { abrirModelos("texto"); };
   $("btMeus").onclick = async function () {
     var lista = (await dbTodos("projetos").catch(function () { return []; })).sort(function (a, b) { return b.atualizado - a.atualizado; });
     $("listaMeus").innerHTML = lista.length ? lista.map(function (p) {
@@ -614,7 +759,7 @@
   $("btMotor").onclick = abrirMotor; $("btMotor2").onclick = abrirMotor;
   $("btFecharMotor").onclick = function () { $("folhaMotor").hidden = true; };
   $("folhaMotor").addEventListener("click", function (e) { if (e.target === this) this.hidden = true; });
-  document.addEventListener("keydown", function (e) { if (e.key === "Escape") { $("folhaMeus").hidden = true; $("folhaMotor").hidden = true; } });
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape") { $("folhaMeus").hidden = true; $("folhaMotor").hidden = true; if (!$("folhaModelos").hidden) fecharModelos(); } });
 
   function ocupado(txt) { $("ocup").hidden = !txt; if (txt) $("ocupTxt").textContent = txt; }
 
@@ -624,8 +769,9 @@
     var p = null;
     try { var ult = localStorage.getItem("ui_reels_ultimo"); if (ult) p = await dbGet("projetos", ult); } catch (e) { }
     await abrir(p || novoProjeto());
+    if (!p) abrirModelos("texto");   /* primeira vez: mostra o que dá para criar */
   })();
   window.addEventListener("beforeunload", function () { if (P) { P.atualizado = Date.now(); dbPut("projetos", JSON.parse(JSON.stringify(P))).catch(function () { }); } });
-  window.BWReels = {projeto: function () { return P; }, tocar: tocar, parar: parar, posicionar: posicionar, validar: validar};
+  window.BWReels = {projeto: function () { return P; }, tocar: tocar, parar: parar, posicionar: posicionar, validar: validar, abrirModelos: abrirModelos, normalizarCenas: function (l, b) { return normalizarCenas(l, b || {}); }};
   if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(function () { });
 })();

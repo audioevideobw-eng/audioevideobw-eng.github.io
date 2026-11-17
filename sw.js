@@ -4,7 +4,7 @@
    - fontes de dados (milhas.json): network-first, cai no cache sem rede
    - APIs externas (BCB, er-api): NUNCA cacheadas — passam direto
    Versão no nome do cache: subir CACHE a cada publicação de conteúdo. */
-const CACHE = "bw-mesa-v107";
+const CACHE = "bw-mesa-v108";
 const SHELL = [
   "./",
   "./index.html",
@@ -103,6 +103,10 @@ self.addEventListener("fetch", e => {
     );
     return;
   }
+
+  /* vídeo e áudio (exemplos do BW Reels Pro, 17/11): direto na rede. O Safari do iPhone pede o vídeo em pedaços
+     (Range/206) e uma resposta inteira vinda do cache faz o vídeo não tocar. */
+  if (e.request.headers.has("range") || /\.(mp4|webm|mov|m4v|mp3|m4a)$/i.test(url.pathname)) return;
 
   /* dados da automação (milhas.json): rede primeiro, cache como reserva */
   if (url.pathname.endsWith("milhas.json")) {

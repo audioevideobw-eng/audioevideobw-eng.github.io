@@ -112,6 +112,43 @@
 .rl-folha{position:fixed;inset:0;z-index:250;background:rgba(6,8,13,.7);display:flex;align-items:center;justify-content:center;padding:16px}
 .rl-folha[hidden]{display:none}
 .rl-folha>div{width:min(520px,100%);max-height:86vh;overflow:auto;background:#11141B;border:1px solid rgba(245,241,234,.12);border-radius:18px;padding:16px}
+.rl-folha.larga>div{width:min(1040px,100%);max-height:90vh;padding:18px}
+.gl-cats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:6px 0 14px}
+.gl-cat{display:flex;gap:12px;align-items:flex-start;text-align:left;padding:14px;border-radius:16px;border:1px solid rgba(245,241,234,.12);background:#0D1017;color:#F5F1EA;cursor:pointer;min-width:0}
+.gl-cat i{flex:none;font-style:normal;width:44px;height:44px;border-radius:12px;display:grid;place-items:center;background:rgba(255,181,71,.12);color:#FFB547;font:800 19px Inter,sans-serif}
+.gl-cat b{display:block;font-family:Michroma,sans-serif;font-size:11.5px;letter-spacing:.12em;margin-bottom:4px}
+.gl-cat small{display:block;font-size:12px;line-height:1.45;color:#9AA1AE}
+.gl-cat.on{border:2px solid #FFB547;background:rgba(255,181,71,.08)}
+.gl-cat.on i{background:#FFB547;color:#06080D}
+.gl-grade{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px}
+.gl-mod{display:flex;flex-direction:column;border-radius:16px;overflow:hidden;background:#0D1017;border:1px solid rgba(245,241,234,.10);min-width:0}
+.gl-mod .vis{position:relative;aspect-ratio:9/16;background:#000 center/cover no-repeat}
+.gl-mod video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.gl-mod .vis em{position:absolute;left:8px;bottom:12px;font-style:normal;font-size:10px;font-weight:800;letter-spacing:.08em;padding:3px 7px;border-radius:6px;background:rgba(6,8,13,.75);color:#FFB547}
+.gl-mod .tx{padding:10px 11px 12px;display:flex;flex-direction:column;gap:6px;flex:1}
+.gl-mod .tx b{font-family:Michroma,sans-serif;font-size:10.5px;letter-spacing:.1em;color:#F5F1EA}
+.gl-mod .tx small{font-size:12px;line-height:1.45;color:#9AA1AE;flex:1}
+.gl-mod.zero .vis{display:grid;place-items:center;background:radial-gradient(80% 60% at 50% 40%,#2a1f0d,#06080D);color:#FFB547;font:800 44px Inter,sans-serif}
+.gl-ia{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:14px;margin-top:14px}
+.gl-box{background:#0D1017;border:1px solid rgba(245,241,234,.10);border-radius:16px;padding:14px;min-width:0}
+.gl-passo{display:flex;gap:10px;margin-bottom:10px;font-size:13px;line-height:1.5;color:#C9CDD5}
+.gl-passo i{flex:none;font-style:normal;width:24px;height:24px;border-radius:50%;display:grid;place-items:center;background:#FFB547;color:#06080D;font-weight:800;font-size:12px}
+.gl-prompt{width:100%;min-height:96px;padding:10px;border-radius:12px;border:1px solid rgba(245,241,234,.14);background:#06080D;color:#F5F1EA;font:13px/1.45 ui-monospace,Menlo,Consolas,monospace;resize:vertical}
+.gl-ferr{list-style:none;margin:0;padding:0}
+.gl-ferr li{padding:8px 0;border-bottom:1px solid rgba(245,241,234,.06);font-size:13px;color:#C9CDD5}
+.gl-ferr li b{color:#F5F1EA}
+.gl-ferr a{color:#FFB547}
+.ps-row{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:8px}
+.ps-bt{flex:none;width:64px;border-radius:12px;border:1px solid rgba(245,241,234,.14);background:#0D1017;color:#C9CDD5;cursor:pointer;padding:4px 2px 3px;font:600 10.5px Inter,sans-serif;display:flex;flex-direction:column;align-items:center;gap:2px}
+.ps-bt span{display:block;width:44px;height:62px}
+.ps-bt.on{border:2px solid #FFB547;background:rgba(255,181,71,.10);color:#F5F1EA}
+.ps-bt.nada span{display:grid;place-items:center;font-size:20px;color:#9AA1AE}
+.ps-falas{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
+.ps-fala{display:grid;grid-template-columns:96px minmax(0,1fr);gap:6px}
+.ps-fala select,.ps-fala input{min-height:42px;padding:0 10px;border-radius:10px;border:1px solid rgba(245,241,234,.14);background:#0D1017;color:#F5F1EA;font:16px Inter,sans-serif;min-width:0}
+.ps-cor{display:flex;align-items:center;gap:8px;font-size:12.5px;color:#C9CDD5}
+.ps-cor input{width:44px;height:36px;border:0;background:none;padding:0}
+@media (max-width:760px){.gl-cats{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.gl-cat{flex-direction:column;align-items:center;text-align:center;gap:6px;padding:10px 6px}.gl-cat i{width:36px;height:36px;font-size:16px}.gl-cat b{font-size:9.5px;letter-spacing:.06em;margin:0}.gl-cat small{display:none}.gl-grade{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.gl-ia{grid-template-columns:minmax(0,1fr)}.rl-folha.larga{padding:0}.rl-folha.larga>div{max-height:100vh;height:100%;border-radius:0}}
 [hidden]{display:none!important}
 @media (max-width:980px){
   .rl-app{grid-template-columns:minmax(0,1fr)}
@@ -136,6 +173,7 @@
   <div class="rl-topo">
     <span class="rl-marca">BW REELS <b>PRO</b></span>
     <input id="nomeProj" class="rl-nome" aria-label="Nome do vídeo" placeholder="Nome do vídeo">
+    <button class="rl-bt pri" id="btModelos" type="button">🎬 MODELOS</button>
     <button class="rl-bt" id="btMeus" type="button">MEUS REELS</button>
     <button class="rl-bt" id="btNovo" type="button">+ NOVO</button>
     <button class="rl-bt" id="btMotor" type="button">⚙ MOTOR NO PC</button>
@@ -230,7 +268,7 @@
         <div id="cenaForm" hidden>
           <div class="rl-dupla">
             <div class="rl-campo"><label for="cTipo">Tipo</label>
-              <select id="cTipo"><option value="gancho">Gancho</option><option value="texto">Texto</option><option value="midia">Mídia</option><option value="dado">Dado (número)</option><option value="lista">Lista</option><option value="citacao">Citação</option><option value="cta">Chamada final</option></select></div>
+              <select id="cTipo"><option value="gancho">Gancho</option><option value="texto">Texto</option><option value="midia">Mídia</option><option value="dado">Dado (número)</option><option value="lista">Lista</option><option value="citacao">Citação</option><option value="cta">Chamada final</option><option value="personagem">Personagem</option></select></div>
             <div class="rl-campo"><label for="cDur">Duração (s)</label><input id="cDur" type="number" min="1" max="15" step="0.1" inputmode="decimal"></div>
           </div>
           <div class="rl-campo" id="gTexto"><label for="cTexto">Texto na tela</label><textarea id="cTexto" rows="2"></textarea></div>
@@ -247,6 +285,26 @@
             </div>
             <div class="rl-campo"><label for="cRotulo">O que o número significa</label><input id="cRotulo"></div>
             <div class="rl-campo"><label for="cFonte">Fonte (aparece na tela)</label><input id="cFonte" placeholder="ex.: IBGE, 2024"></div>
+          </div>
+          <div id="gPers">
+            <div class="rl-eyebrow" style="margin-bottom:6px">Personagem 1</div>
+            <div class="ps-row" id="psA" role="group" aria-label="Escolher o personagem 1"></div>
+            <div class="rl-dupla">
+              <div class="rl-campo"><label for="psAcaoA">O que ele faz</label><select id="psAcaoA"></select></div>
+              <div class="rl-campo"><label class="ps-cor" for="psCorA">Cor da roupa <input type="color" id="psCorA"></label></div>
+            </div>
+            <div class="rl-eyebrow" style="margin-bottom:6px">Personagem 2 (opcional)</div>
+            <div class="ps-row" id="psB" role="group" aria-label="Escolher o personagem 2"></div>
+            <div class="rl-dupla" id="psLinhaB">
+              <div class="rl-campo"><label for="psAcaoB">O que ele faz</label><select id="psAcaoB"></select></div>
+              <div class="rl-campo"><label class="ps-cor" for="psCorB">Cor da roupa <input type="color" id="psCorB"></label></div>
+            </div>
+            <div class="rl-campo" style="margin-bottom:4px"><label>Falas em balão (na ordem; até 14 palavras cada)</label></div>
+            <div class="ps-falas" id="psFalas"></div>
+            <div class="rl-dupla">
+              <div class="rl-campo"><label for="psCenario">Cenário</label><select id="psCenario"><option value="raios">Raios de luz</option><option value="palco">Palco com refletores</option><option value="bolinhas">Bolinhas</option><option value="nenhum">Liso / mídia de fundo</option></select></div>
+              <div class="rl-campo"><label for="psEntrada">Como entra</label><select id="psEntrada"><option value="pula">Pulando</option><option value="desliza">Deslizando</option><option value="surge">Surgindo</option><option value="nenhuma">Já está lá</option></select></div>
+            </div>
           </div>
           <div class="rl-campo" id="gAutor"><label for="cAutor">Autor</label><input id="cAutor"></div>
           <div class="rl-campo" id="gAcao"><label for="cAcao">Botão (ex.: @perfil)</label><input id="cAcao"></div>
@@ -296,6 +354,41 @@
   </div>
 </div>
 
+<div class="rl-folha larga" id="folhaModelos" hidden><div>
+  <div class="rl-tl-topo"><span class="rl-eyebrow">O que vamos criar?</span><button class="rl-bt peq" id="btFecharModelos" type="button">✕ FECHAR</button></div>
+  <div class="gl-cats" id="glCats" role="tablist"></div>
+  <div class="gl-grade" id="glGrade"></div>
+  <div class="gl-ia" id="glIA" hidden>
+    <div class="gl-box">
+      <div class="rl-eyebrow" style="margin-bottom:10px">Monte o seu personagem de IA</div>
+      <div class="rl-dupla">
+        <div class="rl-campo"><label for="iaNome">Nome</label><input id="iaNome" placeholder="ex.: Duda"></div>
+        <div class="rl-campo"><label for="iaEstilo">Estilo</label><select id="iaEstilo"><option value="3D animation film style, soft lighting, expressive">Animação 3D</option><option value="2D cartoon, clean bold outlines, flat colors">Desenho 2D</option><option value="anime style, cel shading">Anime</option><option value="photorealistic, cinematic">Realista</option><option value="claymation, stop motion look">Massinha</option></select></div>
+      </div>
+      <div class="rl-campo"><label for="iaAparencia">Como ele é</label><input id="iaAparencia" placeholder="ex.: mascote câmera com olhos grandes, ou mulher de 30 anos, cabelo cacheado"></div>
+      <div class="rl-dupla">
+        <div class="rl-campo"><label for="iaRoupa">Roupa / cores</label><input id="iaRoupa" placeholder="ex.: camiseta preta com logo âmbar"></div>
+        <div class="rl-campo"><label for="iaCenario">Onde está</label><input id="iaCenario" placeholder="ex.: palco de evento com telão de LED"></div>
+      </div>
+      <div class="rl-campo"><label for="iaAcao">O que faz no clipe</label><input id="iaAcao" placeholder="ex.: acena para a câmera e aponta para o telão"></div>
+      <div class="rl-campo"><label for="iaFala">Fala (opcional, para IA com voz)</label><input id="iaFala" placeholder="ex.: Seu evento ao vivo em qualquer tela!"></div>
+      <div class="rl-acoes"><button class="rl-bt pri peq" id="btIaPrompts" type="button">GERAR OS PROMPTS</button><button class="rl-bt peq" id="btIaMelhorar" type="button">✨ CAPRICHAR COM IA</button></div>
+      <div class="rl-campo"><label for="iaPImg">1 · Prompt da IMAGEM (ficha do personagem)</label><textarea class="gl-prompt" id="iaPImg" readonly></textarea></div>
+      <div class="rl-acoes"><button class="rl-bt peq" data-copiar="iaPImg" type="button">COPIAR</button></div>
+      <div class="rl-campo"><label for="iaPVid">2 · Prompt do VÍDEO (use a imagem como referência)</label><textarea class="gl-prompt" id="iaPVid" readonly></textarea></div>
+      <div class="rl-acoes"><button class="rl-bt peq" data-copiar="iaPVid" type="button">COPIAR</button></div>
+    </div>
+    <div class="gl-box">
+      <div class="rl-eyebrow" style="margin-bottom:10px">Passo a passo</div>
+      <div class="gl-passo"><i>1</i><span><b>Crie a imagem</b> com o prompt 1. No Flux da Creator Factory, salve como <b>personagem</b> para manter o mesmo rosto em todos os vídeos.</span></div>
+      <div class="gl-passo"><i>2</i><span><b>Anime</b> numa IA de vídeo (imagem → vídeo) com o prompt 2. Clipes de 5 a 8 s, na vertical 9:16.</span></div>
+      <div class="gl-passo"><i>3</i><span>Toque em <b>USAR</b> no modelo ao lado, importe os clipes na aba <b>MÍDIA</b> e escolha cada um na sua cena. O motor põe gancho, textos, legendas e chamada.</span></div>
+      <div class="gl-passo"><i>4</i><span>Ao postar, marque <b>“Feito com IA”</b>. Nada de personagem famoso nem rosto de pessoa real sem autorização.</span></div>
+      <div class="rl-eyebrow" style="margin:12px 0 6px">Ferramentas</div>
+      <ul class="gl-ferr" id="glFerr"></ul>
+    </div>
+  </div>
+</div></div>
 <div class="rl-folha" id="folhaMeus" hidden><div>
   <div class="rl-tl-topo"><span class="rl-eyebrow">Meus reels (neste aparelho)</span><button class="rl-bt peq" id="btFecharMeus" type="button">✕ FECHAR</button></div>
   <ul class="rl-lista" id="listaMeus"></ul>
@@ -320,7 +413,8 @@
 <script src="assets/layout.js?v=48"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="assets/bw-sync.js"></script>
-<script src="assets/reels-motor.js?v=1"></script>
-<script src="assets/reels.js?v=3"></script>
+<script src="assets/reels-motor.js?v=2"></script>
+<script src="assets/reels-modelos.js?v=1"></script>
+<script src="assets/reels.js?v=4"></script>
 </body>
 </html>

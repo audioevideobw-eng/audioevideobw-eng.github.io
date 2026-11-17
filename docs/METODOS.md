@@ -213,3 +213,14 @@ Tamanho > 0 e sem erro = o pdfmake montou o arquivo. Localmente (T1) confira o `
   `node motor/vigia-downloads.mjs` olha Downloads (pasta real lida do registro do Windows), espera o tamanho parar de mudar, descompacta
   (tar → python zipfile → unzip), renderiza e abre o MP4. Teste do vigia: `--pasta /tmp/dl --uma-vez --rascunho` com BWREELS_NAO_ABRIR=1.
 - Prévia: iframe com srcdoc do motor + `window.__PREVIEW=true` (vídeo toca e só corrige se desviar > 0,35 s); parado mostra 1,5 s.
+
+## Personagens animados e galeria de modelos (17/11)
+- Personagem por código = SVG com partes marcadas (`data-p`: tudo, cabeca, bracoE/bracoD com ponto de giro, pupila, palpebra, boca)
+  e UMA função `animarPersonagem(raiz, rig, t)` usada nos 3 motores (nativo, HyperFrames, Remotion) e na prévia do site
+  (bw-reels-studio/motor/personagens.mjs → gerar-motor-web.py). Boca = path refeito por tempo; piscar em tempos fixos pela semente.
+- Testar determinismo de qualquer animação HTML: `node motor/animar.mjs arquivo.html --checar` (mesmo t em ordens diferentes
+  = mesma imagem) e `--folha` (12 quadros numa imagem para revisar sem assistir). A composição do motor já define __DUR/__seek.
+- Vídeos de exemplo da galeria: `node motor/exemplos-web.mjs <site>` (escala 1/3, 24 qps, crf 31 ≈ 100–200 KB cada; ~3–5 min cada
+  numa máquina de 2 núcleos — rode em segundo plano). Capa .jpg tirada aos 2,2 s.
+- Teste: docs/testes/teste_reels.py cobre galeria (abre na 1ª vez, 3 categorias, vídeo toca, todo modelo tem mp4+jpg), USAR modelo,
+  editor de personagem (trocar, falas, ação, cenário, tirar o 2º), normalização da resposta da IA e os prompts de IA externa.
