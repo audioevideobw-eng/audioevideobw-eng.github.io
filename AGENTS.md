@@ -210,6 +210,11 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
     conversa; respostas com dados viram "(respondi com os dados dele)" no histórico. Teste de voz simulado: fila window.__falas e, quando
     acaba, silêncio — senão o modo conversa fica num laço (auto: teste_agente_leitor.py).
 
+67. VOZ DO NAVEGADOR (speechSynthesis): a primeira fala precisa nascer DENTRO de um toque (iPhone/Android) → fala muda no toque do robô
+    (destravar); nunca speak() logo depois de cancel() (o Chrome engole) → só cancela se estiver falando e espera 120 ms; se a fala não
+    começar em 3 s, tenta a voz padrão e avisa na tela (volume de mídia / silencioso). Sem regex com lookbehind (Safari antigo quebra o arquivo todo).
+    "Eventos dispararam" no teste NÃO prova que o dono ouviu — perguntar em qual aparelho/navegador.
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -669,6 +674,9 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   Teste de som no PC do dono: fala saiu pela saída padrão (voz Daniel, 7 s); o resumo dizia "Boa noite, Bw!" (nome da conta) → nome de
   empresa é ignorado, "me chama de Marcos" e campo "Como te chamo?" em ⚙ (ui_agente_nome). No painel do app Claude o microfone é
   bloqueado: ouvir por voz só se testa no Chrome/Edge/celular. bw-agente v10, layout.js v40, sw v96.
+
+- 16/11/2026 23:35 · Claude (dono: "ele não está emitindo som"): bw-agente.js v11 — fala destravada no toque do robô (iPhone/Android), sem
+  cancel→speak colado, nova tentativa com a voz padrão e aviso "🔇 o som não saiu" na tela, sem lookbehind. layout.js v41, sw v97. PENTE FINO 67.
 
 ## Pendências (dono)
 - [x] (16/11 11:42) IA CRIATIVA ATIVA: conta Cloudflare do dono (Free, sem cartão), token "Brightway IA criativa 2" (Workers AI Read+Edit) em

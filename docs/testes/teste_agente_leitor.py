@@ -23,7 +23,7 @@ from(){return q},rpc:async()=>({data:null,error:null}),storage:{from(){return {l
 VOZ = """window.__fala='';window.__falaErro='';window.SpeechRecognition=function(){var s=this;s.start=function(){setTimeout(function(){
   if(window.__falaErro){s.onerror&&s.onerror({error:window.__falaErro});s.onend&&s.onend();return;}
   var tx=(window.__falas&&window.__falas.length)?window.__falas.shift():(window.__falas&&window.__falas.usado?'':window.__fala);if(window.__falas)window.__falas.usado=1;var r=[{0:{transcript:tx},isFinal:true,length:1}];r.length=1;s.onresult&&s.onresult({resultIndex:0,results:r});setTimeout(function(){s.onend&&s.onend();},30);},120);};s.stop=function(){s.onend&&s.onend();};};
-Object.defineProperty(window,'speechSynthesis',{configurable:true,value:{speak:function(u){window.__falou=(window.__falou||[]).concat([u.text]);setTimeout(function(){u.onend&&u.onend();},20);},cancel:function(){},getVoices:function(){return[];}}});window.SpeechSynthesisUtterance=function(t){this.text=t;};"""
+Object.defineProperty(window,'speechSynthesis',{configurable:true,value:{speaking:false,pending:false,resume:function(){},speak:function(u){if(u.volume===0)return;window.__falou=(window.__falou||[]).concat([u.text]);setTimeout(function(){u.onstart&&u.onstart();u.onend&&u.onend();},20);},cancel:function(){},getVoices:function(){return[];}}});window.SpeechSynthesisUtterance=function(t){this.text=t;};"""
 STUB_ZX = "window.ZXingWASM={readBarcodes:async function(){return window.__codigos||[];}};"
 STUB_TESS = "window.Tesseract={recognize:async function(c,l,o){o&&o.logger&&o.logger({status:'recognizing text',progress:1});return {data:{text:window.__ocr||''}};}};"
 

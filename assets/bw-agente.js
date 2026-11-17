@@ -428,7 +428,7 @@
   function tomDe(v) { var t = ui("tom", "auto"); return t === "grave" ? 0.75 : t === "normal" ? 1 : (v && !ehHomem(v) ? 0.8 : 1); }
   function frases(txt) {   /* fala em frases: fica mais natural e o Chrome não corta respostas longas */
     var out = [], atual = "";
-    String(txt).split(/(?<=[.!?…])\s+/).forEach(function (f) { if ((atual + " " + f).length > 180 && atual) { out.push(atual); atual = f; } else atual = (atual ? atual + " " : "") + f; });
+    (String(txt).match(/[^.!?…]+[.!?…]*\s*/g) || [String(txt)]).map(function (x) { return x.trim(); }).filter(Boolean).forEach(function (f) { if ((atual + " " + f).length > 180 && atual) { out.push(atual); atual = f; } else atual = (atual ? atual + " " : "") + f; });
     if (atual) out.push(atual); return out;
   }
   var somCtx = null;
@@ -438,18 +438,38 @@
       var o = somCtx.createOscillator(), g = somCtx.createGain(), t = somCtx.currentTime; o.type = "sine"; o.frequency.setValueAtTime(sobe ? 660 : 520, t); o.frequency.exponentialRampToValueAtTime(sobe ? 880 : 390, t + .12);
       g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(.08, t + .02); g.gain.exponentialRampToValueAtTime(.0001, t + .16); o.connect(g); g.connect(somCtx.destination); o.start(t); o.stop(t + .18); } catch (e) { }
   }
-  var falaId = 0;
+  var falaId = 0, destravado = 0;
+  function destravar() {   /* 16/11: iPhone e Android só deixam o site FALAR se a primeira fala nascer dentro de um toque → fala muda no toque */
+    if (!window.speechSynthesis || !ui("voz", true)) return;
+    try { speechSynthesis.resume(); if (destravado) return; var u = new SpeechSynthesisUtterance(" "); u.volume = 0; u.lang = "pt-BR"; speechSynthesis.speak(u); destravado = Date.now(); } catch (e) { }
+    try { var C = window.AudioContext || window.webkitAudioContext; if (C) { somCtx = somCtx || new C(); if (somCtx.state === "suspended") somCtx.resume(); } } catch (e) { }
+  }
   function falar(txt, depois) {
     var meu = ++falaId, fim = false, seguir = function () { if (fim) return; fim = true; if (depois && meu === falaId) setTimeout(function () { if (meu === falaId) depois(); }, 250); };
     if (!ui("voz", true) || !window.speechSynthesis || !txt) { seguir(); return; }
-    try { speechSynthesis.cancel();
+    try {
       var limpo = String(txt).replace(/R\$ ?/g, "").replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}✓✕➤↗📊💬🤔]/gu, "").replace(/(\d{1,2}):00\b/g, "$1 horas").replace(/\s+/g, " ").slice(0, 600);
-      var v = melhorVoz(), fs = frases(limpo), vel = +ui("velocidade", 1.05) || 1.05, tom = tomDe(v);
-      fs.forEach(function (f, i) { var u = new SpeechSynthesisUtterance(f); u.lang = v ? v.lang : "pt-BR"; if (v) u.voice = v; u.rate = vel; u.pitch = tom;
-        if (i === fs.length - 1) { u.onend = seguir; u.onerror = seguir; } speechSynthesis.speak(u); });
-      setTimeout(seguir, 3000 + limpo.length * 95); } catch (e) { seguir(); }
+      var ocupado = speechSynthesis.speaking || speechSynthesis.pending; if (ocupado) speechSynthesis.cancel();
+      try { speechSynthesis.resume(); } catch (e) { }
+      var comecou = false, v = melhorVoz(), fs = frases(limpo), vel = +ui("velocidade", 1.05) || 1.05, tom = tomDe(v);
+      var soltar = function (comVoz) {
+        if (meu !== falaId) return;
+        fs.forEach(function (f, i) { var u = new SpeechSynthesisUtterance(f); u.lang = v ? v.lang : "pt-BR"; if (v && comVoz) u.voice = v; u.rate = vel; u.pitch = tom; u.volume = 1;
+          u.onstart = function () { comecou = true; };
+          if (i === fs.length - 1) { u.onend = seguir; u.onerror = function (e) { if (comVoz && !comecou && e && !/interrupted|canceled/.test(e.error || "")) { comecou = true; soltar(false); } else seguir(); }; }
+          speechSynthesis.speak(u); });
+      };
+      setTimeout(function () { soltar(true); }, ocupado ? 120 : 0);   /* falar logo depois de cancelar: o Chrome engole a fala */
+      setTimeout(function () {   /* não começou em 3 s: tenta a voz padrão do aparelho e avisa na tela */
+        if (meu !== falaId || comecou || fim) return;
+        try { speechSynthesis.cancel(); speechSynthesis.resume(); } catch (e) { }
+        setTimeout(function () { if (meu === falaId && !comecou) soltar(false); }, 150);
+        setTimeout(function () { if (meu === falaId && !comecou && painel && !painel.hidden) status("🔇 O som não saiu. Confira o volume de MÍDIA e se o aparelho não está no silencioso; depois toque em ⚙ → 🔊 OUVIR A VOZ."); }, 2500);
+      }, 3000);
+      setTimeout(seguir, 6500 + limpo.length * 95);
+    } catch (e) { seguir(); }
   }
-  function calar() { falaId++; try { if (window.speechSynthesis) speechSynthesis.cancel(); } catch (e) { } }
+  function calar() { falaId++; if (Date.now() - destravado < 500) return; try { if (window.speechSynthesis && (speechSynthesis.speaking || speechSynthesis.pending)) speechSynthesis.cancel(); } catch (e) { } }
   function continuar() { if (ui("conversa", true) && painel && !painel.hidden && !ouvindo && SR) ouvir(true); }
   async function confirmarPorVoz() {   /* 16/11: depois de "…Confirma?" escuta "sim / pode lançar" ou "não / cancela" — mãos livres */
     if (!SR || painel.hidden || ouvindo || !ESTADO.acoes.some(function (a) { return !a.feito && /gasto|receita|entrada|conta_pagar|tarefa|custo_evento/.test(a.tipo); })) return;
@@ -537,7 +557,7 @@
     fab.setAttribute("aria-label", "Tio Cláudio: toque e fale"); fab.title = "TIO CLÁUDIO — toque e fale (ex.: como está meu dia?)";
     painel = document.createElement("div"); painel.className = "bwg-p"; painel.hidden = true; painel.setAttribute("role", "dialog"); painel.setAttribute("aria-label", "Tio Cláudio, assistente da Brightway");
     document.body.appendChild(painel); document.body.appendChild(fab);
-    fab.addEventListener("click", function () { if (ouvindo) { parar(); return; } calar(); abrir(true); });
+    fab.addEventListener("click", function () { destravar(); if (ouvindo) { parar(); return; } calar(); abrir(true); });
     try { if (window.speechSynthesis) speechSynthesis.onvoiceschanged = function () { if (painel && !painel.hidden && !painel.querySelector("#bwgAj").hidden) desenharVozes(); }; } catch (e) { }
     sessao().then(function (s) { var m = s && s.user && s.user.user_metadata || {}; var n = String(m.full_name || m.name || "").trim().split(/\s+/)[0]; if (n && n.length >= 3 && !/^(bw|audio|video|studio|empresa|produtora)/i.test(n)) ESTADO.nomeConta = cap(n.toLowerCase()); });
     painel.addEventListener("click", clique);
@@ -568,7 +588,7 @@
       '<div id="bwgVozes"></div>' +
       '<label><input type="checkbox" data-u="auto"' + (ui("auto", false) ? " checked" : "") + '> Lançar sem perguntar (só quando tiver tudo: o quê, valor e data)</label></div>' +
       '<div class="bwg-sub">A voz vira texto pelo reconhecimento do próprio navegador' + (ESTADO.local ? " (no aparelho)" : "") + '. Nada é gravado sem você confirmar. Perguntas como "quanto gastei" são calculadas aqui, com os seus dados.</div>';
-    var inp = painel.querySelector("#bwgTxt"); inp.onkeydown = function (e) { if (e.key === "Enter" && inp.value.trim()) { processar(inp.value.trim()); inp.value = ""; } };
+    var inp = painel.querySelector("#bwgTxt"); inp.onkeydown = function (e) { if (e.key === "Enter" && inp.value.trim()) { destravar(); processar(inp.value.trim()); inp.value = ""; } };
   }
   function dicaVoz() {
     var ua = navigator.userAgent || "";
@@ -713,7 +733,7 @@
   }
   function comemorar() { try { if (window.BWConcluir && BWConcluir.festa) BWConcluir.festa(fab); } catch (e) { } fab.animate && fab.animate([{ transform: "scale(1)" }, { transform: "scale(1.18)" }, { transform: "scale(1)" }], { duration: 420 }); }
   function clique(e) {
-    var b = e.target.closest("[data-g]"); if (!b) return; var g = b.dataset.g, i = +b.dataset.i;
+    var b = e.target.closest("[data-g]"); if (!b) return; var g = b.dataset.g, i = +b.dataset.i; destravar();
     if (g === "fechar") return fechar();
     if (g === "ajustes") { var aj = painel.querySelector("#bwgAj"); aj.hidden = !aj.hidden; if (!aj.hidden) desenharVozes(); return; }
     if (g === "testarVoz") { falar("Opa! Aqui é o Tio Cláudio. Bora organizar esse dia, uai?"); return; }
