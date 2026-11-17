@@ -855,8 +855,16 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   para EXPORTAR). MÍDIA: cartão "☁ Minha biblioteca na nuvem" com Google Drive e Dropbox DISPONÍVEL EM BREVE. Excluir um reel tira de todos
   os aparelhos. Sem tabela nova no banco (usa user_data). teste_reels.py +7 e teste_reels_celular.py +3 checagens (0 falhas), varredura 0,
   vigia ✅. reels.js v11, sw v115. PENTE FINO 84. Próximas etapas combinadas: biblioteca oficial do ADM, biblioteca do usuário, app instalado com login.
+- 17/11/2026 18:20 · Claude (dono mostrou o Edvid da Creator Factory como referência — só a lista de componentes abertos foi lida; o app não abre
+  sem matrícula e nada dele foi copiado): Studio — LEGENDA AUTOMÁTICA OFFLINE. `INSTALAR-LEGENDAS.bat` (sherpa-onnx + modelo Parakeet v3 da NVIDIA,
+  ~500 MB, em ~/.bw-reels/modelos) e `LEGENDAR.bat` (arrastar o roteiro.json → ouve narração e filmagens e grava legendas.palavras; arrastar um
+  vídeo → .srt). Novo `somDoVideo` na cena: a filmagem toca com o som dela no trecho usado e a trilha abaixa (antes toda filmagem saía muda).
+  motor/teste-legendas.mjs com "ouvido" SIMULADO + render real (0 falhas). NÃO testado com o modelo de fala real: aqui não dá para baixar o
+  pacote — o teste de verdade é no PC do dono. Zip e tutorial em downloads/ atualizados; arquivos enviados para o PC do dono (menos o comando
+  /legendar, que só entra reinstalando pelo zip). Ideia registrada: QUADRO DE HISTÓRIA (blocos ligados por setas → cenas por IA → um vídeo).
 
 ## Pendências (dono)
+- [ ] (17/11) LEGENDA OFFLINE: dono rodar INSTALAR-LEGENDAS.bat e arrastar um vídeo com fala para o LEGENDAR.bat; mandar o resultado (ou o erro).
 - [ ] (17/11) BW REELS PRO: dono testar ENVIAR PARA O PC (celular logado → abrir o Reels no PC logado → "Chegou do celular").
 - [ ] (17/11) BW REELS ASSISTENTE: dono abrir pelo BW-REELS-ASSISTENTE.bat no PC e fazer 1 vídeo em cada modo (ECONÔMICO com o Claude real).
 - [ ] (17/11) BW IA: dono criar as chaves grátis (Groq, Gemini, OpenRouter) e colar em ⚙ Minhas IAs; testar INSTALAR IAS RECOMENDADAS no PC.
