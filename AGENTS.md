@@ -843,12 +843,13 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   o aviso mostra tamanho médio do bloco, descrição e início do 1º bloco. PRÉVIA LEVE no celular (reels.js v10): sem grão (camada 2× a tela
   com mistura), sem desfoque gigante de fundo e sem uma camada por palavra; imagem de cada quadro liberada na exportação. NÃO testado em
   iPhone — aguarda novo print (linha "v3"). sw v114. PENTE FINO 83.
+- 17/11/2026 16:46 · Dono: "perfeito, resolveu" — iPhone com som no vídeo feito no aparelho e prévia sem tela branca (v3). Android já estava OK.
 
 ## Pendências (dono)
 - [ ] (17/11) BW REELS ASSISTENTE: dono abrir pelo BW-REELS-ASSISTENTE.bat no PC e fazer 1 vídeo em cada modo (ECONÔMICO com o Claude real).
 - [ ] (17/11) BW IA: dono criar as chaves grátis (Groq, Gemini, OpenRouter) e colar em ⚙ Minhas IAs; testar INSTALAR IAS RECOMENDADAS no PC.
-- [ ] (17/11) MOBILE: dono testar GERAR VÍDEO NESTE APARELHO no iPhone e no Android (o vídeo toca? tem som? salva na galeria? o Instagram
-      aceita?) e mandar print do aviso verde. App de loja (App Store/Google Play): decidir depois do teste.
+- [x] (17/11 16:46, dono: "perfeito, resolveu") MOBILE: GERAR VÍDEO NESTE APARELHO com som no iPhone e no Android.
+- [ ] (17/11) MOBILE: conferir se o Instagram aceita o vídeo feito no celular; decidir sobre app de loja (App Store/Google Play).
 - [ ] (17/11) Login obrigatório no Assistente/Studio: decidir quando ligar (precisa de Edge Function de ativação + botão ATIVAR NESTE PC no site).
 - [ ] (17/11) BW REELS PRO › ANIMAR MEU PERSONAGEM: dono testar com a foto do avatar dele (recorte e cenas por IA, logado).
 - [ ] (17/11) BW REELS PRO › 🎬 MODELOS: dono testar a galeria e um modelo de personagem no iPhone (vídeos de exemplo tocando) e mandar opinião.
