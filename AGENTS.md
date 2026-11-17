@@ -795,7 +795,19 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   pode usar checklist e top. teste_reels.py +12 checagens. Manual 43 → 44 p. reels-motor v6, reels-modelos v3, reels.js v7, sw v111. PENTE FINO 75–81
   (75–80 estavam citados no diário mas faltavam na lista — escritos agora).
 
+- 17/11/2026 · Claude (dono: "sistema que pede as etapas uma a uma, como instalador… janela própria, didático para iniciante, modos recomendados,
+  pensar no login futuro"): BW REELS ASSISTENTE no Studio (downloads/BW-Reels-Studio.zip): atalho → janela própria (Chromium do motor em modo
+  app; a tela fala com o programa pela ponte do navegador, SEM servidor local) com 6–7 etapas, Voltar/Avançar e barra de progresso: Preparar
+  (checa Node/FFmpeg/disco/Claude e diz como resolver) → Como criar (QUALIDADE = 5 ganchos + roteiro revisado, 2 pedidos; ECONÔMICO = 1 pedido;
+  SEM IA = modelos da galeria, grátis; o recomendado vem marcado conforme o PC) → Sobre o vídeo → Abertura → Textos e prévia animada →
+  Conferir (resumo + pedidos de IA usados) → Gerar vídeo. IA = `claude -p` em lote fora da pasta do projeto (não carrega o CLAUDE.md); número
+  inventado pela IA é descartado; IA falhou → oferece seguir sem IA. motor/conta.mjs = portão de conta (EXIGIR_CONTA=false hoje; ativação
+  por ARQUIVO baixado do site, a ligar quando o dono decidir). Teste motor/teste-assistente.mjs com Claude SIMULADO (22 checagens + render
+  real, 0 falhas). NÃO testado ainda com o Claude real nem no Windows do dono.
+
 ## Pendências (dono)
+- [ ] (17/11) BW REELS ASSISTENTE: dono abrir pelo BW-REELS-ASSISTENTE.bat no PC e fazer 1 vídeo em cada modo (ECONÔMICO com o Claude real).
+- [ ] (17/11) Login obrigatório no Assistente/Studio: decidir quando ligar (precisa de Edge Function de ativação + botão ATIVAR NESTE PC no site).
 - [ ] (17/11) BW REELS PRO › ANIMAR MEU PERSONAGEM: dono testar com a foto do avatar dele (recorte e cenas por IA, logado).
 - [ ] (17/11) BW REELS PRO › 🎬 MODELOS: dono testar a galeria e um modelo de personagem no iPhone (vídeos de exemplo tocando) e mandar opinião.
 - [ ] (17/11) BW REELS PRO: dono testar no ar — instalar o motor pelo ⚙ MOTOR NO PC, abrir o BW Reels Render e fazer um RENDERIZAR NO PC;
