@@ -219,6 +219,9 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
     que não vem da escuta desliga o microfone antes (soltarMic) e a sessão volta para "playback". Android/Chrome não informa qual voz é
     masculina (só "português Brasil"): depende da voz padrão do sistema. Diagnóstico na tela (⚙ → 🔊 OUVIR A VOZ, linha vNN) antes de adivinhar.
 
+69. iPhone "sem fala" com o diagnóstico dizendo que COMEÇOU a falar = MODO SILENCIOSO (a voz do navegador obedece à chave; o bip do
+    AudioContext não) — perguntar isso PRIMEIRO, antes de mexer em código (16–17/11: 5 versões até descobrir).
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -697,6 +700,9 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   exemplo, abrir ⚙ ou testar a voz DESLIGA a escuta antes (soltarMic). Android (v15): o Chrome só lista "português Brasil/Portugal", sem
   identificador de voz → não dá para escolher a masculina pelo site; só pela voz padrão do Android (ou voz neural). layout.js v46, sw v102.
 
+- 17/11/2026 00:10 · Dono: "falou! era o modo silencioso" — iPhone (app instalado) OK com o silencioso desligado. bw-agente.js v17: aviso
+  disso em ⚙ no iPhone. Som confirmado pelo dono em PC, Android e iPhone. layout.js v47, sw v103. PENTE FINO 69.
+
 ## Pendências (dono)
 - [x] (16/11 11:42) IA CRIATIVA ATIVA: conta Cloudflare do dono (Free, sem cartão), token "Brightway IA criativa 2" (Workers AI Read+Edit) em
       CF_API_TOKEN, CF_ACCOUNT_ID salvo. Teste no ar: "cabelo cacheado ruivo e óculos de sol" → nova versão em 6 s, mesma pessoa/roupa/fundo.
@@ -719,6 +725,7 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
 - [x] (16/11 20:05, dono: "funcionou perfeitamente") Teste real do 🔏 ASSINAR com o e-CNPJ da BW (A1, formato antigo 3DES/RC2) — OK.
 - [~] (16/11 22:29, dono: "testei … por foto e está funcionando") LEITOR DE CONTAS por FOTO — OK. Ainda faltam (quando o dono quiser):
       conta em PDF, código colado e o TIO CLÁUDIO por voz (conversa, "como está meu dia", "muda para…").
-      16/11 23:35: SOM no PC OK (dono ouviu a voz Daniel). Falta: som no celular depois da v11 e OUVIR (microfone) no Chrome/Edge/celular.
+      17/11 00:10: SOM confirmado pelo dono em PC, Android e iPhone (no iPhone só com o silencioso desligado). Voz masculina nos celulares:
+      depende da voz do aparelho (iPhone: baixar "Felipe"; Android: voz padrão) ou da voz neural (não feita, aguarda o dono).
 - [ ] Futuro (MAESTRO): galeria do cliente por link secreto (hoje as FOTOS ainda são listáveis por quem souber
       usar a API; documentos já estão protegidos).

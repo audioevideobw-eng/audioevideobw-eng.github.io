@@ -612,7 +612,7 @@
     if (/Mac OS X/i.test(ua)) return "No Mac: Ajustes do Sistema → Acessibilidade → Conteúdo Falado → Voz do sistema → Gerenciar vozes → Português (Brasil) → “Felipe”.";
     return "No computador, o navegador Microsoft Edge traz a voz masculina “Antonio” (natural), de graça.";
   }
-  var VERSAO = 16;
+  var VERSAO = 17;
   function testeSom() {   /* fala DIRETO no toque (sem espera) e mostra na tela o que o aparelho respondeu — para achar por que não sai som */
     var d = painel.querySelector("#bwgDiag"), linha = function (t) { if (d) d.textContent = "v" + VERSAO + " · " + t; };
     if (!window.speechSynthesis) { linha("este navegador não tem voz (speechSynthesis)"); return; }
@@ -623,7 +623,7 @@
       var info = (v ? v.name : "voz padrão") + " · " + vozes().length + " vozes pt" + (navigator.standalone ? " · app instalado" : "") + (navigator.audioSession ? " · sessão " + navigator.audioSession.type : " · sem audioSession") + (micFim ? " · mic usado" : "");
       info += " · [" + vozes().slice(0, 5).map(function (x) { return x.name + (x.voiceURI && x.voiceURI !== x.name ? "|" + x.voiceURI : ""); }).join("; ") + "]";
       linha("pedindo som… " + info);
-      u.onstart = function () { linha("✓ o aparelho COMEÇOU a falar · " + info + " — se não ouviu, é volume/silencioso"); };
+      u.onstart = function () { linha("✓ o aparelho COMEÇOU a falar · " + info + " — se não ouviu: " + (IOS ? "tire o iPhone do MODO SILENCIOSO (chave lateral / sino) e aumente o volume" : "aumente o volume de MÍDIA")); };
       u.onend = function () { linha("✓ fala terminada · " + info); };
       u.onerror = function (e) { linha("✗ erro: " + (e && e.error || "?") + " · " + info); };
       if (micLigado) info += " · microfone desligado antes";
@@ -641,7 +641,7 @@
       (vs.some(ehHomem) ? "" : '<div style="font-size:12px;color:#cfa94a;margin:4px 0">Este aparelho não tem voz masculina em português instalada — estou usando a que há, em tom mais grave. ' + dicaVoz() + "</div>") +
       '<label style="display:grid;grid-template-columns:auto 1fr;gap:8px;align-items:center">Velocidade <select data-u="velocidade" style="padding:6px;border-radius:8px;background:#0a0d14;color:#fff;border:1px solid rgba(255,255,255,.16);font-size:16px">' +
       [[0.9, "Calma"], [1.05, "Normal"], [1.2, "Rápida"]].map(function (o) { return '<option value="' + o[0] + '"' + (Math.abs(vel - o[0]) < .01 ? " selected" : "") + ">" + o[1] + "</option>"; }).join("") + "</select></label>" +
-      '<button type="button" class="bwg-b" data-g="testarVoz" style="margin-top:4px">🔊 OUVIR A VOZ' + (atual ? " (" + esc(atual.name.slice(0, 28)) + ")" : "") + "</button>" + '<div id="bwgDiag" style="font-size:12px;color:#cfa94a;margin-top:6px">v' + VERSAO + "</div>"
+      '<button type="button" class="bwg-b" data-g="testarVoz" style="margin-top:4px">🔊 OUVIR A VOZ' + (atual ? " (" + esc(atual.name.slice(0, 28)) + ")" : "") + "</button>" + '<div id="bwgDiag" style="font-size:12px;color:#cfa94a;margin-top:6px">v' + VERSAO + (IOS ? " · No iPhone o Tio Cláudio só fala com o MODO SILENCIOSO desligado." : "") + "</div>"
       : '<button type="button" class="bwg-b" data-g="testarVoz" style="margin-top:4px">🔊 OUVIR A VOZ</button><div id="bwgDiag" style="font-size:12px;color:#cfa94a;margin-top:6px">v' + VERSAO + " · este aparelho não listou voz em português</div>";
   }
   function abrir(escutar) {
