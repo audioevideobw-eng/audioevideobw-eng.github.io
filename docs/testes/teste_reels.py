@@ -301,6 +301,25 @@ with sync_playwright() as p:
         for tipo, campo in (("contagem", "#gNum"), ("depoimento", "#gEstrelas"), ("antesdepois", "#gMidia2"), ("oferta", "#gDado"), ("nome", "#gSub")):
             pg.select_option("#cTipo", tipo); pg.wait_for_timeout(350)
             ok(pg.evaluate("BWReels.projeto().roteiro.cenas[1].tipo") == tipo and not pg.locator(campo).is_hidden() and not pg.evaluate("BWReels.validar(false)")["erros"], f"trocar a cena para {tipo}: já vem preenchida e com os campos certos")
+        # PROJETOS NA CONTA + fila do celular para o PC
+        pg.fill("#nomeProj", "Reel da conta"); pg.wait_for_timeout(900)
+        ok(pg.evaluate("BWReels.conta().some(p => p.nome === 'Reel da conta' && p.roteiro && p.roteiro.cenas.length > 0)"), "o reel salvo vai para a conta (reels_projetos), com o roteiro")
+        ok("reels_projetos" in pg.evaluate("BWSync.CHAVES"), "reels_projetos está em CHAVES do bw-sync")
+        pg.evaluate("""(() => { const l = JSON.parse(localStorage.getItem('bw_reels_projetos_v1') || '[]');
+          l.push({id: 'cel1', nome: 'Feito no celular', naConta: true, atualizado: Date.now() + 5000, paraPC: Date.now(), briefing: {}, ganchos: [], fatos: [], legenda: '', modo: 'texto',
+            roteiro: {formato: '9:16', fps: 30, motor: 'nativo', estilo: 'neon', efeitos: {}, marca: {handle: '@cel'}, legendas: {}, audio: {}, fontes: [],
+              cenas: [{tipo: 'gancho', duracao: 3, texto: 'Vim do celular'}, {tipo: 'cta', duracao: 3, texto: 'Fim', acao: 'Siga'}]}});
+          localStorage.setItem('bw_reels_projetos_v1', JSON.stringify(l)); })()""")
+        pg.evaluate("BWReels.puxarDaConta()"); pg.wait_for_timeout(500)
+        ok("Chegou do celular" in pg.inner_text("#filaPC") and "Feito no celular" in pg.inner_text("#filaPC"), "no PC aparece CHEGOU DO CELULAR com o reel enviado")
+        pg.click('#filaPC [data-fila="cel1"]'); pg.wait_for_timeout(900)
+        ok(pg.evaluate("BWReels.projeto().id === 'cel1' && !BWReels.projeto().paraPC && BWReels.projeto().roteiro.cenas[0].texto === 'Vim do celular'") and not pg.locator("#pnExportar").is_hidden(), "ABRIR carrega o reel do celular, tira da fila e vai para EXPORTAR")
+        ok(pg.inner_text("#filaPC").strip() == "" and pg.is_hidden("#cxEnviarPC"), "fila vazia some; ENVIAR PARA O PC só aparece no celular")
+        pg.evaluate("""(() => { const l = JSON.parse(localStorage.getItem('bw_reels_projetos_v1')).filter(p => p.nome !== 'Reel da conta'); localStorage.setItem('bw_reels_projetos_v1', JSON.stringify(l)); })()""")
+        pg.evaluate("BWReels.puxarDaConta()"); pg.wait_for_timeout(400); pg.click("#btMeus"); pg.wait_for_timeout(300)
+        ok("Reel da conta" not in pg.inner_text("#listaMeus") and "Feito no celular" in pg.inner_text("#listaMeus"), "reel apagado em outro aparelho some daqui também")
+        pg.click("#btFecharMeus")
+        ok("em breve" in pg.inner_text("#cxNuvem") if pg.evaluate("document.querySelector('[data-aba=\"midia\"]').click() || true") else False, "Google Drive / Dropbox aparecem como DISPONÍVEL EM BREVE")
         # motor e meus reels
         pg.click("#btMotor"); pg.wait_for_timeout(200)
         ok(pg.locator('#folhaMotor a[href="downloads/BW-Reels-Studio.zip"]').count() == 1 and pg.locator('#folhaMotor a[href="downloads/BW-Reels-Studio-Tutorial.pdf"]').count() == 1, "⚙ MOTOR NO PC: baixar motor + tutorial")

@@ -241,6 +241,7 @@
     </section>
 
     <section class="rl-painel" aria-label="Controles">
+      <div id="filaPC" aria-live="polite"></div>
       <div class="rl-abas" role="tablist">
         <button type="button" role="tab" data-aba="criar" class="on">CRIAR</button>
         <button type="button" role="tab" data-aba="cena">CENA</button>
@@ -377,6 +378,8 @@
       </div>
 
       <div id="pnMidia" hidden>
+        <div class="rl-aviso" id="cxNuvem" style="margin-bottom:10px"><b>☁ Minha biblioteca na nuvem</b> — os textos e roteiros dos seus reels já acompanham a sua conta. Guardar também as filmagens, fotos e trilhas no seu Google Drive ou Dropbox: <b>disponível em breve</b>.
+          <div class="rl-acoes" style="margin-top:8px"><button class="rl-bt peq" type="button" disabled aria-disabled="true">Google Drive · em breve</button><button class="rl-bt peq" type="button" disabled aria-disabled="true">Dropbox · em breve</button></div></div>
         <button class="rl-drop" id="btImportar" type="button">Importar filmagens, fotos e música<small>ou arraste os arquivos para cá · ficam só neste aparelho</small></button>
         <input type="file" id="arquivos" accept="video/*,image/*,audio/*" multiple hidden>
         <div id="promptsCenas"></div>
@@ -399,6 +402,12 @@
           <div class="rl-campo"><label for="fQualAqui">Qualidade</label><select id="fQualAqui"><option value="1280">Rápida — 720 × 1280 (recomendada no celular)</option><option value="1920">Alta — 1080 × 1920 (demora mais)</option></select></div>
           <button class="rl-bt pri" id="btAqui" type="button" style="width:100%">🎬 GERAR VÍDEO NESTE APARELHO</button>
           <div id="aquiEstado" aria-live="polite" style="margin-top:8px"></div>
+        </div>
+        <div id="cxEnviarPC">
+          <div class="rl-eyebrow" style="margin:16px 0 8px">Ou mande para o seu computador</div>
+          <p class="rl-nota">O reel fica na sua conta e aparece no BW Reels Pro do computador, em <b>Chegou do celular</b>, pronto para renderizar em alta. Precisa estar logado nos dois aparelhos.</p>
+          <button class="rl-bt" id="btEnviarPC" type="button" style="width:100%">📲 ENVIAR PARA O PC</button>
+          <div id="enviarPCEstado" aria-live="polite" style="margin-top:8px"></div>
         </div>
         <div class="rl-eyebrow" style="margin:16px 0 8px">Ou no computador</div>
         <p class="rl-nota">O vídeo final (MP4 em alta) é feito pelo motor <b>BW Reels Studio</b> no seu computador: com o <b>BW REELS RENDER</b> aberto, toque em RENDERIZAR NO PC — o pedido vai para Downloads, o motor faz o vídeo e abre quando terminar.</p>
@@ -532,7 +541,7 @@
   </div>
 </div></div>
 <div class="rl-folha" id="folhaMeus" hidden><div>
-  <div class="rl-tl-topo"><span class="rl-eyebrow">Meus reels (neste aparelho)</span><button class="rl-bt peq" id="btFecharMeus" type="button">✕ FECHAR</button></div>
+  <div class="rl-tl-topo"><span class="rl-eyebrow">Meus reels (na sua conta)</span><button class="rl-bt peq" id="btFecharMeus" type="button">✕ FECHAR</button></div>
   <ul class="rl-lista" id="listaMeus"></ul>
 </div></div>
 <div class="rl-folha" id="folhaMotor" hidden><div>
@@ -560,6 +569,6 @@
 <script src="assets/fotos-nuvem.js?v=2"></script>
 <script src="assets/reels-avatar.js?v=1"></script>
 <script src="assets/reels-celular.js?v=3"></script>
-<script src="assets/reels.js?v=10"></script>
+<script src="assets/reels.js?v=11"></script>
 </body>
 </html>

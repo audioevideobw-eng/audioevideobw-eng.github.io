@@ -90,10 +90,59 @@
     clearTimeout(tSalvar);
     tSalvar = setTimeout(function () {
       if (!P) return; P.atualizado = Date.now(); P.roteiro.titulo = P.nome || "Novo reel";
+      P.naConta = true;
       dbPut("projetos", JSON.parse(JSON.stringify(P))).catch(function () { });
+      contaPor(P);
       try { localStorage.setItem("ui_reels_ultimo", P.id); } catch (e) { }
     }, 500);
   }
+
+  /* ---------- projetos na CONTA (chave reels_projetos do bw-sync): roteiro e textos, SEM as mídias ---------- */
+  var EH_CEL = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && /Mac/.test(navigator.platform || ""));
+  function contaLer() { try { var v = JSON.parse(localStorage.getItem("bw_reels_projetos_v1") || "[]"); return Array.isArray(v) ? v : []; } catch (e) { return []; } }
+  function contaGravar(l) {
+    try { if (window.BWSync && typeof BWSync.antesDeSalvar === "function") BWSync.antesDeSalvar("reels_projetos", 1, l); } catch (e) { }
+    try { localStorage.setItem("bw_reels_projetos_v1", JSON.stringify(l)); localStorage.setItem("ui_reels_conta_ok", "1"); return true; } catch (e) { try { localStorage.removeItem("ui_reels_conta_ok"); } catch (x) { } return false; }
+  }
+  function contaPor(p) {
+    var l = contaLer(), i = l.findIndex(function (x) { return x.id === p.id; }), c = JSON.parse(JSON.stringify(p));
+    if (i >= 0) l[i] = c; else l.push(c);
+    if (l.length > 80) l = l.sort(function (a, b) { return (b.atualizado || 0) - (a.atualizado || 0); }).slice(0, 80);
+    contaGravar(l);
+  }
+  function contaTirar(id) { contaGravar(contaLer().filter(function (x) { return x.id !== id; })); }
+  /* traz para este aparelho o que mudou na conta (outro aparelho); o que foi apagado lá sai daqui também */
+  async function puxarDaConta() {
+    var l = contaLer(), ids = {}, mudou = 0, reabrir = null;
+    for (var i = 0; i < l.length; i++) {
+      var c = l[i]; if (!c || !c.id) continue; ids[c.id] = 1;
+      var loc = await dbGet("projetos", c.id).catch(function () { return null; });
+      if (!loc || (c.atualizado || 0) > (loc.atualizado || 0)) { await dbPut("projetos", c).catch(function () { }); mudou++; if (P && P.id === c.id) reabrir = c; }
+    }
+    var okConta = false; try { okConta = localStorage.getItem("ui_reels_conta_ok") === "1"; } catch (e) { }
+    if (okConta) {
+      var locais = await dbTodos("projetos").catch(function () { return []; });
+      for (var j = 0; j < locais.length; j++) if (locais[j].naConta && !ids[locais[j].id] && !(P && P.id === locais[j].id)) { await dbDel("projetos", locais[j].id).catch(function () { }); mudou++; }
+    }
+    if (reabrir && !TOCANDO && !(AQUI && AQUI.rodando)) await abrir(JSON.parse(JSON.stringify(reabrir)));
+    desenharFila();
+    return mudou;
+  }
+  function usaMidia(p) { return ((p.roteiro || {}).cenas || []).some(function (c) { return c.midia || c.midia2 || (c.elenco || []).some(function (a) { return a.imagem || a.personagem === "meu"; }); }) || !!((p.roteiro || {}).audio || {}).musica; }
+  function horaCurta(ms) { var d = new Date(ms); return String(d.getDate()).padStart(2, "0") + "/" + String(d.getMonth() + 1).padStart(2, "0") + " " + String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0"); }
+  function desenharFila() {
+    var fila = contaLer().filter(function (p) { return p.paraPC; }).sort(function (a, b) { return b.paraPC - a.paraPC; });
+    if ($("filaPC")) $("filaPC").innerHTML = (!EH_CEL && fila.length) ? '<div class="rl-aviso ok" style="margin-bottom:10px"><b>📲 Chegou do celular</b> — pronto para renderizar aqui:' + fila.map(function (p) {
+      return '<div style="display:flex;gap:8px;align-items:center;justify-content:space-between;margin-top:8px"><span>' + esc(p.nome || (p.briefing || {}).assunto || "Reel sem nome") + ' <small style="opacity:.7">· enviado ' + horaCurta(p.paraPC) + (usaMidia(p) ? " · mídias e personagens próprios ficaram no celular" : "") + '</small></span><button type="button" class="rl-bt peq" data-fila="' + esc(p.id) + '">ABRIR</button></div>'; }).join("") + '</div>' : "";
+    if ($("enviarPCEstado") && P) {
+      $("cxEnviarPC").hidden = !EH_CEL;
+      $("enviarPCEstado").innerHTML = P.paraPC ? '<div class="rl-aviso ok">Na fila do computador desde ' + horaCurta(P.paraPC) + '. Abra o BW Reels Pro no PC (logado na mesma conta). <button type="button" class="rl-bt peq" id="btTirarFila">TIRAR DA FILA</button></div>' : "";
+      $("btEnviarPC").textContent = P.paraPC ? "📲 ENVIAR DE NOVO PARA O PC" : "📲 ENVIAR PARA O PC";
+      if ($("btTirarFila")) $("btTirarFila").onclick = function () { P.paraPC = 0; salvarJa(); };
+    }
+  }
+  function salvarJa() { clearTimeout(tSalvar); if (!P) return; P.atualizado = Date.now(); P.naConta = true; P.roteiro.titulo = P.nome || "Novo reel"; dbPut("projetos", JSON.parse(JSON.stringify(P))).catch(function () { }); contaPor(P); desenharFila(); }
+  async function logado() { try { var c = window.BWSync && BWSync.cliente && BWSync.cliente(); var s = c ? await c.auth.getSession() : null; return !!(s && s.data && s.data.session); } catch (e) { return false; } }
 
   /* ---------- mídia ---------- */
   function tipoDe(f) { return /^video\//.test(f.type) ? "video" : /^audio\//.test(f.type) ? "audio" : /^image\//.test(f.type) ? "imagem" : ""; }
@@ -761,6 +810,22 @@
     try { if (actx) actx.close(); } catch (e) { /* já fechado */ }
     AQUI.rodando = false; $("btAqui").textContent = "🎬 GERAR VÍDEO NESTE APARELHO";
   };
+  $("btEnviarPC").onclick = async function () {
+    var v = validar(true); if (v.erros.length) { alert("Corrija os itens em vermelho antes de enviar."); return; }
+    if (!(await logado())) { $("enviarPCEstado").innerHTML = '<div class="rl-aviso erro">Entre na sua conta Brightway (menu Conta) para enviar ao computador.</div>'; return; }
+    P.paraPC = Date.now(); salvarJa();
+    var aviso = usaMidia(P) ? " As filmagens, fotos, músicas e personagens criados por você ficam só neste aparelho: no PC, coloque de novo na aba MÍDIA." : "";
+    try { if (window.BWSync && BWSync.sincronizar) await BWSync.sincronizar(["reels_projetos"]); } catch (e) { }
+    desenharFila();
+    $("enviarPCEstado").insertAdjacentHTML("beforeend", '<div class="rl-nota">Enviado ✓' + esc(aviso) + '</div>');
+  };
+  $("filaPC").addEventListener("click", async function (e) {
+    var b = e.target.closest("[data-fila]"); if (!b) return;
+    var p = await dbGet("projetos", b.dataset.fila).catch(function () { return null; }) || contaLer().filter(function (x) { return x.id === b.dataset.fila; })[0];
+    if (!p) return;
+    p = JSON.parse(JSON.stringify(p)); p.paraPC = 0; await abrir(p); salvarJa(); trocarAba("exportar");
+  });
+  window.addEventListener("bw-sync-recebido", function (e) { var ch = (e.detail && e.detail.chaves) || []; if (ch.indexOf("reels_projetos") >= 0) puxarDaConta(); });
   $("btPacote").onclick = async function () {
     var v = validar(true); if (v.erros.length) { trocarAba("exportar"); alert("Corrija os itens em vermelho antes de gerar o vídeo."); return; }
     ocupado("Montando o pacote para o BW Reels Studio…");
@@ -1147,7 +1212,7 @@
     await carregarMidias();
     $("nomeProj").value = P.nome || ""; Object.keys(BRIEF).forEach(function (id) { $(id).value = P.briefing[BRIEF[id]] || ($(id).tagName === "SELECT" ? $(id).options[0].value : ""); });
     $("fLegenda").value = P.legenda || ""; $("motorNota").textContent = "";
-    prepararMusica(); desenharTudo(); desenharPrompts(); trocarPasso(P.ganchos.length ? "gancho" : "assunto"); atualizar();
+    prepararMusica(); desenharTudo(); desenharPrompts(); trocarPasso(P.ganchos.length ? "gancho" : "assunto"); atualizar(); desenharFila();
     try { localStorage.setItem("ui_reels_ultimo", P.id); } catch (e) { }
   }
   function desenharTudo() { desenharLinha(); desenharCena(); desenharMidias(); desenharSom(); if (PASSO === "gancho") desenharGanchos(); if (PASSO === "estilo") desenharEstilo(); }
@@ -1156,9 +1221,9 @@
     var lista = (await dbTodos("projetos").catch(function () { return []; })).sort(function (a, b) { return b.atualizado - a.atualizado; });
     $("listaMeus").innerHTML = lista.length ? lista.map(function (p) {
       var d = new Date(p.atualizado); var quando = String(d.getDate()).padStart(2, "0") + "/" + String(d.getMonth() + 1).padStart(2, "0") + " " + String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0");
-      return '<li><span><b>' + esc(p.nome || p.briefing && p.briefing.assunto || "Sem nome") + '</b><small>' + (p.roteiro && p.roteiro.cenas ? p.roteiro.cenas.length : 0) + ' cenas · ' + quando + (P && p.id === P.id ? " · aberto" : "") + '</small></span>' +
+      return '<li><span><b>' + esc(p.nome || p.briefing && p.briefing.assunto || "Sem nome") + '</b><small>' + (p.roteiro && p.roteiro.cenas ? p.roteiro.cenas.length : 0) + ' cenas · ' + quando + (P && p.id === P.id ? " · aberto" : "") + (p.paraPC ? " · na fila do PC" : "") + '</small></span>' +
         '<span style="display:flex;gap:6px"><button type="button" class="rl-bt peq" data-abrir="' + p.id + '">ABRIR</button><button type="button" class="rl-bt peq" data-apagar="' + p.id + '" aria-label="Excluir ' + esc(p.nome || "reel") + '">✕</button></span></li>';
-    }).join("") : '<li><span class="rl-nota">Nenhum reel salvo neste aparelho.</span></li>';
+    }).join("") : '<li><span class="rl-nota">Nenhum reel salvo ainda.</span></li>';
     $("folhaMeus").hidden = false;
   };
   $("btFecharMeus").onclick = function () { $("folhaMeus").hidden = true; };
@@ -1167,10 +1232,11 @@
     var a = e.target.closest("[data-abrir]"), d = e.target.closest("[data-apagar]");
     if (a) { var p = await dbGet("projetos", a.dataset.abrir); if (p) { await abrir(p); this.hidden = true; } }
     if (d) {
-      if (!confirm("Excluir este reel e as mídias dele deste aparelho? Não dá para desfazer.")) return;
+      if (!confirm("Excluir este reel da sua conta (some de todos os aparelhos) e as mídias dele deste aparelho? Não dá para desfazer.")) return;
       var ms = await midiasDoProjeto(d.dataset.apagar).catch(function () { return []; });
       for (var i = 0; i < ms.length; i++) await dbDel("midias", ms[i].id).catch(function () { });
       await dbDel("projetos", d.dataset.apagar).catch(function () { });
+      contaTirar(d.dataset.apagar);
       if (P && P.id === d.dataset.apagar) await abrir(novoProjeto());
       $("btMeus").onclick();
     }
@@ -1190,9 +1256,10 @@
     try { var ult = localStorage.getItem("ui_reels_ultimo"); if (ult) p = await dbGet("projetos", ult); } catch (e) { }
     await carregarLib();
     await abrir(p || novoProjeto());
+    puxarDaConta().catch(function () { });
     if (!p) abrirModelos("texto");   /* primeira vez: mostra o que dá para criar */
   })();
-  window.addEventListener("beforeunload", function () { if (P) { P.atualizado = Date.now(); dbPut("projetos", JSON.parse(JSON.stringify(P))).catch(function () { }); } });
-  window.BWReels = {abrirPers: abrirPers, lib: function () { return LIB; }, somPronto: function () { prepararSom(); return !!somAuto.src; }, projeto: function () { return P; }, tocar: tocar, parar: parar, posicionar: posicionar, validar: validar, abrirModelos: abrirModelos, normalizarCenas: function (l, b) { return normalizarCenas(l, b || {}); }};
+  window.addEventListener("beforeunload", function () { if (P && P.naConta) { P.atualizado = Date.now(); dbPut("projetos", JSON.parse(JSON.stringify(P))).catch(function () { }); contaPor(P); } else if (P) { P.atualizado = Date.now(); dbPut("projetos", JSON.parse(JSON.stringify(P))).catch(function () { }); } });
+  window.BWReels = {puxarDaConta: puxarDaConta, conta: contaLer, abrirPers: abrirPers, lib: function () { return LIB; }, somPronto: function () { prepararSom(); return !!somAuto.src; }, projeto: function () { return P; }, tocar: tocar, parar: parar, posicionar: posicionar, validar: validar, abrirModelos: abrirModelos, normalizarCenas: function (l, b) { return normalizarCenas(l, b || {}); }};
   if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(function () { });
 })();

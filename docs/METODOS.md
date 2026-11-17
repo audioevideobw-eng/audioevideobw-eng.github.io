@@ -253,3 +253,9 @@ Tamanho > 0 e sem erro = o pdfmake montou o arquivo. Localmente (T1) confira o `
   sem quadros B) → MP4 próprio (ftyp + moov + mdat, um "chunk" por amostra; avcC vem de meta.decoderConfig.description).
 - Som: sintetizarSons(plano, {sr: 48000}) → AudioEncoder (mp4a.40.2 → esds; ou opus → dOps com o pre-skip do OpusHead).
 - Conferir: `ffprobe -show_streams`, `ffmpeg -i x.mp4 -f null -` (0 erros), `-af volumedetect`, folha com `fps=1/2.4,tile=6x1`.
+
+## Dados de uma ferramenta "só do aparelho" passando a acompanhar a conta (BW REELS PRO, 17/11)
+- O IndexedDB continua sendo a fonte da tela; a conta recebe um espelho leve (lista em `bw_<chave>_v1` com `antesDeSalvar`), sem arquivos.
+- Ao abrir e a cada `bw-sync-recebido` com a chave: juntar por id, vence o `atualizado` maior; exclusão remota só vale para itens marcados `naConta`.
+- Fila entre aparelhos = um campo com hora no próprio item (`paraPC`), mostrado só no outro tipo de aparelho.
+- Teste: escrever a lista no localStorage como se viesse de outro aparelho e chamar `BWReels.puxarDaConta()`.

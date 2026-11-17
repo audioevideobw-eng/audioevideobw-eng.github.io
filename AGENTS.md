@@ -266,6 +266,11 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
     A prévia do celular tira esses enfeites; o vídeo final continua com eles. "N blocos de som" no diagnóstico NÃO prova que há som:
     mostrar também o tamanho médio do bloco e os primeiros bytes.
 
+84. BW REELS PRO — projetos na CONTA (chave reels_projetos, em CHAVES + vigia): vai só o roteiro/textos; mídias, trilhas e personagens
+    próprios continuam no IndexedDB do aparelho (avisar ao enviar para o PC). Junta por id com o `atualizado` mais novo; apagar em outro
+    aparelho só apaga aqui o que tem `naConta` e nunca o reel aberto. Fila celular → PC = campo `paraPC` no próprio projeto (sem tabela nova).
+    Função que depende de serviço ainda não aprovado (Google Drive/Dropbox) aparece DESLIGADA com "disponível em breve", nunca como botão que falha.
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -844,8 +849,15 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   com mistura), sem desfoque gigante de fundo e sem uma camada por palavra; imagem de cada quadro liberada na exportação. NÃO testado em
   iPhone — aguarda novo print (linha "v3"). sw v114. PENTE FINO 83.
 - 17/11/2026 16:46 · Dono: "perfeito, resolveu" — iPhone com som no vídeo feito no aparelho e prévia sem tela branca (v3). Android já estava OK.
+- 17/11/2026 17:45 · Claude (dono: "app com login, tudo conectado; criar no celular e mandar para o PC; nuvem do usuário — por enquanto 'em breve'"):
+  ETAPA 1 — BW REELS PRO: os reels (roteiro e textos) agora ficam NA CONTA (reels_projetos) e aparecem em todos os aparelhos logados;
+  EXPORTAR no celular ganhou 📲 ENVIAR PARA O PC (fila; TIRAR DA FILA) e no computador aparece "📲 Chegou do celular" com ABRIR (vai direto
+  para EXPORTAR). MÍDIA: cartão "☁ Minha biblioteca na nuvem" com Google Drive e Dropbox DISPONÍVEL EM BREVE. Excluir um reel tira de todos
+  os aparelhos. Sem tabela nova no banco (usa user_data). teste_reels.py +7 e teste_reels_celular.py +3 checagens (0 falhas), varredura 0,
+  vigia ✅. reels.js v11, sw v115. PENTE FINO 84. Próximas etapas combinadas: biblioteca oficial do ADM, biblioteca do usuário, app instalado com login.
 
 ## Pendências (dono)
+- [ ] (17/11) BW REELS PRO: dono testar ENVIAR PARA O PC (celular logado → abrir o Reels no PC logado → "Chegou do celular").
 - [ ] (17/11) BW REELS ASSISTENTE: dono abrir pelo BW-REELS-ASSISTENTE.bat no PC e fazer 1 vídeo em cada modo (ECONÔMICO com o Claude real).
 - [ ] (17/11) BW IA: dono criar as chaves grátis (Groq, Gemini, OpenRouter) e colar em ⚙ Minhas IAs; testar INSTALAR IAS RECOMENDADAS no PC.
 - [x] (17/11 16:46, dono: "perfeito, resolveu") MOBILE: GERAR VÍDEO NESTE APARELHO com som no iPhone e no Android.
