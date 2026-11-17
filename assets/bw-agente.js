@@ -324,9 +324,9 @@
     '- tarefa: titulo, data, hora ("HH:MM" ou ""), categoria (tarefa, trabalho, pessoal, casa, saude, reuniao) — lembretes, compromissos, "tenho que", "preciso"\n' +
     '- custo_evento: evento (nome EXATO da lista), descricao, valor, data\n' +
     '- consulta: fonte (agenda|casa|negocio|contas), periodo (hoje|amanha|semana|proxima_semana|mes|mes_passado|ano), data (AAAA-MM-DD se for UM dia, ex. "quinta"), filtro — perguntas sobre os DADOS dele\n' +
-    '- resumo_dia: dia (hoje|amanha) — "como está meu dia", "bom dia", "o que tem pra hoje"\n' +
+    '- resumo_dia: dia (hoje|amanha) — SÓ quando pede o resumo do dia/agenda: "como está meu dia", "bom dia", "o que tem pra hoje"\n' +
     '- ajustar: só os campos a mudar (hora, data, valor, titulo, descricao) — corrigir o último pedido: "muda para as 15h", "na verdade foi 50"\n' +
-    '- responder: texto — conversa, piada, curiosidade, pergunta geral (1 a 3 frases faladas, sem emoji nem markdown)\n' +
+    '- responder: texto — conversa, desabafo, piada, curiosidade, pergunta geral (1 a 3 frases faladas, sem emoji nem markdown)\n' +
     '- abrir: pagina (' + Object.keys(PAGINAS).join(", ") + ')\n- fim: despedida curta em "resposta" ("tchau", "só isso", "pode parar")\n- nada: peça em "resposta" o que falta\n' +
     'Regras: valor número com ponto; datas AAAA-MM-DD pelos PRÓXIMOS DIAS dados ("de manhã" 09:00, "à tarde" 14:00, "à noite" 19:00); gasto sem empresa/cliente/evento = gasto_casa; ' +
     '"recebi" de cliente = entrada_negocio; vários pedidos = várias ações; nunca invente valor nem dados dele; use a CONVERSA ANTERIOR para entender "e depois?", "muda isso". ' +
@@ -380,12 +380,12 @@
     var usarIA = ui("ia", true), r = usarIA ? await entenderIA(texto) : null, via = "IA Brightway";
     if (r) { r.acoes = (r.acoes || []).map(achatar).filter(Boolean); if (!r.acoes.length || r.acoes.every(function (a) { return a.tipo === "nada"; })) { var loc = entenderLocal(texto); if (loc.some(function (a) { return a.tipo !== "nada"; })) r = { acoes: loc, resposta: "" }; } }
     if (r && r.resposta && r.acoes.length && r.acoes.every(function (a) { return a.tipo === "nada"; }) && String(r.resposta).length > 25) r.acoes = [{ tipo: "responder", texto: r.resposta }];   /* a IA respondeu, mas marcou "nada" */
-    if (r && (!r.acoes.length || r.acoes.every(function (a) { return a.tipo === "nada"; })) && !(r.resposta && String(r.resposta).length > 25)) { var pa = await papo(texto); if (pa) r = { acoes: [{ tipo: "responder", texto: pa }], resposta: "" }; }   /* pergunta geral: conversa direta */
     if (!r) { r = { acoes: entenderLocal(texto), resposta: "" }; via = "no aparelho"; }
+    if (usarIA && (!r.acoes.length || r.acoes.every(function (a) { return a.tipo === "nada"; })) && !(r.resposta && String(r.resposta).length > 25)) { var pa = await papo(texto); if (pa) { r = { acoes: [{ tipo: "responder", texto: pa }], resposta: "" }; via = "IA Brightway"; } }   /* pergunta geral / papo: conversa direta */
     r.acoes = (r.acoes || []).map(normalizar).filter(function (a) { return a && a.tipo; });
     /* data dita com dia da semana/amanhã/"dia 20": o cálculo do aparelho vale (a IA errou "sexta" → domingo) */
     var tl = " " + extenso(sa(texto)) + " ", dl = dataDe(tl), datadas = r.acoes.filter(function (a) { return /tarefa|gasto|receita|entrada|conta_pagar|custo_evento/.test(a.tipo); });
-    r.acoes.forEach(function (a) { if (a.tipo === "consulta" && a.fonte === "agenda") { var d1 = (dl && !/semana|mes|ano/.test(tl)) ? dl : (/^\d{4}-\d{2}-\d{2}$/.test(a.data || "") ? a.data : ""); if (d1) a._ini = d1; } });
+    r.acoes.forEach(function (a) { if (a.tipo === "resumo_dia" && dl && dl !== hoje()) a.dataEsp = dl; if (a.tipo === "consulta" && a.fonte === "agenda") { var d1 = (dl && !/semana|mes|ano/.test(tl)) ? dl : (/^\d{4}-\d{2}-\d{2}$/.test(a.data || "") ? a.data : ""); if (d1) a._ini = d1; } });
     if (dl && datadas.length === 1 && !/\d{1,2}\/\d{1,2}/.test(tl)) { var a1 = datadas[0]; if (a1.tipo === "conta_pagar") a1.vencimento = dl; else a1.data = dl; }
     if (r.acoes.some(function (a) { return !/^(nada|responder|fim)$/.test(a.tipo); })) r.resposta = "";   /* nunca "lembrete criado" antes de lançar */
     if (!r.acoes.length) r.acoes = [{ tipo: "nada" }];
@@ -591,7 +591,7 @@
     var falas = [], encerra = false, histR = [];
     soInfo.forEach(function (a) {
       if (a.tipo === "consulta") { a.feito = true; a.resposta = consultar(a); falas.push(a.resposta); histR.push("(respondi com os dados dele)"); }
-      if (a.tipo === "resumo_dia") { a.feito = true; a.resposta = resumoDia(a.dia); falas.push(a.resposta); histR.push("(contei como está o dia dele)"); }
+      if (a.tipo === "resumo_dia") { a.feito = true; a.resposta = a.dataEsp ? consultar({ fonte: "agenda", periodo: "hoje", _ini: a.dataEsp }) : resumoDia(a.dia); falas.push(a.resposta); histR.push("(contei como está o dia dele)"); }
       if (a.tipo === "responder") { a.feito = true; a.texto = a.texto || r.resposta || ""; falas.push(a.texto); histR.push(a.texto); }
       if (a.tipo === "fim") { a.feito = true; a.texto = r.resposta || ["Valeu! Até mais.", "Tchau, até a próxima!", "Falou! Qualquer coisa é só chamar o Tio Cláudio."][Math.floor(Math.random() * 3)]; falas.push(a.texto); encerra = true; }
       if (a.tipo === "nada") { falas.push(r.resposta || "Não entendi. Pode repetir?"); histR.push(r.resposta || "Não entendi."); }

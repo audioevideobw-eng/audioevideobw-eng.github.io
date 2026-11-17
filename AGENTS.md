@@ -656,7 +656,7 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   "NA VERDADE FOI 50" (corrige o último pedido, mesmo já lançado), histórico curto da conversa para a IA entender "e depois?", melhor voz pt-BR
   do aparelho + escolha de voz e velocidade em ⚙, tocar no robô interrompe a fala. Sem palavra de ativação (navegador não escuta o tempo
   todo). teste_agente_leitor.py +12 checagens (0 falhas); layout/varredura 0. bw-agente v4, bw-leitor v2, layout.js v34, sw v90. PENTE FINO 66.
-  No ar: a IA respondia perguntas gerais (4K × Full HD) mas marcava "nada" → vira resposta; sem ação nem resposta → conversa direta (papo); "o que tenho na quinta" = só aquele dia. bw-agente v6, layout.js v36, sw v92.
+  No ar: a IA respondia perguntas gerais (4K × Full HD) mas marcava "nada" → vira resposta; sem ação nem resposta → conversa direta (papo); "o que tenho na quinta" = só aquele dia. bw-agente v7, layout.js v37, sw v93.
 
 ## Pendências (dono)
 - [x] (16/11 11:42) IA CRIATIVA ATIVA: conta Cloudflare do dono (Free, sem cartão), token "Brightway IA criativa 2" (Workers AI Read+Edit) em
