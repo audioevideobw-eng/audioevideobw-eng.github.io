@@ -271,6 +271,11 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
     aparelho só apaga aqui o que tem `naConta` e nunca o reel aberto. Fila celular → PC = campo `paraPC` no próprio projeto (sem tabela nova).
     Função que depende de serviço ainda não aprovado (Google Drive/Dropbox) aparece DESLIGADA com "disponível em breve", nunca como botão que falha.
 
+85. QUADRO DE HISTÓRIA (assets/reels-quadro.js): blocos e setas ficam só no aparelho (ui_reels_quadro + imagens no IndexedDB, projeto "__quadro");
+    foto só sai pela fotos-nuvem.js (autorização marcada + confirm com a quantidade e o limite do dia); a fala que a pessoa escreveu nunca é
+    trocada pela IA; IA devolveu número de cenas diferente → usa o texto do aparelho. Bloco que cresce (imagem criada) não pode cobrir o de
+    baixo: referências nascem bem abaixo das cenas. Arrastar = pixels da tela ÷ zoom. Id "quadro" já é o iframe da prévia (usar prefixo qd).
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -862,8 +867,18 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   motor/teste-legendas.mjs com "ouvido" SIMULADO + render real (0 falhas). NÃO testado com o modelo de fala real: aqui não dá para baixar o
   pacote — o teste de verdade é no PC do dono. Zip e tutorial em downloads/ atualizados; arquivos enviados para o PC do dono (menos o comando
   /legendar, que só entra reinstalando pelo zip). Ideia registrada: QUADRO DE HISTÓRIA (blocos ligados por setas → cenas por IA → um vídeo).
+- 17/11/2026 19:10 · Claude (dono descreveu a aba de nós do Edvid e pediu "os dois": só imagens e vídeo): BW REELS PRO › 🧩 QUADRO DE HISTÓRIA.
+  Quadro livre (arrastar, zoom, ver tudo) com blocos PERSONAGEM (foto, nome, descrição), CENA (o que acontece + fala), REFERÊNCIA (lugar/objeto/
+  estilo, com imagem opcional) e FINAL, ligados por setas (➜ e toque no destino; toque na seta apaga; + CENA entra sozinha no fim). ✨ CRIAR
+  IMAGENS = uma imagem por cena com o mesmo personagem (bw-ia-imagem, 15/dia) e ⬇ BAIXAR IMAGENS (só as fotos); 🎬 MONTAR O VÍDEO = ANIMADO PELO
+  APP (imagens com movimento + falas, ou personagem animado, ou texto) ou VÍDEO COM IA DE FORA (um prompt por cena na aba MÍDIA). Textos em uma
+  chamada da bw-ia. LIMITES: não há IA de vídeo ligada no app (vídeo gerado depende de Kling/Veo/Higgsfield fora); com foto do personagem, a
+  IMAGEM da referência não vai junto (só a descrição dela) — a função aceita uma foto por pedido. docs/testes/teste_quadro.py (29 checagens ×
+  1280/390, IA simulada, 0 falhas). NÃO testado no ar com a IA real (dono ausente). Manual 44 → 45 p. reels.js v12, reels-quadro.js v1, sw v116. PENTE FINO 85.
 
 ## Pendências (dono)
+- [ ] (17/11) QUADRO DE HISTÓRIA: dono testar no ar, logado (EXEMPLO → foto → CRIAR IMAGENS → MONTAR O VÍDEO), no PC e no celular; decidir se
+      vale ligar uma IA de vídeo paga (por chave do usuário) e mandar a imagem da referência junto (muda a função bw-ia-imagem).
 - [ ] (17/11) LEGENDA OFFLINE: dono rodar INSTALAR-LEGENDAS.bat e arrastar um vídeo com fala para o LEGENDAR.bat; mandar o resultado (ou o erro).
 - [ ] (17/11) BW REELS PRO: dono testar ENVIAR PARA O PC (celular logado → abrir o Reels no PC logado → "Chegou do celular").
 - [ ] (17/11) BW REELS ASSISTENTE: dono abrir pelo BW-REELS-ASSISTENTE.bat no PC e fazer 1 vídeo em cada modo (ECONÔMICO com o Claude real).

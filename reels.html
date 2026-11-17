@@ -128,6 +128,41 @@
 .pl-card b{font-size:12.5px;color:#F5F1EA;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pl-card small{font-size:11px;color:#9AA1AE}
 .pl-card .ac{display:flex;gap:4px;flex-wrap:wrap}
+html.qd-aberto,html.qd-aberto body{overflow:hidden}
+.qd-tela{position:fixed;inset:0;z-index:1200;background:#0B0E14;display:flex;flex-direction:column;padding-top:env(safe-area-inset-top)}
+.qd-tela[hidden]{display:none}
+.qd-topo{display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid rgba(245,241,234,.1);font:800 13px Inter,sans-serif;letter-spacing:.08em;color:#F5F1EA}
+.qd-esp{flex:1}
+.qd-dica{margin:0;padding:7px 12px;font:500 12.5px Inter,sans-serif;color:#B9C0CC;min-height:30px}
+.qd-area{position:relative;flex:1;min-height:0;overflow:hidden;touch-action:none;cursor:grab;background:#0E121A radial-gradient(rgba(245,241,234,.07) 1px,transparent 1px) 0 0/22px 22px}
+.qd-mundo{position:absolute;left:0;top:0;transform-origin:0 0}
+.qd-setas{position:absolute;left:0;top:0;overflow:visible;pointer-events:none}
+.qd-linha{fill:none;stroke:#C8F65A;stroke-width:2.5}
+.qd-linha.ref{stroke:#6FB6FF;stroke-dasharray:7 6}
+.qd-toque{fill:none;stroke:transparent;stroke-width:22;pointer-events:stroke;cursor:pointer}
+.qd-bloco{position:absolute;width:232px;box-sizing:border-box;background:#161B26;border:1px solid rgba(245,241,234,.16);border-radius:14px;padding:0 10px 10px;box-shadow:0 10px 26px rgba(0,0,0,.4);cursor:default}
+.qd-bloco.t-pers{border-color:#C8F65A}.qd-bloco.t-ref{border-color:#6FB6FF;border-style:dashed}.qd-bloco.t-fim{border-color:#FFB547}
+.qd-bloco.ligando{outline:3px solid #C8F65A;outline-offset:2px}
+.qd-cab{display:flex;align-items:center;justify-content:space-between;gap:6px;margin:0 -10px 8px;padding:6px 6px 6px 12px;border-bottom:1px solid rgba(245,241,234,.1);font:800 11px Inter,sans-serif;letter-spacing:.1em;color:#F5F1EA;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none}
+.qd-cab span{display:flex;gap:4px}
+.qd-porta{width:34px;height:34px;border-radius:10px;border:1px solid rgba(245,241,234,.18);background:rgba(255,255,255,.05);color:#F5F1EA;font-size:15px;cursor:pointer}
+.qd-in{display:block;width:100%;box-sizing:border-box;margin-top:6px;padding:8px 9px;border-radius:9px;border:1px solid rgba(245,241,234,.14);background:#0E121A;color:#F5F1EA;font:500 16px Inter,sans-serif;resize:none;text-transform:none}
+.qd-foto{position:relative;margin-top:2px;border-radius:10px;overflow:hidden;background:#0E121A repeating-conic-gradient(rgba(255,255,255,.05) 0 25%,transparent 0 50%) 0 0/16px 16px;text-align:center}
+.qd-foto img{display:block;width:100%;max-height:150px;object-fit:contain}
+.qd-foto.ia img{max-height:230px;object-fit:cover}
+.qd-add{width:100%;min-height:54px;border:1px dashed rgba(245,241,234,.25);border-radius:10px;background:transparent;color:#B9C0CC;font:700 11px Inter,sans-serif;letter-spacing:.06em;cursor:pointer}
+.qd-x{position:absolute;right:5px;top:5px;width:30px;height:30px;border-radius:50%;border:0;background:rgba(0,0,0,.65);color:#fff;cursor:pointer}
+.qd-zoom{position:absolute;right:10px;bottom:10px;display:flex;gap:6px}
+.qd-zoom button{width:40px;height:40px;border-radius:12px;border:1px solid rgba(245,241,234,.18);background:#161B26;color:#F5F1EA;font-size:17px;cursor:pointer}
+.qd-base{padding:8px 12px calc(10px + env(safe-area-inset-bottom));border-top:1px solid rgba(245,241,234,.1);position:relative}
+.qd-autor{display:flex;gap:8px;align-items:flex-start;font:500 12px Inter,sans-serif;color:#B9C0CC;margin:2px 0 8px;text-transform:none;letter-spacing:0}
+.qd-botoes{display:flex;gap:8px;flex-wrap:wrap}
+.qd-botoes .rl-bt{flex:1 1 auto;justify-content:center;white-space:nowrap}
+.qd-menu{position:absolute;right:12px;bottom:calc(100% - 4px);display:flex;flex-direction:column;gap:6px;background:#161B26;border:1px solid rgba(245,241,234,.18);border-radius:14px;padding:8px;box-shadow:0 14px 34px rgba(0,0,0,.5);max-width:calc(100vw - 24px)}
+.qd-menu[hidden]{display:none}
+.qd-menu .rl-bt{flex-direction:column;align-items:flex-start;gap:2px;height:auto;padding:9px 12px;white-space:normal;text-align:left}
+.qd-menu small{font:500 11.5px Inter,sans-serif;letter-spacing:0;color:#B9C0CC;text-transform:none}
+@media (max-width:560px){.qd-topo b{font-size:11.5px}.qd-botoes .rl-bt{flex:1 1 44%;padding:0 8px;font-size:11.5px}}
 .pl-card .rl-bt{white-space:normal;justify-content:center;text-align:center;line-height:1.2;padding:6px 10px}
 .pl-mont{display:grid;grid-template-columns:minmax(0,300px) minmax(0,1fr);gap:16px}
 .pl-palco{position:relative;height:380px;border-radius:16px;background:radial-gradient(70% 55% at 50% 62%,#3a2a12,#0D1017 80%);display:flex;align-items:flex-end;justify-content:center;overflow:hidden}
@@ -213,6 +248,7 @@
     <span class="rl-marca">BW REELS <b>PRO</b></span>
     <input id="nomeProj" class="rl-nome" aria-label="Nome do vídeo" placeholder="Nome do vídeo">
     <button class="rl-bt pri" id="btModelos" type="button">🎬 MODELOS</button>
+    <button class="rl-bt" id="btQuadro" type="button">🧩 QUADRO DE HISTÓRIA</button>
     <button class="rl-bt" id="btPers" type="button">👤 PERSONAGENS</button>
     <button class="rl-bt" id="btMeus" type="button">MEUS REELS</button>
     <button class="rl-bt" id="btNovo" type="button">+ NOVO</button>
@@ -559,6 +595,44 @@
   </div>
   <p class="rl-nota">Precisa de: internet na instalação e, para usar o Claude Code direto no motor (opcional), uma conta Claude com acesso ao Claude Code.</p>
 </div></div>
+<!-- QUADRO DE HISTÓRIA: blocos ligados por setas → imagens das cenas e reel (assets/reels-quadro.js) -->
+<div class="qd-tela" id="folhaQuadro" hidden role="dialog" aria-label="Quadro de história">
+  <div class="qd-topo">
+    <b>🧩 QUADRO DE HISTÓRIA</b>
+    <span class="qd-esp"></span>
+    <button class="rl-bt peq" id="qdExemplo" type="button">EXEMPLO</button>
+    <button class="rl-bt peq" id="qdLimpar" type="button">LIMPAR</button>
+    <button class="rl-bt peq" id="qdFechar" type="button" aria-label="Fechar o quadro">✕ FECHAR</button>
+  </div>
+  <p class="qd-dica" id="qdDica" aria-live="polite"></p>
+  <div class="qd-area" id="qdArea">
+    <div class="qd-mundo" id="qdMundo">
+      <svg class="qd-setas" width="6000" height="3000" aria-hidden="true"><defs>
+        <marker id="qdPonta" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#C8F65A"/></marker>
+        <marker id="qdPontaR" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#6FB6FF"/></marker>
+      </defs><g id="qdLinhas"></g></svg>
+      <div id="qdBlocos"></div>
+    </div>
+    <div class="qd-zoom"><button type="button" id="qdZoomMenos" aria-label="Afastar">−</button><button type="button" id="qdCentro" aria-label="Ver tudo">⤢</button><button type="button" id="qdZoomMais" aria-label="Aproximar">＋</button></div>
+  </div>
+  <div class="qd-base">
+    <div class="rl-aviso" id="qdAviso" hidden aria-live="polite"></div>
+    <label class="qd-autor"><input type="checkbox" id="qdAutor"> As fotos são minhas ou tenho autorização de quem aparece nelas.</label>
+    <div class="qd-botoes">
+      <button class="rl-bt" id="qdMaisCena" type="button">＋ CENA</button>
+      <button class="rl-bt" id="qdMaisRef" type="button">＋ REFERÊNCIA</button>
+      <button class="rl-bt" id="qdImagens" type="button">✨ CRIAR IMAGENS</button>
+      <button class="rl-bt" id="qdBaixar" type="button" hidden>⬇ BAIXAR IMAGENS</button>
+      <button class="rl-bt pri" id="qdMontar" type="button">🎬 MONTAR O VÍDEO</button>
+    </div>
+    <div class="qd-menu" id="qdMenuMontar" hidden>
+      <button class="rl-bt" id="qdMontarMotor" type="button">ANIMADO PELO APP<small>grátis · usa as imagens criadas ou o personagem</small></button>
+      <button class="rl-bt" id="qdMontarVideo" type="button">VÍDEO COM IA DE FORA<small>um prompt por cena para Kling, Veo ou Higgsfield</small></button>
+    </div>
+  </div>
+  <input type="file" id="qdArquivo" accept="image/*" hidden>
+  <div class="rl-ocup" id="qdOcup" hidden><div><i></i><span id="qdOcupTxt">Criando…</span></div></div>
+</div>
 <div class="rl-ocup" id="ocup" hidden><div><i></i><span id="ocupTxt">Criando…</span></div></div>
 
 <script src="assets/layout.js?v=48"></script>
@@ -569,6 +643,7 @@
 <script src="assets/fotos-nuvem.js?v=2"></script>
 <script src="assets/reels-avatar.js?v=1"></script>
 <script src="assets/reels-celular.js?v=3"></script>
-<script src="assets/reels.js?v=11"></script>
+<script src="assets/reels-quadro.js?v=1"></script>
+<script src="assets/reels.js?v=12"></script>
 </body>
 </html>

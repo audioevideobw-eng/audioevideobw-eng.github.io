@@ -1260,6 +1260,30 @@
     if (!p) abrirModelos("texto");   /* primeira vez: mostra o que dá para criar */
   })();
   window.addEventListener("beforeunload", function () { if (P && P.naConta) { P.atualizado = Date.now(); dbPut("projetos", JSON.parse(JSON.stringify(P))).catch(function () { }); contaPor(P); } else if (P) { P.atualizado = Date.now(); dbPut("projetos", JSON.parse(JSON.stringify(P))).catch(function () { }); } });
-  window.BWReels = {puxarDaConta: puxarDaConta, conta: contaLer, abrirPers: abrirPers, lib: function () { return LIB; }, somPronto: function () { prepararSom(); return !!somAuto.src; }, projeto: function () { return P; }, tocar: tocar, parar: parar, posicionar: posicionar, validar: validar, abrirModelos: abrirModelos, normalizarCenas: function (l, b) { return normalizarCenas(l, b || {}); }};
+  /* QUADRO DE HISTÓRIA (assets/reels-quadro.js): transforma os blocos do quadro num reel novo */
+  async function montarDoQuadro(q) {
+    salvar();
+    var novo = novoProjeto(); novo.modo = "quadro"; novo.nome = String(q.nome || "História do quadro").slice(0, 60); novo.briefing.assunto = (q.cenas || []).map(function (c) { return c.contexto; }).join(" · ").slice(0, 200); novo.briefing.cta = q.cta || "";
+    novo.roteiro.cenas = []; await abrir(novo);
+    var av = null;
+    if (q.figura) { await importar([new File([q.figura], "avatar-" + slug(q.personagem || "personagem") + ".png", {type: "image/png"})]); av = (avatares().slice(-1)[0] || {}).caminho; }
+    var cenas = [];
+    if (q.gancho) cenas.push({tipo: "gancho", duracao: 2.8, texto: palavras(q.gancho).slice(0, 9).join(" ")});
+    for (var i = 0; i < q.cenas.length; i++) {
+      var c = q.cenas[i], cam = null, fala = palavras(c.fala || c.contexto).slice(0, 14).join(" "), dur = Math.max(3, Math.min(5.5, palavras(fala).length / 2.4 + 1.2));
+      if (c.imagem) { await importar([new File([c.imagem], "quadro-cena-" + (i + 1) + ".jpg", {type: c.imagem.type || "image/jpeg"})]); cam = MID[MID.length - 1].caminho; }
+      if (q.modo === "video") cenas.push({tipo: "midia", duracao: 5, texto: fala, movimento: "zoom-in-suave"});
+      else if (cam) cenas.push({tipo: "personagem", duracao: dur, falas: [{quem: 0, texto: fala}], elenco: [], midia: cam, movimento: i % 2 ? "zoom-out" : "zoom-in", cenario: "nenhum", transicao: "fade", entrada: "nenhuma"});
+      else if (av) cenas.push({tipo: "personagem", duracao: dur, falas: [{quem: 0, texto: fala}], elenco: [{personagem: "foto", imagem: av, acao: i === 0 ? "acena" : "fala"}], cenario: i % 2 ? "palco" : "raios", entrada: i === 0 ? "pula" : "nenhuma"});
+      else cenas.push({tipo: "texto", duracao: dur, texto: fala});
+    }
+    cenas.push({tipo: "cta", duracao: 3, texto: q.cta || "Gostou? Me segue", acao: q.cta || "Siga o perfil"});
+    P.roteiro.cenas = cenas;
+    P.promptsCenas = q.modo === "video" ? q.cenas.map(function (c, i) { return {cena: i + (q.gancho ? 1 : 0), prompt: c.promptVideo}; }) : [];
+    if (q.legenda) { P.legenda = String(q.legenda); $("fLegenda").value = P.legenda; }
+    SEL = 0; salvar(); desenharTudo(); desenharPrompts(); atualizar(); T = 1.2; posicionar(1.2); trocarAba(q.modo === "video" ? "midia" : "cena");
+    return P.id;
+  }
+  window.BWReels = {montarDoQuadro: montarDoQuadro, db: {put: dbPut, get: dbGet, del: dbDel}, puxarDaConta: puxarDaConta, conta: contaLer, abrirPers: abrirPers, lib: function () { return LIB; }, somPronto: function () { prepararSom(); return !!somAuto.src; }, projeto: function () { return P; }, tocar: tocar, parar: parar, posicionar: posicionar, validar: validar, abrirModelos: abrirModelos, normalizarCenas: function (l, b) { return normalizarCenas(l, b || {}); }};
   if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(function () { });
 })();

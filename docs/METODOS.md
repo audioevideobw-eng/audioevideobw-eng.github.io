@@ -259,3 +259,9 @@ Tamanho > 0 e sem erro = o pdfmake montou o arquivo. Localmente (T1) confira o `
 - Ao abrir e a cada `bw-sync-recebido` com a chave: juntar por id, vence o `atualizado` maior; exclusão remota só vale para itens marcados `naConta`.
 - Fila entre aparelhos = um campo com hora no próprio item (`paraPC`), mostrado só no outro tipo de aparelho.
 - Teste: escrever a lista no localStorage como se viesse de outro aparelho e chamar `BWReels.puxarDaConta()`.
+
+## Quadro de nós (blocos + setas) sem biblioteca (QUADRO DE HISTÓRIA, 17/11)
+- Área com overflow escondido e touch-action:none; "mundo" com transform translate+scale; SVG grande por baixo para as setas (curvas C) e
+  um segundo path transparente e largo (stroke 22) só para o toque. Blocos são divs absolutas; arrasta pelo cabeçalho (pointer capture na área).
+- Ligar no celular: botão ➜ no bloco de origem → próximo toque num bloco é o destino (sem arrastar linha). A ordem da história segue as setas.
+- Teste: IA de texto e de imagem simuladas pela rota; confere envio pequeno da foto, confirmação, persistência depois de recarregar e o reel montado.
