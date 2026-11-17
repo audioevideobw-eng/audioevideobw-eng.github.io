@@ -517,7 +517,8 @@
     var fim = new Promise(function (ok) { mr.onstop = ok; });
     mr.start(); aoParcial("🎙 gravando… toque no robô para terminar");
     var limite = setTimeout(function () { if (mr.state === "recording") mr.stop(); }, 12000);
-    await fim; clearTimeout(limite); stream.getTracks().forEach(function (t) { t.stop(); }); gravador = null;
+    await fim; clearTimeout(limite); stream.getTracks().forEach(function (t) { t.stop(); }); gravador = null; micFim = Date.now();
+    if (descartarEscuta) throw new Error("cancelado");
     aoParcial("transcrevendo…");
     var blob = new Blob(partes, { type: partes[0] && partes[0].type || "audio/webm" }), Ctx = window.AudioContext || window.webkitAudioContext, ctx = new Ctx();
     var buf = await blob.arrayBuffer(), a = await new Promise(function (ok, erro) { var pr = ctx.decodeAudioData(buf, ok, erro); if (pr && pr.then) pr.then(ok, erro); }); try { ctx.close(); } catch (e) { }
@@ -526,6 +527,15 @@
     var j = await r.json().catch(function () { return {}; });
     if (!r.ok) throw new Error(j.erro || "transcricao");
     return String(j.texto || (j.segmentos || []).map(function (x) { return x.texto || x.text; }).join(" ") || "").trim();
+  }
+  var descartarEscuta = false;
+  function soltarMic() {   /* 16/11: no iPhone, com o microfone ligado a fala sai MUDA → quem escreve/toca num exemplo/testa a voz desliga a escuta antes */
+    var tinha = !!(rec || (gravador && gravador.state === "recording")); if (!tinha) return false;
+    descartarEscuta = true; micFim = Date.now();
+    try { if (rec) { rec.onresult = null; rec.abort(); } } catch (e) { }
+    try { if (gravador && gravador.state === "recording") gravador.stop(); } catch (e) { }
+    ouvindo = false; if (fab) fab.classList.remove("ouvindo"); sessaoAudio("playback");
+    return true;
   }
   function parar() { try { if (rec) rec.stop(); } catch (e) { } try { if (gravador && gravador.state === "recording") gravador.stop(); } catch (e) { } }
 
@@ -602,11 +612,12 @@
     if (/Mac OS X/i.test(ua)) return "No Mac: Ajustes do Sistema → Acessibilidade → Conteúdo Falado → Voz do sistema → Gerenciar vozes → Português (Brasil) → “Felipe”.";
     return "No computador, o navegador Microsoft Edge traz a voz masculina “Antonio” (natural), de graça.";
   }
-  var VERSAO = 15;
+  var VERSAO = 16;
   function testeSom() {   /* fala DIRETO no toque (sem espera) e mostra na tela o que o aparelho respondeu — para achar por que não sai som */
     var d = painel.querySelector("#bwgDiag"), linha = function (t) { if (d) d.textContent = "v" + VERSAO + " · " + t; };
     if (!window.speechSynthesis) { linha("este navegador não tem voz (speechSynthesis)"); return; }
     try {
+      var micLigado = soltarMic();
       falaId++; sessaoAudio("playback"); speechSynthesis.cancel(); try { speechSynthesis.resume(); } catch (e) { }
       var v = melhorVoz(), u = new SpeechSynthesisUtterance("Opa! Aqui é o Tio Cláudio. Bora organizar esse dia, uai?"); u.lang = v ? v.lang : "pt-BR"; if (v) u.voice = v; u.volume = 1; u.rate = +ui("velocidade", 1.05) || 1.05; u.pitch = tomDe(v);
       var info = (v ? v.name : "voz padrão") + " · " + vozes().length + " vozes pt" + (navigator.standalone ? " · app instalado" : "") + (navigator.audioSession ? " · sessão " + navigator.audioSession.type : " · sem audioSession") + (micFim ? " · mic usado" : "");
@@ -615,8 +626,9 @@
       u.onstart = function () { linha("✓ o aparelho COMEÇOU a falar · " + info + " — se não ouviu, é volume/silencioso"); };
       u.onend = function () { linha("✓ fala terminada · " + info); };
       u.onerror = function (e) { linha("✗ erro: " + (e && e.error || "?") + " · " + info); };
-      speechSynthesis.speak(u);
-      setTimeout(function () { if (d && /pedindo som/.test(d.textContent)) linha("✗ o aparelho NÃO começou a falar em 4 s · " + info); }, 4000);
+      if (micLigado) info += " · microfone desligado antes";
+      setTimeout(function () { try { speechSynthesis.speak(u); } catch (e) { linha("✗ falhou: " + e.message); } }, micLigado ? 900 : 0);
+      setTimeout(function () { if (d && /pedindo som/.test(d.textContent)) linha("✗ o aparelho NÃO começou a falar em 5 s · " + info); }, 5000);
     } catch (e) { linha("✗ falhou: " + (e && e.message || e)); }
   }
   function desenharVozes() {
@@ -638,7 +650,7 @@
     if (escutar) ouvir(); else { var i = painel.querySelector("#bwgTxt"); if (i) i.focus(); }
   }
   async function ouvir(emConversa) {
-    calar(); var fala = painel.querySelector(".bwg-fala"); fala.textContent = "";
+    calar(); descartarEscuta = false; var fala = painel.querySelector(".bwg-fala"); fala.textContent = "";
     if (!SR && !(navigator.mediaDevices && window.MediaRecorder)) { status("Seu navegador não tem reconhecimento de voz — escreva o pedido abaixo."); return; }
     ouvindo = true; fab.classList.add("ouvindo"); bip(true); sessaoAudio("play-and-record");
     status('<span class="bwg-onda"><i></i><i></i><i></i><i></i></span> ' + (emConversa ? "Tô ouvindo… pode falar (ou diga “tchau”)" : "Ouvindo… pode falar com o Tio Cláudio (toque no robô para parar)"));
@@ -653,10 +665,12 @@
         }
       } else txt = await ouvirGravando(function (p) { status(esc(p)); });
       micFim = Date.now();
+      if (descartarEscuta) { descartarEscuta = false; return; }
       ouvindo = false; fab.classList.remove("ouvindo"); sessaoAudio("playback");
       if (!txt) { status(emConversa ? "Fim da conversa. Toque no robô quando precisar." : "Não ouvi nada. Toque em 🎙 e fale de novo, ou escreva."); return; }
       fala.textContent = txt; processar(txt, true);
     } catch (e) {
+      if (descartarEscuta) { descartarEscuta = false; micFim = Date.now(); return; }
       ouvindo = false; fab.classList.remove("ouvindo"); micFim = Date.now(); sessaoAudio("playback");
       var m = String(e && e.message || e);
       status(/not-allowed|denied|Permission/i.test(m) ? "O microfone está bloqueado. Libere o microfone para este site (cadeado na barra de endereço) ou escreva abaixo."
@@ -665,6 +679,7 @@
     }
   }
   async function processar(txt, porVoz) {
+    if (!porVoz) soltarMic();
     painel.querySelector(".bwg-fala").textContent = txt; ESTADO.porVoz = !!porVoz;
     status('<span class="bwg-onda"><i></i><i></i><i></i><i></i></span> Entendendo…');
     var r = await entender(txt);
@@ -766,7 +781,7 @@
   function clique(e) {
     var b = e.target.closest("[data-g]"); if (!b) return; var g = b.dataset.g, i = +b.dataset.i; destravar();
     if (g === "fechar") return fechar();
-    if (g === "ajustes") { var aj = painel.querySelector("#bwgAj"); aj.hidden = !aj.hidden; if (!aj.hidden) desenharVozes(); return; }
+    if (g === "ajustes") { soltarMic(); status(""); var aj = painel.querySelector("#bwgAj"); aj.hidden = !aj.hidden; if (!aj.hidden) desenharVozes(); return; }
     if (g === "testarVoz") { testeSom(); return; }
     if (g === "ouvir") return ouvir();
     if (g === "enviar") { var inp = painel.querySelector("#bwgTxt"); if (inp.value.trim()) { processar(inp.value.trim()); inp.value = ""; } return; }

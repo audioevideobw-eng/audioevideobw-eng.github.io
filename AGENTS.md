@@ -215,6 +215,10 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
     começar em 3 s, tenta a voz padrão e avisa na tela (volume de mídia / silencioso). Sem regex com lookbehind (Safari antigo quebra o arquivo todo).
     "Eventos dispararam" no teste NÃO prova que o dono ouviu — perguntar em qual aparelho/navegador.
 
+68. iPhone: com o MICROFONE aberto (reconhecimento ou gravação) a fala do navegador sai MUDA, mesmo com onstart/onend normais → toda fala
+    que não vem da escuta desliga o microfone antes (soltarMic) e a sessão volta para "playback". Android/Chrome não informa qual voz é
+    masculina (só "português Brasil"): depende da voz padrão do sistema. Diagnóstico na tela (⚙ → 🔊 OUVIR A VOZ, linha vNN) antes de adivinhar.
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -687,6 +691,11 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   bw-agente.js v13–v14 — 🔊 OUVIR A VOZ agora mostra um diagnóstico na tela (versão, voz, se o aparelho começou a falar, erro) e a sessão de
   áudio do iPhone volta para "playback" depois do microfone (navigator.audioSession; antes ficava no modo chamada). Aguardando a linha
   de diagnóstico do dono; plano B = voz neural tocada como áudio. layout.js v44, sw v100.
+
+- 17/11/2026 00:00 · Claude (prints do dono): iPhone (app instalado, v14) — o aparelho COMEÇA a falar (voz Luciana, sessão playback) mas o
+  indicador laranja de MICROFONE estava ligado → com o microfone aberto o iPhone solta a fala muda. bw-agente.js v16: escrever, tocar num
+  exemplo, abrir ⚙ ou testar a voz DESLIGA a escuta antes (soltarMic). Android (v15): o Chrome só lista "português Brasil/Portugal", sem
+  identificador de voz → não dá para escolher a masculina pelo site; só pela voz padrão do Android (ou voz neural). layout.js v46, sw v102.
 
 ## Pendências (dono)
 - [x] (16/11 11:42) IA CRIATIVA ATIVA: conta Cloudflare do dono (Free, sem cartão), token "Brightway IA criativa 2" (Workers AI Read+Edit) em
