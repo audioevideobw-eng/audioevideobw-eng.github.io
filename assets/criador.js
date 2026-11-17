@@ -185,7 +185,7 @@
   function posTexto() { return E.aj.pos || TIPOS[E.tipo].pos; }
   function desenharAjustes() {
     var a = E.aj, h = "";
-    var lin = function (tit, lista, k, atual, fmt) { return '<div class="cr-tit">' + tit + '</div><div class="cr-chips">' + lista.map(function (x) { return '<button type="button" class="cr-chip' + (x[0] === atual ? " on" : "") + '" data-k="' + k + '" data-v="' + esc(x[0]) + '">' + (fmt ? fmt(x) : esc(x[1])) + "</button>"; }).join("") + "</div>"; };
+    var lin = function (tit, lista, k, atual, fmt) { return '<div class="cr-tit">' + tit + '</div><div class="cr-chips">' + lista.map(function (x) { return '<button type="button" class="cr-chip' + (x[0] === atual ? " on" : "") + '" data-k="' + k + '" data-v="' + esc(x[0]) + '"' + (x[1] ? "" : ' aria-label="' + esc(tit + " " + x[0]) + '"') + ">" + (fmt ? fmt(x) : esc(x[1])) + "</button>"; }).join("") + "</div>"; };
     var sl = function (k, rot, min, max, v, suf) { return '<label class="cr-sl"><span>' + rot + '</span><input type="range" data-k="' + k + '" min="' + min + '" max="' + max + '" value="' + v + '"><output>' + v + (suf || "") + "</output></label>"; };
     h += lin("Posição do texto", [["topo", "EM CIMA"], ["centro", "NO MEIO"], ["baixo", "EMBAIXO"]], "pos", posTexto());
     h += lin("Fundo do texto", [["degrade", "DEGRADÊ"], ["vidro", "VIDRO"], ["solido", "FAIXA"], ["nenhum", "SÓ SOMBRA"]], "caixa", a.caixa);

@@ -115,7 +115,7 @@ svg.chart{width:100%;height:300px;display:block;overflow:visible}
 .menu-card:hover{border-color:var(--gold)}
 .menu-card b{font-size:15px;color:var(--gold2)}
 .menu-card small{display:block;margin-top:6px;color:var(--mut);line-height:1.5;font-size:12px}
-.news{display:block;background:var(--navy2);border:1px solid var(--line);border-radius:12px;padding:12px 14px;color:var(--txt);text-decoration:none}
+.news{display:block;min-width:0;overflow-wrap:anywhere;background:var(--navy2);border:1px solid var(--line);border-radius:12px;padding:12px 14px;color:var(--txt);text-decoration:none}
 .news:hover{border-color:var(--gold)}
 .news b{font-size:13.5px;line-height:1.4;display:block}
 .news small{display:block;margin-top:4px;color:var(--mut);font-size:12px;line-height:1.45}
@@ -283,7 +283,7 @@ footer b{color:var(--gold)}
     <h3>Manchetes do dia</h3>
     <div class="sub">Fontes públicas coletadas pela automação — economia e mercado.</div>
     <div class="note" id="nStatus"></div>
-    <div style="margin-top:12px;display:grid;gap:10px" id="nList"></div>
+    <div style="margin-top:12px;display:grid;grid-template-columns:minmax(0,1fr);gap:10px" id="nList"></div>
   </div>
 
 <footer>
@@ -295,7 +295,7 @@ footer b{color:var(--gold)}
     Não é recomendação de investimento.
   </footer>
 </div>
-<script src="assets/layout.js?v=30"></script>
+<script src="assets/layout.js?v=31"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="assets/bw-sync.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/pdfmake@0.2.20/build/pdfmake.min.js"></script>

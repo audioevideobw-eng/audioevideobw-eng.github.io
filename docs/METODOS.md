@@ -190,3 +190,13 @@ Tamanho > 0 e sem erro = o pdfmake montou o arquivo. Localmente (T1) confira o `
   para imitar os A1 reais); validar com `pdfsig` (poppler) — "Signature is Valid", "Total document signed"; alterar 1 byte → inválido.
 - Sem internet nos testes: `git clone --depth 1 https://github.com/digitalbazaar/forge` + `python3 docs/testes/empacotar_forge.py forge/lib /tmp/forge.js`
   e rodar com `FORGE=/tmp/forge.js`.
+
+
+## Leitor de contas e Agente (16/11)
+- Boleto: 47 dígitos (bancário) → barras = l[0:4]+l[32]+l[33:47]+l[4:9]+l[10:20]+l[21:31]; DV geral mod 11 (0/10/11→1); valor = barras[9:19]/100;
+  fator = barras[5:9] → 22/02/2025 + (fator−1000) dias (se der > hoje+3 anos, base antiga 07/10/1997 + fator). 48 dígitos (arrecadação, começa
+  com 8) → tira o 12º de cada bloco; id 6/7 = mod 10, 8/9 = mod 11; valor = barras[4:15]/100; segmento 2 água, 3 energia, 4 telecom.
+- PDF: pdf.js getTextContent agrupando por y (Math.round(y/3)) e ordenando por x reconstrói as linhas; texto < 40 letras = escaneado → OCR.
+- Teste offline: pdf.js 6 local em /opt/npm-tools (rota do CDN → pdf.min.mjs com Access-Control-Allow-Origin), ZXing e Tesseract simulados,
+  voz simulada (window.SpeechRecognition falso com __fala/__falaErro; speechSynthesis via Object.defineProperty — atribuir não funciona).
+- Agente: testar frases com hora ("às 10"), número por extenso ("trinta e cinco"), evento pelo nome parcial ("mina vale"), sem valor.

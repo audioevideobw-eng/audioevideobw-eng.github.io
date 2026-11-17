@@ -234,6 +234,23 @@ if crmjs and ("toISOString().slice(0, 10)" in crmjs or "BWSync.antesDeSalvar(k, 
 fotosjs = ler("assets/fotos.js") if os.path.exists("assets/fotos.js") else ""
 if "fotos.html" in todos and re.search(r"\.upload\(|from\(\"user_data\"\)|fetch\(|BWSync\.(antesDeSalvar|registrarAgora)", todos["fotos.html"] + fotosjs):
     problemas.append("fotos.html/assets/fotos.js: o editor não pode enviar fotos para a nuvem (regra 24)")
+# 16/11: AGENTE (assets/bw-agente.js) e LEITOR DE CONTAS (assets/bw-leitor.js) — só falam com a IA Brightway (bw-ia);
+# o leitor manda à IA só o TEXTO tapado (tapar), nunca a imagem; o layout.js carrega o agente em todas as páginas
+for arq in ["assets/bw-agente.js", "assets/bw-leitor.js"]:
+    if not os.path.exists(arq):
+        problemas.append(f"{arq} sumiu (agente/leitor de contas)"); continue
+    js = ler(arq)
+    for u in re.findall(r"https://[\w.-]+\.supabase\.co/functions/v1/[\w-]+", js):
+        if not u.endswith("/bw-ia"):
+            problemas.append(f"{arq}: chama {u} — o agente/leitor só pode usar a bw-ia")
+    if "bw-ia-imagem" in js or "toDataURL" in js and "conferirIA" in js and "tapar(" not in js:
+        problemas.append(f"{arq}: a IA do leitor recebe só texto tapado")
+if os.path.exists("assets/bw-leitor.js") and "tapar(texto)" not in ler("assets/bw-leitor.js"):
+    problemas.append("assets/bw-leitor.js: conferirIA precisa mandar tapar(texto) (sem CPF/CNPJ/CEP/telefone/e-mail)")
+if "bw-agente.js" not in ler("assets/layout.js"):
+    problemas.append("assets/layout.js: não carrega o agente (assets/bw-agente.js)")
+if "leitor.html" in todos and "assets/bw-leitor.js" not in todos["leitor.html"]:
+    problemas.append("leitor.html: não carrega assets/bw-leitor.js")
 # 16/11: ASSINAR COM CERTIFICADO (assets/bw-assinar.js) — o certificado e a senha nunca saem do aparelho: sem fetch/XHR/upload/
 # supabase/BWSync/localStorage no módulo; senha em campo type=password; páginas que assinam carregam o módulo
 assinjs = ler("assets/bw-assinar.js") if os.path.exists("assets/bw-assinar.js") else ""

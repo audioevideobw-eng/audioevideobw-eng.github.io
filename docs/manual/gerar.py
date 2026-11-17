@@ -23,7 +23,7 @@ SAIDA = os.path.abspath(os.path.join(AQUI, "..", "Brightway-Guia-do-usuario.pdf"
 PLANO = [("base", 1), ("base", 2), ("base", 3), ("base", 4), ("base", 5),
          "04a-conhecendo-a-tela.html", "04b-agenda.html",
          "05a-meu-negocio.html", "05b-eventos.html", "05c-relatorios-pdf.html", "05d-gestao-de-pessoas.html", "05d2-equipes.html",
-         ("base", 10),
+         "05b2-leitor-e-agente.html",   # 16/11: substitui a página antiga "Comprovantes pela foto" (base 10)
          "05e-fluxo-de-caixa.html", "05f-caches-e-custos.html", ("base", 12),
          "06a-painel-financeiro.html", "06b-orcamento.html"] + [("base", n) for n in range(14, 24)] + \
         ["09a-crm.html", "09b-funil.html", "09b2-pedido.html", "09c-indicadores.html", "09d-fotos.html", "09d2-fotos-marca.html", "09d3-criador.html"] + [("base", n) for n in range(24, 29)]

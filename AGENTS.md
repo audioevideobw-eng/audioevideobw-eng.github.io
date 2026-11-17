@@ -189,6 +189,16 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
 62. Opções prontas de preenchimento ficam guardadas num BOTÃO por campo (☰ OPÇÕES PRONTAS + número → lista para tocar), nunca como chips
     soltos ocupando a tela; páginas de documento (orçamento) não mostram indicadores financeiros — eles ficam no PAINEL FINANCEIRO (decisão do dono).
 
+**Aprendidos em 16/11 (Leitor de contas e Agente)**
+63. AGENTE (assets/bw-agente.js, carregado pelo layout.js em todas as páginas menos as públicas): nada é gravado sem ✓ LANÇAR (a não ser
+    "lançar sem perguntar" ligado pela pessoa); grava pelos formatos das páginas (casa_orcamento c0–c4, casa_contas c0–c3, neg_fluxo c0–c3,
+    agenda_tarefas, neg_eventos[].gastos) com antesDeSalvar; a IA recebe só a frase + data + nomes de eventos; "quanto gastei" é calculado
+    no aparelho. Fala com número de hora ("às 10") NÃO é valor; sem valor dito = cartão para completar, nunca grava 0 (auto: teste_agente_leitor.py).
+64. LEITOR (assets/bw-leitor.js): PDF com texto → pdf.js (exato), foto → Tesseract + imagem tratada, códigos → ZXing; valor/vencimento do
+    BOLETO saem do código (FEBRABAN, DVs conferidos; fator de vencimento com a nova base 22/02/2025, boleto antigo cai na base 1997) e vencem
+    o texto; à IA vai só tapar(texto) (vigia). Código colado aceita pontos/traços/espaços. Campo `label` da página global é MAIÚSCULO:
+    textos longos em label precisam de text-transform:none.
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -604,6 +614,19 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   várias de uma vez; campo único preenche e fecha). Saíram os valores em R$ dos botões de serviço e os 4 números financeiros do topo da lista
   ("não é lugar para informações financeiras" — ficam no PAINEL FINANCEIRO; as abas mostram as quantidades). teste_abas_orcamentos.py (+11 checagens)
   e teste_propostas 0 falhas. Manual atualizado. propostas.js v7, sw v86. PENTE FINO 62.
+
+- 16/11/2026 · Claude (dono: "melhore o leitor com pesquisa e novas tecnologias + leitor de contas da casa + agente que entende o que falo"):
+  LEITOR DE CONTAS E COMPROVANTES (leitor.html + novo assets/bw-leitor.js; o modules/ocr antigo — só foto, "maior valor", só evento — virou
+  reserva): 4 destinos (CONTA A PAGAR, GASTO DA CASA, GASTO DO NEGÓCIO, CUSTO DE EVENTO; sugere sozinho), PDF/foto/HEIC/arrastar/colar código;
+  pdf.js 4.10 (texto exato), Tesseract com imagem tratada, ZXing-wasm (boleto ITF e PIX QR), boleto bancário/arrecadação decodificado com DVs,
+  PIX EMV, empresas (CEMIG, COPASA, Claro…), "TOTAL A PAGAR" em vez do maior valor, referência, aviso de conta repetida (mesmo código), selos de
+  confiança, ✨ IA Brightway opcional só com texto tapado. Atalho ?d=conta e botões em contas.html. AGENTE (novo assets/bw-agente.js, robô 🤖
+  em todas as páginas pelo layout.js v31, acima das abas/barras): toque = escuta (Web Speech pt-BR, no aparelho quando o navegador oferece;
+  sem suporte → grava e transcreve na bw-ia), entende (IA Brightway com JSON de ações; sem login → regras no aparelho com números por extenso),
+  mostra o cartão editável → ✓ LANÇAR / LANÇAR TODOS; perguntas e "abrir …"; responde falando; ajustes (IA, voz, lançar sem perguntar).
+  Nomes: "Leitor de contas" (menu), LEITOR DE CONTAS (cards), LER CONTA (Início). Varredura: criador (chips de cor sem nome) e notícias
+  (estouro 16 px em 360) corrigidos. teste_agente_leitor.py (49 checagens × 1280/390, 0 falhas) + varredura/layout/agenda/propostas/fotos/
+  concluir/crm 0 falhas. Manual: página "Leitor de contas e Agente" (substitui "Comprovantes pela foto"). layout.js v31, criador.js v5, sw v87. PENTE FINO 63–64.
 
 ## Pendências (dono)
 - [x] (16/11 11:42) IA CRIATIVA ATIVA: conta Cloudflare do dono (Free, sem cartão), token "Brightway IA criativa 2" (Workers AI Read+Edit) em

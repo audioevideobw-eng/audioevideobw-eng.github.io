@@ -87,7 +87,7 @@
     reserva:"Reserva de emergência", milhas:"Mercado de milhas", meta:"Meta de milhas",
     comparador:"Comparador de moedas", alertas:"Alertas de preço", cambio:"Câmbio",
     invest:"Simulador de rendimento", "investimentos-painel":"Painel de Investimentos", serie:"Série histórica", diario:"Diário de câmbio", calc:"Calculadora",
-    viagem:"Conversor de viagem", leitor:"Leitor de comprovantes", recs:"Recomendações",
+    viagem:"Conversor de viagem", leitor:"Leitor de contas", recs:"Recomendações",
     noticias:"Notícias", dados:"Meus dados", app:"App & sincronização", login:"Acesso",
     configadm:"Configuração", marketing:"Marketing", assistente:"Assistente de texto", transcricao:"Transcrição e legendas", pdf:"Ferramentas de PDF",
     crm:"CRM", captacao:"Funil de clientes", resultados:"Indicadores", fotos:"Editor de fotos", criador:"Criador IA", propostas:"Gerador de orçamento" };
@@ -562,4 +562,10 @@
     },
     aviso: aviso, acender: acender
   };
+})();
+
+/* ===== AGENTE (16/11): o robô fica em todas as páginas — carregado aqui para não precisar mexer em cada página ===== */
+(function () {
+  if (window.BWLanca || document.querySelector('script[src*="bw-agente.js"]')) return;
+  var s = document.createElement("script"); s.src = "assets/bw-agente.js?v=1"; s.defer = true; document.head.appendChild(s);
 })();
