@@ -257,7 +257,8 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
 82. Vídeo feito no navegador (assets/reels-celular.js): quadro = SVG foreignObject do HTML do motor → canvas → WebCodecs H.264 → MP4 montado
     no aparelho. Dentro do foreignObject NADA de fora carrega: fontes do Google embutidas em base64 (só latin, só as usadas), imagens blob
     viram data:, <script>/<link> removidos; imagem do quadro por data: (blob: "suja" o canvas). WebCodecs só existe em página segura
-    (https ou localhost do teste; about:blank não tem). Som: AAC se o aparelho codifica, senão Opus (avisar), senão mudo (avisar).
+    (https ou localhost do teste; about:blank não tem). Som: AAC do codificador (sem description → 0x11 0x90) → AAC pelo MediaRecorder
+    (iPhone; AudioContext nasce no toque) → Opus (avisar) → mudo (avisar); o aviso verde mostra qual caminho foi usado.
     Filmagem (<video>) não entra → mensagem mandando para o PC. Teste confere o MP4 com ffprobe + decodificação inteira + volume.
 
 **Como testar no navegador (rotina)**
@@ -825,6 +826,11 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   WebCodecs = botão desligado com explicação. Teste docs/testes/teste_reels_celular.py (390 px, UA Android): MP4 H.264 conferido com ffprobe,
   318 quadros em 21 s (720p) / 45 s (1080p), som Opus neste Linux. NÃO testado em iPhone nem Android reais (AAC e Safari dependem do aparelho).
   reels.js v8, reels-celular.js v1, sw v112. PENTE FINO 82. App de loja (iOS/Android): não feito — a plataforma já instala como app pela tela inicial.
+- 17/11/2026 16:20 · Dono testou: Android com som perfeito; iPhone SEM som. Claude: reels-celular.js v2 — (1) AAC do codificador sem
+  "description" (Safari) ganha a descrição padrão (AAC-LC 48 kHz estéreo) em vez de descartar o som; (2) aparelho sem codificador AAC →
+  som pelo GRAVADOR (AudioContext criado dentro do toque → MediaStreamDestination → MediaRecorder audio/mp4, em paralelo com os quadros) e as
+  amostras AAC são tiradas do MP4 gravado (leitor de MP4 comum e em pedaços, testado com arquivos do ffmpeg: 6,02 s, volume igual);
+  (3) linha de diagnóstico no aviso verde ("v2 · som: …"). NÃO testado em iPhone (sem aparelho) — aguarda o print do dono. reels.js v9, sw v113.
 
 ## Pendências (dono)
 - [ ] (17/11) BW REELS ASSISTENTE: dono abrir pelo BW-REELS-ASSISTENTE.bat no PC e fazer 1 vídeo em cada modo (ECONÔMICO com o Claude real).

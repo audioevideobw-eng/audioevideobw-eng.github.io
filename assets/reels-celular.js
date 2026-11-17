@@ -50,6 +50,64 @@
     return box("mp4a", cab, full("esds", 0, 0, new Uint8Array([3, 3 + dcd.length + 3, 0, 0, 0]), dcd, new Uint8Array([6, 1, 2])));
   }
 
+  /* ---- Som pelo GRAVADOR do aparelho (iPhone): toca a trilha num fio interno, grava em AAC e tira as amostras do MP4 gravado ---- */
+  function extrairAac(u) {
+    var dv = new DataView(u.buffer, u.byteOffset, u.byteLength);
+    function filhos(ini, fim) { var l = [], p = ini; while (p + 8 <= fim) { var t = dv.getUint32(p), c = 8; if (t === 1) { t = dv.getUint32(p + 8) * 4294967296 + dv.getUint32(p + 12); c = 16; } else if (t === 0) t = fim - p; if (t < 8 || p + t > fim) break; l.push({ tipo: String.fromCharCode(u[p + 4], u[p + 5], u[p + 6], u[p + 7]), ini: p, corpo: p + c, fim: p + t }); p += t; } return l; }
+    function um(b, tipo) { return filhos(b.corpo, b.fim).filter(function (x) { return x.tipo === tipo; })[0]; }
+    var topo = filhos(0, u.length), moov = topo.filter(function (x) { return x.tipo === "moov"; })[0]; if (!moov) return null;
+    var trak = filhos(moov.corpo, moov.fim).filter(function (x) { if (x.tipo !== "trak") return false; var h = um(um(x, "mdia") || x, "hdlr"); return h && String.fromCharCode(u[h.corpo + 8], u[h.corpo + 9], u[h.corpo + 10], u[h.corpo + 11]) === "soun"; })[0]; if (!trak) return null;
+    var mdia = um(trak, "mdia"), mdhd = um(mdia, "mdhd"), sr = dv.getUint32(mdhd.corpo + (u[mdhd.corpo] === 1 ? 20 : 12)), stbl = um(um(mdia, "minf"), "stbl"), stsd = um(stbl, "stsd");
+    var asc = null, i, e;
+    for (i = stsd.corpo; i < stsd.fim - 12 && !asc; i++) if (u[i] === 0x65 && u[i + 1] === 0x73 && u[i + 2] === 0x64 && u[i + 3] === 0x73) {
+      var p = i + 8, lerTam = function () { var n = 0, b; do { b = u[p++]; n = (n << 7) | (b & 127); } while (b & 128); return n; };
+      if (u[p++] !== 3) break; lerTam(); p += 2; var fl = u[p++]; if (fl & 0x80) p += 2; if (fl & 0x40) p += u[p] + 1; if (fl & 0x20) p += 2;
+      if (u[p++] !== 4) break; lerTam(); p += 13; if (u[p++] !== 5) break; var n = lerTam(); asc = u.slice(p, p + n);
+    }
+    if (!asc) return null;
+    var am = [], stsz = um(stbl, "stsz"), nAm = stsz ? dv.getUint32(stsz.corpo + 8) : 0;
+    if (nAm) {   // MP4 comum (tabelas no moov)
+      var tamFixo = dv.getUint32(stsz.corpo + 4), stts = um(stbl, "stts"), stsc = um(stbl, "stsc"), stco = um(stbl, "stco"), co64 = um(stbl, "co64"), durs = [], k, j;
+      for (k = 0, e = dv.getUint32(stts.corpo + 4); k < e; k++) for (j = 0; j < dv.getUint32(stts.corpo + 8 + k * 8); j++) durs.push(dv.getUint32(stts.corpo + 12 + k * 8));
+      var nCh = dv.getUint32((stco || co64).corpo + 4), nSc = dv.getUint32(stsc.corpo + 4), idx = 0;
+      for (k = 0; k < nCh && idx < nAm; k++) {
+        var porCh = 1; for (j = 0; j < nSc; j++) if (dv.getUint32(stsc.corpo + 8 + j * 12) <= k + 1) porCh = dv.getUint32(stsc.corpo + 12 + j * 12);
+        var off = stco ? dv.getUint32(stco.corpo + 8 + k * 4) : dv.getUint32(co64.corpo + 8 + k * 8) * 4294967296 + dv.getUint32(co64.corpo + 12 + k * 8);
+        for (j = 0; j < porCh && idx < nAm; j++, idx++) { var tz = tamFixo || dv.getUint32(stsz.corpo + 12 + idx * 4); am.push({ dados: u.slice(off, off + tz), dur: durs[idx] || 1024 }); off += tz; }
+      }
+    } else {     // MP4 em pedaços (moof + mdat), como o gravador do Safari escreve
+      var mvex = um(moov, "mvex"), trex = mvex && um(mvex, "trex"), dDur = trex ? dv.getUint32(trex.corpo + 12) : 1024, dTam = trex ? dv.getUint32(trex.corpo + 16) : 0;
+      topo.filter(function (x) { return x.tipo === "moof"; }).forEach(function (moof) {
+        filhos(moof.corpo, moof.fim).filter(function (x) { return x.tipo === "traf"; }).forEach(function (traf) {
+          var tfhd = um(traf, "tfhd"), f = dv.getUint32(tfhd.corpo) & 0xffffff, q = tfhd.corpo + 8, base = moof.ini, du = dDur, ta = dTam;
+          if (f & 1) { base = dv.getUint32(q) * 4294967296 + dv.getUint32(q + 4); q += 8; } if (f & 2) q += 4; if (f & 8) { du = dv.getUint32(q); q += 4; } if (f & 16) { ta = dv.getUint32(q); q += 4; }
+          var pos = null;
+          filhos(traf.corpo, traf.fim).filter(function (x) { return x.tipo === "trun"; }).forEach(function (trun) {
+            var g = dv.getUint32(trun.corpo) & 0xffffff, cnt = dv.getUint32(trun.corpo + 4), r = trun.corpo + 8;
+            if (g & 1) { pos = base + dv.getInt32(r); r += 4; } else if (pos === null) pos = base; if (g & 4) r += 4;
+            for (var c = 0; c < cnt; c++) { var d2 = du, t2 = ta; if (g & 0x100) { d2 = dv.getUint32(r); r += 4; } if (g & 0x200) { t2 = dv.getUint32(r); r += 4; } if (g & 0x400) r += 4; if (g & 0x800) r += 4; am.push({ dados: u.slice(pos, pos + t2), dur: d2 }); pos += t2; }
+          });
+        });
+      });
+    }
+    am = am.filter(function (x) { return x.dados.length; });
+    return am.length ? { asc: asc, sr: sr, amostras: am } : null;
+  }
+  function tipoGravador() { if (!window.MediaRecorder || !MediaRecorder.isTypeSupported) return ""; var t = ["audio/mp4;codecs=mp4a.40.2", "audio/mp4"]; for (var i = 0; i < t.length; i++) if (MediaRecorder.isTypeSupported(t[i])) return t[i]; return ""; }
+  async function aacPeloGravador(som, duracao, ctx) {
+    var tipo = tipoGravador(); if (!tipo || !ctx) return null;
+    try { await ctx.resume(); } catch (e) { /* segue */ }
+    var N = Math.min(som.L.length, Math.round(duracao * 48000)), buf = ctx.createBuffer(2, N, 48000); buf.getChannelData(0).set(som.L.subarray(0, N)); buf.getChannelData(1).set(som.R.subarray(0, N));
+    var dest = ctx.createMediaStreamDestination(), src = ctx.createBufferSource(); src.buffer = buf; src.connect(dest);
+    var rec = new MediaRecorder(dest.stream, { mimeType: tipo, audioBitsPerSecond: 128000 }), partes = [];
+    rec.ondataavailable = function (e) { if (e.data && e.data.size) partes.push(e.data); };
+    var parou = new Promise(function (r) { rec.onstop = r; rec.onerror = r; });
+    rec.start(); src.start();
+    await Promise.race([new Promise(function (r) { src.onended = r; }), dorme(duracao * 1000 + 4000)]); await dorme(300);
+    if (rec.state !== "inactive") rec.stop(); await parou;
+    return extrairAac(new Uint8Array(await new Blob(partes).arrayBuffer()));
+  }
+
   var dorme = function (ms) { return new Promise(function (r) { setTimeout(r, ms); }); };
   function paraData(blob) { return new Promise(function (ok, erro) { var f = new FileReader(); f.onload = function () { ok(f.result); }; f.onerror = erro; f.readAsDataURL(blob); }); }
 
@@ -100,7 +158,12 @@
       [].forEach.call(doc.querySelectorAll("script,link"), function (x) { x.remove(); });
       if (fontes) { var st = doc.createElement("style"); st.textContent = fontes; doc.head.appendChild(st); }
 
-      var trilhas = [], vAm = [], avcC = null, erro = null;
+      var trilhas = [], vAm = [], avcC = null, erro = null, somInfo = "sem som no roteiro", aacNativo = false, gravando = null;
+      if (o.som) {
+        try { aacNativo = !!(window.AudioEncoder && window.AudioData && (await AudioEncoder.isConfigSupported({ codec: "mp4a.40.2", sampleRate: 48000, numberOfChannels: 2, bitrate: 128000 })).supported); } catch (x) { aacNativo = false; }
+        if (!aacNativo && tipoGravador() && o.audioCtx) gravando = aacPeloGravador(o.som, o.duracao, o.audioCtx).catch(function (x) { return { erro: String(x && x.message || x) }; });
+        somInfo = aacNativo ? "codificador" : gravando ? "gravador" : "sem codificador AAC nem gravador (AudioEncoder " + (window.AudioEncoder ? "sim" : "não") + ", MediaRecorder " + (tipoGravador() || "não") + ")";
+      }
       var enc = new VideoEncoder({ output: function (ch, meta) { if (meta && meta.decoderConfig && meta.decoderConfig.description) avcC = meta.decoderConfig.description; var d = new Uint8Array(ch.byteLength); ch.copyTo(d); vAm.push({ dados: d, dur: Math.round(90000 / fps), chave: ch.type === "key" }); }, error: function (x) { erro = x; } });
       enc.configure({ codec: "avc1.420028", width: ow, height: oh, bitrate: oh > 1300 ? 9e6 : 5e6, framerate: fps, avc: { format: "avc" }, latencyMode: "quality" });
       var cv = document.createElement("canvas"); cv.width = ow; cv.height = oh; var ctx = cv.getContext("2d"), xs = new XMLSerializer();
@@ -119,28 +182,37 @@
       trilhas.push({ tipo: "v", escala: 90000, w: ow, h: oh, amostras: vAm, stsd: stsdVideo(ow, oh, avcC) });
 
       var codecSom = "";
-      if (o.som && window.AudioEncoder && window.AudioData) {
+      if (gravando) {
+        prog({ etapa: "Juntando o som", pct: 94 });
+        var g = await gravando;
+        if (g && g.amostras) { trilhas.push({ tipo: "a", escala: g.sr, amostras: g.amostras, stsd: stsdAudio("aac", g.sr, g.asc) }); codecSom = "aac"; somInfo = "aac pelo gravador, " + g.amostras.length + " blocos a " + g.sr + " Hz"; }
+        else somInfo = "o gravador não devolveu som" + (g && g.erro ? " (" + g.erro + ")" : "");
+      }
+      if (o.som && !codecSom && window.AudioEncoder && window.AudioData) {
         prog({ etapa: "Juntando o som", pct: 94 });
         var SR = 48000, cfg = null, cands = [{ codec: "mp4a.40.2", nome: "aac" }, { codec: "opus", nome: "opus" }];
         for (var c = 0; c < cands.length && !cfg; c++) { try { if ((await AudioEncoder.isConfigSupported({ codec: cands[c].codec, sampleRate: SR, numberOfChannels: 2, bitrate: 128000 })).supported) cfg = cands[c]; } catch (x) { /* tenta o próximo */ } }
         if (cfg) {
           var aAm = [], desc = null, padrao = cfg.nome === "aac" ? 1024 : 960;
           var ae = new AudioEncoder({ output: function (ch, meta) { if (meta && meta.decoderConfig && meta.decoderConfig.description) desc = meta.decoderConfig.description; var d = new Uint8Array(ch.byteLength); ch.copyTo(d); aAm.push({ dados: d, dur: ch.duration ? Math.round(ch.duration * SR / 1e6) : padrao }); }, error: function (x) { erro = x; } });
-          ae.configure({ codec: cfg.codec, sampleRate: SR, numberOfChannels: 2, bitrate: 128000 });
+          var cfgA = { codec: cfg.codec, sampleRate: SR, numberOfChannels: 2, bitrate: 128000 }; if (cfg.nome === "aac") cfgA.aac = { format: "aac" };
+          ae.configure(cfgA);
           var N = Math.min(o.som.L.length, Math.round(o.duracao * SR)), passo = 4800;
           for (var p = 0; p < N; p += passo) {
             var n = Math.min(passo, N - p), dados = new Float32Array(n * 2); dados.set(o.som.L.subarray(p, p + n), 0); dados.set(o.som.R.subarray(p, p + n), n);
             var ad = new AudioData({ format: "f32-planar", sampleRate: SR, numberOfFrames: n, numberOfChannels: 2, timestamp: Math.round(p * 1e6 / SR), data: dados }); ae.encode(ad); ad.close();
           }
           await ae.flush(); ae.close();
-          if (!erro && aAm.length && (cfg.nome === "opus" || desc)) { trilhas.push({ tipo: "a", escala: SR, amostras: aAm, stsd: stsdAudio(cfg.nome, SR, desc) }); codecSom = cfg.nome; }
+          if (cfg.nome === "aac" && !desc) desc = new Uint8Array([0x11, 0x90]).buffer;   // AAC-LC, 48 kHz, estéreo (o Safari não manda a descrição)
+          if (!erro && aAm.length) { trilhas.push({ tipo: "a", escala: SR, amostras: aAm, stsd: stsdAudio(cfg.nome, SR, desc) }); codecSom = cfg.nome; somInfo = cfg.nome + " pelo codificador, " + aAm.length + " blocos"; }
+          else somInfo = "o codificador " + cfg.nome + " falhou" + (erro ? " (" + (erro.message || erro) + ")" : ""); erro = null;
         }
       }
       prog({ etapa: "Fechando o arquivo", pct: 98 });
       var blob = mp4(trilhas, Math.round(total / fps * 1000));
       prog({ etapa: "Pronto", pct: 100 });
-      return { blob: blob, comSom: !!codecSom, codecSom: codecSom, largura: ow, altura: oh, quadros: total };
+      return { blob: blob, comSom: !!codecSom, codecSom: codecSom, somInfo: somInfo, largura: ow, altura: oh, quadros: total };
     } finally { fr.remove(); }
   }
-  window.BWReelsCelular = { suporta: suporta, gerar: gerar };
+  window.BWReelsCelular = { suporta: suporta, gerar: gerar, _extrairAac: extrairAac, _mp4: mp4, _stsdAudio: stsdAudio };
 })();

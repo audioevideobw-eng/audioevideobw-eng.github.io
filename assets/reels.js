@@ -737,10 +737,11 @@
     try { plano = M.criarPlano(roteiroParaPrevia()); html = M.construirHtml(plano, "nativo"); } catch (e) { estadoAqui('<div class="rl-aviso erro">Não consegui montar o vídeo: ' + esc(e.message) + '</div>'); return; }
     try { var s = M.sintetizarSons(M.criarPlano(JSON.parse(JSON.stringify(r))), {sr: 48000}); som = M.misturar(s.trilha, s.efeitos); } catch (e) { som = null; }
     if (a.musica || a.narracao) obs.push("a música ou narração que você enviou só entra no vídeo feito no computador");
+    var actx = null; try { actx = new (window.AudioContext || window.webkitAudioContext)(); actx.resume(); } catch (e) { actx = null; }   // criado dentro do toque (iPhone)
     AQUI.rodando = true; AQUI.parar = false; $("btAqui").textContent = "✕ CANCELAR"; var t0 = Date.now();
     estadoAqui('<div class="rl-aviso"><b id="aquiTxt">Preparando…</b><div style="height:10px;border-radius:5px;background:rgba(255,255,255,.12);margin-top:8px;overflow:hidden"><div id="aquiBarra" style="height:100%;width:0;background:#FFB547"></div></div></div>');
     try {
-      var res = await window.BWReelsCelular.gerar({html: html, largura: plano.largura, altura: plano.altura, fps: plano.fps || 30, duracao: plano.duracao, som: som, alturaSaida: Number($("fQualAqui").value),
+      var res = await window.BWReelsCelular.gerar({html: html, largura: plano.largura, altura: plano.altura, fps: plano.fps || 30, duracao: plano.duracao, som: som, audioCtx: actx, alturaSaida: Number($("fQualAqui").value),
         cancelar: function () { return AQUI.parar; }, aoProgredir: function (p) { if ($("aquiBarra")) { $("aquiBarra").style.width = p.pct + "%"; $("aquiTxt").textContent = p.etapa + "… " + p.pct + "%"; } }});
       if (AQUI.url) URL.revokeObjectURL(AQUI.url);
       var nome = (P.nome || "reel").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9]+/g, "-").replace(/^-|-$/g, "").toLowerCase() || "reel";
@@ -748,13 +749,14 @@
       if (!res.comSom) obs.push("este aparelho não conseguiu gravar o som — o vídeo saiu mudo (no computador sai com som)");
       else if (res.codecSom === "opus") obs.push("o som saiu num formato que algumas redes não aceitam; se a rede recusar, gere no computador");
       var podeEnviar = navigator.canShare && navigator.canShare({files: [AQUI.arquivo]});
-      estadoAqui('<div class="rl-aviso ok"><b>Vídeo pronto ✓</b> ' + res.largura + ' × ' + res.altura + ' · ' + (res.blob.size / 1e6).toFixed(1) + ' MB · feito em ' + Math.round((Date.now() - t0) / 1000) + ' s' + (obs.length ? '<br>Obs.: ' + esc(obs.join("; ")) + '.' : '') + '</div>' +
+      estadoAqui('<div class="rl-aviso ok"><b>Vídeo pronto ✓</b> ' + res.largura + ' × ' + res.altura + ' · ' + (res.blob.size / 1e6).toFixed(1) + ' MB · feito em ' + Math.round((Date.now() - t0) / 1000) + ' s' + (obs.length ? '<br>Obs.: ' + esc(obs.join("; ")) + '.' : '') + '<br><small style="opacity:.7">v2 · som: ' + esc(res.somInfo || "") + '</small></div>' +
         '<video id="aquiVideo" src="' + AQUI.url + '" controls playsinline style="width:100%;max-height:46vh;border-radius:12px;background:#000"></video>' +
         '<div class="rl-acoes" style="margin-top:8px"><a class="rl-bt pri" id="aquiBaixar" href="' + AQUI.url + '" download="' + esc(nome) + '.mp4" style="text-decoration:none;text-align:center">⬇ SALVAR VÍDEO</a>' + (podeEnviar ? '<button class="rl-bt" id="aquiEnviar" type="button">COMPARTILHAR</button>' : '') + '</div>');
       if (podeEnviar) $("aquiEnviar").onclick = function () { navigator.share({files: [AQUI.arquivo], title: P.nome || "Reel"}).catch(function () {}); };
     } catch (e) {
       estadoAqui('<div class="rl-aviso' + (e.message === "cancelado" ? '">Cancelado.' : ' erro">Não deu para gerar aqui: ' + esc(e.message || String(e)) + '. Você pode tentar a qualidade Rápida ou usar RENDERIZAR NO PC.') + '</div>');
     }
+    try { if (actx) actx.close(); } catch (e) { /* já fechado */ }
     AQUI.rodando = false; $("btAqui").textContent = "🎬 GERAR VÍDEO NESTE APARELHO";
   };
   $("btPacote").onclick = async function () {
