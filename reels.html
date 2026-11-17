@@ -117,6 +117,26 @@
 .mp-vis{position:relative;height:260px;border-radius:14px;overflow:hidden;display:grid;place-items:center;margin:8px 0;
   background:repeating-conic-gradient(#1b1f29 0 25%,#12151d 0 50%) 0 0/22px 22px;border:1px solid rgba(245,241,234,.10)}
 .mp-vis img{max-width:100%;max-height:244px;object-fit:contain}
+.mp-lib{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin:6px 0 4px}
+.pl-abas{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;padding:3px;border-radius:12px;background:#0D1017;margin:8px 0 14px}
+.pl-abas button{min-height:42px;border-radius:9px;border:0;background:transparent;color:#C9CDD5;font:700 12px Inter,sans-serif;letter-spacing:.05em;cursor:pointer}
+.pl-abas button.on{background:#FFB547;color:#06080D}
+.pl-grade{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.pl-card{background:#0D1017;border:1px solid rgba(245,241,234,.10);border-radius:14px;padding:8px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.pl-card .vis{height:150px;display:grid;place-items:center;border-radius:10px;background:radial-gradient(70% 60% at 50% 60%,#2a2010,#0D1017)}
+.pl-card .vis svg,.pl-card .vis img{height:140px;width:auto;max-width:100%;object-fit:contain}
+.pl-card b{font-size:12.5px;color:#F5F1EA;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pl-card small{font-size:11px;color:#9AA1AE}
+.pl-card .ac{display:flex;gap:4px;flex-wrap:wrap}
+.pl-card .rl-bt{white-space:normal;justify-content:center;text-align:center;line-height:1.2;padding:6px 10px}
+.pl-mont{display:grid;grid-template-columns:minmax(0,300px) minmax(0,1fr);gap:16px}
+.pl-palco{position:relative;height:380px;border-radius:16px;background:radial-gradient(70% 55% at 50% 62%,#3a2a12,#0D1017 80%);display:flex;align-items:flex-end;justify-content:center;overflow:hidden}
+.pl-palco>div{height:340px;aspect-ratio:400/640;margin-bottom:14px}
+.pl-palco svg{width:100%;height:100%;overflow:visible}
+.pl-sw{display:flex;gap:6px;flex-wrap:wrap;margin:2px 0 10px}
+.pl-sw button{width:30px;height:30px;border-radius:50%;border:2px solid rgba(245,241,234,.2);cursor:pointer}
+.pl-sw button.on{border:3px solid #FFB547}
+@media (max-width:760px){.pl-mont{grid-template-columns:minmax(0,1fr)}.pl-mont>div:first-child{position:sticky;top:-18px;z-index:3;background:#11141B;padding:6px 0 4px}.pl-palco{height:210px}.pl-palco>div{height:196px;margin-bottom:6px}#plAcoes{flex-wrap:nowrap;overflow-x:auto;margin-bottom:0}#plAcoes .rl-chip{flex:none;min-height:34px}.pl-grade{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .rl-campo input[type=checkbox]{width:18px;height:18px;min-height:0;padding:0;flex:none}
 .mp-vis span{font-size:13px;color:#9AA1AE;text-align:center;padding:12px}
 .mp-modos{display:flex;flex-direction:column;gap:8px;margin:6px 0 12px}
@@ -193,6 +213,7 @@
     <span class="rl-marca">BW REELS <b>PRO</b></span>
     <input id="nomeProj" class="rl-nome" aria-label="Nome do vídeo" placeholder="Nome do vídeo">
     <button class="rl-bt pri" id="btModelos" type="button">🎬 MODELOS</button>
+    <button class="rl-bt" id="btPers" type="button">👤 PERSONAGENS</button>
     <button class="rl-bt" id="btMeus" type="button">MEUS REELS</button>
     <button class="rl-bt" id="btNovo" type="button">+ NOVO</button>
     <button class="rl-bt" id="btMotor" type="button">⚙ MOTOR NO PC</button>
@@ -354,7 +375,12 @@
         <div class="rl-midias" id="midias"></div>
         <div class="rl-campo"><label for="fMusica">Música do vídeo</label><select id="fMusica"></select></div>
         <div class="rl-campo"><label for="fVolMus">Volume da música</label><input id="fVolMus" type="range" min="0" max="100" value="60"></div>
-        <p class="rl-nota">Use só música licenciada ou sua. Os efeitos de whoosh e impacto são gerados na hora, sem direitos autorais.</p>
+        <div class="rl-dupla">
+          <div class="rl-campo"><label for="fTrilha">Trilha automática (feita pelo motor)</label><select id="fTrilha"></select></div>
+          <div class="rl-campo"><label for="fVolTrilha">Volume da trilha</label><input id="fVolTrilha" type="range" min="0" max="100" value="45"></div>
+        </div>
+        <label class="rl-chk" for="fEfeitos"><input type="checkbox" id="fEfeitos" checked> Efeitos sonoros da animação (balão, fala, pulo, confete, lista, contador)</label>
+        <p class="rl-nota">A trilha automática e os efeitos são compostos pelo motor, sem direitos autorais, e saem iguais no vídeo final. Com música própria, a trilha automática desliga sozinha (dá para ligar de novo). Música importada: só licenciada ou sua.</p>
       </div>
 
       <div id="pnExportar" hidden>
@@ -381,11 +407,13 @@
   <div class="gl-meu" id="glMeu" hidden>
     <div class="gl-box">
       <div class="rl-eyebrow">1 · Foto do personagem</div>
+      <div class="mp-lib" id="mpLib"></div>
       <div class="mp-vis" id="mpVis"><span>Envie a foto do avatar, mascote ou personagem.<br>PNG sem fundo é o ideal; fundo liso sai sozinho.</span></div>
       <input type="file" id="mpArq" accept="image/*" hidden>
       <div class="rl-acoes"><button class="rl-bt pri peq" id="mpEscolher" type="button">📷 ESCOLHER FOTO</button>
         <button class="rl-bt peq" id="mpCortar" type="button" disabled>✂ TIRAR FUNDO COM IA</button>
-        <button class="rl-bt peq" id="mpOriginal" type="button" disabled>↺ ORIGINAL</button></div>
+        <button class="rl-bt peq" id="mpOriginal" type="button" disabled>↺ ORIGINAL</button>
+        <button class="rl-bt peq" id="mpGuardar" type="button" disabled>★ GUARDAR</button></div>
       <p class="rl-nota" id="mpStatus">O recorte é feito neste aparelho.</p>
       <div class="rl-dupla">
         <div class="rl-campo"><label for="mpNome">Nome do personagem</label><input id="mpNome" placeholder="ex.: Marcos"></div>
@@ -443,6 +471,51 @@
     </div>
   </div>
 </div></div>
+<div class="rl-folha larga" id="folhaPers" hidden><div>
+  <div class="rl-tl-topo"><span class="rl-eyebrow">Meus personagens</span><button class="rl-bt peq" id="btFecharPers" type="button">✕ FECHAR</button></div>
+  <div class="pl-abas" role="tablist"><button type="button" data-pl="lib" class="on">BIBLIOTECA</button><button type="button" data-pl="criar">CRIAR PERSONAGEM</button><button type="button" data-pl="foto">ACRESCENTAR (FOTO)</button></div>
+  <div id="plLib"><div class="pl-grade" id="plGrade"></div><p class="rl-nota">Seus personagens ficam guardados neste aparelho e aparecem para escolher na aba CENA e no ANIMAR MEU PERSONAGEM.</p></div>
+  <div id="plCriar" hidden>
+    <div class="pl-mont">
+      <div><div class="pl-palco"><div id="plPrev"></div></div>
+        <div class="rl-chips" id="plAcoes" style="margin-top:8px"></div></div>
+      <div>
+        <div class="rl-dupla"><div class="rl-campo"><label for="plNome">Nome</label><input id="plNome" placeholder="ex.: Marquinhos"></div>
+          <div class="rl-campo"><label for="plBase">Partir de um pronto</label><select id="plBase"></select></div></div>
+        <div class="rl-campo"><label>Tipo</label><div class="rl-chips" id="plBicho" style="margin:0"></div></div>
+        <div class="rl-campo"><label>Pele / pelo</label><div class="pl-sw" id="plPele"></div></div>
+        <div class="rl-dupla">
+          <div class="rl-campo"><label for="plCabelo">Cabelo</label><select id="plCabelo"></select></div>
+          <div class="rl-campo"><label for="plCorCabelo">Cor do cabelo</label><input type="color" id="plCorCabelo"></div>
+          <div class="rl-campo"><label for="plBarba">Barba</label><select id="plBarba"></select></div>
+          <div class="rl-campo"><label for="plOculos">Óculos</label><select id="plOculos"></select></div>
+          <div class="rl-campo"><label for="plRoupa">Roupa</label><select id="plRoupa"></select></div>
+          <div class="rl-campo"><label for="plCorRoupa">Cor da roupa</label><input type="color" id="plCorRoupa"></div>
+          <div class="rl-campo"><label for="plCorCalca">Cor da calça</label><input type="color" id="plCorCalca"></div>
+          <div class="rl-campo"><label for="plCorDet">Cor do detalhe (gravata, acessório)</label><input type="color" id="plCorDet"></div>
+          <div class="rl-campo"><label for="plAcess">Acessório</label><select id="plAcess"></select></div>
+          <div class="rl-campo"><label for="plBone">Boné</label><select id="plBone"></select></div>
+          <div class="rl-campo"><label for="plCorSapato">Cor do sapato</label><input type="color" id="plCorSapato"></div>
+        </div>
+        <div class="rl-acoes"><button class="rl-bt peq" id="plSortear" type="button">🎲 SORTEAR</button><button class="rl-bt pri" id="plSalvar" type="button">★ SALVAR PERSONAGEM</button></div>
+        <p class="rl-nota" id="plMsg"></p>
+      </div>
+    </div>
+  </div>
+  <div id="plFoto" hidden>
+    <div class="gl-meu" style="grid-template-columns:minmax(0,1fr) minmax(0,1fr)">
+      <div class="gl-box"><div class="mp-vis" id="pfVis"><span>Envie a foto ou o PNG do personagem (avatar, mascote, desenho).</span></div>
+        <input type="file" id="pfArq" accept="image/*" hidden>
+        <div class="rl-acoes"><button class="rl-bt pri peq" id="pfEscolher" type="button">📷 ESCOLHER FOTO</button><button class="rl-bt peq" id="pfCortar" type="button" disabled>✂ TIRAR FUNDO COM IA</button><button class="rl-bt peq" id="pfOriginal" type="button" disabled>↺ ORIGINAL</button></div>
+        <p class="rl-nota" id="pfStatus">O recorte é feito neste aparelho.</p></div>
+      <div class="gl-box">
+        <div class="rl-campo"><label for="pfNome">Nome do personagem</label><input id="pfNome" placeholder="ex.: Marcos"></div>
+        <label class="rl-chk" for="pfAutor" style="align-items:flex-start;line-height:1.4"><input type="checkbox" id="pfAutor"> A imagem é minha ou tenho autorização de quem aparece nela (nada de personagem famoso).</label>
+        <button class="rl-bt pri" id="pfSalvar" type="button" style="width:100%;margin-top:10px">★ GUARDAR EM MEUS PERSONAGENS</button>
+      </div>
+    </div>
+  </div>
+</div></div>
 <div class="rl-folha" id="folhaMeus" hidden><div>
   <div class="rl-tl-topo"><span class="rl-eyebrow">Meus reels (neste aparelho)</span><button class="rl-bt peq" id="btFecharMeus" type="button">✕ FECHAR</button></div>
   <ul class="rl-lista" id="listaMeus"></ul>
@@ -467,10 +540,10 @@
 <script src="assets/layout.js?v=48"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="assets/bw-sync.js"></script>
-<script src="assets/reels-motor.js?v=3"></script>
+<script src="assets/reels-motor.js?v=5"></script>
 <script src="assets/reels-modelos.js?v=2"></script>
 <script src="assets/fotos-nuvem.js?v=2"></script>
 <script src="assets/reels-avatar.js?v=1"></script>
-<script src="assets/reels.js?v=5"></script>
+<script src="assets/reels.js?v=6"></script>
 </body>
 </html>

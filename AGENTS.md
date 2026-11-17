@@ -759,6 +759,17 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   No ar, logado, IA REAL: história → gancho + 5 cenas + legenda em 5 s, validação OK; 1 imagem por cena (mascote de teste) em 5,2 s, mesmo
   personagem, pose pedida, palco, topo livre para o balão. Projetos de teste apagados do navegador.
 
+- 17/11/2026 · Claude (dono: "som no vídeo inteiro, mais personagens, mais motions" + "ferramenta para acrescentar e para criar personagem"):
+  SOM AUTOMÁTICO — motor/sons.mjs compõe a TRILHA de cada estilo (cinema, corporativo, neon, editorial, luxo: pad, baixo, bateria, arpejo,
+  sino) e EFEITOS da animação (pop do balão, "blip" da fala com voz por personagem, boing no pulo, confete, susto, clique da lista, contador
+  com ding, brilho do botão, whoosh/impacto); aba MÍDIA: trilha automática/estilo/sem trilha, volume, liga/desliga efeitos; prévia com som
+  no site e render igual no PC (trilha.wav vira "música" — abaixa sob a narração). PERSONAGENS — 13 novos prontos (cinegrafista, técnico
+  de som, DJ, palestrante, executivo/a, noiva, noivo, fotógrafa, cliente, garçom, cachorro, gato; total 19), desenho paramétrico (cabelo 8,
+  barba 4, óculos 4, roupa 6, acessório 6, boné, cores) e 👤 PERSONAGENS: BIBLIOTECA (IndexedDB bw_reels v2, store personagens), CRIAR
+  PERSONAGEM (prévia animada, testar ações, sortear, partir de um pronto) e ACRESCENTAR (FOTO) (recorte no aparelho + autorização); aparecem
+  na aba CENA e no ANIMAR MEU PERSONAGEM (montado anima braços/olhos/boca). Motor v5. teste_reels.py 94 checagens × 1280/390 (0 falhas),
+  varredura 0, vigia ✅. Manual 42 → 43 p. sw v110. PENTE FINO 79–80.
+
 ## Pendências (dono)
 - [ ] (17/11) BW REELS PRO › ANIMAR MEU PERSONAGEM: dono testar com a foto do avatar dele (recorte e cenas por IA, logado).
 - [ ] (17/11) BW REELS PRO › 🎬 MODELOS: dono testar a galeria e um modelo de personagem no iPhone (vídeos de exemplo tocando) e mandar opinião.

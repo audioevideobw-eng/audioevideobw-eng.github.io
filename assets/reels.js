@@ -31,11 +31,12 @@
   function abrirDB() {
     return new Promise(function (ok, erro) {
       if (DB) return ok(DB);
-      var r = indexedDB.open("bw_reels", 1);
+      var r = indexedDB.open("bw_reels", 2);
       r.onupgradeneeded = function () {
         var d = r.result;
         if (!d.objectStoreNames.contains("projetos")) d.createObjectStore("projetos", {keyPath: "id"});
         if (!d.objectStoreNames.contains("midias")) d.createObjectStore("midias", {keyPath: "id"}).createIndex("projeto", "projeto");
+        if (!d.objectStoreNames.contains("personagens")) d.createObjectStore("personagens", {keyPath: "id"});   /* MEUS PERSONAGENS (17/11) */
       };
       r.onsuccess = function () { DB = r.result; ok(DB); };
       r.onerror = function () { erro(r.error); };
@@ -171,6 +172,9 @@
     });
   });
   $("fMusica").onchange = function () { P.roteiro.audio = P.roteiro.audio || {}; if (this.value) P.roteiro.audio.musica = this.value; else delete P.roteiro.audio.musica; salvar(); prepararMusica(); };
+  $("fTrilha").onchange = function () { P.roteiro.audio = P.roteiro.audio || {}; P.roteiro.audio.trilha = this.value; salvar(); };
+  $("fVolTrilha").oninput = function () { P.roteiro.audio = P.roteiro.audio || {}; P.roteiro.audio.volumeTrilha = Number(this.value) / 100; salvar(); };
+  $("fEfeitos").onchange = function () { P.roteiro.efeitos = P.roteiro.efeitos || {}; P.roteiro.efeitos.sfx = this.checked; salvar(); };
   $("fVolMus").oninput = function () { P.roteiro.audio = P.roteiro.audio || {}; P.roteiro.audio.volumeMusica = Number(this.value) / 100; salvar(); prepararMusica(); };
 
   /* ---------- prévia ---------- */
@@ -180,6 +184,27 @@
     if (!u) { musica.pause(); musica.removeAttribute("src"); return; }
     if (musica.dataset.src !== u) { musica.src = u; musica.dataset.src = u; }
     musica.volume = Math.max(0, Math.min(1, a.volumeMusica != null ? a.volumeMusica : 0.6));
+  }
+  /* som automático (trilha do estilo + efeitos) — composto no aparelho pelo mesmo motor do vídeo final */
+  var somAuto = new Audio(); somAuto.preload = "auto"; var SOM_CHAVE = "", SOM_URL = null;
+  function prepararSom() {
+    var r = P.roteiro, a = r.audio || {};
+    var chave = JSON.stringify([r.cenas, r.estilo, r.formato, a.trilha, a.volumeTrilha, !!a.musica, !!a.narracao, (r.efeitos || {}).sfx]);
+    if (chave === SOM_CHAVE) return;
+    SOM_CHAVE = chave;
+    try {
+      var pl = M.criarPlano(JSON.parse(JSON.stringify(r)));
+      var s = M.sintetizarSons(pl, {sr: 32000}), mix = M.misturar(s.trilha, s.efeitos);
+      if (SOM_URL) { URL.revokeObjectURL(SOM_URL); SOM_URL = null; }
+      if (!mix) { somAuto.removeAttribute("src"); return; }
+      SOM_URL = URL.createObjectURL(new Blob([M.wavDe(mix, 32000)], {type: "audio/wav"})); somAuto.src = SOM_URL;
+    } catch (e) { somAuto.removeAttribute("src"); }
+  }
+  function desenharSom() {
+    var a = P.roteiro.audio || {}, sel = $("fTrilha"), atual = a.trilha || (a.musica ? "nenhuma" : "auto");
+    sel.innerHTML = '<option value="auto">Automática (a do estilo)</option>' + Object.keys(M.TRILHAS).map(function (k) { return '<option value="' + k + '">' + esc(M.TRILHAS[k].nome) + '</option>'; }).join("") + '<option value="nenhuma">Sem trilha</option>';
+    sel.value = atual; $("fVolTrilha").value = Math.round((a.volumeTrilha != null ? a.volumeTrilha : (a.narracao ? 0.22 : 0.45)) * 100);
+    $("fEfeitos").checked = (P.roteiro.efeitos || {}).sfx !== false;
   }
   function roteiroParaPrevia() {
     var r = JSON.parse(JSON.stringify(P.roteiro));
@@ -242,11 +267,12 @@
     if (!PLANO) return; if (T >= PLANO.duracao - 0.05) T = 0;
     TOCANDO = true; BASE = T; INICIO = performance.now();
     if (musica.src) { try { musica.currentTime = T; } catch (e) { } musica.play().catch(function () { }); }
+    prepararSom(); if (somAuto.src) { try { somAuto.currentTime = T; } catch (e) { } somAuto.play().catch(function () { }); }
     $("icPlay").innerHTML = '<path d="M6 4h4v16H6zM14 4h4v16h-4z"/>'; $("btPlay").setAttribute("aria-label", "Pausar");
     requestAnimationFrame(laco);
   }
   function parar() {
-    TOCANDO = false; musica.pause();
+    TOCANDO = false; musica.pause(); somAuto.pause();
     var w = $("quadro").contentWindow; if (w) { w.__TOCANDO = false; try { w.__seek(T); } catch (e) { } }
     $("icPlay").innerHTML = '<path d="M7 4l13 8-13 8z"/>'; $("btPlay").setAttribute("aria-label", "Reproduzir");
   }
@@ -341,21 +367,36 @@
   var corDe = function (id, cores) { var p = M.PERSONAGENS[id]; if (!p) return "#FFB547"; var c = Object.assign({}, p.cores, cores || {}); return p.desenho === "pessoa" ? c.roupa : c.detalhe; };
   function miniPers(id) { return M.svgPersonagem(id).replace(/id="bwLente"/g, 'id="bwL' + id + '"').replace(/url\(#bwLente\)/g, "url(#bwL" + id + ")"); }
   function elencoDe(c) { return Array.isArray(c.elenco) && !c.elenco.length && c.midia ? [] : c.elenco && c.elenco.length ? c.elenco : [{personagem: c.personagem || "be", acao: c.acao}]; }
-  var idAtor = function (a) { return a ? (a.personagem === "foto" ? "foto:" + a.imagem : a.personagem || "be") : ""; };
-  var atorDe = function (id) { return id.indexOf("foto:") === 0 ? {personagem: "foto", imagem: id.slice(5)} : {personagem: id}; };
-  var nomeAtor = function (id) { if (id.indexOf("foto:") === 0) { var m = MID.find(function (x) { return x.caminho === id.slice(5); }); return (P.avatarNome || (m && m.nome.replace(/\.[^.]+$/, "")) || "Meu").split(" ")[0]; } return (M.PERSONAGENS[id] || {nome: "?"}).nome.split(" ")[0]; };
+  var idAtor = function (a) { return a ? (a.personagem === "foto" ? "foto:" + a.imagem : a.personagem === "meu" ? "meu:" + (a.libId || "x") : a.personagem || "be") : ""; };
+  var atorDe = function (id) {
+    if (id.indexOf("foto:") === 0) return {personagem: "foto", imagem: id.slice(5)};
+    if (id.indexOf("meu:") === 0) { var L = LIB.find(function (x) { return x.id === id.slice(4); }); if (L) return {personagem: "meu", libId: L.id, nome: L.nome, look: JSON.parse(JSON.stringify(L.look))};
+      var c = (P.roteiro.cenas[SEL] || {}), velho = elencoDe(c).find(function (a) { return a.personagem === "meu" && "meu:" + a.libId === id; }); return velho ? JSON.parse(JSON.stringify(velho)) : {personagem: "be"}; }
+    return {personagem: id};
+  };
+  var nomeAtor = function (id) {
+    if (id.indexOf("meu:") === 0 || id.indexOf("lib:") === 0) { var L = LIB.find(function (x) { return x.id === id.slice(4); }); if (L) return L.nome.split(" ")[0];
+      var a = elencoDe(P.roteiro.cenas[SEL] || {}).find(function (x) { return idAtor(x) === id; }); return a && a.nome ? a.nome.split(" ")[0] : "Meu"; }
+    if (id.indexOf("foto:") === 0) { var m = MID.find(function (x) { return x.caminho === id.slice(5); }); return (P.avatarNome || (m && m.nome.replace(/\.[^.]+$/, "")) || "Meu").split(" ")[0]; } return (M.PERSONAGENS[id] || {nome: "?"}).nome.split(" ")[0]; };
   function avatares() { return MID.filter(function (m) { return m.tipo === "imagem" && /\/avatar-/.test(m.caminho); }); }
   function desenharPers(c) {
     var el = elencoDe(c); PS.a = el[0] ? idAtor(el[0]) : (c.midia ? "" : "be"); PS.b = el[1] ? idAtor(el[1]) : "";
-    var ids = avatares().map(function (m) { return "foto:" + m.caminho; }).concat(Object.keys(M.PERSONAGENS));
-    var botao = function (id, sel, grupo) { var foto = id.indexOf("foto:") === 0;
-      return '<button type="button" class="ps-bt' + (id === sel ? " on" : "") + '" data-ps="' + grupo + '" data-id="' + esc(id) + '" aria-pressed="' + (id === sel) + '"><span>' + (foto ? '<img src="' + urlDe(id.slice(5)) + '" alt="">' : miniPers(id)) + '</span>' + esc(nomeAtor(id)) + '</button>'; };
+    var usadosMeu = elencoDe(c).filter(function (a) { return a.personagem === "meu"; }).map(idAtor);
+    var ids = avatares().map(function (m) { return "foto:" + m.caminho; })
+      .concat(LIB.map(function (L) { return (L.tipo === "montado" ? "meu:" : "lib:") + L.id; }))
+      .concat(usadosMeu.filter(function (id) { return !LIB.some(function (L) { return "meu:" + L.id === id; }); }))
+      .concat(Object.keys(M.PERSONAGENS));
+    ids = ids.filter(function (id, i) { return ids.indexOf(id) === i; });
+    var botao = function (id, sel, grupo) { var foto = id.indexOf("foto:") === 0, lib = id.indexOf("lib:") === 0, meu = id.indexOf("meu:") === 0;
+      var vis = foto ? '<img src="' + urlDe(id.slice(5)) + '" alt="">' : lib ? '<img src="' + libUrl(id.slice(4)) + '" alt="">' : meu ? miniLook(atorDe(id).look || {}, id) : miniPers(id);
+      return '<button type="button" class="ps-bt' + (id === sel ? " on" : "") + '" data-ps="' + grupo + '" data-id="' + esc(id) + '" aria-pressed="' + (id === sel) + '"><span>' + vis + '</span>' + esc(nomeAtor(id)) + '</button>'; };
     $("psA").innerHTML = (c.midia ? '<button type="button" class="ps-bt nada' + (!PS.a ? " on" : "") + '" data-ps="a" data-id="" aria-pressed="' + !PS.a + '"><span>🖼</span>Só imagem</button>' : "") + ids.map(function (id) { return botao(id, PS.a, "a"); }).join("");
     $("psB").innerHTML = '<button type="button" class="ps-bt nada' + (!PS.b ? " on" : "") + '" data-ps="b" data-id="" aria-pressed="' + !PS.b + '"><span>—</span>Ninguém</button>' + ids.map(function (id) { return botao(id, PS.b, "b"); }).join("");
     var ops = M.ACOES.map(function (a) { return '<option value="' + a + '">' + NOMES_ACAO[a] + '</option>'; }).join("");
     $("psAcaoA").innerHTML = '<option value="">Automático (fala quando tem balão)</option>' + ops; $("psAcaoB").innerHTML = $("psAcaoA").innerHTML;
     $("psAcaoA").value = el[0] && el[0].acao || ""; $("psAcaoB").value = el[1] && el[1].acao || "";
-    var fA = PS.a.indexOf("foto:") === 0, fB = PS.b.indexOf("foto:") === 0;
+    var semCor = function (id) { return id.indexOf("foto:") === 0 || id.indexOf("meu:") === 0; };
+    var fA = semCor(PS.a), fB = semCor(PS.b);
     $("psCorBoxA").hidden = fA; $("psEspBoxA").hidden = !fA; $("psCorBoxB").hidden = fB; $("psEspBoxB").hidden = !fB;
     $("psEspA").checked = !!(el[0] && el[0].espelhar); $("psEspB").checked = !!(el[1] && el[1].espelhar);
     $("psCorA").value = fA ? "#FFB547" : corDe(PS.a, el[0] && el[0].cores); $("psCorB").value = fB || !PS.b ? "#FFB547" : corDe(PS.b, el[1] && el[1].cores);
@@ -372,6 +413,7 @@
     var coresDe = function (id, cor) { var p = M.PERSONAGENS[id]; if (!p || cor.toLowerCase() === String(corDe(id)).toLowerCase()) return null; var o = {}; o[p.desenho === "pessoa" ? "roupa" : "detalhe"] = cor; return o; };
     var antes = elencoDe(P.roteiro.cenas[SEL] || {});
     var monta = function (id, acao, cor, esp, velho) { var o = atorDe(id); if (acao) o.acao = acao;
+      if (o.personagem === "meu") return o;
       if (o.personagem === "foto") { if (esp) o.espelhar = true; if (velho && velho.contorno === false && idAtor(velho) === id) o.contorno = false; }
       else { var cc = coresDe(o.personagem, cor); if (cc) o.cores = cc; } return o; };
     if (!PS.a && !n.midia) PS.a = "be";
@@ -383,8 +425,9 @@
     n.cenario = $("psCenario").value; n.entrada = $("psEntrada").value;
   }
   ["psA", "psB"].forEach(function (id) {
-    $(id).addEventListener("click", function (e) {
+    $(id).addEventListener("click", async function (e) {
       var b = e.target.closest("[data-ps]"); if (!b) return;
+      if (b.dataset.id.indexOf("lib:") === 0) { var cam = await fotoDaLib(b.dataset.id.slice(4)); if (!cam) return; b.dataset.id = "foto:" + cam; }
       lerCena(); var c = P.roteiro.cenas[SEL]; var el = elencoDe(c).map(function (x) { return Object.assign({}, x); });
       if (!el.length && !(b.dataset.ps === "a" && !b.dataset.id)) el = [{personagem: "be"}];
       if (b.dataset.ps === "a" && !b.dataset.id) { el = []; c.falas = (c.falas || []).map(function (f) { return {quem: 0, texto: f.texto}; }); }
@@ -682,6 +725,7 @@
     if (CAT === "ia") cards.unshift('<div class="gl-mod"><div class="vis" style="background-image:url(assets/reels-exemplos/demo-ia.jpg)"><video muted loop playsinline preload="none" poster="assets/reels-exemplos/demo-ia.jpg" data-src="assets/reels-exemplos/demo-ia.mp4" aria-label="Como funciona"></video><em>COMO FUNCIONA</em></div><div class="tx"><b>3 PASSOS</b><small>Crie a imagem, anime numa IA de vídeo e monte aqui com textos e chamada.</small></div></div>');
     $("glGrade").innerHTML = cards.join(""); $("glGrade").hidden = CAT === "meu";
     $("glIA").hidden = CAT !== "ia"; $("glMeu").hidden = CAT !== "meu";
+    if (CAT === "meu") carregarLib().then(desenharMpLib);
     if (CAT === "ia") { $("glFerr").innerHTML = (MOD.ferramentasIA || []).map(function (f) { return '<li><b>' + esc(f.nome) + '</b> — ' + esc(f.papel) + (f.url ? ' · <a href="' + f.url + '" target="_blank" rel="noopener">abrir ↗</a>' : "") + '</li>'; }).join(""); gerarPrompts(); }
     $("folhaModelos").hidden = false;
     tocarExemplos();
@@ -740,19 +784,174 @@
   };
 
 
+
+  /* ---------- MEUS PERSONAGENS: biblioteca (IndexedDB), CRIAR PERSONAGEM (montador) e ACRESCENTAR (foto) ---------- */
+  var LIB = [], LIB_URL = {};
+  async function carregarLib() {
+    LIB = (await dbTodos("personagens").catch(function () { return []; })).sort(function (a, b) { return (b.criado || 0) - (a.criado || 0); });
+    Object.keys(LIB_URL).forEach(function (k) { URL.revokeObjectURL(LIB_URL[k]); }); LIB_URL = {};
+    LIB.forEach(function (L) { if (L.tipo === "foto" && L.blob) LIB_URL[L.id] = URL.createObjectURL(L.blob); });
+  }
+  function libUrl(id) { return LIB_URL[id] || ""; }
+  function miniLook(look, chave) { return M.svgPersonagem(look).replace(/id="bwLente"/g, 'id="bwL' + chave + '"').replace(/url\(#bwLente\)/g, "url(#bwL" + chave + ")"); }
+  async function fotoDaLib(libId) {   /* põe a foto da biblioteca no projeto aberto (uma vez) e devolve o caminho */
+    var L = LIB.find(function (x) { return x.id === libId; }); if (!L || !L.blob) return null;
+    var nome = "avatar-lib-" + libId + ".png", ja = MID.find(function (m) { return m.nome === nome; }); if (ja) return ja.caminho;
+    await importar([new File([L.blob], nome, {type: "image/png"})]);
+    var m = MID.find(function (x) { return x.nome === nome; }); return m ? m.caminho : null;
+  }
+  function desenharLib() {
+    $("plGrade").innerHTML = (LIB.length ? LIB.map(function (L) {
+      var vis = L.tipo === "foto" ? '<img src="' + libUrl(L.id) + '" alt="">' : miniLook(L.look, "lb" + L.id);
+      return '<div class="pl-card"><div class="vis">' + vis + '</div><b>' + esc(L.nome) + '</b><small>' + (L.tipo === "foto" ? "foto recortada" : "criado aqui") + '</small><div class="ac">' +
+        (L.tipo === "montado" ? '<button type="button" class="rl-bt peq" data-pl-ed="' + L.id + '">✎ EDITAR</button>' : "") +
+        '<button type="button" class="rl-bt peq" data-pl-anim="' + L.id + '">ANIMAR</button><button type="button" class="rl-bt peq" data-pl-del="' + L.id + '" aria-label="Excluir ' + esc(L.nome) + '">✕</button></div></div>';
+    }).join("") : "") +
+      '<div class="pl-card" style="justify-content:center;align-items:stretch"><button type="button" class="rl-bt pri" data-pl-ir="criar">+ CRIAR PERSONAGEM</button><button type="button" class="rl-bt" data-pl-ir="foto">+ ACRESCENTAR FOTO</button></div>';
+  }
+  function trocarPl(aba) {
+    [].forEach.call(document.querySelectorAll(".pl-abas button"), function (b) { b.classList.toggle("on", b.dataset.pl === aba); });
+    $("plLib").hidden = aba !== "lib"; $("plCriar").hidden = aba !== "criar"; $("plFoto").hidden = aba !== "foto";
+    if (aba === "criar") { desenharMontador(); animarPrev(); } else pararPrev();
+    if (aba === "lib") desenharLib();
+  }
+  async function abrirPers(aba) { await carregarLib(); $("folhaPers").hidden = false; trocarPl(aba || "lib"); }
+  function fecharPers() { $("folhaPers").hidden = true; pararPrev(); }
+  $("btPers").onclick = function () { abrirPers(); };
+  $("btFecharPers").onclick = fecharPers;
+  [].forEach.call(document.querySelectorAll(".pl-abas button"), function (b) { b.onclick = function () { if (b.dataset.pl === "criar") MONT.edita = null; trocarPl(b.dataset.pl); }; });
+  $("folhaPers").addEventListener("click", async function (e) {
+    if (e.target === this) { fecharPers(); return; }
+    var ir = e.target.closest("[data-pl-ir]"); if (ir) { MONT.edita = null; trocarPl(ir.dataset.plIr); return; }
+    var ed = e.target.closest("[data-pl-ed]"); if (ed) { var L = LIB.find(function (x) { return x.id === ed.dataset.plEd; }); if (L) { MONT.look = JSON.parse(JSON.stringify(L.look)); MONT.edita = L.id; $("plNome").value = L.nome; trocarPl("criar"); } return; }
+    var del = e.target.closest("[data-pl-del]"); if (del) { if (!confirm("Excluir este personagem da biblioteca? Os reels que já usam continuam com ele.")) return; await dbDel("personagens", del.dataset.plDel); await carregarLib(); desenharLib(); return; }
+    var an = e.target.closest("[data-pl-anim]"); if (an) { fecharPers(); abrirModelos("meu"); escolherLibAnimar(an.dataset.plAnim); }
+  });
+
+  /* CRIAR PERSONAGEM: montador com prévia animada */
+  var MONT = {look: null, edita: null, acao: "acena", raf: 0, t0: 0};
+  function lookPadrao() { var b = M.PERSONAGENS.leo; return {bicho: "nenhum", cabelo: "curto", barba: "nenhuma", oculos: "nenhum", roupa: "camiseta", acessorio: "nenhum", bone: false, cores: Object.assign({detalhe: "#FFB547"}, b.cores)}; }
+  function opcoes(sel, obj, atual) { $(sel).innerHTML = Object.keys(obj).map(function (k) { return '<option value="' + k + '">' + esc(obj[k]) + '</option>'; }).join(""); $(sel).value = atual; }
+  function desenharMontador() {
+    if (!MONT.look) MONT.look = lookPadrao();
+    var o = M.MONTADOR, l = MONT.look, c = l.cores;
+    $("plBase").innerHTML = '<option value="">— escolher —</option>' + Object.keys(M.PERSONAGENS).filter(function (k) { return M.PERSONAGENS[k].desenho === "pessoa"; }).map(function (k) { return '<option value="' + k + '">' + esc(M.PERSONAGENS[k].nome) + '</option>'; }).join("");
+    $("plBicho").innerHTML = Object.keys(o.bicho).map(function (k) { return '<button type="button" class="rl-chip' + ((l.bicho || "nenhum") === k ? " on" : "") + '" data-bicho="' + k + '">' + esc(o.bicho[k]) + '</button>'; }).join("");
+    $("plPele").innerHTML = o.peles.concat(["#c08a55", "#9aa3ad", "#f4ece2"]).map(function (cor) { return '<button type="button" data-pele="' + cor + '" class="' + (c.pele === cor ? "on" : "") + '" style="background:' + cor + '" aria-label="Tom ' + cor + '"></button>'; }).join("");
+    opcoes("plCabelo", o.cabelo, l.cabelo || "curto"); opcoes("plBarba", o.barba, l.barba || "nenhuma"); opcoes("plOculos", o.oculos, l.oculos || "nenhum");
+    opcoes("plRoupa", o.roupa, l.roupa || "camiseta"); opcoes("plAcess", o.acessorio, l.acessorio || "nenhum"); opcoes("plBone", o.bone, l.bone ? "sim" : "nao");
+    $("plCorCabelo").value = c.cabelo; $("plCorRoupa").value = c.roupa; $("plCorCalca").value = c.calca; $("plCorDet").value = c.detalhe || "#FFB547"; $("plCorSapato").value = c.sapato;
+    $("plAcoes").innerHTML = M.ACOES.filter(function (a) { return a !== "parado"; }).map(function (a) { return '<button type="button" class="rl-chip' + (MONT.acao === a ? " on" : "") + '" data-acao="' + a + '">' + esc(NOMES_ACAO[a]) + '</button>'; }).join("");
+    $("plPrev").innerHTML = miniLook(l, "prev"); $("plPrev").__p = null;
+  }
+  function lerMontador() {
+    var l = MONT.look, c = l.cores;
+    l.cabelo = $("plCabelo").value; l.barba = $("plBarba").value; l.oculos = $("plOculos").value; l.roupa = $("plRoupa").value; l.acessorio = $("plAcess").value; l.bone = $("plBone").value === "sim";
+    c.cabelo = $("plCorCabelo").value; c.roupa = $("plCorRoupa").value; c.calca = $("plCorCalca").value; c.detalhe = $("plCorDet").value; c.sapato = $("plCorSapato").value;
+    $("plPrev").innerHTML = miniLook(l, "prev"); $("plPrev").__p = null;
+  }
+  ["plCabelo", "plBarba", "plOculos", "plRoupa", "plAcess", "plBone"].forEach(function (id) { $(id).addEventListener("change", lerMontador); });
+  ["plCorCabelo", "plCorRoupa", "plCorCalca", "plCorDet", "plCorSapato"].forEach(function (id) { $(id).addEventListener("input", lerMontador); });
+  $("plBicho").addEventListener("click", function (e) { var b = e.target.closest("[data-bicho]"); if (!b) return; lerMontador(); MONT.look.bicho = b.dataset.bicho; desenharMontador(); });
+  $("plPele").addEventListener("click", function (e) { var b = e.target.closest("[data-pele]"); if (!b) return; lerMontador(); MONT.look.cores.pele = b.dataset.pele; desenharMontador(); });
+  $("plAcoes").addEventListener("click", function (e) { var b = e.target.closest("[data-acao]"); if (!b) return; MONT.acao = b.dataset.acao; MONT.t0 = performance.now(); [].forEach.call(this.children, function (x) { x.classList.toggle("on", x === b); }); });
+  $("plBase").onchange = function () { if (!this.value) return; var b = M.PERSONAGENS[this.value];
+    MONT.look = {bicho: b.bicho || "nenhum", cabelo: b.cabelo || "curto", barba: b.barba === true ? "cheia" : (b.barba || "nenhuma"), oculos: b.oculos || "nenhum", roupa: b.roupa || "camiseta", acessorio: b.acessorio || "nenhum", bone: !!b.bone, cores: Object.assign({detalhe: "#FFB547"}, b.cores)};
+    if (!$("plNome").value) $("plNome").value = b.nome; desenharMontador(); };
+  $("plSortear").onclick = function () {
+    var o = M.MONTADOR, pega = function (obj) { var k = Object.keys(obj); return k[Math.floor(Math.random() * k.length)]; }, cor = function () { return "#" + Math.floor(Math.random() * 0xffffff).toString(16).padStart(6, "0"); };
+    var cabelos = ["#1d1a19", "#3b2a1d", "#5a3424", "#7a4b2a", "#c98a2f", "#e8c26a", "#6b6b6b", "#b5462f"];
+    MONT.look = {bicho: Math.random() < 0.15 ? (Math.random() < 0.5 ? "cachorro" : "gato") : "nenhum", cabelo: pega(o.cabelo), barba: Math.random() < 0.6 ? "nenhuma" : pega(o.barba), oculos: Math.random() < 0.6 ? "nenhum" : pega(o.oculos),
+      roupa: pega(o.roupa), acessorio: Math.random() < 0.5 ? "nenhum" : pega(o.acessorio), bone: Math.random() < 0.15,
+      cores: {pele: o.peles[Math.floor(Math.random() * o.peles.length)], cabelo: cabelos[Math.floor(Math.random() * cabelos.length)], roupa: cor(), calca: cor(), sapato: "#151515", detalhe: cor()}};
+    desenharMontador();
+  };
+  function animarPrev() {
+    pararPrev(); MONT.t0 = performance.now();
+    var passo = function () {
+      var box = $("plPrev"); if (!box || $("plCriar").hidden) return;
+      var t = ((performance.now() - MONT.t0) / 1000) % 3.2;
+      try { M.animarPersonagem(box, {t0: 0, t1: 3.2, acao: MONT.acao, entrada: "nenhuma", lado: 1, falas: MONT.acao === "fala" ? [[0.2, 3]] : [], semente: 3}, t); } catch (e) { }
+      MONT.raf = requestAnimationFrame(passo);
+    };
+    MONT.raf = requestAnimationFrame(passo);
+  }
+  function pararPrev() { if (MONT.raf) cancelAnimationFrame(MONT.raf); MONT.raf = 0; }
+  $("plSalvar").onclick = async function () {
+    lerMontador(); var nome = $("plNome").value.trim() || "Meu personagem";
+    var rec = {id: MONT.edita || uid(), nome: nome, tipo: "montado", look: JSON.parse(JSON.stringify(MONT.look)), criado: Date.now()};
+    await dbPut("personagens", rec); await carregarLib(); MONT.edita = rec.id;
+    $("plMsg").textContent = "✓ Salvo em MEUS PERSONAGENS. Ele já aparece para escolher na aba CENA.";
+    if (P && P.roteiro.cenas[SEL] && P.roteiro.cenas[SEL].tipo === "personagem") desenharCena();
+  };
+
+  /* ACRESCENTAR (foto): recorte no aparelho e guarda na biblioteca */
+  var PF = {orig: null, rec: null};
+  function mostrarPF() { var c = PF.rec || PF.orig; $("pfVis").innerHTML = c ? '<img alt="Personagem" src="' + c.toDataURL("image/png") + '">' : '<span>Envie a foto ou o PNG do personagem.</span>'; $("pfCortar").disabled = !PF.orig; $("pfOriginal").disabled = !PF.rec; }
+  $("pfEscolher").onclick = function () { $("pfArq").click(); };
+  $("pfArq").onchange = async function () {
+    var f = this.files && this.files[0]; this.value = ""; if (!f) return;
+    try { var img = await A.imagemDe(new Blob([await f.arrayBuffer()], {type: f.type})); PF.orig = A.canvasDe(img, 1400);
+      if (!$("pfNome").value) $("pfNome").value = f.name.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ").slice(0, 30);
+      if (A.jaRecortado(PF.orig)) { PF.rec = A.aparar(PF.orig); $("pfStatus").textContent = "✓ Já está sem fundo."; }
+      else { PF.rec = A.recortarLiso(PF.orig); $("pfStatus").textContent = PF.rec ? "✓ Fundo liso tirado sozinho." : "O fundo não é liso: toque em ✂ TIRAR FUNDO COM IA."; }
+    } catch (e) { $("pfStatus").textContent = "Não deu para abrir essa imagem. Tente PNG ou JPG."; }
+    mostrarPF();
+  };
+  $("pfCortar").onclick = async function () { if (!PF.orig) return; $("pfStatus").textContent = "Recortando com IA no aparelho…";
+    try { PF.rec = await A.recortarIA(PF.orig, function (p, mb) { $("pfStatus").textContent = "Baixando a IA de recorte: " + Math.round(p * 100) + "% de " + mb + " MB (só na primeira vez)…"; }); $("pfStatus").textContent = PF.rec ? "✓ Recortado com IA." : "A IA não achou o personagem."; }
+    catch (e) { $("pfStatus").textContent = "A IA de recorte não abriu neste aparelho. Use um PNG sem fundo."; } mostrarPF(); };
+  $("pfOriginal").onclick = function () { PF.rec = null; mostrarPF(); };
+  async function guardarFoto(canvas, nome) {
+    var rec = {id: uid(), nome: nome || "Meu personagem", tipo: "foto", blob: await A.pngDe(canvas), criado: Date.now()};
+    await dbPut("personagens", rec); await carregarLib(); return rec;
+  }
+  $("pfSalvar").onclick = async function () {
+    if (!PF.orig) { alert("Escolha a foto do personagem."); return; }
+    if (!$("pfAutor").checked) { alert("Confirme que a imagem é sua ou que você tem autorização de quem aparece nela."); return; }
+    await guardarFoto(PF.rec || PF.orig, $("pfNome").value.trim()); PF = {orig: null, rec: null}; mostrarPF(); $("pfNome").value = ""; $("pfAutor").checked = false;
+    trocarPl("lib");
+  };
+
   /* ---------- ANIMAR MEU PERSONAGEM (foto do usuário → recorte animado / cenas por IA / prompts de vídeo) ---------- */
-  var AV = {orig: null, rec: null, modo: "recorte"}, A = window.BWReelsAvatar;
+  var AV = {orig: null, rec: null, look: null, libId: null, modo: "recorte"}, A = window.BWReelsAvatar;
   function mostrarAvatar() {
     var c = AV.rec || AV.orig;
-    $("mpVis").innerHTML = c ? '<img alt="Personagem" src="' + c.toDataURL("image/png") + '">' : '<span>Envie a foto do avatar, mascote ou personagem.</span>';
-    $("mpCortar").disabled = !AV.orig; $("mpOriginal").disabled = !AV.rec;
+    $("mpVis").innerHTML = AV.look ? '<div style="height:240px;aspect-ratio:400/640">' + miniLook(AV.look, "mp") + '</div>' : c ? '<img alt="Personagem" src="' + c.toDataURL("image/png") + '">' : '<span>Envie a foto do avatar, mascote ou personagem.</span>';
+    $("mpCortar").disabled = !AV.orig || !!AV.look; $("mpOriginal").disabled = !AV.rec || !!AV.look; $("mpGuardar").disabled = !AV.orig || !!AV.look || !!AV.libId;
   }
+  function desenharMpLib() {
+    $("mpLib").innerHTML = LIB.length ? LIB.map(function (L) {
+      return '<button type="button" class="ps-bt' + (AV.libId === L.id ? " on" : "") + '" data-mplib="' + L.id + '"><span>' + (L.tipo === "foto" ? '<img src="' + libUrl(L.id) + '" alt="">' : miniLook(L.look, "ml" + L.id)) + '</span>' + esc(L.nome.split(" ")[0]) + '</button>';
+    }).join("") + '<span class="rl-nota" style="align-self:center;margin:0 6px">← MEUS PERSONAGENS</span>' : "";
+  }
+  function rasterLook(look) {
+    return new Promise(function (ok) {
+      var svg = M.svgPersonagem(look).replace('width="100%" height="100%"', 'width="800" height="1280"'), i = new Image();
+      i.onload = function () { var c = document.createElement("canvas"); c.width = 800; c.height = 1280; c.getContext("2d").drawImage(i, 0, 0, 800, 1280); ok(A.aparar(c) || c); };
+      i.onerror = function () { ok(null); };
+      i.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+    });
+  }
+  async function escolherLibAnimar(id) {
+    await carregarLib(); var L = LIB.find(function (x) { return x.id === id; }); if (!L) return;
+    AV.libId = L.id; $("mpNome").value = L.nome;
+    if (L.tipo === "montado") { AV.look = JSON.parse(JSON.stringify(L.look)); AV.orig = AV.rec = await rasterLook(AV.look); $("mpStatus").textContent = "✓ Personagem criado: no recorte animado ele mexe braços, olhos e boca."; }
+    else { AV.look = null; var img = await A.imagemDe(L.blob); AV.orig = A.canvasDe(img, 1400); AV.rec = A.aparar(AV.orig); $("mpStatus").textContent = "✓ Personagem da biblioteca."; }
+    desenharMpLib(); mostrarAvatar();
+  }
+  $("mpLib").addEventListener("click", function (e) { var b = e.target.closest("[data-mplib]"); if (b) escolherLibAnimar(b.dataset.mplib); });
+  $("mpGuardar").onclick = async function () {
+    if (!AV.orig) return; if (!$("mpAutor").checked) { alert("Marque antes que a imagem é sua ou que você tem autorização de quem aparece nela."); return; }
+    var r = await guardarFoto(AV.rec || AV.orig, $("mpNome").value.trim()); AV.libId = r.id; desenharMpLib(); mostrarAvatar();
+    $("mpStatus").textContent = "✓ Guardado em MEUS PERSONAGENS.";
+  };
   $("mpEscolher").onclick = function () { $("mpArq").click(); };
   $("mpArq").onchange = async function () {
     var f = this.files && this.files[0]; this.value = ""; if (!f) return;
     try {
       var blob = new Blob([await f.arrayBuffer()], {type: f.type});          // cópia já (iPhone invalida o original)
-      var img = await A.imagemDe(blob); AV.orig = A.canvasDe(img, 1400); AV.rec = null;
+      var img = await A.imagemDe(blob); AV.orig = A.canvasDe(img, 1400); AV.rec = null; AV.look = null; AV.libId = null; desenharMpLib();
       if (!$("mpNome").value) $("mpNome").value = f.name.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ").slice(0, 30);
       if (A.jaRecortado(AV.orig)) { AV.rec = A.aparar(AV.orig); $("mpStatus").textContent = "✓ Já está sem fundo."; }
       else { AV.rec = A.recortarLiso(AV.orig); $("mpStatus").textContent = AV.rec ? "✓ Fundo liso tirado sozinho. Não ficou bom? Use TIRAR FUNDO COM IA." : "O fundo não é liso: toque em ✂ TIRAR FUNDO COM IA (ou siga com a foto inteira)."; }
@@ -825,11 +1024,16 @@
     salvar();
     var novo = novoProjeto(); novo.modo = "meu"; novo.nome = ("Reel " + dados.nome).slice(0, 60); novo.avatarNome = dados.nome; novo.briefing.assunto = dados.hist.slice(0, 200); novo.briefing.cta = dados.cta;
     novo.roteiro.cenas = []; fecharModelos(); await abrir(novo);
-    ocupado("Guardando o personagem neste aparelho…");
-    var png = await A.pngDe(figura);
-    await importar([new File([png], "avatar-" + slug(dados.nome) + ".png", {type: "image/png"})]);
-    var caminho = (avatares().slice(-1)[0] || {}).caminho;
-    var ator = function (acao) { var o = {personagem: "foto", imagem: caminho, acao: acao}; if (!AV.rec || !$("mpContorno").checked) o.contorno = false; return o; };
+    var caminho = null;
+    if (!AV.look) {
+      ocupado("Guardando o personagem neste aparelho…");
+      var png = await A.pngDe(figura);
+      await importar([new File([png], "avatar-" + slug(dados.nome) + ".png", {type: "image/png"})]);
+      caminho = (avatares().slice(-1)[0] || {}).caminho;
+    }
+    var ator = function (acao) {
+      if (AV.look) return {personagem: "meu", look: JSON.parse(JSON.stringify(AV.look)), nome: dados.nome, libId: AV.libId || undefined, acao: acao};
+      var o = {personagem: "foto", imagem: caminho, acao: acao}; if (!AV.rec || !$("mpContorno").checked) o.contorno = false; return o; };
     var cenas = [];
     if (h.gancho) cenas.push({tipo: "gancho", duracao: 2.8, texto: palavras(h.gancho).slice(0, 9).join(" ")});
     var imagensIA = [];
@@ -872,7 +1076,7 @@
     prepararMusica(); desenharTudo(); desenharPrompts(); trocarPasso(P.ganchos.length ? "gancho" : "assunto"); atualizar();
     try { localStorage.setItem("ui_reels_ultimo", P.id); } catch (e) { }
   }
-  function desenharTudo() { desenharLinha(); desenharCena(); desenharMidias(); if (PASSO === "gancho") desenharGanchos(); if (PASSO === "estilo") desenharEstilo(); }
+  function desenharTudo() { desenharLinha(); desenharCena(); desenharMidias(); desenharSom(); if (PASSO === "gancho") desenharGanchos(); if (PASSO === "estilo") desenharEstilo(); }
   $("btNovo").onclick = function () { abrirModelos("texto"); };
   $("btMeus").onclick = async function () {
     var lista = (await dbTodos("projetos").catch(function () { return []; })).sort(function (a, b) { return b.atualizado - a.atualizado; });
@@ -901,7 +1105,7 @@
   $("btMotor").onclick = abrirMotor; $("btMotor2").onclick = abrirMotor;
   $("btFecharMotor").onclick = function () { $("folhaMotor").hidden = true; };
   $("folhaMotor").addEventListener("click", function (e) { if (e.target === this) this.hidden = true; });
-  document.addEventListener("keydown", function (e) { if (e.key === "Escape") { $("folhaMeus").hidden = true; $("folhaMotor").hidden = true; if (!$("folhaModelos").hidden) fecharModelos(); } });
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape") { $("folhaMeus").hidden = true; $("folhaMotor").hidden = true; if (!$("folhaModelos").hidden) fecharModelos(); if (!$("folhaPers").hidden) fecharPers(); } });
 
   function ocupado(txt) { $("ocup").hidden = !txt; if (txt) $("ocupTxt").textContent = txt; }
 
@@ -910,10 +1114,11 @@
     try { $("chkZonas").checked = localStorage.getItem("ui_reels_zonas") === "1"; $("chkZonas").onchange(); } catch (e) { }
     var p = null;
     try { var ult = localStorage.getItem("ui_reels_ultimo"); if (ult) p = await dbGet("projetos", ult); } catch (e) { }
+    await carregarLib();
     await abrir(p || novoProjeto());
     if (!p) abrirModelos("texto");   /* primeira vez: mostra o que dá para criar */
   })();
   window.addEventListener("beforeunload", function () { if (P) { P.atualizado = Date.now(); dbPut("projetos", JSON.parse(JSON.stringify(P))).catch(function () { }); } });
-  window.BWReels = {projeto: function () { return P; }, tocar: tocar, parar: parar, posicionar: posicionar, validar: validar, abrirModelos: abrirModelos, normalizarCenas: function (l, b) { return normalizarCenas(l, b || {}); }};
+  window.BWReels = {abrirPers: abrirPers, lib: function () { return LIB; }, somPronto: function () { prepararSom(); return !!somAuto.src; }, projeto: function () { return P; }, tocar: tocar, parar: parar, posicionar: posicionar, validar: validar, abrirModelos: abrirModelos, normalizarCenas: function (l, b) { return normalizarCenas(l, b || {}); }};
   if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(function () { });
 })();

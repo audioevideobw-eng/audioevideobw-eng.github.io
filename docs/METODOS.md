@@ -232,3 +232,10 @@ Tamanho > 0 e sem erro = o pdfmake montou o arquivo. Localmente (T1) confira o `
   Cena só com imagem: `elenco: []` + `midia`. Prévia do site troca `elenco[].imagem` pela URL blob; o pacote leva as imagens do elenco.
 - Teste: docs/testes/teste_reels.py simula bw-ia (história) e bw-ia-imagem (devolve JPG) — confere confirmação, tamanho do envio,
   1 imagem por cena, prompts de vídeo, editor ("Só imagem", VIRAR).
+
+## Som automático e personagens montados (17/11)
+- motor/sons.mjs: `sintetizarSons(plano,{sr})` → {trilha, efeitos} (Float32 L/R); `misturar` + `wavDe` → WAV. Eventos em plano.sfx
+  (pop, fala, boing, confete, susto, clique, contador, brilho, whoosh, impacto) só quando efeitos.sfx; trilha em plano.trilha.
+  Conferir sem ouvir: `ffmpeg -i video.mp4 -lavfi showspectrumpic=s=1200x400 espectro.png` (trilha embaixo, blips/efeitos como riscos).
+- Personagem montado: `svgPersonagem({cabelo, barba, oculos, roupa, acessorio, bone, bicho, cores})`; prévia ao vivo no montador com
+  `animarPersonagem(div, rig, t)` num requestAnimationFrame. Para mandar à IA de imagem: SVG → Image → canvas (rasterLook).
