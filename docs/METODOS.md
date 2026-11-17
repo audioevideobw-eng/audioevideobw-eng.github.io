@@ -200,3 +200,6 @@ Tamanho > 0 e sem erro = o pdfmake montou o arquivo. Localmente (T1) confira o `
 - Teste offline: pdf.js 6 local em /opt/npm-tools (rota do CDN → pdf.min.mjs com Access-Control-Allow-Origin), ZXing e Tesseract simulados,
   voz simulada (window.SpeechRecognition falso com __fala/__falaErro; speechSynthesis via Object.defineProperty — atribuir não funciona).
 - Agente: testar frases com hora ("às 10"), número por extenso ("trinta e cinco"), evento pelo nome parcial ("mina vale"), sem valor.
+- IA de ações (16/11 noite): SEMPRE conferir a saída REAL da bw-ia no ar antes de dar como pronto — no console logado:
+  `await BWAgente.entender("me lembra de ligar pro cliente amanhã às 10")` (não grava nada). O teste simulado devolvia o formato ideal e
+  escondeu que o gpt-oss respondia {"acoes":[{"tarefa":{…}}]}.

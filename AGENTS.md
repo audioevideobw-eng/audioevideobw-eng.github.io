@@ -199,6 +199,11 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
     o texto; à IA vai só tapar(texto) (vigia). Código colado aceita pontos/traços/espaços. Campo `label` da página global é MAIÚSCULO:
     textos longos em label precisam de text-transform:none.
 
+65. Resposta de IA em JSON é ACHATADA antes de usar (aceita {"tipo":…}, {"acao":…} e {"tarefa":{…}}) e o prompt traz um EXEMPLO com o campo
+    "tipo": o gpt-oss devolvia {"tarefa":{…}} e TODA ação virava "não entendi", enquanto a "resposta" dizia "lembrete criado". Se a IA não
+    trouxer ação válida, cai para o entendimento no aparelho; a "resposta" da IA nunca diz que algo foi lançado. Teste com a IA REAL no ar
+    (BWAgente.entender, sem gravar) — o simulado só devolvia o formato certo (auto: teste_agente_leitor.py).
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -627,6 +632,15 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   Nomes: "Leitor de contas" (menu), LEITOR DE CONTAS (cards), LER CONTA (Início). Varredura: criador (chips de cor sem nome) e notícias
   (estouro 16 px em 360) corrigidos. teste_agente_leitor.py (49 checagens × 1280/390, 0 falhas) + varredura/layout/agenda/propostas/fotos/
   concluir/crm 0 falhas. Manual: página "Leitor de contas e Agente" (substitui "Comprovantes pela foto"). layout.js v31, criador.js v5, sw v87. PENTE FINO 63–64.
+
+- 16/11/2026 22:31 · Claude (dono: "o agente por voz está muito ruim… fala certo mas não lança nada na agenda"): causa — a IA Brightway
+  devolvia as ações como {"tarefa":{…}} (sem o campo "tipo") e o agente descartava TODAS ("não entendi"), mas mostrava a frase da IA
+  "Lembrete criado". Correções em assets/bw-agente.js v2: ações achatadas + prompt com exemplo + volta para o entendimento no aparelho;
+  RESPONDE perguntas — agenda ("o que tenho amanhã / esta semana / próximo compromisso", mesmo cálculo da AGENDA via window.BWAgendaItens),
+  gastos/contas/negócio e perguntas gerais (tipo responder); entende mais tarefas ("tenho que", "preciso", "levar", "buscar", "ligar",
+  "dentista sexta às 15h", de manhã = 9h, à tarde = 14h, à noite = 19h); voz mãos livres: depois de "…Confirma?" escuta "sim" (lança) ou
+  "não" (cancela). AGENDA da tela inicial redesenha na hora quando o agente grava (evento bw-dados). teste_agente_leitor.py +11 checagens
+  (0 falhas), agenda/layout/varredura 0. layout.js v32, sw v88. PENTE FINO 65.
 
 ## Pendências (dono)
 - [x] (16/11 11:42) IA CRIATIVA ATIVA: conta Cloudflare do dono (Free, sem cartão), token "Brightway IA criativa 2" (Workers AI Read+Edit) em

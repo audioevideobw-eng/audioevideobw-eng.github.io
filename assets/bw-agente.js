@@ -116,13 +116,40 @@
   function periodo(p) {
     var h = new Date(); h.setHours(0, 0, 0, 0);
     if (p === "hoje") return [ymd(h), ymd(h), "hoje"];
+    if (p === "amanha") { var am = new Date(h); am.setDate(am.getDate() + 1); return [ymd(am), ymd(am), "amanhã"]; }
+    if (p === "proxima_semana") { var ps = new Date(h); ps.setDate(ps.getDate() + 7 - ((ps.getDay() + 6) % 7)); var pf = new Date(ps); pf.setDate(pf.getDate() + 6); return [ymd(ps), ymd(pf), "na próxima semana"]; }
     if (p === "semana") { var a = new Date(h); a.setDate(a.getDate() - ((a.getDay() + 6) % 7)); return [ymd(a), ymd(h), "nesta semana"]; }
     if (p === "mes_passado") { var a2 = new Date(h.getFullYear(), h.getMonth() - 1, 1), b2 = new Date(h.getFullYear(), h.getMonth(), 0); return [ymd(a2), ymd(b2), "no mês passado"]; }
     if (p === "ano") return [h.getFullYear() + "-01-01", ymd(h), "neste ano"];
     return [ymd(new Date(h.getFullYear(), h.getMonth(), 1)), ymd(new Date(h.getFullYear(), h.getMonth() + 1, 0)), "neste mês"];
   }
+  function itensAgenda(ini, fim) {   /* o mesmo cálculo da AGENDA da tela inicial; fora dela, uma versão simples */
+    if (typeof window.BWAgendaItens === "function") { try { return window.BWAgendaItens(ini, fim); } catch (e) { } }
+    var out = [], dentro = function (d) { return d && d >= ini && d <= fim; };
+    ler("agenda_tarefas").forEach(function (t) {
+      if (!t || !t.data) return;
+      if (!t.rep) { if (dentro(t.data)) out.push({ tipo: "tarefa", data: t.data, hora: t.hora, titulo: t.titulo, feito: (t.feitos || []).indexOf(t.data) >= 0 }); return; }
+      for (var d = deYmd(t.data), n = 0; ymd(d) <= fim && n < 400; n++) {
+        var k = ymd(d); if (k >= ini) out.push({ tipo: "tarefa", data: k, hora: t.hora, titulo: t.titulo, feito: (t.feitos || []).indexOf(k) >= 0 });
+        if (t.rep === "semanal") d.setDate(d.getDate() + 7); else if (t.rep === "mensal") d.setMonth(d.getMonth() + 1); else d.setDate(d.getDate() + 1);
+      }
+    });
+    ler("casa_contas").forEach(function (c) { if (c && sa(c.c3) !== "sim" && dentro(c.c2)) out.push({ tipo: "pagamento", data: c.c2, titulo: c.c0, valor: num(c.c1) }); });
+    ler("neg_eventos").forEach(function (e) { if (!e || /cancel/i.test(e.status || "")) return; if (dentro(e.data)) out.push({ tipo: "evento", data: e.data, titulo: e.nome }); if (e.montagem && e.montagem !== e.data && dentro(e.montagem)) out.push({ tipo: "evento", data: e.montagem, titulo: "Montagem — " + e.nome }); });
+    return out;
+  }
   function consultar(q) {
     var per = periodo(q.periodo), ini = per[0], fim = per[1], f = sa(q.filtro || "").trim(), bate = function (txt) { return !f || sa(txt).indexOf(f) >= 0; };
+    if (q._ini) { ini = fim = q._ini; per[2] = "em " + br(q._ini); }
+    if (q.fonte === "agenda") {
+      var its = itensAgenda(ini, fim).filter(function (i) { return !i.feito && bate(i.titulo); })
+        .sort(function (a, b) { return (a.data + (a.hora || "99")).localeCompare(b.data + (b.hora || "99")); });
+      if (!its.length) return "Nada na agenda " + per[2] + (f ? " com \"" + q.filtro + "\"" : "") + ". Agenda livre!";
+      var um = ini === fim, txt = its.slice(0, 8).map(function (i) {
+        return (um ? "" : br(i.data).slice(0, 5) + " ") + (i.hora ? i.hora.replace(":00", "h") + " " : "") + (i.titulo || "") + (i.tipo === "pagamento" ? " (pagar " + moeda(i.valor) + ")" : "");
+      }).join("; ");
+      return "Você tem " + its.length + " compromisso" + (its.length > 1 ? "s" : "") + " " + per[2] + ": " + txt + (its.length > 8 ? "; e mais " + (its.length - 8) + "." : ".");
+    }
     if (q.fonte === "contas") {
       var abertas = ler("casa_contas").filter(function (c) { return sa(c.c3) !== "sim" && bate(c.c0); }).sort(function (a, b) { return String(a.c2).localeCompare(String(b.c2)); });
       var tot = abertas.reduce(function (s, c) { return s + num(c.c1); }, 0);
@@ -188,8 +215,14 @@
     var semHora = t.replace(/(?:as|a) \d{1,2}(?:h\d{0,2}| horas|:\d{2})?(?=\s)/g, " ").replace(/ \d{1,2}h\d{0,2}(?=\s)/g, " ").replace(/dia \d{1,2}/g, " ").replace(/\d{1,2}\/\d{1,2}(\/\d{2,4})?/g, " ");
     var dinheiroDito = /r\$|reais|real|conto|pila|centavos/.test(t);
     if (!valor && (m = semHora.match(/ (\d+(?:[.,]\d{1,2})?) (?:e (\d{1,2}) centavos)?/)) && (dinheiroDito || !/lembr|tarefa|agend|reuniao|compromisso/.test(t))) valor = num(m[1]) + (m[2] ? +m[2] / 100 : 0);
-    var data = dataDe(t), hora = "";
+    var data = dataDe(t), hora = /de manha|pela manha/.test(t) ? "09:00" : /a tarde|de tarde/.test(t) ? "14:00" : /a noite|de noite/.test(t) ? "19:00" : "";
     if ((m = t.match(/(?:as|a) (\d{1,2})(?:h| horas|:)?(\d{2})?(?=\s)/)) || (m = t.match(/ (\d{1,2})h(\d{2})?(?=\s)/))) { var hh = +m[1], mm = +(m[2] || 0); if (hh < 24 && mm < 60) hora = dois(hh) + ":" + dois(mm); }
+    /* perguntas sobre a agenda (o mesmo que a tela inicial mostra) */
+    if (/(o que|oque|que) (eu )?(tenho|tem|vou fazer)|meus compromissos|minha agenda|como (esta|ta) (a )?(minha )?agenda|tenho (algum|algo|compromisso|reuniao|evento)|qual (e |o )?(meu )?proximo (compromisso|evento)|quais (sao )?(os )?(meus )?(compromissos|eventos|tarefas)/.test(t) && !/gast|pague|recebi|entrou|saiu|devo/.test(t)) {
+      var pa = /depois de amanha/.test(t) ? null : /amanha/.test(t) ? "amanha" : /proxima semana|semana que vem/.test(t) ? "proxima_semana" : /semana/.test(t) ? "semana" : /mes/.test(t) ? "mes" : /proximo/.test(t) ? "mes" : "hoje";
+      if (!pa) { var dd2 = dataDe(t); return [{ tipo: "consulta", fonte: "agenda", periodo: "hoje", filtro: "", _ini: dd2 }]; }
+      return [{ tipo: "consulta", fonte: "agenda", periodo: pa, filtro: "" }];
+    }
     /* perguntas */
     if (/quanto (eu )?(gastei|gasto|paguei|recebi|entrou|saiu|devo|tenho)|qual (o )?(total|saldo)|resumo|quais (as )?contas|o que (tenho|vence)/.test(t)) {
       var fonte = /conta|vence|devo|boleto/.test(t) ? "contas" : /negocio|empresa|caixa|bw|evento|recebi|entrou/.test(t) ? "negocio" : "casa";
@@ -208,17 +241,20 @@
     }
     /* o que é */
     var tipo = "";
-    if (/lembr|tarefa|agend|reuniao|compromisso/.test(t) && !dinheiroDito) tipo = "tarefa";
+    var TAREFA = /lembr|tarefa|agend|reuniao|compromisso|tenho que|preciso|precisa|ir (ao|a|na|no|pra|para)|levar|buscar|pegar|ligar|visitar|consulta|marcar|me avis|nao esquecer|entregar|enviar|mandar|fazer|encontro|almoco com|jantar com|call|treino|academia|medico|dentista/;
+    if (TAREFA.test(t) && !dinheiroDito && !valor) tipo = "tarefa";
+    else if (/lembr|tarefa|agend|reuniao|compromisso/.test(t) && !dinheiroDito) tipo = "tarefa";
     else if (/recebi|receber|entrada|entrou|pagaram|me pagou|faturei/.test(t) && valor) tipo = /casa|salario|familia/.test(t) ? "receita_casa" : "entrada_negocio";
     else if (/conta de|boleto|fatura|vence|vencimento|conta a pagar|pra pagar|para pagar/.test(t) && valor) tipo = "conta_pagar";
     else if (/lembr|tarefa|agend|reuniao|compromisso|marca(r)? |anota/.test(t) && !valor) tipo = "tarefa";
     else if (valor) tipo = /evento|montagem|cache/.test(t) ? "custo_evento" : /negocio|empresa|bw |equipamento|cliente|trabalho/.test(t) ? "gasto_negocio" : "gasto_casa";
     else if (/lembr|tarefa|agend|reuniao/.test(t)) tipo = "tarefa";
+    else if (!valor && (hora || dataDe(t)) && t.trim().split(" ").length >= 2) tipo = "tarefa";   /* "dentista sexta às 15h" */
     else if (/gastei|gasto|paguei|comprei|despesa/.test(t)) tipo = /negocio|empresa|evento/.test(t) ? "gasto_negocio" : "gasto_casa";   /* sem valor: mostra o cartão para completar */
     if (!tipo) return [{ tipo: "nada" }];
     /* descrição: o que sobra tirando as palavras de comando */
     var resto = t.replace(/r\$ ?[\d.,]+|[\d.,]+ ?(?:reais|real|contos?|pila)|\d+[.,]?\d* centavos/g, " ").replace(/\d{1,2}\/\d{1,2}(\/\d{2,4})?/g, " ").replace(/(as|a) \d{1,2}(h|:\d{2}| horas)?(\d{2})?/g, " ").replace(/ \d+(h\d{0,2})? /g, " ")
-      .replace(/\b(lanc(a|e|ar)|lance|lancar|registr(a|e|ar)|anot(a|e|ar)|coloc(a|e|ar)|cri(a|e|ar)|adicion(a|e|ar)|bot(a|e|ar)|me lembr(a|e|ar)( de)?|lembr(a|e|ete|ar)( de| que)?|marc(a|e|ar)|agend(a|e|ar)|uma?|o|a|os|as|nos|nas|no|na|do|da|dos|das|de|em|para|pra|pro|por|com|como|que|eu|gastei|gasto|gastos|paguei|comprei|recebi|receber|entrada|valor|reais|conta a pagar|conta de|conta|boleto|fatura|vence|vencimento|dia|hoje|amanha|depois|ontem|anteontem|tarefa|lembrete|casa|negocio|empresa|evento|segunda|terca|quarta|quinta|sexta|sabado|domingo|feira|e)\b/g, " ")
+      .replace(/\b(lanc(a|e|ar)|lance|lancar|registr(a|e|ar)|anot(a|e|ar)|coloc(a|e|ar)|cri(a|e|ar)|adicion(a|e|ar)|bot(a|e|ar)|me lembr(a|e|ar)( de)?|lembr(a|e|ete|ar)( de| que)?|tenho que|preciso( de)?|me avis(a|e|ar)( de| que)?|nao esquecer( de)?|de manha|a tarde|a noite|marc(a|e|ar)|agend(a|e|ar)|uma?|o|a|os|as|nos|nas|no|na|do|da|dos|das|de|em|para|pra|pro|por|com|como|que|eu|gastei|gasto|gastos|paguei|comprei|recebi|receber|entrada|valor|reais|conta a pagar|conta de|conta|boleto|fatura|vence|vencimento|dia|hoje|amanha|depois|ontem|anteontem|tarefa|lembrete|casa|negocio|empresa|evento|segunda|terca|quarta|quinta|sexta|sabado|domingo|feira|e)\b/g, " ")
       .replace(/ [\d.,]+(?= |$)/g, " ").replace(/\s+/g, " ").trim();
     var evAchado = tipo === "custo_evento" ? (Lanca.acharEvento(t) || null) : null;
     if (evAchado) { var tirar = sa(evAchado.nome).split(/[^a-z0-9]+/).filter(function (w) { return w.length > 1; }); resto = resto.split(" ").filter(function (w) { return tirar.indexOf(w) < 0; }).join(" "); }
@@ -234,17 +270,21 @@
   /* ================= entender: IA Brightway ================= */
   async function sessao() { try { var c = window.BWSync && BWSync.cliente && BWSync.cliente(); var s = c ? await c.auth.getSession() : null; return (s && s.data && s.data.session) || null; } catch (e) { return null; } }
   function jsonDe(t) { t = String(t || "").replace(/```(json)?/g, ""); var a = t.indexOf("{"), b = t.lastIndexOf("}"); if (a < 0 || b <= a) return null; try { return JSON.parse(t.slice(a, b + 1)); } catch (e) { return null; } }
-  var SISTEMA = 'Você é o AGENTE de lançamentos da plataforma Brightway (gestão da casa e de uma produtora de eventos). Transforme o pedido em ações.\n' +
-    'Responda SÓ com JSON: {"acoes":[...],"resposta":"frase curta em português"}. Tipos de ação:\n' +
-    '- gasto_casa {descricao, valor, categoria, data}  (gasto pessoal/da família; categoria uma de: ' + CAT_CASA.join(", ") + ')\n' +
-    '- receita_casa {descricao, valor, data}\n- gasto_negocio {descricao, valor, data}  (despesa da empresa)\n- entrada_negocio {descricao, valor, data}  (dinheiro que a empresa recebeu)\n' +
-    '- conta_pagar {descricao, valor, vencimento}  (boleto/conta que ainda vai ser paga; descricao curta: Energia, Água, Internet, Aluguel…)\n' +
-    '- tarefa {titulo, data, hora, categoria}  (categoria: tarefa, trabalho, pessoal, casa, saude, reuniao; hora "HH:MM" ou "")\n' +
-    '- custo_evento {evento, descricao, valor, data}  (evento = nome EXATO da lista de eventos)\n' +
-    '- consulta {fonte, periodo, filtro}  (fonte: casa|negocio|contas; periodo: hoje|semana|mes|mes_passado|ano; filtro: palavra ou "")\n' +
-    '- abrir {pagina}  (uma de: ' + Object.keys(PAGINAS).join(", ") + ')\n- nada {}  (não deu para entender — peça em "resposta" o que falta)\n' +
-    'Regras: valor em número (ponto decimal); datas AAAA-MM-DD calculadas a partir de HOJE; "gasto/gastei/paguei" sem falar de empresa, cliente, evento ou equipamento = gasto_casa; ' +
-    '"recebi" de cliente/evento = entrada_negocio; vários pedidos na mesma frase = várias ações; nunca invente valor; descrição curta com a primeira letra maiúscula.';
+  var SISTEMA = 'Você é o AGENTE da plataforma Brightway (casa + produtora de eventos). Transforme o pedido em ações.\n' +
+    'Responda SÓ com JSON neste formato, CADA ação com o campo "tipo":\n' +
+    '{"acoes":[{"tipo":"tarefa","titulo":"Ligar para o cliente","data":"2026-01-02","hora":"10:00","categoria":"trabalho"}],"resposta":""}\n' +
+    'Tipos e campos:\n' +
+    '- gasto_casa: descricao, valor, categoria (' + CAT_CASA.join(", ") + '), data\n' +
+    '- receita_casa: descricao, valor, data\n- gasto_negocio: descricao, valor, data\n- entrada_negocio: descricao, valor, data\n' +
+    '- conta_pagar: descricao (Energia, Água, Internet…), valor, vencimento\n' +
+    '- tarefa: titulo, data, hora ("HH:MM" ou ""), categoria (tarefa, trabalho, pessoal, casa, saude, reuniao) — compromissos, lembretes, reuniões, "tenho que", "preciso", "marcar"\n' +
+    '- custo_evento: evento (nome EXATO da lista), descricao, valor, data\n' +
+    '- consulta: fonte (agenda|casa|negocio|contas), periodo (hoje|amanha|semana|proxima_semana|mes|mes_passado|ano), filtro ("" ou palavra) — perguntas sobre os DADOS da pessoa (compromissos, gastos, contas, quanto entrou)\n' +
+    '- responder: texto — pergunta geral que não depende dos dados dela (resposta curta, 1 a 3 frases)\n' +
+    '- abrir: pagina (' + Object.keys(PAGINAS).join(", ") + ')\n- nada: (peça em "resposta" o que falta)\n' +
+    'Regras: valor número com ponto; datas AAAA-MM-DD a partir de HOJE ("de manhã" = 09:00, "à tarde" = 14:00, "à noite" = 19:00); gasto sem falar de empresa/cliente/evento/equipamento = gasto_casa; ' +
+    '"recebi" de cliente/evento = entrada_negocio; vários pedidos = várias ações; nunca invente valor; títulos curtos com a primeira letra maiúscula. ' +
+    'NUNCA diga em "resposta" que algo foi criado ou lançado — quem lança é o app; deixe "resposta" vazia quando houver ações.';
   async function entenderIA(texto) {
     var s = await sessao(); if (!s) return null;
     var d = new Date(), sem = ["domingo", "segunda", "terça", "quarta", "quinta", "sexta", "sábado"][d.getDay()];
@@ -259,8 +299,19 @@
       return o;
     } catch (e) { return null; }
   }
+  var TIPOS_OK = ["gasto_casa", "receita_casa", "gasto_negocio", "entrada_negocio", "conta_pagar", "tarefa", "custo_evento", "consulta", "responder", "abrir", "nada"];
+  function achatar(a) {   /* 16/11: a IA às vezes devolve {"tarefa":{...}} ou {"acao":"tarefa"} — sem isso TODA ação virava "não entendi" */
+    if (!a || typeof a !== "object") return null;
+    if (a.tipo && TIPOS_OK.indexOf(a.tipo) >= 0) return a;
+    var t = a.tipo || a.acao || a.type || a.action;
+    if (t && TIPOS_OK.indexOf(t) >= 0) return Object.assign({}, a, { tipo: t });
+    var ks = Object.keys(a).filter(function (k) { return TIPOS_OK.indexOf(k) >= 0; });
+    if (ks.length === 1) return Object.assign({ tipo: ks[0] }, typeof a[ks[0]] === "object" && a[ks[0]] ? a[ks[0]] : {});
+    return null;
+  }
   function normalizar(a) {   /* confere o que a IA devolveu antes de mostrar */
     a = Object.assign({}, a || {}); a.valor = num(a.valor);
+    if (a.tipo === "tarefa") { a.titulo = cap(a.titulo || a.descricao || "Tarefa"); if (!a.data) a.data = hoje(); }
     if (a.data && !/^\d{4}-\d{2}-\d{2}$/.test(a.data)) a.data = hoje();
     if (a.vencimento && !/^\d{4}-\d{2}-\d{2}$/.test(a.vencimento)) a.vencimento = hoje();
     if (a.tipo === "gasto_casa" && CAT_CASA.indexOf(a.categoria) < 0) a.categoria = categoria((a.descricao || "") + " " + (a.categoria || ""));
@@ -270,8 +321,10 @@
   }
   async function entender(texto) {
     var usarIA = ui("ia", true), r = usarIA ? await entenderIA(texto) : null, via = "IA Brightway";
+    if (r) { r.acoes = (r.acoes || []).map(achatar).filter(Boolean); if (!r.acoes.length || r.acoes.every(function (a) { return a.tipo === "nada"; })) { var loc = entenderLocal(texto); if (loc.some(function (a) { return a.tipo !== "nada"; })) r = { acoes: loc, resposta: "" }; } }
     if (!r) { r = { acoes: entenderLocal(texto), resposta: "" }; via = "no aparelho"; }
     r.acoes = (r.acoes || []).map(normalizar).filter(function (a) { return a && a.tipo; });
+    if (r.acoes.some(function (a) { return a.tipo !== "nada" && a.tipo !== "responder"; })) r.resposta = "";   /* nunca "lembrete criado" antes de lançar */
     if (!r.acoes.length) r.acoes = [{ tipo: "nada" }];
     r.via = via; return r;
   }
@@ -294,10 +347,22 @@
   }
 
   /* ================= voz: falar e ouvir ================= */
-  function falar(txt) {
-    if (!ui("voz", true) || !window.speechSynthesis) return;
-    try { speechSynthesis.cancel(); var u = new SpeechSynthesisUtterance(String(txt).replace(/R\$ ?/g, "").slice(0, 220)); u.lang = "pt-BR"; u.rate = 1.05;
-      var vs = speechSynthesis.getVoices().filter(function (v) { return /pt[-_]BR/i.test(v.lang); }); if (vs.length) u.voice = vs[0]; speechSynthesis.speak(u); } catch (e) { }
+  function falar(txt, depois) {
+    var fim = false, seguir = function () { if (fim) return; fim = true; if (depois) setTimeout(depois, 250); };
+    if (!ui("voz", true) || !window.speechSynthesis || !txt) { seguir(); return; }
+    try { speechSynthesis.cancel(); var u = new SpeechSynthesisUtterance(String(txt).replace(/R\$ ?/g, "").slice(0, 400)); u.lang = "pt-BR"; u.rate = 1.05;
+      var vs = speechSynthesis.getVoices().filter(function (v) { return /pt[-_]BR/i.test(v.lang); }); if (vs.length) u.voice = vs[0];
+      u.onend = seguir; u.onerror = seguir; speechSynthesis.speak(u); setTimeout(seguir, 2500 + String(txt).length * 90); } catch (e) { seguir(); }
+  }
+  async function confirmarPorVoz() {   /* 16/11: depois de "…Confirma?" escuta "sim / pode lançar" ou "não / cancela" — mãos livres */
+    if (!SR || painel.hidden || ouvindo || !ESTADO.acoes.some(function (a) { return !a.feito && /gasto|receita|entrada|conta_pagar|tarefa|custo_evento/.test(a.tipo); })) return;
+    ouvindo = true; fab.classList.add("ouvindo");
+    status('<span class="bwg-onda"><i></i><i></i><i></i><i></i></span> Diga <b>"sim"</b> para lançar, <b>"não"</b> para cancelar — ou toque nos botões.');
+    var r = ""; try { r = sa(await ouvirNavegador(function () { })); } catch (e) { }
+    ouvindo = false; fab.classList.remove("ouvindo");
+    if (/^(sim|s|isso|pode|confirm|lanc|ok|beleza|certo|manda|bora|claro|positivo)/.test(r.trim()) || / (pode lancar|confirmo|isso mesmo)/.test(" " + r)) lancarTodas();
+    else if (/^(nao|cancel|esquece|deixa|para)/.test(r.trim())) { ESTADO.acoes = []; desenharAcoes(); status("Cancelado. Nada foi lançado."); falar("Cancelado."); }
+    else status("Confira e toque em ✓ LANÇAR (ou toque no robô e fale de novo).");
   }
   var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   var rec = null, ouvindo = false, gravador = null;
@@ -414,7 +479,7 @@
       var txt = SR ? await ouvirNavegador(function (p) { fala.textContent = p; }) : await ouvirGravando(function (p) { status(esc(p)); });
       ouvindo = false; fab.classList.remove("ouvindo");
       if (!txt) { status("Não ouvi nada. Toque em 🎙 e fale de novo, ou escreva."); return; }
-      fala.textContent = txt; processar(txt);
+      fala.textContent = txt; processar(txt, true);
     } catch (e) {
       ouvindo = false; fab.classList.remove("ouvindo");
       var m = String(e && e.message || e);
@@ -422,20 +487,20 @@
         : /no-speech/.test(m) ? "Não ouvi nada. Toque em 🎙 e fale de novo, ou escreva." : /sem_voz/.test(m) ? "Para usar a voz neste navegador, entre na sua conta (ou escreva abaixo)." : /network/.test(m) ? "Sem internet para reconhecer a voz agora — escreva abaixo." : "Não deu para ouvir (" + esc(m) + "). Escreva abaixo.");
     }
   }
-  async function processar(txt) {
-    painel.querySelector(".bwg-fala").textContent = txt;
+  async function processar(txt, porVoz) {
+    painel.querySelector(".bwg-fala").textContent = txt; ESTADO.porVoz = !!porVoz;
     status('<span class="bwg-onda"><i></i><i></i><i></i><i></i></span> Entendendo…');
     var r = await entender(txt);
     ESTADO.acoes = r.acoes; ESTADO.via = r.via;
     var auto = ui("auto", false) && r.acoes.every(function (a) { return /gasto|receita|entrada|conta_pagar|tarefa|custo_evento/.test(a.tipo) && (!precisaValor(a) || num(a.valor) > 0) && (a.tipo !== "custo_evento" || a.eventoId); });
     desenharAcoes(r.resposta);
     status("Entendido (" + esc(r.via) + ")" + (auto ? "" : ". Confira e toque em ✓ LANÇAR."));
-    var soInfo = r.acoes.filter(function (a) { return a.tipo === "consulta" || a.tipo === "abrir" || a.tipo === "nada"; });
-    soInfo.forEach(function (a) { var i = ESTADO.acoes.indexOf(a); if (a.tipo === "consulta") { a.feito = true; a.resposta = consultar(a); falar(a.resposta); } if (a.tipo === "nada") falar(r.resposta || "Não entendi. Pode repetir?"); });
+    var soInfo = r.acoes.filter(function (a) { return /consulta|abrir|nada|responder/.test(a.tipo); });
+    soInfo.forEach(function (a) { if (a.tipo === "consulta") { a.feito = true; a.resposta = consultar(a); falar(a.resposta); } if (a.tipo === "responder") { a.feito = true; falar(a.texto || r.resposta || ""); } if (a.tipo === "nada") falar(r.resposta || "Não entendi. Pode repetir?"); });
     if (soInfo.length) desenharAcoes(r.resposta);
     var ab = r.acoes.filter(function (a) { return a.tipo === "abrir" && PAGINAS[a.pagina]; })[0];
     if (ab && r.acoes.length === 1) { falar("Abrindo " + PAGINAS[ab.pagina][1]); setTimeout(function () { location.href = PAGINAS[ab.pagina][0]; }, 700); }
-    if (auto) lancarTodas(); else if (!soInfo.length) falar(resumo(r.acoes));
+    if (auto) lancarTodas(); else if (!soInfo.length) { falar(resumo(r.acoes), ESTADO.porVoz ? confirmarPorVoz : null); }
   }
   function resumo(acoes) {
     return acoes.filter(function (a) { return a.tipo !== "nada"; }).map(function (a) {
@@ -452,6 +517,7 @@
   function desenharAcoes(resposta) {
     var box = painel.querySelector("#bwgAc"), pend = 0;
     box.innerHTML = ESTADO.acoes.map(function (a, i) {
+      if (a.tipo === "responder") return '<div class="bwg-ac feito"><h4>💬 RESPOSTA</h4><div class="bwg-resp">' + esc(a.texto || resposta || "") + "</div></div>";
       if (a.tipo === "consulta") return '<div class="bwg-ac feito"><h4>📊 RESPOSTA</h4><div class="bwg-resp">' + esc(a.resposta || "") + "</div></div>";
       if (a.tipo === "abrir") return '<div class="bwg-ac feito"><h4>↗ ABRIR</h4><div class="bwg-resp">' + (PAGINAS[a.pagina] ? '<a href="' + PAGINAS[a.pagina][0] + '" style="color:#E8C26A">' + esc(PAGINAS[a.pagina][1]) + "</a>" : "Página não encontrada.") + "</div></div>";
       if (a.tipo === "nada") return '<div class="bwg-ac"><h4>🤔 NÃO ENTENDI</h4><div class="bwg-resp">' + esc(resposta || 'Fale, por exemplo: "lance 30 reais de lanche" ou "conta de luz de 250 que vence dia 20".') + "</div></div>";
@@ -475,7 +541,7 @@
     catch (e) { if (!silencioso) { status("⚠️ " + esc(e.message || e) + " — complete o campo e toque em ✓ LANÇAR."); falar(e.message || ""); } return false; }
   }
   function lancarTodas() {
-    var ok = 0, falhou = 0; ESTADO.acoes.forEach(function (a, i) { if (a.feito || /consulta|abrir|nada/.test(a.tipo)) return; if (lancar(i, true)) ok++; else falhou++; });
+    var ok = 0, falhou = 0; ESTADO.acoes.forEach(function (a, i) { if (a.feito || /consulta|abrir|nada|responder/.test(a.tipo)) return; if (lancar(i, true)) ok++; else falhou++; });
     desenharAcoes(); if (ok) { comemorar(); status("✓ " + ok + " lançamento" + (ok > 1 ? "s" : "") + " feito" + (ok > 1 ? "s" : "") + (falhou ? " · " + falhou + " precisa(m) de ajuste" : "") + "."); falar(ok > 1 ? "Pronto, lancei " + ok + " itens." : "Pronto, lançado."); }
     else if (falhou) status("Complete os campos marcados e toque em ✓ LANÇAR.");
   }

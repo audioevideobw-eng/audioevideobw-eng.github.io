@@ -22,8 +22,8 @@ from(){return q},rpc:async()=>({data:null,error:null}),storage:{from(){return {l
 # voz simulada: o que estiver em window.__fala é "ouvido"; window.__falaErro simula microfone bloqueado
 VOZ = """window.__fala='';window.__falaErro='';window.SpeechRecognition=function(){var s=this;s.start=function(){setTimeout(function(){
   if(window.__falaErro){s.onerror&&s.onerror({error:window.__falaErro});s.onend&&s.onend();return;}
-  var r=[{0:{transcript:window.__fala},isFinal:true,length:1}];r.length=1;s.onresult&&s.onresult({resultIndex:0,results:r});setTimeout(function(){s.onend&&s.onend();},30);},120);};s.stop=function(){s.onend&&s.onend();};};
-Object.defineProperty(window,'speechSynthesis',{configurable:true,value:{speak:function(u){window.__falou=(window.__falou||[]).concat([u.text]);},cancel:function(){},getVoices:function(){return[];}}});window.SpeechSynthesisUtterance=function(t){this.text=t;};"""
+  var tx=(window.__falas&&window.__falas.length)?window.__falas.shift():window.__fala;var r=[{0:{transcript:tx},isFinal:true,length:1}];r.length=1;s.onresult&&s.onresult({resultIndex:0,results:r});setTimeout(function(){s.onend&&s.onend();},30);},120);};s.stop=function(){s.onend&&s.onend();};};
+Object.defineProperty(window,'speechSynthesis',{configurable:true,value:{speak:function(u){window.__falou=(window.__falou||[]).concat([u.text]);setTimeout(function(){u.onend&&u.onend();},20);},cancel:function(){},getVoices:function(){return[];}}});window.SpeechSynthesisUtterance=function(t){this.text=t;};"""
 STUB_ZX = "window.ZXingWASM={readBarcodes:async function(){return window.__codigos||[];}};"
 STUB_TESS = "window.Tesseract={recognize:async function(c,l,o){o&&o.logger&&o.logger({status:'recognizing text',progress:1});return {data:{text:window.__ocr||''}};}};"
 
@@ -141,7 +141,33 @@ with sync_playwright() as p:
         ok("mercado" in corpo and "Mina Vale" in corpo and "casa_orcamento" not in corpo and "Lanche" not in corpo, "IA recebe só a frase + data + nomes dos eventos (nenhum lançamento seu)")
         pg.click("[data-g=todas]"); pg.wait_for_timeout(300)
         ok(len(L(pg, "casa_orcamento")) == 2 and len(L(pg, "agenda_tarefas")) == 2, "LANÇAR TODOS grava as duas")
+        # 16/11 noite (dono: "fala certo mas não lança nada na agenda"): a IA de verdade devolvia {"tarefa":{...}} sem "tipo"
+        IA["resposta"] = {"acoes": [{"tarefa": {"titulo": "Revisar orçamento da Golden", "data": pg.evaluate("BWLanca.hoje()"), "hora": "23:30", "categoria": "trabalho"}}], "resposta": "Lembrete criado"}
+        diz("me lembra de revisar o orçamento da Golden hoje às 23h30"); pg.wait_for_timeout(400)
+        ok("TAREFA" in pg.inner_text("#bwgAc") and pg.input_value('.bwg-ac [data-k="titulo"]') == "Revisar orçamento da Golden", "IA no formato {\"tarefa\":{…}} → cartão TAREFA (antes virava 'não entendi')")
+        ok("Lembrete criado" not in pg.inner_text("#bwgAc"), "não diz 'lembrete criado' antes de lançar")
+        n = len(L(pg, "agenda_tarefas")); pg.click(".bwg-ac [data-g=lancar]"); pg.wait_for_timeout(400)
+        ok(len(L(pg, "agenda_tarefas")) == n + 1, "✓ LANÇAR grava a tarefa da IA na agenda")
+        ok("Revisar orçamento da Golden" in pg.inner_text("body"), "a AGENDA da tela inicial mostra na hora (sem recarregar)")
+        IA["resposta"] = {"acoes": [{"acao": "gasto_casa", "descricao": "Pizza", "valor": 64, "data": "2026-11-16"}], "resposta": ""}
+        diz("gastei 64 de pizza"); ok("GASTO DA CASA" in pg.inner_text("#bwgAc"), "IA com campo 'acao' também é entendida")
+        IA["resposta"] = {"acoes": [{"foo": 1}], "resposta": "Feito"}
+        diz("tenho que levar o carro na oficina sexta de manhã")
+        ok("TAREFA" in pg.inner_text("#bwgAc") and pg.input_value('.bwg-ac [data-k="hora"]') == "09:00", "IA inútil → entende no aparelho: 'tenho que…' = tarefa, de manhã = 09:00")
+        ok("levar carro oficina" in pg.input_value('.bwg-ac [data-k="titulo"]').lower(), f"título limpo ({pg.input_value('.bwg-ac [data-k=titulo]')})")
+        IA["resposta"] = {"acoes": [{"tipo": "responder", "texto": "Um drone pode voar até 120 metros no Brasil, segundo a ANAC."}], "resposta": ""}
+        diz("qual a altura máxima para voar de drone?"); ok("120 metros" in pg.inner_text("#bwgAc") and pg.locator(".bwg-ac [data-g=lancar]").count() == 0, "pergunta geral → responde (sem lançar nada)")
         IA["resposta"] = None
+        diz("o que eu tenho amanhã?")
+        ok("Ligar" in pg.inner_text("#bwgAc") and "10h" in pg.inner_text("#bwgAc"), f"'o que tenho amanhã' → lê a agenda ({pg.inner_text('#bwgAc')[:120]})")
+        # voz mãos livres: fala → "sim" lança; "não" cancela
+        pg.evaluate("window.__falas = ['me lembra de pagar o IPVA sexta', 'sim']"); n = len(L(pg, "agenda_tarefas"))
+        pg.click("[data-g=ouvir]"); pg.wait_for_timeout(1500)
+        t = L(pg, "agenda_tarefas"); ok(len(t) == n + 1 and "IPVA" in t[-1]["titulo"], f"voz: '…Confirma?' → 'sim' → lançado sem tocar ({t[-1:]})")
+        pg.evaluate("window.__falas = ['anotar comprar fita crepe amanhã', 'não']"); n = len(L(pg, "agenda_tarefas"))
+        pg.click("[data-g=ouvir]"); pg.wait_for_timeout(1500)
+        ok(len(L(pg, "agenda_tarefas")) == n and "Cancelado" in pg.inner_text(".bwg-st"), "voz: 'não' → cancela, nada gravado")
+        pg.evaluate("window.__falas = []")
         # ajustes + lançar sem perguntar
         pg.click("[data-g=ajustes]"); pg.check('[data-u="auto"]'); pg.uncheck('[data-u="voz"]')
         ok(pg.evaluate("localStorage.getItem('ui_agente_auto')") == "true", "ajustes lembrados")

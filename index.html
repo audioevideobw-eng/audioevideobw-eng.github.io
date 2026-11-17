@@ -384,7 +384,7 @@ footer b{color:var(--gold)}
 </div>
 
 </div>
-<script src="assets/layout.js?v=31"></script>
+<script src="assets/layout.js?v=32"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="assets/bw-sync.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/pdfmake@0.2.20/build/pdfmake.min.js"></script>
@@ -1571,6 +1571,9 @@ function ligarItens(raiz, depois) {
 
 /* quando a sincronia traz dados de outro aparelho, a agenda se redesenha */
 window.addEventListener("storage", e => { if (e.key && /agenda_tarefas|agenda_feitos|casa_contas|neg_fluxo|neg_eventos|mkt_leads/.test(e.key)) render(); });
+/* 16/11: o AGENTE grava nesta mesma aba → redesenha na hora; e ele lê a agenda pelo mesmo cálculo (respostas iguais à tela) */
+window.addEventListener("bw-dados", e => { if (e.detail && /agenda_tarefas|agenda_feitos|casa_contas|neg_fluxo|neg_eventos|mkt_leads/.test(e.detail.chave || "")) render(); });
+window.BWAgendaItens = itensEntre;
 
 return { init, render, itensEntre, entender };
 })();
