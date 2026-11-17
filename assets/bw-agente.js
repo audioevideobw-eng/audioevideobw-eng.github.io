@@ -263,7 +263,7 @@
     var dinheiroDito = /r\$|reais|real|conto|pila|centavos/.test(t);
     if (!valor && (m = semHora.match(/ (\d+(?:[.,]\d{1,2})?) (?:e (\d{1,2}) centavos)?/)) && (dinheiroDito || !/lembr|tarefa|agend|reuniao|compromisso/.test(t))) valor = num(m[1]) + (m[2] ? +m[2] / 100 : 0);
     var data = dataDe(t), hora = /de manha|pela manha/.test(t) ? "09:00" : /a tarde|de tarde/.test(t) ? "14:00" : /a noite|de noite/.test(t) ? "19:00" : "";
-    if ((m = t.match(/(?:as|a) (\d{1,2})(?:h| horas|:)?(\d{2})?(?=\s)/)) || (m = t.match(/ (\d{1,2})h(\d{2})?(?=\s)/))) { var hh = +m[1], mm = +(m[2] || 0); if (hh < 24 && mm < 60) hora = dois(hh) + ":" + dois(mm); }
+    if ((m = t.match(/ as (\d{1,2})(?:h| horas|:)?(\d{2})?(?=\s)/)) || (m = t.match(/ (?:a|para|pra) (\d{1,2})(?:h| horas|:)(\d{2})?(?=\s)/)) || (m = t.match(/ (\d{1,2})h(\d{2})?(?=\s)/)) || (m = t.match(/ (\d{1,2}) horas(?=\s)/))) { var hh = +m[1], mm = +(m[2] || 0); if (hh < 24 && mm < 60) hora = dois(hh) + ":" + dois(mm); }
     /* perguntas sobre a agenda (o mesmo que a tela inicial mostra) */
     if (/(o que|oque|que) (eu )?(tenho|tem|vou fazer)|meus compromissos|minha agenda|como (esta|ta) (a )?(minha )?agenda|tenho (algum|algo|compromisso|reuniao|evento)|qual (e |o )?(meu )?proximo (compromisso|evento)|quais (sao )?(os )?(meus )?(compromissos|eventos|tarefas)/.test(t) && !/gast|pague|recebi|entrou|saiu|devo/.test(t)) {
       var pa = /depois de amanha/.test(t) ? null : /amanha/.test(t) ? "amanha" : /proxima semana|semana que vem/.test(t) ? "proxima_semana" : /semana/.test(t) ? "semana" : /mes/.test(t) ? "mes" : /proximo/.test(t) ? "mes" : "hoje";
@@ -300,7 +300,7 @@
     else if (/gastei|gasto|paguei|comprei|despesa/.test(t)) tipo = /negocio|empresa|evento/.test(t) ? "gasto_negocio" : "gasto_casa";   /* sem valor: mostra o cartão para completar */
     if (!tipo) return [{ tipo: "nada" }];
     /* descrição: o que sobra tirando as palavras de comando */
-    var resto = t.replace(/r\$ ?[\d.,]+|[\d.,]+ ?(?:reais|real|contos?|pila)|\d+[.,]?\d* centavos/g, " ").replace(/\d{1,2}\/\d{1,2}(\/\d{2,4})?/g, " ").replace(/(as|a) \d{1,2}(h|:\d{2}| horas)?(\d{2})?/g, " ").replace(/ \d+(h\d{0,2})? /g, " ")
+    var resto = t.replace(/r\$ ?[\d.,]+|[\d.,]+ ?(?:reais|real|contos?|pila)|\d+[.,]?\d* centavos/g, " ").replace(/\d{1,2}\/\d{1,2}(\/\d{2,4})?/g, " ").replace(/ (as|a) \d{1,2}(h|:\d{2}| horas)?(\d{2})?/g, " ").replace(/ \d{1,2} horas/g, " ").replace(/ \d+(h\d{0,2})? /g, " ")
       .replace(/\b(lanc(a|e|ar)|lance|lancar|registr(a|e|ar)|anot(a|e|ar)|coloc(a|e|ar)|cri(a|e|ar)|adicion(a|e|ar)|bot(a|e|ar)|me lembr(a|e|ar)( de)?|lembr(a|e|ete|ar)( de| que)?|tenho que|preciso( de)?|me avis(a|e|ar)( de| que)?|nao esquecer( de)?|de manha|a tarde|a noite|marc(a|e|ar)|agend(a|e|ar)|uma?|o|a|os|as|nos|nas|no|na|do|da|dos|das|de|em|para|pra|pro|por|com|como|que|eu|gastei|gasto|gastos|paguei|comprei|recebi|receber|entrada|valor|reais|conta a pagar|conta de|conta|boleto|fatura|vence|vencimento|dia|hoje|amanha|depois|ontem|anteontem|tarefa|lembrete|casa|negocio|empresa|evento|segunda|terca|quarta|quinta|sexta|sabado|domingo|feira|e)\b/g, " ")
       .replace(/ [\d.,]+(?= |$)/g, " ").replace(/\s+/g, " ").trim();
     var evAchado = tipo === "custo_evento" ? (Lanca.acharEvento(t) || null) : null;
@@ -378,7 +378,8 @@
   }
   async function entender(texto) {
     var usarIA = ui("ia", true), r = usarIA ? await entenderIA(texto) : null, via = "IA Brightway";
-    if (r) { r.acoes = (r.acoes || []).map(achatar).filter(Boolean); if (!r.acoes.length || r.acoes.every(function (a) { return a.tipo === "nada"; })) { var loc = entenderLocal(texto); if (loc.some(function (a) { return a.tipo !== "nada"; })) r = { acoes: loc, resposta: "" }; } }
+    if (r) { r.acoes = (r.acoes || []).map(achatar).filter(Boolean); if ((!r.acoes.length || r.acoes.every(function (a) { return a.tipo === "nada"; })) && String(r.resposta || "").length > 25) r.acoes = [{ tipo: "responder", texto: r.resposta }];   /* a IA respondeu (papo), sem ação */
+      if (!r.acoes.length || r.acoes.every(function (a) { return a.tipo === "nada"; })) { var loc = entenderLocal(texto); if (loc.some(function (a) { return a.tipo !== "nada"; })) r = { acoes: loc, resposta: "" }; } }
     if (r && r.resposta && r.acoes.length && r.acoes.every(function (a) { return a.tipo === "nada"; }) && String(r.resposta).length > 25) r.acoes = [{ tipo: "responder", texto: r.resposta }];   /* a IA respondeu, mas marcou "nada" */
     if (!r) { r = { acoes: entenderLocal(texto), resposta: "" }; via = "no aparelho"; }
     if (usarIA && (!r.acoes.length || r.acoes.every(function (a) { return a.tipo === "nada"; })) && !(r.resposta && String(r.resposta).length > 25)) { var pa = await papo(texto); if (pa) { r = { acoes: [{ tipo: "responder", texto: pa }], resposta: "" }; via = "IA Brightway"; } }   /* pergunta geral / papo: conversa direta */
