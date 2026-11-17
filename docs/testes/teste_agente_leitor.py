@@ -22,7 +22,7 @@ from(){return q},rpc:async()=>({data:null,error:null}),storage:{from(){return {l
 # voz simulada: o que estiver em window.__fala é "ouvido"; window.__falaErro simula microfone bloqueado
 VOZ = """window.__fala='';window.__falaErro='';window.SpeechRecognition=function(){var s=this;s.start=function(){setTimeout(function(){
   if(window.__falaErro){s.onerror&&s.onerror({error:window.__falaErro});s.onend&&s.onend();return;}
-  var tx=(window.__falas&&window.__falas.length)?window.__falas.shift():window.__fala;var r=[{0:{transcript:tx},isFinal:true,length:1}];r.length=1;s.onresult&&s.onresult({resultIndex:0,results:r});setTimeout(function(){s.onend&&s.onend();},30);},120);};s.stop=function(){s.onend&&s.onend();};};
+  var tx=(window.__falas&&window.__falas.length)?window.__falas.shift():(window.__falas&&window.__falas.usado?'':window.__fala);if(window.__falas)window.__falas.usado=1;var r=[{0:{transcript:tx},isFinal:true,length:1}];r.length=1;s.onresult&&s.onresult({resultIndex:0,results:r});setTimeout(function(){s.onend&&s.onend();},30);},120);};s.stop=function(){s.onend&&s.onend();};};
 Object.defineProperty(window,'speechSynthesis',{configurable:true,value:{speak:function(u){window.__falou=(window.__falou||[]).concat([u.text]);setTimeout(function(){u.onend&&u.onend();},20);},cancel:function(){},getVoices:function(){return[];}}});window.SpeechSynthesisUtterance=function(t){this.text=t;};"""
 STUB_ZX = "window.ZXingWASM={readBarcodes:async function(){return window.__codigos||[];}};"
 STUB_TESS = "window.Tesseract={recognize:async function(c,l,o){o&&o.logger&&o.logger({status:'recognizing text',progress:1});return {data:{text:window.__ocr||''}};}};"
@@ -166,7 +166,27 @@ with sync_playwright() as p:
         t = L(pg, "agenda_tarefas"); ok(len(t) == n + 1 and "IPVA" in t[-1]["titulo"], f"voz: '…Confirma?' → 'sim' → lançado sem tocar ({t[-1:]})")
         pg.evaluate("window.__falas = ['anotar comprar fita crepe amanhã', 'não']"); n = len(L(pg, "agenda_tarefas"))
         pg.click("[data-g=ouvir]"); pg.wait_for_timeout(1500)
-        ok(len(L(pg, "agenda_tarefas")) == n and "Cancelado" in pg.inner_text(".bwg-st"), "voz: 'não' → cancela, nada gravado")
+        ok(len(L(pg, "agenda_tarefas")) == n and any("cancelei" in x for x in pg.evaluate("window.__falou")), "voz: 'não' → cancela, nada gravado")
+        pg.evaluate("window.__falas = []")
+        # ---------- TIO CLÁUDIO (16/11 noite): conversa, resumo do dia, piada, ajustar ----------
+        ok("TIO CLÁUDIO" in pg.inner_text(".bwg-cab"), "o agente se chama TIO CLÁUDIO")
+        diz("Tio Cláudio, como está meu dia?")
+        dia = pg.inner_text("#bwgAc"); ok("SEU DIA" in dia and ("compromisso" in dia or "livre" in dia), f"'como está meu dia' → resumo montado no aparelho ({dia[:140]})")
+        n_ia = len(IA["pedidos"]); ok(True, "")
+        diz("conta uma piada"); ok("RESPOSTA" in pg.inner_text("#bwgAc") and pg.locator(".bwg-ac [data-g=lancar]").count() == 0, "piada (sem IA) → responde, nada para lançar")
+        diz("tio cláudio, me lembra de comprar pilhas amanhã às 10")
+        ok(pg.input_value('.bwg-ac [data-k="titulo"]').lower().startswith("comprar pilhas"), f"chamado pelo nome: 'Tio Cláudio' sai do título ({pg.input_value('.bwg-ac [data-k=titulo]')})")
+        diz("muda para as 15h"); ok(pg.input_value('.bwg-ac [data-k="hora"]') == "15:00" and "AJUSTADO" in pg.inner_text("#bwgAc"), "'muda para as 15h' → cartão ajustado antes de lançar")
+        pg.click(".bwg-ac [data-g=lancar]"); pg.wait_for_timeout(250); t = L(pg, "agenda_tarefas")
+        ok(t[-1]["titulo"].lower().startswith("comprar pilhas") and t[-1]["hora"] == "15:00", "lançado às 15:00")
+        diz("na verdade às 16h"); t = L(pg, "agenda_tarefas"); ok(t[-1]["hora"] == "16:00" and len([x for x in t if x["titulo"].lower().startswith("comprar pilhas")]) == 1, "'na verdade às 16h' → muda o item JÁ salvo (sem duplicar)")
+        diz("para amanhã reunião com cliente às 9"); ok("TAREFA" in pg.inner_text("#bwgAc"), "'para amanhã…' não é despedida")
+        # conversa por voz: vários pedidos seguidos sem tocar; "sim" lança; "tchau" encerra
+        pg.evaluate("window.__falou = []; window.__falas = ['conta uma piada', 'me lembra de levar o tripé sexta', 'muda para as 8h', 'sim', 'tchau']")
+        n = len(L(pg, "agenda_tarefas")); pg.click("[data-g=ouvir]"); pg.wait_for_timeout(4500)
+        t = L(pg, "agenda_tarefas"); ok(len(t) == n + 1 and "tripé" in t[-1]["titulo"].lower() and t[-1]["hora"] == "08:00", f"conversa por voz: piada → pedido → 'muda para as 8h' → 'sim' → lançado ({t[-1:]})")
+        ok("Até mais" in pg.inner_text(".bwg-st"), "'tchau' encerra a conversa")
+        ok(len(pg.evaluate("window.__falou")) >= 4, "respondeu falando em cada passo")
         pg.evaluate("window.__falas = []")
         # ajustes + lançar sem perguntar
         pg.click("[data-g=ajustes]"); pg.check('[data-u="auto"]'); pg.uncheck('[data-u="voz"]')

@@ -138,6 +138,29 @@
     ler("neg_eventos").forEach(function (e) { if (!e || /cancel/i.test(e.status || "")) return; if (dentro(e.data)) out.push({ tipo: "evento", data: e.data, titulo: e.nome }); if (e.montagem && e.montagem !== e.data && dentro(e.montagem)) out.push({ tipo: "evento", data: e.montagem, titulo: "Montagem — " + e.nome }); });
     return out;
   }
+  var SEMANA = ["domingo", "segunda", "terça", "quarta", "quinta", "sexta", "sábado"];
+  function resumoDia(dia) {   /* "como está meu dia" — montado AQUI com os dados do aparelho; nada vai para a IA */
+    var agora = new Date(), hh = agora.getHours(), d = new Date(agora); d.setHours(0, 0, 0, 0); if (dia === "amanha") d.setDate(d.getDate() + 1);
+    var k = ymd(d), quando = dia === "amanha" ? "Amanhã" : "Hoje", nome = ESTADO.nome ? ", " + ESTADO.nome : "";
+    var saud = dia === "amanha" ? "Beleza" + nome + "." : (hh < 12 ? "Bom dia" : hh < 18 ? "Boa tarde" : "Boa noite") + nome + "!";
+    var its = itensAgenda(k, k).filter(function (i) { return !i.feito; }).sort(function (a, b) { return (a.hora || "99").localeCompare(b.hora || "99"); });
+    var partes = [saud];
+    if (its.length) partes.push(quando + " você tem " + its.length + " compromisso" + (its.length > 1 ? "s" : "") + ": " + its.slice(0, 5).map(function (i) { return (i.hora ? i.hora.replace(":00", "h").replace(":", "h") + ", " : "") + (i.titulo || "") + (i.tipo === "pagamento" ? " (pagar " + moeda(i.valor) + ")" : ""); }).join("; ") + (its.length > 5 ? "; e mais " + (its.length - 5) : "") + ".");
+    else partes.push(quando + " a agenda está livre, uai.");
+    var h0 = hoje(), lim = new Date(d); lim.setDate(lim.getDate() + 3);
+    var abertas = ler("casa_contas").filter(function (c) { return c && sa(c.c3) !== "sim" && c.c2; });
+    var venc = abertas.filter(function (c) { return c.c2 < h0; }), logo = abertas.filter(function (c) { return c.c2 >= h0 && c.c2 <= ymd(lim) && c.c2 !== k; });
+    if (venc.length) partes.push("Atenção: " + venc.length + " conta" + (venc.length > 1 ? "s vencidas" : " vencida") + ", somando " + moeda(venc.reduce(function (t, c) { return t + num(c.c1); }, 0)) + ".");
+    if (logo.length) partes.push(logo.length + " conta" + (logo.length > 1 ? "s vencem" : " vence") + " nos próximos dias" + (logo.length === 1 ? ": " + logo[0].c0 + ", dia " + br(logo[0].c2).slice(0, 5) : "") + ".");
+    var ini = new Date(d); ini.setDate(ini.getDate() - 30); var ont = new Date(d); ont.setDate(ont.getDate() - 1);
+    var atras = dia === "amanha" ? [] : itensAgenda(ymd(ini), ymd(ont)).filter(function (i) { return !i.feito && i.tipo === "tarefa"; });
+    if (atras.length) partes.push("E tem " + atras.length + " tarefa" + (atras.length > 1 ? "s atrasadas" : " atrasada") + " esperando você.");
+    var fimS = new Date(d); fimS.setDate(fimS.getDate() + 7);
+    var prox = ler("neg_eventos").filter(function (e) { return e && e.nome && e.data > k && e.data <= ymd(fimS) && !/cancel/i.test(e.status || ""); }).sort(function (a, b) { return String(a.data).localeCompare(b.data); })[0];
+    if (prox) partes.push("Próximo evento: " + prox.nome + ", " + SEMANA[deYmd(prox.data).getDay()] + " dia " + br(prox.data).slice(0, 5) + ".");
+    partes.push(its.length || venc.length ? ["Bora pra cima!", "Conta comigo.", "Qualquer coisa é só chamar o Tio Cláudio."][Math.floor(Math.random() * 3)] : "Aproveita o respiro!");
+    return partes.join(" ");
+  }
   function consultar(q) {
     var per = periodo(q.periodo), ini = per[0], fim = per[1], f = sa(q.filtro || "").trim(), bate = function (txt) { return !f || sa(txt).indexOf(f) >= 0; };
     if (q._ini) { ini = fim = q._ini; per[2] = "em " + br(q._ini); }
@@ -179,6 +202,14 @@
     leitor: ["leitor.html", "Leitor de contas"], investimentos: ["investimentos-painel.html", "Investimentos"], pdf: ["pdf.html", "PDF"],
     transcricao: ["transcricao.html", "Transcrição"], assistente: ["assistente.html", "Assistente de texto"], ferramentas: ["ferramentas.html", "Ferramentas"] };
 
+  var PIADAS = ["Sabe por que o microfone foi ao médico? Porque estava com muita microfonia!",
+    "O que a câmera disse para a foto tremida? Calma, respira, que eu te dou um foco!",
+    "Por que o técnico de som não briga com ninguém? Porque ele sempre equaliza as coisas.",
+    "Qual é o doce preferido do cinegrafista? Pé de moleque em câmera lenta!",
+    "Mineiro não perde o evento, uai. No máximo chega na hora do pão de queijo.",
+    "Por que a planilha foi à terapia? Tinha muitas células mal resolvidas.",
+    "O cabo XLR disse para o P10: a gente até não combina, mas com um adaptador dá certo!",
+    "Sabe qual é o cúmulo da organização? Agendar um lembrete para lembrar de olhar os lembretes. Ainda bem que isso eu faço por você!"];
   /* ================= entender: números por extenso ================= */
   var UN = { zero: 0, um: 1, uma: 1, dois: 2, duas: 2, tres: 3, quatro: 4, cinco: 5, seis: 6, sete: 7, oito: 8, nove: 9, dez: 10, onze: 11, doze: 12, treze: 13, quatorze: 14, catorze: 14, quinze: 15, dezesseis: 16, dezessete: 17, dezoito: 18, dezenove: 19,
     vinte: 20, trinta: 30, quarenta: 40, cinquenta: 50, sessenta: 60, setenta: 70, oitenta: 80, noventa: 90, cem: 100, cento: 100, duzentos: 200, duzentas: 200, trezentos: 300, quatrocentos: 400, quinhentos: 500, seiscentos: 600, setecentos: 700, oitocentos: 800, novecentos: 900 };
@@ -210,7 +241,23 @@
   }
   function entenderLocal(texto) {
     var t = " " + extenso(sa(texto)).replace(/[!?;]/g, " ").replace(/\s+/g, " ") + " ", m, valor = 0;
-    t = t.replace(/^ (ok |ei |oi |ola )?(agente|robo|assistente|brightway)[ ,]*/, " ");
+    t = t.replace(/^ (ok |ei |oi |ola |e ai |fala )?(tio claudio|claudio|tio|agente|robo|assistente|brightway)[ ,]*/, " ");
+    var tt = t.trim();
+    /* conversa (sem IA): despedida, agradecimento, saudação/resumo, piada, quem é você */
+    if (/^(tchau|ate mais|ate logo|falou|so isso|e so isso|pode parar|chega|encerrar|desliga|para|pare)( (tio )?(claudio|obrigad[oa]|valeu|por hoje|de ouvir))*$/.test(tt) || /^(tchau|ate mais|ate logo|so isso)( |$)/.test(tt) || /^(obrigad[oa]|valeu)( .*)? (so isso|tchau)/.test(tt)) return [{ tipo: "fim" }];
+    if (/^(obrigad[oa]|valeu|brigad[oa])/.test(tt) && tt.split(" ").length <= 4) return [{ tipo: "responder", texto: "Por nada! Tamo junto, é só chamar o Tio Cláudio." }];
+    if (/como (esta|ta|vai|e) (o )?meu dia|resumo do (meu )?dia|o que tem (pra|para) hoje|^(bom dia|boa tarde|boa noite)( .*)?$/.test(tt)) return [{ tipo: "resumo_dia", dia: /amanha/.test(tt) ? "amanha" : "hoje" }];
+    if (/piada|me faz rir|algo engracado/.test(tt)) return [{ tipo: "responder", texto: PIADAS[Math.floor(Math.random() * PIADAS.length)] }];
+    if (/quem (e|eh) voce|qual (e )?(o )?seu nome|como (voce )?se chama/.test(tt)) return [{ tipo: "responder", texto: "Eu sou o Tio Cláudio, seu ajudante aqui na Brightway. Lanço gastos, contas e tarefas, conto como está o seu dia e ainda solto umas piadas." }];
+    if (/^(oi|ola|e ai|opa|fala)( tudo bem| beleza)?$/.test(tt) || /^tudo (bem|bom|certo)/.test(tt)) return [{ tipo: "responder", texto: "Opa, tudo bão por aqui! Em que posso ajudar? Pode pedir um lançamento, uma tarefa ou perguntar como está o seu dia." }];
+    /* corrigir o último pedido: "muda para as 15h", "na verdade foi 50" */
+    if (/^(muda|mude|mudar|troca|troque|trocar|altera|altere|alterar|passa|corrige|na verdade|melhor|nao,? )/.test(tt)) {
+      var aj = { tipo: "ajustar" }, mh = t.match(/(?:as|a|para|pra) (\d{1,2})(?:h| horas|:)?(\d{2})?(?=\s)/) || t.match(/ (\d{1,2})h(\d{2})?(?=\s)/), dj = dataDe(t), mv = t.match(/(?:foi|era|e|valor|para|pra) (?:r\$ ?)?([\d.]+(?:,\d{1,2})?)(?: reais)?(?=\s)/);
+      if (mh && +mh[1] < 24 && (!/reais|r\$/.test(t) || /h| horas|:/.test(mh[0]))) aj.hora = dois(+mh[1]) + ":" + dois(+(mh[2] || 0));
+      else if (mv) aj.valor = num(mv[1]);
+      if (dj) aj.data = dj;
+      if (aj.hora || aj.data || aj.valor) return [aj];
+    }
     if ((m = t.match(/r\$ ?([\d.]+(?:,\d{1,2})?)/)) || (m = t.match(/([\d.]+(?:,\d{1,2})?) ?(?:reais|real|conto|contos|pila|r\$)/)) || (m = t.match(/(?:de|valor|por|custou|paguei|gastei|recebi) ([\d.]+(?:,\d{1,2})?)(?=\s)/))) valor = num(m[1]);
     var semHora = t.replace(/(?:as|a) \d{1,2}(?:h\d{0,2}| horas|:\d{2})?(?=\s)/g, " ").replace(/ \d{1,2}h\d{0,2}(?=\s)/g, " ").replace(/dia \d{1,2}/g, " ").replace(/\d{1,2}\/\d{1,2}(\/\d{2,4})?/g, " ");
     var dinheiroDito = /r\$|reais|real|conto|pila|centavos/.test(t);
@@ -270,27 +317,27 @@
   /* ================= entender: IA Brightway ================= */
   async function sessao() { try { var c = window.BWSync && BWSync.cliente && BWSync.cliente(); var s = c ? await c.auth.getSession() : null; return (s && s.data && s.data.session) || null; } catch (e) { return null; } }
   function jsonDe(t) { t = String(t || "").replace(/```(json)?/g, ""); var a = t.indexOf("{"), b = t.lastIndexOf("}"); if (a < 0 || b <= a) return null; try { return JSON.parse(t.slice(a, b + 1)); } catch (e) { return null; } }
-  var SISTEMA = 'Você é o AGENTE da plataforma Brightway (casa + produtora de eventos). Transforme o pedido em ações.\n' +
-    'Responda SÓ com JSON neste formato, CADA ação com o campo "tipo":\n' +
-    '{"acoes":[{"tipo":"tarefa","titulo":"Ligar para o cliente","data":"2026-01-02","hora":"10:00","categoria":"trabalho"}],"resposta":""}\n' +
-    'Tipos e campos:\n' +
-    '- gasto_casa: descricao, valor, categoria (' + CAT_CASA.join(", ") + '), data\n' +
-    '- receita_casa: descricao, valor, data\n- gasto_negocio: descricao, valor, data\n- entrada_negocio: descricao, valor, data\n' +
-    '- conta_pagar: descricao (Energia, Água, Internet…), valor, vencimento\n' +
-    '- tarefa: titulo, data, hora ("HH:MM" ou ""), categoria (tarefa, trabalho, pessoal, casa, saude, reuniao) — compromissos, lembretes, reuniões, "tenho que", "preciso", "marcar"\n' +
+  var SISTEMA = 'Você é o TIO CLÁUDIO, assistente de voz da Brightway (casa + produtora de eventos do Marcos, mineiro). Jeito descontraído e caloroso, um toque mineiro ("uai", "trem bão") com moderação.\n' +
+    'Responda SÓ com JSON, CADA ação com "tipo": {"acoes":[{"tipo":"tarefa","titulo":"Ligar para o cliente","data":"2026-01-02","hora":"10:00","categoria":"trabalho"}],"resposta":""}\n' +
+    'Tipos:\n- gasto_casa: descricao, valor, categoria, data\n- receita_casa / gasto_negocio / entrada_negocio: descricao, valor, data\n' +
+    '- conta_pagar: descricao (Energia, Água…), valor, vencimento\n' +
+    '- tarefa: titulo, data, hora ("HH:MM" ou ""), categoria (tarefa, trabalho, pessoal, casa, saude, reuniao) — lembretes, compromissos, "tenho que", "preciso"\n' +
     '- custo_evento: evento (nome EXATO da lista), descricao, valor, data\n' +
-    '- consulta: fonte (agenda|casa|negocio|contas), periodo (hoje|amanha|semana|proxima_semana|mes|mes_passado|ano), filtro ("" ou palavra) — perguntas sobre os DADOS da pessoa (compromissos, gastos, contas, quanto entrou)\n' +
-    '- responder: texto — pergunta geral que não depende dos dados dela (resposta curta, 1 a 3 frases)\n' +
-    '- abrir: pagina (' + Object.keys(PAGINAS).join(", ") + ')\n- nada: (peça em "resposta" o que falta)\n' +
-    'Regras: valor número com ponto; datas AAAA-MM-DD a partir de HOJE ("de manhã" = 09:00, "à tarde" = 14:00, "à noite" = 19:00); gasto sem falar de empresa/cliente/evento/equipamento = gasto_casa; ' +
-    '"recebi" de cliente/evento = entrada_negocio; vários pedidos = várias ações; nunca invente valor; títulos curtos com a primeira letra maiúscula. ' +
-    'NUNCA diga em "resposta" que algo foi criado ou lançado — quem lança é o app; deixe "resposta" vazia quando houver ações.';
+    '- consulta: fonte (agenda|casa|negocio|contas), periodo (hoje|amanha|semana|proxima_semana|mes|mes_passado|ano), filtro — perguntas sobre os DADOS dele\n' +
+    '- resumo_dia: dia (hoje|amanha) — "como está meu dia", "bom dia", "o que tem pra hoje"\n' +
+    '- ajustar: só os campos a mudar (hora, data, valor, titulo, descricao) — corrigir o último pedido: "muda para as 15h", "na verdade foi 50"\n' +
+    '- responder: texto — conversa, piada, curiosidade, pergunta geral (1 a 3 frases faladas, sem emoji nem markdown)\n' +
+    '- abrir: pagina (' + Object.keys(PAGINAS).join(", ") + ')\n- fim: despedida curta em "resposta" ("tchau", "só isso", "pode parar")\n- nada: peça em "resposta" o que falta\n' +
+    'Regras: valor número com ponto; datas AAAA-MM-DD pelos PRÓXIMOS DIAS dados ("de manhã" 09:00, "à tarde" 14:00, "à noite" 19:00); gasto sem empresa/cliente/evento = gasto_casa; ' +
+    '"recebi" de cliente = entrada_negocio; vários pedidos = várias ações; nunca invente valor nem dados dele; use a CONVERSA ANTERIOR para entender "e depois?", "muda isso". ' +
+    'Nunca diga que algo foi lançado (quem lança é o app).';
   async function entenderIA(texto) {
     var s = await sessao(); if (!s) return null;
     var d = new Date(), sem = ["domingo", "segunda", "terça", "quarta", "quinta", "sexta", "sábado"][d.getDay()];
     var evs = Lanca.eventos().slice(0, 12).map(function (e) { return e.nome + (e.data ? " (" + br(e.data) + ")" : ""); });
     var dias = []; for (var i = 1; i <= 7; i++) { var dx = new Date(d); dx.setDate(dx.getDate() + i); dias.push(["domingo", "segunda", "terça", "quarta", "quinta", "sexta", "sábado"][dx.getDay()] + " = " + ymd(dx)); }
-    var pedido = "HOJE: " + hoje() + " (" + sem + ")\nPRÓXIMOS DIAS: " + dias.join(", ") + "\nEVENTOS: " + (evs.join("; ") || "nenhum") + "\nPEDIDO: " + String(texto).slice(0, 600);
+    var hist = (ESTADO.hist || []).slice(-6).map(function (h) { return "Pessoa: " + h.q + "\nTio Cláudio: " + h.r; }).join("\n");
+    var pedido = (hist ? "CONVERSA ANTERIOR:\n" + hist + "\n\n" : "") + "HOJE: " + hoje() + " (" + sem + "), " + dois(d.getHours()) + ":" + dois(d.getMinutes()) + "\nPRÓXIMOS DIAS: " + dias.join(", ") + "\nEVENTOS: " + (evs.join("; ") || "nenhum") + "\nPEDIDO: " + String(texto).slice(0, 600);
     try {
       var ctl = new AbortController(), tm = setTimeout(function () { ctl.abort(); }, 12000);
       var r = await fetch(FN, { method: "POST", signal: ctl.signal, headers: { "Content-Type": "application/json", "Authorization": "Bearer " + s.access_token, "apikey": PUB }, body: JSON.stringify({ sistema: SISTEMA, pedido: pedido, max: 500 }) });
@@ -300,7 +347,7 @@
       return o;
     } catch (e) { return null; }
   }
-  var TIPOS_OK = ["gasto_casa", "receita_casa", "gasto_negocio", "entrada_negocio", "conta_pagar", "tarefa", "custo_evento", "consulta", "responder", "abrir", "nada"];
+  var TIPOS_OK = ["gasto_casa", "receita_casa", "gasto_negocio", "entrada_negocio", "conta_pagar", "tarefa", "custo_evento", "consulta", "responder", "resumo_dia", "ajustar", "fim", "abrir", "nada"];
   function achatar(a) {   /* 16/11: a IA às vezes devolve {"tarefa":{...}} ou {"acao":"tarefa"} — sem isso TODA ação virava "não entendi" */
     if (!a || typeof a !== "object") return null;
     if (a.tipo && TIPOS_OK.indexOf(a.tipo) >= 0) return a;
@@ -328,7 +375,7 @@
     /* data dita com dia da semana/amanhã/"dia 20": o cálculo do aparelho vale (a IA errou "sexta" → domingo) */
     var tl = " " + extenso(sa(texto)) + " ", dl = dataDe(tl), datadas = r.acoes.filter(function (a) { return /tarefa|gasto|receita|entrada|conta_pagar|custo_evento/.test(a.tipo); });
     if (dl && datadas.length === 1 && !/\d{1,2}\/\d{1,2}/.test(tl)) { var a1 = datadas[0]; if (a1.tipo === "conta_pagar") a1.vencimento = dl; else a1.data = dl; }
-    if (r.acoes.some(function (a) { return a.tipo !== "nada" && a.tipo !== "responder"; })) r.resposta = "";   /* nunca "lembrete criado" antes de lançar */
+    if (r.acoes.some(function (a) { return !/^(nada|responder|fim)$/.test(a.tipo); })) r.resposta = "";   /* nunca "lembrete criado" antes de lançar */
     if (!r.acoes.length) r.acoes = [{ tipo: "nada" }];
     r.via = via; return r;
   }
@@ -351,21 +398,35 @@
   }
 
   /* ================= voz: falar e ouvir ================= */
-  function falar(txt, depois) {
-    var fim = false, seguir = function () { if (fim) return; fim = true; if (depois) setTimeout(depois, 250); };
-    if (!ui("voz", true) || !window.speechSynthesis || !txt) { seguir(); return; }
-    try { speechSynthesis.cancel(); var u = new SpeechSynthesisUtterance(String(txt).replace(/R\$ ?/g, "").slice(0, 400)); u.lang = "pt-BR"; u.rate = 1.05;
-      var vs = speechSynthesis.getVoices().filter(function (v) { return /pt[-_]BR/i.test(v.lang); }); if (vs.length) u.voice = vs[0];
-      u.onend = seguir; u.onerror = seguir; speechSynthesis.speak(u); setTimeout(seguir, 2500 + String(txt).length * 90); } catch (e) { seguir(); }
+  function vozes() { try { return (window.speechSynthesis ? speechSynthesis.getVoices() : []).filter(function (v) { return /^pt/i.test(v.lang); }); } catch (e) { return []; } }
+  function melhorVoz() {   /* a voz mais natural em português do aparelho (ou a escolhida nos ajustes) */
+    var vs = vozes(), esc0 = ui("vozNome", ""); if (!vs.length) return null;
+    if (esc0) { var e0 = vs.filter(function (v) { return v.name === esc0; })[0]; if (e0) return e0; }
+    var pts = function (v) { var n = v.name; return (/pt[-_]BR/i.test(v.lang) ? 10 : 0) + (/natural|neural|online|premium|enhanced|aprimorad/i.test(n) ? 6 : 0) + (/google/i.test(n) ? 4 : 0) + (/francisca|thalita|luciana|antonio|felipe|daniel|brenda|donato|fernanda/i.test(n) ? 3 : 0) + (/compact|eloquence|novelty/i.test(n) ? -6 : 0); };
+    return vs.slice().sort(function (a, b) { return pts(b) - pts(a); })[0];
   }
+  var falaId = 0;
+  function falar(txt, depois) {
+    var meu = ++falaId, fim = false, seguir = function () { if (fim) return; fim = true; if (depois && meu === falaId) setTimeout(function () { if (meu === falaId) depois(); }, 250); };
+    if (!ui("voz", true) || !window.speechSynthesis || !txt) { seguir(); return; }
+    try { speechSynthesis.cancel();
+      var limpo = String(txt).replace(/R\$ ?/g, "").replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}✓✕➤↗📊💬🤔]/gu, "").replace(/(\d{1,2}):00\b/g, "$1 horas").replace(/\s+/g, " ").slice(0, 600);
+      var u = new SpeechSynthesisUtterance(limpo); u.lang = "pt-BR"; u.rate = +ui("velocidade", 1.05) || 1.05; u.pitch = 1;
+      var v = melhorVoz(); if (v) { u.voice = v; u.lang = v.lang; }
+      u.onend = seguir; u.onerror = seguir; speechSynthesis.speak(u); setTimeout(seguir, 3000 + limpo.length * 95); } catch (e) { seguir(); }
+  }
+  function calar() { falaId++; try { if (window.speechSynthesis) speechSynthesis.cancel(); } catch (e) { } }
+  function continuar() { if (ui("conversa", true) && painel && !painel.hidden && !ouvindo && SR) ouvir(true); }
   async function confirmarPorVoz() {   /* 16/11: depois de "…Confirma?" escuta "sim / pode lançar" ou "não / cancela" — mãos livres */
     if (!SR || painel.hidden || ouvindo || !ESTADO.acoes.some(function (a) { return !a.feito && /gasto|receita|entrada|conta_pagar|tarefa|custo_evento/.test(a.tipo); })) return;
     ouvindo = true; fab.classList.add("ouvindo");
     status('<span class="bwg-onda"><i></i><i></i><i></i><i></i></span> Diga <b>"sim"</b> para lançar, <b>"não"</b> para cancelar — ou toque nos botões.');
     var r = ""; try { r = sa(await ouvirNavegador(function () { })); } catch (e) { }
     ouvindo = false; fab.classList.remove("ouvindo");
-    if (/^(sim|s|isso|pode|confirm|lanc|ok|beleza|certo|manda|bora|claro|positivo)/.test(r.trim()) || / (pode lancar|confirmo|isso mesmo)/.test(" " + r)) lancarTodas();
-    else if (/^(nao|cancel|esquece|deixa|para)/.test(r.trim())) { ESTADO.acoes = []; desenharAcoes(); status("Cancelado. Nada foi lançado."); falar("Cancelado."); }
+    var rt = r.trim().replace(/^(tio claudio|claudio)[ ,]*/, "");
+    if (/^(sim|s|isso|pode|confirm|lanc|ok|beleza|certo|manda|bora|claro|positivo|uhum|aham)( |$)/.test(rt) || / (pode lancar|confirmo|isso mesmo)/.test(" " + rt)) lancarTodas(continuar);
+    else if (/^(nao|cancel|esquece|deixa|para)( |$)/.test(rt) && rt.split(" ").length <= 3) { ESTADO.acoes = []; desenharAcoes(); status("Cancelado. Nada foi lançado."); falar("Tudo bem, cancelei.", continuar); }
+    else if (rt) processar(r, true);   /* falou outra coisa ("muda para as 15h", um pedido novo) */
     else status("Confira e toque em ✓ LANÇAR (ou toque no robô e fale de novo).");
   }
   var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -439,10 +500,12 @@
     if (/(^|\/)(login|cadastro|pedido|baixar|privacidade|termos|painel)\.html/.test(location.pathname)) return;   /* páginas públicas */
     var st = document.createElement("style"); st.id = "bwgCss"; st.textContent = CSS; document.head.appendChild(st);
     fab = document.createElement("button"); fab.type = "button"; fab.className = "bwg-fab"; fab.id = "bwAgente"; fab.innerHTML = ROBO;
-    fab.setAttribute("aria-label", "Agente: fale o que quer lançar"); fab.title = "AGENTE — toque e fale (ex.: lance 30 reais de lanche)";
-    painel = document.createElement("div"); painel.className = "bwg-p"; painel.hidden = true; painel.setAttribute("role", "dialog"); painel.setAttribute("aria-label", "Agente Brightway");
+    fab.setAttribute("aria-label", "Tio Cláudio: toque e fale"); fab.title = "TIO CLÁUDIO — toque e fale (ex.: como está meu dia?)";
+    painel = document.createElement("div"); painel.className = "bwg-p"; painel.hidden = true; painel.setAttribute("role", "dialog"); painel.setAttribute("aria-label", "Tio Cláudio, assistente da Brightway");
     document.body.appendChild(painel); document.body.appendChild(fab);
-    fab.addEventListener("click", function () { if (ouvindo) { parar(); return; } abrir(true); });
+    fab.addEventListener("click", function () { if (ouvindo) { parar(); return; } calar(); abrir(true); });
+    try { if (window.speechSynthesis) speechSynthesis.onvoiceschanged = function () { if (painel && !painel.hidden && !painel.querySelector("#bwgAj").hidden) desenharVozes(); }; } catch (e) { }
+    sessao().then(function (s) { var m = s && s.user && s.user.user_metadata || {}; var n = String(m.full_name || m.name || "").trim().split(/\s+/)[0]; if (n) ESTADO.nome = cap(n.toLowerCase()); });
     painel.addEventListener("click", clique);
     painel.addEventListener("change", mudanca);
     document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !painel.hidden) fechar(); });
@@ -454,40 +517,53 @@
     document.querySelectorAll(".bw-abas, .pr-acoes, [data-bw-barra]").forEach(function (el) { var r = el.getBoundingClientRect(); if (r.height && r.bottom >= h - 140 && r.top < topo && getComputedStyle(el).visibility !== "hidden") topo = r.top; });
     var b = Math.max(16, h - topo + 12); fab.style.bottom = b + "px"; if (painel) painel.style.bottom = (b + 72) + "px";
   }
-  function fechar() { parar(); painel.hidden = true; fab.classList.remove("ouvindo"); }
+  function fechar() { parar(); calar(); painel.hidden = true; fab.classList.remove("ouvindo"); }
   function status(html) { var s = painel.querySelector(".bwg-st"); if (s) s.innerHTML = html; }
-  var EXEMPLOS = ["Lance 30 reais de lanche", "Conta de luz de 250 que vence dia 20", "Recebi 2.500 da Arte Eventos", "Me lembra de ligar pro cliente amanhã às 10", "Quanto gastei este mês?", "Abrir fluxo de caixa"];
+  var EXEMPLOS = ["Como está meu dia?", "Lance 30 reais de lanche", "Me lembra de ligar pro cliente amanhã às 10", "Conta de luz de 250 que vence dia 20", "O que eu tenho amanhã?", "Conta uma piada"];
   function desenhar() {
     var semVoz = !SR && !(navigator.mediaDevices && window.MediaRecorder);
-    painel.innerHTML = '<div class="bwg-cab">' + ROBO.replace("<svg ", '<svg width="26" height="26" style="fill:none;stroke:#E8C26A;stroke-width:2.3;stroke-linecap:round" ') + '<b>AGENTE</b><button type="button" class="aj" data-g="ajustes" aria-label="Ajustes do agente" title="Ajustes">⚙</button><button type="button" class="x" data-g="fechar" aria-label="Fechar">✕</button></div>' +
+    painel.innerHTML = '<div class="bwg-cab">' + ROBO.replace("<svg ", '<svg width="26" height="26" style="fill:none;stroke:#E8C26A;stroke-width:2.3;stroke-linecap:round" ') + '<b>TIO CLÁUDIO</b><button type="button" class="aj" data-g="ajustes" aria-label="Ajustes do agente" title="Ajustes">⚙</button><button type="button" class="x" data-g="fechar" aria-label="Fechar">✕</button></div>' +
       '<div class="bwg-st" aria-live="polite"></div><div class="bwg-fala" aria-live="polite"></div><div id="bwgAc"></div>' +
       '<div class="bwg-escr"><input id="bwgTxt" type="text" autocomplete="off" placeholder="' + (semVoz ? "Escreva o que quer lançar…" : "…ou escreva aqui") + '" aria-label="Escreva o pedido"><button type="button" class="bwg-b pri" data-g="enviar">➤</button>' + (semVoz ? "" : '<button type="button" class="bwg-b" data-g="ouvir" aria-label="Falar de novo" title="Falar">🎙</button>') + "</div>" +
       '<div class="bwg-ex">' + EXEMPLOS.map(function (e) { return '<button type="button" data-g="ex">' + esc(e) + "</button>"; }).join("") + "</div>" +
       '<div class="bwg-aj" id="bwgAj" hidden><label><input type="checkbox" data-u="ia"' + (ui("ia", true) ? " checked" : "") + '> Usar a IA Brightway para entender (manda só a frase; sem login ou sem internet, entende no aparelho)</label>' +
       '<label><input type="checkbox" data-u="voz"' + (ui("voz", true) ? " checked" : "") + '> Responder falando</label>' +
+      '<label><input type="checkbox" data-u="conversa"' + (ui("conversa", true) ? " checked" : "") + '> Modo conversa: depois de responder, continua ouvindo (diga “tchau” para encerrar)</label>' +
+      '<div id="bwgVozes"></div>' +
       '<label><input type="checkbox" data-u="auto"' + (ui("auto", false) ? " checked" : "") + '> Lançar sem perguntar (só quando tiver tudo: o quê, valor e data)</label></div>' +
       '<div class="bwg-sub">A voz vira texto pelo reconhecimento do próprio navegador' + (ESTADO.local ? " (no aparelho)" : "") + '. Nada é gravado sem você confirmar. Perguntas como "quanto gastei" são calculadas aqui, com os seus dados.</div>';
     var inp = painel.querySelector("#bwgTxt"); inp.onkeydown = function (e) { if (e.key === "Enter" && inp.value.trim()) { processar(inp.value.trim()); inp.value = ""; } };
+  }
+  function desenharVozes() {
+    var box = painel && painel.querySelector("#bwgVozes"); if (!box) return;
+    var vs = vozes(), atual = melhorVoz(), vel = +ui("velocidade", 1.05) || 1.05;
+    box.innerHTML = vs.length ? '<label style="display:grid;grid-template-columns:auto 1fr;gap:8px;align-items:center">Voz <select data-u="vozNome" style="min-width:0;padding:6px;border-radius:8px;background:#0a0d14;color:#fff;border:1px solid rgba(255,255,255,.16);font-size:16px"><option value="">Automática (a mais natural)</option>' +
+      vs.map(function (v) { return '<option value="' + esc(v.name) + '"' + (ui("vozNome", "") === v.name ? " selected" : "") + ">" + esc(v.name) + "</option>"; }).join("") + "</select></label>" +
+      '<label style="display:grid;grid-template-columns:auto 1fr;gap:8px;align-items:center">Velocidade <select data-u="velocidade" style="padding:6px;border-radius:8px;background:#0a0d14;color:#fff;border:1px solid rgba(255,255,255,.16);font-size:16px">' +
+      [[0.9, "Calma"], [1.05, "Normal"], [1.2, "Rápida"]].map(function (o) { return '<option value="' + o[0] + '"' + (Math.abs(vel - o[0]) < .01 ? " selected" : "") + ">" + o[1] + "</option>"; }).join("") + "</select></label>" +
+      '<button type="button" class="bwg-b" data-g="testarVoz" style="margin-top:4px">🔊 OUVIR A VOZ' + (atual ? " (" + esc(atual.name.slice(0, 28)) + ")" : "") + "</button>"
+      : '<div style="font-size:12px;color:#8f8a7e">Este navegador não tem voz em português instalada.</div>';
   }
   function abrir(escutar) {
     if (!painel.innerHTML) desenhar();
     painel.hidden = false; posicionar();
     if (escutar) ouvir(); else { var i = painel.querySelector("#bwgTxt"); if (i) i.focus(); }
   }
-  async function ouvir() {
-    var fala = painel.querySelector(".bwg-fala"); fala.textContent = "";
+  async function ouvir(emConversa) {
+    calar(); var fala = painel.querySelector(".bwg-fala"); fala.textContent = "";
     if (!SR && !(navigator.mediaDevices && window.MediaRecorder)) { status("Seu navegador não tem reconhecimento de voz — escreva o pedido abaixo."); return; }
     ouvindo = true; fab.classList.add("ouvindo");
-    status('<span class="bwg-onda"><i></i><i></i><i></i><i></i></span> Ouvindo… fale o que quer lançar (toque no robô para parar)');
+    status('<span class="bwg-onda"><i></i><i></i><i></i><i></i></span> ' + (emConversa ? "Tô ouvindo… pode falar (ou diga “tchau”)" : "Ouvindo… pode falar com o Tio Cláudio (toque no robô para parar)"));
     try {
       var txt = SR ? await ouvirNavegador(function (p) { fala.textContent = p; }) : await ouvirGravando(function (p) { status(esc(p)); });
       ouvindo = false; fab.classList.remove("ouvindo");
-      if (!txt) { status("Não ouvi nada. Toque em 🎙 e fale de novo, ou escreva."); return; }
+      if (!txt) { status(emConversa ? "Fim da conversa. Toque no robô quando precisar." : "Não ouvi nada. Toque em 🎙 e fale de novo, ou escreva."); return; }
       fala.textContent = txt; processar(txt, true);
     } catch (e) {
       ouvindo = false; fab.classList.remove("ouvindo");
       var m = String(e && e.message || e);
       status(/not-allowed|denied|Permission/i.test(m) ? "O microfone está bloqueado. Libere o microfone para este site (cadeado na barra de endereço) ou escreva abaixo."
+        : /no-speech|aborted/.test(m) && emConversa ? "Fim da conversa. Toque no robô quando precisar."
         : /no-speech/.test(m) ? "Não ouvi nada. Toque em 🎙 e fale de novo, ou escreva." : /sem_voz/.test(m) ? "Para usar a voz neste navegador, entre na sua conta (ou escreva abaixo)." : /network/.test(m) ? "Sem internet para reconhecer a voz agora — escreva abaixo." : "Não deu para ouvir (" + esc(m) + "). Escreva abaixo.");
     }
   }
@@ -498,16 +574,54 @@
     ESTADO.acoes = r.acoes; ESTADO.via = r.via;
     var auto = ui("auto", false) && r.acoes.every(function (a) { return /gasto|receita|entrada|conta_pagar|tarefa|custo_evento/.test(a.tipo) && (!precisaValor(a) || num(a.valor) > 0) && (a.tipo !== "custo_evento" || a.eventoId); });
     desenharAcoes(r.resposta);
-    status("Entendido (" + esc(r.via) + ")" + (auto ? "" : ". Confira e toque em ✓ LANÇAR."));
-    var soInfo = r.acoes.filter(function (a) { return /consulta|abrir|nada|responder/.test(a.tipo); });
-    soInfo.forEach(function (a) { if (a.tipo === "consulta") { a.feito = true; a.resposta = consultar(a); falar(a.resposta); } if (a.tipo === "responder") { a.feito = true; falar(a.texto || r.resposta || ""); } if (a.tipo === "nada") falar(r.resposta || "Não entendi. Pode repetir?"); });
-    if (soInfo.length) desenharAcoes(r.resposta);
+    status("Entendido (" + esc(r.via) + ").");
+    var soInfo = r.acoes.filter(function (a) { return /consulta|abrir|nada|responder|resumo_dia|fim|ajustar/.test(a.tipo); });
+    var falas = [], encerra = false, histR = [];
+    soInfo.forEach(function (a) {
+      if (a.tipo === "consulta") { a.feito = true; a.resposta = consultar(a); falas.push(a.resposta); histR.push("(respondi com os dados dele)"); }
+      if (a.tipo === "resumo_dia") { a.feito = true; a.resposta = resumoDia(a.dia); falas.push(a.resposta); histR.push("(contei como está o dia dele)"); }
+      if (a.tipo === "responder") { a.feito = true; a.texto = a.texto || r.resposta || ""; falas.push(a.texto); histR.push(a.texto); }
+      if (a.tipo === "fim") { a.feito = true; a.texto = r.resposta || ["Valeu! Até mais.", "Tchau, até a próxima!", "Falou! Qualquer coisa é só chamar o Tio Cláudio."][Math.floor(Math.random() * 3)]; falas.push(a.texto); encerra = true; }
+      if (a.tipo === "nada") { falas.push(r.resposta || "Não entendi. Pode repetir?"); histR.push(r.resposta || "Não entendi."); }
+      if (a.tipo === "ajustar") { a.feito = true; a.texto = ajustarUltimo(a); falas.push(a.texto); histR.push(a.texto); }
+    });
+    if (soInfo.some(function (a) { return a.tipo === "ajustar"; }) && ESTADO.anteriores) ESTADO.acoes = ESTADO.anteriores.concat(r.acoes.filter(function (a) { return a.tipo !== "nada"; }));
+    desenharAcoes(r.resposta);
     var ab = r.acoes.filter(function (a) { return a.tipo === "abrir" && PAGINAS[a.pagina]; })[0];
-    if (ab && r.acoes.length === 1) { falar("Abrindo " + PAGINAS[ab.pagina][1]); setTimeout(function () { location.href = PAGINAS[ab.pagina][0]; }, 700); }
-    if (auto) lancarTodas(); else if (!soInfo.length) { falar(resumo(r.acoes), ESTADO.porVoz ? confirmarPorVoz : null); }
+    if (ab && r.acoes.length === 1) { falar("Abrindo " + PAGINAS[ab.pagina][1]); lembrar(txt, "Abri " + PAGINAS[ab.pagina][1]); setTimeout(function () { location.href = PAGINAS[ab.pagina][0]; }, 900); return; }
+    var pend = ESTADO.acoes.some(function (a) { return !a.feito && /gasto|receita|entrada|conta_pagar|tarefa|custo_evento/.test(a.tipo); });
+    if (pend && !auto) status("Entendido (" + esc(r.via) + "). Confira e toque em ✓ LANÇAR" + (ESTADO.porVoz && SR ? " — ou diga “sim”." : "."));
+    if (pend) { var rs = resumo(ESTADO.acoes.filter(function (a) { return !a.feito; })); histR.push(rs); falas.push(rs); }
+    lembrar(txt, histR.join(" "));
+    var lanc = ESTADO.acoes.filter(function (a) { return /gasto|receita|entrada|conta_pagar|tarefa|custo_evento/.test(a.tipo); }); if (lanc.length) ESTADO.anteriores = lanc;
+    if (encerra) { status("Até mais! Toque no robô quando precisar."); falar(falas.join(" ")); return; }
+    if (auto && pend) { lancarTodas(ESTADO.porVoz ? continuar : null); return; }
+    falar(falas.join(" "), !ESTADO.porVoz ? null : pend ? confirmarPorVoz : continuar);
+  }
+  function lembrar(q, r) { ESTADO.hist = (ESTADO.hist || []).concat([{ q: String(q).slice(0, 200), r: String(r || "").slice(0, 200) }]).slice(-8); }
+  function ajustarUltimo(aj) {   /* "muda para as 15h": muda o último pedido — o cartão (se ainda não lançou) ou o item já gravado */
+    var alvo = (ESTADO.anteriores || []).slice(-1)[0] || ESTADO.ultimo;
+    if (!alvo) return "Não achei o que mudar. Pode falar o pedido completo?";
+    var mud = [];
+    ["titulo", "descricao", "data", "hora", "valor"].forEach(function (k) { if (aj[k] != null && aj[k] !== "" && !(k === "valor" && !(num(aj[k]) > 0))) { alvo[k === "data" && alvo.tipo === "conta_pagar" ? "vencimento" : k] = k === "valor" ? num(aj[k]) : aj[k]; mud.push(k === "hora" ? "às " + aj.hora.replace(":00", "h") : k === "data" ? "dia " + br(aj.data).slice(0, 5) : k === "valor" ? moeda(aj.valor) : aj[k]); } });
+    if (!mud.length) return "O que você quer mudar?";
+    if (alvo.feito && alvo.idSalvo) { var ok = atualizarSalvo(alvo); return ok ? "Pronto, mudei para " + mud.join(", ") + "." : "Mudei aqui, mas não achei o item salvo. Confere na página."; }
+    return "Beleza, mudei para " + mud.join(", ") + ".";
+  }
+  function atualizarSalvo(a) {
+    var mapa = { tarefa: ["agenda_tarefas", function (x) { x.titulo = a.titulo; x.data = a.data; x.hora = a.hora || ""; }],
+      gasto_casa: ["casa_orcamento", function (x) { x.c0 = a.descricao; x.c3 = String(num(a.valor)); x.data = a.data; x.c4 = String(a.data || "").slice(0, 7); }],
+      receita_casa: ["casa_orcamento", function (x) { x.c0 = a.descricao; x.c3 = String(num(a.valor)); x.data = a.data; x.c4 = String(a.data || "").slice(0, 7); }],
+      conta_pagar: ["casa_contas", function (x) { x.c0 = a.descricao; x.c1 = String(num(a.valor)); x.c2 = a.vencimento; }],
+      gasto_negocio: ["neg_fluxo", function (x) { x.c0 = a.data; x.c2 = String(num(a.valor)); x.c3 = a.descricao; }],
+      entrada_negocio: ["neg_fluxo", function (x) { x.c0 = a.data; x.c2 = String(num(a.valor)); x.c3 = a.descricao; }] }[a.tipo];
+    if (!mapa) return false;
+    var l = ler(mapa[0]), it = l.filter(function (x) { return x && x.id === a.idSalvo; })[0]; if (!it) return false;
+    mapa[1](it); gravar(mapa[0], l); desenharAcoes(); return true;
   }
   function resumo(acoes) {
-    return acoes.filter(function (a) { return a.tipo !== "nada"; }).map(function (a) {
+    acoes = acoes.filter(function (a) { return /gasto|receita|entrada|conta_pagar|tarefa|custo_evento/.test(a.tipo); });
+    return acoes.map(function (a) {
       if (a.tipo === "tarefa") return "Tarefa: " + (a.titulo || "") + (a.data ? ", " + br(a.data) : "") + (a.hora ? " às " + a.hora : "");
       return (NOMES[a.tipo] || "").toLowerCase() + ": " + (a.descricao || "") + (a.valor ? ", " + moeda(a.valor) : "");
     }).join(". ") + (acoes.length ? ". Confirma?" : "");
@@ -521,6 +635,8 @@
   function desenharAcoes(resposta) {
     var box = painel.querySelector("#bwgAc"), pend = 0;
     box.innerHTML = ESTADO.acoes.map(function (a, i) {
+      if (a.tipo === "resumo_dia") return '<div class="bwg-ac feito"><h4>☀️ SEU DIA</h4><div class="bwg-resp">' + esc(a.resposta || "") + "</div></div>";
+      if (a.tipo === "fim" || a.tipo === "ajustar") return '<div class="bwg-ac feito"><h4>' + (a.tipo === "fim" ? "👋 ATÉ MAIS" : "✎ AJUSTADO") + '</h4><div class="bwg-resp">' + esc(a.texto || "") + "</div></div>";
       if (a.tipo === "responder") return '<div class="bwg-ac feito"><h4>💬 RESPOSTA</h4><div class="bwg-resp">' + esc(a.texto || resposta || "") + "</div></div>";
       if (a.tipo === "consulta") return '<div class="bwg-ac feito"><h4>📊 RESPOSTA</h4><div class="bwg-resp">' + esc(a.resposta || "") + "</div></div>";
       if (a.tipo === "abrir") return '<div class="bwg-ac feito"><h4>↗ ABRIR</h4><div class="bwg-resp">' + (PAGINAS[a.pagina] ? '<a href="' + PAGINAS[a.pagina][0] + '" style="color:#E8C26A">' + esc(PAGINAS[a.pagina][1]) + "</a>" : "Página não encontrada.") + "</div></div>";
@@ -541,19 +657,20 @@
   }
   function lancar(i, silencioso) {
     var a = ESTADO.acoes[i]; if (!a || a.feito) return true;
-    try { var r = executar(a); a.feito = true; if (r) { a.onde = r.onde; a.link = r.link; } return true; }
+    try { var r = executar(a); a.feito = true; if (r) { a.onde = r.onde; a.link = r.link; a.idSalvo = r.id; } ESTADO.ultimo = a; return true; }
     catch (e) { if (!silencioso) { status("⚠️ " + esc(e.message || e) + " — complete o campo e toque em ✓ LANÇAR."); falar(e.message || ""); } return false; }
   }
-  function lancarTodas() {
-    var ok = 0, falhou = 0; ESTADO.acoes.forEach(function (a, i) { if (a.feito || /consulta|abrir|nada|responder/.test(a.tipo)) return; if (lancar(i, true)) ok++; else falhou++; });
-    desenharAcoes(); if (ok) { comemorar(); status("✓ " + ok + " lançamento" + (ok > 1 ? "s" : "") + " feito" + (ok > 1 ? "s" : "") + (falhou ? " · " + falhou + " precisa(m) de ajuste" : "") + "."); falar(ok > 1 ? "Pronto, lancei " + ok + " itens." : "Pronto, lançado."); }
+  function lancarTodas(depois) {
+    var ok = 0, falhou = 0; ESTADO.acoes.forEach(function (a, i) { if (a.feito || /consulta|abrir|nada|responder|resumo_dia|fim|ajustar/.test(a.tipo)) return; if (lancar(i, true)) ok++; else falhou++; });
+    desenharAcoes(); if (ok) { comemorar(); status("✓ " + ok + " lançamento" + (ok > 1 ? "s" : "") + " feito" + (ok > 1 ? "s" : "") + (falhou ? " · " + falhou + " precisa(m) de ajuste" : "") + "."); falar(ok > 1 ? "Pronto, lancei " + ok + " itens." : "Pronto, lançado.", depois); }
     else if (falhou) status("Complete os campos marcados e toque em ✓ LANÇAR.");
   }
   function comemorar() { try { if (window.BWConcluir && BWConcluir.festa) BWConcluir.festa(fab); } catch (e) { } fab.animate && fab.animate([{ transform: "scale(1)" }, { transform: "scale(1.18)" }, { transform: "scale(1)" }], { duration: 420 }); }
   function clique(e) {
     var b = e.target.closest("[data-g]"); if (!b) return; var g = b.dataset.g, i = +b.dataset.i;
     if (g === "fechar") return fechar();
-    if (g === "ajustes") { var aj = painel.querySelector("#bwgAj"); aj.hidden = !aj.hidden; return; }
+    if (g === "ajustes") { var aj = painel.querySelector("#bwgAj"); aj.hidden = !aj.hidden; if (!aj.hidden) desenharVozes(); return; }
+    if (g === "testarVoz") { falar("Oi, eu sou o Tio Cláudio. Bora organizar esse dia?"); return; }
     if (g === "ouvir") return ouvir();
     if (g === "enviar") { var inp = painel.querySelector("#bwgTxt"); if (inp.value.trim()) { processar(inp.value.trim()); inp.value = ""; } return; }
     if (g === "ex") return processar(b.textContent);
@@ -563,7 +680,7 @@
   }
   function mudanca(e) {
     var el = e.target;
-    if (el.dataset.u) { uiSet(el.dataset.u, el.checked); return; }
+    if (el.dataset.u) { uiSet(el.dataset.u, el.type === "checkbox" ? el.checked : el.dataset.u === "velocidade" ? +el.value : el.value); return; }
     if (el.dataset.k == null) return;
     var a = ESTADO.acoes[+el.dataset.i]; if (!a) return;
     var v = el.value; if (el.dataset.k === "valor") v = num(v);

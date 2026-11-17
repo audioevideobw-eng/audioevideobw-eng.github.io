@@ -204,6 +204,12 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
     trouxer ação válida, cai para o entendimento no aparelho; a "resposta" da IA nunca diz que algo foi lançado. Teste com a IA REAL no ar
     (BWAgente.entender, sem gravar) — o simulado só devolvia o formato certo (auto: teste_agente_leitor.py).
 
+66. TIO CLÁUDIO (o agente, nome dado pelo dono): conversa por voz (depois de responder continua ouvindo; silêncio ou "tchau" encerra), "como está
+    meu dia" montado NO APARELHO (resumoDia: agenda + contas + atrasadas + próximo evento — nada vai para a IA), piadas/papo pela IA (tipo
+    responder), "muda para as 15h" ajusta o último pedido (cartão ou item já salvo pelo idSalvo, sem duplicar). A IA recebe só as frases da
+    conversa; respostas com dados viram "(respondi com os dados dele)" no histórico. Teste de voz simulado: fila window.__falas e, quando
+    acaba, silêncio — senão o modo conversa fica num laço (auto: teste_agente_leitor.py).
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -643,6 +649,14 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   (0 falhas), agenda/layout/varredura 0. No ar a IA errou "sexta" (deu domingo) → o pedido leva os próximos 7 dias e a data dita
   com dia da semana/amanhã/"dia N" é conferida pelo cálculo do aparelho. bw-agente.js v3, layout.js v33, sw v89. PENTE FINO 65.
 
+- 16/11/2026 23:10 · Claude (dono: "o agente pode falar como a Alexa… entender, brincar, falar sobre o dia" + "ser chamado de Tio Cláudio"):
+  o agente virou TIO CLÁUDIO (assets/bw-agente.js v4): MODO CONVERSA (continua ouvindo depois de responder; "tchau"/silêncio encerra),
+  "COMO ESTÁ MEU DIA" / "bom dia" (resumo falado montado no aparelho: compromissos, contas vencidas e vencendo, tarefas atrasadas, próximo
+  evento, com o primeiro nome da conta), papo/piadas/curiosidades com jeito mineiro (IA; sem IA: 8 piadas próprias), "MUDA PARA AS 15H" /
+  "NA VERDADE FOI 50" (corrige o último pedido, mesmo já lançado), histórico curto da conversa para a IA entender "e depois?", melhor voz pt-BR
+  do aparelho + escolha de voz e velocidade em ⚙, tocar no robô interrompe a fala. Sem palavra de ativação (navegador não escuta o tempo
+  todo). teste_agente_leitor.py +12 checagens (0 falhas); layout/varredura 0. bw-agente v4, bw-leitor v2, layout.js v34, sw v90. PENTE FINO 66.
+
 ## Pendências (dono)
 - [x] (16/11 11:42) IA CRIATIVA ATIVA: conta Cloudflare do dono (Free, sem cartão), token "Brightway IA criativa 2" (Workers AI Read+Edit) em
       CF_API_TOKEN, CF_ACCOUNT_ID salvo. Teste no ar: "cabelo cacheado ruivo e óculos de sol" → nova versão em 6 s, mesma pessoa/roupa/fundo.
@@ -664,6 +678,6 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
       E-mail automático diário FEITO (15/11, grátis — bw-avisos). WhatsApp automático: só pela API da Meta (paga) — não feito, decisão do dono.
 - [x] (16/11 20:05, dono: "funcionou perfeitamente") Teste real do 🔏 ASSINAR com o e-CNPJ da BW (A1, formato antigo 3DES/RC2) — OK.
 - [~] (16/11 22:29, dono: "testei … por foto e está funcionando") LEITOR DE CONTAS por FOTO — OK. Ainda faltam (quando o dono quiser):
-      conta em PDF, código colado e o AGENTE por voz (celular e PC).
+      conta em PDF, código colado e o TIO CLÁUDIO por voz (celular e PC: conversa, "como está meu dia", "muda para…").
 - [ ] Futuro (MAESTRO): galeria do cliente por link secreto (hoje as FOTOS ainda são listáveis por quem souber
       usar a API; documentos já estão protegidos).
