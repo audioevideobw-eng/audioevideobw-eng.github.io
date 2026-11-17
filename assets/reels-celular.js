@@ -172,7 +172,7 @@
         await win.__seek(f / fps);
         var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + W + '" height="' + H + '"><foreignObject x="0" y="0" width="100%" height="100%">' + xs.serializeToString(doc.documentElement) + "</foreignObject></svg>";
         var img = new Image(); img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg); await img.decode();
-        ctx.drawImage(img, 0, 0, ow, oh);
+        ctx.drawImage(img, 0, 0, ow, oh); img.src = ""; img = null; svg = null;
         var vf = new VideoFrame(cv, { timestamp: Math.round(f * 1e6 / fps), duration: Math.round(1e6 / fps) });
         enc.encode(vf, { keyFrame: f % (fps * 2) === 0 }); vf.close();
         while (enc.encodeQueueSize > 6) await dorme(5);
@@ -203,8 +203,27 @@
             var ad = new AudioData({ format: "f32-planar", sampleRate: SR, numberOfFrames: n, numberOfChannels: 2, timestamp: Math.round(p * 1e6 / SR), data: dados }); ae.encode(ad); ad.close();
           }
           await ae.flush(); ae.close();
-          if (cfg.nome === "aac" && !desc) desc = new Uint8Array([0x11, 0x90]).buffer;   // AAC-LC, 48 kHz, estéreo (o Safari não manda a descrição)
-          if (!erro && aAm.length) { trilhas.push({ tipo: "a", escala: SR, amostras: aAm, stsd: stsdAudio(cfg.nome, SR, desc) }); codecSom = cfg.nome; somInfo = cfg.nome + " pelo codificador, " + aAm.length + " blocos"; }
+          var d0 = desc ? new Uint8Array(desc) : null, a0 = aAm[0] && aAm[0].dados, hex = function (b) { return [].map.call(b, function (x) { return (x < 16 ? "0" : "") + x.toString(16); }).join(""); };
+          var media = aAm.length ? Math.round(aAm.reduce(function (t, x) { return t + x.dados.length; }, 0) / aAm.length) : 0;
+          var diag = aAm.length + " blocos de ~" + media + " B, desc " + (d0 ? d0.length + "B " + hex(d0.subarray(0, 6)) : "não veio") + ", início " + (a0 ? hex(a0.subarray(0, 4)) : "-");
+          if (cfg.nome === "aac" && aAm.length) {
+            if (a0[0] === 0xff && (a0[1] & 0xf6) === 0xf0) {   // veio com cabeçalho ADTS em cada bloco: tira o cabeçalho e monta a descrição a partir dele
+              var fi = (a0[2] >> 2) & 15; desc = new Uint8Array([((((a0[2] >> 6) & 3) + 1) << 3) | (fi >> 1), ((fi & 1) << 7) | ((((a0[2] & 1) << 2) | (a0[3] >> 6)) << 3)]).buffer;
+              aAm.forEach(function (x) { x.dados = x.dados.subarray((x.dados[1] & 1) ? 7 : 9); }); diag += ", ADTS";
+            } else if (d0 && d0[0] === 3) {                      // veio o descritor inteiro (como dentro do esds): pega só a parte da configuração
+              var q = 1, tam = function () { var n = 0, b; do { b = d0[q++]; n = (n << 7) | (b & 127); } while (b & 128); return n; };
+              tam(); q += 2; var fl = d0[q++]; if (fl & 0x80) q += 2; if (fl & 0x40) q += d0[q] + 1; if (fl & 0x20) q += 2;
+              if (d0[q++] === 4) { tam(); q += 13; if (d0[q++] === 5) { var nn = tam(); desc = d0.slice(q, q + nn).buffer; diag += ", esds"; } }
+            } else if (!d0) desc = new Uint8Array([0x11, 0x90]).buffer;   // AAC-LC, 48 kHz, estéreo
+            var asc = new Uint8Array(desc), idx = ((asc[0] & 7) << 1) | (asc[1] >> 7), TAXAS = [96000, 88200, 64000, 48000, 44100, 32000, 24000, 22050, 16000, 12000, 11025, 8000], taxa = TAXAS[idx] || SR;
+            aAm.forEach(function (x) { x.dur = 1024; });
+            if (media < 40 && o.audioCtx && tipoGravador()) {     // o codificador devolveu praticamente silêncio: grava pelo outro caminho
+              prog({ etapa: "Gravando o som de outro jeito", pct: 95 });
+              var g2 = await aacPeloGravador(o.som, o.duracao, o.audioCtx).catch(function () { return null; });
+              if (g2 && g2.amostras) { trilhas.push({ tipo: "a", escala: g2.sr, amostras: g2.amostras, stsd: stsdAudio("aac", g2.sr, g2.asc) }); codecSom = "aac"; somInfo = "aac pelo gravador (o codificador veio mudo: " + diag + ")"; }
+            }
+            if (!codecSom) { trilhas.push({ tipo: "a", escala: taxa, amostras: aAm, stsd: stsdAudio("aac", taxa, desc) }); codecSom = "aac"; somInfo = "aac pelo codificador a " + taxa + " Hz, " + diag; }
+          } else if (!erro && aAm.length) { trilhas.push({ tipo: "a", escala: SR, amostras: aAm, stsd: stsdAudio(cfg.nome, SR, desc) }); codecSom = cfg.nome; somInfo = cfg.nome + " pelo codificador, " + diag; }
           else somInfo = "o codificador " + cfg.nome + " falhou" + (erro ? " (" + (erro.message || erro) + ")" : ""); erro = null;
         }
       }

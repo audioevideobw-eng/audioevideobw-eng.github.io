@@ -261,6 +261,11 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
     (iPhone; AudioContext nasce no toque) → Opus (avisar) → mudo (avisar); o aviso verde mostra qual caminho foi usado.
     Filmagem (<video>) não entra → mensagem mandando para o PC. Teste confere o MP4 com ffprobe + decodificação inteira + volume.
 
+83. Prévia de animação no celular: nada de camada maior que a tela com blur ou mix-blend-mode, nem will-change em cada palavra — o
+    iPhone (pior ainda no navegador de dentro do Instagram/WhatsApp) derruba a página por memória ("Um problema ocorreu repetidamente").
+    A prévia do celular tira esses enfeites; o vídeo final continua com eles. "N blocos de som" no diagnóstico NÃO prova que há som:
+    mostrar também o tamanho médio do bloco e os primeiros bytes.
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -831,6 +836,13 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   som pelo GRAVADOR (AudioContext criado dentro do toque → MediaStreamDestination → MediaRecorder audio/mp4, em paralelo com os quadros) e as
   amostras AAC são tiradas do MP4 gravado (leitor de MP4 comum e em pedaços, testado com arquivos do ffmpeg: 6,02 s, volume igual);
   (3) linha de diagnóstico no aviso verde ("v2 · som: …"). NÃO testado em iPhone (sem aparelho) — aguarda o print do dono. reels.js v9, sw v113.
+- 17/11/2026 16:40 · Dono (prints do iPhone): aviso "v2 · som: aac pelo codificador, 682 blocos" e vídeo SEM som; e tela branca "Um problema
+  ocorreu repetidamente" vendo a prévia (navegador de dentro de outro app). Claude, reels-celular.js v3: o som do codificador do iPhone é
+  aceito nos 3 formatos possíveis (blocos crus, blocos com cabeçalho ADTS — tira o cabeçalho —, descrição vinda como descritor inteiro — tira
+  só a configuração), a taxa vem da própria configuração, e se os blocos vierem quase vazios (codificador mudo) grava pelo MediaRecorder;
+  o aviso mostra tamanho médio do bloco, descrição e início do 1º bloco. PRÉVIA LEVE no celular (reels.js v10): sem grão (camada 2× a tela
+  com mistura), sem desfoque gigante de fundo e sem uma camada por palavra; imagem de cada quadro liberada na exportação. NÃO testado em
+  iPhone — aguarda novo print (linha "v3"). sw v114. PENTE FINO 83.
 
 ## Pendências (dono)
 - [ ] (17/11) BW REELS ASSISTENTE: dono abrir pelo BW-REELS-ASSISTENTE.bat no PC e fazer 1 vídeo em cada modo (ECONÔMICO com o Claude real).

@@ -221,6 +221,8 @@
   function montarPrevia() {
     try { PLANO = M.criarPlano(roteiroParaPrevia()); } catch (e) { return; }
     var html = M.construirHtml(PLANO, "nativo");
+    // Prévia LEVE no celular: sem o grão e sem o desfoque gigante de fundo, e sem uma camada por palavra — no iPhone a página caía por falta de memória.
+    if (/Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && /Mac/.test(navigator.platform || ""))) html = html.replace("</head>", "<style>#grao{display:none!important}#luz{filter:none!important;inset:0!important;opacity:.09!important}.w,.cena,.foto-corpo{will-change:auto!important}</style></head>");
     PRONTO = false;
     var f = $("quadro");
     f.onload = function () {
@@ -749,7 +751,7 @@
       if (!res.comSom) obs.push("este aparelho não conseguiu gravar o som — o vídeo saiu mudo (no computador sai com som)");
       else if (res.codecSom === "opus") obs.push("o som saiu num formato que algumas redes não aceitam; se a rede recusar, gere no computador");
       var podeEnviar = navigator.canShare && navigator.canShare({files: [AQUI.arquivo]});
-      estadoAqui('<div class="rl-aviso ok"><b>Vídeo pronto ✓</b> ' + res.largura + ' × ' + res.altura + ' · ' + (res.blob.size / 1e6).toFixed(1) + ' MB · feito em ' + Math.round((Date.now() - t0) / 1000) + ' s' + (obs.length ? '<br>Obs.: ' + esc(obs.join("; ")) + '.' : '') + '<br><small style="opacity:.7">v2 · som: ' + esc(res.somInfo || "") + '</small></div>' +
+      estadoAqui('<div class="rl-aviso ok"><b>Vídeo pronto ✓</b> ' + res.largura + ' × ' + res.altura + ' · ' + (res.blob.size / 1e6).toFixed(1) + ' MB · feito em ' + Math.round((Date.now() - t0) / 1000) + ' s' + (obs.length ? '<br>Obs.: ' + esc(obs.join("; ")) + '.' : '') + '<br><small style="opacity:.7">v3 · som: ' + esc(res.somInfo || "") + '</small></div>' +
         '<video id="aquiVideo" src="' + AQUI.url + '" controls playsinline style="width:100%;max-height:46vh;border-radius:12px;background:#000"></video>' +
         '<div class="rl-acoes" style="margin-top:8px"><a class="rl-bt pri" id="aquiBaixar" href="' + AQUI.url + '" download="' + esc(nome) + '.mp4" style="text-decoration:none;text-align:center">⬇ SALVAR VÍDEO</a>' + (podeEnviar ? '<button class="rl-bt" id="aquiEnviar" type="button">COMPARTILHAR</button>' : '') + '</div>');
       if (podeEnviar) $("aquiEnviar").onclick = function () { navigator.share({files: [AQUI.arquivo], title: P.nome || "Reel"}).catch(function () {}); };
