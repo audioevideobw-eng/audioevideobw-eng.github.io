@@ -194,7 +194,8 @@ with sync_playwright() as p:
         v = V([["Microsoft Maria - Portuguese (Brazil)", "pt-BR"], ["Microsoft Daniel - Portuguese (Brazil)", "pt-BR"]]); ok(v and "Daniel" in v["nome"] and v["tom"] == 1, f"Windows: voz masculina Daniel ({v})")
         v = V([["Microsoft Francisca Online (Natural) - Portuguese (Brazil)", "pt-BR"], ["Microsoft Antonio Online (Natural) - Portuguese (Brazil)", "pt-BR"], ["Microsoft Duarte Online (Natural) - Portuguese (Portugal)", "pt-PT"]]); ok("Antonio" in v["nome"], "Edge: Antonio (natural), não a voz de Portugal")
         v = V([["Luciana", "pt-BR"], ["Felipe", "pt-BR"], ["Joana", "pt-PT"]]); ok(v["nome"] == "Felipe", "iPhone: Felipe")
-        v = V([["Google português do Brasil", "pt-BR"]]); ok(v["homem"] is False and v["tom"] == 0.8, "só voz feminina → usa em tom mais grave")
+        v = V([["Google português do Brasil", "pt-BR"]]); ok(v["homem"] is False and v["tom"] == 0.7, "só voz feminina → usa em tom mais grave")
+        v = pg.evaluate("() => { speechSynthesis.getVoices = () => [{name:'português Brasil',lang:'pt-BR',voiceURI:'pt-br-x-afs-network'},{name:'português Brasil',lang:'pt-BR',voiceURI:'pt-br-x-ptd-local'}]; return BWAgente.voz(); }"); ok(v["homem"] is True, "Android: acha a voz masculina pelo voiceURI (x-ptd)")
         pg.evaluate("speechSynthesis.getVoices = () => []")
         # ajustes + lançar sem perguntar
         pg.click("[data-g=ajustes]"); pg.check('[data-u="auto"]'); pg.uncheck('[data-u="voz"]')
