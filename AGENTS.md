@@ -754,8 +754,10 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   (grátis; motor anima o PNG — entra, quica ao falar, acena, comemora, pensa, se assusta, contorno branco de adesivo, virar), UMA IMAGEM POR
   CENA COM IA (bw-ia-imagem modo arte pela fotos-nuvem.js, confirmação + limite 15/dia; o que falhar volta para o recorte) e VÍDEO COM IA DE
   FORA (um prompt por cena na aba MÍDIA). A história vira cenas numa chamada da bw-ia (sem login: frase por frase no aparelho). Motor v3:
-  personagem "foto" (imagem), cena só com imagem (elenco [] + mídia); editor da cena mostra o avatar e "Só imagem". teste_reels.py 81
+  personagem "foto" (imagem), cena só com imagem (elenco [] + mídia); editor da cena mostra o avatar e "Só imagem". teste_reels.py 77
   checagens × 1280/390 (0 falhas), varredura 0, vigia ✅. Manual atualizado. Zip/tutorial do Studio atualizados. sw v109. PENTE FINO 78.
+  No ar, logado, IA REAL: história → gancho + 5 cenas + legenda em 5 s, validação OK; 1 imagem por cena (mascote de teste) em 5,2 s, mesmo
+  personagem, pose pedida, palco, topo livre para o balão. Projetos de teste apagados do navegador.
 
 ## Pendências (dono)
 - [ ] (17/11) BW REELS PRO › ANIMAR MEU PERSONAGEM: dono testar com a foto do avatar dele (recorte e cenas por IA, logado).
