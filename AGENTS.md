@@ -648,7 +648,7 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
 - [~] Ideias do dono (15/11): FEITO no app (sino AVISOS + notificação do aparelho + LEMBRAR EQUIPE por WhatsApp/e-mail/grupo, grátis).
       E-mail automático diário FEITO (15/11, grátis — bw-avisos). WhatsApp automático: só pela API da Meta (paga) — não feito, decisão do dono.
 - [x] (16/11 20:05, dono: "funcionou perfeitamente") Teste real do 🔏 ASSINAR com o e-CNPJ da BW (A1, formato antigo 3DES/RC2) — OK.
-- [ ] (16/11 21:12, dono: "deixe pendente os testes") Teste real do LEITOR DE CONTAS (conta de luz/água em PDF, foto, código colado)
-      e do AGENTE por voz (celular e PC) — aguardando o dono. Conferir valor/vencimento e se algo saiu diferente.
+- [~] (16/11 22:29, dono: "testei … por foto e está funcionando") LEITOR DE CONTAS por FOTO — OK. Ainda faltam (quando o dono quiser):
+      conta em PDF, código colado e o AGENTE por voz (celular e PC).
 - [ ] Futuro (MAESTRO): galeria do cliente por link secreto (hoje as FOTOS ainda são listáveis por quem souber
       usar a API; documentos já estão protegidos).
