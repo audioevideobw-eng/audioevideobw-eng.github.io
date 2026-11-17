@@ -234,6 +234,9 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
     encostada no topo fica "embaçada" (editor de fotos, 17/11). Tela cheia no Safari iOS → barra desce ~30 px abaixo da área segura
     (classe html.ed-safari) e o theme-color vira a cor da barra enquanto ela está aberta; no app instalado não muda nada.
 
+74. IA de roteiro (BW REELS PRO): número que o PRÓPRIO usuário digitou entra com fonte "dados próprios" sozinho (antes bloqueava o vídeo
+    por falta de fonte); citação sem autor vira texto comum (não inventar quem disse). Visto só no teste com a IA REAL (regra 65).
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -730,6 +733,8 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   pintado com a cor da barra (theme-color volta ao fechar). Revisão geral antes de passar aos usuários: TODOS os testes 0 falhas (layout,
   agenda, crm, pedido, propostas, abas, concluir, cadastros, criador, ia_retoque, logo_fundo, agente_leitor, fotos, reels) + varredura 49
   páginas 0 achados + vigia ✅. fotos.js v11, sw v105. PENTE FINO 73.
+  BW REELS PRO no ar com a IA REAL (logado): 5 ganchos + roteiro + legenda em 4,5 s; número do próprio usuário ficava sem fonte e a IA fez
+  citação sem autor → corrigidos (reels.js v2, sw v106). PENTE FINO 74.
 
 ## Pendências (dono)
 - [ ] (17/11) BW REELS PRO: dono testar no ar — instalar o motor pelo ⚙ MOTOR NO PC, abrir o BW Reels Render e fazer um RENDERIZAR NO PC;

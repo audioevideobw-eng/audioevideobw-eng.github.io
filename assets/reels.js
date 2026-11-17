@@ -396,6 +396,8 @@
       if (c.tipo === "dado") { var v = Number(c.valor); if (!isFinite(v)) return; n.valor = v; if (n.prefixo) n.prefixo = n.prefixo + " "; if (n.sufixo && n.sufixo.length > 2) n.sufixo = " " + n.sufixo; }
       if (c.tipo === "texto" && !n.titulo && n.texto) { n.titulo = n.texto; delete n.texto; }
       if (c.tipo === "lista" && !n.itens.length) return;
+      if (c.tipo === "dado" && /interno|usu[aá]rio/i.test(n.fonte || "")) { n.fonte = "dados próprios"; n.interno = true; }
+      if (c.tipo === "citacao" && !n.autor) { n.tipo = "texto"; n.titulo = n.texto; delete n.texto; }   // sem autor não é citação (não inventar quem disse)
       out.push(n);
     });
     if (!out.length || out[out.length - 1].tipo !== "cta") out.push({tipo: "cta", duracao: 3, texto: "Gostou? Então fala comigo", acao: b.cta || b.perfil || "Me chama no direct"});
@@ -440,7 +442,18 @@
     var gancho = P.roteiro.cenas[0] && P.roteiro.cenas[0].tipo === "gancho" ? P.roteiro.cenas[0] : {tipo: "gancho", duracao: 3};
     P.roteiro.cenas = [gancho].concat(cenas);
     P.fatos = (d.fatos || []).map(function (f) { return {afirmacao: String(typeof f === "string" ? f : (f && (f.afirmacao || f.texto)) || ""), fonte: ""}; }).filter(function (f) { return f.afirmacao; });
-    cenas.forEach(function (c) { if (c.tipo === "dado" && !P.fatos.some(function (f) { return f.afirmacao.indexOf(String(c.valor)) >= 0; })) P.fatos.push({afirmacao: ((c.prefixo || "") + c.valor + (c.sufixo || "") + " " + (c.rotulo || "")).trim(), fonte: /interno/i.test(c.fonte || "") ? "interno: informado por " + (P.briefing.perfil || "mim") : ""}); });
+    /* número que o próprio usuário informou = fonte "interno: dados próprios" (já vem pronto, sem bloquear o vídeo) */
+    var proprios = String(b.fatos || "");
+    cenas.forEach(function (c) {
+      var interno = c.interno || (proprios && proprios.indexOf(String(c.valor)) >= 0);
+      delete c.interno;
+      if (c.tipo !== "dado") return;
+      if (interno && !c.fonte) c.fonte = "dados próprios";
+      var achou = false;
+      P.fatos.forEach(function (f) { if (f.afirmacao.indexOf(String(c.valor)) >= 0) { achou = true; if (interno && !f.fonte) f.fonte = "interno: dados próprios"; } });
+      if (!achou) P.fatos.push({afirmacao: ((c.prefixo || "") + c.valor + (c.sufixo || "") + " " + (c.rotulo || "")).trim(), fonte: interno ? "interno: dados próprios" : ""});
+    });
+    P.roteiro.fontes = fontesDoRoteiro();
     P.legenda = d.legenda || P.legenda || ""; $("fLegenda").value = P.legenda;
     if (P.briefing.perfil) P.roteiro.marca = {handle: P.roteiro.marca && P.roteiro.marca.handle || ""};
     P.ganchoEsc = P.ganchos.length ? 0 : -1; if (P.ganchos.length) aplicarGancho(P.ganchos[0].texto);

@@ -23,7 +23,7 @@ RESPOSTA_IA = {"ganchos": [
     {"tipo": "dado", "duracao": 3.2, "valor": 87, "sufixo": "%", "rotulo": "das empresas preferem lives", "fonte": ""},
     {"tipo": "lista", "duracao": 5, "titulo": "Do palco para todas as telas", "itens": ["Transmissão ao vivo", "Aftermovie", "Fotos"]},
     {"tipo": "cta", "duracao": 3, "texto": "Seu próximo evento merece ir mais longe", "acao": "@bw"}],
-  "fatos": ["87% das empresas preferem lives"], "legenda": "Seu evento não precisa acabar às 22h. #eventoscorporativos #transmissaoaovivo"}
+  "fatos": ["87% das empresas preferem lives", "A BW faz até 30 eventos por ano"], "legenda": "Seu evento não precisa acabar às 22h. #eventoscorporativos #transmissaoaovivo"}
 PEDIDOS = []
 
 class Q(http.server.SimpleHTTPRequestHandler):
@@ -82,6 +82,8 @@ with sync_playwright() as p:
         ok(pg.evaluate("BWReels.projeto().roteiro.cenas[0].texto") == "Sua live trava quando mais gente entra?", "trocar de gancho atualiza a cena 1")
         ok(pg.evaluate("BWReels.projeto().roteiro.cenas.length") == 6, "gancho + 5 cenas da IA")
         ok(pg.input_value("#fLegenda").startswith("Seu evento não precisa"), "legenda do post preenchida")
+        f30 = pg.evaluate("BWReels.projeto().fatos.filter(f=>f.afirmacao.indexOf('30')>=0).map(f=>f.fonte)")
+        ok(f30 and all(x.startswith("interno") for x in f30), f"número informado pelo usuário já entra com fonte 'dados próprios' {f30}")
         # fontes
         pg.click("#btGanchoOk"); pg.wait_for_timeout(300)
         ok(pg.locator("#fatos .rl-fato").count() >= 2, "fatos listados para fonte (da IA + número do usuário)")
