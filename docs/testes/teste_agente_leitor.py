@@ -188,6 +188,7 @@ with sync_playwright() as p:
         ok("Até mais" in pg.inner_text(".bwg-st"), "'tchau' encerra a conversa")
         ok(len(pg.evaluate("window.__falou")) >= 4, "respondeu falando em cada passo")
         pg.evaluate("window.__falas = []")
+        diz("me chama de Marcos"); diz("como está meu dia?"); ok(", Marcos" in pg.inner_text("#bwgAc"), "'me chama de Marcos' → o resumo do dia usa o nome")
         # voz masculina: escolhe o homem em pt-BR; sem homem → tom mais grave
         V = lambda nomes: pg.evaluate("(ns) => { speechSynthesis.getVoices = () => ns.map(n => ({ name: n[0], lang: n[1] })); return BWAgente.voz(); }", nomes)
         v = V([["Microsoft Maria - Portuguese (Brazil)", "pt-BR"], ["Microsoft Daniel - Portuguese (Brazil)", "pt-BR"]]); ok(v and "Daniel" in v["nome"] and v["tom"] == 1, f"Windows: voz masculina Daniel ({v})")

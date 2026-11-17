@@ -666,6 +666,9 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   (trocar já fala uma amostra); fala em frases (mais natural, o Chrome não corta resposta longa); sinal sonoro ao começar a ouvir.
   Voz neural no aparelho (Piper pt-BR "faber", ~60 MB) pesquisada, NÃO feita: precisa de biblioteca de terceiros — aguarda o dono.
   teste_agente_leitor.py +4 checagens (0 falhas). layout.js v39, sw v95.
+  Teste de som no PC do dono: fala saiu pela saída padrão (voz Daniel, 7 s); o resumo dizia "Boa noite, Bw!" (nome da conta) → nome de
+  empresa é ignorado, "me chama de Marcos" e campo "Como te chamo?" em ⚙ (ui_agente_nome). No painel do app Claude o microfone é
+  bloqueado: ouvir por voz só se testa no Chrome/Edge/celular. bw-agente v10, layout.js v40, sw v96.
 
 ## Pendências (dono)
 - [x] (16/11 11:42) IA CRIATIVA ATIVA: conta Cloudflare do dono (Free, sem cartão), token "Brightway IA criativa 2" (Workers AI Read+Edit) em

@@ -141,7 +141,7 @@
   var SEMANA = ["domingo", "segunda", "terça", "quarta", "quinta", "sexta", "sábado"];
   function resumoDia(dia) {   /* "como está meu dia" — montado AQUI com os dados do aparelho; nada vai para a IA */
     var agora = new Date(), hh = agora.getHours(), d = new Date(agora); d.setHours(0, 0, 0, 0); if (dia === "amanha") d.setDate(d.getDate() + 1);
-    var k = ymd(d), quando = dia === "amanha" ? "Amanhã" : "Hoje", nome = ESTADO.nome ? ", " + ESTADO.nome : "";
+    var k = ymd(d), quando = dia === "amanha" ? "Amanhã" : "Hoje", nm = String(ui("nome", "") || ESTADO.nomeConta || "").trim(), nome = nm ? ", " + nm : "";
     var saud = dia === "amanha" ? "Beleza" + nome + "." : (hh < 12 ? "Bom dia" : hh < 18 ? "Boa tarde" : "Boa noite") + nome + "!";
     var its = itensAgenda(k, k).filter(function (i) { return !i.feito; }).sort(function (a, b) { return (a.hora || "99").localeCompare(b.hora || "99"); });
     var partes = [saud];
@@ -250,6 +250,8 @@
     if (/piada|me faz rir|algo engracado/.test(tt)) return [{ tipo: "responder", texto: PIADAS[Math.floor(Math.random() * PIADAS.length)] }];
     if (/quem (e|eh) voce|qual (e )?(o )?seu nome|como (voce )?se chama/.test(tt)) return [{ tipo: "responder", texto: "Eu sou o Tio Cláudio, seu ajudante aqui na Brightway. Lanço gastos, contas e tarefas, conto como está o seu dia e ainda solto umas piadas." }];
     if (/^(oi|ola|e ai|opa|fala)( tudo bem| beleza)?$/.test(tt) || /^tudo (bem|bom|certo)/.test(tt)) return [{ tipo: "responder", texto: "Opa, tudo bão por aqui! Em que posso ajudar? Pode pedir um lançamento, uma tarefa ou perguntar como está o seu dia." }];
+    var mn = String(texto).match(/(?:me chama(?:r)? de|pode me chamar de|meu nome [eé]) ([A-Za-zÀ-ÿ]{2,20})/i);
+    if (mn) { uiSet("nome", cap(mn[1])); return [{ tipo: "responder", texto: "Combinado, " + cap(mn[1]) + "! Vou te chamar assim." }]; }
     /* corrigir o último pedido: "muda para as 15h", "na verdade foi 50" */
     if (/^(muda|mude|mudar|troca|troque|trocar|altera|altere|alterar|passa|corrige|na verdade|melhor|nao,? )/.test(tt)) {
       var aj = { tipo: "ajustar" }, mh = t.match(/(?:as|a|para|pra) (\d{1,2})(?:h| horas|:)?(\d{2})?(?=\s)/) || t.match(/ (\d{1,2})h(\d{2})?(?=\s)/), dj = dataDe(t), mv = t.match(/(?:foi|era|e|valor|para|pra) (?:r\$ ?)?([\d.]+(?:,\d{1,2})?)(?: reais)?(?=\s)/);
@@ -377,7 +379,7 @@
     return a;
   }
   async function entender(texto) {
-    var usarIA = ui("ia", true), r = usarIA ? await entenderIA(texto) : null, via = "IA Brightway";
+    var usarIA = ui("ia", true) && !/me chama(r)? de|meu nome (e|é) /i.test(texto), r = usarIA ? await entenderIA(texto) : null, via = "IA Brightway";
     if (r) { r.acoes = (r.acoes || []).map(achatar).filter(Boolean); if ((!r.acoes.length || r.acoes.every(function (a) { return a.tipo === "nada"; })) && String(r.resposta || "").length > 25) r.acoes = [{ tipo: "responder", texto: r.resposta }];   /* a IA respondeu (papo), sem ação */
       if (!r.acoes.length || r.acoes.every(function (a) { return a.tipo === "nada"; })) { var loc = entenderLocal(texto); if (loc.some(function (a) { return a.tipo !== "nada"; })) r = { acoes: loc, resposta: "" }; } }
     if (r && r.resposta && r.acoes.length && r.acoes.every(function (a) { return a.tipo === "nada"; }) && String(r.resposta).length > 25) r.acoes = [{ tipo: "responder", texto: r.resposta }];   /* a IA respondeu, mas marcou "nada" */
@@ -537,7 +539,7 @@
     document.body.appendChild(painel); document.body.appendChild(fab);
     fab.addEventListener("click", function () { if (ouvindo) { parar(); return; } calar(); abrir(true); });
     try { if (window.speechSynthesis) speechSynthesis.onvoiceschanged = function () { if (painel && !painel.hidden && !painel.querySelector("#bwgAj").hidden) desenharVozes(); }; } catch (e) { }
-    sessao().then(function (s) { var m = s && s.user && s.user.user_metadata || {}; var n = String(m.full_name || m.name || "").trim().split(/\s+/)[0]; if (n) ESTADO.nome = cap(n.toLowerCase()); });
+    sessao().then(function (s) { var m = s && s.user && s.user.user_metadata || {}; var n = String(m.full_name || m.name || "").trim().split(/\s+/)[0]; if (n && n.length >= 3 && !/^(bw|audio|video|studio|empresa|produtora)/i.test(n)) ESTADO.nomeConta = cap(n.toLowerCase()); });
     painel.addEventListener("click", clique);
     painel.addEventListener("change", mudanca);
     document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !painel.hidden) fechar(); });
@@ -562,6 +564,7 @@
       '<label><input type="checkbox" data-u="voz"' + (ui("voz", true) ? " checked" : "") + '> Responder falando</label>' +
       '<label><input type="checkbox" data-u="bip"' + (ui("bip", true) ? " checked" : "") + '> Sinal sonoro quando começa a ouvir</label>' +
       '<label><input type="checkbox" data-u="conversa"' + (ui("conversa", true) ? " checked" : "") + '> Modo conversa: depois de responder, continua ouvindo (diga “tchau” para encerrar)</label>' +
+      '<label style="display:grid;grid-template-columns:auto 1fr;gap:8px;align-items:center">Como te chamo? <input type="text" data-u="nome" value="' + esc(ui("nome", "")) + '" placeholder="seu nome" style="min-width:0;padding:6px 8px;border-radius:8px;background:#0a0d14;color:#fff;border:1px solid rgba(255,255,255,.16);font-size:16px;width:auto;height:auto"></label>' +
       '<div id="bwgVozes"></div>' +
       '<label><input type="checkbox" data-u="auto"' + (ui("auto", false) ? " checked" : "") + '> Lançar sem perguntar (só quando tiver tudo: o quê, valor e data)</label></div>' +
       '<div class="bwg-sub">A voz vira texto pelo reconhecimento do próprio navegador' + (ESTADO.local ? " (no aparelho)" : "") + '. Nada é gravado sem você confirmar. Perguntas como "quanto gastei" são calculadas aqui, com os seus dados.</div>';
