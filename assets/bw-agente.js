@@ -370,6 +370,7 @@
   async function entender(texto) {
     var usarIA = ui("ia", true), r = usarIA ? await entenderIA(texto) : null, via = "IA Brightway";
     if (r) { r.acoes = (r.acoes || []).map(achatar).filter(Boolean); if (!r.acoes.length || r.acoes.every(function (a) { return a.tipo === "nada"; })) { var loc = entenderLocal(texto); if (loc.some(function (a) { return a.tipo !== "nada"; })) r = { acoes: loc, resposta: "" }; } }
+    if (r && r.resposta && r.acoes.length && r.acoes.every(function (a) { return a.tipo === "nada"; }) && String(r.resposta).length > 25) r.acoes = [{ tipo: "responder", texto: r.resposta }];   /* a IA respondeu, mas marcou "nada" */
     if (!r) { r = { acoes: entenderLocal(texto), resposta: "" }; via = "no aparelho"; }
     r.acoes = (r.acoes || []).map(normalizar).filter(function (a) { return a && a.tipo; });
     /* data dita com dia da semana/amanhã/"dia 20": o cálculo do aparelho vale (a IA errou "sexta" → domingo) */
