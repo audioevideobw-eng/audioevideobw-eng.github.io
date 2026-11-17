@@ -422,7 +422,7 @@
   function melhorVoz() {   /* a escolhida nos ajustes, ou a melhor voz masculina em português do aparelho */
     var vs = vozes(), esc0 = ui("vozNome", ""); if (!vs.length) return null;
     if (esc0) { var e0 = vs.filter(function (v) { return v.name === esc0; })[0]; if (e0) return e0; }
-    var pts = function (v) { var n = v.name; return (/pt[-_]BR/i.test(v.lang) ? 25 : 0) + (ehHomem(v) ? 20 : 0) + (/natural|neural|online|premium|enhanced|aprimorad/i.test(n) ? 6 : 0) + (/google/i.test(n) ? 3 : 0) + (/compact|eloquence|novelty/i.test(n) ? -6 : 0); };
+    var pts = function (v) { var n = v.name; return (/pt[-_]BR/i.test(v.lang) ? 25 : 0) + (ehHomem(v) ? 20 : 0) + (/natural|neural|online|premium|enhanced|aprimorad/i.test(n) ? 6 : 0) + (/google/i.test(n) ? 3 : 0) + (/felipe|antonio|daniel/i.test(n) ? 4 : 0) + (/compact|eloquence|novelty|eddy|reed|rocko|grandpa/i.test(n) ? -5 : 0); };
     return vs.slice().sort(function (a, b) { return pts(b) - pts(a); })[0];
   }
   function tomDe(v) { var t = ui("tom", "auto"); return t === "grave" ? 0.75 : t === "normal" ? 1 : (v && !ehHomem(v) ? 0.8 : 1); }
@@ -438,10 +438,11 @@
       var o = somCtx.createOscillator(), g = somCtx.createGain(), t = somCtx.currentTime; o.type = "sine"; o.frequency.setValueAtTime(sobe ? 660 : 520, t); o.frequency.exponentialRampToValueAtTime(sobe ? 880 : 390, t + .12);
       g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(.08, t + .02); g.gain.exponentialRampToValueAtTime(.0001, t + .16); o.connect(g); g.connect(somCtx.destination); o.start(t); o.stop(t + .18); } catch (e) { }
   }
-  var falaId = 0, destravado = 0;
+  var falaId = 0, destravado = 0, micFim = 0, srRuim = false;
+  var IOS = /iPhone|iPad|iPod/i.test(navigator.userAgent || "") || (/Macintosh/i.test(navigator.userAgent || "") && navigator.maxTouchPoints > 1);
   function destravar() {   /* 16/11: iPhone e Android só deixam o site FALAR se a primeira fala nascer dentro de um toque → fala muda no toque */
     if (!window.speechSynthesis || !ui("voz", true)) return;
-    try { speechSynthesis.resume(); if (destravado) return; var u = new SpeechSynthesisUtterance(" "); u.volume = 0; u.lang = "pt-BR"; speechSynthesis.speak(u); destravado = Date.now(); } catch (e) { }
+    try { speechSynthesis.resume(); if (destravado) return; var u = new SpeechSynthesisUtterance(""); u.volume = 0; u.lang = "pt-BR"; speechSynthesis.speak(u); destravado = Date.now(); } catch (e) { }
     try { var C = window.AudioContext || window.webkitAudioContext; if (C) { somCtx = somCtx || new C(); if (somCtx.state === "suspended") somCtx.resume(); } } catch (e) { }
   }
   function falar(txt, depois) {
@@ -459,7 +460,8 @@
           if (i === fs.length - 1) { u.onend = seguir; u.onerror = function (e) { if (comVoz && !comecou && e && !/interrupted|canceled/.test(e.error || "")) { comecou = true; soltar(false); } else seguir(); }; }
           speechSynthesis.speak(u); });
       };
-      setTimeout(function () { soltar(true); }, ocupado ? 120 : 0);   /* falar logo depois de cancelar: o Chrome engole a fala */
+      var espera = Math.max(ocupado ? 120 : 0, IOS ? Math.max(0, 700 - (Date.now() - micFim)) : 0);   /* iPhone: logo depois do microfone a fala sai muda ou pelo fone de ouvido */
+      setTimeout(function () { soltar(true); }, espera);   /* falar logo depois de cancelar: o Chrome engole a fala */
       setTimeout(function () {   /* não começou em 3 s: tenta a voz padrão do aparelho e avisa na tela */
         if (meu !== falaId || comecou || fim) return;
         try { speechSynthesis.cancel(); speechSynthesis.resume(); } catch (e) { }
@@ -470,9 +472,9 @@
     } catch (e) { seguir(); }
   }
   function calar() { falaId++; if (Date.now() - destravado < 500) return; try { if (window.speechSynthesis && (speechSynthesis.speaking || speechSynthesis.pending)) speechSynthesis.cancel(); } catch (e) { } }
-  function continuar() { if (ui("conversa", true) && painel && !painel.hidden && !ouvindo && SR) ouvir(true); }
+  function continuar() { if (ui("conversa", true) && painel && !painel.hidden && !ouvindo && SR && !srRuim) ouvir(true); }
   async function confirmarPorVoz() {   /* 16/11: depois de "…Confirma?" escuta "sim / pode lançar" ou "não / cancela" — mãos livres */
-    if (!SR || painel.hidden || ouvindo || !ESTADO.acoes.some(function (a) { return !a.feito && /gasto|receita|entrada|conta_pagar|tarefa|custo_evento/.test(a.tipo); })) return;
+    if (!SR || srRuim || painel.hidden || ouvindo || !ESTADO.acoes.some(function (a) { return !a.feito && /gasto|receita|entrada|conta_pagar|tarefa|custo_evento/.test(a.tipo); })) return;
     ouvindo = true; fab.classList.add("ouvindo");
     status('<span class="bwg-onda"><i></i><i></i><i></i><i></i></span> Diga <b>"sim"</b> para lançar, <b>"não"</b> para cancelar — ou toque nos botões.');
     var r = ""; try { r = sa(await ouvirNavegador(function () { })); } catch (e) { }
@@ -493,7 +495,7 @@
       var final = "", ultimo = "";
       r.onresult = function (ev) { var p = ""; for (var i = ev.resultIndex; i < ev.results.length; i++) { if (ev.results[i].isFinal) final += ev.results[i][0].transcript; else p += ev.results[i][0].transcript; } ultimo = (final + " " + p).trim(); aoParcial(ultimo); };
       r.onerror = function (ev) { erro(new Error(ev.error || "erro")); };
-      r.onend = function () { rec = null; ok((final || ultimo).trim()); };
+      r.onend = function () { rec = null; micFim = Date.now(); ok((final || ultimo).trim()); };
       try { r.start(); } catch (e) { erro(e); }
     });
   }
@@ -621,7 +623,16 @@
     ouvindo = true; fab.classList.add("ouvindo"); bip(true);
     status('<span class="bwg-onda"><i></i><i></i><i></i><i></i></span> ' + (emConversa ? "Tô ouvindo… pode falar (ou diga “tchau”)" : "Ouvindo… pode falar com o Tio Cláudio (toque no robô para parar)"));
     try {
-      var txt = SR ? await ouvirNavegador(function (p) { fala.textContent = p; }) : await ouvirGravando(function (p) { status(esc(p)); });
+      var txt;
+      if (SR && !srRuim) {
+        try { txt = await ouvirNavegador(function (p) { fala.textContent = p; }); }
+        catch (e1) {   /* app instalado no iPhone (tela de início): o reconhecimento do navegador não funciona → grava e transcreve */
+          if (!/service-not-allowed|language-not-supported|audio-capture/.test(String(e1 && e1.message)) || !(navigator.mediaDevices && window.MediaRecorder)) throw e1;
+          srRuim = true; status("🎙 Gravando… fale e toque no robô para terminar");
+          txt = await ouvirGravando(function (p) { status(esc(p)); });
+        }
+      } else txt = await ouvirGravando(function (p) { status(esc(p)); });
+      micFim = Date.now();
       ouvindo = false; fab.classList.remove("ouvindo");
       if (!txt) { status(emConversa ? "Fim da conversa. Toque no robô quando precisar." : "Não ouvi nada. Toque em 🎙 e fale de novo, ou escreva."); return; }
       fala.textContent = txt; processar(txt, true);

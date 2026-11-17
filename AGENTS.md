@@ -678,6 +678,11 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
 - 16/11/2026 23:35 · Claude (dono: "ele não está emitindo som"): bw-agente.js v11 — fala destravada no toque do robô (iPhone/Android), sem
   cancel→speak colado, nova tentativa com a voz padrão e aviso "🔇 o som não saiu" na tela, sem lookbehind. layout.js v41, sw v97. PENTE FINO 67.
 
+- 16/11/2026 23:45 · Claude (dono: "iPhone não escuto"; no PC ouviu): bw-agente.js v12 — no iPhone a fala espera 0,7 s depois do microfone
+  (logo depois dele o som sai mudo/pelo fone de ouvido), destrave com fala vazia, vozes robóticas (Eddy/Reed/Rocko) deixam de ser preferidas;
+  app instalado na tela de início (reconhecimento do navegador não funciona): grava e transcreve pela bw-ia. NÃO testado em iPhone real
+  (sem aparelho) — aguarda o dono. layout.js v42, sw v98.
+
 ## Pendências (dono)
 - [x] (16/11 11:42) IA CRIATIVA ATIVA: conta Cloudflare do dono (Free, sem cartão), token "Brightway IA criativa 2" (Workers AI Read+Edit) em
       CF_API_TOKEN, CF_ACCOUNT_ID salvo. Teste no ar: "cabelo cacheado ruivo e óculos de sol" → nova versão em 6 s, mesma pessoa/roupa/fundo.
