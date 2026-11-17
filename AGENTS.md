@@ -640,7 +640,8 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   gastos/contas/negócio e perguntas gerais (tipo responder); entende mais tarefas ("tenho que", "preciso", "levar", "buscar", "ligar",
   "dentista sexta às 15h", de manhã = 9h, à tarde = 14h, à noite = 19h); voz mãos livres: depois de "…Confirma?" escuta "sim" (lança) ou
   "não" (cancela). AGENDA da tela inicial redesenha na hora quando o agente grava (evento bw-dados). teste_agente_leitor.py +11 checagens
-  (0 falhas), agenda/layout/varredura 0. layout.js v32, sw v88. PENTE FINO 65.
+  (0 falhas), agenda/layout/varredura 0. No ar a IA errou "sexta" (deu domingo) → o pedido leva os próximos 7 dias e a data dita
+  com dia da semana/amanhã/"dia N" é conferida pelo cálculo do aparelho. bw-agente.js v3, layout.js v33, sw v89. PENTE FINO 65.
 
 ## Pendências (dono)
 - [x] (16/11 11:42) IA CRIATIVA ATIVA: conta Cloudflare do dono (Free, sem cartão), token "Brightway IA criativa 2" (Workers AI Read+Edit) em

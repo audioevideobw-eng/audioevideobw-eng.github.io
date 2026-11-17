@@ -289,7 +289,8 @@
     var s = await sessao(); if (!s) return null;
     var d = new Date(), sem = ["domingo", "segunda", "terça", "quarta", "quinta", "sexta", "sábado"][d.getDay()];
     var evs = Lanca.eventos().slice(0, 12).map(function (e) { return e.nome + (e.data ? " (" + br(e.data) + ")" : ""); });
-    var pedido = "HOJE: " + hoje() + " (" + sem + ")\nEVENTOS: " + (evs.join("; ") || "nenhum") + "\nPEDIDO: " + String(texto).slice(0, 600);
+    var dias = []; for (var i = 1; i <= 7; i++) { var dx = new Date(d); dx.setDate(dx.getDate() + i); dias.push(["domingo", "segunda", "terça", "quarta", "quinta", "sexta", "sábado"][dx.getDay()] + " = " + ymd(dx)); }
+    var pedido = "HOJE: " + hoje() + " (" + sem + ")\nPRÓXIMOS DIAS: " + dias.join(", ") + "\nEVENTOS: " + (evs.join("; ") || "nenhum") + "\nPEDIDO: " + String(texto).slice(0, 600);
     try {
       var ctl = new AbortController(), tm = setTimeout(function () { ctl.abort(); }, 12000);
       var r = await fetch(FN, { method: "POST", signal: ctl.signal, headers: { "Content-Type": "application/json", "Authorization": "Bearer " + s.access_token, "apikey": PUB }, body: JSON.stringify({ sistema: SISTEMA, pedido: pedido, max: 500 }) });
@@ -324,6 +325,9 @@
     if (r) { r.acoes = (r.acoes || []).map(achatar).filter(Boolean); if (!r.acoes.length || r.acoes.every(function (a) { return a.tipo === "nada"; })) { var loc = entenderLocal(texto); if (loc.some(function (a) { return a.tipo !== "nada"; })) r = { acoes: loc, resposta: "" }; } }
     if (!r) { r = { acoes: entenderLocal(texto), resposta: "" }; via = "no aparelho"; }
     r.acoes = (r.acoes || []).map(normalizar).filter(function (a) { return a && a.tipo; });
+    /* data dita com dia da semana/amanhã/"dia 20": o cálculo do aparelho vale (a IA errou "sexta" → domingo) */
+    var tl = " " + extenso(sa(texto)) + " ", dl = dataDe(tl), datadas = r.acoes.filter(function (a) { return /tarefa|gasto|receita|entrada|conta_pagar|custo_evento/.test(a.tipo); });
+    if (dl && datadas.length === 1 && !/\d{1,2}\/\d{1,2}/.test(tl)) { var a1 = datadas[0]; if (a1.tipo === "conta_pagar") a1.vencimento = dl; else a1.data = dl; }
     if (r.acoes.some(function (a) { return a.tipo !== "nada" && a.tipo !== "responder"; })) r.resposta = "";   /* nunca "lembrete criado" antes de lançar */
     if (!r.acoes.length) r.acoes = [{ tipo: "nada" }];
     r.via = via; return r;
