@@ -323,7 +323,7 @@
     '- conta_pagar: descricao (Energia, Água…), valor, vencimento\n' +
     '- tarefa: titulo, data, hora ("HH:MM" ou ""), categoria (tarefa, trabalho, pessoal, casa, saude, reuniao) — lembretes, compromissos, "tenho que", "preciso"\n' +
     '- custo_evento: evento (nome EXATO da lista), descricao, valor, data\n' +
-    '- consulta: fonte (agenda|casa|negocio|contas), periodo (hoje|amanha|semana|proxima_semana|mes|mes_passado|ano), filtro — perguntas sobre os DADOS dele\n' +
+    '- consulta: fonte (agenda|casa|negocio|contas), periodo (hoje|amanha|semana|proxima_semana|mes|mes_passado|ano), data (AAAA-MM-DD se for UM dia, ex. "quinta"), filtro — perguntas sobre os DADOS dele\n' +
     '- resumo_dia: dia (hoje|amanha) — "como está meu dia", "bom dia", "o que tem pra hoje"\n' +
     '- ajustar: só os campos a mudar (hora, data, valor, titulo, descricao) — corrigir o último pedido: "muda para as 15h", "na verdade foi 50"\n' +
     '- responder: texto — conversa, piada, curiosidade, pergunta geral (1 a 3 frases faladas, sem emoji nem markdown)\n' +
@@ -357,6 +357,15 @@
     if (ks.length === 1) return Object.assign({ tipo: ks[0] }, typeof a[ks[0]] === "object" && a[ks[0]] ? a[ks[0]] : {});
     return null;
   }
+  async function papo(texto) {   /* conversa livre com o Tio Cláudio (só a frase + as últimas falas) */
+    var s = await sessao(); if (!s) return "";
+    var hist = (ESTADO.hist || []).slice(-4).map(function (h) { return "Pessoa: " + h.q + "\nTio Cláudio: " + h.r; }).join("\n");
+    try {
+      var r = await fetch(FN, { method: "POST", headers: { "Content-Type": "application/json", "Authorization": "Bearer " + s.access_token, "apikey": PUB },
+        body: JSON.stringify({ sistema: "Você é o TIO CLÁUDIO, assistente de voz da Brightway, do Marcos (mineiro, produtora de eventos e audiovisual). Responda em português, de forma calorosa e descontraída, um toque mineiro com moderação, em 1 a 3 frases curtas para serem FALADAS (sem emoji, sem markdown, sem listas). Se não souber, diga que não sabe. Não invente dados da agenda ou das contas dele.", pedido: (hist ? hist + "\n" : "") + "Pessoa: " + String(texto).slice(0, 500), max: 300 }) });
+      var j = await r.json().catch(function () { return {}; }); return r.ok && j.texto ? String(j.texto).replace(/[*#_`]/g, "").trim().slice(0, 600) : "";
+    } catch (e) { return ""; }
+  }
   function normalizar(a) {   /* confere o que a IA devolveu antes de mostrar */
     a = Object.assign({}, a || {}); a.valor = num(a.valor);
     if (a.tipo === "tarefa") { a.titulo = cap(a.titulo || a.descricao || "Tarefa"); if (!a.data) a.data = hoje(); }
@@ -371,10 +380,12 @@
     var usarIA = ui("ia", true), r = usarIA ? await entenderIA(texto) : null, via = "IA Brightway";
     if (r) { r.acoes = (r.acoes || []).map(achatar).filter(Boolean); if (!r.acoes.length || r.acoes.every(function (a) { return a.tipo === "nada"; })) { var loc = entenderLocal(texto); if (loc.some(function (a) { return a.tipo !== "nada"; })) r = { acoes: loc, resposta: "" }; } }
     if (r && r.resposta && r.acoes.length && r.acoes.every(function (a) { return a.tipo === "nada"; }) && String(r.resposta).length > 25) r.acoes = [{ tipo: "responder", texto: r.resposta }];   /* a IA respondeu, mas marcou "nada" */
+    if (r && (!r.acoes.length || r.acoes.every(function (a) { return a.tipo === "nada"; })) && !(r.resposta && String(r.resposta).length > 25)) { var pa = await papo(texto); if (pa) r = { acoes: [{ tipo: "responder", texto: pa }], resposta: "" }; }   /* pergunta geral: conversa direta */
     if (!r) { r = { acoes: entenderLocal(texto), resposta: "" }; via = "no aparelho"; }
     r.acoes = (r.acoes || []).map(normalizar).filter(function (a) { return a && a.tipo; });
     /* data dita com dia da semana/amanhã/"dia 20": o cálculo do aparelho vale (a IA errou "sexta" → domingo) */
     var tl = " " + extenso(sa(texto)) + " ", dl = dataDe(tl), datadas = r.acoes.filter(function (a) { return /tarefa|gasto|receita|entrada|conta_pagar|custo_evento/.test(a.tipo); });
+    r.acoes.forEach(function (a) { if (a.tipo === "consulta" && a.fonte === "agenda") { var d1 = (dl && !/semana|mes|ano/.test(tl)) ? dl : (/^\d{4}-\d{2}-\d{2}$/.test(a.data || "") ? a.data : ""); if (d1) a._ini = d1; } });
     if (dl && datadas.length === 1 && !/\d{1,2}\/\d{1,2}/.test(tl)) { var a1 = datadas[0]; if (a1.tipo === "conta_pagar") a1.vencimento = dl; else a1.data = dl; }
     if (r.acoes.some(function (a) { return !/^(nada|responder|fim)$/.test(a.tipo); })) r.resposta = "";   /* nunca "lembrete criado" antes de lançar */
     if (!r.acoes.length) r.acoes = [{ tipo: "nada" }];
