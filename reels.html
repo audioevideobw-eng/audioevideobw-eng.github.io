@@ -394,6 +394,13 @@
       <div id="pnExportar" hidden>
         <div id="validacao"></div>
         <div class="rl-eyebrow" style="margin:6px 0 8px">Gerar o vídeo</div>
+        <div id="cxAqui">
+          <p class="rl-nota"><b>Neste aparelho</b> (celular, tablet ou computador): o vídeo é feito aqui mesmo, sem instalar nada e sem enviar nada para a internet. Deixe esta tela aberta até terminar.</p>
+          <div class="rl-campo"><label for="fQualAqui">Qualidade</label><select id="fQualAqui"><option value="1280">Rápida — 720 × 1280 (recomendada no celular)</option><option value="1920">Alta — 1080 × 1920 (demora mais)</option></select></div>
+          <button class="rl-bt pri" id="btAqui" type="button" style="width:100%">🎬 GERAR VÍDEO NESTE APARELHO</button>
+          <div id="aquiEstado" aria-live="polite" style="margin-top:8px"></div>
+        </div>
+        <div class="rl-eyebrow" style="margin:16px 0 8px">Ou no computador</div>
         <p class="rl-nota">O vídeo final (MP4 em alta) é feito pelo motor <b>BW Reels Studio</b> no seu computador: com o <b>BW REELS RENDER</b> aberto, toque em RENDERIZAR NO PC — o pedido vai para Downloads, o motor faz o vídeo e abre quando terminar.</p>
         <button class="rl-bt pri" id="btPacote" type="button" style="width:100%">⬇ RENDERIZAR NO PC</button>
         <div class="rl-acoes" style="margin-top:8px">
@@ -552,6 +559,7 @@
 <script src="assets/reels-modelos.js?v=3"></script>
 <script src="assets/fotos-nuvem.js?v=2"></script>
 <script src="assets/reels-avatar.js?v=1"></script>
-<script src="assets/reels.js?v=7"></script>
+<script src="assets/reels-celular.js?v=1"></script>
+<script src="assets/reels.js?v=8"></script>
 </body>
 </html>

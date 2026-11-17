@@ -246,3 +246,10 @@ Tamanho > 0 e sem erro = o pdfmake montou o arquivo. Localmente (T1) confira o `
   e, no site, reels.js (GRUPOS de campos, ROTULOS, PADRAO_TIPO, lerCena) + reels.html (opção no select).
 - Revisar sem assistir: `node motor/animar.mjs t.html --folha` com um roteiro de teste que tenha uma cena de cada tipo (projetos/teste-motions,
   apagar antes de empacotar). Texto grande: medir a palavra mais longa; enfeite que divide espaço com texto sai antes do texto.
+
+## Vídeo MP4 feito no navegador (17/11)
+- assets/reels-celular.js: `BWReelsCelular.suporta()` e `gerar({html, largura, altura, fps, duracao, som, alturaSaida, aoProgredir, cancelar})`.
+  Iframe escondido com o HTML do motor → `__seek(t)` → XMLSerializer → SVG foreignObject (data:) → canvas → VideoEncoder (avc1.420028,
+  sem quadros B) → MP4 próprio (ftyp + moov + mdat, um "chunk" por amostra; avcC vem de meta.decoderConfig.description).
+- Som: sintetizarSons(plano, {sr: 48000}) → AudioEncoder (mp4a.40.2 → esds; ou opus → dOps com o pre-skip do OpusHead).
+- Conferir: `ffprobe -show_streams`, `ffmpeg -i x.mp4 -f null -` (0 erros), `-af volumedetect`, folha com `fps=1/2.4,tile=6x1`.

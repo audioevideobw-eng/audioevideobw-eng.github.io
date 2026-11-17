@@ -254,6 +254,12 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
     passava da tela; enfeite animado que divide espaço com texto (anel da contagem) some antes do texto entrar. Gráfico sem fonte ou com
     item sem número BLOQUEIA o vídeo (validar.mjs + teste). Trocar o tipo da cena já preenche um exemplo e mostra só os campos daquele tipo.
 
+82. Vídeo feito no navegador (assets/reels-celular.js): quadro = SVG foreignObject do HTML do motor → canvas → WebCodecs H.264 → MP4 montado
+    no aparelho. Dentro do foreignObject NADA de fora carrega: fontes do Google embutidas em base64 (só latin, só as usadas), imagens blob
+    viram data:, <script>/<link> removidos; imagem do quadro por data: (blob: "suja" o canvas). WebCodecs só existe em página segura
+    (https ou localhost do teste; about:blank não tem). Som: AAC se o aparelho codifica, senão Opus (avisar), senão mudo (avisar).
+    Filmagem (<video>) não entra → mensagem mandando para o PC. Teste confere o MP4 com ffprobe + decodificação inteira + volume.
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -812,12 +818,19 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   Claude Code (instalador oficial), Ollama (winget Ollama.Ollama) e modelo gemma3. O modo recomendado muda conforme o que está conectado.
   Teste motor/teste-assistente.mjs (24 checagens + render, 0 falhas) com TODAS as IAs e a instalação SIMULADAS — nada disso foi testado
   com serviço real nem no Windows. Mobile (render no celular / app iOS-Android): só planejado, ver Pendências.
+- 17/11/2026 · Claude (dono: "render também no celular… faça o necessário"): BW REELS PRO › EXPORTAR › 🎬 GERAR VÍDEO NESTE APARELHO
+  (assets/reels-celular.js): MP4 feito no próprio celular/tablet/PC, sem programa e sem enviar nada — qualidade Rápida 720×1280 (padrão no
+  celular) ou Alta 1080×1920, barra de progresso, CANCELAR, prévia do vídeo, SALVAR VÍDEO e COMPARTILHAR (folha do sistema). Com som
+  automático do motor. Limites desta versão: cenas com FILMAGEM e música/narração própria continuam no RENDERIZAR NO PC; aparelho sem
+  WebCodecs = botão desligado com explicação. Teste docs/testes/teste_reels_celular.py (390 px, UA Android): MP4 H.264 conferido com ffprobe,
+  318 quadros em 21 s (720p) / 45 s (1080p), som Opus neste Linux. NÃO testado em iPhone nem Android reais (AAC e Safari dependem do aparelho).
+  reels.js v8, reels-celular.js v1, sw v112. PENTE FINO 82. App de loja (iOS/Android): não feito — a plataforma já instala como app pela tela inicial.
 
 ## Pendências (dono)
 - [ ] (17/11) BW REELS ASSISTENTE: dono abrir pelo BW-REELS-ASSISTENTE.bat no PC e fazer 1 vídeo em cada modo (ECONÔMICO com o Claude real).
 - [ ] (17/11) BW IA: dono criar as chaves grátis (Groq, Gemini, OpenRouter) e colar em ⚙ Minhas IAs; testar INSTALAR IAS RECOMENDADAS no PC.
-- [ ] (17/11) MOBILE (ideia do dono): render no celular dentro do BW Reels Pro (WebCodecs no navegador) + IA Brightway com login; depois
-      avaliar app iOS/Android. Aguardando o dono aprovar o plano.
+- [ ] (17/11) MOBILE: dono testar GERAR VÍDEO NESTE APARELHO no iPhone e no Android (o vídeo toca? tem som? salva na galeria? o Instagram
+      aceita?) e mandar print do aviso verde. App de loja (App Store/Google Play): decidir depois do teste.
 - [ ] (17/11) Login obrigatório no Assistente/Studio: decidir quando ligar (precisa de Edge Function de ativação + botão ATIVAR NESTE PC no site).
 - [ ] (17/11) BW REELS PRO › ANIMAR MEU PERSONAGEM: dono testar com a foto do avatar dele (recorte e cenas por IA, logado).
 - [ ] (17/11) BW REELS PRO › 🎬 MODELOS: dono testar a galeria e um modelo de personagem no iPhone (vídeos de exemplo tocando) e mandar opinião.
