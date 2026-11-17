@@ -237,6 +237,23 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
 74. IA de roteiro (BW REELS PRO): número que o PRÓPRIO usuário digitou entra com fonte "dados próprios" sozinho (antes bloqueava o vídeo
     por falta de fonte); citação vinda da IA vira texto comum e o prompt proíbe atribuir frases (no ar a IA inventou "— Especialista em eventos"). Visto só no teste com a IA REAL (regra 65).
 
+**Aprendidos em 17/11 (galeria, personagens, som e gráficos do BW REELS PRO)**
+75. Animação por código é DETERMINÍSTICA: cada quadro depende só de t (`__seek(t)`); conferir com `node motor/animar.mjs x.html --checar`
+    (aquecer antes: a fonte de emoji carrega no 1º quadro) e revisar com `--folha`. Elemento que muda de opacidade leva will-change.
+76. Vídeos de exemplo da galeria saem dos MESMOS roteiros dos modelos (assets/reels-modelos.js → motor/exemplos-web.mjs); teste confere
+    que todo modelo tem .mp4 + .jpg. sw.js não guarda vídeo/áudio nem pedido com Range (o Safari não tocava o vídeo vindo do cache).
+77. Balões e textos de personagem: medir na prévia em 390 px (dois personagens = balões em 40%/60% com 0,56 da largura); cenas seguidas
+    no mesmo cenário cortam seco (fade entre elas "piscava").
+78. Foto do avatar só sai do aparelho pela fotos-nuvem.js (confirmação + autorização, ≤ 504 px, limite diário); o que falhar volta para o
+    recorte animado no aparelho, nunca trava o projeto.
+79. Som do vídeo é sintetizado pelo motor (sons.mjs), IGUAL na prévia e no render; sem trilha de terceiros. Conferir sem ouvir: espectrograma
+    (ffmpeg showspectrumpic) + nível RMS. "Eventos de som dispararam" não prova que o dono ouviu (regra 67).
+80. Personagens novos (prontos ou montados) passam pelo MESMO `svgPersonagem/animarPersonagem` dos 3 motores; teste conta os prontos (19)
+    e anima o montado na prévia. Lista de cartões no celular: texto dos botões quebra linha (estourava).
+81. Cena com texto de tamanho livre (logo, título longo) calcula a fonte pela PALAVRA mais longa (min(150, 1300/(letras+2))) — "SUA MARCA"
+    passava da tela; enfeite animado que divide espaço com texto (anel da contagem) some antes do texto entrar. Gráfico sem fonte ou com
+    item sem número BLOQUEIA o vídeo (validar.mjs + teste). Trocar o tipo da cena já preenche um exemplo e mostra só os campos daquele tipo.
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -769,6 +786,14 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   PERSONAGEM (prévia animada, testar ações, sortear, partir de um pronto) e ACRESCENTAR (FOTO) (recorte no aparelho + autorização); aparecem
   na aba CENA e no ANIMAR MEU PERSONAGEM (montado anima braços/olhos/boca). Motor v5. teste_reels.py 94 checagens × 1280/390 (0 falhas),
   varredura 0, vigia ✅. Manual 42 → 43 p. sw v110. PENTE FINO 79–80.
+
+- 17/11/2026 · Claude (dono: "novos modelos de motion e gráficos"): motor v6 com 14 tipos de cena novos — logo animado, nome e cargo (lower
+  third), contagem 3-2-1, gráfico (barras/rosca, números contando, fonte obrigatória), linha do tempo, checklist, top/ranking, antes e
+  depois (cortina), depoimento com estrelas, local e data (pino no mapa), oferta (preço contando), AO VIVO, vídeo no celular e tela dividida.
+  🎬 MODELOS ganhou a categoria GRÁFICOS E EVENTOS (10 modelos com vídeo de exemplo); aba CENA: grupo "Gráficos e eventos" no Tipo, campos
+  próprios (contar a partir de, tipo de gráfico, unidade, fonte, estrelas, segunda mídia) e exemplo preenchido ao trocar; a IA de roteiro
+  pode usar checklist e top. teste_reels.py +12 checagens. Manual 43 → 44 p. reels-motor v6, reels-modelos v3, reels.js v7, sw v111. PENTE FINO 75–81
+  (75–80 estavam citados no diário mas faltavam na lista — escritos agora).
 
 ## Pendências (dono)
 - [ ] (17/11) BW REELS PRO › ANIMAR MEU PERSONAGEM: dono testar com a foto do avatar dele (recorte e cenas por IA, logado).

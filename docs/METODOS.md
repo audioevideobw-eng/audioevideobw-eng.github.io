@@ -239,3 +239,10 @@ Tamanho > 0 e sem erro = o pdfmake montou o arquivo. Localmente (T1) confira o `
   Conferir sem ouvir: `ffmpeg -i video.mp4 -lavfi showspectrumpic=s=1200x400 espectro.png` (trilha embaixo, blips/efeitos como riscos).
 - Personagem montado: `svgPersonagem({cabelo, barba, oculos, roupa, acessorio, bone, bicho, cores})`; prévia ao vivo no montador com
   `animarPersonagem(div, rig, t)` num requestAnimationFrame. Para mandar à IA de imagem: SVG → Image → canvas (rasterLook).
+
+## Motions e gráficos por código (17/11)
+- Tipo de cena novo = 4 lugares no Studio: plano.mjs (o `case` com os nós e tweens; prop `p` → CSS `--p` para barras/anéis/riscos),
+  html.mjs (CSS da classe), validar.mjs (TIPOS + regras do tipo) e schema/roteiro.schema.json; depois `gerar-motor-web.py` para o site
+  e, no site, reels.js (GRUPOS de campos, ROTULOS, PADRAO_TIPO, lerCena) + reels.html (opção no select).
+- Revisar sem assistir: `node motor/animar.mjs t.html --folha` com um roteiro de teste que tenha uma cena de cada tipo (projetos/teste-motions,
+  apagar antes de empacotar). Texto grande: medir a palavra mais longa; enfeite que divide espaço com texto sai antes do texto.

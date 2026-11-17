@@ -142,6 +142,7 @@
     mus.innerHTML = '<option value="">Sem música</option>' + MID.filter(function (m) { return m.tipo === "audio"; }).map(function (m) { return '<option value="' + esc(m.caminho) + '"' + (m.caminho === at ? " selected" : "") + '>' + esc(m.nome) + '</option>'; }).join("");
     $("fVolMus").value = Math.round(((P.roteiro.audio || {}).volumeMusica != null ? P.roteiro.audio.volumeMusica : 0.6) * 100);
     var cm = $("cMidia"); var cena = P.roteiro.cenas[SEL] || {};
+    $("cMidia2").innerHTML = '<option value="">Nenhuma</option>' + MID.filter(function (m) { return m.tipo !== "audio"; }).map(function (m) { return '<option value="' + esc(m.caminho) + '"' + (m.caminho === cena.midia2 ? " selected" : "") + '>' + esc(m.nome) + '</option>'; }).join("");
     cm.innerHTML = '<option value="">Sem mídia (fundo do estilo)</option>' + MID.filter(function (m) { return m.tipo !== "audio"; }).map(function (m) { return '<option value="' + esc(m.caminho) + '"' + (m.caminho === cena.midia ? " selected" : "") + '>' + esc(m.nome) + '</option>'; }).join("");
   }
   $("midias").addEventListener("click", async function (e) {
@@ -209,7 +210,7 @@
   function roteiroParaPrevia() {
     var r = JSON.parse(JSON.stringify(P.roteiro));
     r.cenas.forEach(function (c) {
-      if (c.midia) { var u = urlDe(c.midia); if (u) c.midia = u + "#" + (MID.find(function (m) { return m.url === u; }).tipo === "imagem" ? "img.jpg" : "vid.mp4"); else delete c.midia; }
+      ["midia", "midia2"].forEach(function (k) { if (c[k]) { var u = urlDe(c[k]); if (u) c[k] = u + "#" + (MID.find(function (m) { return m.url === u; }).tipo === "imagem" ? "img.jpg" : "vid.mp4"); else delete c[k]; } });
       (c.elenco || []).forEach(function (a) { if (a.personagem === "foto") { var ui = urlDe(a.imagem); if (ui) a.imagem = ui; else { a.personagem = "be"; delete a.imagem; } } });
     });
     r.audio = {}; r.efeitos = Object.assign({}, r.efeitos, {sfx: false});
@@ -283,7 +284,9 @@
   $("chkZonas").onchange = function () { $("zonaT").hidden = $("zonaB").hidden = !this.checked; try { localStorage.setItem("ui_reels_zonas", this.checked ? "1" : "0"); } catch (e) { } };
 
   /* ---------- linha do tempo ---------- */
-  var NOMES = {gancho: "Gancho", texto: "Texto", midia: "Mídia", dado: "Dado", lista: "Lista", citacao: "Citação", cta: "Chamada", personagem: "Personagem"};
+  var NOMES = {gancho: "Gancho", texto: "Texto", midia: "Mídia", dado: "Dado", lista: "Lista", citacao: "Citação", cta: "Chamada", personagem: "Personagem",
+    logo: "Logo", nome: "Nome", contagem: "Contagem", grafico: "Gráfico", linha: "Linha do tempo", checklist: "Checklist", ranking: "Top", depoimento: "Depoimento",
+    local: "Local", oferta: "Oferta", aovivo: "AO VIVO", celular: "Celular", antesdepois: "Antes/depois", dividida: "Dividida"};
   function resumo(c) { if (c.tipo === "personagem") { var f = (c.falas && c.falas[0] && c.falas[0].texto) || c.balao; var el = c.elenco && c.elenco.length ? c.elenco : [{personagem: c.personagem || "be"}]; return f || el.map(function (a) { return (M.PERSONAGENS[a.personagem] || {nome: "?"}).nome.split(" ")[0]; }).join(" e "); } return c.texto || c.titulo || (c.tipo === "dado" ? (c.prefixo || "") + " " + (c.valor != null ? c.valor : "") + " " + (c.rotulo || "") : "") || (c.midia ? (MID.find(function (m) { return m.caminho === c.midia; }) || {}).nome || "mídia" : "—"); }
   var ERROS_CENA = {};
   function desenharLinha() {
@@ -309,20 +312,34 @@
   var CAMPOS = {
     gancho: ["gTexto", "gEnfase", "gChamada"], texto: ["gTexto", "gEnfase", "gSub"], midia: ["gTexto", "gEnfase"],
     dado: ["gDado"], lista: ["gTexto", "gItens", "gEnfase"], citacao: ["gTexto", "gAutor", "gEnfase"], cta: ["gTexto", "gEnfase", "gAcao"],
-    personagem: ["gTexto", "gEnfase", "gPers"]
+    personagem: ["gTexto", "gEnfase", "gPers"],
+    logo: ["gTexto", "gSub"], nome: ["gTexto", "gSub"], contagem: ["gTexto", "gNum", "gEnfase"], grafico: ["gTexto", "gItens", "gForma", "gUnid", "gFonte2", "gEnfase"],
+    linha: ["gTexto", "gItens", "gEnfase"], checklist: ["gTexto", "gItens", "gEnfase"], ranking: ["gTexto", "gItens", "gEnfase"], depoimento: ["gTexto", "gAutor", "gEstrelas", "gEnfase"],
+    local: ["gTexto", "gSub", "gEnfase"], oferta: ["gChamada", "gTexto", "gDado", "gEnfase"], aovivo: ["gTexto", "gSub", "gEnfase"], celular: ["gTexto", "gEnfase"],
+    antesdepois: ["gTexto", "gMidia2", "gEnfase"], dividida: ["gTexto", "gSub", "gMidia2"]
   };
-  function textoPrincipal(c) { return c.tipo === "texto" || c.tipo === "lista" ? (c.titulo || "") : (c.texto || ""); }
+  var USA_TITULO = ["texto", "lista", "nome", "grafico", "linha", "checklist", "ranking"];
+  var ROTULOS = {nome: ["Nome", "Cargo / empresa"], logo: ["Marca (se não usar imagem)", "Frase embaixo"], contagem: ["Texto depois da contagem"], local: ["Local", "Data e hora"],
+    aovivo: ["Chamada", "Linha de baixo"], dividida: ["Etiqueta de cima", "Etiqueta de baixo"], oferta: ["Produto / pacote"], celular: ["Texto em cima"], antesdepois: ["Legenda"],
+    depoimento: ["Frase REAL do cliente"], grafico: ["Título do gráfico"], linha: ["Título"], checklist: ["Título"], ranking: ["Título"]};
+  var DICA_ITENS = {grafico: "Um por linha: Rótulo: número (ex.: 2024: 24)", linha: "Um por linha: quando — o quê (ex.: 2015 — nasce a produtora)", ranking: "Um por linha, do 1º para o último", checklist: "Um por linha (até 5)", lista: "Itens (um por linha, até 4)"};
+  function textoPrincipal(c) { return USA_TITULO.indexOf(c.tipo) >= 0 ? (c.titulo || "") : (c.texto || ""); }
   function desenharCena() {
     var c = P.roteiro.cenas[SEL];
     $("cenaVazia").hidden = !!c; $("cenaForm").hidden = !c; if (!c) return;
-    ["gTexto", "gEnfase", "gSub", "gChamada", "gItens", "gDado", "gAutor", "gAcao", "gPers"].forEach(function (g) { $(g).hidden = (CAMPOS[c.tipo] || []).indexOf(g) < 0; });
+    ["gTexto", "gEnfase", "gSub", "gChamada", "gItens", "gDado", "gAutor", "gAcao", "gPers", "gNum", "gForma", "gUnid", "gFonte2", "gEstrelas", "gMidia2"].forEach(function (g) { $(g).hidden = (CAMPOS[c.tipo] || []).indexOf(g) < 0; });
     $("cTipo").value = c.tipo; $("cDur").value = c.duracao;
     $("cTexto").value = textoPrincipal(c); $("cEnfase").value = (c.enfase || []).join(", "); $("cSub").value = c.subtitulo || ""; $("cChamada").value = c.chamada || "";
     $("cItens").value = (c.itens || []).join("\n"); $("cValor").value = c.valor != null ? c.valor : ""; $("cCasas").value = c.casas || 0;
     $("cPref").value = c.prefixo || ""; $("cSuf").value = c.sufixo || ""; $("cRotulo").value = c.rotulo || ""; $("cFonte").value = c.fonte || "";
     $("cAutor").value = c.autor || ""; $("cAcao").value = c.acao || ""; $("cMov").value = c.movimento || ""; $("cTrans").value = c.transicao || "";
     $("cIni").value = c.inicioNoArquivo || 0; $("cFala").value = c.fala || "";
-    $("cTexto").previousElementSibling.textContent = c.tipo === "lista" ? "Título da lista" : c.tipo === "citacao" ? "Frase" : c.tipo === "personagem" ? "Texto no alto da tela (opcional)" : "Texto na tela";
+    $("cTexto").previousElementSibling.textContent = (ROTULOS[c.tipo] || [])[0] || (c.tipo === "lista" ? "Título da lista" : c.tipo === "citacao" ? "Frase" : c.tipo === "personagem" ? "Texto no alto da tela (opcional)" : "Texto na tela");
+    $("cSub").previousElementSibling.textContent = (ROTULOS[c.tipo] || [])[1] || "Subtítulo";
+    $("cItens").previousElementSibling.textContent = DICA_ITENS[c.tipo] || "Itens (um por linha)";
+    $("cChamada").previousElementSibling.textContent = c.tipo === "oferta" ? "Selo (ex.: OFERTA)" : "Etiqueta acima (opcional)";
+    $("gExtra").hidden = ["gNum", "gForma", "gUnid", "gFonte2", "gEstrelas", "gMidia2"].every(function (g) { return $(g).hidden; });
+    $("cNum").value = c.valor || 3; $("cForma").value = c.forma || "barras"; $("cUnid").value = c.sufixo || ""; $("cFonte2").value = c.fonte || ""; $("cEstrelas").value = String(c.estrelas || 5);
     if (c.tipo === "personagem") desenharPers(c);
     desenharMidias();
     $("cEsq").disabled = SEL === 0; $("cDir").disabled = SEL >= P.roteiro.cenas.length - 1;
@@ -331,17 +348,22 @@
     var c = P.roteiro.cenas[SEL]; if (!c) return;
     var tipo = $("cTipo").value, txt = $("cTexto").value.trim();
     var n = {tipo: tipo, duracao: Math.max(0.5, Math.min(30, Number(String($("cDur").value).replace(",", ".")) || 3))};
-    if (tipo === "texto" || tipo === "lista") n.titulo = txt; else if (tipo !== "dado") n.texto = txt;
+    if (USA_TITULO.indexOf(tipo) >= 0) n.titulo = txt; else if (tipo !== "dado") n.texto = txt;
     var enf = $("cEnfase").value.split(",").map(function (s) { return s.trim(); }).filter(Boolean); if (enf.length) n.enfase = enf;
-    if (tipo === "texto" && $("cSub").value.trim()) n.subtitulo = $("cSub").value.trim();
-    if (tipo === "gancho" && $("cChamada").value.trim()) n.chamada = $("cChamada").value.trim();
-    if (tipo === "lista") n.itens = $("cItens").value.split("\n").map(function (s) { return s.trim(); }).filter(Boolean).slice(0, 4);
-    if (tipo === "dado") {
+    if (["texto", "nome", "logo", "local", "aovivo", "dividida"].indexOf(tipo) >= 0 && $("cSub").value.trim()) n.subtitulo = $("cSub").value.trim();
+    if ((tipo === "gancho" || tipo === "oferta") && $("cChamada").value.trim()) n.chamada = $("cChamada").value.trim();
+    if (["lista", "grafico", "linha", "checklist", "ranking"].indexOf(tipo) >= 0) n.itens = $("cItens").value.split("\n").map(function (s) { return s.trim(); }).filter(Boolean).slice(0, tipo === "lista" ? 4 : tipo === "grafico" ? 6 : 5);
+    if (tipo === "contagem") n.valor = Math.max(1, Math.min(10, Number($("cNum").value) || 3));
+    if (tipo === "grafico") { n.forma = $("cForma").value; if ($("cUnid").value.trim()) n.sufixo = $("cUnid").value.trim(); if ($("cFonte2").value.trim()) n.fonte = $("cFonte2").value.trim(); }
+    if (tipo === "depoimento") { n.estrelas = Number($("cEstrelas").value) || 5; if ($("cAutor").value.trim()) n.autor = $("cAutor").value.trim(); }
+    if ((tipo === "antesdepois" || tipo === "dividida") && $("cMidia2").value) n.midia2 = $("cMidia2").value;
+    if (tipo === "dado" || tipo === "oferta") {
       var v = Number(String($("cValor").value).replace(",", ".")); n.valor = isFinite(v) ? v : 0;
       if (Number($("cCasas").value)) n.casas = Number($("cCasas").value);
       if ($("cPref").value.trim()) n.prefixo = $("cPref").value.trim() + " ";
       if ($("cSuf").value.trim()) n.sufixo = ($("cSuf").value.trim().length > 2 ? " " : "") + $("cSuf").value.trim();
-      n.rotulo = $("cRotulo").value.trim(); n.fonte = $("cFonte").value.trim();
+      n.rotulo = $("cRotulo").value.trim(); if (tipo === "dado" || $("cFonte").value.trim()) n.fonte = $("cFonte").value.trim();
+      if (tipo === "oferta") { if (!$("cPref").value.trim()) n.prefixo = "R$ "; if (!n.rotulo) delete n.rotulo; }
     }
     if (tipo === "citacao" && $("cAutor").value.trim()) n.autor = $("cAutor").value.trim();
     if (tipo === "cta") n.acao = $("cAcao").value.trim();
@@ -355,8 +377,20 @@
   }
   ["cTipo", "cMidia", "cMov", "cTrans"].forEach(function (id) { $(id).addEventListener("change", function () {
     var era = (P.roteiro.cenas[SEL] || {}).tipo;
-    if (id === "cTipo" && this.value === "personagem" && era !== "personagem") { var d0 = Number(P.roteiro.cenas[SEL].duracao) || 3.5; P.roteiro.cenas[SEL] = {tipo: "personagem", duracao: Math.max(3, d0), personagem: "be", acao: "acena", balao: "Oi! Olha só isso", cenario: "raios", entrada: "pula"}; salvar(); desenharCena(); atualizar(); return; }
+    var PADRAO_TIPO = {personagem: {personagem: "be", acao: "acena", balao: "Oi! Olha só isso", cenario: "raios", entrada: "pula"},
+      logo: {texto: "SUA MARCA", subtitulo: "sua frase"}, nome: {titulo: "Nome da pessoa", subtitulo: "Cargo / empresa"}, contagem: {valor: 3, texto: "Começou!"},
+      grafico: {titulo: "Título do gráfico", itens: ["2024: 10", "2025: 20"], fonte: "dados próprios"}, linha: {titulo: "Nossa história", itens: ["2015 — começo", "2025 — hoje"]},
+      checklist: {titulo: "Checklist", itens: ["Primeiro item", "Segundo item"]}, ranking: {titulo: "Top 3", itens: ["Primeiro", "Segundo", "Terceiro"]},
+      depoimento: {texto: "Escreva aqui a frase real do seu cliente", autor: "Nome do cliente", estrelas: 5}, local: {texto: "Local do evento", subtitulo: "Data · hora"},
+      oferta: {chamada: "Oferta", texto: "Seu pacote", valor: 1000, prefixo: "R$ "}, aovivo: {texto: "Estamos no ar", subtitulo: "Link na bio"}, celular: {texto: "Assista de qualquer lugar"},
+      antesdepois: {texto: "Olha a diferença"}, dividida: {texto: "Em cima", subtitulo: "Embaixo"}};
+    if (id === "cTipo" && PADRAO_TIPO[this.value] && era !== this.value) { var d0 = Number(P.roteiro.cenas[SEL].duracao) || 3.5, velha = P.roteiro.cenas[SEL];
+      var nova = Object.assign({tipo: this.value, duracao: Math.max(3, d0)}, JSON.parse(JSON.stringify(PADRAO_TIPO[this.value])));
+      if (velha.midia && ["antesdepois", "dividida", "celular", "nome", "aovivo", "logo"].indexOf(this.value) >= 0) nova.midia = velha.midia;
+      P.roteiro.cenas[SEL] = nova; salvar(); desenharCena(); atualizar(); return; }
     lerCena(); salvar(); desenharCena(); atualizar(); }); });
+  ["cNum", "cUnid", "cFonte2"].forEach(function (id) { $(id).addEventListener("input", function () { lerCena(); salvar(); atualizar(); }); });
+  ["cForma", "cEstrelas", "cMidia2"].forEach(function (id) { $(id).addEventListener("change", function () { lerCena(); salvar(); atualizar(); }); });
   ["cDur", "cTexto", "cEnfase", "cSub", "cChamada", "cItens", "cValor", "cCasas", "cPref", "cSuf", "cRotulo", "cFonte", "cAutor", "cAcao", "cIni", "cFala"].forEach(function (id) {
     $(id).addEventListener("input", function () { lerCena(); salvar(); atualizar(); });
   });
@@ -480,7 +514,7 @@
     "\"cenas\":[{\"tipo\":\"texto\",\"duracao\":3.5,\"titulo\":\"...\",\"subtitulo\":\"...\",\"enfase\":[\"...\"],\"fala\":\"...\"}]," +
     "\"fatos\":[\"...\"],\"legenda\":\"...\"}. Regras: 5 ganchos de padrões diferentes (contradição, pergunta, perda, bastidor, número, lista, antes/depois), " +
     "cada texto com no máximo 9 palavras, verdadeiro e entregue pelo vídeo; nota de 1 a 5. Cenas: 4 a 6 cenas DEPOIS do gancho (o gancho não entra em cenas), " +
-    "tipos permitidos: texto (titulo, subtitulo), lista (titulo, itens até 4), dado (valor numérico, prefixo, sufixo, rotulo, fonte), cta (texto, acao). Não use citações nem atribua frases a pessoas. " +
+    "tipos permitidos: texto (titulo, subtitulo), lista (titulo, itens até 4), checklist (titulo, itens até 5 que vão sendo marcados), ranking (titulo, itens até 5, o 1º primeiro), dado (valor numérico, prefixo, sufixo, rotulo, fonte), cta (texto, acao). Não use citações nem atribua frases a pessoas. " +
     "A última cena é cta. Duração 2.5 a 5 s; no máximo 3 palavras por segundo de texto na tela. enfase = 1 ou 2 palavras do próprio texto. " +
     "NUNCA invente números, estatísticas, estudos ou nomes: cena dado só com números que o usuário informou, com fonte \"interno: informado pelo usuário\". " +
     "fatos = cada afirmação factual do roteiro que precisa de fonte. legenda = legenda do post em português do Brasil com 3 a 5 hashtags específicas, sem prometer resultado.";
@@ -505,7 +539,7 @@
       var d = extrairJSON(j.texto); return d ? {dados: d} : {erro: "formato"};
     } catch (e) { return {erro: "rede"}; }
   }
-  var TIPOS_OK = ["texto", "lista", "dado", "citacao", "cta", "personagem"];
+  var TIPOS_OK = ["texto", "lista", "dado", "citacao", "cta", "personagem", "checklist", "ranking"];
   function normalizarCenas(lista, b) {
     var out = [];
     (lista || []).forEach(function (c) {
@@ -524,10 +558,10 @@
       }
       ["titulo", "subtitulo", "texto", "autor", "acao", "rotulo", "fonte", "prefixo", "sufixo", "fala"].forEach(function (k) { if (c[k] != null && String(c[k]).trim()) n[k] = String(c[k]).trim(); });
       if (Array.isArray(c.enfase)) n.enfase = c.enfase.map(String).slice(0, 2);
-      if (c.tipo === "lista") n.itens = (Array.isArray(c.itens) ? c.itens : []).map(String).filter(Boolean).slice(0, 4);
+      if (c.tipo === "lista" || c.tipo === "checklist" || c.tipo === "ranking") n.itens = (Array.isArray(c.itens) ? c.itens : []).map(String).filter(Boolean).slice(0, c.tipo === "lista" ? 4 : 5);
       if (c.tipo === "dado") { var v = Number(c.valor); if (!isFinite(v)) return; n.valor = v; if (n.prefixo) n.prefixo = n.prefixo + " "; if (n.sufixo && n.sufixo.length > 2) n.sufixo = " " + n.sufixo; }
       if (c.tipo === "texto" && !n.titulo && n.texto) { n.titulo = n.texto; delete n.texto; }
-      if (c.tipo === "lista" && !n.itens.length) return;
+      if ((c.tipo === "lista" || c.tipo === "checklist" || c.tipo === "ranking") && !n.itens.length) return;
       if (c.tipo === "dado" && /interno|usu[aá]rio/i.test(n.fonte || "")) { n.fonte = "dados próprios"; n.interno = true; }
       if (c.tipo === "citacao") { n.tipo = "texto"; n.titulo = n.texto; delete n.texto; delete n.autor; }   // a IA não tem depoimento real: citação só o usuário escreve (não inventar quem disse)
       out.push(n);
@@ -667,6 +701,7 @@
     var av = [], er = [];
     try { er = M.validarRoteiro(P.roteiro, null, av); } catch (e) { er = ["roteiro inválido"]; }
     P.roteiro.cenas.forEach(function (c) { if (c.midia && !urlDe(c.midia)) er.push("cena " + (P.roteiro.cenas.indexOf(c) + 1) + ": a mídia não está mais neste aparelho");
+      if (c.midia2 && !urlDe(c.midia2)) er.push("cena " + (P.roteiro.cenas.indexOf(c) + 1) + ": a segunda mídia não está mais neste aparelho");
       (c.elenco || []).forEach(function (a) { if (a.personagem === "foto" && !urlDe(a.imagem)) er.push("cena " + (P.roteiro.cenas.indexOf(c) + 1) + ": a foto do personagem não está mais neste aparelho"); }); });
     ERROS_CENA = {};
     er.concat(av).forEach(function (m) { var x = /cena (\d+)/.exec(m); if (x) ERROS_CENA[Number(x[1]) - 1] = true; });
@@ -692,7 +727,7 @@
     ocupado("Montando o pacote para o BW Reels Studio…");
     try {
       var Z = await carregarJSZip(); var zip = new Z(); var r = roteiroFinal();
-      var usados = {}; r.cenas.forEach(function (c) { if (c.midia) usados[c.midia] = 1; (c.elenco || []).forEach(function (a) { if (a.imagem) usados[a.imagem] = 1; }); }); if ((r.audio || {}).musica) usados[r.audio.musica] = 1;
+      var usados = {}; r.cenas.forEach(function (c) { if (c.midia) usados[c.midia] = 1; if (c.midia2) usados[c.midia2] = 1; (c.elenco || []).forEach(function (a) { if (a.imagem) usados[a.imagem] = 1; }); }); if ((r.audio || {}).musica) usados[r.audio.musica] = 1;
       var lista = await midiasDoProjeto(P.id);
       lista.forEach(function (m) { if (usados[m.caminho]) zip.file(m.caminho, m.blob); });
       zip.file("roteiro.json", JSON.stringify(r, null, 2));

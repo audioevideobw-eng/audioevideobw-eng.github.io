@@ -14,6 +14,7 @@
       {id: "texto", nome: "MOTION DE TEXTO", icone: "Aa", desc: "Textos, números e listas animados com cara de cinema. O jeito mais rápido de postar todo dia."},
       {id: "meu", nome: "ANIMAR MEU PERSONAGEM", icone: "📷", desc: "Envie a foto do seu avatar ou mascote e conte a história: ele vira recorte animado, cenas criadas por IA ou clipes de IA de vídeo."},
       {id: "personagem", nome: "HISTÓRIAS COM PERSONAGENS", icone: "☺", desc: "Personagens desenhados pelo motor contam a história em balões: falam, acenam, comemoram. Grátis e sem IA de vídeo."},
+      {id: "graf", nome: "GRÁFICOS E EVENTOS", icone: "📊", desc: "Logo animado, nome de quem fala, contagem, gráficos, linha do tempo, checklist, top 3, depoimento, oferta, AO VIVO, celular e antes/depois."},
       {id: "ia", nome: "PERSONAGEM COM IA", icone: "✦", desc: "Seu personagem criado e animado em IAs de imagem e vídeo (Flux, Higgsfield, Kling, Veo). Aqui você monta o Reel com os clipes."}
     ],
     modelos: [
@@ -68,6 +69,52 @@
         {tipo: "personagem", duracao: 3, personagem: "leo", acao: "comemora", balao: "Agora sim!", cenario: "raios", entrada: "nenhuma"},
         {tipo: "cta", duracao: 3, texto: "Segue para mais dicas", acao: "@seuperfil"}])},
 
+
+      /* ---------- GRÁFICOS E EVENTOS ---------- */
+      {id: "logo-assinatura", cat: "graf", nome: "LOGO E ASSINATURA", desc: "Abertura com o logo animado, onde e quando, e a chamada. Troque pelo seu logo na aba CENA.", roteiro: base("luxo", [
+        {tipo: "logo", duracao: 2.8, texto: "SUA MARCA", subtitulo: "áudio e vídeo"},
+        {tipo: "local", duracao: 3.5, texto: "Espaço Exemplo — BH", subtitulo: "20/12 · 19h"},
+        {tipo: "cta", duracao: 3, texto: "Garanta o seu lugar", enfase: ["lugar"], acao: "Link na bio"}])},
+      {id: "contagem", cat: "graf", nome: "CONTAGEM PARA O EVENTO", desc: "3, 2, 1… com anel girando e a data. Perfeito para a véspera.", roteiro: base("neon", [
+        {tipo: "gancho", duracao: 2.6, texto: "Está chegando", enfase: ["chegando"], chamada: "Falta pouco"},
+        {tipo: "contagem", duracao: 3.4, valor: 3, texto: "Sábado!"},
+        {tipo: "local", duracao: 3.4, texto: "Espaço Exemplo", subtitulo: "20/12 · 21h"},
+        {tipo: "cta", duracao: 3, texto: "Bora?", acao: "Ingressos na bio"}])},
+      {id: "graficos", cat: "graf", nome: "RESULTADOS EM GRÁFICO", desc: "Barras e rosca que crescem com os números contando. Só com números que você pode provar.", roteiro: base("corporativo", [
+        {tipo: "gancho", duracao: 2.8, texto: "Nosso ano em números", enfase: ["números"]},
+        {tipo: "grafico", duracao: 4.2, titulo: "Eventos por ano", itens: ["2023: 18", "2024: 24", "2025: 30"], fonte: "dados próprios"},
+        {tipo: "grafico", duracao: 4.2, titulo: "Onde o público assistiu", forma: "pizza", itens: ["YouTube: 50", "Telão: 30", "Zoom: 20"], fonte: "dados próprios"},
+        {tipo: "cta", duracao: 3, texto: "O próximo é o seu?", acao: "Chama no direct"}],
+        {fontes: [{afirmacao: "números de eventos e público", url: "interno: dados próprios", data: ""}]})},
+      {id: "historia", cat: "graf", nome: "NOSSA HISTÓRIA", desc: "Linha do tempo que se desenha marco a marco. Ótimo para aniversário da empresa.", roteiro: base("editorial", [
+        {tipo: "gancho", duracao: 2.8, texto: "Como tudo começou", enfase: ["começou"]},
+        {tipo: "linha", duracao: 5.5, titulo: "Nossa história", itens: ["2006 — a primeira câmera", "2015 — nasce a produtora", "2024 — 30 eventos por ano"]},
+        {tipo: "cta", duracao: 3, texto: "Obrigado por fazer parte", acao: "@seuperfil"}])},
+      {id: "checklist", cat: "graf", nome: "CHECKLIST", desc: "Itens sendo marcados um a um. Ótimo para dicas e preparação.", roteiro: base("cinema", [
+        {tipo: "gancho", duracao: 2.8, texto: "Sua live vai dar certo?", enfase: ["live"]},
+        {tipo: "checklist", duracao: 4.8, titulo: "Antes de entrar no ar", itens: ["Internet testada", "Áudio no mixer", "Plano B pronto"]},
+        {tipo: "cta", duracao: 3, texto: "Salva para o próximo evento", acao: "Siga @seuperfil"}])},
+      {id: "top3", cat: "graf", nome: "TOP 3", desc: "Do 3º ao 1º com número gigante e confete no final.", roteiro: base("neon", [
+        {tipo: "gancho", duracao: 2.6, texto: "Os 3 mais pedidos", enfase: ["pedidos"]},
+        {tipo: "ranking", duracao: 5, titulo: "Top 3 do ano", itens: ["Transmissão ao vivo", "Aftermovie", "Fotografia"]},
+        {tipo: "cta", duracao: 3, texto: "Qual é o seu?", acao: "Comenta aqui"}])},
+      {id: "depoimento", cat: "graf", nome: "DEPOIMENTO DE CLIENTE", desc: "Estrelas, a frase do cliente e o nome. Use só depoimentos reais, com autorização.", roteiro: base("luxo", [
+        {tipo: "depoimento", duracao: 4.6, texto: "Escreva aqui a frase real do seu cliente", autor: "Nome do cliente", estrelas: 5},
+        {tipo: "nome", duracao: 3, titulo: "Nome do cliente", subtitulo: "Empresa / cargo"},
+        {tipo: "cta", duracao: 3, texto: "Sua vez de viver isso", acao: "Peça um orçamento"}])},
+      {id: "oferta", cat: "graf", nome: "OFERTA", desc: "Selo, produto e preço contando. Para pacotes e promoções.", roteiro: base("neon", [
+        {tipo: "gancho", duracao: 2.6, texto: "Só esta semana", enfase: ["semana"]},
+        {tipo: "oferta", duracao: 3.8, chamada: "Oferta", texto: "Pacote live completo", valor: 2490, rotulo: "em até 3x"},
+        {tipo: "cta", duracao: 3, texto: "Garanta a sua data", acao: "Chama no direct"}])},
+      {id: "aovivo", cat: "graf", nome: "AO VIVO AGORA", desc: "Selo AO VIVO, chamada e o vídeo dentro de um celular.", roteiro: base("corporativo", [
+        {tipo: "aovivo", duracao: 3, texto: "Estamos no ar", subtitulo: "Assista pelo link da bio"},
+        {tipo: "celular", duracao: 3.4, texto: "De qualquer lugar"},
+        {tipo: "cta", duracao: 3, texto: "Entra agora", acao: "Link na bio"}])},
+      {id: "antesdepois", cat: "graf", nome: "ANTES E DEPOIS", desc: "Cortina revelando o depois e tela dividida. Escolha as duas mídias na aba CENA.", roteiro: base("cinema", [
+        {tipo: "gancho", duracao: 2.6, texto: "Olha a diferença", enfase: ["diferença"]},
+        {tipo: "antesdepois", duracao: 4, texto: "Do celular para o telão"},
+        {tipo: "dividida", duracao: 3.4, texto: "Palco", subtitulo: "Plateia"},
+        {tipo: "cta", duracao: 3, texto: "Quer esse resultado?", acao: "Chama no direct"}])},
       /* ---------- PERSONAGEM COM IA (clipes de fora) ---------- */
       {id: "ia-montagem", cat: "ia", nome: "REEL COM PERSONAGEM DE IA", desc: "Esqueleto pronto: 3 clipes do seu personagem de IA + textos e chamada do motor. Importe os clipes na aba MÍDIA.", ia: true, roteiro: base("cinema", [
         {tipo: "gancho", duracao: 3, texto: "Conheça o novo rosto da marca", enfase: ["rosto"]},
