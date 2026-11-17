@@ -362,7 +362,7 @@
     "\"cenas\":[{\"tipo\":\"texto\",\"duracao\":3.5,\"titulo\":\"...\",\"subtitulo\":\"...\",\"enfase\":[\"...\"],\"fala\":\"...\"}]," +
     "\"fatos\":[\"...\"],\"legenda\":\"...\"}. Regras: 5 ganchos de padrões diferentes (contradição, pergunta, perda, bastidor, número, lista, antes/depois), " +
     "cada texto com no máximo 9 palavras, verdadeiro e entregue pelo vídeo; nota de 1 a 5. Cenas: 4 a 6 cenas DEPOIS do gancho (o gancho não entra em cenas), " +
-    "tipos permitidos: texto (titulo, subtitulo), lista (titulo, itens até 4), dado (valor numérico, prefixo, sufixo, rotulo, fonte), citacao (texto, autor), cta (texto, acao). " +
+    "tipos permitidos: texto (titulo, subtitulo), lista (titulo, itens até 4), dado (valor numérico, prefixo, sufixo, rotulo, fonte), cta (texto, acao). Não use citações nem atribua frases a pessoas. " +
     "A última cena é cta. Duração 2.5 a 5 s; no máximo 3 palavras por segundo de texto na tela. enfase = 1 ou 2 palavras do próprio texto. " +
     "NUNCA invente números, estatísticas, estudos ou nomes: cena dado só com números que o usuário informou, com fonte \"interno: informado pelo usuário\". " +
     "fatos = cada afirmação factual do roteiro que precisa de fonte. legenda = legenda do post em português do Brasil com 3 a 5 hashtags específicas, sem prometer resultado.";
@@ -397,7 +397,7 @@
       if (c.tipo === "texto" && !n.titulo && n.texto) { n.titulo = n.texto; delete n.texto; }
       if (c.tipo === "lista" && !n.itens.length) return;
       if (c.tipo === "dado" && /interno|usu[aá]rio/i.test(n.fonte || "")) { n.fonte = "dados próprios"; n.interno = true; }
-      if (c.tipo === "citacao" && !n.autor) { n.tipo = "texto"; n.titulo = n.texto; delete n.texto; }   // sem autor não é citação (não inventar quem disse)
+      if (c.tipo === "citacao") { n.tipo = "texto"; n.titulo = n.texto; delete n.texto; delete n.autor; }   // a IA não tem depoimento real: citação só o usuário escreve (não inventar quem disse)
       out.push(n);
     });
     if (!out.length || out[out.length - 1].tipo !== "cta") out.push({tipo: "cta", duracao: 3, texto: "Gostou? Então fala comigo", acao: b.cta || b.perfil || "Me chama no direct"});
