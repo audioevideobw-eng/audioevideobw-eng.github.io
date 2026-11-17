@@ -804,9 +804,20 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   inventado pela IA é descartado; IA falhou → oferece seguir sem IA. motor/conta.mjs = portão de conta (EXIGIR_CONTA=false hoje; ativação
   por ARQUIVO baixado do site, a ligar quando o dono decidir). Teste motor/teste-assistente.mjs com Claude SIMULADO (22 checagens + render
   real, 0 falhas). NÃO testado ainda com o Claude real nem no Windows do dono.
+- 17/11/2026 · Claude (dono: "escolher a IA; modos BW IA FREE / PRO / ECONOMIZE; um botão instala as IAs recomendadas"): Studio — motor/ia.mjs
+  reveza as IAs: FREE = só grátis (Groq, Google Gemini, OpenRouter :free por chave do usuário + IA no computador pelo Ollama), cota do dia
+  acabou (429) → marca e passa para a próxima sozinho; ECONOMIZE = aberturas na grátis e roteiro na paga, uma cobre a outra; PRO = a paga
+  escolhida (Claude pelo Claude Code ou OpenAI por chave de API). Tela ⚙ Minhas IAs: colar chave → testa em /models e escolhe o melhor
+  modelo de texto; a chave fica só em ~/.bw-reels/ias.json e nunca volta para a tela. Botão INSTALAR IAS RECOMENDADAS (confirmação antes):
+  Claude Code (instalador oficial), Ollama (winget Ollama.Ollama) e modelo gemma3. O modo recomendado muda conforme o que está conectado.
+  Teste motor/teste-assistente.mjs (24 checagens + render, 0 falhas) com TODAS as IAs e a instalação SIMULADAS — nada disso foi testado
+  com serviço real nem no Windows. Mobile (render no celular / app iOS-Android): só planejado, ver Pendências.
 
 ## Pendências (dono)
 - [ ] (17/11) BW REELS ASSISTENTE: dono abrir pelo BW-REELS-ASSISTENTE.bat no PC e fazer 1 vídeo em cada modo (ECONÔMICO com o Claude real).
+- [ ] (17/11) BW IA: dono criar as chaves grátis (Groq, Gemini, OpenRouter) e colar em ⚙ Minhas IAs; testar INSTALAR IAS RECOMENDADAS no PC.
+- [ ] (17/11) MOBILE (ideia do dono): render no celular dentro do BW Reels Pro (WebCodecs no navegador) + IA Brightway com login; depois
+      avaliar app iOS/Android. Aguardando o dono aprovar o plano.
 - [ ] (17/11) Login obrigatório no Assistente/Studio: decidir quando ligar (precisa de Edge Function de ativação + botão ATIVAR NESTE PC no site).
 - [ ] (17/11) BW REELS PRO › ANIMAR MEU PERSONAGEM: dono testar com a foto do avatar dele (recorte e cenas por IA, logado).
 - [ ] (17/11) BW REELS PRO › 🎬 MODELOS: dono testar a galeria e um modelo de personagem no iPhone (vídeos de exemplo tocando) e mandar opinião.
