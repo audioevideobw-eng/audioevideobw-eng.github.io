@@ -230,6 +230,10 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
 72. Motor que existe no Studio e no site (assets/reels-motor.js) é GERADO do Studio (bw-reels-studio/motor/gerar-motor-web.py): mudança
     de animação/estilo é feita lá e o arquivo do site é gerado de novo — nunca editar só a cópia do site.
 
+73. Safari do iPhone (fora do app instalado) põe um efeito de VIDRO fosco no alto da tela, por cima da página: barra de tela cheia
+    encostada no topo fica "embaçada" (editor de fotos, 17/11). Tela cheia no Safari iOS → barra desce ~30 px abaixo da área segura
+    (classe html.ed-safari) e o theme-color vira a cor da barra enquanto ela está aberta; no app instalado não muda nada.
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -721,6 +725,11 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   .json, legenda do post). ⚙ MOTOR NO PC: downloads/BW-Reels-Studio.zip + downloads/BW-Reels-Studio-Tutorial.pdf; no PC, BW REELS RENDER
   (motor/vigia-downloads.mjs) pega o pacote em Downloads, renderiza e abre o MP4. Nada vai para a conta. teste_reels.py (37 checagens × 1280/390,
   0 falhas), varredura 49 páginas 0 achados, vigia ✅. Manual 40 → 41 p. layout.js v48, sw v104. PENTE FINO 70–72.
+- 17/11/2026 · Claude (dono, Safari do iPhone: "o topo do editor de fotos fica fosco/embaçado atrapalhando a visão"): era o efeito de vidro do
+  Safari em cima da barra do editor (tela cheia). Com o editor aberto no Safari do iPhone a barra desce para fora do efeito e o topo do Safari é
+  pintado com a cor da barra (theme-color volta ao fechar). Revisão geral antes de passar aos usuários: TODOS os testes 0 falhas (layout,
+  agenda, crm, pedido, propostas, abas, concluir, cadastros, criador, ia_retoque, logo_fundo, agente_leitor, fotos, reels) + varredura 49
+  páginas 0 achados + vigia ✅. fotos.js v11, sw v105. PENTE FINO 73.
 
 ## Pendências (dono)
 - [ ] (17/11) BW REELS PRO: dono testar no ar — instalar o motor pelo ⚙ MOTOR NO PC, abrir o BW Reels Render e fazer um RENDERIZAR NO PC;

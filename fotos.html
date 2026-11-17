@@ -30,6 +30,7 @@ html.ed-aberto .bw-shell,html.ed-aberto .bw-abas,html.ed-aberto .bw-menu{display
 .ed input,.ed textarea{-webkit-user-select:text;user-select:text}
 .ed-top{flex:none;position:relative;z-index:3;display:flex;align-items:center;gap:6px;padding:8px 10px;padding-top:max(8px,env(safe-area-inset-top));border-bottom:1px solid rgba(245,241,234,.07);background:#090c12}
 .ed-top .esp{flex:1}
+html.ed-safari .ed-top{padding-top:calc(max(8px,env(safe-area-inset-top)) + 30px);background:#090c12}
 .ed-b{min-width:40px;height:40px;border-radius:12px;border:1px solid rgba(245,241,234,.14);background:rgba(255,255,255,.04);color:var(--bw-marfim);
   display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:0 10px;font:600 11.5px var(--bw-font-texto);letter-spacing:.05em;cursor:pointer;white-space:nowrap}
 .ed-b:disabled{opacity:.35;cursor:default}
@@ -194,6 +195,6 @@ textarea.c-campo{min-height:56px;resize:vertical}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="assets/bw-sync.js"></script>
 <script src="assets/fotos-nuvem.js?v=2"></script>
-<script src="assets/fotos.js?v=10"></script>
+<script src="assets/fotos.js?v=11"></script>
 </body>
 </html>

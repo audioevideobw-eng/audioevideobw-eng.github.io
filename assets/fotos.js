@@ -1418,8 +1418,15 @@
     if (ev.touches && ev.touches.length > 1 && !ev.target.closest("#palco")) { ev.preventDefault(); return; }
     if (!ev.target.closest("#ctrl, #abas, #edFotos, #palco, .c-rolar, textarea")) ev.preventDefault();   // fora das áreas que rolam, nada se mexe
   }, { passive: false });
+  /* Safari do iPhone (fora do app instalado): o topo da tela tem o efeito de vidro do navegador, que embaçava a barra do
+     editor (dono, 17/11) → a barra desce para fora dele e o topo do Safari é pintado com a cor da barra. */
+  var SAFARI_IOS = (/iPhone|iPad|iPod/.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1)) &&
+    !(navigator.standalone || (window.matchMedia && matchMedia("(display-mode: standalone)").matches));
+  function corDoTopo(cor) { var m = document.querySelector('meta[name="theme-color"]'); if (m) m.setAttribute("content", cor); }
   function abrirEditor() {
     if (!FOTOS.length) return;
+    if (SAFARI_IOS) document.documentElement.classList.add("ed-safari");
+    corDoTopo("#090c12");
     if (ATUAL < 0) ATUAL = 0;
     ROLAGEM = window.scrollY || 0;
     $("ed").hidden = false; document.documentElement.classList.add("ed-aberto"); document.body.style.top = -ROLAGEM + "px";
@@ -1429,6 +1436,7 @@
     requestAnimationFrame(function () { previa(); });
   }
   function fecharEditor(doHistorico) {
+    corDoTopo("#06080D");
     $("ed").hidden = true; document.documentElement.classList.remove("ed-aberto"); document.body.style.top = ""; window.scrollTo(0, ROLAGEM || 0); COMPARAR = false; $("edComparar").classList.remove("on");
     if (!doHistorico && history.state && history.state.bwEd) history.back();
   }
