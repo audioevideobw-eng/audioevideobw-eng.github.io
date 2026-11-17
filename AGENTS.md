@@ -699,6 +699,7 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
       E-mail automático diário FEITO (15/11, grátis — bw-avisos). WhatsApp automático: só pela API da Meta (paga) — não feito, decisão do dono.
 - [x] (16/11 20:05, dono: "funcionou perfeitamente") Teste real do 🔏 ASSINAR com o e-CNPJ da BW (A1, formato antigo 3DES/RC2) — OK.
 - [~] (16/11 22:29, dono: "testei … por foto e está funcionando") LEITOR DE CONTAS por FOTO — OK. Ainda faltam (quando o dono quiser):
-      conta em PDF, código colado e o TIO CLÁUDIO por voz (celular e PC: conversa, "como está meu dia", "muda para…").
+      conta em PDF, código colado e o TIO CLÁUDIO por voz (conversa, "como está meu dia", "muda para…").
+      16/11 23:35: SOM no PC OK (dono ouviu a voz Daniel). Falta: som no celular depois da v11 e OUVIR (microfone) no Chrome/Edge/celular.
 - [ ] Futuro (MAESTRO): galeria do cliente por link secreto (hoje as FOTOS ainda são listáveis por quem souber
       usar a API; documentos já estão protegidos).
