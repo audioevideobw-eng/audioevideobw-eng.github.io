@@ -222,6 +222,14 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
 69. iPhone "sem fala" com o diagnóstico dizendo que COMEÇOU a falar = MODO SILENCIOSO (a voz do navegador obedece à chave; o bip do
     AudioContext não) — perguntar isso PRIMEIRO, antes de mexer em código (16–17/11: 5 versões até descobrir).
 
+**Aprendidos em 17/11 (BW REELS PRO)**
+70. O site NUNCA fala com o PC do usuário por endereço local (vigia 7.2 recusa localhost/127.0.0.1): a ponte com programa instalado no
+    computador é um ARQUIVO baixado (.bwreels.zip em Downloads) que o programa do PC vigia — nada de servidor local no código do site.
+71. Prévia presa no topo do celular que ocupa boa parte da tela: a página reserva a altura dela na rolagem (scrollPaddingTop calculado
+    no JS) — sem isso o botão tocado fica escondido atrás da prévia (teste: clicar em botões no fim do painel em 390 px).
+72. Motor que existe no Studio e no site (assets/reels-motor.js) é GERADO do Studio (bw-reels-studio/motor/gerar-motor-web.py): mudança
+    de animação/estilo é feita lá e o arquivo do site é gerado de novo — nunca editar só a cópia do site.
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -703,7 +711,20 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
 - 17/11/2026 00:10 · Dono: "falou! era o modo silencioso" — iPhone (app instalado) OK com o silencioso desligado. bw-agente.js v17: aviso
   disso em ⚙ no iPhone. Som confirmado pelo dono em PC, Android e iPhone. layout.js v47, sw v103. PENTE FINO 69.
 
+- 17/11/2026 · Claude (pedido do dono: "plataforma igual ao app de Reels… como ferramenta dentro da Brightway, com o motor instalado no PC"):
+  BW REELS PRO (reels.html + assets/reels.js + assets/reels-motor.js) em MARKETING (menu, galeria de Marketing, Ferramentas e Início).
+  Interface estilo editor: prévia ao vivo (o MESMO motor do BW Reels Studio, gerado de lá; vídeo importado toca na prévia), linha do tempo
+  com cenas, CRIAR em 4 passos (assunto → ✨ IA numa chamada só da bw-ia: 5 ganchos com nota + cenas + fatos + legenda; sem login = modelo
+  pronto · gancho · FONTES: afirmação/número sem fonte bloqueia o vídeo, TIRAR O QUE NÃO TEM FONTE · estilo/formato/acabamento), CENA
+  (texto, duração, destaque, itens, número+fonte, mídia, movimento, transição, fala/legenda, mover/duplicar/excluir), MÍDIA (filmagens,
+  fotos, música — só no IndexedDB bw_reels do aparelho), EXPORTAR (validação do motor, RENDERIZAR NO PC = pacote .bwreels.zip, roteiro
+  .json, legenda do post). ⚙ MOTOR NO PC: downloads/BW-Reels-Studio.zip + downloads/BW-Reels-Studio-Tutorial.pdf; no PC, BW REELS RENDER
+  (motor/vigia-downloads.mjs) pega o pacote em Downloads, renderiza e abre o MP4. Nada vai para a conta. teste_reels.py (37 checagens × 1280/390,
+  0 falhas), varredura 49 páginas 0 achados, vigia ✅. Manual 40 → 41 p. layout.js v48, sw v104. PENTE FINO 70–72.
+
 ## Pendências (dono)
+- [ ] (17/11) BW REELS PRO: dono testar no ar — instalar o motor pelo ⚙ MOTOR NO PC, abrir o BW Reels Render e fazer um RENDERIZAR NO PC;
+      conferir a IA real (ganchos/roteiro em JSON) logado.
 - [x] (16/11 11:42) IA CRIATIVA ATIVA: conta Cloudflare do dono (Free, sem cartão), token "Brightway IA criativa 2" (Workers AI Read+Edit) em
       CF_API_TOKEN, CF_ACCOUNT_ID salvo. Teste no ar: "cabelo cacheado ruivo e óculos de sol" → nova versão em 6 s, mesma pessoa/roupa/fundo.
 - [x] (16/11 15:51, dono: "vamos apagar") Cloudflare → API Tokens: token antigo "Brightway IA criativa (Workers AI)" (…8fe6) APAGADO; fica só o "…2" (…eed4).

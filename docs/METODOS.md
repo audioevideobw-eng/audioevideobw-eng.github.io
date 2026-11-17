@@ -203,3 +203,13 @@ Tamanho > 0 e sem erro = o pdfmake montou o arquivo. Localmente (T1) confira o `
 - IA de ações (16/11 noite): SEMPRE conferir a saída REAL da bw-ia no ar antes de dar como pronto — no console logado:
   `await BWAgente.entender("me lembra de ligar pro cliente amanhã às 10")` (não grava nada). O teste simulado devolvia o formato ideal e
   escondeu que o gpt-oss respondia {"acoes":[{"tarefa":{…}}]}.
+
+
+## BW Reels Pro (17/11) — editor de vídeo no site + motor no PC
+- Motor do site = gerado do Studio: `python3 <bw-reels-studio>/motor/gerar-motor-web.py assets/reels-motor.js` (inclui o validador).
+- Teste local: `python3 docs/testes/teste_reels.py` — IA simulada (resposta em ```json``` para testar o extrair), vídeo de teste gerado no
+  próprio navegador (canvas + MediaRecorder → webm), JSZip servido do /opt/npm-tools, pacote baixado e aberto com zipfile.
+- Ponte site → PC sem localhost: o site baixa `<nome>.bwreels.zip` (roteiro.json + bwreels.json + midia/ + post.md); no PC
+  `node motor/vigia-downloads.mjs` olha Downloads (pasta real lida do registro do Windows), espera o tamanho parar de mudar, descompacta
+  (tar → python zipfile → unzip), renderiza e abre o MP4. Teste do vigia: `--pasta /tmp/dl --uma-vez --rascunho` com BWREELS_NAO_ABRIR=1.
+- Prévia: iframe com srcdoc do motor + `window.__PREVIEW=true` (vídeo toca e só corrige se desviar > 0,35 s); parado mostra 1,5 s.

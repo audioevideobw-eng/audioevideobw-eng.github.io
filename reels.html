@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BW Reels Pro — Brightway</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#06080D">
+<link rel="icon" type="image/png" href="icons/favicon-64.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Brightway">
+<link rel="stylesheet" href="assets/brightway.css?v=26">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Michroma&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+.wrap{max-width:1280px;margin:0 auto;padding:0 20px 90px}
+.rl-topo{display:flex;flex-wrap:wrap;align-items:center;gap:10px 12px;margin-bottom:14px}
+.rl-marca{font-family:Michroma,sans-serif;font-size:15px;letter-spacing:.16em;color:#F5F1EA;white-space:nowrap}
+.rl-marca b{color:#FFB547;font-weight:400}
+.rl-nome{flex:1 1 220px;min-width:0;min-height:42px;padding:0 12px;border-radius:12px;border:1px solid rgba(245,241,234,.14);background:#0D1017;color:#F5F1EA;font:600 16px Inter,sans-serif}
+.rl-bt{min-height:42px;padding:0 14px;border-radius:12px;border:1px solid rgba(245,241,234,.14);background:rgba(255,255,255,.04);color:#F5F1EA;font:700 12.5px Inter,sans-serif;letter-spacing:.06em;cursor:pointer;display:inline-flex;align-items:center;gap:7px;white-space:nowrap}
+.rl-bt:hover{border-color:rgba(255,181,71,.45)}
+.rl-bt.pri{background:#FFB547;color:#06080D;border-color:#FFB547}
+.rl-bt.pri:hover{background:#FFC46B}
+.rl-bt.peq{min-height:36px;padding:0 11px;font-size:12px}
+.rl-bt[disabled]{opacity:.45;cursor:not-allowed}
+.rl-app{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,400px);gap:16px;align-items:start}
+.rl-palco{position:sticky;top:12px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.rl-tela{position:relative;margin:0 auto;border-radius:16px;overflow:hidden;background:#000;box-shadow:0 0 0 1px rgba(245,241,234,.12),0 20px 40px -20px rgba(0,0,0,.9)}
+.rl-tela iframe{position:absolute;left:0;top:0;border:0;transform-origin:0 0;pointer-events:none}
+.rl-zona{position:absolute;left:0;right:0;background:rgba(255,181,71,.10);pointer-events:none}
+.rl-zona.t{top:0;border-bottom:1px dashed rgba(255,181,71,.75)}
+.rl-zona.b{bottom:0;border-top:1px dashed rgba(255,181,71,.75);display:flex;justify-content:center;padding-top:5px}
+.rl-zona.b span{font-size:10px;color:#FFC46B}
+.rl-ctrl{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}
+.rl-redondo{width:44px;height:44px;border-radius:50%;border:1px solid rgba(245,241,234,.16);background:rgba(255,255,255,.04);color:#F5F1EA;display:grid;place-items:center;cursor:pointer}
+.rl-redondo.grande{width:52px;height:52px;background:#FFB547;border-color:#FFB547;color:#06080D}
+.rl-redondo svg{width:18px;height:18px}
+.rl-tempo{font-size:13px;color:#9AA1AE;font-variant-numeric:tabular-nums;min-width:96px;text-align:center}
+.rl-barra{width:100%;accent-color:#FFB547}
+.rl-chk{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:#C9CDD5;min-height:40px;cursor:pointer}
+.rl-chk input{width:18px;height:18px;accent-color:#FFB547}
+.rl-tl{margin-top:4px;background:rgba(255,255,255,.035);border:1px solid rgba(245,241,234,.08);border-radius:16px;padding:10px}
+.rl-tl-topo{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
+.rl-eyebrow{font-family:Michroma,sans-serif;font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:#FFB547}
+.rl-faixa{overflow-x:auto}
+.rl-cenas{display:flex;gap:5px;min-width:560px}
+.rl-cena{min-width:0;min-height:56px;display:flex;flex-direction:column;justify-content:center;gap:2px;padding:6px 9px;border-radius:12px;border:1px solid rgba(245,241,234,.14);background:#11141B;color:#F5F1EA;text-align:left;cursor:pointer;font-family:Inter,sans-serif}
+.rl-cena.on{border:2px solid #FFB547;background:rgba(255,181,71,.10)}
+.rl-cena.erro{border-color:#f2686b}
+.rl-cena small{font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#FFB547;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rl-cena span{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rl-painel{background:rgba(255,255,255,.035);border:1px solid rgba(245,241,234,.08);border-radius:18px;padding:14px;min-width:0}
+.rl-abas{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;padding:3px;border-radius:12px;background:#0D1017;margin-bottom:12px}
+.rl-abas button{min-height:40px;border-radius:9px;border:0;background:transparent;color:#C9CDD5;font:700 12px Inter,sans-serif;letter-spacing:.06em;cursor:pointer}
+.rl-abas button.on{background:#FFB547;color:#06080D}
+.rl-passos{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-bottom:12px}
+.rl-passos button{min-height:46px;border-radius:12px;border:1px solid rgba(245,241,234,.10);background:transparent;color:#9AA1AE;font:600 11px Inter,sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer}
+.rl-passos button i{font-style:normal;width:20px;height:20px;border-radius:50%;display:grid;place-items:center;background:rgba(245,241,234,.10);color:#C9CDD5;font-weight:800;font-size:11px}
+.rl-passos button.on{border-color:#FFB547;background:rgba(255,181,71,.10);color:#F5F1EA}
+.rl-passos button.on i{background:#FFB547;color:#06080D}
+.rl-campo{display:flex;flex-direction:column;gap:5px;margin-bottom:10px;min-width:0}
+.rl-campo label{font-size:12.5px;color:#C9CDD5;font-weight:500}
+.rl-campo input,.rl-campo select,.rl-campo textarea{width:100%;min-height:44px;padding:8px 12px;border-radius:12px;border:1px solid rgba(245,241,234,.14);background:#0D1017;color:#F5F1EA;font:16px Inter,sans-serif}
+.rl-campo textarea{resize:vertical;line-height:1.4}
+.rl-dupla{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 10px}
+.rl-nota{font-size:12.5px;color:#9AA1AE;line-height:1.5;margin:4px 0 10px}
+.rl-aviso{font-size:13px;line-height:1.5;padding:10px 12px;border-radius:12px;margin:0 0 10px;border:1px solid rgba(255,181,71,.3);background:rgba(255,181,71,.08);color:#F5F1EA}
+.rl-aviso.erro{border-color:rgba(242,104,107,.45);background:rgba(242,104,107,.08)}
+.rl-aviso.ok{border-color:rgba(95,224,160,.4);background:rgba(95,224,160,.08)}
+.rl-gancho{width:100%;text-align:left;display:flex;flex-direction:column;gap:6px;padding:12px;border-radius:14px;border:1px solid rgba(245,241,234,.10);background:#11141B;color:#F5F1EA;cursor:pointer;margin-bottom:8px}
+.rl-gancho.on{border:2px solid #FFB547;background:rgba(255,181,71,.10)}
+.rl-gancho .t{font-family:Anton,sans-serif;text-transform:uppercase;font-size:19px;line-height:1.1}
+.rl-gancho .m{display:flex;justify-content:space-between;gap:8px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#9AA1AE;font-weight:700}
+.rl-gancho .m b{color:#FFB547}
+.rl-gancho .q{font-size:12px;color:#9AA1AE}
+.rl-fato{padding:10px;border-radius:12px;background:#11141B;border:1px solid rgba(245,241,234,.08);margin-bottom:8px}
+.rl-fato p{margin:0 0 6px;font-size:13.5px;color:#F5F1EA}
+.rl-fato input{width:100%;min-height:42px;padding:0 10px;border-radius:10px;border:1px solid rgba(245,241,234,.14);background:#0D1017;color:#F5F1EA;font:16px Inter,sans-serif}
+.rl-selo{display:inline-block;font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border-radius:6px;margin-bottom:6px}
+.rl-selo.ok{color:#5FE0A0;border:1px solid rgba(95,224,160,.5)}
+.rl-selo.falta{color:#FFB547;border:1px solid rgba(255,181,71,.5)}
+.rl-estilos{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:12px}
+.rl-estilo{display:flex;align-items:center;gap:10px;min-height:60px;padding:8px;border-radius:14px;border:1px solid rgba(245,241,234,.10);background:#11141B;color:#F5F1EA;cursor:pointer;font:600 13px Inter,sans-serif}
+.rl-estilo.on{border:2px solid #FFB547}
+.rl-estilo i{font-style:normal;width:40px;height:40px;border-radius:10px;display:grid;place-items:center;font-size:18px;border:1px solid rgba(245,241,234,.14);flex:none}
+.rl-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.rl-chip{min-height:38px;padding:0 13px;border-radius:999px;border:1px solid rgba(245,241,234,.16);background:rgba(255,255,255,.04);color:#F5F1EA;font:600 12.5px Inter,sans-serif;cursor:pointer}
+.rl-chip.on{background:#FFB547;color:#06080D;border-color:#FFB547}
+.rl-midias{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:10px 0}
+.rl-midia{border-radius:12px;overflow:hidden;background:#11141B;border:1px solid rgba(245,241,234,.10);display:flex;flex-direction:column;min-width:0}
+.rl-midia .vis{height:84px;background:#0D1017;position:relative;display:grid;place-items:center;color:#9AA1AE;font-size:11px}
+.rl-midia .vis img,.rl-midia .vis video{width:100%;height:100%;object-fit:cover}
+.rl-midia .vis em{position:absolute;right:5px;bottom:5px;font-style:normal;font-size:10px;padding:2px 5px;border-radius:4px;background:rgba(0,0,0,.7);color:#F5F1EA}
+.rl-midia .nm{padding:6px 8px 0;font-size:11.5px;color:#C9CDD5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rl-midia .ac{display:flex;gap:4px;padding:6px 8px 8px;flex-wrap:wrap}
+.rl-midia .ac button{min-height:32px;padding:0 8px;border-radius:8px;border:1px solid rgba(245,241,234,.14);background:transparent;color:#F5F1EA;font:600 11px Inter,sans-serif;cursor:pointer}
+.rl-drop{width:100%;min-height:76px;border-radius:14px;border:1.5px dashed rgba(245,241,234,.24);background:rgba(255,255,255,.02);color:#C9CDD5;font:600 13px Inter,sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer}
+.rl-drop small{font-weight:400;color:#9AA1AE}
+.rl-acoes{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 12px}
+.rl-lista{list-style:none;margin:0;padding:0}
+.rl-lista li{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px;border-radius:12px;background:#11141B;border:1px solid rgba(245,241,234,.08);margin-bottom:6px}
+.rl-lista li b{font-size:13.5px;color:#F5F1EA;display:block}
+.rl-lista li small{font-size:11.5px;color:#9AA1AE}
+.rl-ocup{position:fixed;inset:0;z-index:300;background:rgba(6,8,13,.78);display:grid;place-items:center;padding:20px}
+.rl-ocup[hidden]{display:none}
+.rl-ocup div{max-width:360px;text-align:center;color:#F5F1EA;font:600 15px/1.5 Inter,sans-serif}
+.rl-ocup i{display:block;width:42px;height:42px;margin:0 auto 12px;border-radius:50%;border:3px solid rgba(255,181,71,.25);border-top-color:#FFB547;animation:rlGira 1s linear infinite}
+@keyframes rlGira{to{transform:rotate(360deg)}}
+.rl-folha{position:fixed;inset:0;z-index:250;background:rgba(6,8,13,.7);display:flex;align-items:center;justify-content:center;padding:16px}
+.rl-folha[hidden]{display:none}
+.rl-folha>div{width:min(520px,100%);max-height:86vh;overflow:auto;background:#11141B;border:1px solid rgba(245,241,234,.12);border-radius:18px;padding:16px}
+[hidden]{display:none!important}
+@media (max-width:980px){
+  .rl-app{grid-template-columns:minmax(0,1fr)}
+  .rl-palco{position:sticky;top:0;z-index:20;background:#06080D;padding:6px 0 8px;margin:0 -20px;padding-left:20px;padding-right:20px}
+  .rl-ctrl{gap:6px}
+  .rl-chk.zonas{display:none}
+  .rl-tl{margin-top:0;padding:6px 8px}
+  .rl-tl-topo{margin-bottom:4px}
+  .rl-cenas{min-width:480px}
+  .rl-cena{min-height:40px;padding:4px 8px}
+  .rl-cena span{display:none}
+  .rl-redondo{width:40px;height:40px}.rl-redondo.grande{width:44px;height:44px}
+  .rl-palco{gap:6px}
+  .rl-painel{scroll-margin-top:var(--rl-topo,0px)}
+}
+@media (max-width:420px){.rl-dupla{grid-template-columns:minmax(0,1fr)}.rl-midias{grid-template-columns:repeat(2,minmax(0,1fr))}}
+</style>
+</head>
+<body>
+<header><div class="hd"><button id="btnVoltar" type="button">‹</button><div id="userBox"></div></div></header>
+<div class="wrap">
+  <div class="rl-topo">
+    <span class="rl-marca">BW REELS <b>PRO</b></span>
+    <input id="nomeProj" class="rl-nome" aria-label="Nome do vídeo" placeholder="Nome do vídeo">
+    <button class="rl-bt" id="btMeus" type="button">MEUS REELS</button>
+    <button class="rl-bt" id="btNovo" type="button">+ NOVO</button>
+    <button class="rl-bt" id="btMotor" type="button">⚙ MOTOR NO PC</button>
+  </div>
+
+  <div class="rl-app">
+    <section class="rl-palco" aria-label="Prévia do vídeo">
+      <div class="rl-tela" id="tela">
+        <iframe id="quadro" title="Prévia do vídeo"></iframe>
+        <div class="rl-zona t" id="zonaT" hidden></div>
+        <div class="rl-zona b" id="zonaB" hidden><span>área da legenda e dos botões do Instagram</span></div>
+      </div>
+      <input type="range" class="rl-barra" id="barra" min="0" max="1000" value="0" aria-label="Posição no vídeo">
+      <div class="rl-ctrl">
+        <button class="rl-redondo" id="btAnt" type="button" aria-label="Cena anterior"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 20L9 12l10-8z"/><path d="M5 19V5"/></svg></button>
+        <button class="rl-redondo grande" id="btPlay" type="button" aria-label="Reproduzir"><svg id="icPlay" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4l13 8-13 8z"/></svg></button>
+        <button class="rl-redondo" id="btProx" type="button" aria-label="Próxima cena"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4l10 8-10 8z"/><path d="M19 5v14"/></svg></button>
+        <span class="rl-tempo" id="tempo">0,0 / 0,0 s</span>
+        <label class="rl-chk zonas"><input type="checkbox" id="chkZonas"> Áreas seguras</label>
+      </div>
+      <div class="rl-tl">
+        <div class="rl-tl-topo"><span class="rl-eyebrow" id="tlTit">Linha do tempo</span><button class="rl-bt peq" id="btMaisCena" type="button">+ CENA</button></div>
+        <div class="rl-faixa"><div class="rl-cenas" id="cenas"></div></div>
+      </div>
+    </section>
+
+    <section class="rl-painel" aria-label="Controles">
+      <div class="rl-abas" role="tablist">
+        <button type="button" role="tab" data-aba="criar" class="on">CRIAR</button>
+        <button type="button" role="tab" data-aba="cena">CENA</button>
+        <button type="button" role="tab" data-aba="midia">MÍDIA</button>
+        <button type="button" role="tab" data-aba="exportar">EXPORTAR</button>
+      </div>
+
+      <div id="pnCriar">
+        <div class="rl-passos" id="passos">
+          <button type="button" data-passo="assunto" class="on"><i>1</i>Assunto</button>
+          <button type="button" data-passo="gancho"><i>2</i>Gancho</button>
+          <button type="button" data-passo="fontes"><i>3</i>Fontes</button>
+          <button type="button" data-passo="estilo"><i>4</i>Estilo</button>
+        </div>
+
+        <div id="psAssunto">
+          <div class="rl-campo"><label for="fAssunto">Sobre o que é o vídeo?</label>
+            <textarea id="fAssunto" rows="3" placeholder="ex.: por que transmitir ao vivo o seu evento corporativo"></textarea></div>
+          <div class="rl-dupla">
+            <div class="rl-campo"><label for="fNicho">Nicho</label>
+              <select id="fNicho"><option>Eventos corporativos</option><option>Aftermovie / highlights</option><option>Fotografia / ensaios</option><option>Educação / dicas</option><option>Produto / loja</option><option>Imobiliário</option><option>Saúde e bem-estar</option><option>Gastronomia</option><option>Música / festas</option><option>Outro</option></select></div>
+            <div class="rl-campo"><label for="fCta">Chamada final</label><input id="fCta" placeholder="ex.: chama no direct"></div>
+          </div>
+          <div class="rl-dupla">
+            <div class="rl-campo"><label for="fPublico">Para quem?</label><input id="fPublico" placeholder="ex.: RH e marketing de empresas"></div>
+            <div class="rl-campo"><label for="fPerfil">Seu @</label><input id="fPerfil" placeholder="@seuperfil"></div>
+          </div>
+          <div class="rl-campo"><label for="fFatos">Números e fatos que você pode provar (opcional)</label>
+            <textarea id="fFatos" rows="2" placeholder="ex.: 20 anos de audiovisual; 25 a 30 eventos por ano"></textarea></div>
+          <p class="rl-nota">A IA cria 5 ganchos e o roteiro numa chamada só. Número que aparece no vídeo precisa de fonte — a IA não inventa dados.</p>
+          <button class="rl-bt pri" id="btGerar" type="button" style="width:100%">✨ CRIAR GANCHOS E ROTEIRO</button>
+          <p class="rl-nota" id="motorNota"></p>
+        </div>
+
+        <div id="psGancho" hidden>
+          <p class="rl-nota">Os 3 primeiros segundos decidem se assistem. Escolha o gancho — o vídeo precisa entregar o que ele promete.</p>
+          <div id="ganchos"></div>
+          <div class="rl-campo"><label for="fGanchoTxt">Ou escreva o seu</label><input id="fGanchoTxt" placeholder="até 9 palavras"></div>
+          <button class="rl-bt pri" id="btGanchoOk" type="button" style="width:100%">USAR E SEGUIR</button>
+        </div>
+
+        <div id="psFontes" hidden>
+          <p class="rl-nota">Toda afirmação ou número do vídeo precisa de fonte (link do site, estudo ou "interno: dado da empresa"). O que não tiver fonte sai do vídeo.</p>
+          <div id="fatos"></div>
+          <div class="rl-acoes"><button class="rl-bt peq" id="btSemFonte" type="button">TIRAR O QUE NÃO TEM FONTE</button><button class="rl-bt pri peq" id="btFontesOk" type="button">SEGUIR</button></div>
+        </div>
+
+        <div id="psEstilo" hidden>
+          <div class="rl-eyebrow" style="margin-bottom:8px">Estilo</div>
+          <div class="rl-estilos" id="estilos"></div>
+          <div class="rl-eyebrow" style="margin-bottom:8px">Formato</div>
+          <div class="rl-chips" id="formatos"></div>
+          <div class="rl-eyebrow" style="margin-bottom:6px">Acabamento</div>
+          <label class="rl-chk"><input type="checkbox" id="fxGrao"> Grão de filme</label><br>
+          <label class="rl-chk"><input type="checkbox" id="fxVinheta"> Vinheta</label><br>
+          <label class="rl-chk"><input type="checkbox" id="fxLetter"> Faixas de cinema (letterbox)</label><br>
+          <label class="rl-chk"><input type="checkbox" id="fxBarra"> Barra de progresso</label><br>
+          <label class="rl-chk"><input type="checkbox" id="fxLeg"> Legendas da fala (karaokê)</label>
+          <div class="rl-campo" style="margin-top:8px"><label for="fMarca">Marca no topo do vídeo</label><input id="fMarca" placeholder="ex.: BW PRODUÇÕES"></div>
+        </div>
+      </div>
+
+      <div id="pnCena" hidden>
+        <div id="cenaVazia" class="rl-nota">Toque numa cena da linha do tempo para editar.</div>
+        <div id="cenaForm" hidden>
+          <div class="rl-dupla">
+            <div class="rl-campo"><label for="cTipo">Tipo</label>
+              <select id="cTipo"><option value="gancho">Gancho</option><option value="texto">Texto</option><option value="midia">Mídia</option><option value="dado">Dado (número)</option><option value="lista">Lista</option><option value="citacao">Citação</option><option value="cta">Chamada final</option></select></div>
+            <div class="rl-campo"><label for="cDur">Duração (s)</label><input id="cDur" type="number" min="1" max="15" step="0.1" inputmode="decimal"></div>
+          </div>
+          <div class="rl-campo" id="gTexto"><label for="cTexto">Texto na tela</label><textarea id="cTexto" rows="2"></textarea></div>
+          <div class="rl-campo" id="gEnfase"><label for="cEnfase">Palavras em destaque (separe por vírgula)</label><input id="cEnfase"></div>
+          <div class="rl-campo" id="gSub"><label for="cSub">Subtítulo</label><input id="cSub"></div>
+          <div class="rl-campo" id="gChamada"><label for="cChamada">Etiqueta acima (opcional)</label><input id="cChamada"></div>
+          <div class="rl-campo" id="gItens"><label for="cItens">Itens (um por linha, até 4)</label><textarea id="cItens" rows="4"></textarea></div>
+          <div id="gDado">
+            <div class="rl-dupla">
+              <div class="rl-campo"><label for="cValor">Número</label><input id="cValor" type="number" inputmode="decimal"></div>
+              <div class="rl-campo"><label for="cCasas">Casas decimais</label><input id="cCasas" type="number" min="0" max="2"></div>
+              <div class="rl-campo"><label for="cPref">Antes do número</label><input id="cPref" placeholder="ex.: até"></div>
+              <div class="rl-campo"><label for="cSuf">Depois do número</label><input id="cSuf" placeholder="ex.: %"></div>
+            </div>
+            <div class="rl-campo"><label for="cRotulo">O que o número significa</label><input id="cRotulo"></div>
+            <div class="rl-campo"><label for="cFonte">Fonte (aparece na tela)</label><input id="cFonte" placeholder="ex.: IBGE, 2024"></div>
+          </div>
+          <div class="rl-campo" id="gAutor"><label for="cAutor">Autor</label><input id="cAutor"></div>
+          <div class="rl-campo" id="gAcao"><label for="cAcao">Botão (ex.: @perfil)</label><input id="cAcao"></div>
+          <div class="rl-dupla">
+            <div class="rl-campo"><label for="cMidia">Fundo / mídia</label><select id="cMidia"></select></div>
+            <div class="rl-campo"><label for="cMov">Movimento</label>
+              <select id="cMov"><option value="">Automático</option><option value="zoom-in">Aproximar</option><option value="zoom-in-suave">Aproximar suave</option><option value="zoom-out">Afastar</option><option value="pan-esq">Deslizar ←</option><option value="pan-dir">Deslizar →</option><option value="fixo">Parado</option></select></div>
+          </div>
+          <div class="rl-dupla">
+            <div class="rl-campo"><label for="cIni">Começar o vídeo em (s)</label><input id="cIni" type="number" min="0" step="0.1" inputmode="decimal"></div>
+            <div class="rl-campo"><label for="cTrans">Transição de entrada</label>
+              <select id="cTrans"><option value="">Automática</option><option value="corte">Corte seco</option><option value="fade">Fade</option><option value="zoom">Zoom</option><option value="deslize">Deslize</option><option value="flash">Flash</option></select></div>
+          </div>
+          <div class="rl-campo"><label for="cFala">Fala / legenda desta cena (opcional)</label><textarea id="cFala" rows="2"></textarea></div>
+          <div class="rl-acoes">
+            <button class="rl-bt peq" id="cEsq" type="button" aria-label="Mover cena para a esquerda">◀ MOVER</button>
+            <button class="rl-bt peq" id="cDir" type="button" aria-label="Mover cena para a direita">MOVER ▶</button>
+            <button class="rl-bt peq" id="cDup" type="button">DUPLICAR</button>
+            <button class="rl-bt peq" id="cDel" type="button">✕ EXCLUIR</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="pnMidia" hidden>
+        <button class="rl-drop" id="btImportar" type="button">Importar filmagens, fotos e música<small>ou arraste os arquivos para cá · ficam só neste aparelho</small></button>
+        <input type="file" id="arquivos" accept="video/*,image/*,audio/*" multiple hidden>
+        <div class="rl-midias" id="midias"></div>
+        <div class="rl-campo"><label for="fMusica">Música do vídeo</label><select id="fMusica"></select></div>
+        <div class="rl-campo"><label for="fVolMus">Volume da música</label><input id="fVolMus" type="range" min="0" max="100" value="60"></div>
+        <p class="rl-nota">Use só música licenciada ou sua. Os efeitos de whoosh e impacto são gerados na hora, sem direitos autorais.</p>
+      </div>
+
+      <div id="pnExportar" hidden>
+        <div id="validacao"></div>
+        <div class="rl-eyebrow" style="margin:6px 0 8px">Gerar o vídeo</div>
+        <p class="rl-nota">O vídeo final (MP4 em alta) é feito pelo motor <b>BW Reels Studio</b> no seu computador: com o <b>BW REELS RENDER</b> aberto, toque em RENDERIZAR NO PC — o pedido vai para Downloads, o motor faz o vídeo e abre quando terminar.</p>
+        <button class="rl-bt pri" id="btPacote" type="button" style="width:100%">⬇ RENDERIZAR NO PC</button>
+        <div class="rl-acoes" style="margin-top:8px">
+          <button class="rl-bt peq" id="btRoteiro" type="button">BAIXAR ROTEIRO (.JSON)</button>
+          <button class="rl-bt peq" id="btMotor2" type="button">⚙ INSTALAR O MOTOR NO PC</button>
+        </div>
+        <div class="rl-eyebrow" style="margin:14px 0 8px">Legenda do post</div>
+        <div class="rl-campo"><label for="fLegenda" style="position:absolute;left:-9999px">Legenda do post</label><textarea id="fLegenda" rows="6" placeholder="A legenda criada pela IA aparece aqui."></textarea></div>
+        <div class="rl-acoes"><button class="rl-bt peq" id="btCopiar" type="button">COPIAR LEGENDA</button></div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<div class="rl-folha" id="folhaMeus" hidden><div>
+  <div class="rl-tl-topo"><span class="rl-eyebrow">Meus reels (neste aparelho)</span><button class="rl-bt peq" id="btFecharMeus" type="button">✕ FECHAR</button></div>
+  <ul class="rl-lista" id="listaMeus"></ul>
+</div></div>
+<div class="rl-folha" id="folhaMotor" hidden><div>
+  <div class="rl-tl-topo"><span class="rl-eyebrow">Motor de vídeo no seu PC</span><button class="rl-bt peq" id="btFecharMotor" type="button">✕ FECHAR</button></div>
+  <p class="rl-nota" style="font-size:13.5px;color:#C9CDD5">O BW Reels Pro é a interface; quem faz o MP4 em alta é o <b>BW Reels Studio</b>, instalado uma vez no computador (Windows 10 ou 11). Depois disso, é só tocar em RENDERIZAR NO PC aqui na plataforma.</p>
+  <ol style="margin:0 0 12px;padding-left:20px;color:#F5F1EA;font-size:13.5px;line-height:1.6">
+    <li>Baixe o motor e descompacte numa pasta fixa (ex.: Vídeos).</li>
+    <li>Dê dois cliques em <b>INSTALAR.bat</b> — instala tudo e cria os ícones na Área de Trabalho.</li>
+    <li>Abra o ícone <b>BW REELS RENDER</b> (deixe a janela aberta enquanto usa a plataforma).</li>
+    <li>Aqui, toque em <b>RENDERIZAR NO PC</b>: o vídeo fica pronto e abre sozinho.</li>
+  </ol>
+  <div class="rl-acoes">
+    <a class="rl-bt pri" href="downloads/BW-Reels-Studio.zip" download>⬇ BAIXAR O MOTOR (.ZIP)</a>
+    <a class="rl-bt" href="downloads/BW-Reels-Studio-Tutorial.pdf" target="_blank" rel="noopener">📄 TUTORIAL DE INSTALAÇÃO</a>
+  </div>
+  <p class="rl-nota">Precisa de: internet na instalação e, para usar o Claude Code direto no motor (opcional), uma conta Claude com acesso ao Claude Code.</p>
+</div></div>
+<div class="rl-ocup" id="ocup" hidden><div><i></i><span id="ocupTxt">Criando…</span></div></div>
+
+<script src="assets/layout.js?v=48"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="assets/bw-sync.js"></script>
+<script src="assets/reels-motor.js?v=1"></script>
+<script src="assets/reels.js?v=1"></script>
+</body>
+</html>
