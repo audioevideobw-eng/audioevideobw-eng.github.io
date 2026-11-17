@@ -12,6 +12,7 @@
   window.BWReelsModelos = {
     categorias: [
       {id: "texto", nome: "MOTION DE TEXTO", icone: "Aa", desc: "Textos, números e listas animados com cara de cinema. O jeito mais rápido de postar todo dia."},
+      {id: "meu", nome: "ANIMAR MEU PERSONAGEM", icone: "📷", desc: "Envie a foto do seu avatar ou mascote e conte a história: ele vira recorte animado, cenas criadas por IA ou clipes de IA de vídeo."},
       {id: "personagem", nome: "HISTÓRIAS COM PERSONAGENS", icone: "☺", desc: "Personagens desenhados pelo motor contam a história em balões: falam, acenam, comemoram. Grátis e sem IA de vídeo."},
       {id: "ia", nome: "PERSONAGEM COM IA", icone: "✦", desc: "Seu personagem criado e animado em IAs de imagem e vídeo (Flux, Higgsfield, Kling, Veo). Aqui você monta o Reel com os clipes."}
     ],

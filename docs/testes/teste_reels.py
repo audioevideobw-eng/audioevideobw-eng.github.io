@@ -24,7 +24,18 @@ RESPOSTA_IA = {"ganchos": [
     {"tipo": "lista", "duracao": 5, "titulo": "Do palco para todas as telas", "itens": ["Transmissão ao vivo", "Aftermovie", "Fotos"]},
     {"tipo": "cta", "duracao": 3, "texto": "Seu próximo evento merece ir mais longe", "acao": "@bw"}],
   "fatos": ["87% das empresas preferem lives", "A BW faz até 30 eventos por ano"], "legenda": "Seu evento não precisa acabar às 22h. #eventoscorporativos #transmissaoaovivo"}
-PEDIDOS = []
+PEDIDOS = []; PEDIDOS_IMG = []
+RESPOSTA_AV = {"gancho": "O dia em que o som caiu", "cenas": [
+    {"fala": "Cheguei no evento todo animado!", "acao": "acena", "cenario": "palco", "pose": "arriving at a corporate event", "duracao": 3.2},
+    {"fala": "Opa, o som caiu no meio da palestra", "acao": "surpresa", "cenario": "palco", "pose": "on stage, surprised", "duracao": 3.5},
+    {"fala": "A equipe da BW resolveu em segundos", "acao": "aponta", "cenario": "raios", "pose": "pointing to the tech desk", "duracao": 3.5},
+    {"fala": "Transmissão ao vivo salva!", "acao": "voar", "cenario": "lua", "pose": "celebrating", "duracao": 3}],
+  "cta": "Chama a BW", "legenda": "Evento sem susto. #eventos #aovivo"}
+import base64
+from PIL import Image as _Img
+_b = io.BytesIO(); _Img.new("RGB", (576, 1024), (40, 90, 140)).save(_b, "JPEG"); IMG_IA = base64.b64encode(_b.getvalue()).decode()
+_a = _Img.new("RGB", (400, 600), (255, 255, 255)); from PIL import ImageDraw as _D; _d = _D.Draw(_a); _d.ellipse((100, 60, 300, 260), fill=(230, 180, 140)); _d.rectangle((110, 250, 290, 560), fill=(30, 90, 200))
+AVATAR = f"{TMP}/avatar-branco.png"; _a.save(AVATAR)
 
 class Q(http.server.SimpleHTTPRequestHandler):
     def log_message(self, *a): pass
@@ -36,10 +47,15 @@ def rota(r):
     if "127.0.0.1" in u or u.startswith("blob:") or u.startswith("data:") or u.startswith("about:"): return r.continue_()
     if "supabase-js" in u: return r.fulfill(body=STUB_SB, content_type="application/javascript")
     if "jszip" in u: return r.fulfill(body=JSZIP, content_type="application/javascript")
+    if "functions/v1/bw-ia-imagem" in u:
+        if r.request.method == "OPTIONS": return r.fulfill(status=200, body="ok")
+        PEDIDOS_IMG.append(len(r.request.post_data_buffer or b""))
+        return r.fulfill(body=json.dumps({"imagem": IMG_IA}), content_type="application/json")
     if "functions/v1/bw-ia" in u:
         if r.request.method == "OPTIONS": return r.fulfill(status=200, body="ok")
         PEDIDOS.append(r.request.post_data or "")
-        return r.fulfill(body=json.dumps({"texto": "```json\n" + json.dumps(RESPOSTA_IA) + "\n```"}), content_type="application/json")
+        resp = RESPOSTA_AV if "roteirista de Reels com um personagem" in (r.request.post_data or "") else RESPOSTA_IA
+        return r.fulfill(body=json.dumps({"texto": "```json\n" + json.dumps(resp) + "\n```"}), content_type="application/json")
     if "fonts.g" in u: return r.fulfill(body="", content_type="text/css")
     return r.abort()
 
@@ -68,7 +84,7 @@ with sync_playwright() as p:
         pg.goto(BASE + "reels.html"); pg.wait_for_timeout(1800)
         ok(not erros, f"abre sem erro de JS {erros[:2]}")
         ok(not pg.locator("#folhaModelos").is_hidden(), "1ª vez: a galeria O QUE VAMOS CRIAR? abre sozinha")
-        ok(pg.locator("#glCats .gl-cat").count() == 3, "3 categorias: motion de texto, personagens, personagem com IA")
+        ok(pg.locator("#glCats .gl-cat").count() == 4, "4 categorias: motion de texto, meu personagem, personagens, personagem com IA")
         larg = pg.evaluate("document.documentElement.scrollWidth - document.documentElement.clientWidth")
         ok(larg <= 0, f"galeria sem estouro horizontal ({larg}px)")
         pg.click("#btFecharModelos"); pg.wait_for_timeout(200)
@@ -180,6 +196,46 @@ with sync_playwright() as p:
         ok("same character" in pv and "9:16" in pv and '"Bora pro ao vivo!"' in pv, "prompt do VÍDEO com referência, 9:16 e a fala")
         pg.click('#glGrade [data-usar="ia-montagem"]'); pg.wait_for_timeout(1500)
         ok(pg.evaluate("BWReels.projeto().roteiro.cenas.filter(c=>c.tipo==='midia').length") == 3 and not pg.locator("#pnMidia").is_hidden(), "modelo de IA abre na aba MÍDIA, com 3 cenas para os clipes")
+        # ANIMAR MEU PERSONAGEM (foto do usuário)
+        pg.click("#btModelos"); pg.wait_for_timeout(300); pg.click('#glCats [data-cat="meu"]'); pg.wait_for_timeout(300)
+        ok(not pg.locator("#glMeu").is_hidden() and pg.locator("#glGrade").is_hidden(), "ANIMAR MEU PERSONAGEM: painel com foto, história e 3 jeitos de animar")
+        pg.set_input_files("#mpArq", AVATAR); pg.wait_for_timeout(900)
+        ok("Fundo liso tirado" in pg.inner_text("#mpStatus") and pg.locator("#mpVis img").count() == 1, f"foto com fundo branco: fundo sai sozinho no aparelho ({pg.inner_text('#mpStatus')[:50]})")
+        canto = pg.evaluate("""(async()=>{const i=document.querySelector('#mpVis img');await i.decode();const c=document.createElement('canvas');c.width=i.naturalWidth;c.height=i.naturalHeight;const x=c.getContext('2d');x.drawImage(i,0,0);return [x.getImageData(1,1,1,1).data[3], x.getImageData(c.width/2|0,c.height/2|0,1,1).data[3]]})()""")
+        ok(canto[0] == 0 and canto[1] == 255, f"recorte: canto transparente, personagem inteiro {canto}")
+        pg.fill("#mpNome", "Marcos"); pg.fill("#mpHist", "O Marcos chega no evento. O som cai. A BW resolve e todo mundo comemora."); pg.fill("#mpCta", "Chama no direct")
+        pg.click("#mpCriar"); pg.wait_for_timeout(400)
+        ok(any("autoriza" in d for d in dlg), "sem confirmar a autorização da imagem não cria")
+        pg.check("#mpAutor"); n0 = len(PEDIDOS); pg.click("#mpCriar"); pg.wait_for_timeout(2500)
+        r = pg.evaluate("BWReels.projeto().roteiro")
+        ps = [c for c in r["cenas"] if c["tipo"] == "personagem"]
+        ok(len(PEDIDOS) == n0 + 1 and r["cenas"][0]["tipo"] == "gancho" and len(ps) == 4, f"RECORTE: a IA escreve a história numa chamada → gancho + 4 cenas ({len(ps)})")
+        ok(all(c["elenco"][0]["personagem"] == "foto" and c["elenco"][0]["imagem"].startswith("midia/avatar-") for c in ps), "cada cena usa a foto do personagem (guardada no aparelho)")
+        ok(ps[3]["elenco"][0]["acao"] == "fala" and ps[3]["cenario"] == "raios", "ação/cenário inexistentes vindos da IA são corrigidos")
+        pg.evaluate("BWReels.posicionar(4)"); pg.wait_for_timeout(600)
+        ok(pg.evaluate("document.querySelector('#quadro').contentDocument.querySelectorAll('.ator.foto img').length") >= 1, "a prévia mostra o recorte animado")
+        ok(not pg.evaluate("BWReels.validar(false)")["erros"], "reel com o personagem passa na validação")
+        pg.click('#cenas .rl-cena[data-i="1"]'); pg.wait_for_timeout(300)
+        ok(pg.locator("#psA .ps-bt img").count() == 1 and not pg.locator("#psEspBoxA").is_hidden(), "editor da cena: o personagem da foto aparece para escolher (com VIRAR)")
+        pg.check("#psEspA"); pg.wait_for_timeout(300)
+        ok(pg.evaluate("BWReels.projeto().roteiro.cenas[1].elenco[0].espelhar") is True, "VIRAR PARA O OUTRO LADO grava")
+        # cenas por IA
+        pg.click("#btModelos"); pg.wait_for_timeout(300); pg.click('#glCats [data-cat="meu"]'); pg.wait_for_timeout(200)
+        pg.click('#mpModos [data-modo="cenas"]'); ni = len(PEDIDOS_IMG); nd = len(dlg); pg.click("#mpCriar"); pg.wait_for_timeout(4000)
+        ok(any("15 por dia" in d for d in dlg[nd:]), "CENAS POR IA: pergunta antes de enviar a foto (e avisa o limite)")
+        ok(len(PEDIDOS_IMG) == ni + 4 and max(PEDIDOS_IMG[ni:]) < 300000, f"uma imagem por cena, foto enviada pequena ({PEDIDOS_IMG[ni:]})")
+        r = pg.evaluate("BWReels.projeto().roteiro"); ps = [c for c in r["cenas"] if c["tipo"] == "personagem"]
+        ok(all(c.get("midia", "").startswith("midia/cena-ia-") and c["elenco"] == [] for c in ps), "cada cena vira a imagem da IA + balão (sem ator por cima)")
+        ok(not pg.evaluate("BWReels.validar(false)")["erros"], "reel de cenas por IA passa na validação")
+        pg.click('#cenas .rl-cena[data-i="1"]'); pg.wait_for_timeout(300)
+        ok(pg.locator('#psA .ps-bt.nada.on').count() == 1, "editor: cena só com a imagem fica em 'Só imagem' (não põe o Bê por cima)")
+        pg.fill("#psFala0", "Fala trocada"); pg.wait_for_timeout(300)
+        ok(pg.evaluate("BWReels.projeto().roteiro.cenas[1].elenco") == [] and pg.evaluate("BWReels.projeto().roteiro.cenas[1].falas[0].texto") == "Fala trocada", "editar a fala mantém a cena só com a imagem")
+        # vídeo com IA de fora
+        pg.click("#btModelos"); pg.wait_for_timeout(300); pg.click('#glCats [data-cat="meu"]'); pg.wait_for_timeout(200)
+        pg.click('#mpModos [data-modo="video"]'); ni = len(PEDIDOS_IMG); pg.click("#mpCriar"); pg.wait_for_timeout(2500)
+        ok(len(PEDIDOS_IMG) == ni and pg.locator("#promptsCenas .pc-item").count() == 4 and not pg.locator("#pnMidia").is_hidden(), "VÍDEO COM IA: 4 prompts (um por cena) na aba MÍDIA, nada enviado")
+        ok("reference image" in pg.input_value("#pc0") and '"Cheguei no evento todo animado!"' in pg.input_value("#pc0"), "prompt de vídeo usa a foto como referência e leva a fala")
         # motor e meus reels
         pg.click("#btMotor"); pg.wait_for_timeout(200)
         ok(pg.locator('#folhaMotor a[href="downloads/BW-Reels-Studio.zip"]').count() == 1 and pg.locator('#folhaMotor a[href="downloads/BW-Reels-Studio-Tutorial.pdf"]').count() == 1, "⚙ MOTOR NO PC: baixar motor + tutorial")

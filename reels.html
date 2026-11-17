@@ -113,7 +113,26 @@
 .rl-folha[hidden]{display:none}
 .rl-folha>div{width:min(520px,100%);max-height:86vh;overflow:auto;background:#11141B;border:1px solid rgba(245,241,234,.12);border-radius:18px;padding:16px}
 .rl-folha.larga>div{width:min(1040px,100%);max-height:90vh;padding:18px}
-.gl-cats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:6px 0 14px}
+.gl-meu{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px}
+.mp-vis{position:relative;height:260px;border-radius:14px;overflow:hidden;display:grid;place-items:center;margin:8px 0;
+  background:repeating-conic-gradient(#1b1f29 0 25%,#12151d 0 50%) 0 0/22px 22px;border:1px solid rgba(245,241,234,.10)}
+.mp-vis img{max-width:100%;max-height:244px;object-fit:contain}
+.rl-campo input[type=checkbox]{width:18px;height:18px;min-height:0;padding:0;flex:none}
+.mp-vis span{font-size:13px;color:#9AA1AE;text-align:center;padding:12px}
+.mp-modos{display:flex;flex-direction:column;gap:8px;margin:6px 0 12px}
+.mp-modo{display:flex;gap:10px;align-items:flex-start;text-align:left;padding:11px 12px;border-radius:14px;border:1px solid rgba(245,241,234,.12);background:#11141B;color:#F5F1EA;cursor:pointer}
+.mp-modo b{display:block;font-size:13px;letter-spacing:.04em}
+.mp-modo small{display:block;font-size:12px;line-height:1.4;color:#9AA1AE;margin-top:2px}
+.mp-modo i{flex:none;font-style:normal;width:22px;height:22px;border-radius:50%;border:2px solid rgba(245,241,234,.3);margin-top:1px}
+.mp-modo.on{border:2px solid #FFB547;background:rgba(255,181,71,.08)}
+.mp-modo.on i{border:6px solid #FFB547}
+.mp-modo em{font-style:normal;font-size:10.5px;font-weight:800;letter-spacing:.06em;color:#5FE0A0;margin-left:6px}
+.mp-modo em.pago{color:#FFB547}
+.pc-item{background:#11141B;border:1px solid rgba(245,241,234,.08);border-radius:12px;padding:10px;margin-bottom:8px}
+.pc-item b{font-size:12px;color:#FFB547;letter-spacing:.06em}
+.ps-bt img{width:44px;height:62px;object-fit:contain}
+
+.gl-cats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:6px 0 14px}
 .gl-cat{display:flex;gap:12px;align-items:flex-start;text-align:left;padding:14px;border-radius:16px;border:1px solid rgba(245,241,234,.12);background:#0D1017;color:#F5F1EA;cursor:pointer;min-width:0}
 .gl-cat i{flex:none;font-style:normal;width:44px;height:44px;border-radius:12px;display:grid;place-items:center;background:rgba(255,181,71,.12);color:#FFB547;font:800 19px Inter,sans-serif}
 .gl-cat b{display:block;font-family:Michroma,sans-serif;font-size:11.5px;letter-spacing:.12em;margin-bottom:4px}
@@ -148,7 +167,7 @@
 .ps-fala select,.ps-fala input{min-height:42px;padding:0 10px;border-radius:10px;border:1px solid rgba(245,241,234,.14);background:#0D1017;color:#F5F1EA;font:16px Inter,sans-serif;min-width:0}
 .ps-cor{display:flex;align-items:center;gap:8px;font-size:12.5px;color:#C9CDD5}
 .ps-cor input{width:44px;height:36px;border:0;background:none;padding:0}
-@media (max-width:760px){.gl-cats{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.gl-cat{flex-direction:column;align-items:center;text-align:center;gap:6px;padding:10px 6px}.gl-cat i{width:36px;height:36px;font-size:16px}.gl-cat b{font-size:9.5px;letter-spacing:.06em;margin:0}.gl-cat small{display:none}.gl-grade{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.gl-ia{grid-template-columns:minmax(0,1fr)}.rl-folha.larga{padding:0}.rl-folha.larga>div{max-height:100vh;height:100%;border-radius:0}}
+@media (max-width:760px){.gl-cats{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}.gl-meu{grid-template-columns:minmax(0,1fr)!important}.gl-cat{flex-direction:column;align-items:center;text-align:center;gap:6px;padding:10px 6px}.gl-cat i{width:36px;height:36px;font-size:16px}.gl-cat b{font-size:9.5px;letter-spacing:.06em;margin:0}.gl-cat small{display:none}.gl-grade{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.gl-ia{grid-template-columns:minmax(0,1fr)}.rl-folha.larga{padding:0}.rl-folha.larga>div{max-height:100vh;height:100%;border-radius:0}}
 [hidden]{display:none!important}
 @media (max-width:980px){
   .rl-app{grid-template-columns:minmax(0,1fr)}
@@ -291,13 +310,13 @@
             <div class="ps-row" id="psA" role="group" aria-label="Escolher o personagem 1"></div>
             <div class="rl-dupla">
               <div class="rl-campo"><label for="psAcaoA">O que ele faz</label><select id="psAcaoA"></select></div>
-              <div class="rl-campo"><label class="ps-cor" for="psCorA">Cor da roupa <input type="color" id="psCorA"></label></div>
+              <div class="rl-campo" id="psCorBoxA"><label class="ps-cor" for="psCorA">Cor da roupa <input type="color" id="psCorA"></label></div><div class="rl-campo" id="psEspBoxA" hidden><label class="rl-chk" for="psEspA"><input type="checkbox" id="psEspA"> Virar para o outro lado</label></div>
             </div>
             <div class="rl-eyebrow" style="margin-bottom:6px">Personagem 2 (opcional)</div>
             <div class="ps-row" id="psB" role="group" aria-label="Escolher o personagem 2"></div>
             <div class="rl-dupla" id="psLinhaB">
               <div class="rl-campo"><label for="psAcaoB">O que ele faz</label><select id="psAcaoB"></select></div>
-              <div class="rl-campo"><label class="ps-cor" for="psCorB">Cor da roupa <input type="color" id="psCorB"></label></div>
+              <div class="rl-campo" id="psCorBoxB"><label class="ps-cor" for="psCorB">Cor da roupa <input type="color" id="psCorB"></label></div><div class="rl-campo" id="psEspBoxB" hidden><label class="rl-chk" for="psEspB"><input type="checkbox" id="psEspB"> Virar para o outro lado</label></div>
             </div>
             <div class="rl-campo" style="margin-bottom:4px"><label>Falas em balão (na ordem; até 14 palavras cada)</label></div>
             <div class="ps-falas" id="psFalas"></div>
@@ -331,6 +350,7 @@
       <div id="pnMidia" hidden>
         <button class="rl-drop" id="btImportar" type="button">Importar filmagens, fotos e música<small>ou arraste os arquivos para cá · ficam só neste aparelho</small></button>
         <input type="file" id="arquivos" accept="video/*,image/*,audio/*" multiple hidden>
+        <div id="promptsCenas"></div>
         <div class="rl-midias" id="midias"></div>
         <div class="rl-campo"><label for="fMusica">Música do vídeo</label><select id="fMusica"></select></div>
         <div class="rl-campo"><label for="fVolMus">Volume da música</label><input id="fVolMus" type="range" min="0" max="100" value="60"></div>
@@ -358,6 +378,40 @@
   <div class="rl-tl-topo"><span class="rl-eyebrow">O que vamos criar?</span><button class="rl-bt peq" id="btFecharModelos" type="button">✕ FECHAR</button></div>
   <div class="gl-cats" id="glCats" role="tablist"></div>
   <div class="gl-grade" id="glGrade"></div>
+  <div class="gl-meu" id="glMeu" hidden>
+    <div class="gl-box">
+      <div class="rl-eyebrow">1 · Foto do personagem</div>
+      <div class="mp-vis" id="mpVis"><span>Envie a foto do avatar, mascote ou personagem.<br>PNG sem fundo é o ideal; fundo liso sai sozinho.</span></div>
+      <input type="file" id="mpArq" accept="image/*" hidden>
+      <div class="rl-acoes"><button class="rl-bt pri peq" id="mpEscolher" type="button">📷 ESCOLHER FOTO</button>
+        <button class="rl-bt peq" id="mpCortar" type="button" disabled>✂ TIRAR FUNDO COM IA</button>
+        <button class="rl-bt peq" id="mpOriginal" type="button" disabled>↺ ORIGINAL</button></div>
+      <p class="rl-nota" id="mpStatus">O recorte é feito neste aparelho.</p>
+      <div class="rl-dupla">
+        <div class="rl-campo"><label for="mpNome">Nome do personagem</label><input id="mpNome" placeholder="ex.: Marcos"></div>
+        <div class="rl-campo"><label class="rl-chk" for="mpContorno" style="margin-top:22px"><input type="checkbox" id="mpContorno" checked> Contorno branco</label></div>
+      </div>
+      <div class="rl-campo"><label for="mpDesc">Como ele é (ajuda a IA)</label><input id="mpDesc" placeholder="ex.: homem de 34 anos, barba, camiseta preta da BW"></div>
+    </div>
+    <div class="gl-box">
+      <div class="rl-eyebrow">2 · A história</div>
+      <div class="rl-campo" style="margin-top:8px"><label for="mpHist">Conte o que acontece (o personagem fala em balões)</label>
+        <textarea id="mpHist" rows="4" placeholder="ex.: O Marcos chega no evento, o som falha, ele resolve com a equipe da BW e todo mundo comemora a transmissão ao vivo."></textarea></div>
+      <div class="rl-dupla">
+        <div class="rl-campo"><label for="mpCta">Chamada final</label><input id="mpCta" placeholder="ex.: Chama no direct"></div>
+        <div class="rl-campo"><label for="mpJunto">Contracena com</label><select id="mpJunto"><option value="">Ninguém</option><option value="be">Bê (câmera BW)</option><option value="ana">Ana</option><option value="leo">Léo</option><option value="bia">Bia</option><option value="rui">Rui</option><option value="robo">Robô</option></select></div>
+      </div>
+      <div class="rl-eyebrow">3 · Como animar</div>
+      <div class="mp-modos" id="mpModos">
+        <button type="button" class="mp-modo on" data-modo="recorte"><i></i><span><b>RECORTE ANIMADO <em>GRÁTIS</em></b><small>O motor anima a sua foto recortada: entra, fala em balões, acena, comemora. Pronto na hora.</small></span></button>
+        <button type="button" class="mp-modo" data-modo="cenas"><i></i><span><b>UMA IMAGEM POR CENA COM IA <em>15 POR DIA</em></b><small>A IA desenha o seu personagem em cada momento da história (pose e lugar). O motor dá movimento e balões.</small></span></button>
+        <button type="button" class="mp-modo" data-modo="video"><i></i><span><b>VÍDEO COM IA DE FORA <em class="pago">CRÉDITOS DA IA</em></b><small>Sai um prompt para cada cena. Gere os clipes no Kling, Higgsfield ou Veo com a sua foto e importe aqui.</small></span></button>
+      </div>
+      <label class="rl-chk" for="mpAutor" style="align-items:flex-start;line-height:1.4"><input type="checkbox" id="mpAutor"> A imagem é minha ou tenho autorização de quem aparece nela (nada de personagem famoso).</label>
+      <button class="rl-bt pri" id="mpCriar" type="button" style="width:100%;margin-top:10px">✨ CRIAR O REEL</button>
+      <p class="rl-nota" id="mpNota"></p>
+    </div>
+  </div>
   <div class="gl-ia" id="glIA" hidden>
     <div class="gl-box">
       <div class="rl-eyebrow" style="margin-bottom:10px">Monte o seu personagem de IA</div>
@@ -413,8 +467,10 @@
 <script src="assets/layout.js?v=48"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="assets/bw-sync.js"></script>
-<script src="assets/reels-motor.js?v=2"></script>
-<script src="assets/reels-modelos.js?v=1"></script>
-<script src="assets/reels.js?v=4"></script>
+<script src="assets/reels-motor.js?v=3"></script>
+<script src="assets/reels-modelos.js?v=2"></script>
+<script src="assets/fotos-nuvem.js?v=2"></script>
+<script src="assets/reels-avatar.js?v=1"></script>
+<script src="assets/reels.js?v=5"></script>
 </body>
 </html>

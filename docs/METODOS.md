@@ -224,3 +224,11 @@ Tamanho > 0 e sem erro = o pdfmake montou o arquivo. Localmente (T1) confira o `
   numa máquina de 2 núcleos — rode em segundo plano). Capa .jpg tirada aos 2,2 s.
 - Teste: docs/testes/teste_reels.py cobre galeria (abre na 1ª vez, 3 categorias, vídeo toca, todo modelo tem mp4+jpg), USAR modelo,
   editor de personagem (trocar, falas, ação, cenário, tirar o 2º), normalização da resposta da IA e os prompts de IA externa.
+
+## Animar o personagem do usuário (17/11)
+- Recorte no aparelho: `BWReelsAvatar.jaRecortado` (bordas transparentes) → `recortarLiso` (bordas parecidas entre si = fundo liso;
+  flood pelas bordas, borda suave, `aparar`) → senão `recortarIA` (MODNet em worker, mesmo modelo do editor de fotos).
+- Motor: `{"personagem":"foto","imagem":"midia/avatar-x.png"}` vira `.ator.foto` com `img` animada por `animarRecorte` (só transform).
+  Cena só com imagem: `elenco: []` + `midia`. Prévia do site troca `elenco[].imagem` pela URL blob; o pacote leva as imagens do elenco.
+- Teste: docs/testes/teste_reels.py simula bw-ia (história) e bw-ia-imagem (devolve JPG) — confere confirmação, tamanho do envio,
+  1 imagem por cena, prompts de vídeo, editor ("Só imagem", VIRAR).

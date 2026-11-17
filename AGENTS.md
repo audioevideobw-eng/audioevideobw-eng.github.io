@@ -748,7 +748,17 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   modelos/animacoes/personagem-bw.html; zip e tutorial em downloads/ atualizados. sw.js: vídeo/áudio e Range fora do cache (Safari).
   teste_reels.py 58 checagens × 1280/390 (0 falhas), varredura 49 páginas 0 achados, vigia ✅. Manual 41 → 42 p. sw v108. PENTE FINO 75–77.
 
+- 17/11/2026 · Claude (dono: "dá para enviar a foto de um avatar e ele animar de acordo com a história?" → "faça isso"): BW REELS PRO ›
+  🎬 MODELOS ganhou a categoria ANIMAR MEU PERSONAGEM: foto do avatar/mascote → recorte no aparelho (fundo liso sai sozinho; ✂ TIRAR FUNDO COM
+  IA = MODNet; ↺ ORIGINAL), nome, "como ele é", história, chamada final, contracenar com Bê/Ana/Léo/Bia/Rui/Robô e 3 jeitos: RECORTE ANIMADO
+  (grátis; motor anima o PNG — entra, quica ao falar, acena, comemora, pensa, se assusta, contorno branco de adesivo, virar), UMA IMAGEM POR
+  CENA COM IA (bw-ia-imagem modo arte pela fotos-nuvem.js, confirmação + limite 15/dia; o que falhar volta para o recorte) e VÍDEO COM IA DE
+  FORA (um prompt por cena na aba MÍDIA). A história vira cenas numa chamada da bw-ia (sem login: frase por frase no aparelho). Motor v3:
+  personagem "foto" (imagem), cena só com imagem (elenco [] + mídia); editor da cena mostra o avatar e "Só imagem". teste_reels.py 81
+  checagens × 1280/390 (0 falhas), varredura 0, vigia ✅. Manual atualizado. Zip/tutorial do Studio atualizados. sw v109. PENTE FINO 78.
+
 ## Pendências (dono)
+- [ ] (17/11) BW REELS PRO › ANIMAR MEU PERSONAGEM: dono testar com a foto do avatar dele (recorte e cenas por IA, logado).
 - [ ] (17/11) BW REELS PRO › 🎬 MODELOS: dono testar a galeria e um modelo de personagem no iPhone (vídeos de exemplo tocando) e mandar opinião.
 - [ ] (17/11) BW REELS PRO: dono testar no ar — instalar o motor pelo ⚙ MOTOR NO PC, abrir o BW Reels Render e fazer um RENDERIZAR NO PC;
       conferir a IA real (ganchos/roteiro em JSON) logado.

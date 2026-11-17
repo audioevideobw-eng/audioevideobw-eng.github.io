@@ -183,7 +183,10 @@
   }
   function roteiroParaPrevia() {
     var r = JSON.parse(JSON.stringify(P.roteiro));
-    r.cenas.forEach(function (c) { if (c.midia) { var u = urlDe(c.midia); if (u) c.midia = u + "#" + (MID.find(function (m) { return m.url === u; }).tipo === "imagem" ? "img.jpg" : "vid.mp4"); else delete c.midia; } });
+    r.cenas.forEach(function (c) {
+      if (c.midia) { var u = urlDe(c.midia); if (u) c.midia = u + "#" + (MID.find(function (m) { return m.url === u; }).tipo === "imagem" ? "img.jpg" : "vid.mp4"); else delete c.midia; }
+      (c.elenco || []).forEach(function (a) { if (a.personagem === "foto") { var ui = urlDe(a.imagem); if (ui) a.imagem = ui; else { a.personagem = "be"; delete a.imagem; } } });
+    });
     r.audio = {}; r.efeitos = Object.assign({}, r.efeitos, {sfx: false});
     return r;
   }
@@ -337,20 +340,28 @@
   var PS = {a: "be", b: ""};
   var corDe = function (id, cores) { var p = M.PERSONAGENS[id]; if (!p) return "#FFB547"; var c = Object.assign({}, p.cores, cores || {}); return p.desenho === "pessoa" ? c.roupa : c.detalhe; };
   function miniPers(id) { return M.svgPersonagem(id).replace(/id="bwLente"/g, 'id="bwL' + id + '"').replace(/url\(#bwLente\)/g, "url(#bwL" + id + ")"); }
-  function elencoDe(c) { return c.elenco && c.elenco.length ? c.elenco : [{personagem: c.personagem || "be", acao: c.acao}]; }
+  function elencoDe(c) { return Array.isArray(c.elenco) && !c.elenco.length && c.midia ? [] : c.elenco && c.elenco.length ? c.elenco : [{personagem: c.personagem || "be", acao: c.acao}]; }
+  var idAtor = function (a) { return a ? (a.personagem === "foto" ? "foto:" + a.imagem : a.personagem || "be") : ""; };
+  var atorDe = function (id) { return id.indexOf("foto:") === 0 ? {personagem: "foto", imagem: id.slice(5)} : {personagem: id}; };
+  var nomeAtor = function (id) { if (id.indexOf("foto:") === 0) { var m = MID.find(function (x) { return x.caminho === id.slice(5); }); return (P.avatarNome || (m && m.nome.replace(/\.[^.]+$/, "")) || "Meu").split(" ")[0]; } return (M.PERSONAGENS[id] || {nome: "?"}).nome.split(" ")[0]; };
+  function avatares() { return MID.filter(function (m) { return m.tipo === "imagem" && /\/avatar-/.test(m.caminho); }); }
   function desenharPers(c) {
-    var el = elencoDe(c); PS.a = el[0].personagem || "be"; PS.b = el[1] ? el[1].personagem || "be" : "";
-    var ids = Object.keys(M.PERSONAGENS);
-    var botao = function (id, sel, grupo) { return '<button type="button" class="ps-bt' + (id === sel ? " on" : "") + '" data-ps="' + grupo + '" data-id="' + id + '" aria-pressed="' + (id === sel) + '"><span>' + miniPers(id) + '</span>' + esc(M.PERSONAGENS[id].nome.split(" ")[0]) + '</button>'; };
-    $("psA").innerHTML = ids.map(function (id) { return botao(id, PS.a, "a"); }).join("");
+    var el = elencoDe(c); PS.a = el[0] ? idAtor(el[0]) : (c.midia ? "" : "be"); PS.b = el[1] ? idAtor(el[1]) : "";
+    var ids = avatares().map(function (m) { return "foto:" + m.caminho; }).concat(Object.keys(M.PERSONAGENS));
+    var botao = function (id, sel, grupo) { var foto = id.indexOf("foto:") === 0;
+      return '<button type="button" class="ps-bt' + (id === sel ? " on" : "") + '" data-ps="' + grupo + '" data-id="' + esc(id) + '" aria-pressed="' + (id === sel) + '"><span>' + (foto ? '<img src="' + urlDe(id.slice(5)) + '" alt="">' : miniPers(id)) + '</span>' + esc(nomeAtor(id)) + '</button>'; };
+    $("psA").innerHTML = (c.midia ? '<button type="button" class="ps-bt nada' + (!PS.a ? " on" : "") + '" data-ps="a" data-id="" aria-pressed="' + !PS.a + '"><span>🖼</span>Só imagem</button>' : "") + ids.map(function (id) { return botao(id, PS.a, "a"); }).join("");
     $("psB").innerHTML = '<button type="button" class="ps-bt nada' + (!PS.b ? " on" : "") + '" data-ps="b" data-id="" aria-pressed="' + !PS.b + '"><span>—</span>Ninguém</button>' + ids.map(function (id) { return botao(id, PS.b, "b"); }).join("");
     var ops = M.ACOES.map(function (a) { return '<option value="' + a + '">' + NOMES_ACAO[a] + '</option>'; }).join("");
     $("psAcaoA").innerHTML = '<option value="">Automático (fala quando tem balão)</option>' + ops; $("psAcaoB").innerHTML = $("psAcaoA").innerHTML;
-    $("psAcaoA").value = el[0].acao || ""; $("psAcaoB").value = el[1] && el[1].acao || "";
-    $("psCorA").value = corDe(PS.a, el[0].cores); $("psCorB").value = corDe(PS.b || "be", el[1] && el[1].cores);
+    $("psAcaoA").value = el[0] && el[0].acao || ""; $("psAcaoB").value = el[1] && el[1].acao || "";
+    var fA = PS.a.indexOf("foto:") === 0, fB = PS.b.indexOf("foto:") === 0;
+    $("psCorBoxA").hidden = fA; $("psEspBoxA").hidden = !fA; $("psCorBoxB").hidden = fB; $("psEspBoxB").hidden = !fB;
+    $("psEspA").checked = !!(el[0] && el[0].espelhar); $("psEspB").checked = !!(el[1] && el[1].espelhar);
+    $("psCorA").value = fA ? "#FFB547" : corDe(PS.a, el[0] && el[0].cores); $("psCorB").value = fB || !PS.b ? "#FFB547" : corDe(PS.b, el[1] && el[1].cores);
     $("psLinhaB").hidden = !PS.b;
     var falas = c.falas && c.falas.length ? c.falas : (c.balao ? [{quem: 0, texto: c.balao}] : []);
-    var nomeA = M.PERSONAGENS[PS.a].nome.split(" ")[0], nomeB = PS.b ? M.PERSONAGENS[PS.b].nome.split(" ")[0] : "";
+    var nomeA = PS.a ? nomeAtor(PS.a) : "Balão", nomeB = PS.b ? nomeAtor(PS.b) : "";
     var linhas = ""; for (var k = 0; k < 4; k++) { var f = falas[k] || {quem: k % 2 && PS.b ? 1 : 0, texto: ""};
       linhas += '<div class="ps-fala"><select id="psQuem' + k + '" aria-label="Quem fala ' + (k + 1) + '"><option value="0">' + esc(nomeA) + '</option>' + (PS.b ? '<option value="1"' + (f.quem === 1 ? " selected" : "") + '>' + esc(nomeB) + '</option>' : "") + '</select>' +
         '<input id="psFala' + k + '" aria-label="Fala ' + (k + 1) + '" value="' + esc(f.texto) + '" placeholder="' + (k ? "(opcional)" : "ex.: Seu evento ao vivo!") + '"></div>'; }
@@ -359,9 +370,13 @@
   }
   function lerPers(n) {
     var coresDe = function (id, cor) { var p = M.PERSONAGENS[id]; if (!p || cor.toLowerCase() === String(corDe(id)).toLowerCase()) return null; var o = {}; o[p.desenho === "pessoa" ? "roupa" : "detalhe"] = cor; return o; };
-    var a = {personagem: PS.a}; if ($("psAcaoA").value) a.acao = $("psAcaoA").value; var ca = coresDe(PS.a, $("psCorA").value); if (ca) a.cores = ca;
-    var el = [a];
-    if (PS.b) { var b = {personagem: PS.b}; if ($("psAcaoB").value) b.acao = $("psAcaoB").value; var cb = coresDe(PS.b, $("psCorB").value); if (cb) b.cores = cb; el.push(b); }
+    var antes = elencoDe(P.roteiro.cenas[SEL] || {});
+    var monta = function (id, acao, cor, esp, velho) { var o = atorDe(id); if (acao) o.acao = acao;
+      if (o.personagem === "foto") { if (esp) o.espelhar = true; if (velho && velho.contorno === false && idAtor(velho) === id) o.contorno = false; }
+      else { var cc = coresDe(o.personagem, cor); if (cc) o.cores = cc; } return o; };
+    if (!PS.a && !n.midia) PS.a = "be";
+    var el = PS.a ? [monta(PS.a, $("psAcaoA").value, $("psCorA").value, $("psEspA").checked, antes[0])] : [];
+    if (PS.a && PS.b) el.push(monta(PS.b, $("psAcaoB").value, $("psCorB").value, $("psEspB").checked, antes[1]));
     n.elenco = el;
     var falas = []; for (var k = 0; k < 4; k++) { var t = ($("psFala" + k) || {}).value; if (t && t.trim()) falas.push({quem: PS.b ? Number($("psQuem" + k).value) || 0 : 0, texto: t.trim()}); }
     if (falas.length) n.falas = falas;
@@ -371,14 +386,17 @@
     $(id).addEventListener("click", function (e) {
       var b = e.target.closest("[data-ps]"); if (!b) return;
       lerCena(); var c = P.roteiro.cenas[SEL]; var el = elencoDe(c).map(function (x) { return Object.assign({}, x); });
-      if (b.dataset.ps === "a") { el[0] = {personagem: b.dataset.id}; }
+      if (!el.length && !(b.dataset.ps === "a" && !b.dataset.id)) el = [{personagem: "be"}];
+      if (b.dataset.ps === "a" && !b.dataset.id) { el = []; c.falas = (c.falas || []).map(function (f) { return {quem: 0, texto: f.texto}; }); }
+      else if (b.dataset.ps === "a") { el[0] = atorDe(b.dataset.id); }
       else if (!b.dataset.id) { el = [el[0]]; (c.falas || []).forEach(function (f) { f.quem = 0; }); }
-      else { el[1] = {personagem: b.dataset.id}; }
+      else { el[1] = atorDe(b.dataset.id); }
       c.elenco = el; delete c.personagem; delete c.acao; salvar(); desenharCena(); atualizar();
     });
   });
   ["psAcaoA", "psAcaoB", "psCenario", "psEntrada"].forEach(function (id) { $(id).addEventListener("change", function () { lerCena(); salvar(); atualizar(); }); });
   ["psCorA", "psCorB"].forEach(function (id) { $(id).addEventListener("input", function () { lerCena(); salvar(); atualizar(); }); });
+  ["psEspA", "psEspB"].forEach(function (id) { $(id).addEventListener("change", function () { lerCena(); salvar(); atualizar(); }); });
   $("psFalas").addEventListener("input", function () { lerCena(); salvar(); atualizar(); });
   $("psFalas").addEventListener("change", function () { lerCena(); salvar(); atualizar(); });
 
@@ -605,7 +623,8 @@
   function validar(mostrar) {
     var av = [], er = [];
     try { er = M.validarRoteiro(P.roteiro, null, av); } catch (e) { er = ["roteiro inválido"]; }
-    P.roteiro.cenas.forEach(function (c) { if (c.midia && !urlDe(c.midia)) er.push("cena " + (P.roteiro.cenas.indexOf(c) + 1) + ": a mídia não está mais neste aparelho"); });
+    P.roteiro.cenas.forEach(function (c) { if (c.midia && !urlDe(c.midia)) er.push("cena " + (P.roteiro.cenas.indexOf(c) + 1) + ": a mídia não está mais neste aparelho");
+      (c.elenco || []).forEach(function (a) { if (a.personagem === "foto" && !urlDe(a.imagem)) er.push("cena " + (P.roteiro.cenas.indexOf(c) + 1) + ": a foto do personagem não está mais neste aparelho"); }); });
     ERROS_CENA = {};
     er.concat(av).forEach(function (m) { var x = /cena (\d+)/.exec(m); if (x) ERROS_CENA[Number(x[1]) - 1] = true; });
     if (mostrar !== false) {
@@ -630,7 +649,7 @@
     ocupado("Montando o pacote para o BW Reels Studio…");
     try {
       var Z = await carregarJSZip(); var zip = new Z(); var r = roteiroFinal();
-      var usados = {}; r.cenas.forEach(function (c) { if (c.midia) usados[c.midia] = 1; }); if ((r.audio || {}).musica) usados[r.audio.musica] = 1;
+      var usados = {}; r.cenas.forEach(function (c) { if (c.midia) usados[c.midia] = 1; (c.elenco || []).forEach(function (a) { if (a.imagem) usados[a.imagem] = 1; }); }); if ((r.audio || {}).musica) usados[r.audio.musica] = 1;
       var lista = await midiasDoProjeto(P.id);
       lista.forEach(function (m) { if (usados[m.caminho]) zip.file(m.caminho, m.blob); });
       zip.file("roteiro.json", JSON.stringify(r, null, 2));
@@ -661,8 +680,8 @@
     });
     if (CAT === "texto") cards.unshift('<div class="gl-mod zero"><div class="vis">✨</div><div class="tx"><b>A IA CRIA PARA MIM</b><small>Diga o assunto: a IA Brightway escreve 5 ganchos e o roteiro. Você escolhe e ajusta.</small><button type="button" class="rl-bt pri peq" data-usar="__ia">COMEÇAR</button></div></div>');
     if (CAT === "ia") cards.unshift('<div class="gl-mod"><div class="vis" style="background-image:url(assets/reels-exemplos/demo-ia.jpg)"><video muted loop playsinline preload="none" poster="assets/reels-exemplos/demo-ia.jpg" data-src="assets/reels-exemplos/demo-ia.mp4" aria-label="Como funciona"></video><em>COMO FUNCIONA</em></div><div class="tx"><b>3 PASSOS</b><small>Crie a imagem, anime numa IA de vídeo e monte aqui com textos e chamada.</small></div></div>');
-    $("glGrade").innerHTML = cards.join("");
-    $("glIA").hidden = CAT !== "ia";
+    $("glGrade").innerHTML = cards.join(""); $("glGrade").hidden = CAT === "meu";
+    $("glIA").hidden = CAT !== "ia"; $("glMeu").hidden = CAT !== "meu";
     if (CAT === "ia") { $("glFerr").innerHTML = (MOD.ferramentasIA || []).map(function (f) { return '<li><b>' + esc(f.nome) + '</b> — ' + esc(f.papel) + (f.url ? ' · <a href="' + f.url + '" target="_blank" rel="noopener">abrir ↗</a>' : "") + '</li>'; }).join(""); gerarPrompts(); }
     $("folhaModelos").hidden = false;
     tocarExemplos();
@@ -720,6 +739,129 @@
     bt.disabled = false; bt.textContent = "✨ CAPRICHAR COM IA";
   };
 
+
+  /* ---------- ANIMAR MEU PERSONAGEM (foto do usuário → recorte animado / cenas por IA / prompts de vídeo) ---------- */
+  var AV = {orig: null, rec: null, modo: "recorte"}, A = window.BWReelsAvatar;
+  function mostrarAvatar() {
+    var c = AV.rec || AV.orig;
+    $("mpVis").innerHTML = c ? '<img alt="Personagem" src="' + c.toDataURL("image/png") + '">' : '<span>Envie a foto do avatar, mascote ou personagem.</span>';
+    $("mpCortar").disabled = !AV.orig; $("mpOriginal").disabled = !AV.rec;
+  }
+  $("mpEscolher").onclick = function () { $("mpArq").click(); };
+  $("mpArq").onchange = async function () {
+    var f = this.files && this.files[0]; this.value = ""; if (!f) return;
+    try {
+      var blob = new Blob([await f.arrayBuffer()], {type: f.type});          // cópia já (iPhone invalida o original)
+      var img = await A.imagemDe(blob); AV.orig = A.canvasDe(img, 1400); AV.rec = null;
+      if (!$("mpNome").value) $("mpNome").value = f.name.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ").slice(0, 30);
+      if (A.jaRecortado(AV.orig)) { AV.rec = A.aparar(AV.orig); $("mpStatus").textContent = "✓ Já está sem fundo."; }
+      else { AV.rec = A.recortarLiso(AV.orig); $("mpStatus").textContent = AV.rec ? "✓ Fundo liso tirado sozinho. Não ficou bom? Use TIRAR FUNDO COM IA." : "O fundo não é liso: toque em ✂ TIRAR FUNDO COM IA (ou siga com a foto inteira)."; }
+    } catch (e) { $("mpStatus").textContent = "Não deu para abrir essa imagem. Tente PNG ou JPG."; }
+    mostrarAvatar();
+  };
+  $("mpCortar").onclick = async function () {
+    if (!AV.orig) return; var bt = this; bt.disabled = true; $("mpStatus").textContent = "Recortando com IA no aparelho…";
+    try { AV.rec = await A.recortarIA(AV.orig, function (p, mb) { $("mpStatus").textContent = "Baixando a IA de recorte: " + Math.round(p * 100) + "% de " + mb + " MB (só na primeira vez)…"; });
+      $("mpStatus").textContent = AV.rec ? "✓ Recortado com IA." : "A IA não achou o personagem nessa foto."; }
+    catch (e) { $("mpStatus").textContent = "A IA de recorte não abriu neste aparelho (" + (e && e.message || "erro") + "). Siga com a foto inteira ou use um PNG sem fundo."; }
+    bt.disabled = false; mostrarAvatar();
+  };
+  $("mpOriginal").onclick = function () { AV.rec = null; $("mpStatus").textContent = "Usando a foto inteira (sem recorte)."; mostrarAvatar(); };
+  $("mpModos").addEventListener("click", function (e) { var b = e.target.closest("[data-modo]"); if (!b) return; AV.modo = b.dataset.modo;
+    [].forEach.call(this.children, function (x) { x.classList.toggle("on", x === b); }); });
+
+  var ACAO_EN = {parado: "standing and smiling at the camera", acena: "waving happily at the camera", fala: "talking to the camera with natural hand gestures", aponta: "pointing to the side with excitement",
+    comemora: "celebrating with both arms up, jumping", pensa: "thinking with a hand on the chin", surpresa: "looking surprised with wide eyes"};
+  var SISTEMA_AV = "Você é roteirista de Reels com um personagem. Responda SÓ com JSON válido: {\"gancho\":\"...\",\"cenas\":[{\"fala\":\"...\",\"acao\":\"acena\",\"cenario\":\"palco\",\"pose\":\"...\",\"duracao\":3.5}],\"cta\":\"...\",\"legenda\":\"...\"}. " +
+    "Regras: 3 a 6 cenas contando a história do usuário (começo, virada, final); fala = o que o personagem diz no balão, até 12 palavras, português do Brasil, tom descontraído; " +
+    "acao: parado, acena, fala, aponta, comemora, pensa ou surpresa; cenario: raios, palco ou bolinhas; pose = descrição CURTA em INGLÊS da pose e do lugar da cena para um ilustrador (ex.: waving on a concert stage with LED screens); " +
+    "duracao 2.5 a 5. gancho = frase de abertura com até 8 palavras, verdadeira. Não invente números, clientes nem fatos. legenda do post com 3 a 5 hashtags.";
+  function historiaLocal(txt, cta) {
+    var frases = (String(txt).match(/[^.!?\n]+[.!?]*/g) || []).map(function (f) { return f.trim(); }).filter(Boolean);
+    var cenas = [], ciclo = ["acena", "fala", "pensa", "aponta", "fala", "comemora"];
+    frases.slice(0, 6).forEach(function (f, i, arr) { var ps = palavras(f).slice(0, 14).join(" ");
+      var acao = i === 0 ? "acena" : i === arr.length - 1 ? "comemora" : ciclo[i % ciclo.length];
+      cenas.push({fala: ps, acao: acao, cenario: i % 2 ? "palco" : "raios", pose: ACAO_EN[acao], duracao: Math.max(3, Math.min(5, palavras(ps).length / 2.4 + 1))}); });
+    return {gancho: "", cenas: cenas, cta: cta, legenda: ""};
+  }
+  async function historiaIA(dados) {
+    var s = await sessao(); if (!s) return null;
+    try {
+      var r = await fetch(FN_IA, {method: "POST", headers: {"Content-Type": "application/json", "Authorization": "Bearer " + s.access_token, "apikey": CHAVE_PUB},
+        body: JSON.stringify({sistema: SISTEMA_AV, pedido: "Personagem: " + dados.nome + (dados.desc ? " (" + dados.desc + ")" : "") + "\nHistória: " + dados.hist + "\nChamada final: " + (dados.cta || "seguir o perfil"), max: 1000})});
+      var j = await r.json().catch(function () { return {}; }); var d = r.ok && extrairJSON(j.texto);
+      if (!d || !Array.isArray(d.cenas) || !d.cenas.length) return null;
+      d.cenas = d.cenas.slice(0, 6).map(function (c) { var acao = M.ACOES.indexOf(c && c.acao) >= 0 ? c.acao : "fala";
+        return {fala: palavras(c && c.fala).slice(0, 14).join(" "), acao: acao, cenario: ["raios", "palco", "bolinhas"].indexOf(c && c.cenario) >= 0 ? c.cenario : "raios",
+          pose: String(c && c.pose || ACAO_EN[acao]).slice(0, 160), duracao: Math.max(2.5, Math.min(5.5, Number(c && c.duracao) || 3.5))}; }).filter(function (c) { return c.fala; });
+      return d.cenas.length ? d : null;
+    } catch (e) { return null; }
+  }
+  function promptVideo(c, dados) {
+    return "Use the reference image: the same character" + (dados.desc ? " (" + dados.desc + ")" : "") + ", same face, design, colors and outfit. " + c.pose + ". " + ACAO_EN[c.acao] +
+      ". Vertical 9:16, 5 seconds, smooth cinematic camera movement, natural motion, no text on screen." + (c.fala ? ' The character says in Brazilian Portuguese: "' + c.fala + '"' : "");
+  }
+  function desenharPrompts() {
+    var box = $("promptsCenas"), l = P && P.promptsCenas || [];
+    box.innerHTML = l.length ? '<div class="rl-eyebrow" style="margin:12px 0 6px">Prompts para a IA de vídeo (use a foto do personagem como referência)</div>' + l.map(function (p, i) {
+      return '<div class="pc-item"><b>CENA ' + (p.cena + 1) + '</b><textarea class="gl-prompt" readonly id="pc' + i + '">' + esc(p.prompt) + '</textarea><div class="rl-acoes" style="margin:6px 0 0"><button type="button" class="rl-bt peq" data-pc="' + i + '">COPIAR</button></div></div>';
+    }).join("") + '<p class="rl-nota">Gere cada clipe (5–8 s, vertical) no Kling, Higgsfield ou Veo, importe aqui e escolha na cena. Ao postar, marque “Feito com IA”.</p>' : "";
+  }
+  $("promptsCenas").addEventListener("click", function (e) { var b = e.target.closest("[data-pc]"); if (!b) return; var t = $("pc" + b.dataset.pc).value;
+    (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(function () { b.textContent = "✓ COPIADO"; setTimeout(function () { b.textContent = "COPIAR"; }, 1500); }).catch(function () { $("pc" + b.dataset.pc).select(); }); });
+
+  $("mpCriar").onclick = async function () {
+    var dados = {nome: $("mpNome").value.trim() || "Meu personagem", desc: $("mpDesc").value.trim(), hist: $("mpHist").value.trim(), cta: $("mpCta").value.trim(), junto: $("mpJunto").value};
+    if (!AV.orig) { alert("Escolha a foto do personagem."); return; }
+    if (!dados.hist) { $("mpHist").focus(); alert("Conte a história em poucas frases."); return; }
+    if (!$("mpAutor").checked) { alert("Confirme que a imagem é sua ou que você tem autorização de quem aparece nela."); return; }
+    var modo = AV.modo, figura = AV.rec || AV.orig;
+    if (modo === "cenas" && !(await sessao())) { alert("Entre na sua conta para a IA criar as imagens. Sem login, use o RECORTE ANIMADO."); return; }
+    ocupado("Escrevendo a história em cenas…");
+    var h = await historiaIA(dados), nota = h ? "Roteiro escrito pela IA Brightway." : "Roteiro montado no aparelho, frase por frase.";
+    if (!h) h = historiaLocal(dados.hist, dados.cta);
+    if (!h.cenas.length) { ocupado(); alert("Não achei frases na história. Escreva pelo menos uma frase."); return; }
+    if (modo === "cenas" && !confirm("A IA vai criar " + h.cenas.length + " imagens do seu personagem (das 15 por dia da sua conta). Vamos enviar UMA cópia pequena da foto; nada fica guardado. Continuar?")) { ocupado(); return; }
+    salvar();
+    var novo = novoProjeto(); novo.modo = "meu"; novo.nome = ("Reel " + dados.nome).slice(0, 60); novo.avatarNome = dados.nome; novo.briefing.assunto = dados.hist.slice(0, 200); novo.briefing.cta = dados.cta;
+    novo.roteiro.cenas = []; fecharModelos(); await abrir(novo);
+    ocupado("Guardando o personagem neste aparelho…");
+    var png = await A.pngDe(figura);
+    await importar([new File([png], "avatar-" + slug(dados.nome) + ".png", {type: "image/png"})]);
+    var caminho = (avatares().slice(-1)[0] || {}).caminho;
+    var ator = function (acao) { var o = {personagem: "foto", imagem: caminho, acao: acao}; if (!AV.rec || !$("mpContorno").checked) o.contorno = false; return o; };
+    var cenas = [];
+    if (h.gancho) cenas.push({tipo: "gancho", duracao: 2.8, texto: palavras(h.gancho).slice(0, 9).join(" ")});
+    var imagensIA = [];
+    if (modo === "cenas") {
+      var peq = await A.jpgPequeno(figura, 504), falhou = "";
+      for (var i = 0; i < h.cenas.length; i++) {
+        ocupado("A IA está desenhando a cena " + (i + 1) + " de " + h.cenas.length + "…");
+        var pedido = "the same character from image 0" + (dados.desc ? " (" + dados.desc + ")" : "") + ", " + h.cenas[i].pose + ", " + ACAO_EN[h.cenas[i].acao] +
+          ". Same art style, face, colors and outfit as image 0. Character fully visible in the lower two thirds of a vertical frame, expressive, cinematic lighting";
+        var r = await window.BWFotosNuvem.arte(peq, pedido, 576, 1024, "topo", 1000 + i * 37);
+        if (r.erro) { falhou = window.BWFotosNuvem.msg(r.erro); break; }
+        await importar([new File([r.blob], "cena-ia-" + (i + 1) + ".jpg", {type: r.blob.type || "image/jpeg"})]);
+        imagensIA[i] = MID[MID.length - 1].caminho;
+      }
+      if (falhou) nota += " A IA parou na cena " + (imagensIA.length + 1) + ": " + falhou + " As outras cenas ficaram com o recorte animado.";
+    }
+    h.cenas.forEach(function (c, i) {
+      if (modo === "video") { cenas.push({tipo: "midia", duracao: Math.max(4, c.duracao), texto: c.fala, movimento: "zoom-in-suave"}); return; }
+      var n = {tipo: "personagem", duracao: c.duracao, falas: [{quem: 0, texto: c.fala}], cenario: c.cenario, entrada: i === 0 ? "pula" : "nenhuma"};
+      if (imagensIA[i]) { n.elenco = []; n.midia = imagensIA[i]; n.movimento = i % 2 ? "zoom-out" : "zoom-in"; n.cenario = "nenhum"; n.transicao = "fade"; }
+      else { n.elenco = [ator(c.acao)]; if (dados.junto && i % 2 === 1) { n.elenco.push({personagem: dados.junto}); n.entrada = "desliza"; } }
+      cenas.push(n);
+    });
+    cenas.push({tipo: "cta", duracao: 3, texto: h.cta || dados.cta || "Gostou? Me segue", acao: dados.cta || "Siga o perfil"});
+    P.roteiro.cenas = cenas;
+    if (modo === "video") { P.promptsCenas = h.cenas.map(function (c, i) { return {cena: i + (h.gancho ? 1 : 0), prompt: promptVideo(c, dados)}; }); nota += " Os prompts de cada cena estão na aba MÍDIA."; }
+    if (h.legenda) { P.legenda = String(h.legenda); $("fLegenda").value = P.legenda; }
+    ocupado(); SEL = 0; salvar(); desenharTudo(); desenharPrompts(); atualizar(); T = 1.2; posicionar(1.2);
+    trocarAba(modo === "video" ? "midia" : "cena"); $("motorNota").textContent = nota;
+    setTimeout(function () { alert("Reel criado! " + nota); }, 250);
+  };
+
   /* ---------- projetos ---------- */
   async function abrir(p) {
     parar(); P = p; SEL = 0; T = 1.5;   /* parado no início a cena ainda está entrando: mostra 1,5 s */
@@ -727,7 +869,7 @@
     await carregarMidias();
     $("nomeProj").value = P.nome || ""; Object.keys(BRIEF).forEach(function (id) { $(id).value = P.briefing[BRIEF[id]] || ($(id).tagName === "SELECT" ? $(id).options[0].value : ""); });
     $("fLegenda").value = P.legenda || ""; $("motorNota").textContent = "";
-    prepararMusica(); desenharTudo(); trocarPasso(P.ganchos.length ? "gancho" : "assunto"); atualizar();
+    prepararMusica(); desenharTudo(); desenharPrompts(); trocarPasso(P.ganchos.length ? "gancho" : "assunto"); atualizar();
     try { localStorage.setItem("ui_reels_ultimo", P.id); } catch (e) { }
   }
   function desenharTudo() { desenharLinha(); desenharCena(); desenharMidias(); if (PASSO === "gancho") desenharGanchos(); if (PASSO === "estilo") desenharEstilo(); }
