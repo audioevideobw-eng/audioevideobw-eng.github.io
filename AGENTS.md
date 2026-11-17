@@ -660,6 +660,13 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   Mais achados no ar: "uma" virava 1 e "a 1" virava 01:00 → "tô cansado, me dá uma força" virava tarefa (hora só com "às N", "N h" ou
   "N horas"); "quinta 14 horas" virava "Quint"; papo da IA sem ação agora é resposta (antes caía nas regras do aparelho). bw-agente v8, layout.js v38, sw v94.
 
+- 16/11/2026 23:30 · Claude (dono: "vozes masculinas para o Tio Cláudio… a melhor interação possível"): bw-agente.js v9 — escolhe sozinho a voz
+  MASCULINA em pt-BR do aparelho (Windows: Daniel; Edge: Antonio natural; iPhone/Mac: Felipe, Eddy, Reed…; Android: voz ptd/#male); sem voz
+  masculina usa a que há em tom mais grave e mostra em ⚙ como instalar uma; ⚙ ganhou Voz (♂ primeiro), Tom, Velocidade e 🔊 OUVIR A VOZ
+  (trocar já fala uma amostra); fala em frases (mais natural, o Chrome não corta resposta longa); sinal sonoro ao começar a ouvir.
+  Voz neural no aparelho (Piper pt-BR "faber", ~60 MB) pesquisada, NÃO feita: precisa de biblioteca de terceiros — aguarda o dono.
+  teste_agente_leitor.py +4 checagens (0 falhas). layout.js v39, sw v95.
+
 ## Pendências (dono)
 - [x] (16/11 11:42) IA CRIATIVA ATIVA: conta Cloudflare do dono (Free, sem cartão), token "Brightway IA criativa 2" (Workers AI Read+Edit) em
       CF_API_TOKEN, CF_ACCOUNT_ID salvo. Teste no ar: "cabelo cacheado ruivo e óculos de sol" → nova versão em 6 s, mesma pessoa/roupa/fundo.

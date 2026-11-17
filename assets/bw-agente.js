@@ -163,7 +163,7 @@
   }
   function consultar(q) {
     var per = periodo(q.periodo), ini = per[0], fim = per[1], f = sa(q.filtro || "").trim(), bate = function (txt) { return !f || sa(txt).indexOf(f) >= 0; };
-    if (q._ini) { ini = fim = q._ini; per[2] = "em " + br(q._ini); }
+    if (q._ini) { ini = fim = q._ini; var am0 = new Date(); am0.setDate(am0.getDate() + 1); per[2] = q._ini === hoje() ? "hoje" : q._ini === ymd(am0) ? "amanhã" : (deYmd(q._ini).getDay() % 6 ? "na " : "no ") + SEMANA[deYmd(q._ini).getDay()] + ", dia " + br(q._ini).slice(0, 5); }
     if (q.fonte === "agenda") {
       var its = itensAgenda(ini, fim).filter(function (i) { return !i.feito && bate(i.titulo); })
         .sort(function (a, b) { return (a.data + (a.hora || "99")).localeCompare(b.data + (b.hora || "99")); });
@@ -412,11 +412,29 @@
 
   /* ================= voz: falar e ouvir ================= */
   function vozes() { try { return (window.speechSynthesis ? speechSynthesis.getVoices() : []).filter(function (v) { return /^pt/i.test(v.lang); }); } catch (e) { return []; } }
-  function melhorVoz() {   /* a voz mais natural em português do aparelho (ou a escolhida nos ajustes) */
+  /* 16/11: o Tio Cláudio é homem → prefere voz MASCULINA em pt-BR. Nomes conhecidos: Windows (Daniel), Edge (Antonio, natural),
+     iPhone/Mac (Felipe, Eddy, Reed, Rocko, Grandpa), Android (…x-ptd…, #male). Sem voz masculina: a melhor que houver, em tom mais grave. */
+  var HOMEM = /daniel|antonio|ant[oô]nio|felipe|eddy|reed|rocko|grandpa|vov[oô]\b|donato|fabio|f[aá]bio|humberto|julio|j[uú]lio|nicolau|valerio|val[eé]rio|ricardo|duarte|joaquim|x-ptd|#male|\bmale\b|masculin/i;
+  var MULHER = /maria|francisca|thalita|luciana|fernanda|brenda|elza|giovanna|leila|leticia|manuela|yara|raquel|catarina|joana|flo\b|sandy|shelley|grandma|x-afs|x-pte|#female|female|feminin/i;
+  function ehHomem(v) { return HOMEM.test(v.name) && !MULHER.test(v.name); }
+  function melhorVoz() {   /* a escolhida nos ajustes, ou a melhor voz masculina em português do aparelho */
     var vs = vozes(), esc0 = ui("vozNome", ""); if (!vs.length) return null;
     if (esc0) { var e0 = vs.filter(function (v) { return v.name === esc0; })[0]; if (e0) return e0; }
-    var pts = function (v) { var n = v.name; return (/pt[-_]BR/i.test(v.lang) ? 10 : 0) + (/natural|neural|online|premium|enhanced|aprimorad/i.test(n) ? 6 : 0) + (/google/i.test(n) ? 4 : 0) + (/francisca|thalita|luciana|antonio|felipe|daniel|brenda|donato|fernanda/i.test(n) ? 3 : 0) + (/compact|eloquence|novelty/i.test(n) ? -6 : 0); };
+    var pts = function (v) { var n = v.name; return (/pt[-_]BR/i.test(v.lang) ? 25 : 0) + (ehHomem(v) ? 20 : 0) + (/natural|neural|online|premium|enhanced|aprimorad/i.test(n) ? 6 : 0) + (/google/i.test(n) ? 3 : 0) + (/compact|eloquence|novelty/i.test(n) ? -6 : 0); };
     return vs.slice().sort(function (a, b) { return pts(b) - pts(a); })[0];
+  }
+  function tomDe(v) { var t = ui("tom", "auto"); return t === "grave" ? 0.75 : t === "normal" ? 1 : (v && !ehHomem(v) ? 0.8 : 1); }
+  function frases(txt) {   /* fala em frases: fica mais natural e o Chrome não corta respostas longas */
+    var out = [], atual = "";
+    String(txt).split(/(?<=[.!?…])\s+/).forEach(function (f) { if ((atual + " " + f).length > 180 && atual) { out.push(atual); atual = f; } else atual = (atual ? atual + " " : "") + f; });
+    if (atual) out.push(atual); return out;
+  }
+  var somCtx = null;
+  function bip(sobe) {   /* sinal curto: começou a ouvir (sobe) / parou (desce). No Android o próprio Chrome já toca o dele. */
+    if (/Android/i.test(navigator.userAgent || "") || !ui("bip", true)) return;
+    try { var C = window.AudioContext || window.webkitAudioContext; if (!C) return; somCtx = somCtx || new C(); if (somCtx.state === "suspended") somCtx.resume();
+      var o = somCtx.createOscillator(), g = somCtx.createGain(), t = somCtx.currentTime; o.type = "sine"; o.frequency.setValueAtTime(sobe ? 660 : 520, t); o.frequency.exponentialRampToValueAtTime(sobe ? 880 : 390, t + .12);
+      g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(.08, t + .02); g.gain.exponentialRampToValueAtTime(.0001, t + .16); o.connect(g); g.connect(somCtx.destination); o.start(t); o.stop(t + .18); } catch (e) { }
   }
   var falaId = 0;
   function falar(txt, depois) {
@@ -424,9 +442,10 @@
     if (!ui("voz", true) || !window.speechSynthesis || !txt) { seguir(); return; }
     try { speechSynthesis.cancel();
       var limpo = String(txt).replace(/R\$ ?/g, "").replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}✓✕➤↗📊💬🤔]/gu, "").replace(/(\d{1,2}):00\b/g, "$1 horas").replace(/\s+/g, " ").slice(0, 600);
-      var u = new SpeechSynthesisUtterance(limpo); u.lang = "pt-BR"; u.rate = +ui("velocidade", 1.05) || 1.05; u.pitch = 1;
-      var v = melhorVoz(); if (v) { u.voice = v; u.lang = v.lang; }
-      u.onend = seguir; u.onerror = seguir; speechSynthesis.speak(u); setTimeout(seguir, 3000 + limpo.length * 95); } catch (e) { seguir(); }
+      var v = melhorVoz(), fs = frases(limpo), vel = +ui("velocidade", 1.05) || 1.05, tom = tomDe(v);
+      fs.forEach(function (f, i) { var u = new SpeechSynthesisUtterance(f); u.lang = v ? v.lang : "pt-BR"; if (v) u.voice = v; u.rate = vel; u.pitch = tom;
+        if (i === fs.length - 1) { u.onend = seguir; u.onerror = seguir; } speechSynthesis.speak(u); });
+      setTimeout(seguir, 3000 + limpo.length * 95); } catch (e) { seguir(); }
   }
   function calar() { falaId++; try { if (window.speechSynthesis) speechSynthesis.cancel(); } catch (e) { } }
   function continuar() { if (ui("conversa", true) && painel && !painel.hidden && !ouvindo && SR) ouvir(true); }
@@ -541,17 +560,28 @@
       '<div class="bwg-ex">' + EXEMPLOS.map(function (e) { return '<button type="button" data-g="ex">' + esc(e) + "</button>"; }).join("") + "</div>" +
       '<div class="bwg-aj" id="bwgAj" hidden><label><input type="checkbox" data-u="ia"' + (ui("ia", true) ? " checked" : "") + '> Usar a IA Brightway para entender (manda só a frase; sem login ou sem internet, entende no aparelho)</label>' +
       '<label><input type="checkbox" data-u="voz"' + (ui("voz", true) ? " checked" : "") + '> Responder falando</label>' +
+      '<label><input type="checkbox" data-u="bip"' + (ui("bip", true) ? " checked" : "") + '> Sinal sonoro quando começa a ouvir</label>' +
       '<label><input type="checkbox" data-u="conversa"' + (ui("conversa", true) ? " checked" : "") + '> Modo conversa: depois de responder, continua ouvindo (diga “tchau” para encerrar)</label>' +
       '<div id="bwgVozes"></div>' +
       '<label><input type="checkbox" data-u="auto"' + (ui("auto", false) ? " checked" : "") + '> Lançar sem perguntar (só quando tiver tudo: o quê, valor e data)</label></div>' +
       '<div class="bwg-sub">A voz vira texto pelo reconhecimento do próprio navegador' + (ESTADO.local ? " (no aparelho)" : "") + '. Nada é gravado sem você confirmar. Perguntas como "quanto gastei" são calculadas aqui, com os seus dados.</div>';
     var inp = painel.querySelector("#bwgTxt"); inp.onkeydown = function (e) { if (e.key === "Enter" && inp.value.trim()) { processar(inp.value.trim()); inp.value = ""; } };
   }
+  function dicaVoz() {
+    var ua = navigator.userAgent || "";
+    if (/iPhone|iPad/i.test(ua)) return "No iPhone: Ajustes → Acessibilidade → Conteúdo Falado → Vozes → Português (Brasil) → baixe “Felipe”.";
+    if (/Android/i.test(ua)) return "No Android: Configurações → Acessibilidade → Conversão de texto em voz → Mecanismo do Google ⚙ → Instalar dados de voz → Português (Brasil) → escolha a voz masculina.";
+    if (/Mac OS X/i.test(ua)) return "No Mac: Ajustes do Sistema → Acessibilidade → Conteúdo Falado → Voz do sistema → Gerenciar vozes → Português (Brasil) → “Felipe”.";
+    return "No computador, o navegador Microsoft Edge traz a voz masculina “Antonio” (natural), de graça.";
+  }
   function desenharVozes() {
     var box = painel && painel.querySelector("#bwgVozes"); if (!box) return;
     var vs = vozes(), atual = melhorVoz(), vel = +ui("velocidade", 1.05) || 1.05;
-    box.innerHTML = vs.length ? '<label style="display:grid;grid-template-columns:auto 1fr;gap:8px;align-items:center">Voz <select data-u="vozNome" style="min-width:0;padding:6px;border-radius:8px;background:#0a0d14;color:#fff;border:1px solid rgba(255,255,255,.16);font-size:16px"><option value="">Automática (a mais natural)</option>' +
-      vs.map(function (v) { return '<option value="' + esc(v.name) + '"' + (ui("vozNome", "") === v.name ? " selected" : "") + ">" + esc(v.name) + "</option>"; }).join("") + "</select></label>" +
+    box.innerHTML = vs.length ? '<label style="display:grid;grid-template-columns:auto 1fr;gap:8px;align-items:center">Voz <select data-u="vozNome" style="min-width:0;padding:6px;border-radius:8px;background:#0a0d14;color:#fff;border:1px solid rgba(255,255,255,.16);font-size:16px"><option value="">Automática (masculina, a mais natural)</option>' +
+      vs.slice().sort(function (a, b) { return (ehHomem(b) ? 1 : 0) - (ehHomem(a) ? 1 : 0); }).map(function (v) { return '<option value="' + esc(v.name) + '"' + (ui("vozNome", "") === v.name ? " selected" : "") + ">" + (ehHomem(v) ? "♂ " : "") + esc(v.name.replace(/^Microsoft |^Google /, "")) + "</option>"; }).join("") + "</select></label>" +
+      '<label style="display:grid;grid-template-columns:auto 1fr;gap:8px;align-items:center">Tom <select data-u="tom" style="padding:6px;border-radius:8px;background:#0a0d14;color:#fff;border:1px solid rgba(255,255,255,.16);font-size:16px">' +
+      [["auto", "Automático"], ["grave", "Mais grave"], ["normal", "Normal"]].map(function (o) { return '<option value="' + o[0] + '"' + (ui("tom", "auto") === o[0] ? " selected" : "") + ">" + o[1] + "</option>"; }).join("") + "</select></label>" +
+      (vs.some(ehHomem) ? "" : '<div style="font-size:12px;color:#cfa94a;margin:4px 0">Este aparelho não tem voz masculina em português instalada — estou usando a que há, em tom mais grave. ' + dicaVoz() + "</div>") +
       '<label style="display:grid;grid-template-columns:auto 1fr;gap:8px;align-items:center">Velocidade <select data-u="velocidade" style="padding:6px;border-radius:8px;background:#0a0d14;color:#fff;border:1px solid rgba(255,255,255,.16);font-size:16px">' +
       [[0.9, "Calma"], [1.05, "Normal"], [1.2, "Rápida"]].map(function (o) { return '<option value="' + o[0] + '"' + (Math.abs(vel - o[0]) < .01 ? " selected" : "") + ">" + o[1] + "</option>"; }).join("") + "</select></label>" +
       '<button type="button" class="bwg-b" data-g="testarVoz" style="margin-top:4px">🔊 OUVIR A VOZ' + (atual ? " (" + esc(atual.name.slice(0, 28)) + ")" : "") + "</button>"
@@ -565,7 +595,7 @@
   async function ouvir(emConversa) {
     calar(); var fala = painel.querySelector(".bwg-fala"); fala.textContent = "";
     if (!SR && !(navigator.mediaDevices && window.MediaRecorder)) { status("Seu navegador não tem reconhecimento de voz — escreva o pedido abaixo."); return; }
-    ouvindo = true; fab.classList.add("ouvindo");
+    ouvindo = true; fab.classList.add("ouvindo"); bip(true);
     status('<span class="bwg-onda"><i></i><i></i><i></i><i></i></span> ' + (emConversa ? "Tô ouvindo… pode falar (ou diga “tchau”)" : "Ouvindo… pode falar com o Tio Cláudio (toque no robô para parar)"));
     try {
       var txt = SR ? await ouvirNavegador(function (p) { fala.textContent = p; }) : await ouvirGravando(function (p) { status(esc(p)); });
@@ -683,7 +713,7 @@
     var b = e.target.closest("[data-g]"); if (!b) return; var g = b.dataset.g, i = +b.dataset.i;
     if (g === "fechar") return fechar();
     if (g === "ajustes") { var aj = painel.querySelector("#bwgAj"); aj.hidden = !aj.hidden; if (!aj.hidden) desenharVozes(); return; }
-    if (g === "testarVoz") { falar("Oi, eu sou o Tio Cláudio. Bora organizar esse dia?"); return; }
+    if (g === "testarVoz") { falar("Opa! Aqui é o Tio Cláudio. Bora organizar esse dia, uai?"); return; }
     if (g === "ouvir") return ouvir();
     if (g === "enviar") { var inp = painel.querySelector("#bwgTxt"); if (inp.value.trim()) { processar(inp.value.trim()); inp.value = ""; } return; }
     if (g === "ex") return processar(b.textContent);
@@ -693,7 +723,7 @@
   }
   function mudanca(e) {
     var el = e.target;
-    if (el.dataset.u) { uiSet(el.dataset.u, el.type === "checkbox" ? el.checked : el.dataset.u === "velocidade" ? +el.value : el.value); return; }
+    if (el.dataset.u) { uiSet(el.dataset.u, el.type === "checkbox" ? el.checked : el.dataset.u === "velocidade" ? +el.value : el.value); if (/vozNome|tom|velocidade/.test(el.dataset.u)) falar("Opa! Aqui é o Tio Cláudio."); return; }
     if (el.dataset.k == null) return;
     var a = ESTADO.acoes[+el.dataset.i]; if (!a) return;
     var v = el.value; if (el.dataset.k === "valor") v = num(v);
@@ -701,6 +731,6 @@
     if (el.dataset.k === "tipo") { if (v === "tarefa" && !a.titulo) a.titulo = a.descricao; if (v === "conta_pagar" && !a.vencimento) a.vencimento = a.data || hoje(); if (v === "gasto_casa" && CAT_CASA.indexOf(a.categoria) < 0) a.categoria = categoria(a.descricao); if (!a.data) a.data = hoje(); desenharAcoes(); }
   }
 
-  window.BWAgente = { abrir: function (escutar) { montar(); abrir(!!escutar); }, processar: function (t) { montar(); abrir(false); return processar(t); }, entenderLocal: entenderLocal, entender: entender, consultar: consultar, executar: executar, estado: ESTADO };
+  window.BWAgente = { abrir: function (escutar) { montar(); abrir(!!escutar); }, processar: function (t) { montar(); abrir(false); return processar(t); }, entenderLocal: entenderLocal, entender: entender, voz: function () { var v = melhorVoz(); return v ? { nome: v.name, homem: ehHomem(v), tom: tomDe(v) } : null; }, consultar: consultar, executar: executar, estado: ESTADO };
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", montar); else montar();
 })();

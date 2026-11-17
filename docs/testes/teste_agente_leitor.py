@@ -188,6 +188,13 @@ with sync_playwright() as p:
         ok("Até mais" in pg.inner_text(".bwg-st"), "'tchau' encerra a conversa")
         ok(len(pg.evaluate("window.__falou")) >= 4, "respondeu falando em cada passo")
         pg.evaluate("window.__falas = []")
+        # voz masculina: escolhe o homem em pt-BR; sem homem → tom mais grave
+        V = lambda nomes: pg.evaluate("(ns) => { speechSynthesis.getVoices = () => ns.map(n => ({ name: n[0], lang: n[1] })); return BWAgente.voz(); }", nomes)
+        v = V([["Microsoft Maria - Portuguese (Brazil)", "pt-BR"], ["Microsoft Daniel - Portuguese (Brazil)", "pt-BR"]]); ok(v and "Daniel" in v["nome"] and v["tom"] == 1, f"Windows: voz masculina Daniel ({v})")
+        v = V([["Microsoft Francisca Online (Natural) - Portuguese (Brazil)", "pt-BR"], ["Microsoft Antonio Online (Natural) - Portuguese (Brazil)", "pt-BR"], ["Microsoft Duarte Online (Natural) - Portuguese (Portugal)", "pt-PT"]]); ok("Antonio" in v["nome"], "Edge: Antonio (natural), não a voz de Portugal")
+        v = V([["Luciana", "pt-BR"], ["Felipe", "pt-BR"], ["Joana", "pt-PT"]]); ok(v["nome"] == "Felipe", "iPhone: Felipe")
+        v = V([["Google português do Brasil", "pt-BR"]]); ok(v["homem"] is False and v["tom"] == 0.8, "só voz feminina → usa em tom mais grave")
+        pg.evaluate("speechSynthesis.getVoices = () => []")
         # ajustes + lançar sem perguntar
         pg.click("[data-g=ajustes]"); pg.check('[data-u="auto"]'); pg.uncheck('[data-u="voz"]')
         ok(pg.evaluate("localStorage.getItem('ui_agente_auto')") == "true", "ajustes lembrados")
