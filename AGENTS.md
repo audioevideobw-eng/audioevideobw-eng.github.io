@@ -889,9 +889,13 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   personagem, imagem 1 = referência) nas cenas ligadas a ela. Site pronto (fotos-nuvem.js v3 aceita a 2ª imagem; reels-quadro.js v2) e código
   da função atualizado em docs/supabase/functions/bw-ia-imagem/index.ts ("imagem2" → input_image_1, só no modo arte). FALTA PUBLICAR a função
   no painel do Supabase — até lá a função antiga ignora a 2ª imagem (nada quebra). teste_quadro.py +1 checagem (0 falhas). sw v118.
+- 17/11/2026 23:35 · Claude: função bw-ia-imagem com a 2ª imagem PUBLICADA e testada no ar (ver Pendências). Método novo em METODOS.md:
+  publicar Edge Function pelo painel conferindo o texto por SHA-256 antes e depois.
 
 ## Pendências (dono)
-- [ ] (17/11) Publicar a nova versão da função bw-ia-imagem no Supabase (2ª imagem = referência) e testar no ar com personagem + referência.
+- [x] (17/11 23:35, com o "sim" do dono) Função bw-ia-imagem publicada pelo painel (editor conferido por SHA-256: antes = versão antiga do repo,
+      depois = versão nova). Teste no ar com 2 imagens de TESTE desenhadas (boneco de camisa verde + cenário roxo): 7,6 s, 576×1024,
+      73% da imagem em tons do cenário de referência e 14% verde do personagem → a referência está sendo usada. Gastou 1 das 15 imagens do dia.
 - [x] (17/11 23:25, dono colou chave nova; Claude testou no ar: bw-ia 200, Tio Cláudio v18 entendeu tarefa, gasto, pergunta e piada em ~1,5 s cada) IA BRIGHTWAY FORA DO AR: criar chave nova em console.groq.com → API Keys e colar em Supabase → Edge Functions →
       Secrets → GROQ_API_KEY (substituir). Depois avisar o Claude para testar o Tio Cláudio, o roteiro do Reels e a transcrição.
 - [ ] (17/11) QUADRO DE HISTÓRIA: dono testar no ar, logado (EXEMPLO → foto → CRIAR IMAGENS → MONTAR O VÍDEO), no PC e no celular; decidir se

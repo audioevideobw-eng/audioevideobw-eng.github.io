@@ -265,3 +265,10 @@ Tamanho > 0 e sem erro = o pdfmake montou o arquivo. Localmente (T1) confira o `
   um segundo path transparente e largo (stroke 22) só para o toque. Blocos são divs absolutas; arrasta pelo cabeçalho (pointer capture na área).
 - Ligar no celular: botão ➜ no bloco de origem → próximo toque num bloco é o destino (sem arrastar linha). A ordem da história segue as setas.
 - Teste: IA de texto e de imagem simuladas pela rota; confere envio pequeno da foto, confirmação, persistência depois de recarregar e o reel montado.
+
+## Publicar uma Edge Function pelo painel do Supabase sem errar o texto (17/11)
+- Abrir .../functions/<nome>/code no navegador do app (logado). O editor é Monaco: `monaco.editor.getModels()[0].getValue()`.
+- Conferir que o publicado é igual à versão anterior do repositório por SHA-256 (crypto.subtle) — se não for, parar e comparar.
+- A página do Supabase não deixa buscar arquivos de fora (CSP): aplicar a mudança como TROCAS de trechos (cada âncora tem de aparecer 1 vez)
+  e conferir o SHA-256 do resultado contra o arquivo novo do repositório (`sha256sum`). Só então `executeEdits` + "Deploy updates" + confirmar.
+- Recarregar a página e conferir o SHA-256 de novo; depois testar a função no ar com dados de TESTE.
