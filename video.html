@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Editor de vídeo — Brightway</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#06080D">
+<link rel="icon" type="image/png" href="icons/favicon-64.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Brightway">
+<link rel="stylesheet" href="assets/brightway.css?v=27">
+<style>
+.wrap{max-width:1500px;margin:0 auto;padding:0 16px 110px}
+.ve-topo{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.ve-topo h1{margin:0 auto 0 0;font:800 17px Montserrat,Inter,sans-serif;letter-spacing:.04em;color:#F5F1EA}
+.ve-bt{min-height:42px;padding:0 14px;border-radius:12px;border:1px solid rgba(245,241,234,.16);background:rgba(255,255,255,.05);color:#F5F1EA;font:800 11.5px Inter,sans-serif;letter-spacing:.07em;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap;touch-action:manipulation;text-decoration:none}
+.ve-bt:disabled{opacity:.35;cursor:default}
+.ve-bt.pri{background:#fff;border-color:#fff;color:#12151c}
+.ve-bt.on{background:#7C5CFF;border-color:#7C5CFF;color:#fff}
+.ve-bt.perigo{color:#ff9a9d;border-color:rgba(242,104,107,.4)}
+.ve-sel{min-height:42px;border-radius:12px;border:1px solid rgba(245,241,234,.16);background:#12151c;color:#F5F1EA;font:700 13px Inter,sans-serif;padding:0 10px}
+.ve-grade{display:grid;grid-template-columns:270px minmax(0,1fr) 290px;gap:12px;align-items:stretch}
+.ve-cx{min-width:0;border-radius:20px;background:#12151c;border:1px solid rgba(245,241,234,.08);padding:12px}
+.ve-cx h3{margin:0 0 8px;font:800 11px Inter,sans-serif;letter-spacing:.14em;color:#B9C0CC}
+.ve-palco{display:flex;flex-direction:column;align-items:center;gap:8px;min-height:0}
+.ve-tela{width:100%;display:flex;align-items:center;justify-content:center}
+.ve-tela canvas{max-width:100%;max-height:46vh;width:auto;height:auto;border-radius:14px;background:#000;box-shadow:0 14px 40px rgba(0,0,0,.5)}
+.ve-play{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center}
+.ve-tempo{font:700 12.5px Inter,sans-serif;color:#F5F1EA;font-variant-numeric:tabular-nums;min-width:96px;text-align:center}
+.ve-abas{display:flex;gap:4px;margin-bottom:8px;flex-wrap:wrap}
+.ve-abas button{min-height:34px;padding:0 10px;border-radius:999px;border:1px solid rgba(245,241,234,.14);background:transparent;color:#B9C0CC;font:700 10.5px Inter,sans-serif;letter-spacing:.06em;cursor:pointer}
+.ve-abas button.on{background:rgba(124,92,255,.22);border-color:#7C5CFF;color:#fff}
+.ve-lib{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;max-height:38vh;overflow:auto;overscroll-behavior:contain}
+.ve-item{position:relative;min-width:0;border-radius:12px;border:1px solid rgba(245,241,234,.12);background:#0B0E14;color:#F5F1EA;padding:0;cursor:pointer;overflow:hidden;text-align:left}
+.ve-item .mini{display:flex;align-items:center;justify-content:center;height:66px;background:#000;font-size:24px}
+.ve-item img,.ve-item video{width:100%;height:66px;object-fit:cover;display:block}
+.ve-item span{display:block;padding:5px 7px;font:600 10.5px Inter,sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ve-item .x{position:absolute;right:3px;top:3px;width:26px;height:26px;border-radius:50%;border:0;background:rgba(0,0,0,.7);color:#fff;font-size:12px;cursor:pointer}
+.ve-linha{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}.ve-linha .ve-bt{flex:1 1 auto}
+.ve-nota{margin:8px 0 0;font:500 11.5px/1.4 Inter,sans-serif;color:#8d95a3}
+.ve-prop label{display:grid;grid-template-columns:86px minmax(0,1fr) 44px;gap:6px;align-items:center;margin:4px 0;font:600 11.5px Inter,sans-serif;color:#B9C0CC;text-transform:none;letter-spacing:0}
+.ve-prop label.um{grid-template-columns:86px minmax(0,1fr)}
+.ve-prop input[type=range]{width:100%;min-width:0;accent-color:#7C5CFF}
+.ve-prop output{text-align:right;color:#F5F1EA;font-variant-numeric:tabular-nums}
+.ve-prop textarea,.ve-prop input[type=text],.ve-prop select{width:100%;box-sizing:border-box;min-width:0;padding:8px;border-radius:10px;border:1px solid rgba(245,241,234,.16);background:#0B0E14;color:#F5F1EA;font:500 16px Inter,sans-serif;text-transform:none}
+.ve-prop input[type=color]{width:44px;height:34px;border:0;background:transparent;padding:0}
+/* linha do tempo */
+.ve-tl{margin-top:12px;border-radius:20px;background:#12151c;border:1px solid rgba(245,241,234,.08);padding:10px 0 10px 10px}
+.ve-tl-barra{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding-right:10px;margin-bottom:8px}
+.ve-tl-corpo{display:grid;grid-template-columns:92px minmax(0,1fr)}
+.ve-rot{display:flex;flex-direction:column}
+.ve-rot div{height:52px;margin-bottom:6px;display:flex;align-items:center;font:800 9.5px Inter,sans-serif;letter-spacing:.1em;color:var(--c);border-left:3px solid var(--c);padding-left:8px}
+.ve-rot div:first-child{height:24px;border:0;color:#8d95a3}
+.ve-rolo{overflow-x:auto;overflow-y:hidden;position:relative;overscroll-behavior-x:contain;touch-action:pan-x}
+.ve-faixas{position:relative;min-width:100%}
+.ve-regua{height:24px;margin-bottom:6px;position:relative;cursor:pointer;border-bottom:1px solid rgba(245,241,234,.1);font:600 9.5px Inter,sans-serif;color:#8d95a3;touch-action:none}
+.ve-regua i{position:absolute;top:4px;font-style:normal;padding-left:3px;border-left:1px solid rgba(245,241,234,.25);height:16px}
+.ve-faixa{height:52px;margin-bottom:6px;position:relative;border-radius:12px;background:rgba(255,255,255,.03)}
+.ve-clip{position:absolute;top:3px;height:46px;box-sizing:border-box;border-radius:12px;border:2px solid transparent;background:var(--c);color:#fff;font:700 11px Inter,sans-serif;overflow:hidden;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;display:flex;align-items:center;gap:6px;padding:0 12px}
+.ve-clip.on{border-color:#fff;box-shadow:0 0 0 2px rgba(255,255,255,.25),0 6px 18px rgba(0,0,0,.4)}
+.ve-clip img{flex:none;height:34px;width:34px;object-fit:cover;border-radius:7px;pointer-events:none}
+.ve-clip span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:none}
+.ve-clip .al{position:absolute;top:0;bottom:0;width:14px;cursor:ew-resize;background:rgba(0,0,0,.28)}
+.ve-clip .al.e{left:0}.ve-clip .al.d{right:0}
+.ve-clip .al::after{content:"";position:absolute;left:5px;top:14px;bottom:14px;width:3px;border-radius:2px;background:#fff}
+.ve-agulha{position:absolute;top:0;bottom:0;width:2px;background:#FF8A3D;pointer-events:none;z-index:3}
+.ve-agulha::before{content:"";position:absolute;left:-6px;top:0;width:14px;height:14px;border-radius:4px 4px 8px 8px;background:#FF8A3D}
+.ve-aviso{margin-top:8px;padding:9px 12px;border-radius:12px;font:600 12.5px/1.4 Inter,sans-serif;background:rgba(62,207,142,.12);border:1px solid rgba(62,207,142,.4);color:#9af0c4}
+.ve-aviso.erro{background:rgba(242,104,107,.12);border-color:rgba(242,104,107,.45);color:#ffb3b5}
+.ve-aviso[hidden]{display:none}
+.ve-ocup{position:fixed;inset:0;z-index:9000;background:rgba(6,8,13,.86);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:#F5F1EA;font:700 15px Inter,sans-serif;text-align:center;padding:24px}
+.ve-ocup[hidden]{display:none}
+.ve-ocup progress{width:min(360px,80vw);height:10px;accent-color:#7C5CFF}
+.ve-saida video{max-width:min(320px,80vw);max-height:46vh;border-radius:14px;background:#000}
+@media (max-width:1100px){
+  .ve-grade{grid-template-columns:minmax(0,1fr)}
+  .ve-palco{order:-1;position:sticky;top:0;z-index:5;background:#12151c}
+  .ve-tela canvas{max-height:30vh}
+  .ve-lib{grid-template-columns:repeat(3,minmax(0,1fr));max-height:none}
+  .ve-tl-corpo{grid-template-columns:58px minmax(0,1fr)}
+  .ve-rot div{font-size:8px;padding-left:5px;letter-spacing:.04em}
+}
+</style>
+</head>
+<body>
+<header><div class="hd"><button id="btnVoltar" type="button">‹</button><div id="userBox"></div></div></header>
+<div class="wrap">
+  <div class="ve-topo">
+    <h1>EDITOR DE VÍDEO</h1>
+    <select class="ve-sel" id="veFmt" aria-label="Formato do vídeo"><option value="9:16">9:16 Reels</option><option value="16:9">16:9 YouTube</option><option value="1:1">1:1 Quadrado</option><option value="4:5">4:5 Feed</option></select>
+    <button class="ve-bt perigo" id="veNovo" type="button">NOVO</button>
+    <button class="ve-bt pri" id="veExportar" type="button">⬇ EXPORTAR VÍDEO</button>
+  </div>
+  <div class="ve-grade">
+    <div class="ve-cx" id="veMidia">
+      <h3>MÍDIA</h3>
+      <div class="ve-abas" id="veAbas" role="group" aria-label="Tipo de mídia"></div>
+      <div class="ve-lib" id="veLib"></div>
+      <div class="ve-linha"><button class="ve-bt on" id="veImportar" type="button">＋ IMPORTAR</button><button class="ve-bt" id="veCriacoes" type="button">✨ MINHAS CRIAÇÕES</button></div>
+      <div class="ve-linha"><button class="ve-bt" id="veTexto" type="button">T TEXTO</button><button class="ve-bt" id="veSons" type="button">🔊 EFEITOS E TRILHAS</button></div>
+      <p class="ve-nota">Toque num item para colocar na linha do tempo. Aceita vídeos, imagens e áudios — inclusive o que você criou no Flux, Higgsfield, Gemini ou aqui no Quadro de História.</p>
+    </div>
+    <div class="ve-cx ve-palco">
+      <div class="ve-tela"><canvas id="veCv" width="720" height="1280" aria-label="Prévia do vídeo"></canvas></div>
+      <div class="ve-play"><button class="ve-bt" id="veInicio" type="button" aria-label="Voltar ao começo">⏮</button><button class="ve-bt pri" id="vePlay" type="button" aria-label="Tocar ou pausar">▶ TOCAR</button><span class="ve-tempo" id="veTempo">0:00,0 / 0:00,0</span></div>
+    </div>
+    <div class="ve-cx ve-prop" id="veProp"><h3>AJUSTES</h3><div id="vePropCorpo"></div></div>
+  </div>
+  <div class="ve-tl">
+    <div class="ve-tl-barra">
+      <button class="ve-bt" id="veCortar" type="button">✂ DIVIDIR</button><button class="ve-bt" id="veDuplicar" type="button">⧉ DUPLICAR</button><button class="ve-bt perigo" id="veApagar" type="button">🗑 APAGAR</button>
+      <span style="flex:1"></span><button class="ve-bt" id="veZoomMenos" type="button" aria-label="Afastar a linha do tempo">−</button><button class="ve-bt" id="veZoomMais" type="button" aria-label="Aproximar a linha do tempo">＋</button>
+    </div>
+    <div class="ve-tl-corpo"><div class="ve-rot" id="veRot"></div><div class="ve-rolo" id="veRolo"><div class="ve-faixas" id="veFaixas"></div></div></div>
+  </div>
+  <div class="ve-aviso" id="veAviso" hidden aria-live="polite"></div>
+  <p class="ve-nota">Tudo fica neste aparelho: os arquivos não sobem para lugar nenhum. O vídeo é gravado pelo próprio navegador, no tempo do vídeo (um vídeo de 30 s leva 30 s para exportar).</p>
+</div>
+<div class="ve-ocup" id="veOcup" hidden><span id="veOcupTxt">Gravando o vídeo…</span><progress id="veProg" max="1" value="0"></progress><button class="ve-bt" id="veCancelar" type="button">CANCELAR</button></div>
+<div class="ve-ocup ve-saida" id="veSaida" hidden><span id="veSaidaTxt">Vídeo pronto</span><video id="veVideoPronto" controls playsinline></video><div class="ve-linha"><a class="ve-bt pri" id="veBaixar" download="video-brightway.mp4">⬇ SALVAR VÍDEO</a><button class="ve-bt" id="veCompartilhar" type="button">COMPARTILHAR</button><button class="ve-bt" id="veFecharSaida" type="button">FECHAR</button></div></div>
+<input type="file" id="veArq" accept="video/*,image/*,audio/*" multiple hidden>
+<script src="assets/layout.js?v=51"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="assets/bw-sync.js"></script>
+<script src="assets/bw-personagens.js?v=2"></script>
+<script src="assets/video-editor.js?v=1"></script>
+</body>
+</html>

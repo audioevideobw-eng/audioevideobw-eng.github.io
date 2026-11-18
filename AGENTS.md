@@ -314,6 +314,11 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
     mesmas lojas do IndexedDB de quem já usava (bw_reels v2) — versão diferente em outra página trava o banco. Tipo novo de registro ("ficha",
     sem imagem) é filtrado em quem não sabe desenhar (lista do Reels). Passar item entre páginas = link com ?id, aplicado e depois limpo do endereço.
 
+95. Editor de vídeo no navegador: som de cada <video>/<audio> passa por createMediaElementSource → ganho → (alto-falante + MediaStreamDestination)
+    para a gravação pegar o MESMO som da prévia; o AudioContext nasce no toque de TOCAR/EXPORTAR. Teste de exportação confere o ARQUIVO (ffprobe:
+    trilhas, quadros, volume), não só "o botão respondeu". Canvas de prévia leva max-height em vh no próprio canvas (max-height:100% dentro de
+    flex deixou a prévia maior que a tela). Prévia presa no celular: scroll-padding calculado no JS com a altura real dela + a das abas de baixo.
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -1000,12 +1005,32 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   preenche o bloco PERSONAGEM) e 🎬 NO BW REELS; no Quadro, botão 👤 MEUS PERSONAGENS no bloco. O Reels não lista personagem sem imagem.
   docs/testes/teste_personagens.py (28 checagens × 1280/390, IA SIMULADA, 0 falhas). NÃO testado no ar com a IA real. Criador IA e editor de
   fotos ainda não puxam da biblioteca. Manual 45 → 46 p. layout.js v50, reels-quadro.js v6, sw v124. PENTE FINO 94.
+- 18/11/2026 11:30 · Claude (dono, com referência de editor com linha do tempo: "área para receber as criações do Flux e criações de imagens e vídeos, com
+  sistema moderno de camadas, inserção de trilha, efeitos sonoros"): EDITOR DE VÍDEO (video.html + assets/video-editor.js) em Marketing (menu, galerias
+  e Início). MÍDIA (importar vídeo/imagem/áudio, arrastar arquivos, ✨ MINHAS CRIAÇÕES = imagens do Quadro, do Reels e dos Personagens), prévia,
+  AJUSTES do clipe (tamanho, posição, opacidade, volume, entra/sai suave, duração, camada, encaixe) e LINHA DO TEMPO com 5 camadas (SOBREPOSIÇÃO,
+  VÍDEO, TEXTO, TRILHA, EFEITOS): arrastar, aparar pelas alças, trocar de camada, agulha na régua, DIVIDIR, DUPLICAR, APAGAR, zoom. TEXTO com
+  fonte/cor/caixa. 6 efeitos sonoros + 2 bases musicais SINTETIZADOS no aparelho (sem arquivo de terceiros). EXPORTAR = canvas + áudio gravados
+  pelo MediaRecorder (MP4 onde o navegador grava; senão WebM, com aviso), no tempo do vídeo; SALVAR/COMPARTILHAR. Projeto e mídias no IndexedDB
+  bw_video; nada sai do aparelho (vigia confere). docs/testes/teste_video.py (22 checagens × 1280/390): exporta de verdade e confere com ffprobe
+  (vídeo + áudio, 720×1280, som não mudo). NÃO testado em iPhone/Android reais nem com MP4 de câmera (o Chromium de teste só abre WebM).
+  LIMITES: sem transições entre clipes, sem velocidade, sem legendas automáticas; exportação em tempo real. Manual 46 → 47 p. layout.js v51.
+- 18/11/2026 12:10 · Claude (dono: "cara do app mais colorida e moderna" + "as alterações são para o assistente/exe também" + "personagens: fotos em vários
+  planos — americano, rosto, costas, frente, de cima — e variações de roupas e acessórios"): (1) CARA NOVA: botões de acesso de TODAS as galerias
+  viraram cartões coloridos em degradê (8 tons pela posição, brilho em diagonal, ícone claro) — só CSS, bloco no fim do brightway.css v27 (apagar o
+  bloco volta ao antigo); a tela inicial do aplicativo BW Reels ganhou os mesmos cartões coloridos. (2) APLICATIVO (Studio 1.1): cartões PERSONAGENS
+  e EDITOR DE VÍDEO, as duas páginas na lista do uso sem internet, site-offline.zip e downloads/BW-Reels-Studio.zip gerados de novo.
+  (3) PERSONAGENS: ficha com 6 PLANOS (frente, americano, rosto, perfil, costas, de cima) — enviar várias de uma vez ou tocar no plano; FOLHA DE
+  REFERÊNCIA (PNG com todos os planos, para IAs de fora); VARIAÇÕES de roupa/acessórios (nome, descrição, foto opcional). No Quadro: a lista
+  👤 MEUS PERSONAGENS mostra as variações e, ao CRIAR IMAGENS, cada cena manda o plano parecido com ela (BWPersonagens.planoPara: rosto no close,
+  costas em "de costas"…). teste_personagens.py +11 checagens (0 falhas, IA simulada). A função de imagem continua aceitando 1 foto do personagem
+  + 1 referência por pedido (não manda os 6 planos juntos). brightway.css v27, layout.js v51, reels-quadro.js v7, sw v126. PENTE FINO 95.
 
 ## Pendências (dono)
+- [ ] (18/11) APLICATIVO 1.1: os arquivos novos foram para a pasta do PC; dono abrir pelo ícone BW Reels e conferir PERSONAGENS e EDITOR DE VÍDEO.
 - [ ] (18/11) QUADRO: dono testar no ar, logado — arrastar bolinhas, ✨ PROMPT com 🎙 FALAR no PC e no celular (IA real e microfone de verdade).
 - [ ] (18/11 09:02–09:07, pedidos do dono na fila) EDITOR DE FOTOS: FEITO 10:10 (dono testar no celular: pintar máscara com o dedo e segurar para
-      ver o antes) · ÁREA DE PERSONAGENS: FEITA 10:50 (dono testar logado com a IA real) · EDITOR DE VÍDEO com
-      linha do tempo em camadas, trilha e efeitos, recebendo as criações · CARA NOVA do app (mais colorida, cartões com gradiente).
+      ver o antes) · ÁREA DE PERSONAGENS: FEITA 10:50 (dono testar logado com a IA real) · EDITOR DE VÍDEO: FEITO 11:30 (dono testar com vídeos reais do celular e exportar) · CARA NOVA: FEITA 12:10 nas galerias e no aplicativo (dono dizer se quer a cor também em menus/topo).
 - [ ] (18/11) IA DE VÍDEO: dono criar a chave na Runway ou na fal.ai, conectar em IA DE VÍDEO e gerar 1 clipe (é o primeiro teste real; custa
       ~US$ 0,25–0,42). Para funcionar também no celular/navegador a chave teria de ficar guardada no servidor (tabela + função novas) — só com o "sim" do dono.
 - [ ] (18/11) SEM INTERNET: dono tocar em PREPARAR PARA USAR SEM INTERNET, desligar o Wi-Fi e abrir EDITOR DE FOTOS, PDF e ORÇAMENTOS.

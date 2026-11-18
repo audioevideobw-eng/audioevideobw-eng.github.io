@@ -228,10 +228,14 @@
     if (!faltam.length) { aviso("Todas as cenas já têm imagem. Apague a de uma cena (✕) para criar outra."); return; }
     if (!confirm("A IA vai criar " + faltam.length + " imagem(ns) (das 15 por dia da sua conta)." + (usaFoto ? " Vamos enviar uma cópia pequena das fotos do quadro (personagem e referência); nada fica guardado." : "") + " Continuar?")) return;
     var A = window.BWReelsAvatar, peq = fig ? await A.jpgPequeno(fig, 504) : null, feitas = 0, falhou = "";
+    /* personagem da biblioteca com vários planos: cada cena leva o plano parecido com ela (rosto no close, costas quando está de costas…) */
+    var recP = fig && p.h.pers.persId && window.BWPersonagens ? await BWPersonagens.obter(p.h.pers.persId) : null, cachePl = {}, PLANOS_USADOS = [];
+    var baseDaCena = async function (c) { if (!recP) return peq; var x = BWPersonagens.imagemPara(recP, c.contexto, p.h.pers.persVar); if (!x) return peq; PLANOS_USADOS.push(x.plano); if (!cachePl[x.plano]) cachePl[x.plano] = await A.jpgPequeno(A.canvasDe(await A.imagemDe(x.blob), 1400), 504); return cachePl[x.plano]; };
+    window.__qdPlanos = PLANOS_USADOS;
     for (var i = 0; i < p.cenas.length; i++) {
       var c = p.cenas[i]; if (IMG[c.id + "-ia"]) continue;
       ocupado("A IA está desenhando a cena " + (i + 1) + " de " + p.cenas.length + "…");
-      var base = peq, usaRef = false, ref2 = null;
+      var base = await baseDaCena(c), usaRef = false, ref2 = null;
       var refPeq = c.refImg ? await A.jpgPequeno(A.canvasDe(await A.imagemDe(IMG[c.refImg.id].blob), 1400), 504) : null;
       if (!base && refPeq) { base = refPeq; usaRef = true; } else if (base && refPeq) ref2 = refPeq;     /* personagem = imagem 0, referência = imagem 1 */
       var r = await window.BWFotosNuvem.arte(base, pedidoImagem(p.h, c, c.prompt, !!peq, usaRef) + (ref2 ? " Place the character in the place shown in image 1 and use its objects and style." : ""), 576, 1024, "topo", 2000 + i * 41, ref2);
@@ -517,21 +521,23 @@
   async function escolherPers() {
     var lista = window.BWPersonagens ? (await BWPersonagens.listar()).filter(function (r) { return r.tipo !== "montado"; }) : [];
     $("qdLibLista").innerHTML = lista.length ? lista.map(function (r) { var u = r.blob ? URL.createObjectURL(r.blob) : "";
-      return '<button type="button" class="qd-lib-item" data-usar="' + esc(r.id) + '">' + (u ? '<img alt="" src="' + u + '">' : '<i aria-hidden="true">' + esc(String(r.nome || "?").charAt(0).toUpperCase()) + '</i>') + '<span><b>' + esc(r.nome || "Sem nome") + '</b><small>' + esc(BWPersonagens.descricao(r) || (r.blob ? "com imagem" : "só a ficha")) + '</small></span></button>'; }).join("")
+      return '<button type="button" class="qd-lib-item" data-usar="' + esc(r.id) + '">' + (u ? '<img alt="" src="' + u + '">' : '<i aria-hidden="true">' + esc(String(r.nome || "?").charAt(0).toUpperCase()) + '</i>') + '<span><b>' + esc(r.nome || "Sem nome") + '</b><small>' + esc(BWPersonagens.descricao(r) || (r.blob ? "com imagem" : "só a ficha")) + (r.planos && Object.keys(r.planos).length > 1 ? " · " + Object.keys(r.planos).length + " planos" : "") + '</small></span></button>' +
+        (r.variacoes || []).map(function (v) { return '<button type="button" class="qd-lib-item var" data-usar="' + esc(r.id) + '" data-var="' + esc(v.id) + '"><i aria-hidden="true">👕</i><span><b>' + esc(r.nome || "") + ' · ' + esc(v.nome) + '</b><small>' + esc(v.descricao) + '</small></span></button>'; }).join(""); }).join("")
       : '<p class="qd-nota" style="max-width:none">Você ainda não tem personagens guardados. Crie um na ÁREA DE PERSONAGENS (o agente ajuda com a ficha e o prompt).</p>';
     $("qdLib").hidden = false;
   }
-  async function usarPers(id) {
+  async function usarPers(id, vid) {
     var r = window.BWPersonagens && await BWPersonagens.obter(id), h = historia(), b = h.pers; if (!r || !b) return false;
-    b.nome = String(r.nome || "").slice(0, 40); b.texto = BWPersonagens.descricao(r).slice(0, 200) || b.texto || ""; b.persId = r.id;
-    if (r.blob) await porImagem(b.id, r.blob); else await tirarImagem(b.id);
+    var v = BWPersonagens.variacao(r, vid), foto = (v && v.blob) || r.blob;
+    b.nome = String(r.nome || "").slice(0, 40); b.texto = BWPersonagens.descricao(r, vid).slice(0, 200) || b.texto || ""; b.persId = r.id; b.persVar = v ? v.id : "";
+    if (foto) await porImagem(b.id, foto); else await tirarImagem(b.id);
     Object.keys(IMG).forEach(function (k) { if (/-ia$/.test(k)) tirarImagem(k.slice(0, -3), "-ia"); });   /* personagem novo: as imagens das cenas eram do antigo */
-    guardar(); $("qdLib").hidden = true; desenhar(); aviso(r.nome + " agora é o personagem desta história." + (r.blob ? "" : " Ele ainda não tem imagem: as cenas usam a descrição."));
+    guardar(); $("qdLib").hidden = true; desenhar(); aviso(r.nome + (v ? " (" + v.nome + ")" : "") + " agora é o personagem desta história." + (foto ? "" : " Ele ainda não tem imagem: as cenas usam a descrição."));
     return true;
   }
   function iniciarPrompt() {
     $("qdLibFechar").onclick = function () { $("qdLib").hidden = true; };
-    $("qdLibLista").addEventListener("click", function (e) { var b = e.target.closest("[data-usar]"); if (b) usarPers(b.dataset.usar); });
+    $("qdLibLista").addEventListener("click", function (e) { var b = e.target.closest("[data-usar]"); if (b) usarPers(b.dataset.usar, b.dataset.var || ""); });
     try { var pr = new URLSearchParams(location.search);   /* vindo da ÁREA DE PERSONAGENS: reels.html?quadro=1&pers=ID */
       if (pr.get("quadro")) setTimeout(async function () { var fm = $("folhaModelos"); if (fm) fm.hidden = true; await abrir(); if (pr.get("pers")) await usarPers(pr.get("pers")); try { history.replaceState(null, "", location.pathname); } catch (e) {} }, 900);
       else if (pr.get("personagens")) setTimeout(function () { var fm = $("folhaModelos"); if (fm) fm.hidden = true; if (window.BWReels && BWReels.abrirPers) BWReels.abrirPers(); try { history.replaceState(null, "", location.pathname); } catch (e) {} }, 900);

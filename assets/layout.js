@@ -66,7 +66,7 @@
     casa: [["orcamento","Orçamento familiar"],["contas","Contas a pagar"],["reserva","Reserva de emergência"]],
     invest: [["investimentos-painel","Painel de Investimentos"],["cambio","Câmbio"],["evento","Evento no exterior"],["milhas","Mercado de milhas"],["meta","Meta de milhas"],["recs","★ Recomendações"],["noticias","Notícias"]],
     crm: [["crm","Painel do CRM"],["captacao","Funil de clientes"],["resultados","Indicadores"]],
-    mkt: [["marketing","Todas de marketing"],["reels","BW Reels Pro"],["personagens","Personagens"],["criador","Criador IA"],["fotos","Editor de fotos"],["assistente","Assistente de texto"],["transcricao","Transcrição e legendas"]],
+    mkt: [["marketing","Todas de marketing"],["reels","BW Reels Pro"],["personagens","Personagens"],["video","Editor de vídeo"],["criador","Criador IA"],["fotos","Editor de fotos"],["assistente","Assistente de texto"],["transcricao","Transcrição e legendas"]],
     ferr: [["ferramentas","Todas as ferramentas"],["pdf","PDF"],["dados","Meus dados"]],
     conta: [["login","Acesso"],["configadm","Configuração"]]
   };
@@ -76,7 +76,7 @@
     if (["orcamento","casa","contas","reserva"].indexOf(p) > -1) return "casa";
     if (["investimentos-painel","cambio","comparador","serie","calc","viagem","diario","alertas","evento","milhas","meta","invest","recs","noticias"].indexOf(p) > -1) return "invest";
     if (["crm","captacao","resultados"].indexOf(p) > -1) return "crm";
-    if (["marketing","assistente","transcricao","fotos","criador","reels","personagens"].indexOf(p) > -1) return "mkt";
+    if (["marketing","assistente","transcricao","fotos","criador","reels","personagens","video"].indexOf(p) > -1) return "mkt";
     if (["ferramentas","pdf","dados"].indexOf(p) > -1) return "ferr";
     return "conta";
   }
@@ -90,7 +90,7 @@
     viagem:"Conversor de viagem", leitor:"Leitor de contas", recs:"Recomendações",
     noticias:"Notícias", dados:"Meus dados", app:"App & sincronização", login:"Acesso",
     configadm:"Configuração", marketing:"Marketing", assistente:"Assistente de texto", transcricao:"Transcrição e legendas", pdf:"Ferramentas de PDF",
-    crm:"CRM", captacao:"Funil de clientes", resultados:"Indicadores", fotos:"Editor de fotos", criador:"Criador IA", reels:"BW Reels Pro", personagens:"Personagens", propostas:"Gerador de orçamento" };
+    crm:"CRM", captacao:"Funil de clientes", resultados:"Indicadores", fotos:"Editor de fotos", criador:"Criador IA", reels:"BW Reels Pro", personagens:"Personagens", video:"Editor de vídeo", propostas:"Gerador de orçamento" };
   var NOMES_CAT = {}; CATEGORIAS.forEach(function(c){ NOMES_CAT[c.id] = c.nome; });
 
   var itens = CATEGORIAS.map(function(c){

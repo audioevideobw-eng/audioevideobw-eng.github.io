@@ -111,7 +111,7 @@
     var f = lerFicha(); if (!f.nome) { aviso($("agAviso"), "Dê um nome ao personagem.", true); $("fxNome").focus(); return; }
     var antigo = AG.id ? await L.obter(AG.id) : null;
     var rec = Object.assign({}, antigo || {}, {id: AG.id || undefined, nome: f.nome, ficha: {papel: f.papel, aparencia: f.aparencia, roupa: f.roupa, personalidade: f.personalidade, estilo: f.estilo, prompt: f.prompt}});
-    if (AG.blob) { rec.blob = AG.blob; rec.tipo = "foto"; } else if (!rec.tipo) rec.tipo = "ficha";
+    if (AG.blob) { rec.blob = AG.blob; rec.tipo = "foto"; if (rec.planos && AG.blob !== (antigo || {}).blob) rec.planos.frente = AG.blob; } else if (!rec.tipo) rec.tipo = "ficha";
     rec = await L.salvar(rec); AG.id = rec.id; fecharAgente(); await carregar(); abrirPers(rec.id, "✓ Salvo. Ele já aparece no Quadro de História" + (rec.blob ? " e no BW Reels." : " (para o BW Reels, falta a imagem)."));
   }
 
@@ -124,24 +124,48 @@
     $("psCorpo").innerHTML = linha("PAPEL", f.papel) + linha("APARÊNCIA", f.aparencia) + linha("ROUPA", f.roupa) + linha("JEITO DE SER", f.personalidade) + linha("ESTILO", f.estilo) + linha("PROMPT MESTRE", f.prompt) +
       '<div class="pg-ficha"><h4>USAR ESTE PERSONAGEM</h4><div class="pg-linha"><a class="pg-bt amb" href="reels.html?quadro=1&pers=' + encodeURIComponent(r.id) + '">🧩 NO QUADRO DE HISTÓRIA</a>' +
       '<a class="pg-bt" href="reels.html?personagens=1">🎬 NO BW REELS</a></div><p class="pg-nota">No Quadro ele entra como o PERSONAGEM da história (nome, descrição e imagem). No BW Reels ele aparece em 👤 PERSONAGENS e na aba CENA' + (r.blob || r.tipo === "montado" ? "." : " depois que tiver imagem.") + '</p></div>' +
-      '<div class="pg-linha">' + (r.tipo !== "montado" ? '<button class="pg-bt" type="button" data-ps="editar">✨ MUDAR COM O AGENTE</button><button class="pg-bt" type="button" data-ps="img">＋ ' + (r.blob ? "TROCAR" : "ENVIAR") + ' IMAGEM</button>' : "") +
+      (r.tipo !== "montado" ? htmlPlanos(r) + htmlVariacoes(r) : "") +
+      '<div class="pg-linha">' + (r.tipo !== "montado" ? '<button class="pg-bt" type="button" data-ps="editar">✨ MUDAR COM O AGENTE</button>' : "") +
       (f.prompt ? '<button class="pg-bt" type="button" data-ps="copiar">⧉ COPIAR PROMPT</button>' : "") + (r.blob ? '<button class="pg-bt" type="button" data-ps="baixar">⬇ BAIXAR PNG</button>' : "") + '<button class="pg-bt perigo" type="button" data-ps="excluir">🗑 EXCLUIR</button></div>';
     aviso($("psAviso"), msg || ""); $("folhaPers").hidden = false; travar(true);
   }
+  /* FOTOS DE REFERÊNCIA em vários planos + VARIAÇÕES de roupa e acessórios (18/11) */
+  var UP = {}; function urlBlob(k, b) { if (!UP[k] || UP[k].b !== b) { if (UP[k]) URL.revokeObjectURL(UP[k].u); UP[k] = {b: b, u: URL.createObjectURL(b)}; } return UP[k].u; }
+  function planosDe(r) { var pl = Object.assign({}, r.planos || {}); if (r.blob && !Object.keys(pl).length) pl.frente = r.blob; return pl; }
+  function htmlPlanos(r) { var pl = planosDe(r), n = Object.keys(pl).length;
+    return '<div class="pg-ficha"><h4>FOTOS DE REFERÊNCIA · ' + n + ' DE ' + L.PLANOS.length + ' PLANOS</h4><div class="pg-planos">' + L.PLANOS.map(function (p) { var b = pl[p[0]];
+      return '<div class="pg-plano' + (b ? " tem" : "") + '"><button type="button" class="pg-plano-b" data-plano="' + p[0] + '" aria-label="' + (b ? "Trocar" : "Enviar") + ' a foto do plano ' + p[1] + '">' + (b ? '<img alt="" src="' + urlBlob(r.id + p[0], b) + '">' : '<i aria-hidden="true">＋</i>') + '<b>' + p[1] + '</b><small>' + p[2] + '</small></button>' + (b ? '<button type="button" class="pg-plano-x" data-plano-x="' + p[0] + '" aria-label="Tirar a foto do plano ' + p[1] + '">✕</button>' : "") + '</div>'; }).join("") +
+      '</div><div class="pg-linha"><button class="pg-bt" type="button" data-ps="varias">＋ ENVIAR VÁRIAS DE UMA VEZ</button>' + (n > 1 ? '<button class="pg-bt" type="button" data-ps="folha">⬇ FOLHA DE REFERÊNCIA (PNG)</button>' : "") + '</div><p class="pg-nota">Quanto mais planos, melhor a IA repete o personagem. Nas cenas do Quadro o app usa sozinho o plano parecido (rosto para close, costas para "de costas"…). A FOLHA junta tudo numa imagem só para você mandar ao Flux, Higgsfield ou Gemini.</p></div>'; }
+  function htmlVariacoes(r) { var vs = r.variacoes || [];
+    return '<div class="pg-ficha"><h4>VARIAÇÕES · ROUPAS E ACESSÓRIOS</h4>' + (vs.length ? vs.map(function (v) { return '<div class="pg-var">' + (v.blob ? '<img alt="" src="' + urlBlob(r.id + v.id, v.blob) + '">' : '<i aria-hidden="true">👕</i>') + '<span><b>' + esc(v.nome) + '</b><small>' + esc(v.descricao) + '</small></span><button type="button" class="pg-bt" data-var-img="' + esc(v.id) + '" aria-label="Enviar imagem da variação ' + esc(v.nome) + '">' + (v.blob ? "TROCAR" : "＋ FOTO") + '</button><button type="button" class="pg-bt perigo" data-var-x="' + esc(v.id) + '" aria-label="Excluir a variação ' + esc(v.nome) + '">✕</button></div>'; }).join("") : '<p class="pg-nota" style="margin:0 0 8px">O mesmo personagem com outra roupa: uniforme de evento, terno, casual…</p>') +
+      '<label class="pg-campo"><span>Nome da variação</span><input id="vrNome" maxlength="30" placeholder="ex.: Terno de gala"></label><label class="pg-campo"><span>Roupa e acessórios</span><textarea id="vrDesc" rows="2" maxlength="200" placeholder="ex.: terno preto, gravata borboleta, relógio dourado"></textarea></label><div class="pg-linha"><button class="pg-bt amb" type="button" data-ps="novaVar">＋ GUARDAR VARIAÇÃO</button></div><p class="pg-nota">No Quadro de História você escolhe com qual roupa ele entra em cada história.</p></div>'; }
+  async function imagemLimpa(arq) { var c = A.canvasDe(await A.imagemDe(new Blob([await arq.arrayBuffer()], {type: arq.type})), 1400); return A.pngDe(A.jaRecortado(c) ? A.aparar(c) : (A.recortarLiso(c) || c)); }
+  async function gravarPlanos(r, novos) { r.planos = Object.assign(planosDe(r), novos); Object.keys(r.planos).forEach(function (k) { if (!r.planos[k]) delete r.planos[k]; }); r.blob = L.principal(r) || null; r.tipo = r.blob ? "foto" : "ficha"; await L.salvar(r); await carregar(); }
+  async function folhaReferencia(r) {   /* todos os planos numa imagem só, com o nome de cada um */
+    var pl = planosDe(r), ks = L.PLANOS.filter(function (p) { return pl[p[0]]; }), cel = 512, cols = Math.min(3, ks.length), lin = Math.ceil(ks.length / cols), c = document.createElement("canvas"); c.width = cols * cel; c.height = lin * (cel + 44) + 56; var x = c.getContext("2d");
+    x.fillStyle = "#ffffff"; x.fillRect(0, 0, c.width, c.height); x.fillStyle = "#111"; x.font = "800 28px Inter, Arial, sans-serif"; x.textBaseline = "middle"; x.fillText((r.nome || "Personagem") + " — character reference sheet", 16, 28);
+    for (var i = 0; i < ks.length; i++) { var im = await A.imagemDe(pl[ks[i][0]]), ox = (i % cols) * cel, oy = 56 + Math.floor(i / cols) * (cel + 44), s = Math.min(cel / im.naturalWidth, cel / im.naturalHeight), w = im.naturalWidth * s, h = im.naturalHeight * s;
+      x.drawImage(im, ox + (cel - w) / 2, oy + (cel - h) / 2, w, h); x.fillStyle = "#111"; x.font = "700 20px Inter, Arial, sans-serif"; x.textAlign = "center"; x.fillText(ks[i][1], ox + cel / 2, oy + cel + 22); x.textAlign = "left"; }
+    return A.pngDe(c);
+  }
   function fecharPers() { $("folhaPers").hidden = true; PS = null; travar(!$("folhaAgente").hidden); }
   async function copiar(t, el) { try { await navigator.clipboard.writeText(t); aviso(el, "Copiado. Cole na IA de imagem que preferir."); } catch (e) { aviso(el, "Não consegui copiar sozinho: selecione o texto do prompt e copie.", true); } }
-  async function receberImagem(arq, rec) {
-    try { var c = A.canvasDe(await A.imagemDe(new Blob([await arq.arrayBuffer()], {type: arq.type})), 1400);   /* cópia na memória na hora (regra 47) */
-      var cut = A.jaRecortado(c) ? A.aparar(c) : (A.recortarLiso(c) || c), blob = await A.pngDe(cut);
-      rec = rec || {nome: arq.name.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ").slice(0, 30) || "Meu personagem", ficha: {}};
-      rec.blob = blob; rec.tipo = "foto"; rec = await L.salvar(rec); await carregar(); abrirPers(rec.id, "✓ Imagem guardada. Toque em MUDAR COM O AGENTE para completar a ficha.");
-    } catch (e) { alert("Não deu para abrir essa imagem. Tente PNG ou JPG."); }
-  }
 
   /* ---------- ligações ---------- */
   $("pgNovo").onclick = function () { abrirAgente(null); };
-  $("pgEnviar").onclick = function () { $("pgArq").dataset.para = ""; $("pgArq").click(); };
-  $("pgArq").onchange = async function () { var f = this.files && this.files[0]; this.value = ""; if (!f) return; var alvo = this.dataset.para ? await L.obter(this.dataset.para) : null; receberImagem(f, alvo); };
+  $("pgEnviar").onclick = function () { var i = $("pgArq"); i.dataset.para = ""; i.dataset.modo = "varias"; i.multiple = true; i.click(); };
+  /* várias fotos de uma vez: 1ª = FRENTE, depois os planos que faltam, na ordem; um plano escolhido recebe só aquela foto */
+  $("pgArq").onchange = async function () {
+    var fs = [].slice.call(this.files || []), modo = this.dataset.modo || "varias", alvo = this.dataset.para ? await L.obter(this.dataset.para) : null; this.value = ""; this.dataset.modo = ""; if (!fs.length) return;
+    try {
+      if (modo.indexOf("var:") === 0 && alvo) { var v = L.variacao(alvo, modo.slice(4)); if (v) { v.blob = await imagemLimpa(fs[0]); await L.salvar(alvo); await carregar(); abrirPers(alvo.id, "✓ Foto da variação guardada."); } return; }
+      var r = alvo || {nome: fs[0].name.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ").slice(0, 30) || "Meu personagem", ficha: {}}, novos = {}, ja = planosDe(r);
+      if (modo.indexOf("plano:") === 0) novos[modo.slice(6)] = await imagemLimpa(fs[0]);
+      else { var livres = L.PLANOS.map(function (p) { return p[0]; }).filter(function (k) { return !ja[k]; }); for (var i = 0; i < fs.length && i < livres.length; i++) novos[livres[i]] = await imagemLimpa(fs[i]); }
+      var n = Object.keys(novos).length; if (!n) { abrirPers(r.id, "Os 6 planos já têm foto. Toque num plano para trocar a dele."); return; }
+      await gravarPlanos(r, novos); abrirPers(r.id, "✓ " + n + " foto(s) guardada(s)" + (fs.length > n && modo === "varias" ? " (as outras não couberam: são 6 planos)" : "") + ". Confira se cada uma está no plano certo — toque no plano para trocar.");
+    } catch (e) { alert("Não deu para abrir essa imagem. Tente PNG ou JPG."); }
+  };
   $("pgGrade").addEventListener("click", function (e) { var b = e.target.closest("[data-id]"); if (b) abrirPers(b.dataset.id); });
   $("agFechar").onclick = fecharAgente; $("agEnviar").onclick = enviar; $("agMic").onclick = mic;
   $("agTexto").addEventListener("keydown", function (e) { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); enviar(); } });
@@ -149,9 +173,19 @@
   $("fxImagem").onclick = criarImagem; $("fxSalvar").onclick = salvar;
   $("psFechar").onclick = fecharPers;
   $("psCorpo").addEventListener("click", async function (e) {
+    var q = e.target.closest("[data-plano],[data-plano-x],[data-var-img],[data-var-x]");
+    if (q && PS) { var rr = PS, inp = $("pgArq"); inp.multiple = false;
+      if (q.dataset.plano) { inp.dataset.para = rr.id; inp.dataset.modo = "plano:" + q.dataset.plano; inp.click(); }
+      else if (q.dataset.planoX) { var z = {}; z[q.dataset.planoX] = null; await gravarPlanos(rr, z); abrirPers(rr.id); }
+      else if (q.dataset.varImg) { inp.dataset.para = rr.id; inp.dataset.modo = "var:" + q.dataset.varImg; inp.click(); }
+      else if (confirm("Excluir esta variação de roupa?")) { rr.variacoes = (rr.variacoes || []).filter(function (v) { return v.id !== q.dataset.varX; }); await L.salvar(rr); await carregar(); abrirPers(rr.id); }
+      return; }
     var b = e.target.closest("[data-ps]"); if (!b || !PS) return; var k = b.dataset.ps, r = PS;
+    if (k === "varias") { $("pgArq").dataset.para = r.id; $("pgArq").dataset.modo = "varias"; $("pgArq").multiple = true; $("pgArq").click(); return; }
+    if (k === "folha") { var bf = await folhaReferencia(r), af = document.createElement("a"); window.__persFolha = bf; af.href = URL.createObjectURL(bf); af.download = (r.nome || "personagem").replace(/[^\w\- ]+/g, "").trim().replace(/\s+/g, "-") + "-referencia.png"; document.body.appendChild(af); af.click(); af.remove(); aviso($("psAviso"), "Folha de referência baixada. Envie essa imagem junto com o prompt na IA que você usa."); return; }
+    if (k === "novaVar") { var nm = $("vrNome").value.trim(), ds = $("vrDesc").value.trim(); if (!nm || !ds) { aviso($("psAviso"), "Dê um nome e descreva a roupa e os acessórios da variação.", true); return; }
+      r.variacoes = (r.variacoes || []).concat([{id: "v" + Date.now().toString(36), nome: nm, descricao: ds}]); await L.salvar(r); await carregar(); abrirPers(r.id, "✓ Variação guardada. Se tiver uma foto dele com essa roupa, toque em ＋ FOTO."); return; }
     if (k === "editar") { fecharPers(); abrirAgente(Object.assign({nome: r.nome || ""}, r.ficha || {}), r); }
-    else if (k === "img") { $("pgArq").dataset.para = r.id; $("pgArq").click(); }
     else if (k === "copiar") copiar((r.ficha || {}).prompt || "", $("psAviso"));
     else if (k === "baixar") { var a = document.createElement("a"); a.href = urlDe(r); a.download = (r.nome || "personagem").replace(/[^\w\- ]+/g, "").trim().replace(/\s+/g, "-") + ".png"; document.body.appendChild(a); a.click(); a.remove(); }
     else if (k === "excluir") { if (!confirm("Excluir " + (r.nome || "este personagem") + " da biblioteca? Os vídeos que já usam continuam com ele.")) return; await L.excluir(r.id); fecharPers(); carregar(); }
@@ -161,6 +195,6 @@
   (async function () { var el = $("userBox"); if (!el) return; var s = await sessao(), u = s && s.user;
     el.innerHTML = u ? '<a href="login.html" class="bw-logado" title="Conta: ' + esc(u.email) + '"><i></i>LOGADO</a>' : '<a href="login.html" class="bw-btn bw-btn--vidro" style="min-height:34px;padding:0 14px;font-size:12px">LOGIN</a>'; })();
   carregar();
-  window.__pers = {lib: function () { return LIB; }, carregar: carregar, abrirAgente: abrirAgente, ag: function () { return AG; }, achatar: achatar, promptLocal: promptLocal};
+  window.__pers = {folha: folhaReferencia, lib: function () { return LIB; }, carregar: carregar, abrirAgente: abrirAgente, ag: function () { return AG; }, achatar: achatar, promptLocal: promptLocal};
   if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(function () { });
 })();

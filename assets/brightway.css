@@ -602,3 +602,26 @@ html.bw-menu-recolhido .bw-menu{display:none}
 .tag.mid,.tag.and,.bw-st--and{color:#FFB547!important;border:1px solid rgba(255,181,71,.4)!important;background:rgba(255,181,71,.1)!important}
 .tag.azul,.bw-st--azul{color:#8AB4FF!important;border:1px solid rgba(138,180,255,.45)!important;background:rgba(138,180,255,.12)!important}
 .tag.cinza,.bw-st--cinza{color:#B8BDC8!important;border:1px solid rgba(184,189,200,.35)!important;background:rgba(184,189,200,.08)!important}
+
+/* 18/11 (Claude, pedido do dono com referências): CARA NOVA dos botões de acesso — cartões coloridos em degradê, brilho em diagonal e ícone
+   claro. As cores giram em 8 tons pela posição do cartão. Para voltar ao visual antigo basta apagar este bloco. */
+body a.menu-card, body a.bw-tool-card{--g1:#6A3DF0;--g2:#B02BD9;--gs:rgba(138,77,255,.55);
+  background:linear-gradient(140deg,var(--g1),var(--g2));border:1px solid rgba(255,255,255,.14);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.28),inset 0 -3px 0 rgba(0,0,0,.22),0 14px 28px -16px var(--gs),0 2px 4px rgba(0,0,0,.4)}
+body a.menu-card:nth-child(8n+2), body a.bw-tool-card:nth-child(8n+2){--g1:#1E9BF0;--g2:#2B59E0;--gs:rgba(43,110,224,.55)}
+body a.menu-card:nth-child(8n+3), body a.bw-tool-card:nth-child(8n+3){--g1:#FF7A3D;--g2:#F0483D;--gs:rgba(240,90,61,.55)}
+body a.menu-card:nth-child(8n+4), body a.bw-tool-card:nth-child(8n+4){--g1:#19B36B;--g2:#0E8C8C;--gs:rgba(20,170,120,.5)}
+body a.menu-card:nth-child(8n+5), body a.bw-tool-card:nth-child(8n+5){--g1:#F5A524;--g2:#E0762B;--gs:rgba(240,150,40,.5)}
+body a.menu-card:nth-child(8n+6), body a.bw-tool-card:nth-child(8n+6){--g1:#E0409A;--g2:#B02BD9;--gs:rgba(220,60,170,.5)}
+body a.menu-card:nth-child(8n+7), body a.bw-tool-card:nth-child(8n+7){--g1:#12A5C4;--g2:#1E6BF0;--gs:rgba(30,140,230,.5)}
+body a.menu-card:nth-child(8n+8), body a.bw-tool-card:nth-child(8n+8){--g1:#5B6477;--g2:#2C3342;--gs:rgba(90,100,120,.5)}
+body a.menu-card::before, body a.bw-tool-card::before{left:0;right:0;top:0;bottom:0;height:auto;opacity:1;
+  background:linear-gradient(115deg,transparent 52%,rgba(255,255,255,.16) 52%,rgba(255,255,255,.03) 74%,transparent 74%),radial-gradient(120% 90% at 100% 0%,rgba(255,255,255,.22),transparent 55%)}
+body a.menu-card::after, body a.bw-tool-card::after{border-color:#fff;opacity:.9}
+body a.menu-card .ico, body a.bw-tool-card .ico{position:relative;background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.35);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.35),0 8px 16px -8px rgba(0,0,0,.45);backdrop-filter:blur(2px)}
+body a.menu-card .ico svg, body a.bw-tool-card .ico svg{stroke:#fff}
+body a.menu-card .nome, body a.bw-tool-card .nome{position:relative;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.35)}
+body a.menu-card:hover, body a.bw-tool-card:hover{transform:translateY(-4px) scale(1.015);border-color:rgba(255,255,255,.45);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.35),inset 0 -3px 0 rgba(0,0,0,.22),0 22px 36px -16px var(--gs),0 2px 6px rgba(0,0,0,.45)}
+body a.menu-card:focus-visible, body a.bw-tool-card:focus-visible{outline:2px solid #fff;outline-offset:3px}
