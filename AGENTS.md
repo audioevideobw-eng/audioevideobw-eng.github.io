@@ -280,6 +280,10 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
     "detalhe":"Invalid API Key"} — a chave da Groq guardada no Supabase deixou de valer; derruba Tio Cláudio, roteiro do Reels, assistente,
     transcrição e CRM de uma vez). Quem usa IA mostra o MOTIVO quando ela cai (chave, limite, rede), nunca "não entendi".
 
+87. PLANO DE PRODUÇÃO do Quadro (reels-quadro.js planoVideo): preço de IA de vídeo é REFERÊNCIA com data (VIDEO_IA.conferido) e muda sempre —
+    conferir nas páginas oficiais antes de atualizar e nunca prometer valor; o aviso ao usuário sempre diz "confira no site da IA antes de pagar".
+    AUTOMÁTICO só manda para IA paga a cena com movimento de verdade; fala parada e detalhe ficam no app. Nenhuma IA de vídeo é chamada pelo site.
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -891,8 +895,18 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   no painel do Supabase — até lá a função antiga ignora a 2ª imagem (nada quebra). teste_quadro.py +1 checagem (0 falhas). sw v118.
 - 17/11/2026 23:35 · Claude: função bw-ia-imagem com a 2ª imagem PUBLICADA e testada no ar (ver Pendências). Método novo em METODOS.md:
   publicar Edge Function pelo painel conferindo o texto por SHA-256 antes e depois.
+- 17/11/2026 23:55 · Claude (dono: "sistema que entende o melhor para cada trabalho, calcula o custo e recomenda; modo automático que economiza e
+  modo pro com a melhor qualidade"): QUADRO DE HISTÓRIA › 🎬 MONTAR O VÍDEO agora tem ⚡ AUTOMÁTICO (recomendado), ★ PRO e SÓ O APP, cada um
+  com o plano e o custo estimado ANTES de montar. O app classifica cada cena (movimento, fala, parada, ambiente): AUTOMÁTICO deixa no app o
+  que o app resolve de graça e indica IA de vídeo econômica só onde há movimento; PRO indica IA de melhor qualidade em todas (com fala quando
+  o personagem fala). O reel sai misto: cenas do app prontas + cenas de IA com a imagem de espera, o prompt, a IA indicada e o custo na aba MÍDIA.
+  Preços de referência (US$/s) de 17/11/2026: Veo 3.1 Lite 0,05 · Kling 3.0 0,112 · Veo 3.1 Standard 0,40. LIMITE: o site ainda NÃO gera o clipe
+  (nenhuma IA de vídeo conectada — aparece "disponível em breve"); a geração é feita fora e o clipe é importado. teste_quadro.py +5 checagens
+  (0 falhas), teste_reels 0, vigia ✅. reels.js v13, reels-quadro.js v3, sw v119. PENTE FINO 87.
 
 ## Pendências (dono)
+- [ ] (17/11) IA DE VÍDEO CONECTADA: decidir onde fica a chave (servidor da Brightway com cobrança, ou chave do próprio usuário guardada no
+      servidor) e qual serviço; conferir os preços e modelos atuais (há aviso de troca do Veo 3.1 por modelo novo do Google).
 - [x] (17/11 23:35, com o "sim" do dono) Função bw-ia-imagem publicada pelo painel (editor conferido por SHA-256: antes = versão antiga do repo,
       depois = versão nova). Teste no ar com 2 imagens de TESTE desenhadas (boneco de camisa verde + cenário roxo): 7,6 s, 576×1024,
       73% da imagem em tons do cenário de referência e 14% verde do personagem → a referência está sendo usada. Gastou 1 das 15 imagens do dia.

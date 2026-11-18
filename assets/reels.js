@@ -1272,16 +1272,16 @@
     for (var i = 0; i < q.cenas.length; i++) {
       var c = q.cenas[i], cam = null, fala = palavras(c.fala || c.contexto).slice(0, 14).join(" "), dur = Math.max(3, Math.min(5.5, palavras(fala).length / 2.4 + 1.2));
       if (c.imagem) { await importar([new File([c.imagem], "quadro-cena-" + (i + 1) + ".jpg", {type: c.imagem.type || "image/jpeg"})]); cam = MID[MID.length - 1].caminho; }
-      if (q.modo === "video") cenas.push({tipo: "midia", duracao: 5, texto: fala, movimento: "zoom-in-suave"});
+      if (c.video) cenas.push(cam ? {tipo: "midia", duracao: 5, texto: fala, movimento: "zoom-in-suave", midia: cam} : {tipo: "midia", duracao: 5, texto: fala, movimento: "zoom-in-suave"});   /* a imagem fica de espera até o clipe da IA ser importado */
       else if (cam) cenas.push({tipo: "personagem", duracao: dur, falas: [{quem: 0, texto: fala}], elenco: [], midia: cam, movimento: i % 2 ? "zoom-out" : "zoom-in", cenario: "nenhum", transicao: "fade", entrada: "nenhuma"});
       else if (av) cenas.push({tipo: "personagem", duracao: dur, falas: [{quem: 0, texto: fala}], elenco: [{personagem: "foto", imagem: av, acao: i === 0 ? "acena" : "fala"}], cenario: i % 2 ? "palco" : "raios", entrada: i === 0 ? "pula" : "nenhuma"});
       else cenas.push({tipo: "texto", duracao: dur, texto: fala});
     }
     cenas.push({tipo: "cta", duracao: 3, texto: q.cta || "Gostou? Me segue", acao: q.cta || "Siga o perfil"});
     P.roteiro.cenas = cenas;
-    P.promptsCenas = q.modo === "video" ? q.cenas.map(function (c, i) { return {cena: i + (q.gancho ? 1 : 0), prompt: c.promptVideo}; }) : [];
+    P.promptsCenas = q.cenas.map(function (c, i) { return c.video ? {cena: i + (q.gancho ? 1 : 0), prompt: c.promptVideo} : null; }).filter(Boolean);
     if (q.legenda) { P.legenda = String(q.legenda); $("fLegenda").value = P.legenda; }
-    SEL = 0; salvar(); desenharTudo(); desenharPrompts(); atualizar(); T = 1.2; posicionar(1.2); trocarAba(q.modo === "video" ? "midia" : "cena");
+    SEL = 0; salvar(); desenharTudo(); desenharPrompts(); atualizar(); T = 1.2; posicionar(1.2); trocarAba(P.promptsCenas.length ? "midia" : "cena");
     return P.id;
   }
   window.BWReels = {montarDoQuadro: montarDoQuadro, db: {put: dbPut, get: dbGet, del: dbDel}, puxarDaConta: puxarDaConta, conta: contaLer, abrirPers: abrirPers, lib: function () { return LIB; }, somPronto: function () { prepararSom(); return !!somAuto.src; }, projeto: function () { return P; }, tocar: tocar, parar: parar, posicionar: posicionar, validar: validar, abrirModelos: abrirModelos, normalizarCenas: function (l, b) { return normalizarCenas(l, b || {}); }};

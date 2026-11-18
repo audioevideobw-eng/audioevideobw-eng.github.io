@@ -136,7 +136,11 @@ with sync_playwright() as p:
         ok(pg.locator(".qd-bloco.t-cena").count() == 4 and pg.locator(".qd-foto.ia img").count() == 4 and pg.is_checked("#qdAutor"), "depois de recarregar o quadro e as imagens continuam no aparelho")
         # montar o vídeo animado pelo app
         dlg.clear(); pg.click("#qdMontar"); pg.wait_for_timeout(200)
-        ok(pg.is_visible("#qdMontarMotor") and pg.is_visible("#qdMontarVideo"), "MONTAR O VÍDEO oferece os dois jeitos")
+        ok(pg.is_visible("#qdMontarAuto") and pg.is_visible("#qdMontarVideo") and pg.is_visible("#qdMontarMotor"), "MONTAR O VÍDEO oferece AUTOMÁTICO, PRO e SÓ O APP")
+        ta, tp = pg.inner_text("#qdMontarAuto"), pg.inner_text("#qdMontarVideo")
+        ok("3 em IA de vídeo ≈ US$ 0,90" in ta and "1 cena(s) no app" in ta, "AUTOMÁTICO: só as cenas com movimento vão para IA de vídeo econômica, com o custo estimado: " + ta.replace("\n", " | "))
+        ok("4 em IA de vídeo ≈ US$ 10,16" in tp, "PRO: todas as cenas em IA de vídeo de melhor qualidade, com o custo: " + tp.replace("\n", " | "))
+        ok(pg.evaluate("JSON.stringify(BWQuadro.planoVideo([{contexto:'ela dança no salão',fala:''},{contexto:'olha para a câmera',fala:'Oi'},{contexto:'detalhe das flores',fala:''}], true, 'auto').map(x => x.via))") == '["video","app","app"]', "o plano entende o tipo de cada cena (dança = vídeo; fala parada e detalhe = app)")
         pg.click("#qdMontarMotor"); pg.wait_for_timeout(4000)
         r = pg.evaluate("BWReels.projeto().roteiro.cenas")
         ok(not pg.is_visible("#folhaQuadro") and [c["tipo"] for c in r] == ["gancho", "personagem", "personagem", "personagem", "personagem", "cta"], "vira um reel: gancho + 4 cenas + final: " + ",".join(c["tipo"] for c in r))
@@ -145,9 +149,13 @@ with sync_playwright() as p:
         ok(len(v["erros"]) == 0, f"o reel montado passa na validação do motor {v['erros']}")
         ok(pg.evaluate("!!document.querySelector('#quadro').contentWindow.__seek"), "a prévia do reel toca no motor")
         # vídeo com IA de fora: prompts por cena
+        pg.click("#btQuadro"); pg.wait_for_timeout(700); dlg.clear(); pg.click("#qdMontar"); pg.click("#qdMontarAuto"); pg.wait_for_timeout(3800)
+        ra = pg.evaluate("BWReels.projeto().roteiro.cenas"); pa = pg.evaluate("BWReels.projeto().promptsCenas")
+        ok([c["tipo"] for c in ra] == ["gancho", "midia", "midia", "personagem", "midia", "cta"] and len(pa) == 3 and "Veo 3.1 Lite" in pa[0]["prompt"] and all(c.get("midia") for c in ra[1:5]), "AUTOMÁTICO monta misto: 3 cenas com movimento em IA de vídeo (imagem de espera + IA indicada no prompt) e a cena parada no app")
+        ok(any("Plano: 1 cena(s) no app (grátis) · 3 em IA de vídeo" in d for d in dlg) and len(pg.evaluate("BWReels.validar(true)")["erros"]) == 0, "avisa o plano com o custo e o reel misto passa na validação")
         pg.click("#btQuadro"); pg.wait_for_timeout(700); pg.click("#qdMontar"); pg.click("#qdMontarVideo"); pg.wait_for_timeout(3500)
         pc = pg.evaluate("BWReels.projeto().promptsCenas")
-        ok(len(pc) == 4 and "9:16" in pc[0]["prompt"] and "reference image" in pc[0]["prompt"] and "salão de festa" in pc[0]["prompt"], "VÍDEO COM IA DE FORA: um prompt por cena, com o personagem e as referências")
+        ok(len(pc) == 4 and "9:16" in pc[0]["prompt"] and "reference image" in pc[0]["prompt"] and "salão de festa" in pc[0]["prompt"], "PRO: um prompt por cena, com o personagem e as referências")
         ok("CENA 2" in pg.inner_text("#promptsCenas"), "os prompts aparecem na aba MÍDIA para copiar")
         # sem personagem e sem imagens: cenas viram texto
         pg.click("#btQuadro"); pg.wait_for_timeout(600); dlg.clear(); pg.click("#qdLimpar"); pg.wait_for_timeout(500)

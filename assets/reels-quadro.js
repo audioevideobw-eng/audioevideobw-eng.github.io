@@ -148,6 +148,38 @@
     return (IMG[h.pers && h.pers.id] ? "Use the reference image: the same character, same face, design, colors and outfit. " : "") + prompt + "." + (c.refs.length ? " Setting: " + c.refs.join("; ") + "." : "") +
       " Vertical 9:16, 5 seconds, smooth cinematic camera movement, natural motion, no text on screen." + (fala ? ' The character says in Brazilian Portuguese: "' + fala + '"' : "");
   }
+  /* ---------- PLANO DE PRODUÇÃO (17/11): decide, cena por cena, o que resolve no app (grátis) e o que pede IA de vídeo, e estima o custo.
+     Preços de REFERÊNCIA por segundo (US$), lidos em páginas públicas em 17/11/2026 — mudam sempre: conferir no site da IA antes de pagar. ---------- */
+  var VIDEO_IA = {conferido: "17/11/2026",
+    eco: {nome: "Veo 3.1 Lite (720p, com som)", usd: 0.05, seg: 6},
+    acao: {nome: "Kling 3.0 (1080p, sem som)", usd: 0.112, seg: 5},
+    fala: {nome: "Veo 3.1 Standard (1080p, com fala)", usd: 0.40, seg: 8}};
+  var RE_ACAO = /danc|corre|caminh|andando|entra\b|entrando|chega|pula|abrac|beij|fotograf|filma|grava|montando|carreg|dirig|voa\b|voando|cai\b|caindo|levanta|gira|aplaud|comemor|canta|cozinh|mergulh|joga\b|jogando|chuta|sobe\b|subindo|desce\b|descendo|atravess|persegu|foge|luta|entrega|abre\b|abrindo|serve\b|servindo/;
+  var semAcento = function (t) { return String(t || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, ""); };
+  function tipoCena(c, temPers) { var mov = RE_ACAO.test(semAcento(c.contexto || c.texto)), fala = !!String(c.fala || "").trim(); if (mov) return fala && temPers ? "acao_fala" : "acao"; if (!temPers) return "ambiente"; return fala ? "fala" : "parada"; }
+  function planoVideo(cenas, temPers, modo) {
+    return cenas.map(function (c) {
+      var t = tipoCena(c, temPers), r = {tipo: t, via: "app", usd: 0, motor: "Animação do app", motivo: "grátis"};
+      if (modo === "motor") return r;
+      if (modo === "auto") {
+        if (t === "acao" || t === "acao_fala") { r.via = "video"; r.motor = VIDEO_IA.eco.nome; r.usd = VIDEO_IA.eco.usd * VIDEO_IA.eco.seg; r.motivo = "tem movimento de verdade: vídeo de IA no nível econômico"; }
+        else r.motivo = t === "fala" ? "fala: balão e legenda do app resolvem, grátis" : "cena parada: movimento de câmera do app resolve, grátis";
+        return r;
+      }
+      var m = (t === "fala" || t === "acao_fala") ? VIDEO_IA.fala : VIDEO_IA.acao;
+      r.via = "video"; r.motor = m.nome; r.usd = m.usd * m.seg; r.motivo = (t === "fala" || t === "acao_fala") ? "personagem falando: vídeo com fala e som" : "melhor movimento e nitidez";
+      return r;
+    });
+  }
+  var dolar = function (v) { return "US$ " + v.toFixed(2).replace(".", ","); };
+  function resumoPlano(pl) { var v = pl.filter(function (x) { return x.via === "video"; }), tot = v.reduce(function (s, x) { return s + x.usd; }, 0); return {video: v.length, app: pl.length - v.length, total: tot, texto: (pl.length - v.length) + " cena(s) no app (grátis)" + (v.length ? " · " + v.length + " em IA de vídeo ≈ " + dolar(tot) : "")}; }
+  function desenharMenuMontar() {
+    var h = historia(), cenas = h.cenas.map(function (c) { return {contexto: c.texto, fala: c.fala}; }), temP = !!(h.pers && (IMG[h.pers.id] || h.pers.texto || h.pers.nome));
+    var a = resumoPlano(planoVideo(cenas, temP, "auto")), p = resumoPlano(planoVideo(cenas, temP, "video"));
+    $("qdMontarAuto").querySelector("small").textContent = "recomendado · " + (a.video ? a.texto : "nenhuma cena pede IA de vídeo: tudo grátis no app");
+    $("qdMontarVideo").querySelector("small").textContent = "melhor qualidade · " + p.texto;
+    $("qdMontarMotor").querySelector("small").textContent = "grátis · usa as imagens criadas ou o personagem animado";
+  }
   function ocupado(t) { OCUPADO = !!t; $("qdOcup").hidden = !t; if (t) $("qdOcupTxt").textContent = t; }
   function aviso(t, erro) { $("qdAviso").hidden = !t; $("qdAviso").className = "rl-aviso " + (erro ? "erro" : "ok"); $("qdAviso").textContent = t || ""; }
 
@@ -206,13 +238,15 @@
     var p = await preparar(); if (!p) return;
     ocupado("Montando o reel…");
     var fig = await figura(p.h), png = fig ? await window.BWReelsAvatar.pngDe(fig) : null;
+    var pl = planoVideo(p.cenas, !!(fig || (p.h.pers && (p.h.pers.texto || p.h.pers.nome))), modo), res = resumoPlano(pl);
     var q = {nome: (p.h.pers && p.h.pers.nome ? "História de " + p.h.pers.nome : "História do quadro"), personagem: p.h.pers && p.h.pers.nome || "personagem", figura: png, gancho: p.gancho, legenda: p.legenda,
       cta: p.h.fim ? p.h.fim.texto.trim() : "", modo: modo,
-      cenas: p.cenas.map(function (c) { var m = IMG[c.id + "-ia"]; return {fala: c.falaFinal, contexto: c.contexto, imagem: modo === "video" ? null : (m ? m.blob : null), promptVideo: promptVideo(p.h, c, c.prompt, c.falaFinal)}; })};
+      cenas: p.cenas.map(function (c, i) { var m = IMG[c.id + "-ia"], x = pl[i];
+        return {fala: c.falaFinal, contexto: c.contexto, imagem: m ? m.blob : null, video: x.via === "video", promptVideo: "[" + x.motor + " · " + (x.usd ? "≈ " + dolar(x.usd) : "grátis") + (m ? " · use a imagem desta cena como primeiro quadro" : "") + "] " + promptVideo(p.h, c, c.prompt, c.falaFinal)}; })};
     try { await BWReels.montarDoQuadro(q); } catch (e) { ocupado(); aviso("Não deu para montar: " + (e && e.message || e), true); return; }
     ocupado(); fechar();
-    var semImg = modo !== "video" && q.cenas.filter(function (c) { return !c.imagem; }).length;
-    setTimeout(function () { alert("Reel montado com " + q.cenas.length + " cena(s)!" + (p.comIA ? " Textos organizados pela IA Brightway." : " Textos montados no aparelho.") + (modo === "video" ? " Os prompts de vídeo de cada cena estão na aba MÍDIA: gere os clipes no Kling, Veo ou Higgsfield e importe." : semImg ? " " + semImg + " cena(s) sem imagem ficaram com o personagem animado ou só com o texto." : "")); }, 250);
+    var semImg = q.cenas.filter(function (c) { return !c.imagem && !c.video; }).length;
+    setTimeout(function () { alert("Reel montado com " + q.cenas.length + " cena(s)! Plano: " + res.texto + "." + (p.comIA ? " Textos organizados pela IA Brightway." : " Textos montados no aparelho.") + (res.video ? " As cenas de IA de vídeo já têm o prompt e a IA indicada na aba MÍDIA: gere o clipe lá, importe e troque na cena. Preços de referência de " + VIDEO_IA.conferido + "; confira no site da IA antes de pagar." : semImg ? " " + semImg + " cena(s) sem imagem ficaram com o personagem animado ou só com o texto." : "")); }, 250);
   }
 
   /* ---------- abrir / fechar ---------- */
@@ -232,7 +266,8 @@
     $("qdZoomMais").onclick = function () { VISTA.z = Math.min(1.4, VISTA.z * 1.2); aplicarVista(); };
     $("qdZoomMenos").onclick = function () { VISTA.z = Math.max(0.3, VISTA.z / 1.2); aplicarVista(); };
     $("qdImagens").onclick = criarImagens; $("qdBaixar").onclick = baixar;
-    $("qdMontar").onclick = function () { $("qdMenuMontar").hidden = !$("qdMenuMontar").hidden; };
+    $("qdMontar").onclick = function () { $("qdMenuMontar").hidden = !$("qdMenuMontar").hidden; if (!$("qdMenuMontar").hidden) desenharMenuMontar(); };
+    $("qdMontarAuto").onclick = function () { $("qdMenuMontar").hidden = true; montar("auto"); };
     $("qdMontarMotor").onclick = function () { $("qdMenuMontar").hidden = true; montar("motor"); };
     $("qdMontarVideo").onclick = function () { $("qdMenuMontar").hidden = true; montar("video"); };
     $("qdAutor").onchange = function () { Q.autor = this.checked; guardar(); };
@@ -283,5 +318,5 @@
     document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !$("folhaQuadro").hidden && !OCUPADO) fechar(); });
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", iniciar); else iniciar();
-  window.BWQuadro = {abrir: abrir, fechar: fechar, estado: function () { return Q; }, historia: function () { var h = historia(); return {cenas: h.cenas.map(function (c) { return c.id; }), soltas: h.soltas.length}; }, ligar: function (a, b) { var m = ligar(a, b); guardar(); desenhar(); return m; }, add: addBloco, pedidoImagem: pedidoImagem, criarImagens: criarImagens, montar: montar};
+  window.BWQuadro = {abrir: abrir, fechar: fechar, estado: function () { return Q; }, historia: function () { var h = historia(); return {cenas: h.cenas.map(function (c) { return c.id; }), soltas: h.soltas.length}; }, ligar: function (a, b) { var m = ligar(a, b); guardar(); desenhar(); return m; }, add: addBloco, planoVideo: planoVideo, tipoCena: tipoCena, pedidoImagem: pedidoImagem, criarImagens: criarImagens, montar: montar};
 })();
