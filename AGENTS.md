@@ -305,6 +305,11 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
     parecer que "só liga uma por vez"); a ordem não pode depender de "uma saída por bloco" (ordem topológica + posição). Painel que cobre a tela
     fecha primeiro no Esc. Resposta de IA em texto livre é limpa (marcação, "Prompt:", aspas em volta) antes de ir para o campo.
 
+93. Editor com camadas: a ORDEM é uma lista só para todos os tipos (chaves "a:id", "t:id", "logo") — ordem por tipo ("adesivos, depois textos,
+    depois logo") impede pôr um item acima do outro. Máscara pintada guarda os TRAÇOS em fração do alvo (não um bitmap): serve para a prévia
+    reduzida, o arquivo final e o desfazer. Botão de 2 estados que os testes/usuários já conhecem (ANTES) não vira de 3 estados: o modo novo
+    (LADO A LADO) é um seletor que aparece quando ele está ligado. "Segurar para ver" cancela se o dedo andar (senão briga com o arrastar).
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -971,11 +976,21 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   passa a usar esse prompt na cena) ou CRIAR CENA COM ELE. Sem conta/IA fora do ar: organiza o texto da pessoa e diz o motivo. Nenhuma IA de fora
   é chamada. teste_quadro.py +22 checagens (0 falhas, IA e microfone SIMULADOS). NÃO testado no ar com a IA real nem com microfone de verdade.
   reels-quadro.js v5, sw v122. PENTE FINO 92.
+- 18/11/2026 10:10 · Claude (dono, com 2 referências: "sistema de camadas… mascaramento padrões e livres… layout da referência… antes e depois lado a
+  lado e ao pressionar a foto mostra o antes"): EDITOR DE FOTOS. (1) Nova aba CAMADAS: lista de tudo o que fica por cima da foto (adesivos, textos,
+  logo + os novos IMAGEM e FORMA — 9 formas, cor, só contorno, 8 modos de mistura), ▲ ▼ mudam a ordem entre TODOS os tipos (f.ordem), 👁 esconde
+  sem apagar (f.ocultos), arrastar na foto; tudo entra no desfazer. (2) MÁSCARAS na imagem da camada e na FOTO (base): 10 prontas (círculo,
+  arredondada, coração, estrela, hexágono, losango, triângulo, some embaixo/em cima/nas bordas), INVERTER, e LIVRE pintada com o dedo (ESCONDER /
+  TRAZER DE VOLTA, tamanho do pincel, desfazer traço); na foto escolhe a cor de fundo ou TRANSPARENTE (salva PNG). Traços guardados em fração
+  (valem na prévia e no arquivo final). (3) LAYOUT no computador: trilho de ícones + controles à ESQUERDA, foto grande à direita, FAIXA DE FILTROS
+  embaixo da foto (um toque troca); controles deslizantes finos com botão claro. (4) ANTES: DIVISOR ou LADO A LADO (lembrado em ui_fotos_comp) e
+  SEGURAR a foto 0,3 s mostra o original, soltar volta. teste_fotos.py +21 checagens × 1280/390 + iPhone (0 falhas). Imagens das camadas ficam só
+  na memória do aparelho. fotos.js v12, sw v123. PENTE FINO 93.
 
 ## Pendências (dono)
 - [ ] (18/11) QUADRO: dono testar no ar, logado — arrastar bolinhas, ✨ PROMPT com 🎙 FALAR no PC e no celular (IA real e microfone de verdade).
-- [ ] (18/11 09:02–09:07, pedidos do dono na fila) EDITOR DE FOTOS: camadas + máscaras prontas e livres + layout da referência + antes/depois lado a
-      lado e segurar para ver o antes · ÁREA DE PERSONAGENS com agente que ajuda no prompt e serve todas as ferramentas · EDITOR DE VÍDEO com
+- [ ] (18/11 09:02–09:07, pedidos do dono na fila) EDITOR DE FOTOS: FEITO 10:10 (dono testar no celular: pintar máscara com o dedo e segurar para
+      ver o antes) · ÁREA DE PERSONAGENS com agente que ajuda no prompt e serve todas as ferramentas · EDITOR DE VÍDEO com
       linha do tempo em camadas, trilha e efeitos, recebendo as criações · CARA NOVA do app (mais colorida, cartões com gradiente).
 - [ ] (18/11) IA DE VÍDEO: dono criar a chave na Runway ou na fal.ai, conectar em IA DE VÍDEO e gerar 1 clipe (é o primeiro teste real; custa
       ~US$ 0,25–0,42). Para funcionar também no celular/navegador a chave teria de ficar guardada no servidor (tabela + função novas) — só com o "sim" do dono.

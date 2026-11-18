@@ -61,12 +61,12 @@ with sync_playwright() as p:
         ok(pg.evaluate("!document.getElementById('ed').hidden && __fotos.FOTOS.length") == 3, "3 fotos → editor abre sozinho")
         # LAYOUT: foto e controles visíveis ao mesmo tempo, sem rolar a página
         geo = pg.evaluate("""(()=>{const c=document.getElementById('cv').getBoundingClientRect(),k=document.getElementById('ctrl').getBoundingClientRect(),a=document.getElementById('abas').getBoundingClientRect();
-          return {cTop:c.top,cBot:c.bottom,cH:c.height,cR:c.right,kTop:k.top,kL:k.left,aBot:a.bottom,vh:innerHeight,vw:innerWidth,sx:document.documentElement.scrollWidth-document.documentElement.clientWidth}})()""")
+          return {cTop:c.top,cBot:c.bottom,cH:c.height,cR:c.right,kTop:k.top,kL:k.left,kR:k.right,cL:c.left,aBot:a.bottom,vh:innerHeight,vw:innerWidth,sx:document.documentElement.scrollWidth-document.documentElement.clientWidth}})()""")
         ok(geo["cH"] > 150 and geo["cTop"] >= 0, f"foto aparece ({round(geo['cH'])} px de altura)")
         if largura < 900:
             ok(geo["cBot"] <= geo["kTop"] + 1 and geo["aBot"] <= geo["vh"] + 1, f"celular: foto EM CIMA dos controles, abas no rodapé, tudo na tela (foto até {round(geo['cBot'])}, controles de {round(geo['kTop'])}, abas até {round(geo['aBot'])}/{geo['vh']})")
         else:
-            ok(geo["cR"] <= geo["kL"] + 1, "computador: foto ao lado da coluna de controles")
+            ok(geo["kR"] <= geo["cL"] + 1 and pg.locator("#faixa .flt").count() >= 20, "computador: controles à ESQUERDA, foto grande à direita e faixa de filtros embaixo")
         ok(geo["sx"] <= 0, f"sem estouro horizontal ({geo['sx']})")
         # aba AJUSTES: mexer num controle de baixo NÃO tira a foto da tela
         pg.click('#abas [data-aba="ajustes"]'); pg.wait_for_timeout(300)
@@ -93,7 +93,68 @@ with sync_playwright() as p:
         # ANTES / DEPOIS
         pg.click("#edComparar"); pg.wait_for_timeout(500)
         ok(not erros and "comparar" in pg.inner_text("#dica"), "antes/depois com divisor")
+        # LADO A LADO: antes e depois inteiros
+        ok(pg.is_visible("#compModo"), "com ANTES ligado aparece DIVISOR | LADO A LADO")
+        w1 = pg.evaluate("document.getElementById('cv').width")
+        pg.click('#compModo [data-comp="lado"]'); pg.wait_for_timeout(500)
+        d = pg.evaluate("(()=>{const c=document.getElementById('cv'),r=c.getBoundingClientRect(),p=document.getElementById('palco').getBoundingClientRect();return {m:c.dataset.modo,w:c.width,h:c.height,cabe:r.left>=p.left-1&&r.right<=p.right+1&&r.bottom<=p.bottom+1}})()")
+        ok(d["m"] == "lado" and (d["w"] > w1 * 1.9 or d["h"] > d["w"]) and d["cabe"], f"LADO A LADO mostra as duas versões inteiras dentro do palco {d}")
+        pg.click('#compModo [data-comp="div"]'); pg.wait_for_timeout(300)
         pg.click("#edComparar"); pg.wait_for_timeout(200)
+        ok(not pg.is_visible("#compModo") and pg.evaluate("document.getElementById('cv').dataset.modo") == "", "desligar ANTES volta ao normal")
+        # SEGURAR a foto mostra o antes; soltar volta
+        pg.click('#abas [data-aba="ajustes"]'); pg.wait_for_timeout(300)
+        bb = pg.locator("#cv").bounding_box(); cxm, cym = bb["x"] + bb["width"] / 2, bb["y"] + bb["height"] / 2
+        px_edit = pg.evaluate("(()=>{const c=document.getElementById('cv');return [...c.getContext('2d').getImageData(c.width>>1,c.height>>1,1,1).data]})()")
+        pg.mouse.move(cxm, cym); pg.mouse.down(); pg.wait_for_timeout(600)
+        seg = pg.evaluate("(()=>{const c=document.getElementById('cv');return {m:c.dataset.modo,px:[...c.getContext('2d').getImageData(c.width>>1,c.height>>1,1,1).data]}})()")
+        pg.mouse.up(); pg.wait_for_timeout(400)
+        volta = pg.evaluate("(()=>{const c=document.getElementById('cv');return {m:c.dataset.modo,px:[...c.getContext('2d').getImageData(c.width>>1,c.height>>1,1,1).data]}})()")
+        ok(seg["m"] == "antes" and seg["px"] != px_edit and volta["m"] == "" and volta["px"] == px_edit, f"segurar a foto mostra o ANTES (sem edição) e soltar volta ao editado {px_edit} → {seg['px']} → {volta['px']}")
+        # CAMADAS: forma + imagem, ordem, esconder, máscara pronta e pintada
+        pg.click('#abas [data-aba="camadas"]'); pg.wait_for_timeout(300)
+        ok(pg.locator("#camLista .cam-l.base").count() == 1 and pg.locator('#ctrl [data-k="camImg"]').count() == 1, "aba CAMADAS: lista com a Foto (base) e botões de acrescentar")
+        pg.click('#ctrl [data-k="camForma"][data-v="elipse"]'); pg.wait_for_timeout(300)
+        pg.evaluate("""(async()=>{const c=document.createElement('canvas');c.width=200;c.height=100;const x=c.getContext('2d');x.fillStyle='#00ff00';x.fillRect(0,0,200,100);await __fotos.addImagemCamada(c)})()"""); pg.wait_for_timeout(500)
+        its = pg.evaluate("__fotos.itens()")
+        ok(len(its) >= 2 and pg.locator("#camLista .cam-l:not(.base)").count() == len(its), f"forma e imagem viram camadas: {len(its)}")
+        meio = "(()=>{const c=document.getElementById('cv'),L=__fotos.lay();return [...c.getContext('2d').getImageData(Math.round(L.P.x+L.P.w/2),Math.round(L.P.y+L.P.h/2),1,1).data]})()"
+        px = pg.evaluate(meio); ok(px[1] > 200 and px[0] < 60, f"a imagem (verde) fica por cima da forma no centro {px}")
+        pg.click(f'#camLista [data-k="camBaixo"][data-v="{its[-1]}"]'); pg.wait_for_timeout(400)
+        its2 = pg.evaluate("__fotos.itens()"); px = pg.evaluate(meio)
+        ok(its2[-1] != its[-1] and not (px[1] > 200 and px[0] < 60), f"▼ desce a imagem: agora a forma cobre o centro {px}")
+        pg.click(f'#camLista [data-k="camVer"][data-v="{its2[-1]}"]'); pg.wait_for_timeout(400)
+        px = pg.evaluate(meio); ok(px[1] > 200 and px[0] < 60 and pg.locator("#camLista .cam-l.oculta").count() == 1, f"👁 esconde a forma sem apagar (volta o verde) {px}")
+        pg.click(f'#camLista [data-k="camVer"][data-v="{its2[-1]}"]'); pg.click(f'#camLista [data-k="camCima"][data-v="{its[-1]}"]'); pg.wait_for_timeout(300)
+        pg.click(f'#camLista [data-k="camSel"][data-v="{its[-1]}"]'); pg.wait_for_timeout(300)
+        ok(pg.locator('#ctrl [data-k="mForma"]').count() >= 8 and pg.locator('#ctrl [data-k="aMix"]').count() >= 6, "imagem selecionada: máscaras prontas e modos de mistura")
+        canto = "(()=>{const c=document.getElementById('cv'),L=__fotos.lay(),a=L.ades.filter(t=>'a:'+t.id==='%s')[0];return [...c.getContext('2d').getImageData(Math.round(a.x+3),Math.round(a.y+3),1,1).data]})()" % its[-1]
+        c0 = pg.evaluate(canto); pg.click('#ctrl [data-k="mForma"][data-v="elipse"]'); pg.wait_for_timeout(400); c1 = pg.evaluate(canto); m1 = pg.evaluate(meio)
+        ok(c0[1] > 200 and c0[0] < 60 and not (c1[1] > 200 and c1[0] < 60) and m1[1] > 200, f"máscara CÍRCULO corta os cantos da imagem e mantém o meio {c0} → {c1}")
+        pg.click('#ctrl [data-k="mPinta"]'); pg.wait_for_timeout(300)
+        ok(pg.locator('#ctrl [data-k="mModo"]').count() == 2 and "ESCONDER" in pg.inner_text("#dica"), "PINTAR MÁSCARA liga o pincel (esconder / trazer de volta)")
+        bb = pg.locator("#cv").bounding_box(); L = pg.evaluate("(()=>{const L=__fotos.lay(),c=document.getElementById('cv');return {x:(L.P.x+L.P.w/2)/c.width,y:(L.P.y+L.P.h/2)/c.height}})()")
+        mx, my = bb["x"] + bb["width"] * L["x"], bb["y"] + bb["height"] * L["y"]
+        pg.mouse.move(mx - 12, my); pg.mouse.down(); pg.mouse.move(mx + 12, my, steps=5); pg.mouse.up(); pg.wait_for_timeout(600)
+        m2 = pg.evaluate(meio); ntr = pg.evaluate("(__fotos.adsSel().masc.tracos||[]).length")
+        ok(ntr == 1 and not (m2[1] > 200 and m2[0] < 60), f"pintar no meio ESCONDE aquele pedaço da imagem {m2}")
+        pg.click('#ctrl [data-k="mModo"][data-v="volta"]'); pg.mouse.move(mx - 12, my); pg.mouse.down(); pg.mouse.move(mx + 12, my, steps=5); pg.mouse.up(); pg.wait_for_timeout(600)
+        m3 = pg.evaluate(meio); ok(m3[1] > 200 and m3[0] < 60, f"TRAZER DE VOLTA devolve o pedaço {m3}")
+        pg.click('#ctrl [data-k="mPinta"]'); pg.wait_for_timeout(200)
+        # máscara na FOTO (base) + exporta PNG transparente
+        pg.click('#camLista [data-k="camSel"][data-v="foto"]'); pg.wait_for_timeout(300)
+        pg.click('#ctrl [data-k="mForma"][data-v="coracao"]'); pg.wait_for_timeout(400)
+        cf = pg.evaluate("(()=>{const c=document.getElementById('cv'),L=__fotos.lay();return [...c.getContext('2d').getImageData(Math.round(L.P.x+2),Math.round(L.P.y+L.P.h-3),1,1).data]})()")
+        ok(cf[0] + cf[1] + cf[2] < 12, f"máscara CORAÇÃO na foto: o canto fica com o fundo preto {cf}")
+        pg.click('#ctrl [data-k="mFundo"][data-v="transp"]'); pg.wait_for_timeout(300)
+        ok(pg.evaluate("__fotos.nomeArquivo(0).endsWith('.png')"), "fundo TRANSPARENTE na máscara → salva em PNG")
+        pg.evaluate("__fotos.gravarHist()"); pg.click('#ctrl [data-k="mZerar"]'); pg.wait_for_timeout(300); pg.evaluate("__fotos.gravarHist()")
+        ok(pg.evaluate("__fotos.FOTOS[0].masc") is None, "SEM MÁSCARA tira a máscara da foto")
+        pg.click("#edDesfazer"); pg.wait_for_timeout(400)
+        ok(pg.evaluate("(__fotos.FOTOS[0].masc||{}).forma") == "coracao", "desfazer devolve a máscara (camadas e máscaras entram no histórico)")
+        pg.click('#ctrl [data-k="mZerar"]') if pg.locator('#ctrl [data-k="mZerar"]').count() else None
+        pg.evaluate("__fotos.FOTOS[0].masc = null; __fotos.FOTOS[0].adesivos = []; __fotos.FOTOS[0].ordem = []; __fotos.FOTOS[0].ocultos = {}; __fotos.aba('foto')"); pg.wait_for_timeout(300)
+        ok(pg.evaluate("document.documentElement.scrollWidth - document.documentElement.clientWidth") <= 0 and not erros, f"sem estouro e sem erro de JS depois das camadas {erros}")
         # CORTE: formato 4:5 e arrastar
         pg.click('#abas [data-aba="foto"]'); pg.wait_for_timeout(200)
         pg.click('#ctrl [data-k="formato"][data-v="4:5"]'); pg.wait_for_timeout(500)

@@ -74,12 +74,12 @@
     return o;
   }
   var G = normalizar(lerUi("ui_fotos_ultimo", {}));
-  var FOTOS = [], ATUAL = -1, ABA = "foto", ESCOPO = "todas", TXT = null, COMPARAR = false, DIV = 0.5;
+  var FOTOS = [], ATUAL = -1, ABA = "foto", ESCOPO = "todas", TXT = null, COMPARAR = false, DIV = 0.5, MODO_COMP = lerUi("ui_fotos_comp", "div") === "lado" ? "lado" : "div", SEGURA = false, CAM = null, PINTA = null, CAM_IMG = {};
   var LOGOS = {}, MOLDS = {};   // id -> HTMLImageElement
   function IA0() { return { cab: "", cabF: 75, roupa: "", roupaF: 75, pele: 0, fundo: "", fundoF: 100 }; }
   function fotoNova(file, im) {
     return { file: file, nome: file.name.replace(/\.[^.]+$/, ""), prev: reduzir(im, 1400), w: im.naturalWidth, h: im.naturalHeight,
-      rot: 0, incl: 0, esp: false, cx: 0, cy: 0, zoom: 100, aj: {}, filtro: null, fundo: { modo: "nenhum", cor: "#ffffff", blur: 18 }, mask: null, adesivos: [], ia: IA0(), seg: null };
+      rot: 0, incl: 0, esp: false, cx: 0, cy: 0, zoom: 100, aj: {}, filtro: null, fundo: { modo: "nenhum", cor: "#ffffff", blur: 18 }, mask: null, adesivos: [], ia: IA0(), seg: null, ordem: [], ocultos: {}, masc: null };
   }
 
   /* ================= MINHA MARCA (IndexedDB do aparelho) ================= */
@@ -170,7 +170,17 @@
     $("abrirEd").hidden = !FOTOS.length;
     $("abrirEd").textContent = "ABRIR O EDITOR · " + FOTOS.length + " FOTO" + (FOTOS.length > 1 ? "S" : "");
   }
+  /* faixa de filtros embaixo da foto (computador): um toque troca o filtro, sem sair da aba em que a pessoa está */
+  var faixaDe = null;
+  function desenharFaixa() {
+    var box = $("faixa"); if (!box) return; var f = FOTOS[ATUAL];
+    if (!f || !window.matchMedia("(min-width:900px)").matches) { box.innerHTML = ""; faixaDe = null; return; }
+    var fa = f.filtro || G.filtro;
+    if (faixaDe !== f || !box.firstChild) { faixaDe = f; box.innerHTML = Object.keys(FILTROS).map(function (k) { return '<button type="button" class="flt" data-fx="' + k + '"><canvas data-f="' + k + '" width="1" height="1"></canvas><span>' + FILTROS[k].nome + "</span></button>"; }).join(""); setTimeout(prevFiltros, 0); }
+    box.querySelectorAll(".flt").forEach(function (b) { b.classList.toggle("on", b.dataset.fx === fa); });
+  }
   function desenharTiras() {
+    desenharFaixa();
     if (FOTOS.length < 2) { $("edFotos").innerHTML = ""; return; }
     $("edFotos").innerHTML = (FOTOS.length > 1 ? FOTOS.map(function (f, i) { return '<button type="button" data-i="' + i + '" class="' + (i === ATUAL ? "on" : "") + '" aria-label="Foto ' + (i + 1) + (i === ATUAL ? " — toque para ver as opções" : "") + '"><img alt="" src="' + miniUrl(f) + '">' + (i === ATUAL ? '<i class="mais" aria-hidden="true">⋯</i>' : "") + "</button>"; }).join("") : "") +
       '<button type="button" id="maisFotos" aria-label="Adicionar fotos" title="Adicionar fotos" style="border:1.5px dashed rgba(255,181,71,.5);color:var(--bw-ambar);font-size:20px">+</button>';
@@ -392,11 +402,97 @@
   var SELOS = [["AO VIVO", "#e53935", "#fff"], ["NOVO", "#FFB547", "#1a1205"], ["PROMO", "#9F78E6", "#fff"], ["BASTIDORES", "#06080D", "#FFB547"], ["OBRIGADO!", "#1C97A6", "#fff"], ["SAVE THE DATE", "#F5F1EA", "#06080D"], ["ESGOTADO", "#06080D", "#fff"], ["EM BREVE", "#3ecf8e", "#06080D"]];
   var OVERLAYS = [["nenhum", "SEM OVERLAY"], ["luz", "LUZ QUENTE"], ["luzfria", "LUZ FRIA"], ["bokeh", "BOKEH"], ["grao", "GRANULAÇÃO"], ["poeira", "FILME ANTIGO"], ["arco", "ARCO-ÍRIS"], ["gradiente", "DEGRADÊ MARCA"], ["sol", "RAIO DE SOL"], ["vidro", "VIDRO / BRILHO"]];
   var ADS = null;   // id do adesivo selecionado
+  /* ================= CAMADAS, FORMAS E MÁSCARAS (18/11) =================
+     Elementos novos (imagem por cima, formas) moram em f.adesivos, junto dos adesivos: mesma seleção, arraste, histórico e "em todas".
+     A ordem de TUDO o que fica por cima da foto (adesivos, imagens, formas, textos, logo) é f.ordem (chaves "a:id", "t:id", "logo");
+     f.ocultos esconde sem apagar. Máscara = forma pronta e/ou traços pintados (em fração da largura: valem em qualquer resolução). */
+  var FORMAS = [["ret", "▭ RETÂNGULO"], ["arred", "▢ ARREDONDADO"], ["elipse", "◯ CÍRCULO"], ["tri", "△ TRIÂNGULO"], ["losango", "◇ LOSANGO"], ["hex", "⬡ HEXÁGONO"], ["estrela", "☆ ESTRELA"], ["coracao", "♡ CORAÇÃO"], ["linha", "― LINHA"]];
+  var MASCARAS = [["nenhuma", "SEM FORMA"], ["elipse", "◯ CÍRCULO"], ["arred", "▢ ARREDONDADA"], ["coracao", "♡ CORAÇÃO"], ["estrela", "☆ ESTRELA"], ["hex", "⬡ HEXÁGONO"], ["losango", "◇ LOSANGO"], ["tri", "△ TRIÂNGULO"], ["grad", "▼ SOME EMBAIXO"], ["gradc", "▲ SOME EM CIMA"], ["radial", "◉ SOME NAS BORDAS"]];
+  var MISTURAS = [["source-over", "NORMAL"], ["multiply", "MULTIPLICAR"], ["screen", "CLAREAR (TELA)"], ["overlay", "SOBREPOR"], ["soft-light", "LUZ SUAVE"], ["darken", "ESCURECER"], ["lighten", "ILUMINAR"], ["difference", "DIFERENÇA"]];
+  function caminhoForma(ctx, fo, x, y, w, h) {
+    var cx = x + w / 2, cy = y + h / 2, i, pts;
+    ctx.beginPath();
+    if (fo === "elipse") ctx.ellipse(cx, cy, w / 2, h / 2, 0, 0, Math.PI * 2);
+    else if (fo === "arred") { rr(ctx, x, y, w, h, Math.min(w, h) * 0.18); return; }
+    else if (fo === "tri") { ctx.moveTo(cx, y); ctx.lineTo(x + w, y + h); ctx.lineTo(x, y + h); ctx.closePath(); }
+    else if (fo === "losango") { ctx.moveTo(cx, y); ctx.lineTo(x + w, cy); ctx.lineTo(cx, y + h); ctx.lineTo(x, cy); ctx.closePath(); }
+    else if (fo === "hex") { for (i = 0; i < 6; i++) { var a6 = Math.PI / 3 * i - Math.PI / 2; ctx[i ? "lineTo" : "moveTo"](cx + Math.cos(a6) * w / 2, cy + Math.sin(a6) * h / 2); } ctx.closePath(); }
+    else if (fo === "estrela") { for (i = 0; i < 10; i++) { var ae = Math.PI / 5 * i - Math.PI / 2, re = i % 2 ? 0.42 : 1; ctx[i ? "lineTo" : "moveTo"](cx + Math.cos(ae) * w / 2 * re, cy + Math.sin(ae) * h / 2 * re); } ctx.closePath(); }
+    else if (fo === "coracao") { ctx.moveTo(cx, y + h * 0.28); ctx.bezierCurveTo(cx, y + h * 0.02, x, y + h * 0.02, x, y + h * 0.34); ctx.bezierCurveTo(x, y + h * 0.62, cx - w * 0.2, y + h * 0.78, cx, y + h); ctx.bezierCurveTo(cx + w * 0.2, y + h * 0.78, x + w, y + h * 0.62, x + w, y + h * 0.34); ctx.bezierCurveTo(x + w, y + h * 0.02, cx, y + h * 0.02, cx, y + h * 0.28); ctx.closePath(); }
+    else ctx.rect(x, y, w, h);
+  }
+  function mascAtiva(m) { return !!(m && ((m.forma && m.forma !== "nenhuma") || m.inv || (m.tracos && m.tracos.length))); }
+  function mascaraCanvas(m, w, h) {
+    var c = document.createElement("canvas"); c.width = Math.max(1, w); c.height = Math.max(1, h); var x = c.getContext("2d"), fo = m.forma || "nenhuma", g;
+    x.fillStyle = "#000";
+    if (fo === "grad" || fo === "gradc") { g = x.createLinearGradient(0, fo === "grad" ? 0 : h, 0, fo === "grad" ? h : 0); g.addColorStop(0, "rgba(0,0,0,1)"); g.addColorStop(0.45, "rgba(0,0,0,1)"); g.addColorStop(1, "rgba(0,0,0,0)"); x.fillStyle = g; x.fillRect(0, 0, w, h); }
+    else if (fo === "radial") { g = x.createRadialGradient(w / 2, h / 2, Math.min(w, h) * 0.22, w / 2, h / 2, Math.max(w, h) * 0.62); g.addColorStop(0, "rgba(0,0,0,1)"); g.addColorStop(1, "rgba(0,0,0,0)"); x.fillStyle = g; x.fillRect(0, 0, w, h); }
+    else if (fo === "nenhuma") x.fillRect(0, 0, w, h);
+    else { var mg = Math.min(w, h) * 0.02; caminhoForma(x, fo, mg, mg, w - 2 * mg, h - 2 * mg); x.fill(); }
+    if (m.inv) { x.globalCompositeOperation = "xor"; x.fillStyle = "#000"; x.fillRect(0, 0, w, h); }
+    (m.tracos || []).forEach(function (t) {
+      x.globalCompositeOperation = t.m === "volta" ? "source-over" : "destination-out"; x.strokeStyle = x.fillStyle = "#000"; x.lineCap = x.lineJoin = "round"; x.lineWidth = Math.max(1, t.r * 2 * w);
+      var q = t.p; x.beginPath();
+      if (q.length <= 2) { x.arc(q[0] * w, q[1] * h, Math.max(0.5, t.r * w), 0, 7); x.fill(); return; }
+      x.moveTo(q[0] * w, q[1] * h); for (var i = 2; i < q.length; i += 2) x.lineTo(q[i] * w, q[i + 1] * h); x.stroke();
+    });
+    return c;
+  }
+  function comMascara(img, m, w, h) {
+    var s = Math.min(1, 1600 / Math.max(w, h)); w = Math.max(1, Math.round(w * s)); h = Math.max(1, Math.round(h * s));
+    var c = document.createElement("canvas"); c.width = w; c.height = h; var x = c.getContext("2d"); x.imageSmoothingQuality = "high";
+    x.drawImage(img, 0, 0, w, h); x.globalCompositeOperation = "destination-in"; var k = mascaraCanvas(m, w, h); x.drawImage(k, 0, 0); k.width = k.height = 1; return c;
+  }
+  function itensDe(f) {   /* tudo o que fica por cima da foto, de BAIXO para CIMA */
+    var base = (f.adesivos || []).map(function (a) { return { k: "a:" + a.id, tipo: "a", o: a }; }).concat(G.textos.map(function (t) { return { k: "t:" + t.id, tipo: "t", o: t }; }));
+    if (G.logo.on && logoAtual()) base.push({ k: "logo", tipo: "l", o: G.logo });
+    var od = f.ordem || []; if (!od.length) return base;
+    return base.map(function (it, i) { var p = od.indexOf(it.k); return { it: it, p: p < 0 ? 1e6 + i : p }; }).sort(function (a, b) { return a.p - b.p; }).map(function (z) { return z.it; });
+  }
+  function nomeCamada(it) {
+    if (it.tipo === "l") return ["★", "Logo"];
+    if (it.tipo === "t") return ["T", String(variaveis(it.o.txt, ATUAL) || "Texto").slice(0, 26)];
+    var a = it.o; if (a.img) return ["🖼", a.nome || "Imagem"]; if (a.forma) return ["◆", (FORMAS.filter(function (x) { return x[0] === a.forma; })[0] || ["", "Forma"])[1].replace(/^\S+\s/, "")];
+    if (a.selo) return ["🏷", "Selo " + a.selo]; return [a.e, "Adesivo"];
+  }
+  function moverCamada(k, d) {
+    var f = fotoAtual(), ks = itensDe(f).map(function (x) { return x.k; }), i = ks.indexOf(k), j = i + d; if (i < 0 || j < 0 || j >= ks.length) return;
+    ks.splice(j, 0, ks.splice(i, 1)[0]); f.ordem = ks;
+  }
+  function mascAlvo() { var f = fotoAtual(); if (!f) return null; if (CAM === "foto") return f.masc || (f.masc = { forma: "nenhuma", tracos: [], fundo: "#000000" }); var a = adsSel(); if (a && a.img) return a.masc || (a.masc = { forma: "nenhuma", tracos: [] }); return null; }
+  async function addImagemCamada(arq) {
+    var f = fotoAtual(); if (!f || !arq) return null;
+    var im; try { var copia = arq.arrayBuffer ? new Blob([await arq.arrayBuffer()], { type: arq.type || "image/png" }) : arq; im = copia instanceof Blob ? await abrirImagem(copia, arq.name) : copia; } catch (e) { toast("Não consegui abrir essa imagem."); return null; }
+    var id = uid("im"); CAM_IMG[id] = reduzir(im, 1600);
+    var a = { id: uid("ad"), img: id, nome: String(arq.name || "Imagem").replace(/\.[^.]+$/, "").slice(0, 24), cx: 0.5, cy: 0.5, tam: 46, rot: 0, op: 100, sombra: false };
+    f.adesivos = (f.adesivos || []).concat([a]); ADS = a.id; CAM = "a:" + a.id; painel(); agendar(); return a;
+  }
+  function desenharLogo(ox, P, lay) {
+    var LG = logoAtual(); if (!LG) return;
+    var lw = P.w * G.logo.tam / 100, lh = lw * LG.naturalHeight / LG.naturalWidth, mg = Math.min(P.w, P.h) * G.logo.mar / 100, lx, ly;
+    if (G.logo.x != null) { lx = P.x + G.logo.x * P.w - lw / 2; ly = P.y + G.logo.y * P.h - lh / 2; }
+    else { var p = POS9.filter(function (q) { return q[0] === G.logo.pos; })[0] || POS9[8]; lx = P.x + mg + (P.w - lw - 2 * mg) * p[1]; ly = P.y + mg + (P.h - lh - 2 * mg) * p[2]; }
+    lx = lim(lx, P.x, P.x + P.w - lw); ly = lim(ly, P.y, P.y + P.h - lh);
+    var cor = G.logo.cor; if (cor === "auto") cor = luminancia(ox, lx, ly, lw, lh) > 0.55 ? "preta" : "branca";
+    ox.globalAlpha = G.logo.op / 100; ox.drawImage(logoNaCor(LG, cor), lx, ly, lw, lh); ox.globalAlpha = 1;
+    lay.logo = { x: lx, y: ly, w: lw, h: lh };
+  }
   function desenharAdesivo(ctx, a, P, lay) {
     var s = Math.max(10, P.w * a.tam / 100), cx = P.x + a.cx * P.w, cy = P.y + a.cy * P.h;
     ctx.save(); ctx.translate(cx, cy); ctx.rotate((a.rot || 0) * Math.PI / 180); if (a.esp) ctx.scale(-1, 1); ctx.globalAlpha = (a.op == null ? 100 : a.op) / 100;
     var w = s, h = s;
-    if (a.selo) {
+    if (a.mix && a.mix !== "source-over") ctx.globalCompositeOperation = a.mix;
+    if (a.img) {
+      var im = CAM_IMG[a.img]; if (!im) { ctx.restore(); return; }
+      h = s * im.height / im.width; var src = mascAtiva(a.masc) ? comMascara(im, a.masc, Math.round(w), Math.round(h)) : im;
+      if (a.sombra) { ctx.shadowColor = "rgba(0,0,0,.45)"; ctx.shadowBlur = s * 0.05; ctx.shadowOffsetY = s * 0.015; }
+      ctx.drawImage(src, -w / 2, -h / 2, w, h); if (src !== im) src.width = src.height = 1;
+    } else if (a.forma) {
+      h = s * (a.alt == null ? 100 : a.alt) / 100; ctx.fillStyle = ctx.strokeStyle = a.cor || "#FFB547";
+      if (a.sombra) { ctx.shadowColor = "rgba(0,0,0,.4)"; ctx.shadowBlur = s * 0.06; ctx.shadowOffsetY = s * 0.02; }
+      caminhoForma(ctx, a.forma, -w / 2, -h / 2, w, h);
+      if (a.vazado) { ctx.lineWidth = Math.max(2, s * 0.035); ctx.stroke(); } else ctx.fill();
+    } else if (a.selo) {
       ctx.font = "800 " + Math.round(s * 0.42) + "px Montserrat, Inter, sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
       w = ctx.measureText(a.selo).width + s * 0.7; h = s * 0.78;
       ctx.shadowColor = "rgba(0,0,0,.35)"; ctx.shadowBlur = s * 0.12; ctx.fillStyle = a.cor; rr(ctx, -w / 2, -h / 2, w, h, h / 2); ctx.fill(); ctx.shadowColor = "transparent";
@@ -736,7 +832,11 @@
     var foto = camadaFoto(fonte, f, Math.round(P.w), Math.round(P.h), alvo.semAjustes), raio = Math.min(P.w, P.h) * B.raio / 100;
     if (B.est === "sombra") { ox.save(); ox.shadowColor = "rgba(0,0,0,.45)"; ox.shadowBlur = Math.min(W, H) * 0.035; ox.shadowOffsetY = Math.min(W, H) * 0.012; ox.fillStyle = "#000"; rr(ox, P.x, P.y, P.w, P.h, raio); ox.fill(); ox.restore(); }
     ox.save(); if (TM && TM.rasgado) { ox.shadowColor = "rgba(0,0,0,.3)"; ox.shadowBlur = Math.min(W, H) * 0.012; caminhoRasgado(ox, P, 5); ox.fillStyle = "#fff"; ox.fill(); ox.shadowColor = "transparent"; caminhoRasgado(ox, P, 5); } else rr(ox, P.x, P.y, P.w, P.h, raio);
-    ox.clip(); ox.drawImage(foto, P.x, P.y, P.w, P.h); ox.restore();
+    ox.clip();
+    var MK = !alvo.semAjustes && mascAtiva(f.masc) ? f.masc : null;
+    if (MK) { var fxm = foto.getContext("2d"), mkc = mascaraCanvas(MK, foto.width, foto.height); fxm.globalCompositeOperation = "destination-in"; fxm.drawImage(mkc, 0, 0); fxm.globalCompositeOperation = "source-over"; mkc.width = mkc.height = 1;
+      if (MK.fundo && MK.fundo !== "transp") { ox.fillStyle = MK.fundo; ox.fillRect(P.x, P.y, P.w, P.h); } else ox.clearRect(P.x, P.y, P.w, P.h); }
+    ox.drawImage(foto, P.x, P.y, P.w, P.h); ox.restore();
     if (TM && TM.depois) TM.depois(ox, W, H, P, z, B);
     foto.width = foto.height = 1;
     if (B.est === "dupla") { var e2 = Math.max(1, Math.round(z.l * 0.18)); ox.strokeStyle = B.cor2; ox.lineWidth = e2; rr(ox, P.x - z.l * 0.45, P.y - z.t * 0.45, P.w + z.l * 0.9, P.h + z.t * 0.9, raio ? raio + z.l * 0.45 : 0); ox.stroke(); }
@@ -744,20 +844,10 @@
       [[m, m, 1, 1], [W - m, m, -1, 1], [m, H - m, 1, -1], [W - m, H - m, -1, -1]].forEach(function (k) { ox.beginPath(); ox.moveTo(k[0], k[1] + L * k[3]); ox.lineTo(k[0], k[1]); ox.lineTo(k[0] + L * k[2], k[1]); ox.stroke(); }); }
     if (!alvo.semAjustes) desenharOverlay(ox, P, G.overlay, G.overlayForca);
     lay.ades = [];
-    if (!alvo.semSobre) (f.adesivos || []).forEach(function (a) { desenharAdesivo(ox, a, P, lay); });
-    /* textos */
-    if (!alvo.semSobre) G.textos.forEach(function (t) { desenharTexto(ox, t, P, i, lay); });
-    /* logo */
-    var LG = logoAtual();
-    if (!alvo.semSobre && G.logo.on && LG) {
-      var lw = P.w * G.logo.tam / 100, lh = lw * LG.naturalHeight / LG.naturalWidth, mg = Math.min(P.w, P.h) * G.logo.mar / 100, lx, ly;
-      if (G.logo.x != null) { lx = P.x + G.logo.x * P.w - lw / 2; ly = P.y + G.logo.y * P.h - lh / 2; }
-      else { var p = POS9.filter(function (q) { return q[0] === G.logo.pos; })[0] || POS9[8]; lx = P.x + mg + (P.w - lw - 2 * mg) * p[1]; ly = P.y + mg + (P.h - lh - 2 * mg) * p[2]; }
-      lx = lim(lx, P.x, P.x + P.w - lw); ly = lim(ly, P.y, P.y + P.h - lh);
-      var cor = G.logo.cor; if (cor === "auto") cor = luminancia(ox, lx, ly, lw, lh) > 0.55 ? "preta" : "branca";
-      ox.globalAlpha = G.logo.op / 100; ox.drawImage(logoNaCor(LG, cor), lx, ly, lw, lh); ox.globalAlpha = 1;
-      lay.logo = { x: lx, y: ly, w: lw, h: lh };
-    }
+    if (!alvo.semSobre) itensDe(f).forEach(function (it) {
+      if (f.ocultos && f.ocultos[it.k]) return;
+      if (it.tipo === "a") desenharAdesivo(ox, it.o, P, lay); else if (it.tipo === "t") desenharTexto(ox, it.o, P, i, lay); else desenharLogo(ox, P, lay);
+    });
     /* texto da borda */
     if (B.txt && (B.est === "polaroid" || B.est === "faixa" || B.est === "cinema" || (TM && z.b > Math.min(W, H) * 0.05))) {
       var faixa = z.b, fs = Math.max(10, Math.round(faixa * (B.est === "polaroid" ? 0.26 : 0.36)));
@@ -786,10 +876,22 @@
     if (!f) { cv.width = cv.height = 1; $("dica").textContent = "Adicione fotos para começar."; return; }
     var pw = Math.max(200, palco.clientWidth - 24), ph = Math.max(160, palco.clientHeight - 24), dpr = Math.min(2, window.devicePixelRatio || 1);
     var lado = Math.round(Math.min(1400, Math.max(pw, ph) * dpr) * (RAPIDO ? 0.55 : 1));
-    var c = montar(f.prev, f, { lado: lado }), W = c.width, H = c.height;
+    var c = montar(f.prev, f, SEGURA ? { lado: lado, semAjustes: true, semSobre: true } : { lado: lado }), W = c.width, H = c.height;
     LAY = c.__lay;
+    var rotulo = function (x, t, px, py, dir) { x.font = "700 " + Math.round(11 * dpr) + "px Inter, sans-serif"; x.textBaseline = "top"; x.textAlign = dir; var m = x.measureText(t).width; x.fillStyle = "rgba(0,0,0,.6)"; x.fillRect(dir === "left" ? px - 6 : px - m - 6, py - 4, m + 12, 14 * dpr + 6); x.fillStyle = "#fff"; x.fillText(t, px, py); };
+    if (COMPARAR && MODO_COMP === "lado" && !SEGURA) {   /* ANTES e DEPOIS inteiros, um ao lado do outro (ou um em cima do outro, o que ficar maior) */
+      var a2 = montar(f.prev, f, { lado: lado, semAjustes: true, semSobre: true }), gp = Math.round(8 * dpr), hz = Math.min(pw / (2 * W + gp), ph / H) >= Math.min(pw / W, ph / (2 * H + gp));
+      cv.width = hz ? 2 * W + gp : W; cv.height = hz ? H : 2 * H + gp; var xl = cv.getContext("2d");
+      xl.drawImage(a2, 0, 0, W, H); xl.drawImage(c, hz ? W + gp : 0, hz ? 0 : H + gp);
+      rotulo(xl, "ANTES", 10 * dpr, 10 * dpr, "left"); rotulo(xl, "DEPOIS", (hz ? W + gp : 0) + 10 * dpr, (hz ? 0 : H + gp) + 10 * dpr, "left");
+      a2.width = a2.height = 1; c.width = c.height = 1; LAY = null;
+      var sl2 = Math.min(pw / cv.width, ph / cv.height); cv.style.width = Math.round(cv.width * sl2) + "px"; cv.style.height = Math.round(cv.height * sl2) + "px"; cv.dataset.modo = "lado";
+      $("dica").textContent = ""; return;
+    }
+    cv.dataset.modo = SEGURA ? "antes" : COMPARAR ? "div" : "";
     cv.width = W; cv.height = H; var x = cv.getContext("2d"); x.drawImage(c, 0, 0);
-    if (COMPARAR) {
+    if (SEGURA) rotulo(x, "ANTES · solte para voltar", 10 * dpr, 10 * dpr, "left");
+    else if (COMPARAR) {
       var a = montar(f.prev, f, { lado: lado, semAjustes: true }), sx = Math.round(W * DIV);
       x.save(); x.beginPath(); x.rect(0, 0, sx, H); x.clip(); x.drawImage(a, 0, 0, W, H); x.restore();
       x.fillStyle = "#FFB547"; x.fillRect(sx - 1.5 * dpr, 0, 3 * dpr, H);
@@ -799,12 +901,13 @@
       a.width = a.height = 1;
     }
     if (G.car.n > 1) { x.save(); x.setLineDash([8 * dpr, 6 * dpr]); x.strokeStyle = "rgba(255,181,71,.9)"; x.lineWidth = 2 * dpr; for (var k = 1; k < G.car.n; k++) { x.beginPath(); x.moveTo(W * k / G.car.n, 0); x.lineTo(W * k / G.car.n, H); x.stroke(); } x.restore(); }
-    if (ABA === "adesivos" && ADS) { var ab = (LAY.ades || []).filter(function (t) { return t.id === ADS; })[0]; if (ab) { x.save(); x.setLineDash([6 * dpr, 4 * dpr]); x.strokeStyle = "#FFB547"; x.lineWidth = 1.5 * dpr; x.strokeRect(ab.x, ab.y, ab.w, ab.h); x.restore(); } }
-    if (ABA === "texto" && TXT) { var tb = LAY.textos.filter(function (t) { return t.id === TXT; })[0]; if (tb) { x.save(); x.setLineDash([6 * dpr, 4 * dpr]); x.strokeStyle = "#FFB547"; x.lineWidth = 1.5 * dpr; x.strokeRect(tb.x, tb.y, tb.w, tb.h); x.restore(); } }
+    if (PINTA && !SEGURA) { x.save(); x.strokeStyle = "#B79CFF"; x.lineWidth = 2 * dpr; x.setLineDash([8 * dpr, 5 * dpr]); var pb = PINTA.alvo === "foto" ? LAY.P : (LAY.ades || []).filter(function (t) { return "a:" + t.id === PINTA.alvo; })[0]; if (pb) x.strokeRect(pb.x, pb.y, pb.w, pb.h); x.restore(); }
+    if ((ABA === "adesivos" || ABA === "camadas") && ADS && !SEGURA) { var ab = (LAY.ades || []).filter(function (t) { return t.id === ADS; })[0]; if (ab) { x.save(); x.setLineDash([6 * dpr, 4 * dpr]); x.strokeStyle = "#FFB547"; x.lineWidth = 1.5 * dpr; x.strokeRect(ab.x, ab.y, ab.w, ab.h); x.restore(); } }
+    if (ABA === "texto" && TXT && !SEGURA) { var tb = LAY.textos.filter(function (t) { return t.id === TXT; })[0]; if (tb) { x.save(); x.setLineDash([6 * dpr, 4 * dpr]); x.strokeStyle = "#FFB547"; x.lineWidth = 1.5 * dpr; x.strokeRect(tb.x, tb.y, tb.w, tb.h); x.restore(); } }
     c.width = c.height = 1;
     var s = Math.min(pw / W, ph / H); cv.style.width = Math.round(W * s) + "px"; cv.style.height = Math.round(H * s) + "px";
     var dicas = { foto: "Arraste a foto para escolher o corte · pinça ou roda do mouse = zoom", texto: G.textos.length ? "Arraste o texto na foto para mudar de lugar" : "", logo: G.logo.on ? "Arraste a logo na foto para mudar de lugar" : "" };
-    var nova = COMPARAR ? "Arraste para comparar antes e depois" : (dicas[ABA] || (FOTOS.length > 1 ? (ATUAL + 1) + " de " + FOTOS.length + " · " + f.nome : ""));
+    var nova = SEGURA ? "" : PINTA ? (PINTA.modo === "volta" ? "Pinte para TRAZER DE VOLTA" : "Pinte o que quer ESCONDER") : COMPARAR ? "Arraste para comparar antes e depois" : (dicas[ABA] || (FOTOS.length > 1 ? (ATUAL + 1) + " de " + FOTOS.length + " · " + f.nome : ""));
     if ($("dica").textContent !== nova) { $("dica").textContent = nova; $("dica").classList.remove("some"); clearTimeout(tDica); tDica = setTimeout(function () { $("dica").classList.add("some"); }, 3500); }
   }
 
@@ -816,23 +919,28 @@
     var f = FOTOS[ATUAL]; if (!f || !LAY) return;
     cv.setPointerCapture(ev.pointerId); ptrs[ev.pointerId] = { x: ev.clientX, y: ev.clientY };
     var p = noCanvas(ev), ids = Object.keys(ptrs);
+    clearTimeout(tSegura); segura0 = { x: ev.clientX, y: ev.clientY };
+    if (PINTA) { var uv = localDaPintura(p); if (uv) { var m0 = mascAlvo(); if (m0) { var tr = { m: PINTA.modo, r: PINTA.r / 100, p: [uv[0], uv[1]] }; m0.tracos = (m0.tracos || []).concat([tr]); gesto = { tipo: "pinta", t: tr }; agendar(true); } } return; }
+    if (ids.length === 1 && !COMPARAR) tSegura = setTimeout(function () { if (!Object.keys(ptrs).length) return; gesto = null; SEGURA = true; previa(); }, 330);
     if (ids.length === 2 && ABA === "foto") { var a = ptrs[ids[0]], b = ptrs[ids[1]]; gesto = { tipo: "pinca", d0: Math.hypot(a.x - b.x, a.y - b.y), z0: f.zoom }; return; }
     if (COMPARAR) { gesto = { tipo: "div" }; DIV = lim(p.x / cv.width, 0.02, 0.98); agendar(true); return; }
-    if (ABA === "texto") {
+    if (ABA === "texto" || ABA === "camadas") {
       var t = LAY.textos.slice().reverse().filter(function (k) { return dentro(p, k); })[0];
-      if (t) { var tt = G.textos.filter(function (k) { return k.id === t.id; })[0]; if (TXT !== t.id) { TXT = t.id; painel(); } gesto = { tipo: "txt", t: tt, p0: p, cx: tt.cx, cy: tt.cy }; agendar(true); return; }
+      if (t) { var tt = G.textos.filter(function (k) { return k.id === t.id; })[0]; if (TXT !== t.id) { TXT = t.id; if (ABA === "texto") painel(); } gesto = { tipo: "txt", t: tt, p0: p, cx: tt.cx, cy: tt.cy }; agendar(true); return; }
     }
-    if (ABA === "adesivos") {
+    if (ABA === "adesivos" || ABA === "camadas") {
       var ad = (LAY.ades || []).slice().reverse().filter(function (k) { return dentro(p, k); })[0];
-      if (ad) { var aa = (f.adesivos || []).filter(function (k) { return k.id === ad.id; })[0]; if (ADS !== ad.id) { ADS = ad.id; painel(); }
+      if (ad) { var aa = (f.adesivos || []).filter(function (k) { return k.id === ad.id; })[0]; if (ADS !== ad.id) { ADS = ad.id; CAM = "a:" + ad.id; painel(); }
         if (Object.keys(ptrs).length === 1) gesto = { tipo: "ades", a: aa, p0: p, cx: aa.cx, cy: aa.cy }; agendar(true); return; }
     }
-    if (ABA === "logo" && dentro(p, LAY.logo)) { gesto = { tipo: "logo", p0: p, x: (LAY.logo.x + LAY.logo.w / 2 - LAY.P.x) / LAY.P.w, y: (LAY.logo.y + LAY.logo.h / 2 - LAY.P.y) / LAY.P.h }; return; }
+    if ((ABA === "logo" || ABA === "camadas") && dentro(p, LAY.logo)) { gesto = { tipo: "logo", p0: p, x: (LAY.logo.x + LAY.logo.w / 2 - LAY.P.x) / LAY.P.w, y: (LAY.logo.y + LAY.logo.h / 2 - LAY.P.y) / LAY.P.h }; return; }
     if (ABA === "foto" || ABA === "ajustes" || ABA === "filtros") gesto = { tipo: "pan", p0: p, cx: f.cx, cy: f.cy };
   });
   cv.addEventListener("pointermove", function (ev) {
-    if (!ptrs[ev.pointerId] || !gesto) return; ptrs[ev.pointerId] = { x: ev.clientX, y: ev.clientY };
+    if (ptrs[ev.pointerId] && segura0 && Math.abs(ev.clientX - segura0.x) + Math.abs(ev.clientY - segura0.y) > 9) clearTimeout(tSegura);
+    if (!ptrs[ev.pointerId] || !gesto || SEGURA) return; ptrs[ev.pointerId] = { x: ev.clientX, y: ev.clientY };
     var f = FOTOS[ATUAL], p = noCanvas(ev);
+    if (gesto.tipo === "pinta") { var uv = localDaPintura(p), q = gesto.t.p; if (uv && (Math.abs(uv[0] - q[q.length - 2]) + Math.abs(uv[1] - q[q.length - 1]) > 0.004)) { q.push(uv[0], uv[1]); agendar(true); } return; }
     if (gesto.tipo === "pinca") { var ids = Object.keys(ptrs); if (ids.length < 2) return; var a = ptrs[ids[0]], b = ptrs[ids[1]]; f.zoom = Math.round(lim(gesto.z0 * Math.hypot(a.x - b.x, a.y - b.y) / gesto.d0, 100, 400)); sincSlider("zoom", f.zoom); agendar(true); return; }
     if (gesto.tipo === "div") { DIV = lim(p.x / cv.width, 0.02, 0.98); agendar(true); return; }
     /* 16/11: o arraste mede em FRAÇÃO da tela — durante o arraste a prévia é refeita em resolução menor (mais rápida) e o
@@ -847,7 +955,16 @@
       if (fx || fy) agendar(true);
     }
   });
-  function soltar(ev) { delete ptrs[ev.pointerId]; if (!Object.keys(ptrs).length) { if (gesto) agendar(); gesto = null; } }
+  var tSegura = 0, segura0 = null;
+  function localDaPintura(p) {   /* ponto do toque → posição dentro do alvo da máscara (0–1), mesmo com o elemento girado/espelhado */
+    if (!LAY || !PINTA) return null; var P = LAY.P, r4 = function (v) { return Math.round(v * 10000) / 10000; };
+    if (PINTA.alvo === "foto") return [r4((p.x - P.x) / P.w), r4((p.y - P.y) / P.h)];
+    var a = adsSel(), im = a && a.img && CAM_IMG[a.img]; if (!im) return null;
+    var w = Math.max(10, P.w * a.tam / 100), h = w * im.height / im.width, dx = p.x - (P.x + a.cx * P.w), dy = p.y - (P.y + a.cy * P.h), rd = -(a.rot || 0) * Math.PI / 180;
+    var lx = dx * Math.cos(rd) - dy * Math.sin(rd), ly = dx * Math.sin(rd) + dy * Math.cos(rd); if (a.esp) lx = -lx;
+    return [r4(lx / w + 0.5), r4(ly / h + 0.5)];
+  }
+  function soltar(ev) { delete ptrs[ev.pointerId]; if (!Object.keys(ptrs).length) { clearTimeout(tSegura); if (SEGURA) { SEGURA = false; gesto = null; previa(); return; } if (gesto) agendar(); gesto = null; } }
   cv.addEventListener("pointerup", soltar); cv.addEventListener("pointercancel", soltar);
   $("palco").addEventListener("wheel", function (ev) {
     var f = FOTOS[ATUAL]; if (!f || ABA !== "foto") return; ev.preventDefault();
@@ -856,7 +973,7 @@
 
   /* ================= HISTÓRICO (desfazer / refazer) ================= */
   var HIST = [], HPOS = -1, tHist = 0;
-  function foto2(f) { return { rot: f.rot, incl: f.incl, esp: f.esp, cx: f.cx, cy: f.cy, zoom: f.zoom, aj: clone(f.aj), filtro: f.filtro, fundo: clone(f.fundo), adesivos: clone(f.adesivos || []), ia: clone(f.ia || IA0()) }; }
+  function foto2(f) { return { rot: f.rot, incl: f.incl, esp: f.esp, cx: f.cx, cy: f.cy, zoom: f.zoom, aj: clone(f.aj), filtro: f.filtro, fundo: clone(f.fundo), adesivos: clone(f.adesivos || []), ia: clone(f.ia || IA0()), ordem: clone(f.ordem || []), ocultos: clone(f.ocultos || {}), masc: clone(f.masc || null) }; }
   function snap() { return { g: JSON.stringify(G), f: JSON.stringify(FOTOS.map(foto2)), m: FOTOS.map(function (f) { return f.mask; }) }; }
   function igual(a, b) { return a && b && a.g === b.g && a.f === b.f && a.m.length === b.m.length && a.m.every(function (m, i) { return m === b.m[i]; }); }
   function marcarHist() { clearTimeout(tHist); tHist = setTimeout(gravarHist, 450); }
@@ -884,13 +1001,14 @@
     borda: '<rect x="3" y="3" width="18" height="18" rx="2"/><rect x="7" y="7" width="10" height="10"/>',
     adesivos: '<circle cx="12" cy="12" r="9"/><path d="M8.5 14.5c1.8 2 5.2 2 7 0"/><path d="M9 9.5h.01M15 9.5h.01"/>',
     fundo: '<path d="M4 20 10 9l4 7 2-3 4 7z"/><circle cx="17" cy="6" r="2"/><path d="M3 3l18 18" stroke-dasharray="2 2"/>',
-    salvar: '<path d="M12 4v11M7 10l5 5 5-5"/><path d="M5 20h14"/>'
+    salvar: '<path d="M12 4v11M7 10l5 5 5-5"/><path d="M5 20h14"/>',
+    camadas: '<path d="m12 3 9 5-9 5-9-5z"/><path d="m3 12.5 9 5 9-5"/><path d="m3 17 9 5 9-5"/>'
   };
-  var ABAS = [["foto", "CORTE"], ["ajustes", "AJUSTES"], ["filtros", "FILTROS"], ["texto", "TEXTO"], ["logo", "LOGO"], ["borda", "BORDA"], ["adesivos", "ADESIVOS"], ["fundo", "✨ IA"], ["salvar", "SALVAR"]];
+  var ABAS = [["foto", "CORTE"], ["ajustes", "AJUSTES"], ["filtros", "FILTROS"], ["texto", "TEXTO"], ["logo", "LOGO"], ["borda", "BORDA"], ["adesivos", "ADESIVOS"], ["camadas", "CAMADAS"], ["fundo", "✨ IA"], ["salvar", "SALVAR"]];
   function desenharAbas() {
     $("abas").innerHTML = ABAS.map(function (a) { return '<button type="button" data-aba="' + a[0] + '" class="' + (a[0] === ABA ? "on" : "") + '" aria-pressed="' + (a[0] === ABA) + '"><svg viewBox="0 0 24 24">' + ICONES[a[0]] + "</svg>" + a[1] + "</button>"; }).join("");
   }
-  function irAba(a) { ABA = a; desenharAbas(); painel(); if (a === "filtros") prevFiltros(); agendar(); var b = $("abas").querySelector('[data-aba="' + a + '"]'); if (b && b.scrollIntoView) b.scrollIntoView({ block: "nearest", inline: "center" }); }
+  function irAba(a) { if (a !== "camadas") PINTA = null; ABA = a; desenharAbas(); painel(); if (a === "filtros") prevFiltros(); agendar(); var b = $("abas").querySelector('[data-aba="' + a + '"]'); if (b && b.scrollIntoView) b.scrollIntoView({ block: "nearest", inline: "center" }); }
   function chips(k, lista, atual, extra) { return '<div class="c-rolar">' + lista.map(function (x) { return '<button type="button" class="chip' + (x[0] === atual ? " on" : "") + '" data-k="' + k + '" data-v="' + esc(x[0]) + '"' + (extra ? extra(x) : "") + ">" + x[1] + "</button>"; }).join("") + "</div>"; }
   function sl(k, rot, min, max, v, suf, passo) { return '<label class="sl' + (v && min < 0 ? " mexido" : "") + '"><span>' + rot + '</span><input type="range" data-k="' + k + '" min="' + min + '" max="' + max + '" step="' + (passo || 1) + '" value="' + v + '"><output>' + v + (suf || "") + "</output></label>"; }
   function sincSlider(k, v) { var el = $("ctrl").querySelector('input[data-k="' + k + '"]'); if (el) { el.value = v; el.nextElementSibling.textContent = v + (el.dataset.suf || ""); } }
@@ -967,6 +1085,30 @@
       h += '<div class="c-tit">SELOS</div><div class="c-linha">' + SELOS.map(function (x, k) { return '<button type="button" class="chip selo" data-k="aSelo" data-v="' + k + '" style="background:' + x[1] + ';color:' + x[2] + ';border-color:' + x[1] + '">' + esc(x[0]) + "</button>"; }).join("") + "</div>";
       h += '<div class="c-tit">OVERLAYS (VALEM PARA TODAS)</div>' + chips("overlay", OVERLAYS, G.overlay) + (G.overlay !== "nenhum" ? sl("ovForca", "Força", 10, 100, G.overlayForca, "%") : "");
       h += '<p class="c-nota">Toque num adesivo para pôr na foto; arraste para posicionar. Cada foto tem os seus adesivos (use EM TODAS AS FOTOS para repetir).</p>';
+    } else if (ABA === "camadas") {
+      var its = itensDe(f).slice().reverse(), selA = adsSel();
+      if (CAM && CAM !== "foto" && !its.some(function (x) { return x.k === CAM; })) CAM = null;
+      h += '<div class="c-tit">CAMADAS (A DE CIMA COBRE AS DE BAIXO)</div><div class="cam-lista" id="camLista">' + its.map(function (it, n) { var nm = nomeCamada(it), oc = f.ocultos && f.ocultos[it.k];
+        return '<div class="cam-l' + (CAM === it.k ? " on" : "") + (oc ? " oculta" : "") + '" data-cam="' + esc(it.k) + '"><button type="button" class="cam-o" data-k="camVer" data-v="' + esc(it.k) + '" aria-label="' + (oc ? "Mostrar" : "Esconder") + ' camada ' + esc(nm[1]) + '">' + (oc ? "🚫" : "👁") + '</button><button type="button" class="cam-n" data-k="camSel" data-v="' + esc(it.k) + '"><i>' + esc(nm[0]) + '</i><span>' + esc(nm[1]) + '</span></button><button type="button" class="cam-m" data-k="camCima" data-v="' + esc(it.k) + '" aria-label="Subir camada ' + esc(nm[1]) + '"' + (n === 0 ? " disabled" : "") + '>▲</button><button type="button" class="cam-m" data-k="camBaixo" data-v="' + esc(it.k) + '" aria-label="Descer camada ' + esc(nm[1]) + '"' + (n === its.length - 1 ? " disabled" : "") + '>▼</button></div>'; }).join("") +
+        '<div class="cam-l base' + (CAM === "foto" ? " on" : "") + '" data-cam="foto"><span class="cam-o" aria-hidden="true">🔒</span><button type="button" class="cam-n" data-k="camSel" data-v="foto"><i>📷</i><span>Foto (base)' + (mascAtiva(f.masc) ? " · com máscara" : "") + '</span></button></div></div>';
+      h += '<div class="c-tit">ACRESCENTAR</div><div class="c-linha"><button type="button" class="chip" data-k="camImg">＋ IMAGEM</button><button type="button" class="chip" data-k="camTxt">＋ TEXTO</button><button type="button" class="chip" data-k="camAds">＋ ADESIVO</button></div>' + chips("camForma", FORMAS, null);
+      if (selA && CAM === "a:" + selA.id) {
+        h += '<div class="c-tit">CAMADA SELECIONADA</div>' + sl("aTam", "Tamanho", 3, 150, selA.tam, "%") + (selA.forma ? sl("aAlt", "Altura", 1, 300, selA.alt == null ? 100 : selA.alt, "%") : "") + sl("aRot", "Girar", -180, 180, selA.rot || 0, "°") + sl("aOp", "Opacidade", 5, 100, selA.op == null ? 100 : selA.op, "%");
+        if (selA.forma) h += '<div class="c-tit">COR</div>' + coresHtml("aCor", selA.cor || "#FFB547") + '<div class="c-linha"><button type="button" class="chip' + (selA.vazado ? " on" : "") + '" data-k="aVazado">' + (selA.vazado ? "SÓ CONTORNO ✓" : "SÓ CONTORNO") + '</button></div>';
+        h += '<div class="c-tit">MISTURA COM O QUE ESTÁ EMBAIXO</div>' + chips("aMix", MISTURAS, selA.mix || "source-over");
+        h += '<div class="c-linha"><button type="button" class="chip" data-k="aEsp">⇋ ESPELHAR</button><button type="button" class="chip" data-k="aSombra">' + (selA.sombra ? "SEM SOMBRA" : "COM SOMBRA") + '</button><button type="button" class="chip" data-k="aDup">⧉ DUPLICAR</button><button type="button" class="chip" data-k="aTodas">EM TODAS AS FOTOS</button><button type="button" class="chip perigo" data-k="aDel">🗑 APAGAR</button></div>';
+      }
+      var mAlvo = CAM === "foto" ? (f.masc || { forma: "nenhuma" }) : selA && selA.img && CAM === "a:" + selA.id ? (selA.masc || { forma: "nenhuma" }) : null;
+      if (mAlvo) {
+        h += '<div class="c-tit">MÁSCARA PRONTA' + (CAM === "foto" ? " (NA FOTO)" : " (NESTA IMAGEM)") + '</div>' + chips("mForma", MASCARAS, mAlvo.forma || "nenhuma") +
+          '<div class="c-linha"><button type="button" class="chip' + (mAlvo.inv ? " on" : "") + '" data-k="mInv">⇄ INVERTER</button><button type="button" class="chip perigo" data-k="mZerar">SEM MÁSCARA</button></div>';
+        h += '<div class="c-tit">MÁSCARA LIVRE (PINTAR COM O DEDO)</div>';
+        if (PINTA) h += '<div class="c-linha"><button type="button" class="chip' + (PINTA.modo === "apaga" ? " on" : "") + '" data-k="mModo" data-v="apaga">✎ ESCONDER</button><button type="button" class="chip' + (PINTA.modo === "volta" ? " on" : "") + '" data-k="mModo" data-v="volta">↺ TRAZER DE VOLTA</button></div>' + sl("mR", "Pincel", 1, 30, PINTA.r, "%") +
+          '<div class="c-linha"><button type="button" class="chip" data-k="mDesfaz">↶ DESFAZER TRAÇO</button><button type="button" class="chip" data-k="mLimpa">LIMPAR PINTURA</button><button type="button" class="chip on" data-k="mPinta">✓ PRONTO</button></div>';
+        else h += '<div class="c-linha"><button type="button" class="chip" data-k="mPinta">✎ PINTAR MÁSCARA</button>' + ((mAlvo.tracos || []).length ? '<button type="button" class="chip" data-k="mLimpa">LIMPAR PINTURA (' + mAlvo.tracos.length + ')</button>' : "") + '</div>';
+        if (CAM === "foto" && mascAtiva(f.masc)) h += '<div class="c-tit">O QUE APARECE ONDE A FOTO FOI ESCONDIDA</div>' + coresHtml("mFundo", f.masc.fundo || "#000000") + '<div class="c-linha"><button type="button" class="chip' + (f.masc.fundo === "transp" ? " on" : "") + '" data-k="mFundo" data-v="transp">TRANSPARENTE (PNG)</button></div>';
+      }
+      h += '<p class="c-nota">Toque numa camada para escolher; ▲ ▼ mudam quem fica por cima; 👁 esconde sem apagar. Arraste o item na foto para mudar de lugar. As imagens e formas valem para esta foto (use EM TODAS AS FOTOS para repetir).</p>';
     } else if (ABA === "fundo") {
       var IA = f.ia || (f.ia = IA0()), sw = function (x) { return x[0] ? '<i class="sw" style="background:' + x[0] + '"></i>' + x[1] : x[1]; };
       h += '<div class="c-tit">✨ RETOQUE COM IA</div><p class="c-nota" style="margin-top:0">A IA separa <b>cabelo, pele, roupa e fundo</b> — tudo <b>no seu aparelho</b>, grátis; a foto não é enviada. Melhor com 1 a 3 pessoas perto da câmera.</p>';
@@ -1026,9 +1168,9 @@
     });
   }
   function prevFiltros() {
-    var f = FOTOS[ATUAL], box = $("flts"); if (!f || !box) return;
+    var f = FOTOS[ATUAL]; if (!f || !($("flts") || ($("faixa") && $("faixa").firstChild))) return;
     var mini = reduzir(f.prev, 150), s = Math.min(mini.width, mini.height);
-    box.querySelectorAll("canvas[data-f]").forEach(function (c) {
+    document.querySelectorAll("#flts canvas[data-f], #faixa canvas[data-f]").forEach(function (c) {
       c.width = c.height = s; var x = c.getContext("2d", { willReadFrequently: true });
       x.drawImage(mini, (mini.width - s) / 2, (mini.height - s) / 2, s, s, 0, 0, s, s);
       var flt = FILTROS[c.dataset.f], a = {}; AJ.forEach(function (q) { a[q[0]] = (flt.p[q[0]] || 0); }); a.split = flt.split || null;
@@ -1057,7 +1199,22 @@
     aDup: function () { var a = adsSel(); if (!a) return; var c = clone(a); c.id = uid("ad"); c.cx = lim(c.cx + 0.06, 0, 1); c.cy = lim(c.cy + 0.06, 0, 1); fotoAtual().adesivos.push(c); ADS = c.id; painel(); },
     aFrente: function () { var f = fotoAtual(), a = adsSel(); if (!a) return; f.adesivos = f.adesivos.filter(function (x) { return x !== a; }).concat([a]); },
     aTodas: function () { var a = adsSel(); if (!a) return; FOTOS.forEach(function (o) { if (o === fotoAtual()) return; var c = clone(a); c.id = uid("ad"); o.adesivos = (o.adesivos || []).concat([c]); }); toast("Adesivo colocado em todas as fotos"); },
-    aDel: function () { var f = fotoAtual(); f.adesivos = (f.adesivos || []).filter(function (x) { return x.id !== ADS; }); ADS = null; painel(); },
+    aAlt: function (v) { var a = adsSel(); if (a) a.alt = +v; }, aCor: function (v) { var a = adsSel(); if (a) a.cor = v; }, aVazado: function () { var a = adsSel(); if (a) { a.vazado = !a.vazado; painel(); } },
+    aMix: function (v) { var a = adsSel(); if (a) a.mix = v; },
+    camSel: function (v) { PINTA = null; if (v === "foto") { CAM = "foto"; ADS = null; painel(); return; } if (v === "logo") { irAba("logo"); return; } if (v.indexOf("t:") === 0) { TXT = v.slice(2); irAba("texto"); return; } CAM = v; ADS = v.slice(2); painel(); },
+    camVer: function (v) { var f = fotoAtual(); f.ocultos = f.ocultos || {}; if (f.ocultos[v]) delete f.ocultos[v]; else f.ocultos[v] = 1; painel(); },
+    camCima: function (v) { moverCamada(v, 1); painel(); }, camBaixo: function (v) { moverCamada(v, -1); painel(); },
+    camImg: function () { var inp = document.createElement("input"); inp.type = "file"; inp.accept = "image/*"; inp.onchange = function () { if (inp.files && inp.files[0]) addImagemCamada(inp.files[0]); }; inp.click(); },
+    camTxt: function () { ACOES.novoTxt(); irAba("texto"); }, camAds: function () { irAba("adesivos"); },
+    camForma: function (v) { var f = fotoAtual(), cor = (KIT.cores && KIT.cores[0]) || "#FFB547", a = { id: uid("ad"), forma: v, cor: cor, cx: 0.5, cy: 0.5, tam: v === "linha" ? 60 : 30, alt: v === "linha" ? 3 : 100, rot: 0, op: 100 }; f.adesivos = (f.adesivos || []).concat([a]); ADS = a.id; CAM = "a:" + a.id; painel(); },
+    mForma: function (v) { var m = mascAlvo(); if (m) { m.forma = v; painel(); } }, mInv: function () { var m = mascAlvo(); if (m) { m.inv = !m.inv; painel(); } },
+    mZerar: function () { var f = fotoAtual(); PINTA = null; if (CAM === "foto") f.masc = null; else { var a = adsSel(); if (a) delete a.masc; } painel(); },
+    mPinta: function () { if (PINTA) PINTA = null; else if (mascAlvo()) PINTA = { alvo: CAM, modo: "apaga", r: 6 }; painel(); },
+    mModo: function (v) { if (PINTA) { PINTA.modo = v; painel(); } }, mR: function (v) { if (PINTA) PINTA.r = +v; },
+    mDesfaz: function () { var m = mascAlvo(); if (m && m.tracos && m.tracos.length) m.tracos = m.tracos.slice(0, -1); },
+    mLimpa: function () { var m = mascAlvo(); if (m) m.tracos = []; painel(); },
+    mFundo: function (v) { var f = fotoAtual(); if (f.masc) { f.masc.fundo = v; painel(); } },
+    aDel: function () { var f = fotoAtual(); PINTA = null; CAM = null; f.adesivos = (f.adesivos || []).filter(function (x) { return x.id !== ADS; }); ADS = null; painel(); },
     overlay: function (v) { G.overlay = v; painel(); }, ovForca: function (v) { G.overlayForca = +v; },
     zerarTudo: function () { if (!confirm("Voltar tudo ao começo (formato, ajustes, textos, logo e borda)? Suas logos e padrões continuam guardados.")) return; var S = G.saida; G = normalizar({}); G.saida = S; TXT = null; FOTOS.forEach(function (f) { Object.assign(f, { rot: 0, incl: 0, esp: false, cx: 0, cy: 0, zoom: 100, aj: {}, filtro: null, ia: IA0() }); }); painel(); },
     centro: function () { var f = fotoAtual(); f.cx = f.cy = 0; f.zoom = 100; f.incl = 0; painel(); },
@@ -1068,7 +1225,7 @@
     autoTodas: function () { FOTOS.forEach(function (f) { f.aj = autoDe(f); }); painel(); toast("✦ AUTO aplicado em " + FOTOS.length + " foto(s)"); },
     zerarAj: function () { if (ESCOPO === "esta") fotoAtual().aj = {}; else G.aj = {}; painel(); },
     limparFoto: function () { fotoAtual().aj = {}; painel(); },
-    filtro: function (v) { if (ESCOPO === "esta") fotoAtual().filtro = v; else { G.filtro = v; FOTOS.forEach(function (f) { f.filtro = null; }); } $("flts").querySelectorAll(".flt").forEach(function (b) { b.classList.toggle("on", b.dataset.v === v); }); },
+    filtro: function (v) { if (ESCOPO === "esta") fotoAtual().filtro = v; else { G.filtro = v; FOTOS.forEach(function (f) { f.filtro = null; }); } document.querySelectorAll("#flts .flt, #faixa .flt").forEach(function (b) { b.classList.toggle("on", (b.dataset.v || b.dataset.fx) === v); }); },
     intens: function (v) { G.intens = +v; },
     evento: function (v) { G.vars.evento = v; var n = $("ctrl").querySelector(".c-nota b"); if (n && ABA === "salvar") n.textContent = nomeArquivo(ATUAL, ""); },
     novoTxt: function (v) {
@@ -1139,7 +1296,7 @@
     } else if (ACOES[k]) ACOES[k](v);
     else return;
     if (el.type === "range") { var o = el.nextElementSibling; if (o) o.textContent = v + (el.dataset.suf || ""); el.parentNode.classList.toggle("mexido", +v !== 0 && +el.min < 0); }
-    if (el.classList.contains("chip") && el.parentNode && !/^(girar|espelhar|centro|corteTodas|auto1|autoTodas|zerarAj|novoTxt|apagaTxt|baixar|compart|pacote|salvar|recortar|fundoTodas|semRecorte|tirarFundoLogo|marca|limparFoto|addLogo|addMold|maisFotos|zerarTudo|opcoesFoto|aRosto|aAdd|aSelo|aEsp|aSombra|aDup|aFrente|aTodas|aDel|iaAnalisar|iaTodas|iaZerar|iaSug|iaCriar)/.test(k)) {
+    if (el.classList.contains("chip") && el.parentNode && !/^(girar|espelhar|centro|corteTodas|auto1|autoTodas|zerarAj|novoTxt|apagaTxt|baixar|compart|pacote|salvar|recortar|fundoTodas|semRecorte|tirarFundoLogo|marca|limparFoto|addLogo|addMold|maisFotos|zerarTudo|opcoesFoto|aRosto|aAdd|aSelo|aEsp|aSombra|aDup|aFrente|aTodas|aDel|aVazado|cam|mInv|mZerar|mPinta|mDesfaz|mLimpa|iaAnalisar|iaTodas|iaZerar|iaSug|iaCriar)/.test(k)) {
       el.parentNode.querySelectorAll('.chip[data-k="' + k + '"]').forEach(function (b) { b.classList.toggle("on", b === el); });
     }
     if (el.parentNode && el.parentNode.classList.contains("cores")) el.parentNode.querySelectorAll("button").forEach(function (b) { b.classList.toggle("on", b === el); });
@@ -1154,7 +1311,7 @@
     if (ev.target.closest("#maisFotos")) { $("arquivos").click(); return; }
     var b = ev.target.closest("[data-i]"); if (!b) return;
     if (+b.dataset.i === ATUAL) { opcoesFoto(ATUAL); return; }   /* 16/11: tocar na foto já aberta mostra as opções */
-    ATUAL = +b.dataset.i; ADS = null; desenharTiras(); painel(); agendar();
+    ATUAL = +b.dataset.i; ADS = null; CAM = null; PINTA = null; desenharTiras(); painel(); agendar();
   });
   var fontesOk = {};
   function carregarFonte(fam) { if (fontesOk[fam] || !document.fonts) return Promise.resolve(); var fo = FONTES.filter(function (x) { return x[0] === fam; })[0] || FONTES[0]; return document.fonts.load(fo[2] + " 40px '" + fo[0] + "'").then(function () { fontesOk[fam] = 1; agendar(); }).catch(function () { }); }
@@ -1250,7 +1407,7 @@
 
   /* ================= EXPORTAR ================= */
   function slug(s) { return String(s || "").trim().toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""); }
-  function extensao(f) { return G.saida.fmt === "png" || (f && f.mask && f.fundo.modo === "transparente") ? "png" : "jpg"; }
+  function extensao(f) { return G.saida.fmt === "png" || (f && f.mask && f.fundo.modo === "transparente") || (f && mascAtiva(f.masc) && f.masc.fundo === "transp") ? "png" : "jpg"; }
   function nomeArquivo(i, sufixo) {
     var f = FOTOS[i]; if (!f) return "";
     var nn = String(i + 1).padStart(2, "0"), mod = G.saida.nome || "{evento}-{n}";
@@ -1437,14 +1594,18 @@
   }
   function fecharEditor(doHistorico) {
     corDoTopo("#06080D");
-    $("ed").hidden = true; document.documentElement.classList.remove("ed-aberto"); document.body.style.top = ""; window.scrollTo(0, ROLAGEM || 0); COMPARAR = false; $("edComparar").classList.remove("on");
+    $("ed").hidden = true; document.documentElement.classList.remove("ed-aberto"); document.body.style.top = ""; window.scrollTo(0, ROLAGEM || 0); COMPARAR = false; SEGURA = false; PINTA = null; $("edComparar").classList.remove("on"); botoesComp();
     if (!doHistorico && history.state && history.state.bwEd) history.back();
   }
   window.addEventListener("popstate", function () { if (!$("mk").hidden) { fecharMarca(); if (!$("ed").hidden) history.pushState({ bwEd: 1 }, ""); return; } if (!$("ed").hidden) fecharEditor(true); });
   $("edFechar").onclick = function () { fecharEditor(false); };
   $("edDesfazer").onclick = desfazer; $("edRefazer").onclick = refazer;
   $("edAuto").onclick = function () { if (!FOTOS[ATUAL]) return; ACOES.auto1(); agendar(); };
-  $("edComparar").onclick = function () { COMPARAR = !COMPARAR; DIV = 0.5; this.classList.toggle("on", COMPARAR); agendar(); };
+  if ($("faixa")) $("faixa").addEventListener("click", function (ev) { var b = ev.target.closest("[data-fx]"); if (!b || !FOTOS[ATUAL]) return; ACOES.filtro(b.dataset.fx); agendar(); });
+  window.addEventListener("resize", function () { if (!$("ed").hidden) desenharFaixa(); });
+  function botoesComp() { var b = $("compModo"); if (!b) return; b.hidden = !COMPARAR; b.querySelectorAll("button").forEach(function (x) { x.classList.toggle("on", x.dataset.comp === MODO_COMP); x.setAttribute("aria-pressed", x.dataset.comp === MODO_COMP); }); }
+  $("edComparar").onclick = function () { COMPARAR = !COMPARAR; DIV = 0.5; PINTA = null; this.classList.toggle("on", COMPARAR); botoesComp(); agendar(); };
+  if ($("compModo")) $("compModo").addEventListener("click", function (ev) { var b = ev.target.closest("[data-comp]"); if (!b) return; MODO_COMP = b.dataset.comp; gravarUi("ui_fotos_comp", MODO_COMP); botoesComp(); agendar(); });
   $("edSalvar").onclick = function () { if (ABA !== "salvar") irAba("salvar"); else exportar("uma"); };
   $("abrirEd").onclick = abrirEditor;
   $("abrirMarca").onclick = abrirMarca;
@@ -1480,7 +1641,8 @@
     adicionar: adicionar, montar: montar, G: function () { return G; }, FOTOS: FOTOS, abrir: abrirEditor, fechar: fecharEditor, aba: irAba, auto: autoDe,
     desfazer: desfazer, refazer: refazer, gravarHist: gravarHist, hist: function () { return { n: HIST.length, pos: HPOS }; }, acao: function (k, v) { ACOES[k](v); agendar(); },
     kit: function () { return KIT; }, gravarKit: gravarKit, carregarImgs: carregarImgs, LOGOS: LOGOS, exportar: exportar, nomeArquivo: nomeArquivo, mascaraDe: mascaraDe, tirarFundoLogo: tirarFundoLogo,
-    lay: function () { return LAY; }, opcoesFoto: opcoesFoto, adsSel: function () { return adsSel(); }, comparar: function (v) { COMPARAR = v; agendar(); }
+    lay: function () { return LAY; }, opcoesFoto: opcoesFoto, adsSel: function () { return adsSel(); }, comparar: function (v, modo) { COMPARAR = !!v; if (modo) MODO_COMP = modo; botoesComp(); agendar(); },
+    addImagemCamada: addImagemCamada, itens: function () { return itensDe(fotoAtual()).map(function (x) { return x.k; }); }, mascaraCanvas: mascaraCanvas, cam: function () { return { CAM: CAM, PINTA: PINTA, SEGURA: SEGURA, modo: MODO_COMP }; }, previa: previa
   };
   if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(function () { });
 })();
