@@ -276,6 +276,10 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
     trocada pela IA; IA devolveu número de cenas diferente → usa o texto do aparelho. Bloco que cresce (imagem criada) não pode cobrir o de
     baixo: referências nascem bem abaixo das cenas. Arrastar = pixels da tela ÷ zoom. Id "quadro" já é o iframe da prévia (usar prefixo qd).
 
+86. "A IA não entende nada" de repente = PRIMEIRO chamar a bw-ia direto, logado, e ler o status e o corpo (17/11: 502 {"erro":"groq",
+    "detalhe":"Invalid API Key"} — a chave da Groq guardada no Supabase deixou de valer; derruba Tio Cláudio, roteiro do Reels, assistente,
+    transcrição e CRM de uma vez). Quem usa IA mostra o MOTIVO quando ela cai (chave, limite, rede), nunca "não entendi".
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -875,8 +879,16 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   chamada da bw-ia. LIMITES: não há IA de vídeo ligada no app (vídeo gerado depende de Kling/Veo/Higgsfield fora); com foto do personagem, a
   IMAGEM da referência não vai junto (só a descrição dela) — a função aceita uma foto por pedido. docs/testes/teste_quadro.py (29 checagens ×
   1280/390, IA simulada, 0 falhas). NÃO testado no ar com a IA real (dono ausente). Manual 44 → 45 p. reels.js v12, reels-quadro.js v1, sw v116. PENTE FINO 85.
+- 17/11/2026 22:55 · Claude (dono: "o Tio Cláudio não responde e diz NÃO ENTENDI, igual antes"): não é o código — a IA Brightway inteira
+  está fora: bw-ia devolve 502 "groq: Invalid API Key" (a chave GROQ_API_KEY do Supabase não vale mais; provável troca/exclusão de chave no
+  console da Groq hoje). Sem IA, só os pedidos diretos eram entendidos no aparelho e o resto virava "não entendi". bw-agente.js v18: quando a
+  IA cai, o Tio Cláudio fala o motivo (chave/limite/rede) e o que ainda entende. Conserto de verdade = o dono colar uma chave nova da Groq no
+  Supabase. Dono autorizou (22:44): IA de vídeo conectada OU exportar as fotos (o usuário escolhe) e mandar a imagem da referência junto.
+  layout.js v49, sw v117. PENTE FINO 86.
 
 ## Pendências (dono)
+- [ ] (17/11) URGENTE — IA BRIGHTWAY FORA DO AR: criar chave nova em console.groq.com → API Keys e colar em Supabase → Edge Functions →
+      Secrets → GROQ_API_KEY (substituir). Depois avisar o Claude para testar o Tio Cláudio, o roteiro do Reels e a transcrição.
 - [ ] (17/11) QUADRO DE HISTÓRIA: dono testar no ar, logado (EXEMPLO → foto → CRIAR IMAGENS → MONTAR O VÍDEO), no PC e no celular; decidir se
       vale ligar uma IA de vídeo paga (por chave do usuário) e mandar a imagem da referência junto (muda a função bw-ia-imagem).
 - [ ] (17/11) LEGENDA OFFLINE: dono rodar INSTALAR-LEGENDAS.bat e arrastar um vídeo com fala para o LEGENDAR.bat; mandar o resultado (ou o erro).

@@ -333,6 +333,14 @@
     'Regras: valor número com ponto; datas AAAA-MM-DD pelos PRÓXIMOS DIAS dados ("de manhã" 09:00, "à tarde" 14:00, "à noite" 19:00); gasto sem empresa/cliente/evento = gasto_casa; ' +
     '"recebi" de cliente = entrada_negocio; vários pedidos = várias ações; nunca invente valor nem dados dele; use a CONVERSA ANTERIOR para entender "e depois?", "muda isso". ' +
     'Nunca diga que algo foi lançado (quem lança é o app).';
+  /* 17/11: quando a IA Brightway cai (chave, limite do dia, sem internet) o Tio Cláudio diz o MOTIVO, em vez de "não entendi" */
+  var IA_ERRO = "";
+  function motivoIA() {
+    return IA_ERRO === "limite" ? "A IA Brightway já atingiu o limite de pedidos de hoje nesta conta." : IA_ERRO === "sem_login" ? "Entre na sua conta para eu usar a IA Brightway."
+      : IA_ERRO === "rede" ? "Estou sem conexão com a IA Brightway agora." : IA_ERRO ? "A IA Brightway está fora do ar agora (" + IA_ERRO + "). Avise o administrador da plataforma." : "";
+  }
+  function semIA() { return motivoIA() + " Sem ela eu ainda entendo pedidos diretos: gastei 50 no mercado, lembrar de ligar amanhã às 10, o que tenho hoje."; }
+  function marcarErro(r, j) { IA_ERRO = r.ok ? "" : String((j && j.erro) || r.status) + (j && j.detalhe && /key/i.test(j.detalhe) ? ": chave inválida" : ""); }
   async function entenderIA(texto) {
     var s = await sessao(); if (!s) return null;
     var d = new Date(), sem = ["domingo", "segunda", "terça", "quarta", "quinta", "sexta", "sábado"][d.getDay()];
@@ -344,10 +352,10 @@
       var ctl = new AbortController(), tm = setTimeout(function () { ctl.abort(); }, 12000);
       var r = await fetch(FN, { method: "POST", signal: ctl.signal, headers: { "Content-Type": "application/json", "Authorization": "Bearer " + s.access_token, "apikey": PUB }, body: JSON.stringify({ sistema: SISTEMA, pedido: pedido, max: 500 }) });
       clearTimeout(tm);
-      var j = await r.json().catch(function () { return {}; }); if (!r.ok || !j.texto) return null;
+      var j = await r.json().catch(function () { return {}; }); marcarErro(r, j); if (!r.ok || !j.texto) return null;
       var o = jsonDe(j.texto); if (!o || !Array.isArray(o.acoes)) return null;
       return o;
-    } catch (e) { return null; }
+    } catch (e) { IA_ERRO = "rede"; return null; }
   }
   var TIPOS_OK = ["gasto_casa", "receita_casa", "gasto_negocio", "entrada_negocio", "conta_pagar", "tarefa", "custo_evento", "consulta", "responder", "resumo_dia", "ajustar", "fim", "abrir", "nada"];
   function achatar(a) {   /* 16/11: a IA às vezes devolve {"tarefa":{...}} ou {"acao":"tarefa"} — sem isso TODA ação virava "não entendi" */
@@ -365,7 +373,7 @@
     try {
       var r = await fetch(FN, { method: "POST", headers: { "Content-Type": "application/json", "Authorization": "Bearer " + s.access_token, "apikey": PUB },
         body: JSON.stringify({ sistema: "Você é o TIO CLÁUDIO, assistente de voz da Brightway, do Marcos (mineiro, produtora de eventos e audiovisual). Responda em português, de forma calorosa e descontraída, um toque mineiro com moderação, em 1 a 3 frases curtas para serem FALADAS (sem emoji, sem markdown, sem listas). Se não souber, diga que não sabe. Não invente dados da agenda ou das contas dele.", pedido: (hist ? hist + "\n" : "") + "Pessoa: " + String(texto).slice(0, 500), max: 300 }) });
-      var j = await r.json().catch(function () { return {}; }); return r.ok && j.texto ? String(j.texto).replace(/[*#_`]/g, "").trim().slice(0, 600) : "";
+      var j = await r.json().catch(function () { return {}; }); marcarErro(r, j); return r.ok && j.texto ? String(j.texto).replace(/[*#_`]/g, "").trim().slice(0, 600) : "";
     } catch (e) { return ""; }
   }
   function normalizar(a) {   /* confere o que a IA devolveu antes de mostrar */
@@ -392,6 +400,8 @@
     if (dl && datadas.length === 1 && !/\d{1,2}\/\d{1,2}/.test(tl)) { var a1 = datadas[0]; if (a1.tipo === "conta_pagar") a1.vencimento = dl; else a1.data = dl; }
     if (r.acoes.some(function (a) { return !/^(nada|responder|fim)$/.test(a.tipo); })) r.resposta = "";   /* nunca "lembrete criado" antes de lançar */
     if (!r.acoes.length) r.acoes = [{ tipo: "nada" }];
+    if (usarIA && IA_ERRO && r.acoes.every(function (a) { return a.tipo === "nada"; })) { r.acoes = [{ tipo: "responder", texto: semIA() }]; r.resposta = ""; via = "no aparelho · IA fora do ar"; }
+    else if (usarIA && IA_ERRO) via = "no aparelho · IA fora do ar";
     r.via = via; return r;
   }
 
@@ -612,7 +622,7 @@
     if (/Mac OS X/i.test(ua)) return "No Mac: Ajustes do Sistema → Acessibilidade → Conteúdo Falado → Voz do sistema → Gerenciar vozes → Português (Brasil) → “Felipe”.";
     return "No computador, o navegador Microsoft Edge traz a voz masculina “Antonio” (natural), de graça.";
   }
-  var VERSAO = 17;
+  var VERSAO = 18;
   function testeSom() {   /* fala DIRETO no toque (sem espera) e mostra na tela o que o aparelho respondeu — para achar por que não sai som */
     var d = painel.querySelector("#bwgDiag"), linha = function (t) { if (d) d.textContent = "v" + VERSAO + " · " + t; };
     if (!window.speechSynthesis) { linha("este navegador não tem voz (speechSynthesis)"); return; }
