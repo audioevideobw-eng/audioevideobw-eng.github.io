@@ -1155,7 +1155,8 @@
     var pode = NO_APP && VIA && VIA.modelos.length;
     box.innerHTML = topo + l.map(function (p, i) {
       return '<div class="pc-item"><b>CENA ' + (p.cena + 1) + (p.feito ? ' · ✓ clipe gerado' : '') + '</b><textarea class="gl-prompt" readonly id="pc' + i + '">' + esc(p.prompt) + '</textarea><div class="rl-acoes" style="margin:6px 0 0"><button type="button" class="rl-bt peq" data-pc="' + i + '">COPIAR</button>' +
-        (pode ? '<button type="button" class="rl-bt peq pri" data-gv="' + i + '">✨ GERAR O CLIPE AQUI</button>' : '') + '</div><small class="rl-nota" id="gvS' + i + '"></small></div>';
+        (pode ? '<button type="button" class="rl-bt peq pri" data-gv="' + i + '">✨ GERAR O CLIPE AQUI</button>' : '') +
+        '<button type="button" class="rl-bt peq" data-fl="' + i + '" title="Para quem assina o Google AI (Pro ou Ultra): usa os créditos do seu plano no Flow">ABRIR NO FLOW (GOOGLE)</button></div><small class="rl-nota" id="gvS' + i + '"></small></div>';
     }).join("") + '<p class="rl-nota">Clipe de 5 s, vertical. A cobrança é da IA, na sua conta; o valor mostrado é referência' + (VIA && VIA.conferido ? " de " + esc(VIA.conferido) : "") + '. Ao postar, marque “Feito com IA”.</p>';
   }
   if (NO_APP) viaEstado().then(function () { if (P) desenharPrompts(); });
@@ -1190,8 +1191,23 @@
       var s2 = $("gvS" + i); if (s2) s2.textContent = "✓ Clipe gerado com " + r.valor.modelo + " e colocado na cena " + (p.cena + 1) + ".";
     } catch (e) { bt.disabled = false; st.textContent = "Não deu certo: " + (e.message || e); }
   }
+  /* ABRIR NO FLOW: para quem já paga o Google AI (Pro/Ultra). Nada é enviado pelo app: copia o texto, salva a imagem da cena no aparelho
+     e abre o Flow; a pessoa envia a imagem e cola o texto lá, com a conta dela, e depois importa o clipe aqui. */
+  var URL_FLOW = "https://labs.google/flow";
+  function abrirNoFlow(i, bt) {
+    var p = P.promptsCenas[i], c = P.roteiro.cenas[p.cena], st = $("gvS" + i), texto = $("pc" + i).value;
+    var copiou = navigator.clipboard ? navigator.clipboard.writeText(texto).then(function () { return true; }, function () { return false; }) : Promise.resolve(false);
+    if (NO_APP) window.bwNode("abrirFlow", {}); else window.open(URL_FLOW, "_blank", "noopener");     // abre já, dentro do toque
+    Promise.all([copiou, imagemDaCena(c).catch(function () { return null; })]).then(function (r) {
+      if (r[1]) { var a = document.createElement("a"); a.href = r[1]; a.download = "cena-" + (p.cena + 1) + ".jpg"; document.body.appendChild(a); a.click(); a.remove(); }
+      if (!r[0]) $("pc" + i).select();
+      st.textContent = (r[0] ? "✓ Texto copiado. " : "Copie o texto acima (Ctrl+C). ") + (r[1] ? "A imagem cena-" + (p.cena + 1) + ".jpg foi salva nos seus downloads. " : "Esta cena não tem imagem: gere só com o texto. ") +
+        "No Flow: envie a imagem, cole o texto, gere o clipe vertical (9:16), baixe e importe aqui em “Importar filmagens”. Depois escolha o clipe na cena " + (p.cena + 1) + ".";
+    });
+  }
   $("promptsCenas").addEventListener("click", function (e) {
     var g = e.target.closest("[data-gv]"); if (g) { gerarClipe(+g.dataset.gv, g); return; }
+    var f = e.target.closest("[data-fl]"); if (f) { abrirNoFlow(+f.dataset.fl, f); return; }
     var b = e.target.closest("[data-pc]"); if (!b) return; var t = $("pc" + b.dataset.pc).value;
     (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(function () { b.textContent = "✓ COPIADO"; setTimeout(function () { b.textContent = "COPIAR"; }, 1500); }).catch(function () { $("pc" + b.dataset.pc).select(); }); });
 

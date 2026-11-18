@@ -940,6 +940,11 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   NÃO testado: chave real de Runway/fal.ai (o primeiro clipe do dono é o teste), bibliotecas das CDNs de verdade (sem rede aqui), o .exe
   (Inno Setup só roda no Windows) e nada disso no Windows do dono. Os links do Pinterest de referência não abriram (bloqueio do site).
   PENTE FINO 89–90.
+- 18/11/2026 01:20 · Claude (dono tem Google AI Ultra na conta audioevideobw e pediu o atalho): cada cena de IA (aba MÍDIA) ganhou
+  ABRIR NO FLOW (GOOGLE): copia o texto, salva a imagem da cena (cena-N.jpg) nos downloads e abre o Flow (labs.google/flow) — no aplicativo,
+  no navegador padrão do PC. O app não envia nada: a pessoa gera no Flow com os créditos do plano dela e importa o clipe. O Ultra não tem
+  chave de API (os créditos valem no Flow/Whisk), por isso não entra como conector automático. teste_quadro.py +3 checagens, teste-app +1
+  (0 falhas). reels.js v15, sw v121.
 
 ## Pendências (dono)
 - [ ] (18/11) IA DE VÍDEO: dono criar a chave na Runway ou na fal.ai, conectar em IA DE VÍDEO e gerar 1 clipe (é o primeiro teste real; custa
