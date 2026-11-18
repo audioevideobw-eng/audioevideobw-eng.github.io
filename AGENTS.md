@@ -297,6 +297,9 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
 90. USO SEM INTERNET no aplicativo (motor/offline.mjs): rede primeiro, cópia do disco quando faltar; guarda só GET da plataforma e das CDNs
     da lista; nunca Supabase, nunca POST. `serviceWorkers: 'block'` na janela (o sw.js passaria por fora da troca). A cópia que vai no
     instalador (site-offline.zip) é gerada do repositório a cada pacote — página nova do site = gerar o pacote de novo.
+91. Janela aberta com `--app=URL` (aplicativo BW Reels): a primeira página NASCE com o navegador, antes de exposeBinding/addInitScript —
+    o teste sem janela não pega (lá a página é criada depois). Sempre `goto` de novo depois de registrar a ponte, e a página espera a ponte
+    alguns segundos antes de dar erro. Teste da corrida: carregar a página, só depois expor a ponte (18/11: 1ª abertura do dono deu "Não consegui começar").
 
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
@@ -950,6 +953,9 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   TUDO) + "LEIA-ME - COMO ABRIR.txt"; o 8 esconde (attrib +h, nada apagado) os arquivos tecnicos e os 3 atalhos extras, o 9 desfaz.
   CRIAR-ATALHO.bat agora cria SO o icone "BW Reels" (Assistente/Render/Studio abrem de dentro do app). Feito no PC do dono por computer use
   (Explorador em modo clique; o .bat executado nao tem pause porque as janelas de console ficam ocultas): pasta de 48 → 12 itens.
+- 18/11/2026 01:45 · Dono abriu o aplicativo pela 1ª vez: "Não consegui começar — abra pelo ícone BW Reels". Causa: com --app a página
+  carregava antes da ponte bwNode existir e o código pulava o recarregamento (a URL já era a certa). Claude: app.mjs sempre recarrega depois
+  de registrar a ponte; app/index.html e assistente/index.html esperam a ponte até 10 s. Corrida reproduzida e conferida; teste-app 0 falhas. PENTE FINO 91.
 
 ## Pendências (dono)
 - [ ] (18/11) IA DE VÍDEO: dono criar a chave na Runway ou na fal.ai, conectar em IA DE VÍDEO e gerar 1 clipe (é o primeiro teste real; custa
