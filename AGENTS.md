@@ -945,6 +945,11 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   no navegador padrão do PC. O app não envia nada: a pessoa gera no Flow com os créditos do plano dela e importa o clipe. O Ultra não tem
   chave de API (os créditos valem no Flow/Whisk), por isso não entra como conector automático. teste_quadro.py +3 checagens, teste-app +1
   (0 falhas). reels.js v15, sw v121.
+- 18/11/2026 01:35 · Claude (dono: "mostre qual clicar e organize a pasta" + "pode ocultar e deixe so o certo"): pasta do Studio com
+  arquivos NUMERADOS (1 - ABRIR BW REELS, 2 - INSTALAR, 3 - CRIAR ICONE, 4 - LEGENDAS, 5 - GERAR INSTALADOR EXE, 8 - ORGANIZAR, 9 - MOSTRAR
+  TUDO) + "LEIA-ME - COMO ABRIR.txt"; o 8 esconde (attrib +h, nada apagado) os arquivos tecnicos e os 3 atalhos extras, o 9 desfaz.
+  CRIAR-ATALHO.bat agora cria SO o icone "BW Reels" (Assistente/Render/Studio abrem de dentro do app). Feito no PC do dono por computer use
+  (Explorador em modo clique; o .bat executado nao tem pause porque as janelas de console ficam ocultas): pasta de 48 → 12 itens.
 
 ## Pendências (dono)
 - [ ] (18/11) IA DE VÍDEO: dono criar a chave na Runway ou na fal.ai, conectar em IA DE VÍDEO e gerar 1 clipe (é o primeiro teste real; custa
