@@ -289,6 +289,15 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
     Login = a página de login da plataforma dentro da janela; o app guarda só id/e-mail/nome + validade de 7 dias, nunca senha nem token.
     Ação que navega a janela e mexe na conta (SAIR) desliga antes o vigia de "página carregou" — senão ele registrava a conta de novo.
 
+89. IA DE VÍDEO CONECTADA (decisão do dono, 18/11: cada usuário conecta a própria IA): a chave fica SÓ no PC do usuário
+    (~/.bw-reels/video-ias.json, aplicativo BW Reels) — nunca no site, nunca no Supabase, nunca de volta para a tela. O site só pede ao
+    aplicativo `videoIA` (quais modelos) e `videoGerar`; antes de gerar, confirm() dizendo que a imagem da cena vai para a IA do usuário e o
+    custo de referência. Fora do aplicativo o botão não existe (só o texto para copiar). Formato de API de terceiros é lido na página oficial
+    no dia (Veo 3.1 preview saiu do ar em 22/10/2026 — a tabela de 17/11 já estava velha) e o teste com provedor simulado confere o corpo do pedido.
+90. USO SEM INTERNET no aplicativo (motor/offline.mjs): rede primeiro, cópia do disco quando faltar; guarda só GET da plataforma e das CDNs
+    da lista; nunca Supabase, nunca POST. `serviceWorkers: 'block'` na janela (o sw.js passaria por fora da troca). A cópia que vai no
+    instalador (site-offline.zip) é gerada do repositório a cada pacote — página nova do site = gerar o pacote de novo.
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -917,12 +926,29 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   progresso) — sem mudar nada no site e sem servidor local. Sem tabela nem função nova no Supabase. motor/teste-app.mjs com a plataforma
   SIMULADA: 29 checagens, 0 falhas; teste-assistente 0 falhas. NÃO testado no Windows do dono nem com o login real (Google pode recusar
   janela automatizada — e-mail e senha é o caminho seguro). Ainda é pasta + INSTALAR.bat, não um instalador .exe. PENTE FINO 88.
+- 18/11/2026 01:00 · Claude (dono: "cada usuário escolhe a sua IA e conecta, como conectores" + "incluir no software as ferramentas que
+  funcionam no PC, para usar offline no notebook" + "como criar o exe" + "layout de plataforma, com ícones, luzes e movimento"):
+  (1) IA DE VÍDEO CONECTADA — aplicativo BW Reels › IA DE VÍDEO: conectar Runway (Gen-4 Turbo US$ 0,05/s, Gen-4.5 US$ 0,12/s; chave conferida
+  na hora, mostra saldo) e fal.ai (Kling 3.0 Standard US$ 0,084/s sem som, US$ 0,126/s com som); no editor, dentro do aplicativo, cada cena de
+  IA (aba MÍDIA) ganha ✨ GERAR O CLIPE AQUI (confirma, gera 5 s, coloca o clipe na cena). Tabela do plano do Quadro atualizada para essas
+  IAs. reels.js v14, reels-quadro.js v4, sw v120. (2) SEM INTERNET — o aplicativo guarda cópia das ferramentas e bibliotecas (botão PREPARAR
+  PARA USAR SEM INTERNET + cópia que já vem no pacote) e abre EDITOR DE FOTOS, PDF, CRIADOR DE ARTES, ORÇAMENTOS, LEITOR DE CONTAS, editor de
+  reels e a plataforma mesmo desconectado. (3) INSTALADOR — GERAR-INSTALADOR.bat + instalador.iss (Inno Setup) criam BW-Reels-Setup.exe no PC
+  do dono. (4) TELA NOVA do aplicativo: menu lateral, busca de ferramenta, destaque, cartões com ícones, luzes e movimento, foto do perfil
+  (fica no PC). Testes: motor/teste-app.mjs 48 checagens (provedores de vídeo e plataforma SIMULADOS, servidor desligado para o offline),
+  teste_quadro.py (+7, aplicativo simulado) e teste_reels.py 0 falhas; as 7 páginas reais abrem pela cópia com o servidor desligado.
+  NÃO testado: chave real de Runway/fal.ai (o primeiro clipe do dono é o teste), bibliotecas das CDNs de verdade (sem rede aqui), o .exe
+  (Inno Setup só roda no Windows) e nada disso no Windows do dono. Os links do Pinterest de referência não abriram (bloqueio do site).
+  PENTE FINO 89–90.
 
 ## Pendências (dono)
+- [ ] (18/11) IA DE VÍDEO: dono criar a chave na Runway ou na fal.ai, conectar em IA DE VÍDEO e gerar 1 clipe (é o primeiro teste real; custa
+      ~US$ 0,25–0,42). Para funcionar também no celular/navegador a chave teria de ficar guardada no servidor (tabela + função novas) — só com o "sim" do dono.
+- [ ] (18/11) SEM INTERNET: dono tocar em PREPARAR PARA USAR SEM INTERNET, desligar o Wi-Fi e abrir EDITOR DE FOTOS, PDF e ORÇAMENTOS.
+- [ ] (18/11) INSTALADOR: dono rodar GERAR-INSTALADOR.bat e mandar o resultado (ou o erro). Layout: mandar os prints das referências do Pinterest.
 - [ ] (18/11) APLICATIVO BW REELS: dono abrir o atalho "BW Reels" (rodar CRIAR-ATALHO.bat uma vez), ENTRAR com a conta, abrir o QUADRO,
       fazer um RENDERIZAR NO PC por dentro do app e testar LEGENDAS; dizer se o login pelo Google funcionou na janela.
-- [ ] (17/11) IA DE VÍDEO CONECTADA: decidir onde fica a chave (servidor da Brightway com cobrança, ou chave do próprio usuário guardada no
-      servidor) e qual serviço; conferir os preços e modelos atuais (há aviso de troca do Veo 3.1 por modelo novo do Google).
+- [x] (18/11, dono: "cada usuário escolhe a sua IA e conecta") IA DE VÍDEO CONECTADA: feita no aplicativo do PC com a chave do usuário guardada no PC dele.
 - [x] (17/11 23:35, com o "sim" do dono) Função bw-ia-imagem publicada pelo painel (editor conferido por SHA-256: antes = versão antiga do repo,
       depois = versão nova). Teste no ar com 2 imagens de TESTE desenhadas (boneco de camisa verde + cenário roxo): 7,6 s, 576×1024,
       73% da imagem em tons do cenário de referência e 14% verde do personagem → a referência está sendo usada. Gastou 1 das 15 imagens do dia.

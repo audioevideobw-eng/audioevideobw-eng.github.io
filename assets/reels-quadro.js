@@ -150,10 +150,10 @@
   }
   /* ---------- PLANO DE PRODUÇÃO (17/11): decide, cena por cena, o que resolve no app (grátis) e o que pede IA de vídeo, e estima o custo.
      Preços de REFERÊNCIA por segundo (US$), lidos em páginas públicas em 17/11/2026 — mudam sempre: conferir no site da IA antes de pagar. ---------- */
-  var VIDEO_IA = {conferido: "17/11/2026",
-    eco: {nome: "Veo 3.1 Lite (720p, com som)", usd: 0.05, seg: 6},
-    acao: {nome: "Kling 3.0 (1080p, sem som)", usd: 0.112, seg: 5},
-    fala: {nome: "Veo 3.1 Standard (1080p, com fala)", usd: 0.40, seg: 8}};
+  var VIDEO_IA = {conferido: "18/11/2026",
+    eco: {nome: "Runway Gen-4 Turbo (720p, sem som)", usd: 0.05, seg: 5},
+    acao: {nome: "Kling 3.0 Standard (sem som)", usd: 0.084, seg: 5},
+    fala: {nome: "Veo 3.1 pela Runway (com fala)", usd: 0.40, seg: 8}};
   var RE_ACAO = /danc|corre|caminh|andando|entra\b|entrando|chega|pula|abrac|beij|fotograf|filma|grava|montando|carreg|dirig|voa\b|voando|cai\b|caindo|levanta|gira|aplaud|comemor|canta|cozinh|mergulh|joga\b|jogando|chuta|sobe\b|subindo|desce\b|descendo|atravess|persegu|foge|luta|entrega|abre\b|abrindo|serve\b|servindo/;
   var semAcento = function (t) { return String(t || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, ""); };
   function tipoCena(c, temPers) { var mov = RE_ACAO.test(semAcento(c.contexto || c.texto)), fala = !!String(c.fala || "").trim(); if (mov) return fala && temPers ? "acao_fala" : "acao"; if (!temPers) return "ambiente"; return fala ? "fala" : "parada"; }
@@ -246,7 +246,7 @@
     try { await BWReels.montarDoQuadro(q); } catch (e) { ocupado(); aviso("Não deu para montar: " + (e && e.message || e), true); return; }
     ocupado(); fechar();
     var semImg = q.cenas.filter(function (c) { return !c.imagem && !c.video; }).length;
-    setTimeout(function () { alert("Reel montado com " + q.cenas.length + " cena(s)! Plano: " + res.texto + "." + (p.comIA ? " Textos organizados pela IA Brightway." : " Textos montados no aparelho.") + (res.video ? " As cenas de IA de vídeo já têm o prompt e a IA indicada na aba MÍDIA: gere o clipe lá, importe e troque na cena. Preços de referência de " + VIDEO_IA.conferido + "; confira no site da IA antes de pagar." : semImg ? " " + semImg + " cena(s) sem imagem ficaram com o personagem animado ou só com o texto." : "")); }, 250);
+    setTimeout(function () { alert("Reel montado com " + q.cenas.length + " cena(s)! Plano: " + res.texto + "." + (p.comIA ? " Textos organizados pela IA Brightway." : " Textos montados no aparelho.") + (res.video ? " As cenas de IA de vídeo já têm o texto pronto na aba MÍDIA: no aplicativo BW Reels do PC, com a sua IA conectada, toque em GERAR O CLIPE AQUI; fora dele, copie o texto, gere no site da IA e importe. Preços de referência de " + VIDEO_IA.conferido + "; confira no site da IA antes de pagar." : semImg ? " " + semImg + " cena(s) sem imagem ficaram com o personagem animado ou só com o texto." : "")); }, 250);
   }
 
   /* ---------- abrir / fechar ---------- */

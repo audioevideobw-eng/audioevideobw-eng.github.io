@@ -283,3 +283,13 @@ Tamanho > 0 e sem erro = o pdfmake montou o arquivo. Localmente (T1) confira o `
 - Render sem mexer no site: `page.on('download')` pega o `*.bwreels.zip`, `saveAs` em projetos/, descompacta e chama o render; outros
   downloads vão para a pasta Downloads com aviso.
 - Teste: plataforma simulada por um servidor só do teste (env BWREELS_SITE_TESTE) + um segundo servidor "de fora" para provar a recusa.
+
+## Aplicativo: uso sem internet e conectores de IA do usuário — 18/11/2026
+- Offline sem servidor local: `context.route('**/*')` → `route.fetch()` (rede primeiro, grava no disco) e, se falhar, `route.fulfill` com a
+  cópia (`~/.bw-reels/offline` ou a cópia do pacote). Só GET; só a plataforma + lista de CDNs; pedidos com Range passam direto.
+  Chave do arquivo: plataforma = caminho (o ?v= novo substitui o velho); CDN = hash da URL inteira. Janela com `serviceWorkers:'block'`.
+  Teste: visitar online, `server.close()` + `closeAllConnections()`, abrir de novo; e uma página que só existe na cópia do pacote.
+- Conector com chave do usuário: arquivo local só de chaves; `status()` devolve final da chave, nunca a chave; provedor simulado por env
+  (BWREELS_VIDEO_TESTE) guarda o corpo do pedido para conferir o formato; resultado grande volta pela ponte em base64.
+- Instalador: Inno Setup em pasta de usuário (`{localappdata}`, `PrivilegesRequired=lowest`) porque o app grava projetos e node_modules
+  na própria pasta; `robocopy /XD node_modules` monta a pasta limpa antes de compilar.

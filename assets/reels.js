@@ -1139,13 +1139,60 @@
     return "Use the reference image: the same character" + (dados.desc ? " (" + dados.desc + ")" : "") + ", same face, design, colors and outfit. " + c.pose + ". " + ACAO_EN[c.acao] +
       ". Vertical 9:16, 5 seconds, smooth cinematic camera movement, natural motion, no text on screen." + (c.fala ? ' The character says in Brazilian Portuguese: "' + c.fala + '"' : "");
   }
+  /* ---------- IA DE VÍDEO CONECTADA (18/11): dentro do aplicativo BW Reels do PC, com a IA que o próprio usuário conectou.
+     A chave fica no PC dele (o site nunca vê); aqui só pedimos ao aplicativo: "gere este clipe". Fora do aplicativo o botão explica onde fica. ---------- */
+  var VIA = null;                                   // {modelos:[{id,nome,usd,segs,obs}], padrao}
+  var NO_APP = !!(window.BW_APP && window.bwNode);
+  async function viaEstado() { if (!NO_APP) return null; try { var r = await window.bwNode("videoIA", {}); VIA = r && r.ok ? r.valor : null; } catch (e) { VIA = null; } return VIA; }
+  var dolarV = function (v) { return "US$ " + v.toFixed(2).replace(".", ","); };
   function desenharPrompts() {
     var box = $("promptsCenas"), l = P && P.promptsCenas || [];
-    box.innerHTML = l.length ? '<div class="rl-eyebrow" style="margin:12px 0 6px">Prompts para a IA de vídeo (use a foto do personagem como referência)</div>' + l.map(function (p, i) {
-      return '<div class="pc-item"><b>CENA ' + (p.cena + 1) + '</b><textarea class="gl-prompt" readonly id="pc' + i + '">' + esc(p.prompt) + '</textarea><div class="rl-acoes" style="margin:6px 0 0"><button type="button" class="rl-bt peq" data-pc="' + i + '">COPIAR</button></div></div>';
-    }).join("") + '<p class="rl-nota">Gere cada clipe (5–8 s, vertical) no Kling, Higgsfield ou Veo, importe aqui e escolha na cena. Ao postar, marque “Feito com IA”.</p>' : "";
+    if (!l.length) { box.innerHTML = ""; return; }
+    var topo = '<div class="rl-eyebrow" style="margin:12px 0 6px">Cenas para a IA de vídeo</div>';
+    if (!NO_APP) topo += '<p class="rl-nota" id="gvEstado">Para gerar o clipe aqui dentro, abra este reel no aplicativo <b>BW Reels</b> do computador e conecte a sua IA em IA DE VÍDEO. Ou copie o texto, gere no site da IA e importe o clipe.</p>';
+    else if (!VIA || !VIA.modelos.length) topo += '<p class="rl-nota" id="gvEstado">Nenhuma IA de vídeo conectada. Toque em <b>⌂ BW REELS</b> › <b>IA DE VÍDEO</b>, conecte a sua e volte aqui. Ou copie o texto e gere fora.</p>';
+    else topo += '<div class="rl-campo" id="gvEstado"><label for="gvModelo">IA conectada que vai gerar</label><select id="gvModelo">' + VIA.modelos.map(function (m) { return '<option value="' + esc(m.id) + '"' + (m.id === VIA.padrao ? " selected" : "") + '>' + esc(m.nome) + " · 5 s ≈ " + dolarV(m.usd * 5) + '</option>'; }).join("") + '</select></div>';
+    var pode = NO_APP && VIA && VIA.modelos.length;
+    box.innerHTML = topo + l.map(function (p, i) {
+      return '<div class="pc-item"><b>CENA ' + (p.cena + 1) + (p.feito ? ' · ✓ clipe gerado' : '') + '</b><textarea class="gl-prompt" readonly id="pc' + i + '">' + esc(p.prompt) + '</textarea><div class="rl-acoes" style="margin:6px 0 0"><button type="button" class="rl-bt peq" data-pc="' + i + '">COPIAR</button>' +
+        (pode ? '<button type="button" class="rl-bt peq pri" data-gv="' + i + '">✨ GERAR O CLIPE AQUI</button>' : '') + '</div><small class="rl-nota" id="gvS' + i + '"></small></div>';
+    }).join("") + '<p class="rl-nota">Clipe de 5 s, vertical. A cobrança é da IA, na sua conta; o valor mostrado é referência' + (VIA && VIA.conferido ? " de " + esc(VIA.conferido) : "") + '. Ao postar, marque “Feito com IA”.</p>';
   }
-  $("promptsCenas").addEventListener("click", function (e) { var b = e.target.closest("[data-pc]"); if (!b) return; var t = $("pc" + b.dataset.pc).value;
+  if (NO_APP) viaEstado().then(function () { if (P) desenharPrompts(); });
+  function imagemDaCena(c) {
+    return new Promise(function (ok, falha) {
+      var u = c && c.midia ? urlDe(c.midia) : null, m = c && c.midia ? MID.find(function (x) { return x.caminho === c.midia; }) : null;
+      if (!u || !m || m.tipo !== "imagem") return falha(new Error("esta cena ainda não tem imagem. Crie as imagens no Quadro de História (ou escolha uma foto na cena) e tente de novo."));
+      var im = new Image(); im.onload = function () {
+        var k = Math.min(1, 1280 / Math.max(im.naturalWidth, im.naturalHeight)), cv = document.createElement("canvas");
+        cv.width = Math.round(im.naturalWidth * k); cv.height = Math.round(im.naturalHeight * k); cv.getContext("2d").drawImage(im, 0, 0, cv.width, cv.height);
+        ok(cv.toDataURL("image/jpeg", 0.9));
+      }; im.onerror = function () { falha(new Error("não consegui abrir a imagem da cena")); }; im.src = u;
+    });
+  }
+  async function gerarClipe(i, bt) {
+    var p = P.promptsCenas[i], c = P.roteiro.cenas[p.cena], st = $("gvS" + i), mid = $("gvModelo").value;
+    var mod = VIA.modelos.find(function (x) { return x.id === mid; }); if (!c || !mod) return;
+    try {
+      var img = await imagemDaCena(c);
+      if (!confirm("Gerar o clipe da CENA " + (p.cena + 1) + " com " + mod.nome + "?\n\n• A imagem e o texto desta cena vão para essa IA, pela SUA conta.\n• Custo de referência: " + dolarV(mod.usd * 5) + " (5 s), cobrado pela IA na sua conta. Confira o preço no site dela.\n• Leva de 1 a 5 minutos.")) return;
+      bt.disabled = true; st.textContent = "Gerando… pode levar alguns minutos. Não feche esta janela.";
+      var r = await window.bwNode("videoGerar", {modelo: mid, prompt: $("pc" + i).value, imagem: img, seg: 5});
+      if (!r || !r.ok) throw new Error(r && r.erro || "a IA não respondeu");
+      var bin = atob(r.valor.base64), arr = new Uint8Array(bin.length); for (var k = 0; k < bin.length; k++) arr[k] = bin.charCodeAt(k);
+      var blob = new Blob([arr], {type: "video/mp4"}), id = uid(), caminho = "midia/clipe-ia-cena" + (p.cena + 1) + "-" + id.slice(-4) + ".mp4", url = URL.createObjectURL(blob);
+      var dur = await duracaoDe(url, "video");
+      await dbPut("midias", {id: id, projeto: P.id, nome: "Clipe IA · cena " + (p.cena + 1) + ".mp4", tipo: "video", caminho: caminho, dur: dur, blob: blob});
+      MID.push({id: id, nome: "Clipe IA · cena " + (p.cena + 1) + ".mp4", tipo: "video", caminho: caminho, dur: dur, url: url});
+      var texto = c.texto || (c.falas && c.falas[0] && c.falas[0].texto) || "";
+      P.roteiro.cenas[p.cena] = {tipo: "midia", duracao: Math.min(dur || 5, 5), texto: texto, midia: caminho};
+      p.feito = true; salvar(); desenharTudo(); desenharMidias(); desenharPrompts(); atualizar();
+      var s2 = $("gvS" + i); if (s2) s2.textContent = "✓ Clipe gerado com " + r.valor.modelo + " e colocado na cena " + (p.cena + 1) + ".";
+    } catch (e) { bt.disabled = false; st.textContent = "Não deu certo: " + (e.message || e); }
+  }
+  $("promptsCenas").addEventListener("click", function (e) {
+    var g = e.target.closest("[data-gv]"); if (g) { gerarClipe(+g.dataset.gv, g); return; }
+    var b = e.target.closest("[data-pc]"); if (!b) return; var t = $("pc" + b.dataset.pc).value;
     (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(function () { b.textContent = "✓ COPIADO"; setTimeout(function () { b.textContent = "COPIAR"; }, 1500); }).catch(function () { $("pc" + b.dataset.pc).select(); }); });
 
   $("mpCriar").onclick = async function () {
