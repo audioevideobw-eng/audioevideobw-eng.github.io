@@ -275,6 +275,11 @@ if fnuv:
         problemas.append("assets/fotos.js: a IA criativa precisa pedir confirmação antes de enviar a foto")
 # 16/11: CRIADOR IA — só fala com as Edge Functions bw-ia (textos) e, pelo fotos-nuvem.js, bw-ia-imagem; nada gravado na nuvem;
 # foto só sai no modo "IA coloca a pessoa", com confirmação
+pjs = ler("assets/personagens.js") if os.path.exists("assets/personagens.js") else ""
+if pjs:
+    if [u for u in re.findall(r"https?://[^\s\"']+", pjs) if "functions/v1/bw-ia" not in u]: problemas.append("assets/personagens.js: só pode chamar a Edge Function bw-ia")
+    if "confirm(" not in pjs or "antesDeSalvar" in pjs or ".upload(" in pjs: problemas.append("assets/personagens.js: imagem com IA só com confirmação; nada vai para a conta")
+if os.path.exists("assets/bw-personagens.js") and re.search(r"fetch\(|XMLHttpRequest|supabase", ler("assets/bw-personagens.js")): problemas.append("assets/bw-personagens.js: a biblioteca de personagens não fala com a internet")
 crjs = ler("assets/criador.js") if os.path.exists("assets/criador.js") else ""
 if crjs:
     urls = {u for u in re.findall(r"https://[^\"'\s)]+", crjs) if "supabase.co" in u}

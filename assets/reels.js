@@ -927,7 +927,7 @@
   /* ---------- MEUS PERSONAGENS: biblioteca (IndexedDB), CRIAR PERSONAGEM (montador) e ACRESCENTAR (foto) ---------- */
   var LIB = [], LIB_URL = {};
   async function carregarLib() {
-    LIB = (await dbTodos("personagens").catch(function () { return []; })).sort(function (a, b) { return (b.criado || 0) - (a.criado || 0); });
+    LIB = (await dbTodos("personagens").catch(function () { return []; })).filter(function (x) { return x.tipo !== "ficha"; }).sort(function (a, b) { return (b.criado || 0) - (a.criado || 0); });
     Object.keys(LIB_URL).forEach(function (k) { URL.revokeObjectURL(LIB_URL[k]); }); LIB_URL = {};
     LIB.forEach(function (L) { if (L.tipo === "foto" && L.blob) LIB_URL[L.id] = URL.createObjectURL(L.blob); });
   }

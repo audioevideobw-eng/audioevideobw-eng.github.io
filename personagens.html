@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Personagens — Brightway</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#06080D">
+<link rel="icon" type="image/png" href="icons/favicon-64.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Brightway">
+<link rel="stylesheet" href="assets/brightway.css?v=26">
+<style>
+.wrap{max-width:1180px;margin:0 auto;padding:0 20px 110px}
+.pg-topo{position:relative;overflow:hidden;border-radius:22px;padding:22px 20px;background:linear-gradient(120deg,#5B2BE0,#B02BD9 55%,#FF5D8F);color:#fff;box-shadow:0 18px 50px rgba(123,44,191,.35)}
+.pg-topo::after{content:"";position:absolute;right:-60px;top:-80px;width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.28),transparent 65%);animation:pgLuz 7s ease-in-out infinite alternate}
+@keyframes pgLuz{to{transform:translate(-80px,50px) scale(1.2)}}
+.pg-topo h1{position:relative;margin:0 0 4px;font:800 26px/1.1 Montserrat,Inter,sans-serif;letter-spacing:.02em}
+.pg-topo p{position:relative;margin:0 0 14px;max-width:620px;font:500 14px/1.45 Inter,sans-serif;opacity:.95}
+.pg-acoes{position:relative;display:flex;gap:8px;flex-wrap:wrap}
+.pg-bt{min-height:44px;padding:0 16px;border-radius:13px;border:1px solid rgba(245,241,234,.2);background:rgba(255,255,255,.06);color:#F5F1EA;font:800 12px Inter,sans-serif;letter-spacing:.07em;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:7px;text-decoration:none;touch-action:manipulation;transition:transform .12s}
+.pg-bt:active{transform:scale(.96)}.pg-bt:disabled{opacity:.4;cursor:default}
+.pg-bt.pri{background:#fff;border-color:#fff;color:#3b1a8f}
+.pg-bt.amb{background:linear-gradient(180deg,#ffc56b,#FFB547);border-color:#FFB547;color:#1a1205}
+.pg-bt.perigo{color:#ff9a9d;border-color:rgba(242,104,107,.4)}
+.pg-tit{margin:22px 0 10px;font:800 12px Inter,sans-serif;letter-spacing:.14em;color:var(--bw-texto-3)}
+.pg-grade{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px}
+@media (max-width:520px){.pg-grade{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}}
+.pg-card{position:relative;overflow:hidden;min-width:0;height:230px;border-radius:20px;border:0;padding:14px;text-align:left;color:#fff;cursor:pointer;background:linear-gradient(140deg,var(--c1),var(--c2));box-shadow:0 12px 30px rgba(0,0,0,.4);transition:transform .18s,box-shadow .18s;touch-action:manipulation}
+.pg-card:hover{transform:translateY(-4px);box-shadow:0 18px 40px rgba(0,0,0,.5)}
+.pg-card::before{content:"";position:absolute;inset:0;background:linear-gradient(115deg,transparent 55%,rgba(255,255,255,.16) 55%,rgba(255,255,255,.04) 72%,transparent 72%)}
+.pg-card img{position:absolute;right:0;bottom:0;height:88%;max-width:70%;object-fit:contain;object-position:bottom right;filter:drop-shadow(0 8px 16px rgba(0,0,0,.45))}
+.pg-card .ini{position:absolute;right:10px;bottom:-14px;font:800 120px/1 Montserrat,sans-serif;color:rgba(255,255,255,.2)}
+.pg-card b{position:relative;display:block;max-width:70%;font:800 18px/1.1 Montserrat,Inter,sans-serif;overflow-wrap:anywhere}
+.pg-card small{position:relative;display:block;margin-top:4px;max-width:62%;font:600 11.5px/1.3 Inter,sans-serif;opacity:.9}
+.pg-card .tag{position:absolute;left:12px;bottom:12px;padding:4px 9px;border-radius:999px;background:rgba(0,0,0,.4);font:700 9.5px Inter,sans-serif;letter-spacing:.08em}
+.pg-vazio{grid-column:1/-1;padding:26px 16px;border:1px dashed rgba(245,241,234,.2);border-radius:18px;text-align:center;color:var(--bw-texto-2);font:500 14px/1.5 Inter,sans-serif}
+.pg-folha{position:fixed;inset:0;z-index:1300;background:rgba(4,6,10,.7);display:flex;justify-content:flex-end}
+.pg-folha[hidden]{display:none}
+.pg-cx{width:min(560px,100%);height:100%;box-sizing:border-box;overflow:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;background:#10141c;border-left:1px solid rgba(183,156,255,.35);padding:14px 16px calc(20px + env(safe-area-inset-bottom));padding-top:max(14px,env(safe-area-inset-top));color:#F5F1EA;font:500 13.5px/1.45 Inter,sans-serif}
+.pg-cab{display:flex;align-items:center;gap:8px;margin-bottom:10px}.pg-cab b{flex:1;font:800 13px Inter,sans-serif;letter-spacing:.1em}
+.pg-chat{display:flex;flex-direction:column;gap:8px;margin-bottom:10px}
+.pg-msg{max-width:88%;padding:10px 13px;border-radius:16px;white-space:pre-wrap;overflow-wrap:anywhere}
+.pg-msg.a{align-self:flex-start;background:rgba(183,156,255,.14);border:1px solid rgba(183,156,255,.3);border-bottom-left-radius:5px}
+.pg-msg.u{align-self:flex-end;background:rgba(255,181,71,.16);border:1px solid rgba(255,181,71,.35);border-bottom-right-radius:5px}
+.pg-entrada{display:flex;gap:6px;align-items:flex-end}
+.pg-entrada textarea,.pg-campo textarea,.pg-campo input{display:block;width:100%;box-sizing:border-box;padding:10px;border-radius:12px;border:1px solid rgba(245,241,234,.18);background:#0B0E14;color:#F5F1EA;font:500 16px/1.35 Inter,sans-serif;resize:vertical;text-transform:none}
+.pg-entrada textarea{flex:1;min-width:0}
+#agMic.on{background:#FF6B6B;border-color:#FF6B6B;color:#0B0E14}
+.pg-ficha{margin-top:12px;padding:12px;border-radius:16px;border:1px solid rgba(245,241,234,.12);background:rgba(255,255,255,.03)}
+.pg-ficha h4{margin:0 0 8px;font:800 11px Inter,sans-serif;letter-spacing:.12em;color:#B9C0CC}
+.pg-campo{display:block;margin-bottom:8px;font:700 10.5px Inter,sans-serif;letter-spacing:.1em;color:#B9C0CC;text-transform:uppercase}
+.pg-campo>span{display:block;margin-bottom:4px}
+.pg-linha{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}.pg-linha .pg-bt{flex:1 1 auto}
+.pg-img{position:relative;margin:0 0 10px;border-radius:16px;overflow:hidden;min-height:120px;background:linear-gradient(140deg,var(--c1,#5B2BE0),var(--c2,#FF5D8F));text-align:center}
+.pg-img img{display:block;margin:0 auto;max-width:100%;max-height:340px;object-fit:contain}
+.pg-aviso{margin-top:8px;padding:9px 12px;border-radius:12px;font:600 12.5px/1.4 Inter,sans-serif;background:rgba(62,207,142,.12);border:1px solid rgba(62,207,142,.4);color:#9af0c4}
+.pg-aviso.erro{background:rgba(242,104,107,.12);border-color:rgba(242,104,107,.45);color:#ffb3b5}
+.pg-aviso[hidden]{display:none}
+.pg-nota{margin:8px 0 0;font:500 12px/1.4 Inter,sans-serif;color:#B9C0CC}
+.pg-chips{display:flex;flex-wrap:wrap;gap:6px}
+.pg-chip{min-height:36px;padding:0 12px;border-radius:999px;border:1px solid rgba(245,241,234,.2);background:rgba(255,255,255,.04);color:#F5F1EA;font:700 11.5px Inter,sans-serif;cursor:pointer}
+html.pg-aberto,html.pg-aberto body{overflow:hidden}
+</style>
+</head>
+<body>
+<header><div class="hd"><button id="btnVoltar" type="button">‹</button><div id="userBox"></div></div></header>
+<div class="wrap">
+  <div class="pg-topo">
+    <h1>PERSONAGENS</h1>
+    <p>O lugar dos seus personagens. Crie conversando com o agente (ele monta a ficha e o prompt), gere a imagem e use o mesmo personagem no Quadro de História e no BW Reels.</p>
+    <div class="pg-acoes">
+      <button class="pg-bt pri" id="pgNovo" type="button">✨ CRIAR COM O AGENTE</button>
+      <button class="pg-bt" id="pgEnviar" type="button">＋ ENVIAR IMAGEM</button>
+    </div>
+  </div>
+  <div class="pg-tit">MEUS PERSONAGENS</div>
+  <div class="pg-grade" id="pgGrade"></div>
+  <p class="pg-nota">Os personagens ficam guardados neste aparelho. Imagens só saem daqui quando você toca em criar imagem com IA e confirma.</p>
+</div>
+
+<!-- AGENTE: conversa → ficha + prompt -->
+<div class="pg-folha" id="folhaAgente" hidden><div class="pg-cx" role="dialog" aria-label="Agente de personagens">
+  <div class="pg-cab"><b>✨ AGENTE DE PERSONAGENS</b><button class="pg-bt" id="agFechar" type="button" aria-label="Fechar o agente">✕</button></div>
+  <div class="pg-chat" id="agChat" aria-live="polite"></div>
+  <div class="pg-entrada"><textarea id="agTexto" rows="2" maxlength="800" aria-label="Sua mensagem para o agente" placeholder="Ex.: uma fotógrafa de casamento simpática, cabelo cacheado, jaqueta jeans"></textarea>
+    <button class="pg-bt" id="agMic" type="button" aria-label="Falar" aria-pressed="false">🎙</button><button class="pg-bt amb" id="agEnviar" type="button">ENVIAR</button></div>
+  <div class="pg-aviso" id="agAviso" hidden aria-live="polite"></div>
+  <div class="pg-ficha" id="agFicha" hidden>
+    <h4>FICHA DO PERSONAGEM (PODE MEXER)</h4>
+    <div class="pg-img" id="fxImg" hidden></div>
+    <label class="pg-campo"><span>Nome</span><input id="fxNome" maxlength="40"></label>
+    <label class="pg-campo"><span>Papel na história</span><input id="fxPapel" maxlength="80"></label>
+    <label class="pg-campo"><span>Aparência</span><textarea id="fxAparencia" rows="2" maxlength="300"></textarea></label>
+    <label class="pg-campo"><span>Roupa</span><textarea id="fxRoupa" rows="2" maxlength="200"></textarea></label>
+    <label class="pg-campo"><span>Jeito de ser</span><input id="fxPersonalidade" maxlength="160"></label>
+    <label class="pg-campo"><span>Estilo do desenho</span><input id="fxEstilo" maxlength="120" placeholder="ex.: 3D estilo animação, foto realista, desenho 2D"></label>
+    <label class="pg-campo"><span>Prompt mestre (para qualquer IA de imagem)</span><textarea id="fxPrompt" rows="4" maxlength="900"></textarea></label>
+    <div class="pg-linha"><button class="pg-bt" id="fxCopiar" type="button">⧉ COPIAR PROMPT</button><button class="pg-bt" id="fxImagem" type="button">✨ CRIAR IMAGEM</button><button class="pg-bt amb" id="fxSalvar" type="button">✓ SALVAR</button></div>
+    <p class="pg-nota">CRIAR IMAGEM usa a IA criativa da Brightway (1 das 15 imagens do dia). Se preferir, copie o prompt, gere no Flux, Higgsfield ou Gemini e envie a imagem aqui.</p>
+  </div>
+</div></div>
+
+<!-- FICHA de um personagem salvo -->
+<div class="pg-folha" id="folhaPers" hidden><div class="pg-cx" role="dialog" aria-label="Personagem">
+  <div class="pg-cab"><b id="psTitulo">PERSONAGEM</b><button class="pg-bt" id="psFechar" type="button" aria-label="Fechar">✕</button></div>
+  <div class="pg-img" id="psImg"></div>
+  <div id="psCorpo"></div>
+  <div class="pg-aviso" id="psAviso" hidden aria-live="polite"></div>
+</div></div>
+<input type="file" id="pgArq" accept="image/*" hidden>
+
+<script src="assets/layout.js?v=50"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="assets/bw-sync.js"></script>
+<script src="assets/fotos-nuvem.js?v=3"></script>
+<script src="assets/reels-avatar.js?v=1"></script>
+<script src="assets/bw-personagens.js?v=1"></script>
+<script src="assets/personagens.js?v=1"></script>
+</body>
+</html>

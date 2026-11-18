@@ -187,6 +187,11 @@ html.qd-aberto,html.qd-aberto body{overflow:hidden}
 .qd-foto.ia img{max-height:230px;object-fit:cover}
 .qd-add{width:100%;min-height:54px;border:1px dashed rgba(245,241,234,.25);border-radius:10px;background:transparent;color:#B9C0CC;font:700 11px Inter,sans-serif;letter-spacing:.06em;cursor:pointer}
 .qd-x{position:absolute;right:5px;top:5px;width:30px;height:30px;border-radius:50%;border:0;background:rgba(0,0,0,.65);color:#fff;cursor:pointer}
+.qd-lib{min-height:36px;margin:2px 0 6px;border-style:solid;border-color:rgba(200,246,90,.45);color:#C8F65A}
+.qd-lib-lista{display:flex;flex-direction:column;gap:6px;margin:8px 0}
+.qd-lib-item{display:flex;align-items:center;gap:10px;min-height:64px;padding:6px 10px;border-radius:14px;border:1px solid rgba(245,241,234,.16);background:rgba(255,255,255,.04);color:#F5F1EA;text-align:left;cursor:pointer}
+.qd-lib-item img,.qd-lib-item i{flex:none;width:52px;height:52px;border-radius:12px;object-fit:contain;background:linear-gradient(140deg,#5B2BE0,#FF5D8F);font:800 24px/52px Montserrat,sans-serif;font-style:normal;text-align:center}
+.qd-lib-item span{min-width:0}.qd-lib-item b{display:block;font:800 13px Inter,sans-serif}.qd-lib-item small{display:block;font:500 11.5px/1.3 Inter,sans-serif;color:#B9C0CC;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .qd-zoom{position:absolute;right:10px;bottom:10px;display:flex;gap:6px}
 .qd-zoom button{width:40px;height:40px;border-radius:12px;border:1px solid rgba(245,241,234,.18);background:#161B26;color:#F5F1EA;font-size:17px;cursor:pointer}
 .qd-base{padding:8px 12px calc(10px + env(safe-area-inset-bottom));border-top:1px solid rgba(245,241,234,.1);position:relative}
@@ -694,12 +699,20 @@ html.qd-aberto,html.qd-aberto body{overflow:hidden}
       </div>
     </div>
   </div>
+  <div class="qd-prompt" id="qdLib" hidden>
+    <div class="qd-pp-caixa" role="dialog" aria-label="Meus personagens">
+      <div class="qd-pp-cab"><b>👤 MEUS PERSONAGENS</b><button class="rl-bt peq" id="qdLibFechar" type="button" aria-label="Fechar a lista de personagens">✕</button></div>
+      <p>Escolha quem vai ser o personagem desta história. É a mesma biblioteca da área de Personagens e do BW Reels.</p>
+      <div class="qd-lib-lista" id="qdLibLista"></div>
+      <div class="qd-pp-linha"><a class="rl-bt" href="personagens.html">✨ CRIAR COM O AGENTE (ÁREA DE PERSONAGENS)</a></div>
+    </div>
+  </div>
   <input type="file" id="qdArquivo" accept="image/*" hidden>
   <div class="rl-ocup" id="qdOcup" hidden><div><i></i><span id="qdOcupTxt">Criando…</span></div></div>
 </div>
 <div class="rl-ocup" id="ocup" hidden><div><i></i><span id="ocupTxt">Criando…</span></div></div>
 
-<script src="assets/layout.js?v=49"></script>
+<script src="assets/layout.js?v=50"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="assets/bw-sync.js"></script>
 <script src="assets/reels-motor.js?v=6"></script>
@@ -707,7 +720,8 @@ html.qd-aberto,html.qd-aberto body{overflow:hidden}
 <script src="assets/fotos-nuvem.js?v=3"></script>
 <script src="assets/reels-avatar.js?v=1"></script>
 <script src="assets/reels-celular.js?v=3"></script>
-<script src="assets/reels-quadro.js?v=5"></script>
+<script src="assets/bw-personagens.js?v=1"></script>
+<script src="assets/reels-quadro.js?v=6"></script>
 <script src="assets/reels.js?v=15"></script>
 </body>
 </html>

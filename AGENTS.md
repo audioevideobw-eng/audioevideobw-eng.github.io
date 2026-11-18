@@ -310,6 +310,10 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
     reduzida, o arquivo final e o desfazer. Botão de 2 estados que os testes/usuários já conhecem (ANTES) não vira de 3 estados: o modo novo
     (LADO A LADO) é um seletor que aparece quando ele está ligado. "Segurar para ver" cancela se o dedo andar (senão briga com o arrastar).
 
+94. Dado que várias ferramentas usam (personagens) tem UMA biblioteca num arquivo só (assets/bw-personagens.js), aberta com a MESMA versão e as
+    mesmas lojas do IndexedDB de quem já usava (bw_reels v2) — versão diferente em outra página trava o banco. Tipo novo de registro ("ficha",
+    sem imagem) é filtrado em quem não sabe desenhar (lista do Reels). Passar item entre páginas = link com ?id, aplicado e depois limpo do endereço.
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -986,11 +990,21 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   embaixo da foto (um toque troca); controles deslizantes finos com botão claro. (4) ANTES: DIVISOR ou LADO A LADO (lembrado em ui_fotos_comp) e
   SEGURAR a foto 0,3 s mostra o original, soltar volta. teste_fotos.py +21 checagens × 1280/390 + iPhone (0 falhas). Imagens das camadas ficam só
   na memória do aparelho. fotos.js v12, sw v123. PENTE FINO 93.
+- 18/11/2026 10:50 · Claude (dono: "interface de personagens… um agente junto que auxilia na criação do personagem com o prompt… área dedicada que conversa
+  com todas as áreas e ferramentas que solicitam um personagem"): ÁREA DE PERSONAGENS (personagens.html + assets/personagens.js) em Marketing (menu,
+  galeria de Marketing, Ferramentas e Início). Galeria em cartões coloridos; ✨ CRIAR COM O AGENTE: conversa por texto ou voz → UMA chamada da bw-ia por
+  mensagem (só texto: conversa + ficha atual) devolve a FICHA (nome, papel, aparência, roupa, jeito, estilo) + PROMPT MESTRE em inglês + uma
+  pergunta; campos editáveis; ✨ CRIAR IMAGEM pela fotos-nuvem.js (confirm, só o texto, conta nas 15/dia; fundo liso sai sozinho) ou COPIAR PROMPT
+  e ＋ ENVIAR IMAGEM; sem conta = perguntas guiadas com as palavras da pessoa. Biblioteca ÚNICA em assets/bw-personagens.js (IndexedDB bw_reels,
+  loja personagens — a mesma do BW Reels; tipos foto/ficha/montado). Ligações: ficha → 🧩 NO QUADRO DE HISTÓRIA (reels.html?quadro=1&pers=ID
+  preenche o bloco PERSONAGEM) e 🎬 NO BW REELS; no Quadro, botão 👤 MEUS PERSONAGENS no bloco. O Reels não lista personagem sem imagem.
+  docs/testes/teste_personagens.py (28 checagens × 1280/390, IA SIMULADA, 0 falhas). NÃO testado no ar com a IA real. Criador IA e editor de
+  fotos ainda não puxam da biblioteca. Manual 45 → 46 p. layout.js v50, reels-quadro.js v6, sw v124. PENTE FINO 94.
 
 ## Pendências (dono)
 - [ ] (18/11) QUADRO: dono testar no ar, logado — arrastar bolinhas, ✨ PROMPT com 🎙 FALAR no PC e no celular (IA real e microfone de verdade).
 - [ ] (18/11 09:02–09:07, pedidos do dono na fila) EDITOR DE FOTOS: FEITO 10:10 (dono testar no celular: pintar máscara com o dedo e segurar para
-      ver o antes) · ÁREA DE PERSONAGENS com agente que ajuda no prompt e serve todas as ferramentas · EDITOR DE VÍDEO com
+      ver o antes) · ÁREA DE PERSONAGENS: FEITA 10:50 (dono testar logado com a IA real) · EDITOR DE VÍDEO com
       linha do tempo em camadas, trilha e efeitos, recebendo as criações · CARA NOVA do app (mais colorida, cartões com gradiente).
 - [ ] (18/11) IA DE VÍDEO: dono criar a chave na Runway ou na fal.ai, conectar em IA DE VÍDEO e gerar 1 clipe (é o primeiro teste real; custa
       ~US$ 0,25–0,42). Para funcionar também no celular/navegador a chave teria de ficar guardada no servidor (tabela + função novas) — só com o "sim" do dono.
