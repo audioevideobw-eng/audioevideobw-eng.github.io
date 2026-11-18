@@ -892,7 +892,7 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
 
 ## Pendências (dono)
 - [ ] (17/11) Publicar a nova versão da função bw-ia-imagem no Supabase (2ª imagem = referência) e testar no ar com personagem + referência.
-- [ ] (17/11) URGENTE — IA BRIGHTWAY FORA DO AR: criar chave nova em console.groq.com → API Keys e colar em Supabase → Edge Functions →
+- [x] (17/11 23:25, dono colou chave nova; Claude testou no ar: bw-ia 200, Tio Cláudio v18 entendeu tarefa, gasto, pergunta e piada em ~1,5 s cada) IA BRIGHTWAY FORA DO AR: criar chave nova em console.groq.com → API Keys e colar em Supabase → Edge Functions →
       Secrets → GROQ_API_KEY (substituir). Depois avisar o Claude para testar o Tio Cláudio, o roteiro do Reels e a transcrição.
 - [ ] (17/11) QUADRO DE HISTÓRIA: dono testar no ar, logado (EXEMPLO → foto → CRIAR IMAGENS → MONTAR O VÍDEO), no PC e no celular; decidir se
       vale ligar uma IA de vídeo paga (por chave do usuário) e mandar a imagem da referência junto (muda a função bw-ia-imagem).
