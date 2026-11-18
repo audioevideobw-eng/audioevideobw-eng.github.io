@@ -137,13 +137,48 @@ html.qd-aberto,html.qd-aberto body{overflow:hidden}
 .qd-area{position:relative;flex:1;min-height:0;overflow:hidden;touch-action:none;cursor:grab;background:#0E121A radial-gradient(rgba(245,241,234,.07) 1px,transparent 1px) 0 0/22px 22px}
 .qd-mundo{position:absolute;left:0;top:0;transform-origin:0 0}
 .qd-setas{position:absolute;left:0;top:0;overflow:visible;pointer-events:none}
-.qd-linha{fill:none;stroke:#C8F65A;stroke-width:2.5}
-.qd-linha.ref{stroke:#6FB6FF;stroke-dasharray:7 6}
+.qd-linha{fill:none;stroke:#B79CFF;stroke-width:2.5;stroke-linecap:round;filter:drop-shadow(0 0 5px rgba(183,156,255,.35))}
+.qd-linha.cP{stroke:#C8F65A;filter:drop-shadow(0 0 5px rgba(200,246,90,.35))}
+.qd-linha.cR,.qd-linha.ref{stroke:#6FB6FF;stroke-dasharray:7 6;filter:none}
+.qd-linha.solta{stroke:#F5F1EA;stroke-dasharray:4 6;filter:none}
 .qd-toque{fill:none;stroke:transparent;stroke-width:22;pointer-events:stroke;cursor:pointer}
-.qd-bloco{position:absolute;width:232px;box-sizing:border-box;background:#161B26;border:1px solid rgba(245,241,234,.16);border-radius:14px;padding:0 10px 10px;box-shadow:0 10px 26px rgba(0,0,0,.4);cursor:default}
-.qd-bloco.t-pers{border-color:#C8F65A}.qd-bloco.t-ref{border-color:#6FB6FF;border-style:dashed}.qd-bloco.t-fim{border-color:#FFB547}
-.qd-bloco.ligando{outline:3px solid #C8F65A;outline-offset:2px}
-.qd-cab{display:flex;align-items:center;justify-content:space-between;gap:6px;margin:0 -10px 8px;padding:6px 6px 6px 12px;border-bottom:1px solid rgba(245,241,234,.1);font:800 11px Inter,sans-serif;letter-spacing:.1em;color:#F5F1EA;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none}
+.qd-bloco{position:absolute;width:232px;box-sizing:border-box;background:#161B26;border:1px solid color-mix(in srgb,var(--cor) 55%,transparent);border-radius:14px;padding:0 10px 10px;box-shadow:0 10px 26px rgba(0,0,0,.4);cursor:default}
+.qd-bloco{--cor:#B79CFF}.qd-bloco.t-pers{--cor:#C8F65A}.qd-bloco.t-ref{--cor:#6FB6FF}.qd-bloco.t-fim{--cor:#FFB547}
+.qd-bloco.ligando{outline:3px solid var(--cor);outline-offset:3px}
+.qd-bloco.ligado{outline:2px dashed #F5F1EA;outline-offset:3px}
+.qd-bloco.alvo{outline:3px solid #F5F1EA;outline-offset:3px}
+.qd-tela.ligando .qd-bloco:not(.ligando){cursor:pointer}
+.qd-pt{position:absolute;top:13px;width:22px;height:22px;box-sizing:border-box;border-radius:50%;border:3px solid #0E121A;background:var(--cor);padding:0;z-index:2}
+.qd-pt.sai{right:-11px;cursor:crosshair;touch-action:none;box-shadow:0 0 0 2px var(--cor),0 0 12px var(--cor);transition:transform .12s}
+.qd-pt.sai::after{content:"";position:absolute;inset:-12px;border-radius:50%}
+.qd-pt.sai:hover,.qd-bloco.ligando .qd-pt.sai{transform:scale(1.25)}
+.qd-pt.ent{left:-8px;top:17px;width:14px;height:14px;border-width:2px;background:#0E121A;box-shadow:0 0 0 2px rgba(245,241,234,.45);pointer-events:none}
+.qd-pp{display:flex;align-items:center;gap:6px;margin-top:6px;padding:2px 2px 2px 9px;border-radius:9px;background:rgba(183,156,255,.14);border:1px solid rgba(183,156,255,.4);font:700 11px Inter,sans-serif;color:#D9CCFF}
+.qd-pp span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.qd-pp button{width:30px;height:30px;border:0;background:transparent;color:#D9CCFF;cursor:pointer;font-size:13px}
+.qd-trilho{position:absolute;left:10px;top:10px;z-index:3;display:flex;flex-direction:column;gap:6px;padding:6px;border-radius:16px;background:rgba(22,27,38,.92);border:1px solid rgba(245,241,234,.14);box-shadow:0 14px 34px rgba(0,0,0,.45)}
+.qd-trilho button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;width:64px;min-height:52px;padding:6px 2px;border-radius:12px;border:1px solid transparent;background:transparent;color:#F5F1EA;font:800 9.5px Inter,sans-serif;letter-spacing:.06em;cursor:pointer;touch-action:manipulation}
+.qd-trilho button i{font-style:normal;font-size:19px;line-height:1}
+.qd-trilho button:hover{background:rgba(255,255,255,.07);border-color:rgba(245,241,234,.16)}
+.qd-trilho .cC i{color:#B79CFF}.qd-trilho .cR i{color:#6FB6FF}
+.qd-trilho .pp{background:linear-gradient(160deg,rgba(183,156,255,.28),rgba(111,182,255,.16));border-color:rgba(183,156,255,.5)}
+.qd-trilho .ok{background:#C8F65A;color:#0B0E14}.qd-trilho .ok[hidden]{display:none}
+.qd-prompt{position:absolute;inset:0;z-index:6;display:flex;justify-content:flex-end;background:rgba(5,7,11,.55)}
+.qd-prompt[hidden]{display:none}
+.qd-pp-caixa{width:min(440px,100%);height:100%;box-sizing:border-box;overflow:auto;-webkit-overflow-scrolling:touch;background:#121722;border-left:1px solid rgba(183,156,255,.35);padding:14px 14px calc(16px + env(safe-area-inset-bottom));color:#F5F1EA;font:500 13px/1.45 Inter,sans-serif}
+.qd-pp-cab{display:flex;align-items:center;gap:8px;margin-bottom:4px}.qd-pp-cab b{flex:1;font:800 13px Inter,sans-serif;letter-spacing:.08em}
+.qd-pp-caixa h4{margin:14px 0 6px;font:800 10.5px Inter,sans-serif;letter-spacing:.12em;color:#B9C0CC}
+.qd-pp-caixa p{margin:0 0 6px;color:#B9C0CC;font-size:12.5px}
+.qd-chips{display:flex;flex-wrap:wrap;gap:6px}
+.qd-chip{min-height:38px;padding:0 12px;border-radius:999px;border:1px solid rgba(245,241,234,.2);background:rgba(255,255,255,.04);color:#F5F1EA;font:700 12px Inter,sans-serif;cursor:pointer;touch-action:manipulation}
+.qd-chip.on{background:#B79CFF;border-color:#B79CFF;color:#0B0E14}.qd-chip:disabled{opacity:.35;cursor:default}
+.qd-pp-caixa textarea{display:block;width:100%;box-sizing:border-box;padding:10px;border-radius:12px;border:1px solid rgba(245,241,234,.18);background:#0E121A;color:#F5F1EA;font:500 16px/1.4 Inter,sans-serif;resize:vertical;text-transform:none}
+.qd-pp-linha{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}.qd-pp-linha .rl-bt{flex:1 1 auto;justify-content:center;text-decoration:none}
+#qdPpMic.on{background:#FF6B6B;border-color:#FF6B6B;color:#0B0E14;animation:qdPulso 1.2s ease-in-out infinite}
+@keyframes qdPulso{50%{box-shadow:0 0 0 10px rgba(255,107,107,0)}0%,100%{box-shadow:0 0 0 0 rgba(255,107,107,.5)}}
+.qd-pp-ctx{display:flex;gap:8px;align-items:flex-start;margin-top:8px;font:500 12px Inter,sans-serif;color:#B9C0CC;text-transform:none;letter-spacing:0}
+@media (max-width:560px){.qd-trilho{flex-direction:row;left:8px;right:8px;top:8px;overflow-x:auto;padding:4px}.qd-trilho button{flex:0 0 auto;width:60px;min-height:46px}}
+.qd-cab{display:flex;align-items:center;justify-content:space-between;gap:6px;box-sizing:border-box;min-height:46px;margin:0 -10px 8px;padding:6px 16px 6px 14px;border-radius:13px 13px 0 0;border-bottom:1px solid rgba(245,241,234,.1);background:linear-gradient(90deg,color-mix(in srgb,var(--cor) 30%,transparent),transparent 85%);box-shadow:inset 3px 0 0 var(--cor);font:800 11px Inter,sans-serif;letter-spacing:.1em;color:#F5F1EA;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none}
 .qd-cab span{display:flex;gap:4px}
 .qd-porta{width:34px;height:34px;border-radius:10px;border:1px solid rgba(245,241,234,.18);background:rgba(255,255,255,.05);color:#F5F1EA;font-size:15px;cursor:pointer}
 .qd-in{display:block;width:100%;box-sizing:border-box;margin-top:6px;padding:8px 9px;border-radius:9px;border:1px solid rgba(245,241,234,.14);background:#0E121A;color:#F5F1EA;font:500 16px Inter,sans-serif;resize:none;text-transform:none}
@@ -607,9 +642,17 @@ html.qd-aberto,html.qd-aberto body{overflow:hidden}
   </div>
   <p class="qd-dica" id="qdDica" aria-live="polite"></p>
   <div class="qd-area" id="qdArea">
+    <div class="qd-trilho" role="toolbar" aria-label="Ferramentas do quadro">
+      <button type="button" class="cC" id="qdMaisCena"><i>＋</i>CENA</button>
+      <button type="button" class="cR" id="qdMaisRef"><i>＋</i>REFERÊNCIA</button>
+      <button type="button" class="pp" id="qdBtPrompt"><i>✨</i>PROMPT</button>
+      <button type="button" id="qdOrganizar"><i>▤</i>ORGANIZAR</button>
+      <button type="button" class="ok" id="qdLigarFim" hidden><i>✓</i>PRONTO</button>
+    </div>
     <div class="qd-mundo" id="qdMundo">
       <svg class="qd-setas" width="6000" height="3000" aria-hidden="true"><defs>
-        <marker id="qdPonta" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#C8F65A"/></marker>
+        <marker id="qdPontaP" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#C8F65A"/></marker>
+        <marker id="qdPontaC" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#B79CFF"/></marker>
         <marker id="qdPontaR" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#6FB6FF"/></marker>
       </defs><g id="qdLinhas"></g></svg>
       <div id="qdBlocos"></div>
@@ -620,8 +663,6 @@ html.qd-aberto,html.qd-aberto body{overflow:hidden}
     <div class="rl-aviso" id="qdAviso" hidden aria-live="polite"></div>
     <label class="qd-autor"><input type="checkbox" id="qdAutor"> As fotos são minhas ou tenho autorização de quem aparece nelas.</label>
     <div class="qd-botoes">
-      <button class="rl-bt" id="qdMaisCena" type="button">＋ CENA</button>
-      <button class="rl-bt" id="qdMaisRef" type="button">＋ REFERÊNCIA</button>
       <button class="rl-bt" id="qdImagens" type="button">✨ CRIAR IMAGENS</button>
       <button class="rl-bt" id="qdBaixar" type="button" hidden>⬇ BAIXAR IMAGENS</button>
       <button class="rl-bt pri" id="qdMontar" type="button">🎬 MONTAR O VÍDEO</button>
@@ -631,6 +672,26 @@ html.qd-aberto,html.qd-aberto body{overflow:hidden}
       <button class="rl-bt" id="qdMontarVideo" type="button">★ PRO<small>melhor qualidade</small></button>
       <button class="rl-bt" id="qdMontarMotor" type="button">SÓ O APP<small>grátis</small></button>
       <p class="qd-nota">O app escolhe, cena por cena, o que resolve de graça e o que pede IA de vídeo, e estima o custo. Gerar o clipe aqui dentro com IA conectada: <b>disponível em breve</b> — por enquanto o app entrega o prompt e a IA indicada.</p>
+    </div>
+  </div>
+  <div class="qd-prompt" id="qdPrompt" hidden>
+    <div class="qd-pp-caixa" role="dialog" aria-label="Melhorar prompt">
+      <div class="qd-pp-cab"><b>✨ MELHORAR PROMPT</b><button class="rl-bt peq" id="qdPpFechar" type="button" aria-label="Fechar o melhorador de prompt">✕</button></div>
+      <p id="qdPpPara"></p>
+      <h4>1 · PARA QUAL IA?</h4>
+      <div class="qd-chips" id="qdPpDest"></div>
+      <div class="qd-chips" id="qdPpTipo" style="margin-top:6px"></div>
+      <h4>2 · O QUE VOCÊ QUER VER?</h4>
+      <textarea id="qdPpFala" rows="4" maxlength="1200" aria-label="O que você quer ver" placeholder="Fale ou escreva do seu jeito. Ex.: a fotógrafa entra no salão vazio, a câmera vai chegando perto do rosto dela, luz quente de fim de tarde"></textarea>
+      <div class="qd-pp-linha"><button class="rl-bt" id="qdPpMic" type="button" aria-pressed="false">🎙 FALAR</button><button class="rl-bt pri" id="qdPpGerar" type="button">✨ GERAR PROMPT</button></div>
+      <label class="qd-pp-ctx"><input type="checkbox" id="qdPpCtx" checked> Usar o personagem e as referências do quadro para manter tudo igual.</label>
+      <div class="rl-aviso" id="qdPpAviso" hidden aria-live="polite"></div>
+      <div id="qdPpResultado" hidden>
+        <h4>3 · PROMPT PRONTO</h4>
+        <textarea id="qdPpSaida" rows="7" maxlength="1500" aria-label="Prompt pronto"></textarea>
+        <div class="qd-pp-linha"><button class="rl-bt pri" id="qdPpCopiar" type="button">⧉ COPIAR</button><button class="rl-bt" id="qdPpUsar" type="button">✓ USAR NESTA CENA</button><a class="rl-bt" id="qdPpAbrir" target="_blank" rel="noopener" hidden>ABRIR ↗</a></div>
+        <p style="margin-top:8px">O app só escreve o texto. Quem gera a imagem ou o vídeo é a IA que você escolheu, na sua conta de lá.</p>
+      </div>
     </div>
   </div>
   <input type="file" id="qdArquivo" accept="image/*" hidden>
@@ -646,7 +707,7 @@ html.qd-aberto,html.qd-aberto body{overflow:hidden}
 <script src="assets/fotos-nuvem.js?v=3"></script>
 <script src="assets/reels-avatar.js?v=1"></script>
 <script src="assets/reels-celular.js?v=3"></script>
-<script src="assets/reels-quadro.js?v=4"></script>
+<script src="assets/reels-quadro.js?v=5"></script>
 <script src="assets/reels.js?v=15"></script>
 </body>
 </html>

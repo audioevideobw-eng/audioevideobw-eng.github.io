@@ -301,6 +301,10 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
     o teste sem janela não pega (lá a página é criada depois). Sempre `goto` de novo depois de registrar a ponte, e a página espera a ponte
     alguns segundos antes de dar erro. Teste da corrida: carregar a página, só depois expor a ponte (18/11: 1ª abertura do dono deu "Não consegui começar").
 
+92. Editor de blocos ligados (Quadro): ligar por ARRASTE da porta + modo de toque que CONTINUA ligado até ✓ PRONTO (um toque = uma ligação fazia
+    parecer que "só liga uma por vez"); a ordem não pode depender de "uma saída por bloco" (ordem topológica + posição). Painel que cobre a tela
+    fecha primeiro no Esc. Resposta de IA em texto livre é limpa (marcação, "Prompt:", aspas em volta) antes de ir para o campo.
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -956,8 +960,23 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
 - 18/11/2026 01:45 · Dono abriu o aplicativo pela 1ª vez: "Não consegui começar — abra pelo ícone BW Reels". Causa: com --app a página
   carregava antes da ponte bwNode existir e o código pulava o recarregamento (a URL já era a certa). Claude: app.mjs sempre recarrega depois
   de registrar a ponte; app/index.html e assistente/index.html esperam a ponte até 10 s. Corrida reproduzida e conferida; teste-app 0 falhas. PENTE FINO 91.
+- 18/11/2026 09:30 · Claude (dono, com 2 referências de editor de nós: "só consigo linkar uma por vez… quantas ligações quiser" + "melhoria de prompt: você fala,
+  ele escuta e gera o prompt para o app de criação escolhido"): QUADRO DE HISTÓRIA novo. LIGAÇÕES: cada bloco tem bolinha de saída (direita) e de
+  entrada (esquerda); ARRASTAR a bolinha até outro bloco liga na hora; TOCAR na bolinha entra no modo LIGAR (toca em vários blocos, tocar de novo
+  desfaz, ✓ PRONTO ou Esc sai); um bloco pode ter várias saídas e várias entradas (a ordem da história = cada cena depois de todas as que apontam
+  para ela, desempate pela posição); linhas coloridas pelo tipo de origem. LAYOUT: trilho de ferramentas (＋ CENA, ＋ REFERÊNCIA, ✨ PROMPT,
+  ▤ ORGANIZAR), cabeçalho colorido por tipo. ✨ MELHORAR PROMPT (botão do trilho ou ✨ da cena): 🎙 FALAR (reconhecimento do navegador; sem ele
+  grava até 40 s e transcreve na bw-ia) ou escrever → escolhe Higgsfield, Gemini (Nano Banana), Flow/Veo, Kling, Runway, Midjourney, Flux ou outra,
+  VÍDEO/IMAGEM → UMA chamada da bw-ia (só texto) devolve o prompt em inglês no formato daquela IA → COPIAR, ABRIR a IA, USAR NESTA CENA (o app
+  passa a usar esse prompt na cena) ou CRIAR CENA COM ELE. Sem conta/IA fora do ar: organiza o texto da pessoa e diz o motivo. Nenhuma IA de fora
+  é chamada. teste_quadro.py +22 checagens (0 falhas, IA e microfone SIMULADOS). NÃO testado no ar com a IA real nem com microfone de verdade.
+  reels-quadro.js v5, sw v122. PENTE FINO 92.
 
 ## Pendências (dono)
+- [ ] (18/11) QUADRO: dono testar no ar, logado — arrastar bolinhas, ✨ PROMPT com 🎙 FALAR no PC e no celular (IA real e microfone de verdade).
+- [ ] (18/11 09:02–09:07, pedidos do dono na fila) EDITOR DE FOTOS: camadas + máscaras prontas e livres + layout da referência + antes/depois lado a
+      lado e segurar para ver o antes · ÁREA DE PERSONAGENS com agente que ajuda no prompt e serve todas as ferramentas · EDITOR DE VÍDEO com
+      linha do tempo em camadas, trilha e efeitos, recebendo as criações · CARA NOVA do app (mais colorida, cartões com gradiente).
 - [ ] (18/11) IA DE VÍDEO: dono criar a chave na Runway ou na fal.ai, conectar em IA DE VÍDEO e gerar 1 clipe (é o primeiro teste real; custa
       ~US$ 0,25–0,42). Para funcionar também no celular/navegador a chave teria de ficar guardada no servidor (tabela + função novas) — só com o "sim" do dono.
 - [ ] (18/11) SEM INTERNET: dono tocar em PREPARAR PARA USAR SEM INTERNET, desligar o Wi-Fi e abrir EDITOR DE FOTOS, PDF e ORÇAMENTOS.

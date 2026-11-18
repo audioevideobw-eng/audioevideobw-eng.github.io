@@ -40,11 +40,19 @@
   /* ---------- ordem da história: segue as setas a partir do PERSONAGEM (ou da cena mais à esquerda) ---------- */
   function historia() {
     var cenas = Q.blocos.filter(function (b) { return b.tipo === "cena"; }), pers = Q.blocos.filter(function (b) { return b.tipo === "pers"; })[0], fim = Q.blocos.filter(function (b) { return b.tipo === "fim"; })[0];
-    var prox = function (id) { return Q.setas.filter(function (s) { return s.de === id && (bloco(s.para) || {}).tipo === "cena"; }).map(function (s) { return bloco(s.para); }).sort(function (a, b) { return a.x - b.x; })[0]; };
-    var temEntrada = function (c) { return Q.setas.some(function (s) { return s.para === c.id && (bloco(s.de) || {}).tipo === "cena"; }); };
-    var ini = (pers && prox(pers.id)) || cenas.filter(function (c) { return !temEntrada(c); }).sort(function (a, b) { return a.x - b.x; })[0];
-    var ordem = [], visto = {};
-    while (ini && !visto[ini.id]) { visto[ini.id] = 1; ordem.push(ini); ini = prox(ini.id); }
+    var ehCena = function (id) { return (bloco(id) || {}).tipo === "cena"; }, pos = function (a, b) { return a.x - b.x || a.y - b.y; };
+    var filhos = function (id) { return Q.setas.filter(function (s) { return s.de === id && ehCena(s.para); }).map(function (s) { return bloco(s.para); }); };
+    var pais = function (id) { return Q.setas.filter(function (s) { return s.para === id && ehCena(s.de); }).map(function (s) { return s.de; }); };
+    var ini = pers ? filhos(pers.id) : [];
+    if (!ini.length) ini = cenas.filter(function (c) { return !pais(c.id).length; }).sort(pos).slice(0, 1);
+    var dentro = {}, fila = ini.slice();                       /* tudo o que as ligações alcançam a partir do começo */
+    while (fila.length) { var c = fila.shift(); if (dentro[c.id]) continue; dentro[c.id] = c; fila = fila.concat(filhos(c.id)); }
+    var ordem = [], visto = {}, falta = Object.keys(dentro).map(function (k) { return dentro[k]; });
+    while (falta.length) {                                     /* uma cena entra depois de TODAS as que apontam para ela */
+      var livres = falta.filter(function (c) { return pais(c.id).every(function (p) { return !dentro[p] || visto[p]; }); });
+      var prox = (livres.length ? livres : falta).sort(pos)[0];
+      visto[prox.id] = 1; ordem.push(prox); falta = falta.filter(function (c) { return c !== prox; });
+    }
     var soltas = cenas.filter(function (c) { return !visto[c.id]; });
     var refs = function (c) { return Q.setas.filter(function (s) { return (s.para === c.id || (pers && s.para === pers.id)) && (bloco(s.de) || {}).tipo === "ref"; }).map(function (s) { return bloco(s.de); }); };
     return {pers: pers, fim: fim, cenas: ordem, soltas: soltas, refs: refs};
@@ -60,29 +68,34 @@
       '<textarea class="qd-in" data-campo="texto" rows="3" maxlength="240" placeholder="O que acontece nesta cena?">' + esc(b.texto) + '</textarea><input class="qd-in" data-campo="fala" maxlength="90" placeholder="Fala ou texto na tela (opcional)" value="' + esc(b.fala) + '">';
     else if (b.tipo === "ref") corpo = foto("IMAGEM (opcional)") + '<textarea class="qd-in" data-campo="texto" rows="2" maxlength="200" placeholder="O que é: lugar, objeto, estilo, cores…">' + esc(b.texto) + '</textarea>';
     else corpo = '<input class="qd-in" data-campo="texto" maxlength="60" placeholder="Chamada final (ex.: Peça seu orçamento)" value="' + esc(b.texto) + '">';
-    return '<div class="qd-bloco t-' + b.tipo + (LIGAR === b.id ? " ligando" : "") + '" data-id="' + b.id + '" style="left:' + b.x + 'px;top:' + b.y + 'px"><div class="qd-cab" data-pega="' + b.id + '"><b>' + ROT[b.tipo] + (b.tipo === "cena" && n ? " " + n : "") + '</b><span>' +
-      (b.tipo !== "fim" ? '<button type="button" class="qd-porta" data-ligar="' + b.id + '" aria-label="Ligar este bloco a outro" title="Ligar a outro bloco">➜</button>' : "") +
-      (b.tipo === "cena" || b.tipo === "ref" ? '<button type="button" class="qd-porta" data-apagar="' + b.id + '" aria-label="Excluir bloco">🗑</button>' : "") + '</span></div>' + corpo + '</div>';
+    var pronto = b.tipo === "cena" && b.meuPrompt ? '<div class="qd-pp"><span>✨ Prompt pronto' + (b.meuPromptPara ? " · " + esc(b.meuPromptPara) : "") + '</span><button type="button" data-tirar-pp="' + b.id + '" aria-label="Tirar o prompt pronto">✕</button></div>' : "";
+    return '<div class="qd-bloco t-' + b.tipo + (LIGAR === b.id ? " ligando" : "") + (LIGAR && LIGAR !== b.id && Q.setas.some(function (s) { return s.de === LIGAR && s.para === b.id; }) ? " ligado" : "") + '" data-id="' + b.id + '" style="left:' + b.x + 'px;top:' + b.y + 'px">' +
+      (b.tipo !== "ref" ? '<i class="qd-pt ent" aria-hidden="true"></i>' : "") +
+      (b.tipo !== "fim" ? '<button type="button" class="qd-pt sai" data-ligar="' + b.id + '" aria-label="Ligar este bloco a outros (toque ou arraste)" title="Arraste até outro bloco, ou toque e depois toque nos blocos"></button>' : "") +
+      '<div class="qd-cab" data-pega="' + b.id + '"><b>' + ROT[b.tipo] + (b.tipo === "cena" && n ? " " + n : "") + '</b><span>' +
+      (b.tipo === "cena" ? '<button type="button" class="qd-porta" data-prompt="' + b.id + '" aria-label="Melhorar o prompt desta cena" title="Melhorar o prompt desta cena">✨</button>' : "") +
+      (b.tipo === "cena" || b.tipo === "ref" ? '<button type="button" class="qd-porta" data-apagar="' + b.id + '" aria-label="Excluir bloco">🗑</button>' : "") + '</span></div>' + corpo + pronto + '</div>';
   }
   function desenhar() {
     var h = historia(), num = {}; h.cenas.forEach(function (c, i) { num[c.id] = i + 1; });
     $("qdBlocos").innerHTML = Q.blocos.map(function (b) { return htmlBloco(b, num[b.id]); }).join("");
     desenharSetas();
-    var falta = h.soltas.length ? h.soltas.length + " cena(s) solta(s): ligue com ➜ para entrar na história. " : "";
-    $("qdDica").textContent = LIGAR ? "Agora toque no bloco que vem DEPOIS (ou em ➜ de novo para cancelar)." : falta + (h.cenas.length ? h.cenas.length + " cena(s) na história." : "Ligue o PERSONAGEM à primeira cena.");
+    var falta = h.soltas.length ? h.soltas.length + " cena(s) solta(s): arraste a bolinha de um bloco até ela para entrar na história. " : "";
+    $("qdDica").textContent = LIGAR ? "LIGANDO: toque em quantos blocos quiser (tocar de novo desfaz a ligação). Depois toque em ✓ PRONTO." : falta + (h.cenas.length ? h.cenas.length + " cena(s) na história. Para ligar: arraste a bolinha da direita de um bloco até outro." : "Ligue o PERSONAGEM à primeira cena: arraste a bolinha dele até a cena.");
+    $("qdLigarFim").hidden = !LIGAR; $("folhaQuadro").classList.toggle("ligando", !!LIGAR);
     $("qdBaixar").hidden = !h.cenas.some(function (c) { return IMG[c.id + "-ia"]; });
     $("qdAutor").checked = !!Q.autor;
   }
-  function desenharSetas() {
-    var s = "", hB = function (b) { var el = document.querySelector('.qd-bloco[data-id="' + b.id + '"]'); return el ? el.offsetHeight : 120; };
+  var Y_PORTA = 24, COR = {pers: "P", cena: "C", ref: "R"};
+  function curva(x1, y1, x2, y2) { var dx = x2 > x1 ? Math.max(18, (x2 - x1) / 2) : 90; return "M" + x1 + " " + y1 + " C" + (x1 + dx) + " " + y1 + "," + (x2 - dx) + " " + y2 + "," + x2 + " " + y2; }
+  function desenharSetas(solta) {
+    var s = "";
     Q.setas.forEach(function (st, i) {
       var a = bloco(st.de), b = bloco(st.para); if (!a || !b) return;
-      var x1 = a.x + W_BLOCO, y1 = a.y + Math.min(hB(a) / 2, 60), x2 = b.x, y2 = b.y + Math.min(hB(b) / 2, 60);
-      if (b.x < a.x + W_BLOCO / 2 && Math.abs(b.y - a.y) > 40) { x1 = a.x + W_BLOCO / 2; y1 = b.y < a.y ? a.y : a.y + hB(a); x2 = b.x + W_BLOCO / 2; y2 = b.y < a.y ? b.y + hB(b) : b.y; }
-      var dx = Math.max(40, Math.abs(x2 - x1) / 2), d = "M" + x1 + " " + y1 + " C" + (x1 + dx) + " " + y1 + "," + (x2 - dx) + " " + y2 + "," + x2 + " " + y2;
-      var ref = a.tipo === "ref";
-      s += '<path d="' + d + '" class="qd-linha' + (ref ? " ref" : "") + '" marker-end="url(#qdPonta' + (ref ? "R" : "") + ')"/><path d="' + d + '" class="qd-toque" data-seta="' + i + '"><title>Tocar para apagar a ligação</title></path>';
+      var d = curva(a.x + W_BLOCO + 11, a.y + Y_PORTA, b.x - 10, b.y + Y_PORTA), k = COR[a.tipo] || "C";
+      s += '<path d="' + d + '" class="qd-linha c' + k + (a.tipo === "ref" ? " ref" : "") + '" marker-end="url(#qdPonta' + k + ')"/><path d="' + d + '" class="qd-toque" data-seta="' + i + '"><title>Tocar para apagar a ligação</title></path>';
     });
+    if (solta) s += '<path d="' + curva(solta.x1, solta.y1, solta.x2, solta.y2) + '" class="qd-linha solta"/>';
     $("qdLinhas").innerHTML = s;
   }
   function aplicarVista() { $("qdMundo").style.transform = "translate(" + VISTA.x + "px," + VISTA.y + "px) scale(" + VISTA.z + ")"; }
@@ -90,9 +103,10 @@
     var a = $("qdArea"), xs = Q.blocos.map(function (b) { return b.x; }), ys = Q.blocos.map(function (b) { return b.y; });
     var alt = function (b) { var el = document.querySelector('.qd-bloco[data-id="' + b.id + '"]'); return el ? el.offsetHeight : 200; };
     var x0 = Math.min.apply(0, xs), x1 = Math.max.apply(0, xs) + W_BLOCO, y0 = Math.min.apply(0, ys), y1 = Math.max.apply(0, Q.blocos.map(function (b) { return b.y + alt(b); }));
-    VISTA.z = Math.max(0.2, Math.min(1, (a.clientWidth - 24) / (x1 - x0), (a.clientHeight - 70) / (y1 - y0)));
+    var estreito = a.clientWidth < 560, mx = estreito ? 14 : 104, my = estreito ? 76 : 16;   /* folga para o trilho de ferramentas e as bolinhas */
+    VISTA.z = Math.max(0.2, Math.min(1, (a.clientWidth - mx - 26) / (x1 - x0), (a.clientHeight - my - 60) / (y1 - y0)));
     if (!tudo && VISTA.z < 0.55) VISTA.z = 0.55;      /* ao abrir no celular: letras legíveis, começando pelo personagem; ⤢ mostra tudo */
-    VISTA.x = 12 - x0 * VISTA.z; VISTA.y = 12 - y0 * VISTA.z; aplicarVista();
+    VISTA.x = mx - x0 * VISTA.z; VISTA.y = my - y0 * VISTA.z; aplicarVista();
   }
   function lugarLivre(tipo) {
     var cs = Q.blocos.filter(function (b) { return b.tipo === tipo; }), ult = cs.sort(function (a, b) { return b.x - a.x; })[0];
@@ -111,12 +125,15 @@
     var a = $("qdArea"); VISTA.x = Math.min(VISTA.x, a.clientWidth - (b.x + W_BLOCO + 16) * VISTA.z); aplicarVista();
     return b;
   }
-  function ligar(de, para) {
+  function ligar(de, para, alternar) {
     var a = bloco(de), b = bloco(para); if (!a || !b || de === para) return "";
-    if (b.tipo === "ref" || a.tipo === "fim") return "A seta sai do bloco e aponta para o que vem depois.";
+    if (a.tipo === "fim") return "O FINAL é o último bloco: a ligação chega nele, não sai dele.";
+    if (b.tipo === "ref") return "A ligação sai da referência e vai até a cena (ou até o personagem).";
     if (a.tipo === "ref" && b.tipo === "fim") return "A referência se liga a uma cena ou ao personagem.";
-    if (Q.setas.some(function (s) { return s.de === de && s.para === para; })) return "";
-    if (a.tipo !== "ref") Q.setas = Q.setas.filter(function (s) { return !(s.de === de && (bloco(s.de) || {}).tipo !== "ref") && !(s.para === para && (bloco(s.de) || {}).tipo !== "ref" && b.tipo !== "pers"); });   /* história em linha: uma saída e uma entrada */
+    if (b.tipo === "pers" && a.tipo !== "ref") return "A ligação sai do personagem e vai até a cena.";
+    var ja = Q.setas.filter(function (s) { return s.de === de && s.para === para; })[0];
+    if (ja) { if (alternar) Q.setas.splice(Q.setas.indexOf(ja), 1); return ""; }
+    Q.setas = Q.setas.filter(function (s) { return !(s.de === para && s.para === de); });   /* não fica ida e volta entre os mesmos dois */
     Q.setas.push({de: de, para: para}); return "";
   }
 
@@ -124,7 +141,7 @@
   async function sessao() { try { var c = window.BWSync && BWSync.cliente && BWSync.cliente(); var s = c ? await c.auth.getSession() : null; return s && s.data && s.data.session || null; } catch (e) { return null; } }
   function extrairJSON(t) { t = String(t || "").replace(/```json|```/g, ""); var a = t.indexOf("{"), b = t.lastIndexOf("}"); if (a < 0 || b < a) return null; try { return JSON.parse(t.slice(a, b + 1)); } catch (e) { return null; } }
   function plano(h) {
-    return h.cenas.map(function (c) { var rs = h.refs(c); return {id: c.id, contexto: c.texto.trim(), fala: (c.fala || "").trim(), refs: rs.map(function (r) { return r.texto.trim(); }).filter(Boolean), refImg: rs.filter(function (r) { return IMG[r.id]; })[0] || null}; });
+    return h.cenas.map(function (c) { var rs = h.refs(c); return {id: c.id, contexto: c.texto.trim(), meuPrompt: (c.meuPrompt || "").trim(), meuTipo: c.meuTipo === "video" ? "video" : "img", fala: (c.fala || "").trim(), refs: rs.map(function (r) { return r.texto.trim(); }).filter(Boolean), refImg: rs.filter(function (r) { return IMG[r.id]; })[0] || null}; });
   }
   async function textosIA(h, cenas) {
     var s = await sessao(); if (!s) return null;
@@ -186,13 +203,13 @@
   /* monta textos (IA ou aparelho) e devolve a lista pronta de cenas */
   async function preparar() {
     var h = historia();
-    if (!h.cenas.length) { aviso("Ligue o PERSONAGEM à primeira cena com o botão ➜.", true); return null; }
+    if (!h.cenas.length) { aviso("Ligue o PERSONAGEM à primeira cena: arraste a bolinha dele até a cena.", true); return null; }
     var vazia = h.cenas.filter(function (c) { return !c.texto.trim(); })[0];
     if (vazia) { aviso("Escreva o que acontece em cada cena (há uma cena em branco).", true); return null; }
     var cenas = plano(h);
     ocupado("Organizando a história…");
     var ia = await textosIA(h, cenas);
-    cenas.forEach(function (c, i) { c.prompt = ia ? String(ia.cenas[i].prompt || c.contexto).slice(0, 300) : c.contexto; c.falaFinal = c.fala || (ia ? String(ia.cenas[i].fala || "").slice(0, 110) : c.contexto.split(/\s+/).slice(0, 12).join(" ")); });
+    cenas.forEach(function (c, i) { c.prompt = c.meuPrompt && c.meuTipo !== "video" ? c.meuPrompt.slice(0, 900) : ia ? String(ia.cenas[i].prompt || c.contexto).slice(0, 300) : c.contexto; c.falaFinal = c.fala || (ia ? String(ia.cenas[i].fala || "").slice(0, 110) : c.contexto.split(/\s+/).slice(0, 12).join(" ")); });
     ocupado();
     return {h: h, cenas: cenas, gancho: ia ? String(ia.gancho || "") : "", legenda: ia ? String(ia.legenda || "") : "", comIA: !!ia};
   }
@@ -242,7 +259,7 @@
     var q = {nome: (p.h.pers && p.h.pers.nome ? "História de " + p.h.pers.nome : "História do quadro"), personagem: p.h.pers && p.h.pers.nome || "personagem", figura: png, gancho: p.gancho, legenda: p.legenda,
       cta: p.h.fim ? p.h.fim.texto.trim() : "", modo: modo,
       cenas: p.cenas.map(function (c, i) { var m = IMG[c.id + "-ia"], x = pl[i];
-        return {fala: c.falaFinal, contexto: c.contexto, imagem: m ? m.blob : null, video: x.via === "video", promptVideo: "[" + x.motor + " · " + (x.usd ? "≈ " + dolar(x.usd) : "grátis") + (m ? " · use a imagem desta cena como primeiro quadro" : "") + "] " + promptVideo(p.h, c, c.prompt, c.falaFinal)}; })};
+        return {fala: c.falaFinal, contexto: c.contexto, imagem: m ? m.blob : null, video: x.via === "video", promptVideo: "[" + x.motor + " · " + (x.usd ? "≈ " + dolar(x.usd) : "grátis") + (m ? " · use a imagem desta cena como primeiro quadro" : "") + "] " + (c.meuPrompt && c.meuTipo === "video" ? c.meuPrompt : promptVideo(p.h, c, c.prompt, c.falaFinal))}; })};
     try { await BWReels.montarDoQuadro(q); } catch (e) { ocupado(); aviso("Não deu para montar: " + (e && e.message || e), true); return; }
     ocupado(); fechar();
     var semImg = q.cenas.filter(function (c) { return !c.imagem && !c.video; }).length;
@@ -255,13 +272,13 @@
     Q = ler() || novo(); $("folhaQuadro").hidden = false; document.documentElement.classList.add("qd-aberto");
     await carregarImagens(); LIGAR = null; aviso(""); desenhar(); centralizar(false);
   }
-  function fechar() { $("folhaQuadro").hidden = true; document.documentElement.classList.remove("qd-aberto"); $("qdMenuMontar").hidden = true; }
+  function fechar() { fecharPrompt(); $("folhaQuadro").hidden = true; document.documentElement.classList.remove("qd-aberto"); $("qdMenuMontar").hidden = true; }
 
   function iniciar() {
     if (!$("folhaQuadro")) return;
     $("btQuadro").onclick = abrir; $("qdFechar").onclick = fechar;
     $("qdMaisCena").onclick = function () { addBloco("cena"); };
-    $("qdMaisRef").onclick = function () { addBloco("ref"); aviso("Referência criada. Toque em ➜ nela e depois na cena (ou no personagem, para valer em todas)."); };
+    $("qdMaisRef").onclick = function () { addBloco("ref"); aviso("Referência criada. Arraste a bolinha dela até cada cena onde ela vale (ou até o personagem, para valer em todas)."); };
     $("qdCentro").onclick = function () { centralizar(true); };
     $("qdZoomMais").onclick = function () { VISTA.z = Math.min(1.4, VISTA.z * 1.2); aplicarVista(); };
     $("qdZoomMenos").onclick = function () { VISTA.z = Math.max(0.3, VISTA.z / 1.2); aplicarVista(); };
@@ -275,11 +292,37 @@
     $("qdLimpar").onclick = async function () { if (!confirm("Apagar tudo do quadro (blocos e imagens criadas)? Não dá para desfazer.")) return; await limparImagens(); Q = novo(); guardar(); desenhar(); centralizar(); };
     async function limparImagens() { for (var k in IMG) { URL.revokeObjectURL(IMG[k].url); try { await db().del("midias", "quadro-" + k); } catch (e) { } } IMG = {}; }
 
-    var area = $("qdArea"), arr = null;
+    var area = $("qdArea"), arr = null, arrastou = false;
+    $("qdLigarFim").onclick = function () { LIGAR = null; aviso(""); desenhar(); };
+    /* arrastar a bolinha (porta) de um bloco até outro = ligação na hora; dá para repetir quantas vezes quiser */
+    var puxa = null, noMundo = function (e) { var r = area.getBoundingClientRect(); return {x: (e.clientX - r.left - VISTA.x) / VISTA.z, y: (e.clientY - r.top - VISTA.y) / VISTA.z}; };
+    area.addEventListener("pointerdown", function (e) {
+      var pt = e.target.closest(".qd-pt.sai"); if (!pt) return;
+      var b = bloco(pt.dataset.ligar); if (!b) return;
+      puxa = {de: b.id, x: e.clientX, y: e.clientY, x1: b.x + W_BLOCO + 11, y1: b.y + Y_PORTA, moveu: false}; arrastou = false;
+    }, true);
+    window.addEventListener("pointermove", function (e) {
+      if (!puxa) return;
+      if (!puxa.moveu && Math.abs(e.clientX - puxa.x) + Math.abs(e.clientY - puxa.y) < 8) return;
+      puxa.moveu = true; var m = noMundo(e); desenharSetas({x1: puxa.x1, y1: puxa.y1, x2: m.x, y2: m.y});
+      var alvo = document.elementFromPoint(e.clientX, e.clientY), bl = alvo && alvo.closest && alvo.closest(".qd-bloco");
+      document.querySelectorAll(".qd-bloco.alvo").forEach(function (x) { if (x !== bl) x.classList.remove("alvo"); });
+      if (bl && bl.dataset.id !== puxa.de) bl.classList.add("alvo");
+    });
+    window.addEventListener("pointerup", function (e) {
+      if (!puxa) return; var p = puxa; puxa = null;
+      if (!p.moveu) return;                                    /* foi só um toque: o clique liga o modo de toque */
+      arrastou = true; setTimeout(function () { arrastou = false; }, 60);
+      var alvo = document.elementFromPoint(e.clientX, e.clientY), bl = alvo && alvo.closest && alvo.closest(".qd-bloco"), m = "";
+      if (bl && bl.dataset.id !== p.de) { m = ligar(p.de, bl.dataset.id); guardar(); }
+      desenhar(); aviso(m, !!m);
+    });
     $("qdBlocos").addEventListener("input", function (e) { var el = e.target.closest("[data-campo]"); if (!el) return; var b = bloco(el.closest(".qd-bloco").dataset.id); if (b) { b[el.dataset.campo] = el.value; guardar(); } });
     $("qdBlocos").addEventListener("click", async function (e) {
       var t = e.target, x;
-      if ((x = t.closest("[data-ligar]"))) { LIGAR = LIGAR === x.dataset.ligar ? null : x.dataset.ligar; desenhar(); return; }
+      if ((x = t.closest("[data-ligar]"))) { if (arrastou) { arrastou = false; return; } LIGAR = LIGAR === x.dataset.ligar ? null : x.dataset.ligar; aviso(""); desenhar(); return; }
+      if ((x = t.closest("[data-prompt]"))) { abrirPrompt(x.dataset.prompt); return; }
+      if ((x = t.closest("[data-tirar-pp]"))) { var bp = bloco(x.dataset.tirarPp); if (bp) { delete bp.meuPrompt; delete bp.meuPromptPara; guardar(); desenhar(); } return; }
       if ((x = t.closest("[data-apagar]"))) { if (!confirm("Excluir este bloco?")) return; var id = x.dataset.apagar, ent = Q.setas.filter(function (s) { return s.para === id && (bloco(s.de) || {}).tipo !== "ref"; })[0], sai = Q.setas.filter(function (s) { return s.de === id; })[0];
         Q.blocos = Q.blocos.filter(function (b) { return b.id !== id; }); Q.setas = Q.setas.filter(function (s) { return s.de !== id && s.para !== id; });
         if (ent && sai && bloco(ent.de) && bloco(sai.para)) Q.setas.push({de: ent.de, para: sai.para});     /* a história continua ligada */
@@ -288,7 +331,7 @@
       if ((x = t.closest("[data-tirar]"))) { await tirarImagem(x.dataset.tirar); desenhar(); return; }
       if ((x = t.closest("[data-tirar-ia]"))) { await tirarImagem(x.dataset.tirarIa, "-ia"); desenhar(); return; }
       var bl = t.closest(".qd-bloco");
-      if (LIGAR && bl && bl.dataset.id !== LIGAR && !t.closest("input,textarea")) { var m = ligar(LIGAR, bl.dataset.id); LIGAR = null; guardar(); desenhar(); if (m) aviso(m, true); else aviso(""); }
+      if (LIGAR && bl && bl.dataset.id !== LIGAR && !t.closest("input,textarea,button")) { var m = ligar(LIGAR, bl.dataset.id, true); guardar(); desenhar(); if (m) aviso(m, true); else aviso(""); }   /* continua ligando: quantas quiser */
     });
     $("qdArquivo").onchange = async function () {
       var f = this.files && this.files[0], id = this.dataset.para; this.value = ""; if (!f || !id) return;
@@ -300,7 +343,7 @@
     $("qdLinhas").addEventListener("click", function (e) { var s = e.target.closest("[data-seta]"); if (!s) return; if (!confirm("Apagar esta ligação?")) return; Q.setas.splice(Number(s.dataset.seta), 1); guardar(); desenhar(); });
     /* arrastar: bloco pelo cabeçalho; fundo move o quadro. Medido em pixels da tela ÷ zoom. */
     area.addEventListener("pointerdown", function (e) {
-      if (e.target.closest("button,input,textarea,.qd-toque")) return;
+      if (e.target.closest("button,input,textarea,.qd-toque,.qd-pt")) return;
       var pg = e.target.closest("[data-pega]");
       arr = pg ? {b: bloco(pg.dataset.pega), x: e.clientX, y: e.clientY, bx: 0, by: 0, el: pg.closest(".qd-bloco")} : {x: e.clientX, y: e.clientY, vx: VISTA.x, vy: VISTA.y};
       if (arr.b) { arr.bx = arr.b.x; arr.by = arr.b.y; }
@@ -315,8 +358,171 @@
     var soltar = function () { if (arr && arr.b && arr.moveu) guardar(); arr = null; };
     area.addEventListener("pointerup", soltar); area.addEventListener("pointercancel", soltar);
     area.addEventListener("wheel", function (e) { e.preventDefault(); VISTA.z = Math.max(0.3, Math.min(1.4, VISTA.z * (e.deltaY < 0 ? 1.1 : 0.9))); aplicarVista(); }, {passive: false});
-    document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !$("folhaQuadro").hidden && !OCUPADO) fechar(); });
+    document.addEventListener("keydown", function (e) { if (e.key !== "Escape" || $("folhaQuadro").hidden || OCUPADO) return; if (!$("qdPrompt").hidden) { fecharPrompt(); return; } if (LIGAR) { LIGAR = null; desenhar(); return; } fechar(); });
+    iniciarPrompt();
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", iniciar); else iniciar();
+  /* ---------- ORGANIZAR: põe os blocos em fila, na ordem da história ---------- */
+  function organizar() {
+    var h = historia(), x = 40;
+    if (h.pers) { h.pers.x = x; h.pers.y = 60; x += 300; }
+    h.cenas.forEach(function (c) { c.x = x; c.y = 40; x += 300; });
+    if (h.fim) { h.fim.x = x; h.fim.y = 60; }
+    var x2 = 340;
+    Q.blocos.filter(function (b) { return b.tipo === "ref"; }).concat(h.soltas).forEach(function (b) { b.x = x2; b.y = 600; x2 += 300; });
+    guardar(); desenhar(); centralizar(true);
+  }
+
+  /* ---------- ✨ MELHORAR PROMPT: a pessoa fala (ou escreve) o que quer → prompt pronto para a IA escolhida ----------
+     Só TEXTO vai para a IA Brightway (bw-ia): o pedido + personagem/referências do quadro. Nenhuma foto sai daqui.
+     Nenhuma IA de fora é chamada: o app entrega o texto e a pessoa cola na IA dela. */
+  var DEST = [
+    {id: "higgsfield", nome: "Higgsfield", tipos: ["video", "img"], url: "https://higgsfield.ai/",
+      video: "Higgsfield image-to-video: first the subject and its action, then ONE clearly named camera move (dolly in, crash zoom, orbit, crane up, handheld follow, FPV…), then lighting and mood. 1 to 3 short sentences.",
+      img: "Higgsfield image model: photoreal look — subject, outfit, place, lens or film look, lighting. One short paragraph."},
+    {id: "gemini", nome: "Gemini (Nano Banana)", tipos: ["img"], url: "https://gemini.google.com/",
+      img: "Gemini image generation: one natural-language paragraph (not keyword lists) — subject, action, setting, composition and framing, lighting, style. Say explicitly: vertical 9:16."},
+    {id: "flow", nome: "Flow / Veo (Google)", tipos: ["video"], url: "https://labs.google/flow",
+      video: "Google Veo: shot type and framing, subject, action, setting, camera movement, lighting and mood, then AUDIO (ambient sound, and dialogue in quotes saying it is spoken in Brazilian Portuguese). One paragraph."},
+    {id: "kling", nome: "Kling", tipos: ["video"], url: "https://klingai.com/",
+      video: "Kling: subject + specific movement, scene, camera language (shot size and movement), lighting and atmosphere. 2 to 4 sentences, concrete physical motion, no abstract words."},
+    {id: "runway", nome: "Runway", tipos: ["video"], url: "https://app.runwayml.com/",
+      video: "Runway image-to-video: describe only the MOTION (camera movement first, then what the subject does, then what the scene does). Do not re-describe what is already in the image. 1 to 3 sentences."},
+    {id: "midjourney", nome: "Midjourney", tipos: ["img"], url: "https://www.midjourney.com/",
+      img: "Midjourney: short descriptive phrases separated by commas (subject, setting, lighting, style, lens), ending with the parameter --ar 9:16."},
+    {id: "flux", nome: "Flux", tipos: ["img"], url: "",
+      img: "FLUX: one clear descriptive paragraph — subject first, then setting, composition, lighting, style; precise and literal."},
+    {id: "outra", nome: "Outra IA", tipos: ["video", "img"], url: "",
+      video: "Generic video model: subject, action, setting, camera movement, lighting. 2 to 3 sentences.",
+      img: "Generic image model: subject, action, setting, composition, lighting, style. One paragraph."}
+  ];
+  var PP = {cena: null, dest: "higgsfield", tipo: "video", rec: null, grav: null};
+  function destino() { return DEST.filter(function (d) { return d.id === PP.dest; })[0] || DEST[0]; }
+  function avisoPP(t, erro) { var a = $("qdPpAviso"); a.hidden = !t; a.className = "rl-aviso " + (erro ? "erro" : "ok"); a.textContent = t || ""; }
+  function desenharPP() {
+    var d = destino(); if (d.tipos.indexOf(PP.tipo) < 0) PP.tipo = d.tipos[0];
+    $("qdPpDest").innerHTML = DEST.map(function (x) { return '<button type="button" class="qd-chip' + (x.id === d.id ? " on" : "") + '" data-dest="' + x.id + '" aria-pressed="' + (x.id === d.id) + '">' + esc(x.nome) + '</button>'; }).join("");
+    $("qdPpTipo").innerHTML = [["video", "🎬 VÍDEO"], ["img", "🖼 IMAGEM"]].map(function (t) { var tem = d.tipos.indexOf(t[0]) >= 0; return '<button type="button" class="qd-chip' + (PP.tipo === t[0] ? " on" : "") + '" data-tipo="' + t[0] + '"' + (tem ? "" : " disabled") + ' aria-pressed="' + (PP.tipo === t[0]) + '">' + t[1] + '</button>'; }).join("");
+    var b = PP.cena && bloco(PP.cena), n = b ? historia().cenas.indexOf(b) + 1 : 0;
+    $("qdPpPara").textContent = b ? "Para a CENA" + (n ? " " + n : "") + " do quadro." : "Prompt avulso (dá para virar uma cena nova).";
+    $("qdPpUsar").textContent = b ? "✓ USAR NESTA CENA" : "＋ CRIAR CENA COM ELE";
+    var tem = !!$("qdPpSaida").value.trim(); $("qdPpResultado").hidden = !tem;
+    var ab = $("qdPpAbrir"); ab.hidden = !d.url; if (d.url) { ab.href = d.url; ab.textContent = "ABRIR " + d.nome.toUpperCase() + " ↗"; }
+    try { localStorage.setItem("ui_reels_prompt", JSON.stringify({dest: PP.dest, tipo: PP.tipo})); } catch (e) {}
+  }
+  function abrirPrompt(idCena) {
+    var b = idCena && bloco(idCena); PP.cena = b && b.tipo === "cena" ? b.id : null;
+    $("qdPpFala").value = b ? (b.texto || "").trim() : ""; $("qdPpSaida").value = b && b.meuPrompt ? b.meuPrompt : "";
+    avisoPP(""); $("qdPrompt").hidden = false; desenharPP();
+  }
+  function fecharPrompt() { if (!$("qdPrompt")) return; pararEscuta(); $("qdPrompt").hidden = true; }
+  function contextoPP() {
+    var h = historia(), b = PP.cena && bloco(PP.cena), l = [];
+    if (h.pers && (h.pers.nome || h.pers.texto)) l.push("Personagem: " + (h.pers.nome || "personagem") + (h.pers.texto ? " — " + h.pers.texto.trim() : ""));
+    var rs = (b ? h.refs(b) : []).map(function (r) { return r.texto.trim(); }).filter(Boolean);
+    if (rs.length) l.push("Referências (lugar, objeto, estilo): " + rs.join("; "));
+    if (b && (b.fala || "").trim()) l.push('Fala do personagem (manter em português): "' + b.fala.trim() + '"');
+    return l.join("\n");
+  }
+  function limparIA(t) { return String(t || "").replace(/```[a-z]*|```/g, "").replace(/\*\*|^#+\s*/gm, "").replace(/^\s*(prompt)\s*:\s*/i, "").trim().replace(/^"([\s\S]*)"$/, "$1").trim(); }
+  function promptLocal(pedido, ctx, d) {   /* sem a IA: organiza o que a pessoa disse — não traduz nem inventa */
+    return pedido.replace(/\s+/g, " ").trim().replace(/[.;,]*$/, "") + ". " + (ctx ? ctx.replace(/\n/g, ". ") + ". " : "") + (PP.tipo === "video" ? "Vídeo vertical 9:16, 5 segundos, movimento de câmera suave, luz de cinema, sem texto na tela." : "Imagem vertical 9:16, luz de cinema, sem texto na imagem.") + (d.id === "midjourney" ? " --ar 9:16" : "");
+  }
+  async function gerarPrompt() {
+    var pedido = $("qdPpFala").value.trim(); if (!pedido) { avisoPP("Fale ou escreva o que você quer ver.", true); return; }
+    pararEscuta();
+    var d = destino(), ctx = $("qdPpCtx").checked ? contextoPP() : "", bt = $("qdPpGerar"), saida = "", motivo = "";
+    bt.disabled = true; bt.textContent = "Escrevendo…"; avisoPP("");
+    var s = await sessao();
+    if (!s) motivo = "entre na sua conta para a IA escrever em inglês, no formato da " + d.nome;
+    else try {
+      var r = await fetch(FN_IA, {method: "POST", headers: {"Content-Type": "application/json", "Authorization": "Bearer " + s.access_token, "apikey": CHAVE_PUB},
+        body: JSON.stringify({sistema: "Você é especialista em prompts para IAs de imagem e vídeo. A pessoa descreve em português, do jeito dela (pode ser texto falado, sem pontuação), o que quer ver. Escreva UM prompt pronto para colar em " + d.nome + " (" + (PP.tipo === "video" ? "vídeo" : "imagem") + "), em INGLÊS, neste formato: " + d[PP.tipo] + " Regras: formato vertical 9:16 para Reels; mantenha tudo o que a pessoa pediu; não invente fatos, números, marcas nem pessoas reais; sem texto escrito na tela, a não ser que a pessoa peça; se houver fala do personagem, mantenha a fala em português, entre aspas, sem traduzir; use o personagem e as referências só para manter a consistência. Responda SÓ com o prompt: sem explicação, sem título, sem aspas em volta e sem marcação.",
+          pedido: "Pedido da pessoa: " + pedido.slice(0, 1200) + (ctx ? "\n" + ctx : ""), max: 500})});
+      var j = await r.json().catch(function () { return {}; });
+      if (r.ok) saida = limparIA(j.texto);
+      if (!saida) motivo = r.status === 401 ? "entre de novo na sua conta" : r.status === 429 ? "o limite de hoje da IA acabou" : r.status >= 500 ? "a IA Brightway está fora do ar agora" : "a IA não respondeu";
+    } catch (e) { motivo = "sem internet"; }
+    bt.disabled = false; bt.textContent = "✨ GERAR PROMPT";
+    if (saida) avisoPP("Prompt pronto para " + d.nome + ". Pode ajustar o texto antes de copiar.");
+    else { saida = promptLocal(pedido, ctx, d); avisoPP("Organizei o seu texto, mas SEM a IA (" + motivo + "). Ficou em português.", true); }
+    $("qdPpSaida").value = saida.slice(0, 1500); desenharPP();
+  }
+  async function copiarPrompt() {
+    var t = $("qdPpSaida").value.trim(); if (!t) return;
+    try { await navigator.clipboard.writeText(t); } catch (e) { var c = $("qdPpSaida"); c.focus(); c.select(); try { document.execCommand("copy"); } catch (e2) {} }
+    avisoPP("Copiado. Agora é só colar em " + destino().nome + ".");
+  }
+  function usarPrompt() {
+    var t = $("qdPpSaida").value.trim(); if (!t) return;
+    var b = PP.cena && bloco(PP.cena), nova = !b; if (!b) b = addBloco("cena");
+    b.meuPrompt = t.slice(0, 1500); b.meuPromptPara = destino().nome; b.meuTipo = PP.tipo;
+    if (!(b.texto || "").trim()) b.texto = $("qdPpFala").value.trim().slice(0, 300);
+    guardar(); fecharPrompt(); desenhar(); aviso(nova ? "Cena criada com o prompt pronto." : "Prompt pronto guardado na cena: é ele que o app usa nela.");
+  }
+  /* escutar: reconhecimento do navegador (pt-BR, continua até tocar de novo); sem ele (ou no app instalado do iPhone) grava e transcreve na IA Brightway */
+  function micEstado(on, texto) { var m = $("qdPpMic"); m.classList.toggle("on", !!on); m.setAttribute("aria-pressed", !!on); m.textContent = texto || (on ? "■ PARAR DE OUVIR" : "🎙 FALAR"); }
+  function pararEscuta() {
+    try { if (PP.rec) PP.rec.stop(); } catch (e) {}
+    try { if (PP.grav && PP.grav.state === "recording") PP.grav.stop(); } catch (e) {}
+  }
+  function escutar() {
+    if (PP.rec || PP.grav) { pararEscuta(); return; }
+    var SR = window.SpeechRecognition || window.webkitSpeechRecognition, campo = $("qdPpFala"), base = campo.value.trim();
+    avisoPP("");
+    if (!SR || navigator.standalone) { gravarFala(base); return; }
+    var r = new SR(), final = ""; r.lang = "pt-BR"; r.interimResults = true; r.continuous = true;
+    r.onresult = function (ev) { var p = ""; for (var i = ev.resultIndex; i < ev.results.length; i++) { var t = ev.results[i][0].transcript; if (ev.results[i].isFinal) final += t + " "; else p += t; } campo.value = ((base ? base + " " : "") + final + p).replace(/\s+/g, " ").trim(); };
+    r.onerror = function (ev) {
+      if (ev.error === "not-allowed" || ev.error === "service-not-allowed") avisoPP("O microfone está bloqueado neste navegador. Libere o microfone (cadeado ao lado do endereço) ou escreva o pedido.", true);
+      else if (ev.error !== "no-speech" && ev.error !== "aborted") avisoPP("Não consegui ouvir (" + ev.error + "). Tente de novo ou escreva o pedido.", true);
+    };
+    r.onend = function () { PP.rec = null; micEstado(false); };
+    try { r.start(); PP.rec = r; micEstado(true); } catch (e) { PP.rec = null; avisoPP("Não consegui ligar o microfone. Escreva o pedido.", true); }
+  }
+  function wav16(am) {
+    var n = am.length, buf = new ArrayBuffer(44 + n * 2), v = new DataView(buf), s = function (o, t) { for (var i = 0; i < t.length; i++) v.setUint8(o + i, t.charCodeAt(i)); };
+    s(0, "RIFF"); v.setUint32(4, 36 + n * 2, true); s(8, "WAVE"); s(12, "fmt "); v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+    v.setUint32(24, 16000, true); v.setUint32(28, 32000, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true); s(36, "data"); v.setUint32(40, n * 2, true);
+    for (var i = 0, o = 44; i < n; i++, o += 2) { var x = Math.max(-1, Math.min(1, am[i])); v.setInt16(o, x < 0 ? x * 0x8000 : x * 0x7FFF, true); }
+    return new Blob([buf], {type: "audio/wav"});
+  }
+  async function gravarFala(base) {
+    var s = await sessao();
+    if (!s) { avisoPP("Este navegador não ouve sozinho. Entre na sua conta para eu transcrever a sua fala — ou escreva o pedido.", true); return; }
+    if (!navigator.mediaDevices || !window.MediaRecorder) { avisoPP("Este aparelho não deixa gravar por aqui. Escreva o pedido.", true); return; }
+    var stream; try { stream = await navigator.mediaDevices.getUserMedia({audio: true}); } catch (e) { avisoPP("O microfone está bloqueado. Libere o microfone ou escreva o pedido.", true); return; }
+    var partes = [], mr = new MediaRecorder(stream); PP.grav = mr;
+    mr.ondataavailable = function (e) { if (e.data && e.data.size) partes.push(e.data); };
+    var fim = new Promise(function (ok) { mr.onstop = ok; });
+    mr.start(); micEstado(true, "■ PARAR (gravando até 40 s)");
+    var limite = setTimeout(function () { if (mr.state === "recording") mr.stop(); }, 40000);
+    await fim; clearTimeout(limite); stream.getTracks().forEach(function (t) { t.stop(); }); PP.grav = null;
+    if ($("qdPrompt").hidden) { micEstado(false); return; }
+    micEstado(false, "transcrevendo…"); $("qdPpMic").disabled = true;
+    try {
+      var blob = new Blob(partes, {type: partes[0] && partes[0].type || "audio/webm"}), Ctx = window.AudioContext || window.webkitAudioContext, ctx = new Ctx();
+      var buf = await blob.arrayBuffer(), a = await new Promise(function (ok, erro) { var pr = ctx.decodeAudioData(buf, ok, erro); if (pr && pr.then) pr.then(ok, erro); }); try { ctx.close(); } catch (e) {}
+      var off = new OfflineAudioContext(1, Math.ceil(a.duration * 16000), 16000), src = off.createBufferSource(); src.buffer = a; src.connect(off.destination); src.start(); var r16 = await off.startRendering();
+      var r = await fetch(FN_IA + "?lang=pt", {method: "POST", headers: {"Content-Type": "audio/wav", "Authorization": "Bearer " + s.access_token, "apikey": CHAVE_PUB}, body: wav16(r16.getChannelData(0))});
+      var j = await r.json().catch(function () { return {}; });
+      if (!r.ok) throw new Error(r.status === 429 ? "o limite de hoje da IA acabou" : r.status >= 500 ? "a IA Brightway está fora do ar agora" : "a transcrição falhou");
+      var t = String(j.texto || (j.segmentos || []).map(function (x) { return x.texto || x.text; }).join(" ") || "").trim();
+      if (t) $("qdPpFala").value = ((base ? base + " " : "") + t).trim(); else avisoPP("Não ouvi nada na gravação. Tente de novo, mais perto do microfone.", true);
+    } catch (e) { avisoPP("Não consegui transcrever: " + (e && e.message || "erro") + ". Escreva o pedido.", true); }
+    $("qdPpMic").disabled = false; micEstado(false);
+  }
+  function iniciarPrompt() {
+    try { var j = JSON.parse(localStorage.getItem("ui_reels_prompt") || "{}"); if (DEST.some(function (d) { return d.id === j.dest; })) { PP.dest = j.dest; PP.tipo = j.tipo === "img" ? "img" : "video"; } } catch (e) {}
+    $("qdBtPrompt").onclick = function () { abrirPrompt(null); };
+    $("qdOrganizar").onclick = organizar;
+    $("qdPpFechar").onclick = fecharPrompt;
+    $("qdPpMic").onclick = escutar; $("qdPpGerar").onclick = gerarPrompt; $("qdPpCopiar").onclick = copiarPrompt; $("qdPpUsar").onclick = usarPrompt;
+    $("qdPrompt").addEventListener("click", function (e) {
+      var x = e.target.closest("[data-dest]"); if (x) { PP.dest = x.dataset.dest; desenharPP(); return; }
+      x = e.target.closest("[data-tipo]"); if (x && !x.disabled) { PP.tipo = x.dataset.tipo; desenharPP(); }
+    });
+  }
+
   window.BWQuadro = {abrir: abrir, fechar: fechar, estado: function () { return Q; }, historia: function () { var h = historia(); return {cenas: h.cenas.map(function (c) { return c.id; }), soltas: h.soltas.length}; }, ligar: function (a, b) { var m = ligar(a, b); guardar(); desenhar(); return m; }, add: addBloco, planoVideo: planoVideo, tipoCena: tipoCena, pedidoImagem: pedidoImagem, criarImagens: criarImagens, montar: montar};
 })();
