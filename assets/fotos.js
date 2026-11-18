@@ -1153,19 +1153,23 @@
     if (ABA === "filtros") prevFiltros();
   }
   /* 16/11 (pedido do dono): cada seção do painel abre e fecha pela seta (▾/▸), lembrado no aparelho (ui_fotos_dobras) */
+  /* 18/11: seções que quase ninguém usa toda hora começam FECHADAS (seta ▸ abre) — o painel cabe na tela sem rolar */
+  var DOBRA_FECHADA = /^(MISTURA|MÁSCARA|OVERLAYS|SELOS|✨ IA: ACESSÓRIO)/;
+  function dobrarTudo(fechar) { var e2 = lerUi("ui_fotos_dobras", {}); $("ctrl").querySelectorAll(".c-tit.dobra").forEach(function (el) { e2[ABA + "|" + el.firstChild.textContent.trim().replace(/\s*\(.*$/, "")] = fechar ? 0 : 1; }); gravarUi("ui_fotos_dobras", e2); painel(); }
   function dobrar() {
     var box = $("ctrl"), est = lerUi("ui_fotos_dobras", {}), filhos = [].slice.call(box.children), sec = null;
     filhos.forEach(function (el) {
       if (el.tagName === "DIV" && el.classList.contains("c-tit")) {
-        var chave = ABA + "|" + el.textContent.trim(), fechada = est[chave] === 0;
+        var chave = ABA + "|" + el.textContent.trim().replace(/\s*\(.*$/, ""), fechada = est[chave] === 0 || (est[chave] !== 1 && DOBRA_FECHADA.test(el.textContent) && !(PINTA && /LIVRE/.test(el.textContent)));
         el.classList.add("dobra"); el.setAttribute("role", "button"); el.setAttribute("tabindex", "0"); el.setAttribute("aria-expanded", String(!fechada));
         el.innerHTML = '<span>' + el.innerHTML + '</span><i aria-hidden="true">' + (fechada ? "▸" : "▾") + "</i>";
         sec = document.createElement("div"); sec.className = "c-sec"; sec.hidden = fechada; el.after(sec);
         var alternar = function () { var ab = sec_.hidden; sec_.hidden = !ab; el.setAttribute("aria-expanded", String(ab)); el.lastChild.textContent = ab ? "▾" : "▸";
-          var e2 = lerUi("ui_fotos_dobras", {}); if (ab) delete e2[chave]; else e2[chave] = 0; gravarUi("ui_fotos_dobras", e2); };
+          var e2 = lerUi("ui_fotos_dobras", {}); e2[chave] = ab ? 1 : 0; gravarUi("ui_fotos_dobras", e2); };
         var sec_ = sec; el.onclick = alternar; el.onkeydown = function (ev) { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); alternar(); } };
       } else if (sec) sec.appendChild(el);
     });
+    var tits = box.querySelectorAll(".c-tit.dobra"); if (tits.length > 2) { var algum = [].some.call(tits, function (t) { return t.getAttribute("aria-expanded") === "true"; }), bt = document.createElement("button"); bt.type = "button"; bt.className = "chip c-dobra-tudo"; bt.id = "dobraTudo"; bt.textContent = algum ? "▸ FECHAR TUDO" : "▾ ABRIR TUDO"; bt.onclick = function () { dobrarTudo(algum); }; box.insertBefore(bt, box.firstChild); }
   }
   function prevFiltros() {
     var f = FOTOS[ATUAL]; if (!f || !($("flts") || ($("faixa") && $("faixa").firstChild))) return;
@@ -1642,7 +1646,7 @@
     desfazer: desfazer, refazer: refazer, gravarHist: gravarHist, hist: function () { return { n: HIST.length, pos: HPOS }; }, acao: function (k, v) { ACOES[k](v); agendar(); },
     kit: function () { return KIT; }, gravarKit: gravarKit, carregarImgs: carregarImgs, LOGOS: LOGOS, exportar: exportar, nomeArquivo: nomeArquivo, mascaraDe: mascaraDe, tirarFundoLogo: tirarFundoLogo,
     lay: function () { return LAY; }, opcoesFoto: opcoesFoto, adsSel: function () { return adsSel(); }, comparar: function (v, modo) { COMPARAR = !!v; if (modo) MODO_COMP = modo; botoesComp(); agendar(); },
-    addImagemCamada: addImagemCamada, itens: function () { return itensDe(fotoAtual()).map(function (x) { return x.k; }); }, mascaraCanvas: mascaraCanvas, cam: function () { return { CAM: CAM, PINTA: PINTA, SEGURA: SEGURA, modo: MODO_COMP }; }, previa: previa
+    addImagemCamada: addImagemCamada, dobrarTudo: dobrarTudo, itens: function () { return itensDe(fotoAtual()).map(function (x) { return x.k; }); }, mascaraCanvas: mascaraCanvas, cam: function () { return { CAM: CAM, PINTA: PINTA, SEGURA: SEGURA, modo: MODO_COMP }; }, previa: previa
   };
   if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(function () { });
 })();

@@ -11,7 +11,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Brightway">
-<link rel="stylesheet" href="assets/brightway.css?v=27">
+<link rel="stylesheet" href="assets/brightway.css?v=28">
 <style>
 .wrap{max-width:1500px;margin:0 auto;padding:0 16px 110px}
 .ve-topo{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px}
@@ -41,6 +41,7 @@
 .ve-item .x{position:absolute;right:3px;top:3px;width:26px;height:26px;border-radius:50%;border:0;background:rgba(0,0,0,.7);color:#fff;font-size:12px;cursor:pointer}
 .ve-linha{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}.ve-linha .ve-bt{flex:1 1 auto}
 .ve-nota{margin:8px 0 0;font:500 11.5px/1.4 Inter,sans-serif;color:#8d95a3}
+.ve-g{margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid rgba(245,241,234,.07)}.ve-g h4{margin:0 0 6px;font:800 10.5px Inter,sans-serif;letter-spacing:.12em;color:#F5F1EA}
 .ve-prop label{display:grid;grid-template-columns:86px minmax(0,1fr) 44px;gap:6px;align-items:center;margin:4px 0;font:600 11.5px Inter,sans-serif;color:#B9C0CC;text-transform:none;letter-spacing:0}
 .ve-prop label.um{grid-template-columns:86px minmax(0,1fr)}
 .ve-prop input[type=range]{width:100%;min-width:0;accent-color:#7C5CFF}
@@ -96,7 +97,7 @@
   </div>
   <div class="ve-grade">
     <div class="ve-cx" id="veMidia">
-      <h3>MÍDIA</h3>
+      <h3 data-seta="ve-midia">MÍDIA</h3>
       <div class="ve-abas" id="veAbas" role="group" aria-label="Tipo de mídia"></div>
       <div class="ve-lib" id="veLib"></div>
       <div class="ve-linha"><button class="ve-bt on" id="veImportar" type="button">＋ IMPORTAR</button><button class="ve-bt" id="veCriacoes" type="button">✨ MINHAS CRIAÇÕES</button></div>
@@ -107,7 +108,7 @@
       <div class="ve-tela"><canvas id="veCv" width="720" height="1280" aria-label="Prévia do vídeo"></canvas></div>
       <div class="ve-play"><button class="ve-bt" id="veInicio" type="button" aria-label="Voltar ao começo">⏮</button><button class="ve-bt pri" id="vePlay" type="button" aria-label="Tocar ou pausar">▶ TOCAR</button><span class="ve-tempo" id="veTempo">0:00,0 / 0:00,0</span></div>
     </div>
-    <div class="ve-cx ve-prop" id="veProp"><h3>AJUSTES</h3><div id="vePropCorpo"></div></div>
+    <div class="ve-cx ve-prop" id="veProp"><h3 data-seta="ve-ajustes">AJUSTES</h3><div id="vePropCorpo"></div></div>
   </div>
   <div class="ve-tl">
     <div class="ve-tl-barra">
@@ -122,10 +123,10 @@
 <div class="ve-ocup" id="veOcup" hidden><span id="veOcupTxt">Gravando o vídeo…</span><progress id="veProg" max="1" value="0"></progress><button class="ve-bt" id="veCancelar" type="button">CANCELAR</button></div>
 <div class="ve-ocup ve-saida" id="veSaida" hidden><span id="veSaidaTxt">Vídeo pronto</span><video id="veVideoPronto" controls playsinline></video><div class="ve-linha"><a class="ve-bt pri" id="veBaixar" download="video-brightway.mp4">⬇ SALVAR VÍDEO</a><button class="ve-bt" id="veCompartilhar" type="button">COMPARTILHAR</button><button class="ve-bt" id="veFecharSaida" type="button">FECHAR</button></div></div>
 <input type="file" id="veArq" accept="video/*,image/*,audio/*" multiple hidden>
-<script src="assets/layout.js?v=51"></script>
+<script src="assets/layout.js?v=52"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="assets/bw-sync.js"></script>
 <script src="assets/bw-personagens.js?v=2"></script>
-<script src="assets/video-editor.js?v=1"></script>
+<script src="assets/video-editor.js?v=2"></script>
 </body>
 </html>

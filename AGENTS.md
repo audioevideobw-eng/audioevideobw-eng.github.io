@@ -319,6 +319,10 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
     trilhas, quadros, volume), não só "o botão respondeu". Canvas de prévia leva max-height em vh no próprio canvas (max-height:100% dentro de
     flex deixou a prévia maior que a tela). Prévia presa no celular: scroll-padding calculado no JS com a altura real dela + a das abas de baixo.
 
+96. Painel de ferramenta com muitas seções: cada seção tem SETA (título com data-seta="chave" — layout.js BWDobras; antes de criar atributo/classe "comum", procurar se o nome já existe: data-dobra já era do Início e o seletor novo quebrou as seções de lá no teste) e as pouco usadas começam
+    fechadas (data-seta-padrao="fechada"); a seção se abre sozinha quando a pessoa acabou de criar algo nela. No teste, clique na seta antes
+    de mexer no que está dentro (elemento escondido não recebe clique).
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -1025,6 +1029,13 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   👤 MEUS PERSONAGENS mostra as variações e, ao CRIAR IMAGENS, cada cena manda o plano parecido com ela (BWPersonagens.planoPara: rosto no close,
   costas em "de costas"…). teste_personagens.py +11 checagens (0 falhas, IA simulada). A função de imagem continua aceitando 1 foto do personagem
   + 1 referência por pedido (não manda os 6 planos juntos). brightway.css v27, layout.js v51, reels-quadro.js v7, sw v126. PENTE FINO 95.
+- 18/11/2026 12:40 · Claude (dono: "nas ferramentas de edição, as opções de máscara por exemplo, crie setas de omissão e revelação… não precisar ficar rolando a
+  tela; em todas as funcionalidades"): SETAS DE ABRIR/FECHAR. Editor de fotos (já tinha seta em cada seção): MISTURA, MÁSCARA PRONTA, MÁSCARA
+  LIVRE, OVERLAYS, SELOS e IA NO ROSTO agora começam FECHADAS (▸ abre; a escolha fica guardada) e o painel ganhou ▸ FECHAR TUDO /
+  ▾ ABRIR TUDO. Mecanismo comum novo para qualquer página: título com data-seta="chave" (layout.js BWDobras + brightway.css; guarda em
+  ui_dobras; data-seta-padrao="fechada"; o Início já usava data-dobra para as seções dele — nome diferente de propósito). Já usa: EDITOR DE VÍDEO (caixas MÍDIA e AJUSTES; ajustes em grupos TEXTO, TAMANHO E POSIÇÃO, SOM,
+  TEMPO E CAMADA) e PERSONAGENS (FICHA E PROMPT, FOTOS DE REFERÊNCIA, VARIAÇÕES, USAR). Outras páginas com painéis longos (Criador IA, BW Reels,
+  orçamentos) ainda não foram agrupadas — basta pôr data-seta no título. fotos.js v13, layout.js v52, brightway.css v28, sw v127. PENTE FINO 96.
 
 ## Pendências (dono)
 - [ ] (18/11) APLICATIVO 1.1: os arquivos novos foram para a pasta do PC; dono abrir pelo ícone BW Reels e conferir PERSONAGENS e EDITOR DE VÍDEO.

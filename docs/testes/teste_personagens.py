@@ -95,6 +95,9 @@ with sync_playwright() as p:
         fo = pg.evaluate("(async()=>{const b=window.__persFolha;if(!b)return null;const i=await createImageBitmap(b);return [b.type,i.width,i.height]})()")
         ok(fo and fo[0] == "image/png" and fo[1] == 1536 and fo[2] > 500, f"FOLHA DE REFERÊNCIA junta os planos numa imagem PNG {fo}")
         # VARIAÇÕES de roupa
+        ok(not pg.is_visible("#vrNome") and pg.get_attribute('[data-seta="pers-variacoes"]', "aria-expanded") == "false", "VARIAÇÕES começa fechada (seta ▸), para a ficha caber na tela")
+        pg.evaluate("document.querySelector('[data-seta=\"pers-variacoes\"]').click()"); pg.wait_for_timeout(200)
+        ok(pg.is_visible("#vrNome") and pg.evaluate("JSON.parse(localStorage.getItem('ui_dobras'))['pers-variacoes']") == 1, "tocar na seta abre a seção e a escolha fica guardada")
         pg.fill("#vrNome", "Terno de gala"); pg.fill("#vrDesc", "terno preto e gravata borboleta"); pg.evaluate("document.querySelector('#psCorpo [data-ps=novaVar]').click()"); pg.wait_for_timeout(700)
         ok(pg.locator(".pg-var").count() == 1 and "Terno de gala" in pg.inner_text(".pg-var"), "GUARDAR VARIAÇÃO cria a roupa nova no mesmo personagem")
         pid2 = pg.evaluate("__pers.lib().find(x => x.nome === 'mascote').id"); vid = pg.evaluate("__pers.lib().find(x => x.nome === 'mascote').variacoes[0].id")

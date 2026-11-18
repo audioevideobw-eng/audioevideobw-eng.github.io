@@ -569,3 +569,16 @@
   if (window.BWLanca || document.querySelector('script[src*="bw-agente.js"]')) return;
   var s = document.createElement("script"); s.src = "assets/bw-agente.js?v=18"; s.defer = true; document.head.appendChild(s);
 })();
+
+/* 18/11: SETAS de abrir/fechar seções (data-seta). Fechada por padrão com data-seta-padrao="fechada"; a escolha fica em ui_dobras. */
+(function () {
+  function ler() { try { return JSON.parse(localStorage.getItem("ui_dobras") || "{}") || {}; } catch (e) { return {}; } }
+  function aplicar(raiz) { var est = ler(); (raiz || document).querySelectorAll("[data-seta]").forEach(function (t) { var k = t.getAttribute("data-seta"), f = est[k] === 0 || (est[k] !== 1 && t.getAttribute("data-seta-padrao") === "fechada");
+    if (t.getAttribute("data-seta-forcar") === "aberta") f = false; t.classList.toggle("fechada", f); t.setAttribute("role", "button"); t.setAttribute("tabindex", "0"); t.setAttribute("aria-expanded", String(!f)); }); }
+  function alternar(t) { var f = !t.classList.contains("fechada"), est = ler(); est[t.getAttribute("data-seta")] = f ? 0 : 1; try { localStorage.setItem("ui_dobras", JSON.stringify(est)); } catch (e) {} t.classList.toggle("fechada", f); t.setAttribute("aria-expanded", String(!f)); }
+  document.addEventListener("click", function (e) { var t = e.target.closest && e.target.closest("[data-seta]"); if (t && !e.target.closest("button,a,input,select,textarea")) alternar(t); });
+  document.addEventListener("keydown", function (e) { if ((e.key === "Enter" || e.key === " ") && e.target.matches && e.target.matches("[data-seta]")) { e.preventDefault(); alternar(e.target); } });
+  var t0 = 0; try { new MutationObserver(function () { clearTimeout(t0); t0 = setTimeout(function () { aplicar(document); }, 30); }).observe(document.documentElement, {childList: true, subtree: true}); } catch (e) {}
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", function () { aplicar(document); }); else aplicar(document);
+  window.BWDobras = {aplicar: aplicar};
+})();
