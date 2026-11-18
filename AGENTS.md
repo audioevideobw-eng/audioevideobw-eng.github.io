@@ -885,8 +885,13 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   IA cai, o Tio Cláudio fala o motivo (chave/limite/rede) e o que ainda entende. Conserto de verdade = o dono colar uma chave nova da Groq no
   Supabase. Dono autorizou (22:44): IA de vídeo conectada OU exportar as fotos (o usuário escolhe) e mandar a imagem da referência junto.
   layout.js v49, sw v117. PENTE FINO 86.
+- 17/11/2026 23:20 · Claude (dono autorizou): QUADRO DE HISTÓRIA manda a IMAGEM DA REFERÊNCIA junto com a foto do personagem (imagem 0 =
+  personagem, imagem 1 = referência) nas cenas ligadas a ela. Site pronto (fotos-nuvem.js v3 aceita a 2ª imagem; reels-quadro.js v2) e código
+  da função atualizado em docs/supabase/functions/bw-ia-imagem/index.ts ("imagem2" → input_image_1, só no modo arte). FALTA PUBLICAR a função
+  no painel do Supabase — até lá a função antiga ignora a 2ª imagem (nada quebra). teste_quadro.py +1 checagem (0 falhas). sw v118.
 
 ## Pendências (dono)
+- [ ] (17/11) Publicar a nova versão da função bw-ia-imagem no Supabase (2ª imagem = referência) e testar no ar com personagem + referência.
 - [ ] (17/11) URGENTE — IA BRIGHTWAY FORA DO AR: criar chave nova em console.groq.com → API Keys e colar em Supabase → Edge Functions →
       Secrets → GROQ_API_KEY (substituir). Depois avisar o Claude para testar o Tio Cláudio, o roteiro do Reels e a transcrição.
 - [ ] (17/11) QUADRO DE HISTÓRIA: dono testar no ar, logado (EXEMPLO → foto → CRIAR IMAGENS → MONTAR O VÍDEO), no PC e no celular; decidir se

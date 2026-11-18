@@ -25,7 +25,7 @@ RESPOSTA_IA = {"ganchos": [
     {"tipo": "lista", "duracao": 5, "titulo": "Do palco para todas as telas", "itens": ["Transmissão ao vivo", "Aftermovie", "Fotos"]},
     {"tipo": "cta", "duracao": 3, "texto": "Seu próximo evento merece ir mais longe", "acao": "@bw"}],
   "fatos": ["87% das empresas preferem lives", "A BW faz até 30 eventos por ano"], "legenda": "Seu evento não precisa acabar às 22h. #eventoscorporativos #transmissaoaovivo"}
-PEDIDOS = []; PEDIDOS_IMG = []
+PEDIDOS = []; PEDIDOS_IMG = []; CORPOS_IMG = []
 RESPOSTA_QD = {"gancho": "Duas horas antes do sim", "cenas": [
     {"prompt": "arriving at an empty elegant ballroom, looking around excited, wide shot", "fala": "IA TROCOU A FALA"},
     {"prompt": "photographing the couple dancing, close shot", "fala": "É aqui que a mágica acontece"},
@@ -56,6 +56,7 @@ def rota(r):
     if "functions/v1/bw-ia-imagem" in u:
         if r.request.method == "OPTIONS": return r.fulfill(status=200, body="ok")
         PEDIDOS_IMG.append(len(r.request.post_data_buffer or b""))
+        CORPOS_IMG.append((r.request.post_data_buffer or b"").count(b'filename="'))
         return r.fulfill(body=json.dumps({"imagem": IMG_IA}), content_type="application/json")
     if "functions/v1/bw-ia" in u:
         if r.request.method == "OPTIONS": return r.fulfill(status=200, body="ok")
@@ -113,6 +114,8 @@ with sync_playwright() as p:
         pers = pg.evaluate("BWQuadro.estado().blocos.find(b => b.tipo === 'pers').id")
         pg.evaluate(f"document.getElementById('qdArquivo').dataset.para = '{pers}'"); pg.set_input_files("#qdArquivo", AVATAR); pg.wait_for_timeout(900)
         ok(pg.locator(".qd-bloco.t-pers .qd-foto img").count() == 1, "foto do personagem entra no bloco")
+        ref0 = pg.evaluate("BWQuadro.estado().blocos.find(b => b.tipo === 'ref').id")
+        pg.evaluate(f"document.getElementById('qdArquivo').dataset.para = '{ref0}'"); pg.set_input_files("#qdArquivo", AVATAR); pg.wait_for_timeout(700); CORPOS_IMG.clear()
         # criar imagens: precisa da autorização; depois 1 chamada de texto + 4 imagens, foto pequena
         pg.click("#qdImagens"); pg.wait_for_timeout(1500)
         ok("autorização" in pg.inner_text("#qdAviso") and len(PEDIDOS_IMG) == 0, "sem marcar a autorização nada é enviado")
@@ -121,6 +124,7 @@ with sync_playwright() as p:
         ok(len(PEDIDOS_IMG) == 4 and max(PEDIDOS_IMG) < 400000 and pg.locator(".qd-foto.ia img").count() == 4, f"4 imagens criadas com cópia pequena da foto (maior envio {max(PEDIDOS_IMG or [0])//1024} KB)")
         qd = [x for x in PEDIDOS if "diretor de arte" in x]
         ok(len(qd) == 2 and "álbum de capa de couro" in qd[-1] and "salão de festa" in qd[-1], "os textos saem numa chamada só por ação, com as referências ligadas a cada cena")
+        ok(sorted(CORPOS_IMG) == [1, 1, 2, 2], f"cenas ligadas à referência com imagem mandam o personagem E a referência; as outras só o personagem {CORPOS_IMG}")
         ok(pg.is_visible("#qdBaixar"), "aparece BAIXAR IMAGENS (só as fotos)")
         with pg.expect_download() as d1: pg.click("#qdBaixar")
         ok(d1.value.suggested_filename == "cena-1.jpg", "BAIXAR IMAGENS baixa as fotos das cenas")

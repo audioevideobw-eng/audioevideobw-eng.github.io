@@ -15,6 +15,7 @@
     var s = await sessao(); if (!s) return { erro: "sem_login" };
     var fd = new FormData(); if (blob) fd.append("imagem", blob, "foto.jpg"); fd.append("pedido", pedido); fd.append("w", String(w)); fd.append("h", String(h));
     extra = extra || {}; if (extra.modo) fd.append("modo", extra.modo); if (extra.espaco) fd.append("espaco", extra.espaco); if (extra.seed) fd.append("seed", String(extra.seed));
+    if (extra.blob2) fd.append("imagem2", extra.blob2, "referencia.jpg");   /* 17/11: referência de lugar/objeto/estilo (QUADRO DE HISTÓRIA) */
     try {
       var r = await fetch(FN, { method: "POST", headers: { "Authorization": "Bearer " + s.access_token, "apikey": PUB }, body: fd });
       var j = await r.json().catch(function () { return {}; });
@@ -28,6 +29,6 @@
     limite: "Você já usou as 15 imagens de IA de hoje. Amanhã libera de novo.", cota: "A IA criativa atingiu o limite grátis de hoje. Tente amanhã.",
     proibido: "Esse pedido não é permitido nesta ferramenta.", filtro: "A IA recusou esse pedido. Tente escrever de outro jeito.",
     rede: "Sem internet agora.", grande: "A foto ficou grande demais para enviar." };
-  function arte(blob, pedido, w, h, espaco, seed) { return editar(blob, pedido, w, h, { modo: "arte", espaco: espaco, seed: seed }); }
+  function arte(blob, pedido, w, h, espaco, seed, blob2) { return editar(blob, pedido, w, h, { modo: "arte", espaco: espaco, seed: seed, blob2: blob2 || null }); }
   window.BWFotosNuvem = { editar: editar, arte: arte, pronta: pronta, msg: function (e) { return MSG[e] || "A IA criativa não respondeu agora (" + e + ")."; } };
 })();

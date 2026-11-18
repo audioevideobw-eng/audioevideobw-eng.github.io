@@ -43,6 +43,9 @@ Deno.serve(async (req) => {
   const espaco = ["topo", "centro", "baixo", "esquerda", "direita"].includes(String(fd.get("espaco"))) ? String(fd.get("espaco")) : "baixo";
   if (!pedido || (modo === "editar" && !temFoto)) return resp({ erro: "vazio" }, 400);
   if (temFoto && (img as File).size > 1.5 * 1024 * 1024) return resp({ erro: "grande" }, 413);
+  // 17/11 (QUADRO DE HISTÓRIA): segunda imagem opcional = REFERÊNCIA de lugar/objeto/estilo (só no modo arte, junto com a foto do personagem)
+  const img2 = fd.get("imagem2"), temRef = modo === "arte" && temFoto && img2 instanceof File && img2.size > 0;
+  if (temRef && (img2 as File).size > 1.5 * 1024 * 1024) return resp({ erro: "grande" }, 413);
   if (PROIBIDO.test(pedido)) return resp({ erro: "proibido" }, 400);
   const lado = (v: unknown) => Math.max(256, Math.min(1440, Math.round((Number(v) || 1024) / 16) * 16));
   const w = lado(fd.get("w")), h = lado(fd.get("h"));
@@ -62,9 +65,11 @@ Deno.serve(async (req) => {
     ? "Create a polished design artwork featuring the person from image 0 — keep exactly the same face, identity, skin tone and age; the person must stay recognizable. "
     : "Create a polished design artwork background. ") + pedido +
     ". Professional graphic-design quality, harmonious colors, sharp details. Keep " + ESPACO[espaco] +
-    " of the image calm and uncluttered (soft background, low detail) so text can be placed there later." + SEM_TEXTO;
+    " of the image calm and uncluttered (soft background, low detail) so text can be placed there later." +
+    (temRef ? " Use image 1 ONLY as the reference for the place, objects, colors and visual style of the scene; do not copy any person from image 1." : "") + SEM_TEXTO;
   cf.append("prompt", prompt);
   if (temFoto) cf.append("input_image_0", img as File, "foto.jpg");
+  if (temRef) cf.append("input_image_1", img2 as File, "referencia.jpg");
   const seed = Number(fd.get("seed")); if (Number.isFinite(seed) && seed > 0) cf.append("seed", String(Math.floor(seed) % 2147483647));
   cf.append("width", String(w)); cf.append("height", String(h));
   const r = await fetch(`https://api.cloudflare.com/client/v4/accounts/${conta}/ai/run/${MODELO}`, {

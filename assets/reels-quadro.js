@@ -177,14 +177,15 @@
     if (usaFoto && !$("qdAutor").checked) { aviso("Marque que as imagens são suas ou que você tem autorização de quem aparece nelas.", true); return; }
     var faltam = p.cenas.filter(function (c) { return !IMG[c.id + "-ia"]; });
     if (!faltam.length) { aviso("Todas as cenas já têm imagem. Apague a de uma cena (✕) para criar outra."); return; }
-    if (!confirm("A IA vai criar " + faltam.length + " imagem(ns) (das 15 por dia da sua conta)." + (usaFoto ? " Vamos enviar UMA cópia pequena da foto; nada fica guardado." : "") + " Continuar?")) return;
+    if (!confirm("A IA vai criar " + faltam.length + " imagem(ns) (das 15 por dia da sua conta)." + (usaFoto ? " Vamos enviar uma cópia pequena das fotos do quadro (personagem e referência); nada fica guardado." : "") + " Continuar?")) return;
     var A = window.BWReelsAvatar, peq = fig ? await A.jpgPequeno(fig, 504) : null, feitas = 0, falhou = "";
     for (var i = 0; i < p.cenas.length; i++) {
       var c = p.cenas[i]; if (IMG[c.id + "-ia"]) continue;
       ocupado("A IA está desenhando a cena " + (i + 1) + " de " + p.cenas.length + "…");
-      var base = peq, usaRef = false;
-      if (!base && c.refImg) { base = await A.jpgPequeno(A.canvasDe(await A.imagemDe(IMG[c.refImg.id].blob), 1400), 504); usaRef = true; }
-      var r = await window.BWFotosNuvem.arte(base, pedidoImagem(p.h, c, c.prompt, !!peq, usaRef), 576, 1024, "topo", 2000 + i * 41);
+      var base = peq, usaRef = false, ref2 = null;
+      var refPeq = c.refImg ? await A.jpgPequeno(A.canvasDe(await A.imagemDe(IMG[c.refImg.id].blob), 1400), 504) : null;
+      if (!base && refPeq) { base = refPeq; usaRef = true; } else if (base && refPeq) ref2 = refPeq;     /* personagem = imagem 0, referência = imagem 1 */
+      var r = await window.BWFotosNuvem.arte(base, pedidoImagem(p.h, c, c.prompt, !!peq, usaRef) + (ref2 ? " Place the character in the place shown in image 1 and use its objects and style." : ""), 576, 1024, "topo", 2000 + i * 41, ref2);
       if (r.erro) { falhou = window.BWFotosNuvem.msg(r.erro); break; }
       await porImagem(c.id, r.blob, "-ia"); feitas++; desenhar();
     }
