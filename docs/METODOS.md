@@ -272,3 +272,14 @@ Tamanho > 0 e sem erro = o pdfmake montou o arquivo. Localmente (T1) confira o `
 - A página do Supabase não deixa buscar arquivos de fora (CSP): aplicar a mudança como TROCAS de trechos (cada âncora tem de aparecer 1 vez)
   e conferir o SHA-256 do resultado contra o arquivo novo do repositório (`sha256sum`). Só então `executeEdits` + "Deploy updates" + confirmar.
 - Recarregar a página e conferir o SHA-256 de novo; depois testar a função no ar com dados de TESTE.
+
+## Aplicativo de janela (Studio) que abre o site e fala com o PC — 18/11/2026
+- Playwright `launchPersistentContext` com `--app=URL` (canal msedge → chrome → Chromium do motor; `ignoreDefaultArgs: ['--enable-automation']`).
+- Ponte: `context.exposeBinding(nome, (origem, ...))` e NÃO `exposeFunction` — o binding recebe `origem.frame.url()`; libere por origem
+  (telas locais = tudo; plataforma = lista curta; resto = recusa) e só o quadro principal. Botão/aviso nas páginas por `addInitScript`
+  que confere `location` antes de fazer qualquer coisa.
+- Conta: quem confere é a página da plataforma (`BWSync.cliente().auth.getUser()` dentro do `page.evaluate`); para o programa volta só
+  id/e-mail/nome. O token nunca sai da página.
+- Render sem mexer no site: `page.on('download')` pega o `*.bwreels.zip`, `saveAs` em projetos/, descompacta e chama o render; outros
+  downloads vão para a pasta Downloads com aviso.
+- Teste: plataforma simulada por um servidor só do teste (env BWREELS_SITE_TESTE) + um segundo servidor "de fora" para provar a recusa.

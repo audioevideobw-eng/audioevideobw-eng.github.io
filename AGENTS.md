@@ -284,6 +284,11 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
     conferir nas páginas oficiais antes de atualizar e nunca prometer valor; o aviso ao usuário sempre diz "confira no site da IA antes de pagar".
     AUTOMÁTICO só manda para IA paga a cena com movimento de verdade; fala parada e detalhe ficam no app. Nenhuma IA de vídeo é chamada pelo site.
 
+88. APLICATIVO BW REELS (Studio, motor/app.mjs): a janela abre também a plataforma, então a ponte com o PC (`bwNode`) confere QUEM chama —
+    só as telas locais do app usam tudo; a plataforma só pode pedir `inicio`/`info`; qualquer outro site é recusado (teste com site "de fora").
+    Login = a página de login da plataforma dentro da janela; o app guarda só id/e-mail/nome + validade de 7 dias, nunca senha nem token.
+    Ação que navega a janela e mexe na conta (SAIR) desliga antes o vigia de "página carregou" — senão ele registrava a conta de novo.
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -903,8 +908,19 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   Preços de referência (US$/s) de 17/11/2026: Veo 3.1 Lite 0,05 · Kling 3.0 0,112 · Veo 3.1 Standard 0,40. LIMITE: o site ainda NÃO gera o clipe
   (nenhuma IA de vídeo conectada — aparece "disponível em breve"); a geração é feita fora e o clipe é importado. teste_quadro.py +5 checagens
   (0 falhas), teste_reels 0, vigia ✅. reels.js v13, reels-quadro.js v3, sw v119. PENTE FINO 87.
+- 18/11/2026 00:30 · Claude (dono: "faça ele e com tudo que eu pedi, as ferramentas e o modo cena flux"): APLICATIVO BW REELS no Studio
+  (downloads/BW-Reels-Studio.zip): atalho "BW Reels" → janela própria (Edge/Chrome do PC; senão o navegador do motor) com LOGIN OBRIGATÓRIO da
+  conta Brightway (feito na página de login da plataforma; o app guarda só id/e-mail/nome, vale 7 dias sem internet; SAIR apaga e sai da
+  plataforma) e a tela inicial com CRIAR REEL, QUADRO DE HISTÓRIA (abre o quadro direto), ASSISTENTE PASSO A PASSO, LEGENDAS AUTOMÁTICAS
+  (escolher o vídeo → .srt), MINHAS IAS, PLATAFORMA BRIGHTWAY, MEUS VÍDEOS e 3 itens "em breve" (IA de vídeo conectada, biblioteca oficial,
+  Drive/Dropbox). Dentro do app o RENDERIZAR NO PC do editor gera o vídeo sozinho (o pacote baixado é pego pela janela, com barra de
+  progresso) — sem mudar nada no site e sem servidor local. Sem tabela nem função nova no Supabase. motor/teste-app.mjs com a plataforma
+  SIMULADA: 29 checagens, 0 falhas; teste-assistente 0 falhas. NÃO testado no Windows do dono nem com o login real (Google pode recusar
+  janela automatizada — e-mail e senha é o caminho seguro). Ainda é pasta + INSTALAR.bat, não um instalador .exe. PENTE FINO 88.
 
 ## Pendências (dono)
+- [ ] (18/11) APLICATIVO BW REELS: dono abrir o atalho "BW Reels" (rodar CRIAR-ATALHO.bat uma vez), ENTRAR com a conta, abrir o QUADRO,
+      fazer um RENDERIZAR NO PC por dentro do app e testar LEGENDAS; dizer se o login pelo Google funcionou na janela.
 - [ ] (17/11) IA DE VÍDEO CONECTADA: decidir onde fica a chave (servidor da Brightway com cobrança, ou chave do próprio usuário guardada no
       servidor) e qual serviço; conferir os preços e modelos atuais (há aviso de troca do Veo 3.1 por modelo novo do Google).
 - [x] (17/11 23:35, com o "sim" do dono) Função bw-ia-imagem publicada pelo painel (editor conferido por SHA-256: antes = versão antiga do repo,
