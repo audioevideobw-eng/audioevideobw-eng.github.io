@@ -13,7 +13,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Brightway">
-<link rel="stylesheet" href="assets/brightway.css?v=28">
+<link rel="stylesheet" href="assets/brightway.css?v=29">
 <style>
 :root{
   /* Identidade Brightway — paleta oficial */
@@ -387,7 +387,7 @@ footer b{color:var(--gold)}
 </div>
 
 </div>
-<script src="assets/layout.js?v=55"></script>
+<script src="assets/layout.js?v=56"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="assets/bw-sync.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/pdfmake@0.2.20/build/pdfmake.min.js"></script>
@@ -1196,7 +1196,15 @@ function itensEntre(ini, fim) {
     if (!e || /cancel/i.test(e.status || "")) return;
     const link = "eventos.html?ev=" + encodeURIComponent(e.id);
     const ev = (d, k, o) => { const ch = "ev|" + e.id + "|" + k; out.push(Object.assign({ tipo: "evento", data: d, onde: link, chave: ch, feito: !!FEITOS[ch] }, o)); };
-    if (dentro(e.data)) ev(e.data, "dia", { titulo: e.nome, sub: [e.local, e.equipeNome].filter(Boolean).join(" · ") || "Evento", ico: "evento" });
+    /* 19/11 (dono): evento de vários dias (dataFim) aparece em TODOS os dias, com o "risco" ligando do primeiro ao último na grade;
+       a chave é a mesma em todos os dias: concluir em um conclui o evento inteiro */
+    const sub0 = [e.local, e.equipeNome].filter(Boolean).join(" · ");
+    if (e.data && e.dataFim && e.dataFim > e.data) {
+      const total = Math.round((deYmd(e.dataFim) - deYmd(e.data)) / 86400000) + 1; let d = deYmd(e.data);
+      for (let k = 1; k <= total && k <= 62; k++, d.setDate(d.getDate() + 1)) { const s = ymd(d);
+        if (dentro(s)) ev(s, "dia", { titulo: e.nome, sub: "Dia " + k + " de " + total + (sub0 ? " · " + sub0 : ""), ico: "evento", faixa: k === 1 ? "ini" : k === total ? "fim" : "meio", evId: String(e.id) }); }
+    }
+    else if (dentro(e.data)) ev(e.data, "dia", { titulo: e.nome, sub: sub0 || "Evento", ico: "evento" });
     if (e.montagem && e.montagem !== e.data && dentro(e.montagem)) ev(e.montagem, "mont", { titulo: "Montagem — " + e.nome, sub: e.local || "Montagem", ico: "montagem" });
     if (e.desmontagem && e.desmontagem !== e.data && dentro(e.desmontagem)) ev(e.desmontagem, "desm", { titulo: "Desmontagem — " + e.nome, sub: e.local || "Desmontagem", ico: "montagem" });
   });
@@ -1266,6 +1274,7 @@ function grade() {
       <span class="n">${d.getDate()}</span>
       ${its.slice(0, 2).map(i => `<span class="ag-mini ${i.feito ? "feito" : ""}"><i style="background:${corItem(i)};color:${corItem(i)}"></i>${esc(i.titulo)}</span>`).join("")}
       ${its.length > 2 ? `<span class="ag-mais">+${its.length - 2}</span>` : ""}
+      ${its.filter(i => i.faixa).slice(0, 2).map((i, n) => `<span class="ag-risco ${i.faixa}${i.feito ? " feito" : ""}" style="bottom:${3 + n * 6}px" title="${esc(i.titulo)} — ${esc(i.sub)}"></span>`).join("")}
       <span class="ag-pontos">${its.slice(0, 4).map(i => `<i style="background:${corItem(i)};color:${corItem(i)}"></i>`).join("")}</span>
     </button>`;
   }
@@ -1275,7 +1284,8 @@ function grade() {
 /* PENDENTES = já passou ou é hoje e não foi concluído (até 60 dias para trás) */
 function pendentes() {
   const h = new Date(), de = ymd(new Date(h.getFullYear(), h.getMonth(), h.getDate() - 60));
-  return itensEntre(de, HOJE()).filter(i => !i.feito);
+  const vistos = {};   /* evento de vários dias: uma linha só nos pendentes (o dia mais recente), não uma por dia */
+  return itensEntre(de, HOJE()).filter(i => !i.feito).sort((a, b) => b.data.localeCompare(a.data)).filter(i => !i.faixa || !vistos[i.chave] && (vistos[i.chave] = 1)).sort((a, b) => a.data.localeCompare(b.data));
 }
 function grupoDatas(its, rotulo) {
   let html = "", atual = "";

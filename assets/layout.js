@@ -327,7 +327,8 @@
     ler("neg_eventos").concat(ler("neg_equipe_eventos")).forEach(function (e) {
       if (!e || vistos[e.id]) return; vistos[e.id] = 1;
       if (/cancel/i.test(e.status || "")) return;
-      var n = FEITOS["ev|" + e.id + "|dia"] ? null : dias(e.data), nm = FEITOS["ev|" + e.id + "|mont"] ? null : dias(e.montagem);
+      var n = FEITOS["ev|" + e.id + "|dia"] ? null : dias(e.data); if (n !== null && n < 0 && e.dataFim && dias(e.dataFim) >= 0) n = 0;   /* evento de vários dias em andamento conta como "hoje" */
+      var nm = FEITOS["ev|" + e.id + "|mont"] ? null : dias(e.montagem);
       var prox = [n, nm].filter(function (x) { return x !== null && x >= 0 && x <= 7; });
       if (!prox.length) return;
       eventos.push({ ev: e, n: n, nm: nm, min: Math.min.apply(null, prox) });
@@ -562,7 +563,7 @@
 /* ===== AGENTE (16/11): o robô fica em todas as páginas — carregado aqui para não precisar mexer em cada página ===== */
 (function () {
   if (window.BWLanca || document.querySelector('script[src*="bw-agente.js"]')) return;
-  var s = document.createElement("script"); s.src = "assets/bw-agente.js?v=20"; s.defer = true; document.head.appendChild(s);
+  var s = document.createElement("script"); s.src = "assets/bw-agente.js?v=21"; s.defer = true; document.head.appendChild(s);
 })();
 
 /* 18/11: SETAS de abrir/fechar seções (data-seta). Fechada por padrão com data-seta-padrao="fechada"; a escolha fica em ui_dobras. */

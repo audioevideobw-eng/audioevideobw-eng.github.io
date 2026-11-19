@@ -335,6 +335,10 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
     situação refaz os TRÊS na mesma ação (pagarCache → cacheNoEvento → espelharEventos) e a lista mostra o item UMA vez (a origem), nunca as
     cópias derivadas. Botão que abre o Tio Cláudio de outra página usa BWAgente.abrir(false): abrir já escutando derruba o navegador de teste.
 
+100. EVENTO DE VÁRIOS DIAS: `dataFim` (último dia; vazio = um dia; ignorado se não for depois de `data`). Quem lista eventos por dia (agenda do
+     Início, agenda de EVENTOS, sino, Tio Cláudio) percorre de data a dataFim; na agenda a CHAVE é a mesma em todos os dias (ev|id|dia): concluir
+     uma vez conclui o evento, e PENDENTES mostra uma linha só. "Hoje" em comparação de datas = data LOCAL (o cartão de EVENTOS usava toISOString).
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -1084,8 +1088,16 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   PERDEU-SE: a foto do comprovante anexada ao custo (o LEITOR DE CONTAS continua lançando custo de evento com o arquivo). Nova faixa 🧰 FERRAMENTAS
   nos Lançamentos: LER CONTA OU COMPROVANTE (leitor), FALAR COM O TIO CLÁUDIO, LANÇAR POR PLANILHA (Painel Financeiro), FIXOS DO MÊS.
   teste_lancamentos.py +16 checagens (0 falhas). Manual 47 → 46 p. NÃO testado na conta real. lancamentos.js v5, layout.js v55, bw-agente v20, sw v131. PENTE FINO 99.
+- 19/11/2026 01:10 · Claude (dono: "evento que vai do dia 27 a 29… acrescentar o dia de término; a agenda fica completa com um risco em todos os
+  dias"): EVENTOS — campo novo "Termina em (último dia)" no NOVO EVENTO e no EDITAR (neg_eventos[].dataFim). Cartão mostra "27/11 a 29/11 (3 dias)" e
+  "EM ANDAMENTO · dia 2 de 3" (só vira "realizado" depois do último dia); dossiê em PDF com o período. AGENDA do Início e agenda da página EVENTOS:
+  o evento aparece em todos os dias ("Dia 2 de 3") com um RISCO âmbar ligando do primeiro ao último (verde quando concluído; concluir uma vez
+  vale para todos os dias). Sino conta o evento em andamento como "hoje"; Tio Cláudio enxerga os dias seguintes; orçamento aprovado com data final
+  já cria o evento com dataFim. NÃO mudou: o e-mail automático (função bw-avisos no Supabase) ainda olha só o 1º dia. Novo
+  docs/testes/teste_evento_dias.py (16 checagens × 1280/390, 0 falhas). brightway.css v29, layout.js v56, bw-agente v21, propostas.js v8, sw v132. PENTE FINO 100.
 
 ## Pendências (dono)
+- [ ] (19/11) EVENTO DE VÁRIOS DIAS: dono editar um evento real, preencher "Termina em" e ver o risco na agenda (PC e celular).
 - [ ] (19/11) CACHÊ nos LANÇAMENTOS: dono conferir se os cachês antigos aparecem com PAGO / NÃO PAGO certo e marcar um como pago (ver no dossiê do evento).
 - [ ] (19/11) LANÇAMENTOS: dono conferir na conta dele se os lançamentos e os fixos antigos do Fluxo aparecem, e tocar em 📄 PDF DO MÊS (não deu para testar o PDF daqui).
 - [ ] (18/11) LANÇAMENTOS: dono usar na conta dele (lançar um gasto, mudar de lugar, excluir um teste) e dizer se falta algum tipo de lançamento.

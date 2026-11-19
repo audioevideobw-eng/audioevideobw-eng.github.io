@@ -598,7 +598,7 @@
     var nomeCli = d.cliente.empresa || d.cliente.nome || "Cliente", tot = total(d);
     var cl = ler("neg_clientes"), ja = cl.filter(function (c) { return String(c.nome || "").trim().toLowerCase() === nomeCli.trim().toLowerCase(); })[0];
     if (!ja) { ja = { id: Date.now(), nome: nomeCli, cnpj: d.cliente.doc || "", tel: d.cliente.tel || "", email: d.cliente.email || "", end: "", cidade: "" }; cl.push(ja); gravar("neg_clientes", cl); }
-    var evs = ler("neg_eventos"), ev = { id: Date.now() + 1, nome: nomeCli + ((d.botoes || [])[0] ? " — " + d.botoes[0].charAt(0) + d.botoes[0].slice(1).toLowerCase() : ""), data: d.datas.ini || "", tipo: (d.botoes || [])[0] || "", local: d.datas.local || "",
+    var evs = ler("neg_eventos"), ev = { id: Date.now() + 1, nome: nomeCli + ((d.botoes || [])[0] ? " — " + d.botoes[0].charAt(0) + d.botoes[0].slice(1).toLowerCase() : ""), data: d.datas.ini || "", dataFim: (d.datas.fim && d.datas.ini && d.datas.fim > d.datas.ini) ? d.datas.fim : "", tipo: (d.botoes || [])[0] || "", local: d.datas.local || "",
       cliente: nomeCli, equipeId: "", equipeNome: "", status: "Confirmado", tel: d.cliente.tel || "", email: d.cliente.email || "", montagem: /^\d{4}-\d{2}-\d{2}$/.test(d.datas.montagem) ? d.datas.montagem : "", desmontagem: "", contrato: "",
       orcado: tot ? String(tot) : "", contratado: tot ? String(tot) : "", recebido: "", obs: "Criado pelo GERADOR DE ORÇAMENTO (" + d.numero + ")" + (d.datas.fim && d.datas.fim !== d.datas.ini ? "\nAté " + dataBR(d.datas.fim) : "") + (d.datas.horario ? "\nHorário: " + d.datas.horario : "") };
     evs.push(ev); gravar("neg_eventos", evs); d.eventoId = ev.id; salvarDoc(d);

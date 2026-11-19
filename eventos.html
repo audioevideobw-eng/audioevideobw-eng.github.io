@@ -13,7 +13,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Brightway">
-<link rel="stylesheet" href="assets/brightway.css?v=28">
+<link rel="stylesheet" href="assets/brightway.css?v=29">
 <style>
 :root{
   /* Identidade Brightway — paleta oficial */
@@ -301,7 +301,7 @@ footer b{color:var(--gold)}
     Não é recomendação de investimento.
   </footer>
 </div>
-<script src="assets/layout.js?v=55"></script>
+<script src="assets/layout.js?v=56"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="assets/bw-sync.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/pdfmake@0.2.20/build/pdfmake.min.js"></script>
@@ -2697,11 +2697,14 @@ function agendaVisual() {
   const eventos = load("neg_eventos", 1, []);
   const porDia = {};
   eventos.forEach(e => {
-    const d = (e.data || "").slice(0, 10);
-    if (d.startsWith(`${ano}-${String(mes + 1).padStart(2, "0")}`)) {
-      const dia = +d.slice(8, 10);
+    const d = (e.data || "").slice(0, 10); if (!/^\d{4}-\d{2}-\d{2}$/.test(d)) return;
+    /* 19/11: evento de vários dias (dataFim) entra em TODOS os dias, com o risco ligando do primeiro ao último */
+    const total = window.__evDias(e); const dt = new Date(+d.slice(0, 4), +d.slice(5, 7) - 1, +d.slice(8, 10));
+    for (let k = 1; k <= total && k <= 62; k++, dt.setDate(dt.getDate() + 1)) {
+      if (dt.getFullYear() !== ano || dt.getMonth() !== mes) continue;
+      const dia = dt.getDate();
       porDia[dia] = porDia[dia] || [];
-      porDia[dia].push(e);
+      porDia[dia].push(total > 1 ? Object.assign({}, e, { __faixa: k === 1 ? "ini" : k === total ? "fim" : "meio", __k: k, __t: total }) : e);
     }
   });
   let html = '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;font-size:11px">';
@@ -2712,9 +2715,10 @@ function agendaVisual() {
     const temHoje = d === hoje.getDate();
     const fundo = evs.length ? "background:rgba(212,169,74,.15);border:1px solid var(--gold)" :
       temHoje ? "border:1px solid var(--gold2)" : "border:1px solid var(--line)";
-    html += `<div style="${fundo};border-radius:8px;padding:6px 2px;min-height:44px;text-align:center">
+    html += `<div style="${fundo};border-radius:8px;padding:6px 2px;min-height:44px;text-align:center;position:relative;min-width:0">
       <b style="font-size:12px">${d}</b>
-      ${evs.map(e => `<div style="font-size:9px;color:var(--gold2);overflow:hidden;text-overflow:ellipsis" title="${esc(e.nome)}">${esc(e.nome.slice(0, 10))}</div>`).join("")}
+      ${evs.map(e => `<div style="font-size:9px;color:var(--gold2);overflow:hidden;text-overflow:ellipsis" title="${esc(e.nome)}${e.__faixa ? " — dia " + e.__k + " de " + e.__t : ""}">${esc(e.nome.slice(0, 10))}</div>`).join("")}
+      ${evs.filter(e => e.__faixa).slice(0, 2).map((e, n) => `<span class="ev-risco" data-faixa="${e.__faixa}" style="position:absolute;bottom:${2 + n * 5}px;left:${e.__faixa === "ini" ? "6px" : "-3px"};right:${e.__faixa === "fim" ? "6px" : "-3px"};height:3px;background:#FFB547;border-radius:${e.__faixa === "ini" ? "3px 0 0 3px" : e.__faixa === "fim" ? "0 3px 3px 0" : "0"};pointer-events:none"></span>`).join("")}
     </div>`;
   }
   html += "</div>";
@@ -2813,7 +2817,7 @@ window.__evCorStatus = s => s === "Entregue" || s === "Realizado" ? "up" : s ===
 function render() {
   dashboard();
   const box = $("#evLista"); if (!box) return;
-  const hoje = new Date().toISOString().slice(0, 10);
+  const hoje = (d => d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"))(new Date());   /* data LOCAL (regra 29) */
   const dados = eventos().sort((a, b) => (a.data || "").localeCompare(b.data || ""));
   const finalizados = dados.filter(e => e.status === "Realizado" || e.status === "Entregue");
   const agenda = dados.filter(e => !(e.status === "Realizado" || e.status === "Entregue"));
@@ -2821,8 +2825,12 @@ function render() {
   const cor = window.__evCorStatus;
   const pago = e => (parseFloat(e.contratado || 0) || 0) > 0 && (parseFloat(e.recebido || 0) || 0) >= (parseFloat(e.contratado || 0) || 0);
   const card = e => {
-    const dias = e.data ? Math.round((new Date(e.data + "T12:00") - new Date(hoje + "T12:00")) / 86400000) : null;
-    const badge = dias === null ? "" : dias < 0 ? "realizado" : dias === 0 ? "HOJE" : `faltam ${dias}d`;
+    /* 19/11: evento de vários dias (dataFim) — "EM ANDAMENTO · dia N de T" do 2º dia em diante; só vira "realizado" depois do último dia */
+    const nDias = window.__evDias(e);
+    let dias = e.data ? Math.round((new Date(e.data + "T12:00") - new Date(hoje + "T12:00")) / 86400000) : null;
+    const andando = dias !== null && dias < 0 && nDias > 1 && hoje <= e.dataFim;
+    const badge = dias === null ? "" : andando ? `EM ANDAMENTO · dia ${1 - dias} de ${nDias}` : dias < 0 ? "realizado" : dias === 0 ? (nDias > 1 ? `HOJE · dia 1 de ${nDias}` : "HOJE") : `faltam ${dias}d`;
+    if (andando) dias = 0;
     const sit = pago(e);
     const acoes = (e.status === "Realizado" || e.status === "Entregue")
       ? `<button class="btn gh" data-agd="${e.id}"><svg width="15" height="15" viewBox="0 0 24 24" aria-hidden="true" style="vertical-align:-3px;margin-right:4px" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Agendar</button>
@@ -2837,7 +2845,7 @@ function render() {
         ${badge ? `<span class="tag ${dias < 0 ? "cinza" : dias <= 3 ? "mid" : "azul"}">${badge}</span>` : ""}</span>
       </div>
       <div style="margin-top:4px;color:var(--mut);font-size:12.5px">
-        ${esc((e.data || "").split("-").reverse().join("/"))} · ${esc(e.local || "—")} ·
+        ${esc(window.__evPeriodo(e))} · ${esc(e.local || "—")} ·
         ${esc(e.cliente || "—")} · ${esc(e.tipo || "—")} · ${(() => { const qs = load("neg_equipe_equipes", 1, []); const ok = !e.equipeId || !qs.length || qs.some(q => String(q.id) === String(e.equipeId)); return ok ? esc(e.equipeNome || "sem equipe") : '<span style="color:var(--dn)" title="A equipe foi excluída — escolha outra em Editar">' + esc(e.equipeNome || "equipe") + " (excluída)</span>"; })()}
       </div>
       <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
@@ -2907,8 +2915,11 @@ function wireFormulario() {
     <h3>Novo evento</h3>
     <div class="frow3" style="margin-top:10px">
       <div><label>Nome do evento</label><input id="evFNome" type="text" placeholder="Ex.: Casamento Silva"></div>
-      <div><label>Data</label><input id="evFData" type="date"></div>
+      <div><label>Data (1º dia)</label><input id="evFData" type="date"></div>
       <div><label>Tipo</label><select id="evFTipo">${TIPOS.map(t => `<option>${t}</option>`).join("")}</select></div>
+    </div>
+    <div class="frow3">
+      <div><label>Termina em (último dia)</label><input id="evFFim" type="date"><small style="display:block;margin-top:4px;color:var(--mut);text-transform:none;letter-spacing:0">Só para evento de mais de um dia (ex.: 27 a 29). A agenda marca todos os dias.</small></div>
     </div>
     <div class="frow3">
       <div><label>Local</label><input id="evFLocal" type="text" placeholder="Endereço/local"></div>
@@ -2939,7 +2950,7 @@ function wireFormulario() {
   $("#evFAdd").onclick = () => {
     const e = {
       id: Date.now(),
-      nome: $("#evFNome").value.trim(), data: $("#evFData").value,
+      nome: $("#evFNome").value.trim(), data: $("#evFData").value, dataFim: window.__evFim($("#evFData").value, $("#evFFim").value),
       tipo: $("#evFTipo").value, local: $("#evFLocal").value.trim(),
       cliente: $("#evFClienteSel").value || $("#evFCliente").value.trim(), equipeId: $("#evFEquipe").value,
       status: $("#evFStatus").value, tel: $("#evFTel").value.trim(),
@@ -3733,6 +3744,10 @@ async function comporGaleria(fotos) {
 const PDF_TH = t => ({ text: t, bold: true, color: "#fff", fillColor: "#0b1220", fontSize: 8 });
 const PDF_RS = v => "R$ " + fmt(parseFloat(v || 0) || 0, 2);
 const PDF_DT = iso => (iso || "").split("-").reverse().join("/") || "—";
+/* 19/11 (dono): evento de vários dias — dataFim é o último dia (vazio = um dia só) */
+window.__evFim = (ini, fim) => (/^\d{4}-\d{2}-\d{2}$/.test(fim || "") && /^\d{4}-\d{2}-\d{2}$/.test(ini || "") && fim > ini) ? fim : "";
+window.__evDias = e => (e && e.data && e.dataFim && e.dataFim > e.data) ? Math.round((new Date(e.dataFim + "T12:00") - new Date(e.data + "T12:00")) / 86400000) + 1 : 1;
+window.__evPeriodo = e => { const br = d => (d || "").split("-").reverse().join("/"); const n = window.__evDias(e); return n > 1 ? br(e.data) + " a " + br(e.dataFim) + " (" + n + " dias)" : br(e && e.data); };
 const PDF_CAB = (titulo) => ({ margin: [40, 30, 40, 0], columns: [
   { text: "BW AUDIOVISUAL", bold: true, color: "#b8860b", fontSize: 11 },
   { text: titulo, alignment: "right", color: "#55627a", fontSize: 10 }] });
@@ -3841,7 +3856,7 @@ async function gerarDossiePDF(id, S) {
     [{ text: String(k), color: "#55627a", fontSize: 9 }, { text: String(v), bold: true, fontSize: 9, color: cor || "#1a2233" }]) }, margin: [0, 0, 0, 4] });
   const C = [];
   C.push({ text: "Dossiê — " + e.nome, fontSize: 16, bold: true, margin: [0, 20, 0, 4] });
-  C.push(kv([["Data", PDF_DT(e.data)], ["Montagem / desmontagem", PDF_DT(e.montagem) + " / " + PDF_DT(e.desmontagem)], ["Tipo", e.tipo || "—"],
+  C.push(kv([["Data", window.__evPeriodo(e) || "—"], ["Montagem / desmontagem", PDF_DT(e.montagem) + " / " + PDF_DT(e.desmontagem)], ["Tipo", e.tipo || "—"],
     ["Local", e.local || "—"], ["Cliente", e.cliente || "—"], ["Contato", (e.tel || "—") + (e.email ? " · " + e.email : "")],
     ["Equipe", (eq && eq.nome) || e.equipeNome || "—"], ["Status", e.status || "—"], ["Contrato/OS", e.contrato || "—"]]));
   if (S.has("equipe")) {
@@ -4058,7 +4073,8 @@ window.__evEditar = id => {
     <div class="sub">Altere qualquer campo e salve. Os indicadores e o Fluxo de Caixa se atualizam.</div>
     <div class="frow3" style="margin-top:10px">
       <div><label>Nome do evento</label><input id="edNome" type="text" value="${esc(e.nome)}"></div>
-      <div><label>Data</label><input id="edData" type="date" value="${e.data || ""}"></div>
+      <div><label>Data (1º dia)</label><input id="edData" type="date" value="${e.data || ""}"></div>
+      <div><label>Termina em (último dia)</label><input id="edFim" type="date" value="${e.dataFim || ""}" title="Só para evento de mais de um dia. A agenda marca todos os dias."></div>
       <div><label>Tipo</label><select id="edTipo">${["Casamento","Corporativo","Show","Transmissão ao vivo","Formatura","Aniversário","Outro"].map(t => `<option ${t === e.tipo ? "selected" : ""}>${t}</option>`).join("")}</select></div>
     </div>
     <div class="frow3">
@@ -4097,6 +4113,7 @@ window.__evEditar = id => {
     const alvo = l2.find(x => String(x.id) === String(id));
     alvo.nome = $("#edNome").value.trim() || alvo.nome;
     alvo.data = $("#edData").value;
+    alvo.dataFim = window.__evFim(alvo.data, $("#edFim").value);
     alvo.tipo = $("#edTipo").value;
     const cliSel = $("#edCliente").value;
     alvo.cliente = cliSel || $("#edClienteLivre").value.trim();

@@ -135,7 +135,9 @@
       }
     });
     ler("casa_contas").forEach(function (c) { if (c && sa(c.c3) !== "sim" && dentro(c.c2)) out.push({ tipo: "pagamento", data: c.c2, titulo: c.c0, valor: num(c.c1) }); });
-    ler("neg_eventos").forEach(function (e) { if (!e || /cancel/i.test(e.status || "")) return; if (dentro(e.data)) out.push({ tipo: "evento", data: e.data, titulo: e.nome }); if (e.montagem && e.montagem !== e.data && dentro(e.montagem)) out.push({ tipo: "evento", data: e.montagem, titulo: "Montagem — " + e.nome }); });
+    ler("neg_eventos").forEach(function (e) { if (!e || /cancel/i.test(e.status || "")) return; if (dentro(e.data)) out.push({ tipo: "evento", data: e.data, titulo: e.nome });
+      if (e.data && e.dataFim && e.dataFim > e.data) { var dd = new Date(e.data + "T12:00"), tot = Math.round((new Date(e.dataFim + "T12:00") - dd) / 86400000) + 1; for (var k = 2; k <= tot && k <= 62; k++) { dd.setDate(dd.getDate() + 1); var sd = dd.getFullYear() + "-" + ("0" + (dd.getMonth() + 1)).slice(-2) + "-" + ("0" + dd.getDate()).slice(-2); if (dentro(sd)) out.push({ tipo: "evento", data: sd, titulo: e.nome + " (dia " + k + " de " + tot + ")" }); } }
+      if (e.montagem && e.montagem !== e.data && dentro(e.montagem)) out.push({ tipo: "evento", data: e.montagem, titulo: "Montagem — " + e.nome }); });
     return out;
   }
   var SEMANA = ["domingo", "segunda", "terça", "quarta", "quinta", "sexta", "sábado"];
