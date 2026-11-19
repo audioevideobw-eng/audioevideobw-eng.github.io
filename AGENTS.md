@@ -1127,6 +1127,15 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   bw-ia republicada (SHA 7f4e9407…): max + 3000, lista só com modelos da página oficial e o motivo de CADA modelo no detalhe. Teste com imagem
   de TESTE desenhada: descrição certa em 3,4 s (qwen/qwen3.8-27b) e análise completa pela tela (nome, prompt em inglês com [COLCHETES], como/onde).
   Regra 102 vale assim: lista de modelos = só nomes conferidos na página oficial no dia; erro de lista mostra todos os motivos.
+- 19/11/2026 03:30 · Claude (dono: "pegue esses exemplos e transforme em algo meu e publique" + "busque outras que já passaram ou estão rolando" +
+  "também ensinar a fazer vídeos com IA de diversos nichos"): BIBLIOTECA DO PROMPT IA alimentada na conta ADM — 21 itens com prompt próprio
+  (inglês, [COLCHETES]), passo a passo e dicas em português: 11 de IMAGEM (boneco 3D urbano, ilustração anos 80, blocos de montar, miniatura
+  colecionável na mesa, boneco na embalagem, polaroid com o eu criança, P&B de revista, estúdio anos 80, adesivo chibi, pet em pintura clássica,
+  evento em miniatura isométrica) e 10 de VÍDEO por nicho e técnica (produto em câmera lenta, abertura de aftermovie, comida, tour de imóvel,
+  foto que ganha vida, personagem que fala, história em cenas, antes/depois com primeiro e último quadro, logo animada, dica falada com B-roll).
+  15 imagens de exemplo criadas pela bw-ia-imagem com PESSOAS INVENTADAS (nada dos prints de terceiros, sem marcas nem personagens conhecidos) no
+  bucket trends; 6 guias de vídeo sem imagem (cartão com emoji). Limite de 15 imagens do dia usado inteiro. promptia.js v2: links para BW Reels,
+  Quadro de História, Editor de vídeo e CapCut no ONDE FAZER. sw v135.
 
 ## Pendências (dono)
 - [ ] (19/11) PROMPT IA: dono cadastrar as primeiras trends (＋ NOVA TREND, com a imagem de exemplo) e testar ANALISAR com um print real.

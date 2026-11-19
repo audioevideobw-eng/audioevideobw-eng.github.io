@@ -15,7 +15,8 @@
   var EMOJI = {"Avatar 3D": "🧑‍🎤", "Ilustração": "🎨", "Brinquedo": "🧱", "Foto realista": "📸", "Vídeo": "🎬", "Outros": "✨"};
   /* onde fazer: nome → endereço (a pessoa abre e cola o prompt; o app não envia nada para essas IAs) */
   var IAS = {"Gemini (Nano Banana)": "https://gemini.google.com/", "ChatGPT": "https://chatgpt.com/", "Flow (Veo)": "https://labs.google/flow", "Kling": "https://klingai.com/", "Higgsfield": "https://higgsfield.ai/",
-    "Midjourney": "https://www.midjourney.com/", "Runway": "https://runwayml.com/", "Flux": "https://bfl.ai/", "Leonardo": "https://leonardo.ai/", "Criador IA (Brightway)": "criador.html", "Editor de fotos (Brightway)": "fotos.html"};
+    "Midjourney": "https://www.midjourney.com/", "Runway": "https://runwayml.com/", "Flux": "https://bfl.ai/", "Leonardo": "https://leonardo.ai/", "Criador IA (Brightway)": "criador.html", "Editor de fotos (Brightway)": "fotos.html",
+    "BW Reels (Brightway)": "reels.html", "Quadro de História (Brightway)": "reels.html?quadro=1", "Montagem no Editor de vídeo (Brightway)": "video.html", "CapCut": "https://www.capcut.com/"};
   var EXEMPLOS = [
     {id: "ex1", exemplo: true, titulo: "Boneco 3D urbano a partir da sua foto", categoria: "Avatar 3D", onde: "Gemini (Nano Banana), ChatGPT",
       prompt: "Transform the person in the reference photo into a high-quality 3D animated character. Keep the face as close to the real face as possible, same haircut and skin tone. Stylized yet semi-realistic proportions, slightly large head and hands, smooth detailed skin. Pose: [POSE, ex.: arms crossed, confident]. Wearing [ROUPA DE CIMA], [CALÇA] and [TÊNIS]. White studio background, soft cinematic lighting, sharp focus, designer-toy look, highly detailed, 4K render, full body.",
