@@ -8,6 +8,7 @@
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
 const LIMITE_DIA = 15;
+const LIMITE_ADM = 100;   // 19/11 (decisão do dono): só a conta ADM (is_bw_admin) pode mais por dia, para montar as bibliotecas oficiais
 const MODELO = "@cf/black-forest-labs/flux-2-klein-4b";
 const CORS = {
   "Access-Control-Allow-Origin": "https://audioevideobw-eng.github.io",
@@ -39,7 +40,8 @@ Deno.serve(async (req) => {
   let fd: FormData;
   try { fd = await req.formData(); } catch { return resp({ erro: "corpo" }, 400); }
   const img = fd.get("imagem"), pedido = String(fd.get("pedido") || "").trim().slice(0, 700);
-  const modo = fd.get("modo") === "arte" ? "arte" : "editar", temFoto = img instanceof File && img.size > 0;
+  const modoPedido = String(fd.get("modo") || "");
+  const modo = modoPedido === "arte" ? "arte" : modoPedido === "pers" ? "pers" : "editar", temFoto = img instanceof File && img.size > 0;
   const espaco = ["topo", "centro", "baixo", "esquerda", "direita"].includes(String(fd.get("espaco"))) ? String(fd.get("espaco")) : "baixo";
   if (!pedido || (modo === "editar" && !temFoto)) return resp({ erro: "vazio" }, 400);
   if (temFoto && (img as File).size > 1.5 * 1024 * 1024) return resp({ erro: "grande" }, 413);
@@ -51,7 +53,8 @@ Deno.serve(async (req) => {
   const w = lado(fd.get("w")), h = lado(fd.get("h"));
 
   const adm = createClient(url, service);
-  const { data: ok, error: e1 } = await adm.rpc("bw_ia_img_contar", { p_dono: u.user.id, p_limite: LIMITE_DIA });
+  const { data: ehAdm } = await usuario.rpc("is_bw_admin");
+  const { data: ok, error: e1 } = await adm.rpc("bw_ia_img_contar", { p_dono: u.user.id, p_limite: ehAdm === true ? LIMITE_ADM : LIMITE_DIA });
   if (e1) return resp({ erro: "contador" }, 500);
   if (!ok) return resp({ erro: "limite" }, 429);
 
@@ -61,6 +64,10 @@ Deno.serve(async (req) => {
   let prompt: string;
   if (modo === "editar") prompt = "Edit the photo in image 0. Change ONLY this: " + pedido +
     ". Keep the same person (face, identity, skin tone, age, expression), the same pose, framing, lighting and everything else exactly as in image 0. Photorealistic, natural, high detail.";
+  // 19/11 modo=pers (PERSONAGENS): personagem limpo, sem a regra de "espaço para texto"; com foto = o MESMO personagem em outro ângulo/pose
+  else if (modo === "pers") prompt = (temFoto
+    ? "Show exactly the same character as in image 0: identical face, hair, body proportions, outfit, colors, materials and art style. "
+    : "") + pedido + ". High quality, sharp details, consistent character design." + SEM_TEXTO;
   else prompt = (temFoto
     ? "Create a polished design artwork featuring the person from image 0 — keep exactly the same face, identity, skin tone and age; the person must stay recognizable. "
     : "Create a polished design artwork background. ") + pedido +
