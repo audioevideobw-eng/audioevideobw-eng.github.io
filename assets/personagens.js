@@ -18,15 +18,65 @@
   function travar(on) { document.documentElement.classList.toggle("pg-aberto", !!on); }
 
   /* ---------- galeria ---------- */
-  async function carregar() { LIB = await L.listar(); desenhar(); }
+  async function carregar() { LIB = await L.listar(); desenhar(); if (window.BWPersonagensProntos && $("ppCar")) desenharProntos(); }
   function desenhar() {
-    $("pgGrade").innerHTML = LIB.length ? LIB.map(function (r) { var c = corDe(r), f = r.ficha || {}, u = urlDe(r);
-      return '<button type="button" class="pg-card" data-id="' + esc(r.id) + '" style="--c1:' + c[0] + ';--c2:' + c[1] + '" aria-label="Abrir ' + esc(r.nome || "personagem") + '">' +
-        (u ? '<img alt="" src="' + u + '">' : '<span class="ini" aria-hidden="true">' + esc(String(r.nome || "?").trim().charAt(0).toUpperCase()) + '</span>') +
-        '<b>' + esc(r.nome || "Sem nome") + '</b>' + (f.papel ? '<small>' + esc(f.papel) + '</small>' : "") +
-        '<span class="tag">' + (r.tipo === "montado" ? "MONTADO NO REELS" : r.blob ? "COM IMAGEM" : "SÓ A FICHA") + '</span></button>'; }).join("")
-      : '<div class="pg-vazio">Ainda não há personagens aqui.<br>Toque em <b>✨ CRIAR COM O AGENTE</b> e descreva quem você imagina — ou envie a imagem de um que você já tem.</div>';
+    var box = $("pgGrade"); $("pgTitMeus").textContent = "MEUS PERSONAGENS" + (LIB.length ? " · " + LIB.length : "");
+    box.innerHTML = LIB.length ? LIB.map(function (r) { var c = corDe(r), f = r.ficha || {}, u = urlDe(r);
+      return '<div class="pc-card meu" role="button" tabindex="0" data-id="' + esc(r.id) + '" style="--c1:' + c[0] + ';--c2:' + c[1] + '" aria-label="Abrir ' + esc(r.nome || "personagem") + '">' +
+        '<div class="pc-hero">' + (u ? '<img class="pc-fundo" alt="" aria-hidden="true" src="' + u + '"><img alt="" src="' + u + '">' : '<span class="ini" aria-hidden="true">' + esc(String(r.nome || "?").trim().charAt(0).toUpperCase()) + '</span>') +
+        '<span class="pc-cat">' + (r.pronto ? "PRONTO" : r.tipo === "montado" ? "MONTADO NO REELS" : r.blob ? "COM IMAGEM" : "SÓ A FICHA") + '</span></div>' +
+        '<div class="pc-info"><b>' + esc(r.nome || "Sem nome") + '</b>' + (f.papel ? '<small>' + esc(f.papel) + '</small>' : "") + '</div></div>'; }).join("")
+      : '<div class="pg-vazio" style="flex:none;width:min(420px,84vw);scroll-snap-align:center">Ainda não há personagens aqui.<br>Use um <b>PRONTO</b> (＋ USAR), toque em <b>✨ CRIAR COM O AGENTE</b> ou envie a imagem de um que você já tem.</div>';
+    requestAnimationFrame(function () { flutuar(box); });
   }
+
+  /* ---------- PERSONAGENS PRONTOS (19/11): bonecos 3D oficiais em 5 ângulos, em carrossel com aproximação ---------- */
+  var PP = window.BWPersonagensProntos || {lista: [], ANGULOS: []}, PP_CAT = "", PP_ANG = {};
+  function desenharProntos() {
+    var cats = [""].concat(PP.lista.map(function (p) { return p.categoria; }).filter(function (c, i, a) { return a.indexOf(c) === i; }));
+    $("ppCats").innerHTML = cats.map(function (c) { return '<button type="button" role="tab" class="pc-chip' + (c === PP_CAT ? " on" : "") + '" data-ppcat="' + esc(c) + '" aria-selected="' + (c === PP_CAT) + '">' + esc(c || "TODOS") + '</button>'; }).join("");
+    var l = PP.lista.filter(function (p) { return !PP_CAT || p.categoria === PP_CAT; });
+    $("ppCar").innerHTML = l.map(function (p) { var k = PP_ANG[p.id] || "frente", u = p.planos[k], ja = LIB.some(function (r) { return r.pronto === p.id; });
+      return '<div class="pc-card" data-pp="' + esc(p.id) + '" style="--c1:' + p.cores[0] + ';--c2:' + p.cores[1] + '">' +
+        '<div class="pc-hero"><img class="pc-fundo" alt="" aria-hidden="true" loading="lazy" src="' + esc(u) + '"><img alt="' + esc(p.nome + " — " + k) + '" loading="lazy" src="' + esc(u) + '"><span class="pc-cat">' + esc(p.categoria) + '</span></div>' +
+        '<div class="pc-info"><b>' + esc(p.nome) + '</b><small>' + esc(p.papel) + ' · boneco 3D</small>' +
+        '<div class="pc-angs">' + PP.ANGULOS.map(function (a) { return '<button type="button" class="pc-ang' + (a[0] === k ? " on" : "") + '" data-ppang="' + a[0] + '" data-de="' + esc(p.id) + '" aria-label="Ver ' + a[1] + '"><img alt="" loading="lazy" src="' + esc(p.planos[a[0]]) + '"><span>' + a[1] + '</span></button>'; }).join("") + '</div>' +
+        '<div class="pc-bts"><button class="pg-bt amb" type="button" data-ppusar="' + esc(p.id) + '">' + (ja ? "✓ NA MINHA BIBLIOTECA" : "＋ USAR") + '</button><button class="pg-bt" type="button" data-ppcopiar="' + esc(p.id) + '">⧉ PROMPT</button></div></div></div>'; }).join("");
+    requestAnimationFrame(function () { flutuar($("ppCar")); });
+  }
+  function flutuar(car) {
+    if (!car) return; var r = car.getBoundingClientRect(), meio = r.left + r.width / 2, parado = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+    [].forEach.call(car.querySelectorAll(".pc-card"), function (c) {
+      var b = c.getBoundingClientRect(), d = Math.max(-1.6, Math.min(1.6, (b.left + b.width / 2 - meio) / Math.max(b.width, 1))), a = Math.abs(d);
+      c.style.transform = parado ? "" : "perspective(1100px) translateY(" + (a * 16).toFixed(1) + "px) scale(" + (1 - Math.min(a, 1) * 0.08).toFixed(3) + ") rotateY(" + (-d * 7).toFixed(2) + "deg)";
+      c.style.opacity = (1 - Math.min(a, 1.4) * 0.28).toFixed(2); c.style.zIndex = String(10 - Math.round(a * 4)); c.classList.toggle("meio", a < 0.35);
+    });
+  }
+  function andar(car, dir) { var c = car.querySelector(".pc-card"); if (c) car.scrollBy({left: dir * (c.getBoundingClientRect().width + 18), behavior: "smooth"}); }
+  async function usarPronto(id) {
+    var p = PP.lista.filter(function (x) { return x.id === id; })[0]; if (!p) return;
+    var ja = LIB.filter(function (r) { return r.pronto === id; })[0]; if (ja) { abrirPers(ja.id, "Este personagem já está na sua biblioteca."); return; }
+    var bt = document.querySelector('[data-ppusar="' + id + '"]'); if (bt) { bt.disabled = true; bt.textContent = "COPIANDO…"; }
+    try {
+      var planos = {};
+      for (var i = 0; i < PP.ANGULOS.length; i++) { var k = PP.ANGULOS[i][0], r = await fetch(p.planos[k]); if (r.ok) planos[k] = await r.blob(); }
+      if (!planos.frente) throw new Error("sem imagem");
+      var rec = await L.salvar({nome: p.nome, tipo: "foto", pronto: p.id, ficha: Object.assign({}, p.ficha), planos: planos, blob: planos.frente});
+      await carregar(); desenharProntos(); abrirPers(rec.id, "✓ " + p.nome + " está na sua biblioteca, com " + Object.keys(planos).length + " ângulos. Já dá para usar no Quadro de História e no BW Reels.");
+    } catch (e) { if (bt) { bt.disabled = false; bt.textContent = "＋ USAR"; } alert("Não consegui copiar as imagens agora (sem internet?). Tente de novo."); }
+  }
+  function ligarCarrossel(car) { var t = 0; car.addEventListener("scroll", function () { if (t) return; t = requestAnimationFrame(function () { t = 0; flutuar(car); }); }, {passive: true});
+    car.addEventListener("keydown", function (e) { if (e.key === "ArrowRight" || e.key === "ArrowLeft") { e.preventDefault(); andar(car, e.key === "ArrowRight" ? 1 : -1); } }); }
+  ligarCarrossel($("ppCar")); ligarCarrossel($("pgGrade"));
+  window.addEventListener("resize", function () { flutuar($("ppCar")); flutuar($("pgGrade")); });
+  document.addEventListener("click", function (e) {
+    var b = e.target.closest("[data-car],[data-ppcat],[data-ppang],[data-ppusar],[data-ppcopiar]"); if (!b) return;
+    if (b.dataset.car) { andar($(b.dataset.car), Number(b.dataset.dir)); return; }
+    if (b.dataset.ppcat != null) { PP_CAT = b.dataset.ppcat; desenharProntos(); $("ppCar").scrollTo({left: 0}); return; }
+    if (b.dataset.ppang) { PP_ANG[b.dataset.de] = b.dataset.ppang; var car = $("ppCar"), x = car.scrollLeft; desenharProntos(); car.scrollLeft = x; flutuar(car); return; }
+    if (b.dataset.ppusar) { usarPronto(b.dataset.ppusar); return; }
+    if (b.dataset.ppcopiar) { var p = PP.lista.filter(function (x) { return x.id === b.dataset.ppcopiar; })[0]; if (p) navigator.clipboard.writeText(p.ficha.prompt).then(function () { b.textContent = "✓ COPIADO"; setTimeout(function () { b.textContent = "⧉ PROMPT"; }, 1600); }, function () { prompt("Copie o prompt:", p.ficha.prompt); }); }
+  });
 
   /* ---------- AGENTE ---------- */
   var PERGUNTAS = [["nome", "Como ele (ou ela) se chama?"], ["papel", "Qual é o papel dele na história? (ex.: fotógrafa, mascote da marca, cliente)"], ["aparencia", "Como ele é? Idade, cabelo, rosto, corpo…"], ["roupa", "Que roupa e acessórios ele usa?"], ["estilo", "Qual o estilo do desenho? (3D de animação, foto realista, desenho 2D…)"]];
@@ -167,6 +217,7 @@
     } catch (e) { alert("Não deu para abrir essa imagem. Tente PNG ou JPG."); }
   };
   $("pgGrade").addEventListener("click", function (e) { var b = e.target.closest("[data-id]"); if (b) abrirPers(b.dataset.id); });
+  $("pgGrade").addEventListener("keydown", function (e) { var b = e.target.closest("[data-id]"); if (b && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); abrirPers(b.dataset.id); } });
   $("agFechar").onclick = fecharAgente; $("agEnviar").onclick = enviar; $("agMic").onclick = mic;
   $("agTexto").addEventListener("keydown", function (e) { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); enviar(); } });
   $("fxCopiar").onclick = function () { var f = lerFicha(); copiar(f.prompt || promptLocal(f), $("agAviso")); };
@@ -195,6 +246,6 @@
   (async function () { var el = $("userBox"); if (!el) return; var s = await sessao(), u = s && s.user;
     el.innerHTML = u ? '<a href="login.html" class="bw-logado" title="Conta: ' + esc(u.email) + '"><i></i>LOGADO</a>' : '<a href="login.html" class="bw-btn bw-btn--vidro" style="min-height:34px;padding:0 14px;font-size:12px">LOGIN</a>'; })();
   carregar();
-  window.__pers = {folha: folhaReferencia, lib: function () { return LIB; }, carregar: carregar, abrirAgente: abrirAgente, ag: function () { return AG; }, achatar: achatar, promptLocal: promptLocal};
+  window.__pers = {prontos: function () { return PP; }, usarPronto: usarPronto, folha: folhaReferencia, lib: function () { return LIB; }, carregar: carregar, abrirAgente: abrirAgente, ag: function () { return AG; }, achatar: achatar, promptLocal: promptLocal};
   if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(function () { });
 })();

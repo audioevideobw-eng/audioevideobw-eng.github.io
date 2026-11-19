@@ -344,6 +344,9 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
      Cortar bloco de HTML por texto: o fim "  </div>" também casa com "    </div>" (use "\n  </div>\n") e o teste confere que o conteúdo está VISÍVEL,
      não só que existe (a página saiu com os números escondidos e a contagem passava). `if (x) var a = …; b[a] = …` sem chaves só protege o var.
 
+103. IMAGEM DA IA RECUSADA ("filtro" / "flagged" da Cloudflare) acontece até com pedido inocente: em lote, se a imagem de FRENTE (a base) falhar, pare os
+     ângulos desse personagem (sem a base eles saem como pessoas diferentes) e tente outra descrição. Upload no bucket "trends" com upsert:true dá
+     "row-level security" (falta regra de update): use upsert:false.
 102. PROMPT IA (promptia.html + assets/promptia.js): biblioteca em public.bw_trends (leitura pública, gravação só is_bw_admin, RLS —
      docs/sql/2026-11-19-prompt-ia.sql) + imagens no bucket público "trends" (só ADM envia); a análise manda a imagem para a bw-ia
      (campo "imagem", modelo com VISÃO da Groq) SÓ depois de confirm(), cópia ≤ 768 px JPEG, nada guardado; o promptia.js nunca grava na
@@ -1140,6 +1143,16 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   com object-fit:cover numa imagem 4:5 + degradê escuro cobrindo 55% de baixo + título por cima) — pés, mãos e o fim da cena sumiam.
   Agora a imagem aparece INTEIRA (contain, 340 px; 300 px no celular) sobre uma cópia desfocada dela mesma, degradê só nos 22% de baixo e o
   título abaixo da imagem. Vale para qualquer proporção de imagem que o ADM enviar. promptia.js v4, sw v137.
+- 19/11/2026 04:40 · Claude (dono: "aproveite o layout com rolagem e animação de aproximação nos personagens; crie bonecos 3D realistas de vários
+  estilos" + "muitos exemplos e ângulos para futuras animações" + "sim" para liberar a conta ADM): PERSONAGENS ganhou PERSONAGENS PRONTOS — 12 bonecos
+  3D (jogadora de futebol, pirata, bombeiro, palhaço, chef, astronauta, médica, cinegrafista, DJ, professora, surfista, bailarina), cada um em
+  5 ÂNGULOS (frente, perfil, costas, rosto, ação) = 60 imagens criadas pela bw-ia-imagem com pessoas INVENTADAS, no bucket trends/pers/. Lista em
+  assets/personagens-prontos.js (só lista; vigia). Carrossel com aproximação (o do meio cresce e flutua, os dos lados encolhem e inclinam), filtro
+  por tipo, tocar no ângulo troca a imagem, ＋ USAR copia os 5 ângulos para a biblioteca do aparelho (sem duplicar) → Quadro de História e BW Reels.
+  MEUS PERSONAGENS também virou carrossel. Novo plano AÇÃO em BWPersonagens (planoPara: corre/pula/chuta/dança…). bw-ia-imagem: modo "pers"
+  (mesmo personagem em outro ângulo, sem a regra de espaço para texto) e LIMITE_ADM 100/dia só para is_bw_admin (usuários seguem com 15) —
+  publicada conferindo SHA-256 (antes 11c58878 = repo, depois 53226614). O filtro da Cloudflare recusou várias vezes "cowboy" e "mecânico" (trocados
+  por professora e surfista). teste_personagens.py +12 checagens (0 falhas). Manual atualizado. bw-personagens v3, personagens.js v4, sw v138.
 
 ## Pendências (dono)
 - [ ] (19/11) PROMPT IA: dono cadastrar as primeiras trends (＋ NOVA TREND, com a imagem de exemplo) e testar ANALISAR com um print real.

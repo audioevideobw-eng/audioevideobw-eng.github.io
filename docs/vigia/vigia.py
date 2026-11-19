@@ -285,6 +285,7 @@ pjs = ler("assets/personagens.js") if os.path.exists("assets/personagens.js") el
 if pjs:
     if [u for u in re.findall(r"https?://[^\s\"']+", pjs) if "functions/v1/bw-ia" not in u]: problemas.append("assets/personagens.js: só pode chamar a Edge Function bw-ia")
     if "confirm(" not in pjs or "antesDeSalvar" in pjs or ".upload(" in pjs: problemas.append("assets/personagens.js: imagem com IA só com confirmação; nada vai para a conta")
+if os.path.exists("assets/personagens-prontos.js") and re.search(r"fetch\(|XMLHttpRequest|localStorage|indexedDB", ler("assets/personagens-prontos.js")): problemas.append("assets/personagens-prontos.js: só lista os prontos (não busca nem grava nada)")
 if os.path.exists("assets/bw-personagens.js") and re.search(r"fetch\(|XMLHttpRequest|supabase", ler("assets/bw-personagens.js")): problemas.append("assets/bw-personagens.js: a biblioteca de personagens não fala com a internet")
 if os.path.exists("assets/video-editor.js") and re.search(r"fetch\(|XMLHttpRequest|supabase\.|BWSync\.(?!cliente)|\.upload\(|https?://", ler("assets/video-editor.js")): problemas.append("assets/video-editor.js: o editor de vídeo não envia nada (sem fetch, upload, conta nem endereço de fora)")
 crjs = ler("assets/criador.js") if os.path.exists("assets/criador.js") else ""
