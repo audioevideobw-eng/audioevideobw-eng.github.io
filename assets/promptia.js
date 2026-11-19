@@ -72,7 +72,7 @@
     var l = lista(), todas = TRENDS.length ? TRENDS : EXEMPLOS, usadas = CATS.filter(function (c) { return todas.some(function (t) { return t.categoria === c; }); });
     $("piCats").innerHTML = '<button type="button" class="pi-chip' + (!CAT ? " on" : "") + '" data-cat="" aria-pressed="' + !CAT + '">TODAS</button>' + usadas.map(function (c) { return '<button type="button" class="pi-chip' + (CAT === c ? " on" : "") + '" data-cat="' + esc(c) + '" aria-pressed="' + (CAT === c) + '">' + esc(c.toUpperCase()) + "</button>"; }).join("");
     $("piCar").innerHTML = l.length ? l.map(function (t) { return cartao(t); }).join("") : '<div class="pi-vazio">Nenhuma trend nesta categoria ainda.</div>';
-    $("piConta").textContent = l.length ? l.length + (l.length === 1 ? " trend" : " trends") + (TRENDS.length ? "" : " de exemplo — a biblioteca oficial aparece aqui quando o ADM cadastrar") : "";
+    $("piConta").textContent = l.length ? l.length + (l.length === 1 ? " guia" : " guias") + (TRENDS.length ? "" : " de exemplo — a biblioteca oficial aparece aqui quando o ADM cadastrar") : "";
     requestAnimationFrame(flutuar);
   }
   /* galeria flutuante: o cartão do meio fica maior e na frente; os dos lados encolhem e descem um pouco */
