@@ -208,8 +208,8 @@ input.busca{font:inherit;font-size:13px;background:var(--navy2);color:var(--txt)
         <div class="card"><div class="kl">Total recebido</div><div class="kv" id="eTotal">—</div></div>
         <div class="card"><div class="kl">Ticket médio</div><div class="kv" id="eTicket">—</div></div>
       </div>
-      <div style="margin-top:12px"><input class="busca" id="busca" type="search" placeholder="Buscar cliente ou evento…" aria-label="Buscar pagamentos de eventos"></div>
-      <div class="tw"><table><thead><tr><th>Data</th><th>Cliente</th><th>Evento ou serviço</th><th>Data do evento</th><th class="n">Valor</th></tr></thead><tbody id="tEventos"></tbody></table></div>
+      <p class="cap" style="margin:12px 0 10px">A lista com cada pagamento saiu daqui: agora fica junto de todos os outros lançamentos, onde dá para alterar, mudar de lugar e excluir.</p>
+      <a class="bt" id="verLancamentos" href="lancamentos.html?nicho=evento&amp;tipo=e&amp;periodo=tudo" style="display:inline-flex;align-items:center;min-height:44px;padding:0 16px;border-radius:12px;background:linear-gradient(180deg,#ffc56b,#FFB547);color:#1a1205;font:800 12px Inter,sans-serif;letter-spacing:.07em;text-decoration:none">VER OS PAGAMENTOS NOS LANÇAMENTOS ↗</a>
     </section>
   </div>
 </main>
@@ -310,7 +310,6 @@ input.busca{font:inherit;font-size:13px;background:var(--navy2);color:var(--txt)
   $("btnVoltar").onclick = function () { history.length > 1 ? history.back() : (location.href = "./"); };
   $("btnAtualizar").onclick = function () { carregar(); };
   $("fPeriodo").onchange = function () { desenhar(); };
-  $("busca").oninput = function () { tabela(); };
 
   function vivo(on, txt) { $("vivo").classList.toggle("on", !!on); $("vivoTxt").textContent = txt; }
 
@@ -534,7 +533,7 @@ input.busca{font:inherit;font-size:13px;background:var(--navy2);color:var(--txt)
   }
 
   function tabela() {
-    var mes = $("fPeriodo").value, q = $("busca").value.trim().toLowerCase();
+    var mes = $("fPeriodo").value, q = "";
     var E = EVENTOS.filter(function (r) {
       if (mes && per(r.data_pagamento) !== mes) return false;
       return !q || ((r.cliente || "") + " " + (r.descricao || "")).toLowerCase().indexOf(q) >= 0;
@@ -543,14 +542,7 @@ input.busca{font:inherit;font-size:13px;background:var(--navy2);color:var(--txt)
     $("eQtd").textContent = E.length.toLocaleString("pt-BR");
     $("eTotal").textContent = brl(tot);
     $("eTicket").textContent = E.length ? brl(tot / E.length) : "—";
-    var tb = $("tEventos");
-    tb.replaceChildren.apply(tb, E.map(function (r) {
-      var tr = document.createElement("tr");
-      [dt(r.data_pagamento), r.cliente, r.descricao, r.data_evento || "", brl(r.valor)].forEach(function (v, i) {
-        var td = document.createElement("td"); td.textContent = v; if (i === 4) td.className = "n"; tr.append(td);
-      });
-      return tr;
-    }));
+    var vl = $("verLancamentos"); if (vl) vl.style.display = FONTE === "google" ? "none" : "inline-flex";   /* a planilha Google não é lançamento da plataforma */
   }
 
   /* ---------- fonte, ajuda ---------- */

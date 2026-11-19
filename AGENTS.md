@@ -1053,6 +1053,11 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   quantos lançamentos alimentam cada indicador. docs/testes/teste_lancamentos.py (31 checagens × 1280/390, 0 falhas). NÃO testado na conta real do
   dono (não mexo nos dados dele sem pedir). Aplicativo 1.2: cartão LANÇAMENTOS + página na cópia sem internet. Manual 47 → 48 p.
   layout.js v53, sw v128. PENTE FINO 97.
+- 18/11/2026 23:59 · Claude (dono: "tire a lista de pagamentos de eventos do painel e deixe no banco de dados dos lançamentos; vamos centralizar"):
+  PAINEL FINANCEIRO — saíram a tabela e a busca de "Pagamentos de eventos"; ficam os 3 números (quantidade, total recebido, ticket médio) e o
+  botão VER OS PAGAMENTOS NOS LANÇAMENTOS (lancamentos.html?nicho=evento&tipo=e&periodo=tudo; some quando a fonte é a planilha Google do ADM, que
+  não é lançamento da plataforma). LANÇAMENTOS: aceita filtros pelo endereço (nicho, tipo, periodo) e o recebido de cada evento aparece como
+  "Pagamento do evento NOME · cliente X", com alterar/excluir. teste_lancamentos.py +3 checagens (0 falhas). lancamentos.js v2, sw v129.
 
 ## Pendências (dono)
 - [ ] (18/11) LANÇAMENTOS: dono usar na conta dele (lançar um gasto, mudar de lugar, excluir um teste) e dizer se falta algum tipo de lançamento.

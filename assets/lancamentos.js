@@ -70,13 +70,13 @@
       add({fonte: "fluxo", id: x.id, dest: ent ? "neg_entrada" : "neg_saida", data: x.c0, desc: x.c3, valor: num(x.c2), sinal: ent ? "e" : "s"}); });
     ler("neg_eventos").forEach(function (e) { if (!e || e.id == null) return;
       (e.gastos || []).forEach(function (g, i) { if (String(g.id || "").indexOf("pag_") === 0) return; add({fonte: "evgasto", id: e.id + "|" + (g.id || "#" + i), dest: "ev_custo", evId: String(e.id), evNome: e.nome, gi: i, data: g.data || e.data, desc: g.desc, valor: num(g.valor), sinal: "s"}); });
-      var rec = parseFloat(e.recebido || 0) || 0; if (rec > 0) add({fonte: "evrec", id: e.id, dest: "ev_receita", evId: String(e.id), evNome: e.nome, data: e.data, desc: "Recebido do evento", valor: rec, sinal: "e"}); });
+      var rec = parseFloat(e.recebido || 0) || 0; if (rec > 0) add({fonte: "evrec", id: e.id, dest: "ev_receita", evId: String(e.id), evNome: e.nome, cliente: e.cliente || "", data: e.data, desc: "Pagamento do evento " + (e.nome || ""), valor: rec, sinal: "e"}); });
     ler("inv_lancamentos").forEach(function (x) { if (!x || x.id == null || String(x.id).indexOf("ex") === 0) return; add({fonte: "inv", id: x.id, dest: "invest", data: x.c0, desc: x.ativo, cat: x.classe, op: x.op, valor: num(x.valor), sinal: "n"}); });
     var h = hoje();
     L.forEach(function (o) { var d = DEST[o.dest]; if (d) { o.nicho = d.nicho; o.alimenta = d.alimenta; } o.futuro = (o.data || "") > h; o.realizado = !o.futuro && !o.aberto && (o.sinal === "e" || o.sinal === "s"); });
     return L;
   }
-  function onde(o) { if (o.auto) return o.auto; var d = DEST[o.dest] || {rot: ""}; return d.rot + (o.evNome ? " · " + o.evNome : "") + (o.cat && o.fonte === "orc" ? " · " + o.cat : "") + (o.fonte === "inv" ? " · " + (o.cat || "") + " · " + (o.op || "") : ""); }
+  function onde(o) { if (o.auto) return o.auto; var d = DEST[o.dest] || {rot: ""}; return d.rot + (o.evNome ? " · " + o.evNome : "") + (o.cliente ? " · cliente " + o.cliente : "") + (o.cat && o.fonte === "orc" ? " · " + o.cat : "") + (o.fonte === "inv" ? " · " + (o.cat || "") + " · " + (o.op || "") : ""); }
 
   /* ---------- gravar / apagar na origem ---------- */
   function eventosLista() { return ler("neg_eventos").filter(function (e) { return e && e.id != null; }).sort(function (a, b) { return String(b.data || "").localeCompare(String(a.data || "")); }); }
@@ -236,6 +236,8 @@
   var vb = $("btnVoltar"); if (vb) vb.onclick = function () { if (history.length > 1) history.back(); else location.href = "./"; };
   (async function () { var el = $("userBox"); if (!el) return; var u = null; try { var c = window.BWSync && BWSync.cliente && BWSync.cliente(), s = c ? await c.auth.getSession() : null; u = s && s.data && s.data.session && s.data.session.user; } catch (e) {}
     el.innerHTML = u ? '<a href="login.html" class="bw-logado" title="Conta: ' + esc(u.email) + '"><i></i>LOGADO</a>' : '<a href="login.html" class="bw-btn bw-btn--vidro" style="min-height:34px;padding:0 14px;font-size:12px">LOGIN</a>'; })();
+  try { var pr = new URLSearchParams(location.search);   /* atalhos de outras telas: ?nicho=evento&tipo=e&periodo=tudo */
+    if (NICHOS[pr.get("nicho")]) NICHO = pr.get("nicho"); if (pr.get("tipo") === "e" || pr.get("tipo") === "s") $("lcTipo").value = pr.get("tipo"); if (pr.get("periodo") === "tudo") $("lcPeriodo").value = "tudo"; } catch (e) {}
   desenhar();
   try { if (/[?&]novo=1/.test(location.search)) $("lcNovo").click(); } catch (e) {}
   setTimeout(desenhar, 1500);   /* a sincronia ao abrir pode trazer dados da conta */
