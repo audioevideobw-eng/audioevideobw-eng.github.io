@@ -196,7 +196,7 @@
 
   /* ================= páginas ================= */
   var PAGINAS = { inicio: ["index.html", "Início"], agenda: ["index.html", "Agenda"], contas: ["contas.html", "Contas a pagar"], orcamento: ["orcamento.html", "Orçamento da casa"],
-    reserva: ["reserva.html", "Reserva"], fluxo: ["lancamentos.html", "Lançamentos"], custos: ["custos.html", "Cachês e custos"], eventos: ["eventos.html", "Eventos"],
+    reserva: ["reserva.html", "Reserva"], fluxo: ["lancamentos.html", "Lançamentos"], custos: ["lancamentos.html", "Lançamentos"], eventos: ["eventos.html", "Eventos"],
     orcamentos: ["propostas.html", "Gerador de orçamento"], painel: ["financeiro-painel.html", "Painel financeiro"], equipe: ["equipe.html", "Gestão de pessoas"],
     crm: ["crm.html", "CRM"], funil: ["captacao.html", "Funil"], fotos: ["fotos.html", "Editor de fotos"], criador: ["criador.html", "Criador IA"],
     leitor: ["leitor.html", "Leitor de contas"], investimentos: ["investimentos-painel.html", "Investimentos"], pdf: ["pdf.html", "PDF"],

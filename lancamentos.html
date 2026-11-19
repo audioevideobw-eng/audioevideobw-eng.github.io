@@ -103,6 +103,15 @@ html.lc-aberto,html.lc-aberto body{overflow:hidden}
     <button class="lc-bt" id="lcPdf" type="button" title="Relatório do mês em PDF (entradas, saídas e saldo), pronto para mandar ao contador">📄 PDF DO MÊS</button>
     <button class="lc-bt pri" id="lcNovo" type="button">＋ NOVO LANÇAMENTO</button>
   </div>
+  <div class="lc-cx" id="lcFerr" style="margin-bottom:14px">
+    <h3 data-seta="lc-ferr">🧰 FERRAMENTAS PARA LANÇAR MAIS RÁPIDO</h3>
+    <div class="lc-linha" style="margin-top:0">
+      <a class="lc-bt" href="leitor.html" title="PDF, foto ou código de barras de conta, boleto ou comprovante: lê e lança">📷 LER CONTA OU COMPROVANTE</a>
+      <button class="lc-bt" type="button" id="lcFalar" title="Fale ou escreva: gastei 50 de gasolina, recebi 2 mil do evento…">🎙 FALAR COM O TIO CLÁUDIO</button>
+      <a class="lc-bt" href="financeiro-painel.html" title="BAIXAR / ENVIAR PLANILHA (Excel) fica no Painel Financeiro">📊 LANÇAR POR PLANILHA</a>
+      <a class="lc-bt" href="#lcFixos" title="Aluguel, internet, contador: cadastre uma vez e entra todo mês">🔁 FIXOS DO MÊS ↓</a>
+    </div>
+  </div>
   <div class="lc-kpis" id="lcKpis"></div>
   <div class="lc-meio">
     <div class="lc-cx"><h3 data-seta="lc-meses">ENTRADAS × SAÍDAS · 6 MESES</h3><div><div class="lc-barras" id="lcBarras"></div><div class="lc-leg"><span><i style="background:#22c55e"></i>Entradas</span><span><i style="background:#ef4444"></i>Saídas</span></div></div></div>
@@ -120,7 +129,7 @@ html.lc-aberto,html.lc-aberto body{overflow:hidden}
       <input id="lcBusca" type="search" placeholder="Procurar (nome, evento, categoria…)" aria-label="Procurar lançamento">
     </div>
     <div class="lc-lista" id="lcLista"></div>
-    <p class="lc-nota">Os marcados AUTOMÁTICO nascem sozinhos: o cachê da equipe vem de Cachês e custos de evento e o custo fixo vem dos FIXOS DO NEGÓCIO, logo abaixo. Todo o resto você altera, muda de lugar ou exclui aqui mesmo.</p>
+    <p class="lc-nota">Cachê da equipe: toque em NÃO PAGO quando pagar — fica verde PAGO ✓ e passa a contar como custo do evento. Os marcados AUTOMÁTICO vêm dos FIXOS DO NEGÓCIO, logo abaixo. Todo o resto você altera, muda de lugar ou exclui aqui mesmo.</p>
   </div>
   <div class="lc-cx" id="lcFixos" style="margin-top:14px;scroll-margin-top:90px">
     <h3 data-seta="lc-fixos">🔁 FIXOS DO NEGÓCIO · ENTRAM SOZINHOS TODO MÊS</h3>
@@ -147,9 +156,9 @@ html.lc-aberto,html.lc-aberto body{overflow:hidden}
   <div class="lc-aviso" id="lcFxAviso" hidden aria-live="polite"></div>
 </div></div>
 
-<script src="assets/layout.js?v=54"></script>
+<script src="assets/layout.js?v=55"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="assets/bw-sync.js"></script>
-<script src="assets/lancamentos.js?v=3"></script>
+<script src="assets/lancamentos.js?v=5"></script>
 </body>
 </html>

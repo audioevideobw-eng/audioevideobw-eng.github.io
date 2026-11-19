@@ -331,6 +331,10 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
     no MESMO formato de dados (neg_fixos, ids fixo_<id>_<data>); o endereço antigo vira redirecionamento (e entra em SEM_MENU do vigia), e
     todo link, menu, sino, agenda, agente e manual que apontava para ela é trocado no mesmo commit.
 
+99. Dado com SITUAÇÃO que vários lugares leem (cachê: neg_equipe_pagamentos → gasto pag_<id> do evento → linha cache_<id> do fluxo): quem muda a
+    situação refaz os TRÊS na mesma ação (pagarCache → cacheNoEvento → espelharEventos) e a lista mostra o item UMA vez (a origem), nunca as
+    cópias derivadas. Botão que abre o Tio Cláudio de outra página usa BWAgente.abrir(false): abrir já escutando derruba o navegador de teste.
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -1070,8 +1074,19 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   negócio e no card do negocio.html no lugar do Fluxo. Links trocados: painel financeiro, sino, agenda do Início, Tio Cláudio ("abrir fluxo" →
   Lançamentos), textos de custos/equipe/eventos. Manual 48 → 47 p. (saiu "Fluxo de caixa"). teste_lancamentos.py +7 checagens (0 falhas);
   PDF DO MÊS NÃO conferido aqui (sem acesso à biblioteca) nem nada na conta real do dono. lancamentos.js v3, layout.js v54, bw-agente v19, sw v130. PENTE FINO 98.
+- 19/11/2026 00:40 · Claude (dono: "custos.html também se torna redundante; crie nos lançamentos um lançamento só para cachê de equipe, identificando
+  o evento, com pago/não pago em cores e mexendo nos indicadores" + "as ferramentas que facilitam os lançamentos devem ficar na página de lançamentos"):
+  CACHÊS E CUSTOS saiu — custos.html redireciona para lancamentos.html (saiu do menu; card do negocio.html virou LANÇAMENTOS). LANÇAMENTOS ganhou
+  👥 CACHÊ DA EQUIPE no ＋ NOVO (quem recebe — lista dos colaboradores ou nome digitado —, evento obrigatório, valor, data, situação, observação):
+  grava em neg_equipe_pagamentos no formato de sempre (liga colabId/equipeId quando o nome é da equipe). Na lista: botão vermelho NÃO PAGO ↔ verde
+  PAGO ✓ (animação BWConcluir); pago vira custo do evento (pag_<id>) e sai do "a pagar"; não pago fica pendente (agenda/sino). ALTERAR troca valor,
+  evento e situação; excluir limpa evento e fluxo. Custo durante o evento já era GASTEI › DE UM EVENTO; o dashboard por evento continua em EVENTOS.
+  PERDEU-SE: a foto do comprovante anexada ao custo (o LEITOR DE CONTAS continua lançando custo de evento com o arquivo). Nova faixa 🧰 FERRAMENTAS
+  nos Lançamentos: LER CONTA OU COMPROVANTE (leitor), FALAR COM O TIO CLÁUDIO, LANÇAR POR PLANILHA (Painel Financeiro), FIXOS DO MÊS.
+  teste_lancamentos.py +16 checagens (0 falhas). Manual 47 → 46 p. NÃO testado na conta real. lancamentos.js v5, layout.js v55, bw-agente v20, sw v131. PENTE FINO 99.
 
 ## Pendências (dono)
+- [ ] (19/11) CACHÊ nos LANÇAMENTOS: dono conferir se os cachês antigos aparecem com PAGO / NÃO PAGO certo e marcar um como pago (ver no dossiê do evento).
 - [ ] (19/11) LANÇAMENTOS: dono conferir na conta dele se os lançamentos e os fixos antigos do Fluxo aparecem, e tocar em 📄 PDF DO MÊS (não deu para testar o PDF daqui).
 - [ ] (18/11) LANÇAMENTOS: dono usar na conta dele (lançar um gasto, mudar de lugar, excluir um teste) e dizer se falta algum tipo de lançamento.
 - [ ] (18/11) APLICATIVO 1.1: os arquivos novos foram para a pasta do PC; dono abrir pelo ícone BW Reels e conferir PERSONAGENS e EDITOR DE VÍDEO.

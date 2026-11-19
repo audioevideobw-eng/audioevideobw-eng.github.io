@@ -155,13 +155,6 @@ def main():
         pg.click("#evRelAnual"); pg.wait_for_timeout(300); pg.click('#relAnualMsg [data-atalho="2"]'); pg.wait_for_timeout(200)
         foto(pg, "#relAnualMsg", "relatorio-gestao.png")
         c.close()
-        # 5) Fluxo de caixa — aba Cachês e custos
-        c, pg = pagina(); pg.goto(base + "custos.html"); pg.wait_for_timeout(1200)
-        foto(pg, "#pagBox", "custos-cache.png")
-        pg.click('[data-rapido="Combustível"]'); pg.fill("#ctVal", "120"); pg.wait_for_timeout(150)
-        foto(pg, "#custoBox .card", "custos-evento.png")
-        foto(pg, "#finBox", "custos-pagamentos.png")
-        c.close()
         # 6) CRM — painel, funil, ficha, agente, indicadores
         c, pg = pagina(); pg.goto(base + "crm.html"); pg.wait_for_timeout(1200)
         pg.screenshot(path=os.path.join(SAIDA, "crm-painel.png"))

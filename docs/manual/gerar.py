@@ -24,7 +24,7 @@ PLANO = [("base", 1), ("base", 2), ("base", 3), ("base", 4), ("base", 5),
          "04a-conhecendo-a-tela.html", "04b-agenda.html", "04c-lancamentos.html",
          "05a-meu-negocio.html", "05b-eventos.html", "05c-relatorios-pdf.html", "05d-gestao-de-pessoas.html", "05d2-equipes.html",
          "05b2-leitor-e-agente.html",   # 16/11: substitui a página antiga "Comprovantes pela foto" (base 10)
-         "05f-caches-e-custos.html", ("base", 12),
+         ("base", 12),
          "06a-painel-financeiro.html", "06b-orcamento.html"] + [("base", n) for n in range(14, 24)] + \
         ["09a-crm.html", "09b-funil.html", "09b2-pedido.html", "09c-indicadores.html", "09d-fotos.html", "09d2-fotos-marca.html", "09d3-criador.html", "09d4-reels.html", "09d5-reels-modelos.html", "09d6-reels-personagens-som.html", "09d7-reels-graficos.html", "09d8-reels-quadro.html", "09d9-personagens.html", "09d10-video.html"] + [("base", n) for n in range(24, 29)]
 

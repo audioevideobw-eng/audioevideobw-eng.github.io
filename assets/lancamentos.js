@@ -36,6 +36,7 @@
     neg_entrada: {rot: "Negócio › Entrada", grupo: "e", nicho: "negocio", alimenta: ["Painel Financeiro"]},
     ev_custo: {rot: "Evento › Custo", grupo: "s", nicho: "evento", evento: true, alimenta: ["Dossiê do evento", "Painel Financeiro"]},
     ev_receita: {rot: "Evento › Recebido", grupo: "e", nicho: "evento", evento: true, alimenta: ["Dossiê do evento", "Painel Financeiro"]},
+    cache: {rot: "Equipe › Cachê", grupo: "c", nicho: "evento", evento: true, alimenta: ["Dossiê do evento", "Painel Financeiro", "Agenda e avisos"]},
     casa_conta: {rot: "Casa › Conta a pagar", grupo: "s", nicho: "conta", alimenta: ["Contas a pagar", "Agenda e avisos"]},
     reserva: {rot: "Reserva de emergência", grupo: "r", nicho: "reserva", alimenta: ["Reserva de emergência"]},
     invest: {rot: "Investimentos", grupo: "i", nicho: "invest", alimenta: ["Painel de Investimentos"]}
@@ -52,9 +53,33 @@
       var rec = parseFloat(e.recebido || 0) || 0, fr = "receita_" + e.id;
       if (rec > 0) { idsR[fr] = 1; garantir(fr, {c0: e.data || hoje(), c1: "Entrada", c2: String(rec), c3: "Receita de evento — " + e.nome, fonte: "recebido"}); }
     });
+    /* cachês (parte 1 da sincronia): não pago = "A pagar — cachê de X (evento)" (pendente, não conta como gasto); pago = "Custos variáveis — cachê de X (evento)" */
+    var idsC = {}; ler("neg_equipe_pagamentos").forEach(function (p) { if (!p || p.id == null) return; var fid = "cache_" + p.id, ev = evs.filter(function (e) { return String(e.id) === String(p.eventoId); })[0], nomeEv = ev ? ev.nome : (p.evento || "evento"); idsC[fid] = 1;
+      garantir(fid, {c0: p.data || hoje(), c1: "Saída", c2: String(p.valor || 0), c3: (p.pago ? "Custos variáveis — cachê de " : "A pagar — cachê de ") + p.colab + " (" + nomeEv + ")", fonte: p.pago ? "pago" : "pendente"}); });
     var n0 = fluxo.length;
-    fluxo = fluxo.filter(function (o) { var id = String(o.id); if (id.indexOf("gasto_") === 0 && id.indexOf("gasto_pag_") !== 0 && !idsG[id]) return false; if (id.indexOf("receita_") === 0 && !idsR[id]) return false; return true; });
+    fluxo = fluxo.filter(function (o) { var id = String(o.id); if (id.indexOf("cache_") === 0 && !idsC[id]) return false; if (id.indexOf("gasto_") === 0 && id.indexOf("gasto_pag_") !== 0 && !idsG[id]) return false; if (id.indexOf("receita_") === 0 && !idsR[id]) return false; return true; });
     if (mudou || fluxo.length !== n0) gravar("neg_fluxo", fluxo);
+  }
+
+  /* cachê pago entra como gasto do evento (id pag_<id>, igual ao modules/pagamento); não pago sai de lá */
+  function cacheNoEvento(p, tirarDe) {
+    var l = ler("neg_eventos"), gid = "pag_" + p.id, mudou = false;
+    l.forEach(function (e) { var g = (e.gastos || []).filter(function (x) { return x.id === gid; })[0], aqui = !tirarDe && p.pago && String(e.id) === String(p.eventoId);
+      if (aqui) { var novo = {id: gid, desc: "Cachê — " + p.colab, valor: p.valor, data: p.data || hoje(), comprovante: null, caminho: null}; if (g) Object.assign(g, novo); else { e.gastos = e.gastos || []; e.gastos.push(novo); } mudou = true; }
+      else if (g) { e.gastos.splice(e.gastos.indexOf(g), 1); mudou = true; } });
+    if (mudou) gravar("neg_eventos", l);
+  }
+  function colabs() { return ler("neg_equipe_colaboradores").filter(function (c) { return c && c.nome; }); }
+  function dadosCache(p, f, d, v) {   /* preenche o registro no formato de neg_equipe_pagamentos */
+    var nome = cap(f.desc), c = colabs().filter(function (x) { return String(x.nome).toLowerCase() === nome.toLowerCase(); })[0], ev = ler("neg_eventos").filter(function (e) { return String(e.id) === String(f.evId); })[0];
+    if (!ev) throw new Error("Escolha o evento.");
+    var eq = c ? ler("neg_equipe_equipes").filter(function (q) { return (q.membros || []).some(function (m) { return String(m) === String(c.id); }); })[0] : null;
+    p.colab = c ? c.nome : nome; p.colabId = c ? c.id : (p.colabId && p.colab === nome ? p.colabId : ""); if (eq || p.equipeId == null) p.equipeId = eq ? eq.id : "";
+    p.eventoId = String(ev.id); p.evento = ev.nome || ""; p.valor = v; p.data = d; p.obs = f.obs || ""; p.pago = f.pago === "sim" || f.pago === true; return p;
+  }
+  function pagarCache(id) {   /* PAGO ↔ NÃO PAGO */
+    var l = ler("neg_equipe_pagamentos"), p = l.filter(function (x) { return String(x.id) === String(id); })[0]; if (!p) return;
+    p.pago = !p.pago; p._ed = Date.now(); p.data = p.data || hoje(); gravar("neg_equipe_pagamentos", l); cacheNoEvento(p); espelharEventos();
   }
 
   /* ---------- lista única ---------- */
@@ -65,12 +90,14 @@
     ler("casa_reserva").forEach(function (x) { if (!x || x.id == null) return; add({fonte: "reserva", id: x.id, dest: "reserva", data: /^\d{4}-\d{2}$/.test(x.c0 || "") ? x.c0 + "-01" : (x.c0 || ""), desc: "Guardado na reserva", valor: num(x.c1), sinal: "n"}); });
     ler("neg_fluxo").forEach(function (x) { if (!x || x.id == null) return; var id = String(x.id), ent = String(x.c1 || "").toLowerCase().indexOf("entrada") === 0;
       if (/^(gasto_|receita_)/.test(id)) return;   /* vêm do evento, logo abaixo (ev_ antigo aparece como linha comum, para poder excluir) */
-      if (id.indexOf("cache_") === 0) { add({fonte: "auto", id: id, dest: "", nicho: "evento", data: x.c0, desc: x.c3, valor: num(x.c2), sinal: "s", aberto: x.fonte === "pendente", auto: "Cachê da equipe", link: "custos.html", alimenta: ["Painel Financeiro"]}); return; }
+      if (id.indexOf("cache_") === 0) return;   /* vem da lista de cachês, logo abaixo */
       if (id.indexOf("fixo_") === 0) { add({fonte: "auto", id: id, dest: "", nicho: "negocio", data: x.c0, desc: x.c3, valor: num(x.c2), sinal: ent ? "e" : "s", auto: ent ? "Recebimento fixo do negócio" : "Custo fixo do negócio", link: "#lcFixos", alimenta: ["Painel Financeiro"]}); return; }
       add({fonte: "fluxo", id: x.id, dest: ent ? "neg_entrada" : "neg_saida", data: x.c0, desc: x.c3, valor: num(x.c2), sinal: ent ? "e" : "s"}); });
     ler("neg_eventos").forEach(function (e) { if (!e || e.id == null) return;
       (e.gastos || []).forEach(function (g, i) { if (String(g.id || "").indexOf("pag_") === 0) return; add({fonte: "evgasto", id: e.id + "|" + (g.id || "#" + i), dest: "ev_custo", evId: String(e.id), evNome: e.nome, gi: i, data: g.data || e.data, desc: g.desc, valor: num(g.valor), sinal: "s"}); });
       var rec = parseFloat(e.recebido || 0) || 0; if (rec > 0) add({fonte: "evrec", id: e.id, dest: "ev_receita", evId: String(e.id), evNome: e.nome, cliente: e.cliente || "", data: e.data, desc: "Pagamento do evento " + (e.nome || ""), valor: rec, sinal: "e"}); });
+    var nomesEv = {}; ler("neg_eventos").forEach(function (e) { if (e && e.id != null) nomesEv[String(e.id)] = e.nome; });
+    ler("neg_equipe_pagamentos").forEach(function (p) { if (!p || p.id == null) return; add({fonte: "cache", id: p.id, dest: "cache", evId: String(p.eventoId || ""), evNome: nomesEv[String(p.eventoId)] || p.evento || "", colab: p.colab || "", obs: p.obs || "", data: p.data || "", desc: "Cachê — " + (p.colab || "equipe"), valor: num(p.valor), sinal: "s", aberto: !p.pago, pago: !!p.pago}); });
     ler("inv_lancamentos").forEach(function (x) { if (!x || x.id == null || String(x.id).indexOf("ex") === 0) return; add({fonte: "inv", id: x.id, dest: "invest", data: x.c0, desc: x.ativo, cat: x.classe, op: x.op, valor: num(x.valor), sinal: "n"}); });
     var h = hoje();
     L.forEach(function (o) { var d = DEST[o.dest]; if (d) { o.nicho = d.nicho; o.alimenta = d.alimenta; } o.futuro = (o.data || "") > h; o.realizado = !o.futuro && !o.aberto && (o.sinal === "e" || o.sinal === "s"); });
@@ -91,11 +118,13 @@
       if (dest === "ev_custo") { e.gastos = e.gastos || []; e.gastos.push({id: novoId("ct_"), desc: cap(f.desc) || "Custo", valor: v, data: d, origem: "lancamentos"}); }
       else e.recebido = Math.round(((parseFloat(e.recebido || 0) || 0) + v) * 100) / 100;
       gravar("neg_eventos", l); espelharEventos(); }
+    else if (dest === "cache") { l = ler("neg_equipe_pagamentos"); var p = dadosCache({id: Date.now(), origem: "lancamentos"}, f, d, v); l.push(p); gravar("neg_equipe_pagamentos", l); cacheNoEvento(p); espelharEventos(); }
     else throw new Error("Destino desconhecido.");
   }
   function apagar(o) {
     var tirar = function (k) { gravar(k, ler(k).filter(function (x) { return String(x.id) !== String(o.id); })); };
     if (o.fonte === "orc") tirar("casa_orcamento"); else if (o.fonte === "conta") tirar("casa_contas"); else if (o.fonte === "reserva") tirar("casa_reserva"); else if (o.fonte === "fluxo") tirar("neg_fluxo"); else if (o.fonte === "inv") tirar("inv_lancamentos");
+    else if (o.fonte === "cache") { tirar("neg_equipe_pagamentos"); cacheNoEvento({id: o.id}, true); espelharEventos(); }
     else if (o.fonte === "evgasto" || o.fonte === "evrec") { var l = ler("neg_eventos"), e = l.filter(function (x) { return String(x.id) === o.evId; })[0]; if (!e) return;
       if (o.fonte === "evrec") e.recebido = 0; else e.gastos = (e.gastos || []).filter(function (g, i) { return i !== o.gi; });
       gravar("neg_eventos", l); espelharEventos(); }
@@ -106,6 +135,7 @@
     else if (o.fonte === "conta") muda("casa_contas", function (x) { x.c0 = cap(f.desc); x.c1 = String(v); x.c2 = d; });
     else if (o.fonte === "reserva") muda("casa_reserva", function (x) { x.c0 = d.slice(0, 7); x.c1 = String(v); });
     else if (o.fonte === "fluxo") muda("neg_fluxo", function (x) { x.c0 = d; x.c2 = String(v); x.c3 = cap(f.desc); });
+    else if (o.fonte === "cache") { var lp = ler("neg_equipe_pagamentos"), pp = lp.filter(function (y) { return String(y.id) === String(o.id); })[0]; if (!pp) return; dadosCache(pp, f, d, v); pp._ed = Date.now(); gravar("neg_equipe_pagamentos", lp); cacheNoEvento(pp); espelharEventos(); }
     else if (o.fonte === "inv") muda("inv_lancamentos", function (x) { x.c0 = d; x.valor = v; x.ativo = cap(f.desc) || x.ativo; if (f.classe) x.classe = f.classe; if (f.op) x.op = f.op; });
     else { var l = ler("neg_eventos"), e = l.filter(function (x) { return String(x.id) === o.evId; })[0]; if (!e) return;
       if (o.fonte === "evrec") e.recebido = v; else { var g = (e.gastos || [])[o.gi]; if (g) { g.desc = cap(f.desc) || g.desc; g.valor = v; g.data = d; } }
@@ -153,8 +183,9 @@
       if (ord !== "maior" && o.data !== dia) { dia = o.data; h += '<div class="lc-dia">' + dataBR(o.data) + '</div>'; }
       h += '<div class="lc-item" data-uid="' + esc(o.uid) + '" data-bw-card="' + esc(o.uid) + '" style="--c:' + cor + '"><div class="t"><b>' + esc(o.desc || "Sem nome") + '</b><small>' + (ord === "maior" ? dataBR(o.data) + " · " : "") + esc(onde(o)) + ' — alimenta: ' + esc((o.alimenta || []).join(", ")) + '</small></div>' +
         '<div class="v ' + o.sinal + '">' + (o.sinal === "e" ? "+ " : o.sinal === "s" ? "− " : "") + brl(o.valor) + '</div><div class="a"><span class="lc-tag" style="--c:' + cor + '">' + (NICHOS[o.nicho] || ["?"])[0] + '</span>' +
-        (o.auto ? '<span class="lc-tag cz">AUTOMÁTICO</span>' : "") + (o.aberto ? '<span class="lc-tag" style="--c:#FFB547">EM ABERTO</span>' : o.futuro ? '<span class="lc-tag" style="--c:#FFB547">DATA FUTURA</span>' : o.fonte === "conta" ? '<span class="lc-tag" style="--c:#22c55e">PAGA</span>' : "") + '<span style="flex:1"></span>' +
+        (o.auto ? '<span class="lc-tag cz">AUTOMÁTICO</span>' : "") + (o.fonte === "cache" ? '<span class="lc-tag" style="--c:' + (o.pago ? "#22c55e" : "#ef4444") + '">' + (o.pago ? "PAGO" : "NÃO PAGO") + '</span>' : o.aberto ? '<span class="lc-tag" style="--c:#FFB547">EM ABERTO</span>' : o.futuro ? '<span class="lc-tag" style="--c:#FFB547">DATA FUTURA</span>' : o.fonte === "conta" ? '<span class="lc-tag" style="--c:#22c55e">PAGA</span>' : "") + '<span style="flex:1"></span>' +
         (o.fonte === "conta" ? '<button type="button" class="lc-bt peq" data-pg="' + esc(o.uid) + '" data-bw-status="' + (o.pago ? "volta" : "ok") + '" data-bw-msg="' + (o.pago ? "Conta voltou para em aberto" : "Conta paga!") + '" data-bw-id="' + esc(o.uid) + '">' + (o.pago ? "↺ NÃO PAGA" : "✓ MARCAR PAGA") + '</button>' : "") +
+        (o.fonte === "cache" ? '<button type="button" class="lc-bt peq" data-cg="' + esc(o.uid) + '" style="' + (o.pago ? "background:#16a34a;border-color:#16a34a;color:#fff" : "color:#ff8a8a;border-color:#ef4444") + '" data-bw-status="' + (o.pago ? "volta" : "ok") + '" data-bw-msg="' + (o.pago ? "Cachê voltou para NÃO PAGO" : "Cachê pago!") + '" data-bw-id="' + esc(o.uid) + '" aria-label="' + (o.pago ? "Marcar como não pago: " : "Marcar como pago: ") + esc(o.desc) + '">' + (o.pago ? "PAGO ✓" : "NÃO PAGO") + '</button>' : "") +
         (o.auto ? '<a class="lc-bt peq" href="' + o.link + '">' + (o.link.charAt(0) === "#" ? "VER O FIXO ↓" : "ABRIR ONDE NASCEU ↗") + '</a>' : '<button type="button" class="lc-bt peq" data-ed="' + esc(o.uid) + '" aria-label="Alterar ' + esc(o.desc || "lançamento") + '">✎ ALTERAR</button><button type="button" class="lc-bt peq perigo" data-del="' + esc(o.uid) + '" aria-label="Excluir ' + esc(o.desc || "lançamento") + '">✕</button>') + '</div></div>'; });
     $("lcLista").innerHTML = h || '<div class="lc-vazio">' + (TODOS.length ? "Nenhum lançamento com esse filtro. Troque o mês, o nicho ou a busca." : "Ainda não há lançamentos. Toque em <b>＋ NOVO LANÇAMENTO</b> e responda o que é e para onde vai.") + '</div>';
   }
@@ -209,22 +240,24 @@
 
   /* ---------- folha: novo e alterar ---------- */
   var F = null;   /* {modo:"novo"|"editar", que, dest, o} */
-  var QUE = [["gasto", "💸", "GASTEI", "paguei alguma coisa", "#ef4444"], ["entrada", "💰", "RECEBI", "entrou dinheiro", "#22c55e"], ["conta", "🧾", "CONTA A PAGAR", "tem vencimento", "#FFB547"], ["reserva", "🏦", "GUARDEI", "reserva de emergência", "#34d399"], ["invest", "📈", "INVESTI", "aplicação, resgate, rendimento", "#facc15"]];
+  var QUE = [["gasto", "💸", "GASTEI", "paguei alguma coisa", "#ef4444"], ["entrada", "💰", "RECEBI", "entrou dinheiro", "#22c55e"], ["cache", "👥", "CACHÊ DA EQUIPE", "quem trabalhou no evento", "#a78bfa"], ["conta", "🧾", "CONTA A PAGAR", "tem vencimento", "#FFB547"], ["reserva", "🏦", "GUARDEI", "reserva de emergência", "#34d399"], ["invest", "📈", "INVESTI", "aplicação, resgate, rendimento", "#facc15"]];
   var ONDE = {gasto: [["casa_gasto", "🏠", "DA CASA", "família, mercado, lazer"], ["neg_saida", "💼", "DO NEGÓCIO", "despesa da empresa"], ["ev_custo", "🎬", "DE UM EVENTO", "custo daquele trabalho"]],
     entrada: [["casa_receita", "🏠", "DA CASA", "salário, renda da família"], ["neg_entrada", "💼", "DO NEGÓCIO", "venda, serviço avulso"], ["ev_receita", "🎬", "DE UM EVENTO", "cliente pagou o evento"]],
-    conta: [["casa_conta", "🏠", "DA CASA", "luz, água, cartão…"], ["neg_saida", "💼", "DO NEGÓCIO", "sai do caixa na data"]], reserva: [["reserva", "", "", ""]], invest: [["invest", "", "", ""]]};
+    conta: [["casa_conta", "🏠", "DA CASA", "luz, água, cartão…"], ["neg_saida", "💼", "DO NEGÓCIO", "sai do caixa na data"]], cache: [["cache", "", "", ""]], reserva: [["reserva", "", "", ""]], invest: [["invest", "", "", ""]]};
   function abrirFolha() { $("lcFolha").hidden = false; document.documentElement.classList.add("lc-aberto"); aviso($("lcFxAviso"), ""); }
   function fecharFolha() { $("lcFolha").hidden = true; document.documentElement.classList.remove("lc-aberto"); F = null; }
   function campos(dest, v) {
-    v = v || {}; var d = DEST[dest], evs = eventosLista(), rotData = dest === "casa_conta" || (F && F.que === "conta") ? "Vencimento" : dest === "reserva" ? "Mês" : "Data";
+    v = v || {}; var d = DEST[dest], evs = eventosLista(), rotData = dest === "casa_conta" || (F && F.que === "conta") ? "Vencimento" : dest === "reserva" ? "Mês" : dest === "cache" ? "Data do pagamento" : "Data";
     var h = '<div class="lc-form"><label>Valor (R$)<input id="fxValor" inputmode="decimal" autocomplete="off" placeholder="0,00" value="' + esc(v.valor != null ? String(v.valor).replace(".", ",") : "") + '"></label><label>' + rotData + '<input id="fxData" type="date" value="' + esc(v.data || hoje()) + '"></label>';
-    if (dest !== "reserva" && dest !== "ev_receita") h += '<label class="cheio">' + (dest === "invest" ? "Nome do investimento" : "O que foi") + '<input id="fxDesc" maxlength="80" autocomplete="off" placeholder="' + (dest === "invest" ? "ex.: CDB Banco X" : dest === "casa_conta" ? "ex.: Conta de luz" : "ex.: Almoço da equipe") + '" value="' + esc(v.desc || "") + '"></label>';
+    if (dest === "cache") h += '<label class="cheio">Quem recebe<input id="fxDesc" maxlength="80" autocomplete="off" list="fxColabs" placeholder="Escolha da equipe ou digite o nome" value="' + esc(v.desc || "") + '"><datalist id="fxColabs">' + colabs().map(function (c) { return '<option value="' + esc(c.nome) + '">'; }).join("") + '</datalist></label>';
+    else if (dest !== "reserva" && dest !== "ev_receita") h += '<label class="cheio">' + (dest === "invest" ? "Nome do investimento" : "O que foi") + '<input id="fxDesc" maxlength="80" autocomplete="off" placeholder="' + (dest === "invest" ? "ex.: CDB Banco X" : dest === "casa_conta" ? "ex.: Conta de luz" : "ex.: Almoço da equipe") + '" value="' + esc(v.desc || "") + '"></label>';
     if (dest === "casa_gasto" || dest === "casa_receita") h += '<label class="cheio">Categoria<select id="fxCat">' + (dest === "casa_receita" ? ["Salário", "Renda extra", "Outros"] : CAT_CASA).concat(v.cat && CAT_CASA.indexOf(v.cat) < 0 ? [v.cat] : []).filter(function (c, i, a) { return a.indexOf(c) === i; }).map(function (c) { return '<option' + (c === v.cat ? " selected" : "") + '>' + esc(c) + '</option>'; }).join("") + '</select></label>';
     if (d.evento) h += '<label class="cheio">Qual evento<select id="fxEv">' + (evs.length ? '<option value="">Escolha o evento…</option>' + evs.map(function (e) { return '<option value="' + esc(e.id) + '"' + (String(e.id) === String(v.evId) ? " selected" : "") + '>' + esc((e.data ? dataBR(e.data) + " · " : "") + (e.nome || "Evento")) + '</option>'; }).join("") : '<option value="">Você ainda não tem eventos cadastrados</option>') + '</select></label>';
+    if (dest === "cache") h += '<label>Situação<select id="fxPago"><option value="nao"' + (v.pago ? "" : " selected") + '>NÃO PAGO (a pagar)</option><option value="sim"' + (v.pago ? " selected" : "") + '>PAGO ✓</option></select></label><label>Observação<input id="fxObs" maxlength="80" autocomplete="off" placeholder="opcional" value="' + esc(v.obs || "") + '"></label>';
     if (dest === "invest") h += '<label>Tipo<select id="fxClasse">' + CLASSES.map(function (c) { return '<option' + (c === v.classe ? " selected" : "") + '>' + c + '</option>'; }).join("") + '</select></label><label>Operação<select id="fxOp">' + ["Aplicação", "Resgate", "Rendimento", "Saldo atual"].map(function (c) { return '<option' + (c === v.op ? " selected" : "") + '>' + c + '</option>'; }).join("") + '</select></label>';
     return h + '</div><div class="lc-resumo" id="fxResumo">Vai para <b>' + d.rot + '</b> e alimenta: ' + d.alimenta.join(", ") + '.</div>';
   }
-  function lerCampos() { var g = function (id) { var e = $(id); return e ? e.value.trim() : ""; }; return {valor: g("fxValor"), data: g("fxData"), desc: g("fxDesc"), cat: g("fxCat"), evId: g("fxEv"), classe: g("fxClasse"), op: g("fxOp")}; }
+  function lerCampos() { var g = function (id) { var e = $(id); return e ? e.value.trim() : ""; }; return {valor: g("fxValor"), data: g("fxData"), desc: g("fxDesc"), cat: g("fxCat"), evId: g("fxEv"), classe: g("fxClasse"), op: g("fxOp"), obs: g("fxObs"), pago: g("fxPago")}; }
   function desenharNovo() {
     var h = '<div class="lc-passo"><h4><em>1</em>O QUE É?</h4><div class="lc-ops">' + QUE.map(function (q) { return '<button type="button" class="lc-op' + (F.que === q[0] ? " on" : "") + '" data-que="' + q[0] + '" style="--c:' + q[4] + '" aria-pressed="' + (F.que === q[0]) + '"><i>' + q[1] + '</i>' + q[2] + '<small>' + q[3] + '</small></button>'; }).join("") + '</div></div>';
     var ops = F.que ? ONDE[F.que] : null;
@@ -238,19 +271,19 @@
       '<div class="lc-passo"><h4><em>✎</em>VALOR E DADOS</h4>' + campos(F.dest, F.guardado) + '</div><div class="lc-linha"><button type="button" class="lc-bt pri" id="fxSalvar">✓ SALVAR</button><button type="button" class="lc-bt perigo" id="fxExcluir">✕ EXCLUIR</button></div>';
     $("lcFxTit").textContent = "ALTERAR LANÇAMENTO"; $("lcFxCorpo").innerHTML = h;
   }
-  function validar(dest, f) { if (!(num(f.valor) > 0)) return "Digite o valor."; if (DEST[dest].evento && !f.evId) return "Escolha o evento."; if (!f.desc && dest !== "reserva" && dest !== "ev_receita") f.desc = f.cat || DEST[dest].rot.split("› ").pop(); return ""; }
+  function validar(dest, f) { if (!(num(f.valor) > 0)) return "Digite o valor."; if (DEST[dest].evento && !f.evId) return "Escolha o evento."; if (dest === "cache" && !f.desc) return "Diga quem recebe o cachê."; if (!f.desc && dest !== "reserva" && dest !== "ev_receita") f.desc = f.cat || DEST[dest].rot.split("› ").pop(); return ""; }
   function lancar(outro) {
     var f = lerCampos(), m = validar(F.dest, f); if (m) { aviso($("lcFxAviso"), m, true); return; }
     try { criar(F.dest, f); } catch (e) { aviso($("lcFxAviso"), e.message || "Não consegui lançar.", true); return; }
     var txt = "✓ Lançado: " + brl(num(f.valor)) + " em " + DEST[F.dest].rot + ".";
     if ((f.data || "").slice(0, 7) && f.data.slice(0, 7) !== MES) MES = f.data.slice(0, 7);
-    if (outro) { F.guardado = {data: f.data, evId: f.evId, cat: f.cat}; desenhar(); desenharNovo(); aviso($("lcFxAviso"), txt + " Pode lançar o próximo."); var c = $("fxValor"); if (c) c.focus(); }
+    if (outro) { F.guardado = {data: f.data, evId: f.evId, cat: f.cat, pago: f.pago === "sim"}; desenhar(); desenharNovo(); aviso($("lcFxAviso"), txt + " Pode lançar o próximo."); var c = $("fxValor"); if (c) c.focus(); }
     else { fecharFolha(); desenhar(); aviso($("lcAviso"), txt); }
   }
   function salvar() {
     var o = F.o, f = lerCampos(), m = validar(F.dest, f); if (m) { aviso($("lcFxAviso"), m, true); return; }
     try {
-      if (F.dest === o.dest && (!DEST[o.dest].evento || f.evId === o.evId)) alterarNoLugar(o, f);
+      if (F.dest === o.dest && (o.fonte === "cache" || !DEST[o.dest].evento || f.evId === o.evId)) alterarNoLugar(o, f);
       else { if (o.fonte === "conta") f.pago = o.pago; criar(F.dest, f); apagar(o); }   /* cria no lugar novo e só então tira do antigo */
     } catch (e) { aviso($("lcFxAviso"), e.message || "Não consegui salvar.", true); return; }
     var mudou = F.dest !== o.dest; fecharFolha(); desenhar(); aviso($("lcAviso"), mudou ? "✓ Mudou de lugar: agora está em " + DEST[mudou ? lerDest : o.dest].rot + "." : "✓ Alterado.");
@@ -265,10 +298,11 @@
   ["lcPeriodo", "lcTipo", "lcOrdem"].forEach(function (id) { $(id).onchange = desenharLista; }); $("lcBusca").oninput = desenharLista;
   $("lcNichos").addEventListener("click", function (e) { var b = e.target.closest("[data-n]"); if (!b) return; NICHO = b.dataset.n; desenhar(); });
   $("lcLista").addEventListener("click", function (e) {
-    var b = e.target.closest("[data-ed],[data-del],[data-pg]"); if (!b) return;
+    var b = e.target.closest("[data-ed],[data-del],[data-pg],[data-cg]"); if (!b) return;
+    if (b.dataset.cg) { var cc = achar(b.dataset.cg); if (cc) pagarCache(cc.id); setTimeout(desenhar, 0); return; }
     if (b.dataset.del) { excluir(achar(b.dataset.del)); return; }
     if (b.dataset.pg) { var c = achar(b.dataset.pg); if (!c) return; var l = ler("casa_contas"), x = l.filter(function (y) { return String(y.id) === String(c.id); })[0]; if (x) { x.c3 = c.pago ? "Não" : "Sim"; gravar("casa_contas", l); } setTimeout(desenhar, 0); return; }
-    var o = achar(b.dataset.ed); if (!o) return; F = {modo: "editar", o: o, dest: o.dest, guardado: {valor: o.valor, data: /^\d{4}-\d{2}-\d{2}/.test(o.data || "") ? o.data.slice(0, 10) : hoje(), desc: o.fonte === "evrec" || o.fonte === "reserva" ? "" : o.desc, cat: o.cat, evId: o.evId, classe: o.cat, op: o.op}}; desenharEditar(); abrirFolha();
+    var o = achar(b.dataset.ed); if (!o) return; F = {modo: "editar", o: o, dest: o.dest, guardado: {valor: o.valor, data: /^\d{4}-\d{2}-\d{2}/.test(o.data || "") ? o.data.slice(0, 10) : hoje(), desc: o.fonte === "evrec" || o.fonte === "reserva" ? "" : o.fonte === "cache" ? o.colab : o.desc, obs: o.obs, pago: o.pago, cat: o.cat, evId: o.evId, classe: o.cat, op: o.op}}; desenharEditar(); abrirFolha();
   });
   $("lcFxCorpo").addEventListener("click", function (e) {
     var b = e.target.closest("[data-que],[data-dest],#fxLancar,#fxLancarOutro,#fxSalvar,#fxExcluir"); if (!b || !F) return;
@@ -290,6 +324,7 @@
     $("lcFixosLista").addEventListener("click", function (e) { var b = e.target.closest("[data-delfixo]"); if (b) apagarFixo(b.dataset.delfixo); }); } catch (e) {}
   $("lcPdf").onclick = function () { var b = this; b.disabled = true; pdfMes().then(function (r) { var a = document.createElement("a"); a.href = URL.createObjectURL(r.blob); a.download = r.nome; document.body.appendChild(a); a.click(); a.remove(); aviso($("lcAviso"), "✓ PDF do mês gerado (" + r.linhas + " lançamentos)."); })
     .catch(function (e) { aviso($("lcAviso"), "Não deu para gerar o PDF: " + (e && e.message || e), true); }).then(function () { b.disabled = false; }); };
+  $("lcFalar").onclick = function () { if (window.BWAgente) BWAgente.abrir(false); else aviso($("lcAviso"), "O Tio Cláudio ainda está carregando. Tente de novo em instantes.", true); };
   expandirFixos(); desenhar();
   try { if (/[?&]novo=1/.test(location.search)) $("lcNovo").click(); } catch (e) {}
   setTimeout(function () { expandirFixos(); desenhar(); }, 1500);   /* a sincronia ao abrir pode trazer dados da conta */

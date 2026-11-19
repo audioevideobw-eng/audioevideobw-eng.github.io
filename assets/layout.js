@@ -63,7 +63,7 @@
     { id: "conta",   nome: "Conta",             href: "login.html", icon: '<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/>' }
   ];
   var SUBPAGINAS = {
-    negocio: [["negocio","Ferramentas do negócio"],["financeiro-painel","Painel Financeiro"],["propostas","Gerador de orçamento"],["eventos","Eventos"],["equipe","Gestão de pessoas"],["leitor","Leitor de comprovantes"],["preco","Calculadora de preço"],["custos","Cachês e custos"]],
+    negocio: [["negocio","Ferramentas do negócio"],["financeiro-painel","Painel Financeiro"],["propostas","Gerador de orçamento"],["eventos","Eventos"],["equipe","Gestão de pessoas"],["leitor","Leitor de comprovantes"],["preco","Calculadora de preço"]],
     casa: [["orcamento","Orçamento familiar"],["contas","Contas a pagar"],["reserva","Reserva de emergência"]],
     invest: [["investimentos-painel","Painel de Investimentos"],["cambio","Câmbio"],["evento","Evento no exterior"],["milhas","Mercado de milhas"],["meta","Meta de milhas"],["recs","★ Recomendações"],["noticias","Notícias"]],
     crm: [["crm","Painel do CRM"],["captacao","Funil de clientes"],["resultados","Indicadores"]],
@@ -562,7 +562,7 @@
 /* ===== AGENTE (16/11): o robô fica em todas as páginas — carregado aqui para não precisar mexer em cada página ===== */
 (function () {
   if (window.BWLanca || document.querySelector('script[src*="bw-agente.js"]')) return;
-  var s = document.createElement("script"); s.src = "assets/bw-agente.js?v=19"; s.defer = true; document.head.appendChild(s);
+  var s = document.createElement("script"); s.src = "assets/bw-agente.js?v=20"; s.defer = true; document.head.appendChild(s);
 })();
 
 /* 18/11: SETAS de abrir/fechar seções (data-seta). Fechada por padrão com data-seta-padrao="fechada"; a escolha fica em ui_dobras. */

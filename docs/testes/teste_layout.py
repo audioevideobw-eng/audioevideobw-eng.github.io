@@ -23,7 +23,7 @@ with sync_playwright() as p:
         print(f"=== {w}px ===")
         ctx = b.new_context(viewport={"width": w, "height": 900}, service_workers="block"); ctx.route("**/*", rota)
         pg = ctx.new_page(); er = []; pg.on("pageerror", lambda e: er.append(str(e)))
-        for pag in ["index.html", "configadm.html", "captacao.html", "eventos.html", "custos.html", "fotos.html"]:
+        for pag in ["index.html", "configadm.html", "captacao.html", "eventos.html", "lancamentos.html", "fotos.html"]:
             er.clear(); pg.goto(B + pag); pg.wait_for_timeout(600)
             ov = pg.evaluate("document.documentElement.scrollWidth-document.documentElement.clientWidth")
             ok(not er and ov <= 0 and pg.locator(".bw-topo .trilha").count() == 0 and pg.locator(".bw-topo .bw-titulo-pagina").count() == 1 and pg.locator("#bwMenuBtn").count() == 1,

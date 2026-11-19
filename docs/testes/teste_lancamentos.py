@@ -24,6 +24,8 @@ def ok(c, m):
     if not c: falhas.append(m)
 HOJE = datetime.date.today().isoformat(); MES = HOJE[:7]
 SEMENTE = {"neg_eventos": [{"id": "ev1", "nome": "Casamento Teste", "data": HOJE, "valor": 5000, "recebido": 0, "gastos": []}, {"id": "ev2", "nome": "Formatura Teste", "data": HOJE, "valor": 3000, "recebido": 0, "gastos": []}],
+           "neg_equipe_colaboradores": [{"id": "c1", "nome": "Ana Souza"}, {"id": "c2", "nome": "Beto Lima"}], "neg_equipe_equipes": [{"id": "eq1", "nome": "Equipe A", "membros": ["c1", "c2"]}],
+           "neg_equipe_pagamentos": [{"id": "p1", "equipeId": "eq1", "colabId": "c1", "colab": "Ana", "eventoId": "ev1", "evento": "Casamento Teste", "valor": 300, "data": HOJE, "pago": False}],
            "neg_fluxo": [{"id": "cache_p1", "c0": HOJE, "c1": "Saída", "c2": "300", "c3": "A pagar — cachê de Ana (Casamento Teste)", "fonte": "pendente"}, {"id": "fixo_1_" + MES, "c0": HOJE, "c1": "Saída", "c2": "120", "c3": "Internet (fixo)"}]}
 L = lambda k: f"JSON.parse(localStorage.getItem('bw_{k}_v1')||'[]')"
 SEM = "document.documentElement.scrollWidth - document.documentElement.clientWidth"
@@ -38,8 +40,38 @@ with sync_playwright() as p:
         pg.add_init_script("window.__env = []; Object.defineProperty(window, '__gancho', {value: 1});")
         pg.goto(BASE + "lancamentos.html"); pg.wait_for_timeout(1200)
         pg.evaluate("window.BWSync && (window.__orig = BWSync.antesDeSalvar, BWSync.antesDeSalvar = function (k, v, val) { window.__env.push(k + ':' + v); return window.__orig ? window.__orig.apply(BWSync, arguments) : undefined; })")
-        ok(pg.locator(".lc-kpi").count() == 5 and pg.locator("#lcLista .lc-item").count() == 2 and pg.locator("#lcLista .lc-tag.cz").count() == 2, "abre com os 5 números e os 2 automáticos (cachê e fixo) na lista")
-        ok(pg.locator('#lcLista .lc-item [data-ed]').count() == 0 and pg.locator('#lcLista a[href="custos.html"]').count() == 1, "automático não tem ALTERAR: só o atalho para onde nasceu")
+        ok(pg.locator(".lc-kpi").count() == 5 and pg.locator("#lcLista .lc-item").count() == 2 and pg.locator("#lcLista .lc-tag.cz").count() == 1, "abre com os 5 números, o cachê da equipe e o fixo (automático) na lista")
+        ok(pg.locator('#lcLista .lc-item:has(.lc-tag.cz) [data-ed]').count() == 0 and pg.locator('#lcLista .lc-item:has-text("Cachê — Ana") [data-cg]').inner_text() == "NÃO PAGO" and pg.locator('#lcLista .lc-item:has-text("Cachê — Ana") [data-ed]').count() == 1, "o fixo é automático (sem ALTERAR); o cachê tem NÃO PAGO e ALTERAR")
+        # CACHÊ DA EQUIPE (veio de Cachês e custos, que saiu)
+        cz = '#lcLista .lc-item:has-text("Cachê — Ana")'
+        pg.click(cz + " [data-cg]"); pg.wait_for_timeout(500)
+        pp = pg.evaluate(L("neg_equipe_pagamentos"))[0]; ev = pg.evaluate(L("neg_eventos") + "[0]"); fx = [x for x in pg.evaluate(L("neg_fluxo")) if x["id"] == "cache_p1"][0]
+        ok(pp["pago"] is True and any(g["id"] == "pag_p1" and g["valor"] == 300 for g in ev["gastos"]) and fx["fonte"] == "pago" and fx["c3"].startswith("Custos variáveis — cachê de Ana"), "tocar em NÃO PAGO marca PAGO: vira custo do evento e o fluxo deixa de ser pendente")
+        ok(pg.locator(cz + " [data-cg]").inner_text() == "PAGO ✓" and "PAGO" in pg.inner_text(cz) and "22, 163, 74" in pg.evaluate("getComputedStyle(document.querySelector('#lcLista [data-cg]')).backgroundColor"), "o botão fica verde PAGO ✓")
+        ok(pg.locator('#lcLista .lc-item:has-text("Cachê — Ana")').count() == 1 and pg.locator('#lcLista .lc-item:has-text("Custos variáveis")').count() == 0, "o cachê pago aparece uma vez só (não duplica com o custo do evento)")
+        pg.click(cz + " [data-cg]"); pg.wait_for_timeout(500)
+        ev = pg.evaluate(L("neg_eventos") + "[0]"); fx = [x for x in pg.evaluate(L("neg_fluxo")) if x["id"] == "cache_p1"][0]
+        ok(pg.evaluate(L("neg_equipe_pagamentos"))[0]["pago"] is False and not ev["gastos"] and fx["fonte"] == "pendente", "tocar de novo volta para NÃO PAGO e tira o custo do evento")
+        pg.click("#lcNovo"); pg.click('[data-que="cache"]'); pg.wait_for_timeout(200)
+        ok(pg.locator("#fxEv").count() == 1 and pg.locator("#fxColabs option").count() == 2 and pg.locator("#fxPago").count() == 1, "NOVO › CACHÊ DA EQUIPE pede quem recebe (lista da equipe), o evento e a situação")
+        pg.fill("#fxValor", "450"); pg.click("#fxLancar"); pg.wait_for_timeout(200)
+        ok("evento" in pg.inner_text("#lcFxAviso").lower(), "sem evento não lança")
+        pg.select_option("#fxEv", "ev2"); pg.click("#fxLancar"); pg.wait_for_timeout(200)
+        ok("quem recebe" in pg.inner_text("#lcFxAviso").lower(), "sem o nome não lança")
+        pg.fill("#fxDesc", "Beto Lima"); pg.click("#fxLancar"); pg.wait_for_timeout(500)
+        pn = [x for x in pg.evaluate(L("neg_equipe_pagamentos")) if x["colab"] == "Beto Lima"]
+        ok(len(pn) == 1 and pn[0]["valor"] == 450 and pn[0]["eventoId"] == "ev2" and pn[0]["evento"] == "Formatura Teste" and pn[0]["colabId"] == "c2" and pn[0]["equipeId"] == "eq1" and pn[0]["pago"] is False, f"grava no formato de neg_equipe_pagamentos, ligado ao evento e ao colaborador ({pn[:1]})")
+        ok(any(x["id"] == "cache_%s" % pn[0]["id"] and x["fonte"] == "pendente" and "Beto Lima (Formatura Teste)" in x["c3"] for x in pg.evaluate(L("neg_fluxo"))), "o cachê a pagar entra no fluxo como pendente (agenda e sino enxergam)")
+        cb = '#lcLista .lc-item:has-text("Cachê — Beto Lima")'
+        ok("Formatura Teste" in pg.inner_text(cb) and "NÃO PAGO" in pg.inner_text(cb), "a linha mostra o evento e NÃO PAGO")
+        pg.click(cb + " [data-ed]"); pg.wait_for_timeout(200); pg.fill("#fxValor", "500"); pg.select_option("#fxPago", "sim"); pg.select_option("#fxEv", "ev1"); pg.click("#fxSalvar"); pg.wait_for_timeout(500)
+        pn = [x for x in pg.evaluate(L("neg_equipe_pagamentos")) if x["colab"] == "Beto Lima"]; e1 = pg.evaluate(L("neg_eventos") + "[0]"); e2 = pg.evaluate(L("neg_eventos") + "[1]")
+        ok(len(pn) == 1 and pn[0]["valor"] == 500 and pn[0]["pago"] is True and pn[0]["eventoId"] == "ev1" and any(g["id"] == "pag_%s" % pn[0]["id"] and g["valor"] == 500 for g in e1["gastos"]) and not e2["gastos"], "ALTERAR muda valor, evento e situação sem duplicar (custo vai para o evento certo)")
+        dlg.clear(); pg.click('#lcLista .lc-item:has-text("Cachê — Beto Lima") [data-del]'); pg.wait_for_timeout(500)
+        ok(len(dlg) == 1 and not [x for x in pg.evaluate(L("neg_equipe_pagamentos")) if x["colab"] == "Beto Lima"] and not pg.evaluate(L("neg_eventos") + "[0].gastos") and not any("Beto" in x.get("c3", "") for x in pg.evaluate(L("neg_fluxo"))), "excluir o cachê pede confirmação e tira do evento e do fluxo")
+        pg.goto(BASE + "custos.html"); pg.wait_for_timeout(1500); ok(pg.url.endswith("lancamentos.html"), "custos.html (endereço antigo) leva para os LANÇAMENTOS")
+        pg.goto(BASE + "lancamentos.html"); pg.wait_for_timeout(1200)
+        pg.evaluate("window.BWSync && (window.__orig = BWSync.antesDeSalvar, BWSync.antesDeSalvar = function (k, v, val) { window.__env.push(k + ':' + v); return window.__orig ? window.__orig.apply(BWSync, arguments) : undefined; })")
         ok(pg.evaluate(SEM) <= 0, "sem estouro na tela")
         ok(pg.evaluate("[...document.querySelectorAll('button')].filter(b => b.offsetParent && !(b.textContent.trim() || b.getAttribute('aria-label'))).length") == 0, "todo botão tem nome")
         ok(pg.locator('.bw-menu a[href="lancamentos.html"], nav a[href="lancamentos.html"]').count() >= 1, "Lançamentos está no menu da plataforma")
@@ -53,7 +85,7 @@ with sync_playwright() as p:
             if extra: extra()
             pg.click("#fxLancarOutro" if outro else "#fxLancar"); pg.wait_for_timeout(250)
         pg.click("#lcNovo"); pg.wait_for_timeout(200)
-        ok(pg.locator("#lcFxCorpo [data-que]").count() == 5 and pg.locator("#fxValor").count() == 0, "NOVO LANÇAMENTO começa perguntando O QUE É (5 botões), sem formulário")
+        ok(pg.locator("#lcFxCorpo [data-que]").count() == 6 and pg.locator("#fxValor").count() == 0, "NOVO LANÇAMENTO começa perguntando O QUE É (6 botões), sem formulário")
         pg.click('#lcFxCorpo [data-que="gasto"]')
         ok(pg.locator("#lcFxCorpo [data-dest]").count() == 3 and pg.locator("#fxValor").count() == 0, "depois pergunta DE ONDE (casa, negócio, evento)")
         pg.click('#lcFxCorpo [data-dest="casa_gasto"]'); pg.click("#fxLancar"); pg.wait_for_timeout(150)
@@ -118,6 +150,12 @@ with sync_playwright() as p:
         ok("NÃO RECEBIDO" in dlg[0] and pg.evaluate(L("neg_eventos") + "[0].recebido") == 0 and not any(x["id"] == "receita_ev1" for x in pg.evaluate(L("neg_fluxo"))), "excluir o recebido volta o evento para não recebido e tira a receita do fluxo")
         ok(any(x["id"] == "cache_p1" for x in pg.evaluate(L("neg_fluxo"))) and any(x["id"].startswith("fixo_") for x in pg.evaluate(L("neg_fluxo"))), "as linhas automáticas (cachê e fixo) não foram tocadas")
         ok(pg.evaluate(SEM) <= 0 and not erros, f"sem estouro e sem erro de JS {erros}")
+        # FERRAMENTAS (leitor, Tio Cláudio, planilha) na própria página
+        pg.goto(BASE + "lancamentos.html"); pg.wait_for_timeout(1500)
+        ok(pg.locator('#lcFerr a[href="leitor.html"]').count() == 1 and pg.locator('#lcFerr a[href="financeiro-painel.html"]').count() == 1 and pg.locator("#lcFalar").count() == 1, "FERRAMENTAS: leitor de contas, Tio Cláudio e planilha estão nos LANÇAMENTOS")
+        pg.click("#lcFalar"); pg.wait_for_timeout(700)
+        ok(pg.evaluate("!!window.BWAgente && [...document.querySelectorAll('[class*=ag], [id*=ag]')].some(e => e.offsetParent && /Tio Cl/i.test(e.textContent))"), "FALAR COM O TIO CLÁUDIO abre o agente")
+        pg.keyboard.press("Escape"); pg.wait_for_timeout(300)
         # FIXOS DO NEGÓCIO (vieram da página Fluxo de caixa, que saiu)
         pg.goto(BASE + "lancamentos.html"); pg.wait_for_timeout(1200)
         ok(pg.locator("#lcFixos").count() == 1 and pg.locator("#lcFixosLista .lc-item").count() == 0, "a seção FIXOS DO NEGÓCIO existe nos LANÇAMENTOS")
