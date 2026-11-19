@@ -1136,6 +1136,10 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   15 imagens de exemplo criadas pela bw-ia-imagem com PESSOAS INVENTADAS (nada dos prints de terceiros, sem marcas nem personagens conhecidos) no
   bucket trends; 6 guias de vídeo sem imagem (cartão com emoji). Limite de 15 imagens do dia usado inteiro. promptia.js v2: links para BW Reels,
   Quadro de História, Editor de vídeo e CapCut no ONDE FAZER. sw v135.
+- 19/11/2026 03:45 · Claude (dono: "alguns exemplos ficaram cortando, reenquadre"): o cartão da biblioteca cortava a imagem (faixa de 270 px
+  com object-fit:cover numa imagem 4:5 + degradê escuro cobrindo 55% de baixo + título por cima) — pés, mãos e o fim da cena sumiam.
+  Agora a imagem aparece INTEIRA (contain, 340 px; 300 px no celular) sobre uma cópia desfocada dela mesma, degradê só nos 22% de baixo e o
+  título abaixo da imagem. Vale para qualquer proporção de imagem que o ADM enviar. promptia.js v4, sw v137.
 
 ## Pendências (dono)
 - [ ] (19/11) PROMPT IA: dono cadastrar as primeiras trends (＋ NOVA TREND, com a imagem de exemplo) e testar ANALISAR com um print real.
