@@ -10,7 +10,7 @@ const LIMITE_DIA = 60;          // textos por dia (conta junto com os pedaços d
 const LIMITE_AUDIO_DIA = 200;   // pedaços de ~3 min de áudio por dia (~10 h)
 const MODELOS = ["openai/gpt-oss-120b", "openai/gpt-oss-20b"];
 // modelos com visão, na ordem de tentativa (a Groq troca os nomes de tempos em tempos — conferir em console.groq.com/docs/vision)
-const MODELOS_VISAO = ["qwen/qwen3.8-27b", "qwen/qwen3.6-27b", "meta-llama/llama-4-scout-17b-16e-instruct"];
+const MODELOS_VISAO = ["qwen/qwen3.8-27b", "meta-models/muse-spark-open"];
 const CORS = {
   "Access-Control-Allow-Origin": "https://audioevideobw-eng.github.io",
   "Access-Control-Allow-Headers": "authorization, apikey, content-type, x-client-info",
@@ -76,7 +76,7 @@ Deno.serve(async (req) => {
   const imagem = String(corpo.imagem || "");
   if (imagem) {
     if (!/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(imagem) || imagem.length > 2_000_000) return resp({ erro: "imagem" }, 400);
-    let detalhe = "";
+    const falhas: string[] = [];
     for (const modelo of MODELOS_VISAO) {
       const r = await fetch("https://api.groq.com/openai/v1/chat/completions", {
         method: "POST",
@@ -85,15 +85,16 @@ Deno.serve(async (req) => {
           model: modelo,
           messages: [{ role: "system", content: sistema }, { role: "user", content: [{ type: "text", text: pedido }, { type: "image_url", image_url: { url: imagem } }] }],
           temperature: 0.4,
-          max_completion_tokens: max + 600,
+          max_completion_tokens: max + 3000,   // o modelo de visão também "pensa" antes de responder
         }),
       });
       const j = await r.json().catch(() => ({}));
-      if (!r.ok) { detalhe = String(j?.error?.message || r.status).slice(0, 200); continue; }   // modelo trocado/ocupado: tenta o próximo
+      if (!r.ok) { falhas.push(modelo + ": " + String(j?.error?.message || r.status).slice(0, 160)); continue; }   // modelo trocado/ocupado: tenta o próximo
       const texto = j?.choices?.[0]?.message?.content || "";
       if (texto.trim()) return resp({ texto, modelo });
+      falhas.push(modelo + ": resposta vazia (" + String(j?.choices?.[0]?.finish_reason || "?") + ")");
     }
-    return resp({ erro: "visao", detalhe }, 502);
+    return resp({ erro: "visao", detalhe: falhas.join(" | ").slice(0, 500) }, 502);   // mostra o motivo de CADA modelo, não só do último
   }
 
   for (const modelo of MODELOS) {
