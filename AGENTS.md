@@ -339,6 +339,11 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
      Início, agenda de EVENTOS, sino, Tio Cláudio) percorre de data a dataFim; na agenda a CHAVE é a mesma em todos os dias (ev|id|dia): concluir
      uma vez conclui o evento, e PENDENTES mostra uma linha só. "Hoje" em comparação de datas = data LOCAL (o cartão de EVENTOS usava toISOString).
 
+101. casa.html (PAINEL DA GESTÃO DE CASA) é GERADO de lancamentos.html por `python3 docs/automacoes/gerar-casa.py` e usa o mesmo
+     assets/lancamentos.js em modo casa (<body data-lc-modo="casa">): mudou o lancamentos.html → rodar o gerador; nunca editar o casa.html na mão.
+     Cortar bloco de HTML por texto: o fim "  </div>" também casa com "    </div>" (use "\n  </div>\n") e o teste confere que o conteúdo está VISÍVEL,
+     não só que existe (a página saiu com os números escondidos e a contagem passava). `if (x) var a = …; b[a] = …` sem chaves só protege o var.
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -1095,8 +1100,16 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   vale para todos os dias). Sino conta o evento em andamento como "hoje"; Tio Cláudio enxerga os dias seguintes; orçamento aprovado com data final
   já cria o evento com dataFim. NÃO mudou: o e-mail automático (função bw-avisos no Supabase) ainda olha só o 1º dia. Novo
   docs/testes/teste_evento_dias.py (16 checagens × 1280/390, 0 falhas). brightway.css v29, layout.js v56, bw-agente v21, propostas.js v8, sw v132. PENTE FINO 100.
+- 19/11/2026 01:40 · Claude (dono: "altere o layout da Gestão de casa; a página principal com a aparência e os dados da página de lançamentos"):
+  GESTÃO DE CASA agora abre no PAINEL DA CASA (casa.html, antes só redirecionava para o Orçamento): mesma cara dos LANÇAMENTOS, só com a casa —
+  5 números do mês (entradas, saídas, resultado, a pagar, guardado na reserva), entradas × saídas de 6 meses, GASTOS POR CATEGORIA, o que alimenta,
+  lista com filtros (CASA, CONTAS A PAGAR, RESERVA), ✓ MARCAR PAGA, alterar/excluir e ＋ NOVO só com GASTEI, RECEBI, CONTA A PAGAR e GUARDEI (já vai
+  direto para a casa). Atalhos no alto: ORÇAMENTO FAMILIAR, CONTAS A PAGAR, RESERVA, LER CONTA, TIO CLÁUDIO, TODOS OS LANÇAMENTOS. Menu: Gestão de
+  casa → Painel da casa (primeiro item). As páginas Orçamento, Contas e Reserva continuam como estavam. teste_lancamentos.py +10 checagens (0 falhas).
+  lancamentos.js v6, layout.js v57, sw v133. PENTE FINO 101.
 
 ## Pendências (dono)
+- [ ] (19/11) PAINEL DA CASA: dono abrir Gestão de casa na conta dele e dizer se quer mais algum dado da casa ali (metas do orçamento, meta da reserva).
 - [ ] (19/11) EVENTO DE VÁRIOS DIAS: dono editar um evento real, preencher "Termina em" e ver o risco na agenda (PC e celular).
 - [ ] (19/11) CACHÊ nos LANÇAMENTOS: dono conferir se os cachês antigos aparecem com PAGO / NÃO PAGO certo e marcar um como pago (ver no dossiê do evento).
 - [ ] (19/11) LANÇAMENTOS: dono conferir na conta dele se os lançamentos e os fixos antigos do Fluxo aparecem, e tocar em 📄 PDF DO MÊS (não deu para testar o PDF daqui).

@@ -41,6 +41,8 @@
     reserva: {rot: "Reserva de emergência", grupo: "r", nicho: "reserva", alimenta: ["Reserva de emergência"]},
     invest: {rot: "Investimentos", grupo: "i", nicho: "invest", alimenta: ["Painel de Investimentos"]}
   };
+  /* 19/11 (dono): a mesma tela serve de PAINEL DA GESTÃO DE CASA (casa.html, <body data-lc-modo="casa">): só casa, contas e reserva */
+  var MODO = (document.body && document.body.getAttribute("data-lc-modo")) || "", CASA = MODO === "casa", NICHOS_CASA = {casa: 1, conta: 1, reserva: 1};
   var LINKS = {"Orçamento familiar": "orcamento.html", "Painel Financeiro": "financeiro-painel.html", "Dossiê do evento": "eventos.html", "Contas a pagar": "contas.html", "Agenda e avisos": "index.html", "Reserva de emergência": "reserva.html", "Painel de Investimentos": "investimentos-painel.html"};
 
   /* ---------- espelho evento → fluxo (igual ao modules/sincronia, partes 2 e 3) ---------- */
@@ -100,6 +102,7 @@
     ler("neg_equipe_pagamentos").forEach(function (p) { if (!p || p.id == null) return; add({fonte: "cache", id: p.id, dest: "cache", evId: String(p.eventoId || ""), evNome: nomesEv[String(p.eventoId)] || p.evento || "", colab: p.colab || "", obs: p.obs || "", data: p.data || "", desc: "Cachê — " + (p.colab || "equipe"), valor: num(p.valor), sinal: "s", aberto: !p.pago, pago: !!p.pago}); });
     ler("inv_lancamentos").forEach(function (x) { if (!x || x.id == null || String(x.id).indexOf("ex") === 0) return; add({fonte: "inv", id: x.id, dest: "invest", data: x.c0, desc: x.ativo, cat: x.classe, op: x.op, valor: num(x.valor), sinal: "n"}); });
     var h = hoje();
+    if (CASA) L = L.filter(function (o) { var d = DEST[o.dest]; return d && NICHOS_CASA[d.nicho]; });
     L.forEach(function (o) { var d = DEST[o.dest]; if (d) { o.nicho = d.nicho; o.alimenta = d.alimenta; } o.futuro = (o.data || "") > h; o.realizado = !o.futuro && !o.aberto && (o.sinal === "e" || o.sinal === "s"); });
     return L;
   }
@@ -156,21 +159,23 @@
     var pend = soma(doMes, function (o) { return o.sinal === "s" && (o.aberto || o.futuro); }), guard = soma(doMes, function (o) { return o.sinal === "n" && o.op !== "Resgate" && o.op !== "Saldo atual"; });
     var k = function (c, ic, rot, v, sub) { return '<div class="lc-kpi" style="--c:' + c + '"><small><i>' + ic + '</i>' + rot + '</small><b>' + v + '</b><span>' + sub + '</span></div>'; };
     $("lcKpis").innerHTML = k("#22c55e", "↑", "ENTRADAS", brl(ent), "recebido no mês") + k("#ef4444", "↓", "SAÍDAS", brl(sai), "pago no mês") + k(ent - sai >= 0 ? "#38bdf8" : "#fb923c", "=", "RESULTADO", brl(ent - sai), "entradas − saídas") +
-      k("#FFB547", "!", "A PAGAR", brl(pend), "em aberto ou com data futura") + k("#a78bfa", "#", "LANÇAMENTOS", String(doMes.length), guard ? brl(guard) + " guardado/investido" : "no mês escolhido");
+      k("#FFB547", "!", "A PAGAR", brl(pend), "em aberto ou com data futura") + (CASA ? k("#34d399", "🏦", "GUARDADO", brl(soma(doMes, function (o) { return o.fonte === "reserva"; })), "na reserva neste mês") : k("#a78bfa", "#", "LANÇAMENTOS", String(doMes.length), guard ? brl(guard) + " guardado/investido" : "no mês escolhido"));
     /* 6 meses */
     var seis = [], dm = new Date(+MES.slice(0, 4), +MES.slice(5) - 1, 1); for (var i = 5; i >= 0; i--) { var x = new Date(dm.getFullYear(), dm.getMonth() - i, 1); seis.push(x.getFullYear() + "-" + p2(x.getMonth() + 1)); }
     var val = seis.map(function (m) { var l = TODOS.filter(function (o) { return o.realizado && (o.data || "").slice(0, 7) === m; }); return [soma(l, function (o) { return o.sinal === "e"; }), soma(l, function (o) { return o.sinal === "s"; })]; }), mx = Math.max.apply(0, val.map(function (v) { return Math.max(v[0], v[1]); }).concat([1]));
     $("lcBarras").innerHTML = seis.map(function (m, i) { return '<div title="' + MESES[+m.slice(5) - 1] + ": entradas " + brl(val[i][0]) + ", saídas " + brl(val[i][1]) + '"><span class="par"><i class="e" style="height:' + Math.round(val[i][0] / mx * 100) + '%"></i><i class="s" style="height:' + Math.round(val[i][1] / mx * 100) + '%"></i></span><small>' + MESES[+m.slice(5) - 1] + '</small></div>'; }).join("");
-    /* rosca das saídas por nicho */
-    var por = {}; doMes.forEach(function (o) { if (o.realizado && o.sinal === "s") por[o.nicho] = (por[o.nicho] || 0) + o.valor; });
+    /* rosca das saídas por nicho (no painel da casa: por categoria) */
+    var PAL = ["#38bdf8", "#fb7185", "#FFB547", "#34d399", "#a78bfa", "#facc15", "#f97316", "#22d3ee", "#e879f9", "#94a3b8", "#4ade80", "#f43f5e"];
+    var corR = function (n) { return CASA ? PAL[ks.indexOf(n) % PAL.length] : NICHOS[n][1]; }, nomeR = function (n) { return CASA ? String(n).toUpperCase() : NICHOS[n][0]; };
+    var por = {}; doMes.forEach(function (o) { if (!(o.realizado && o.sinal === "s")) return; var kr = CASA ? (o.fonte === "orc" ? (o.cat || "Outros") : "Contas a pagar") : o.nicho; por[kr] = (por[kr] || 0) + o.valor; });
     var ks = Object.keys(por).sort(function (a, b) { return por[b] - por[a]; }), tot = ks.reduce(function (a, n) { return a + por[n]; }, 0), ac = 0, R = 42, C = 2 * Math.PI * R;
-    $("lcRosca").innerHTML = tot ? '<svg viewBox="0 0 112 112" role="img" aria-label="Saídas por nicho"><circle cx="56" cy="56" r="' + R + '" fill="none" stroke="rgba(120,160,255,.12)" stroke-width="16"/>' + ks.map(function (n) { var f = por[n] / tot, s = '<circle cx="56" cy="56" r="' + R + '" fill="none" stroke="' + NICHOS[n][1] + '" stroke-width="16" stroke-dasharray="' + (f * C).toFixed(2) + " " + C.toFixed(2) + '" stroke-dashoffset="' + (-ac * C).toFixed(2) + '" transform="rotate(-90 56 56)"/>'; ac += f; return s; }).join("") + '</svg><ul>' + ks.map(function (n) { return '<li><i style="width:9px;height:9px;border-radius:50%;background:' + NICHOS[n][1] + '"></i><span>' + NICHOS[n][0] + '</span><b>' + Math.round(por[n] / tot * 100) + '%</b></li>'; }).join("") + '</ul>'
+    $("lcRosca").innerHTML = tot ? '<svg viewBox="0 0 112 112" role="img" aria-label="Saídas por nicho"><circle cx="56" cy="56" r="' + R + '" fill="none" stroke="rgba(120,160,255,.12)" stroke-width="16"/>' + ks.map(function (n) { var f = por[n] / tot, s = '<circle cx="56" cy="56" r="' + R + '" fill="none" stroke="' + corR(n) + '" stroke-width="16" stroke-dasharray="' + (f * C).toFixed(2) + " " + C.toFixed(2) + '" stroke-dashoffset="' + (-ac * C).toFixed(2) + '" transform="rotate(-90 56 56)"/>'; ac += f; return s; }).join("") + '</svg><ul>' + ks.map(function (n) { return '<li><i style="width:9px;height:9px;border-radius:50%;background:' + corR(n) + '"></i><span>' + nomeR(n) + '</span><b>' + Math.round(por[n] / tot * 100) + '%</b></li>'; }).join("") + '</ul>'
       : '<p class="lc-nota" style="margin:0">Sem saídas pagas neste mês.</p>';
     /* o que alimenta */
     var al = {}; doMes.forEach(function (o) { (o.alimenta || []).forEach(function (a) { al[a] = (al[a] || 0) + 1; }); });
-    $("lcAlimenta").innerHTML = Object.keys(LINKS).map(function (a) { return '<li><a href="' + LINKS[a] + '" style="color:inherit">' + a + ' ↗</a><b>' + (al[a] || 0) + '</b></li>'; }).join("");
+    $("lcAlimenta").innerHTML = Object.keys(LINKS).filter(function (a) { return !CASA || /Orçamento|Contas a pagar|Agenda|Reserva/.test(a); }).map(function (a) { return '<li><a href="' + LINKS[a] + '" style="color:inherit">' + a + ' ↗</a><b>' + (al[a] || 0) + '</b></li>'; }).join("");
     /* chips */
-    $("lcNichos").innerHTML = '<button type="button" class="lc-chip' + (!NICHO ? " on" : "") + '" data-n="" aria-pressed="' + !NICHO + '">TODOS</button>' + Object.keys(NICHOS).map(function (n) { return '<button type="button" class="lc-chip' + (NICHO === n ? " on" : "") + '" data-n="' + n + '" style="--c:' + NICHOS[n][1] + '" aria-pressed="' + (NICHO === n) + '">' + NICHOS[n][0] + '</button>'; }).join("");
+    $("lcNichos").innerHTML = '<button type="button" class="lc-chip' + (!NICHO ? " on" : "") + '" data-n="" aria-pressed="' + !NICHO + '">TODOS</button>' + Object.keys(NICHOS).filter(function (n) { return !CASA || NICHOS_CASA[n]; }).map(function (n) { return '<button type="button" class="lc-chip' + (NICHO === n ? " on" : "") + '" data-n="' + n + '" style="--c:' + NICHOS[n][1] + '" aria-pressed="' + (NICHO === n) + '">' + NICHOS[n][0] + '</button>'; }).join("");
     desenharLista();
   }
   function desenharLista() {
@@ -228,7 +233,7 @@
   function pdfMes() {
     var l = TODOS.filter(function (o) { return (o.data || "").slice(0, 7) === MES && (!NICHO || o.nicho === NICHO) && (o.sinal === "e" || o.sinal === "s"); }).sort(function (a, b) { return String(a.data || "").localeCompare(String(b.data || "")); });
     var feitos = l.filter(function (o) { return o.realizado; }), ent = feitos.filter(function (o) { return o.sinal === "e"; }).reduce(function (a, o) { return a + o.valor; }, 0), sai = feitos.filter(function (o) { return o.sinal === "s"; }).reduce(function (a, o) { return a + o.valor; }, 0);
-    var tit = "Lançamentos de " + MESES[+MES.slice(5) - 1] + "/" + MES.slice(0, 4) + (NICHO ? " · " + NICHOS[NICHO][0] : ""), limpo = function (v) { return brl(v).replace(/\u00a0/g, " "); };
+    var tit = (CASA ? "Gestão de casa — " : "Lançamentos de ") + MESES[+MES.slice(5) - 1] + "/" + MES.slice(0, 4) + (NICHO ? " · " + NICHOS[NICHO][0] : ""), limpo = function (v) { return brl(v).replace(/\u00a0/g, " "); };
     var def = {pageSize: "A4", pageMargins: [36, 40, 36, 40], defaultStyle: {fontSize: 9}, content: [
       {text: tit, fontSize: 16, bold: true}, {text: "Entradas " + limpo(ent) + "   ·   Saídas " + limpo(sai) + "   ·   Resultado " + limpo(ent - sai) + "   (só o que já aconteceu e foi pago)", margin: [0, 6, 0, 12]},
       {table: {headerRows: 1, widths: [52, "*", 150, 60, 70], body: [["Data", "O que foi", "Onde", "Situação", "Valor"].map(function (t) { return {text: t, bold: true, fillColor: "#eeeeee"}; })].concat(l.map(function (o) {
@@ -244,6 +249,8 @@
   var ONDE = {gasto: [["casa_gasto", "🏠", "DA CASA", "família, mercado, lazer"], ["neg_saida", "💼", "DO NEGÓCIO", "despesa da empresa"], ["ev_custo", "🎬", "DE UM EVENTO", "custo daquele trabalho"]],
     entrada: [["casa_receita", "🏠", "DA CASA", "salário, renda da família"], ["neg_entrada", "💼", "DO NEGÓCIO", "venda, serviço avulso"], ["ev_receita", "🎬", "DE UM EVENTO", "cliente pagou o evento"]],
     conta: [["casa_conta", "🏠", "DA CASA", "luz, água, cartão…"], ["neg_saida", "💼", "DO NEGÓCIO", "sai do caixa na data"]], cache: [["cache", "", "", ""]], reserva: [["reserva", "", "", ""]], invest: [["invest", "", "", ""]]};
+  var QUE_USO = CASA ? QUE.filter(function (q) { return /^(gasto|entrada|conta|reserva)$/.test(q[0]); }) : QUE;
+  var ONDE_USO = CASA ? {gasto: [ONDE.gasto[0]], entrada: [ONDE.entrada[0]], conta: [ONDE.conta[0]], reserva: ONDE.reserva} : ONDE;
   function abrirFolha() { $("lcFolha").hidden = false; document.documentElement.classList.add("lc-aberto"); aviso($("lcFxAviso"), ""); }
   function fecharFolha() { $("lcFolha").hidden = true; document.documentElement.classList.remove("lc-aberto"); F = null; }
   function campos(dest, v) {
@@ -259,8 +266,8 @@
   }
   function lerCampos() { var g = function (id) { var e = $(id); return e ? e.value.trim() : ""; }; return {valor: g("fxValor"), data: g("fxData"), desc: g("fxDesc"), cat: g("fxCat"), evId: g("fxEv"), classe: g("fxClasse"), op: g("fxOp"), obs: g("fxObs"), pago: g("fxPago")}; }
   function desenharNovo() {
-    var h = '<div class="lc-passo"><h4><em>1</em>O QUE É?</h4><div class="lc-ops">' + QUE.map(function (q) { return '<button type="button" class="lc-op' + (F.que === q[0] ? " on" : "") + '" data-que="' + q[0] + '" style="--c:' + q[4] + '" aria-pressed="' + (F.que === q[0]) + '"><i>' + q[1] + '</i>' + q[2] + '<small>' + q[3] + '</small></button>'; }).join("") + '</div></div>';
-    var ops = F.que ? ONDE[F.que] : null;
+    var h = '<div class="lc-passo"><h4><em>1</em>O QUE É?</h4><div class="lc-ops">' + QUE_USO.map(function (q) { return '<button type="button" class="lc-op' + (F.que === q[0] ? " on" : "") + '" data-que="' + q[0] + '" style="--c:' + q[4] + '" aria-pressed="' + (F.que === q[0]) + '"><i>' + q[1] + '</i>' + q[2] + '<small>' + q[3] + '</small></button>'; }).join("") + '</div></div>';
+    var ops = F.que ? ONDE_USO[F.que] : null;
     if (ops && ops.length > 1) h += '<div class="lc-passo"><h4><em>2</em>' + (F.que === "entrada" ? "DE ONDE VEIO?" : "É DE ONDE?") + '</h4><div class="lc-ops">' + ops.map(function (q) { return '<button type="button" class="lc-op' + (F.dest === q[0] ? " on" : "") + '" data-dest="' + q[0] + '" aria-pressed="' + (F.dest === q[0]) + '"><i>' + q[1] + '</i>' + q[2] + '<small>' + q[3] + '</small></button>'; }).join("") + '</div></div>';
     if (F.dest) h += '<div class="lc-passo"><h4><em>' + (ops.length > 1 ? 3 : 2) + '</em>QUANTO E QUANDO?</h4>' + campos(F.dest, F.guardado) + '</div><div class="lc-linha"><button type="button" class="lc-bt pri" id="fxLancar">✓ LANÇAR</button><button type="button" class="lc-bt" id="fxLancarOutro">✓ LANÇAR E FAZER OUTRO</button></div>';
     $("lcFxTit").textContent = "NOVO LANÇAMENTO"; $("lcFxCorpo").innerHTML = h;
@@ -306,7 +313,7 @@
   });
   $("lcFxCorpo").addEventListener("click", function (e) {
     var b = e.target.closest("[data-que],[data-dest],#fxLancar,#fxLancarOutro,#fxSalvar,#fxExcluir"); if (!b || !F) return;
-    if (b.dataset.que) { var g = F.dest ? lerCampos() : F.guardado; F.que = b.dataset.que; F.dest = ONDE[F.que].length === 1 ? ONDE[F.que][0][0] : null; F.guardado = g; desenharNovo(); aviso($("lcFxAviso"), ""); return; }
+    if (b.dataset.que) { var g = F.dest ? lerCampos() : F.guardado; F.que = b.dataset.que; F.dest = ONDE_USO[F.que].length === 1 ? ONDE_USO[F.que][0][0] : null; F.guardado = g; desenharNovo(); aviso($("lcFxAviso"), ""); return; }
     if (b.dataset.dest) { F.guardado = F.dest ? lerCampos() : F.guardado; F.dest = b.dataset.dest; desenharNovo(); aviso($("lcFxAviso"), ""); var c = $("fxValor"); if (c && !c.value) c.focus(); return; }
     if (b.id === "fxLancar") lancar(false); else if (b.id === "fxLancarOutro") lancar(true); else if (b.id === "fxSalvar") { lerDest = F.dest; salvar(); } else excluir(F.o);
   });

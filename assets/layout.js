@@ -55,7 +55,7 @@
     { id: "inicio",  nome: "Início",           href: "./", icon: '<path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/>' },
     { id: "lanc",    nome: "Lançamentos",       href: "lancamentos.html", icon: '<path d="M12 5v14M5 12h14"/><rect x="3" y="3" width="18" height="18" rx="4"/>' },
     { id: "negocio", nome: "Meu negócio",       href: "negocio.html", icon: '<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>' },
-    { id: "casa",    nome: "Gestão de casa",    href: "orcamento.html", icon: '<path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M9 21v-6h6v6"/>' },
+    { id: "casa",    nome: "Gestão de casa",    href: "casa.html", icon: '<path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M9 21v-6h6v6"/>' },
     { id: "invest",  nome: "Investimentos",     href: "investimentos-painel.html", icon: '<path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/>' },
     { id: "crm",     nome: "CRM",               href: "crm.html", icon: '<path d="M3 4h18l-7 8v6l-4 2v-8z"/>' },
     { id: "mkt",     nome: "Marketing",         href: "marketing.html", icon: '<path d="M3 11v2a1 1 0 0 0 1 1h2l5 4V6L6 10H4a1 1 0 0 0-1 1z"/><path d="M15 9a4 4 0 0 1 0 6M18 6a8 8 0 0 1 0 12"/>' },
@@ -64,7 +64,7 @@
   ];
   var SUBPAGINAS = {
     negocio: [["negocio","Ferramentas do negócio"],["financeiro-painel","Painel Financeiro"],["propostas","Gerador de orçamento"],["eventos","Eventos"],["equipe","Gestão de pessoas"],["leitor","Leitor de comprovantes"],["preco","Calculadora de preço"]],
-    casa: [["orcamento","Orçamento familiar"],["contas","Contas a pagar"],["reserva","Reserva de emergência"]],
+    casa: [["casa","Painel da casa"],["orcamento","Orçamento familiar"],["contas","Contas a pagar"],["reserva","Reserva de emergência"]],
     invest: [["investimentos-painel","Painel de Investimentos"],["cambio","Câmbio"],["evento","Evento no exterior"],["milhas","Mercado de milhas"],["meta","Meta de milhas"],["recs","★ Recomendações"],["noticias","Notícias"]],
     crm: [["crm","Painel do CRM"],["captacao","Funil de clientes"],["resultados","Indicadores"]],
     mkt: [["marketing","Todas de marketing"],["reels","BW Reels Pro"],["personagens","Personagens"],["video","Editor de vídeo"],["criador","Criador IA"],["fotos","Editor de fotos"],["assistente","Assistente de texto"],["transcricao","Transcrição e legendas"]],
@@ -85,7 +85,7 @@
   var CAT = categoriaDe(PAGINA);
   var TITULOS = { index:"Início", ferramentas:"Ferramentas", negocio:"Ferramentas do negócio", eventos:"Eventos", evento:"Evento no exterior",
     equipe:"Gestão de pessoas", "financeiro-painel":"Painel Financeiro", financeiro:"Financeiro de eventos", preco:"Calculadora de preço",
-    lancamentos:"Lançamentos", fluxo:"Fluxo de caixa", custos:"Cachês e custos", orcamento:"Orçamento familiar", casa:"Casa", contas:"Contas a pagar",
+    lancamentos:"Lançamentos", fluxo:"Fluxo de caixa", custos:"Cachês e custos", orcamento:"Orçamento familiar", casa:"Gestão de casa", contas:"Contas a pagar",
     reserva:"Reserva de emergência", milhas:"Mercado de milhas", meta:"Meta de milhas",
     comparador:"Comparador de moedas", alertas:"Alertas de preço", cambio:"Câmbio",
     invest:"Simulador de rendimento", "investimentos-painel":"Painel de Investimentos", serie:"Série histórica", diario:"Diário de câmbio", calc:"Calculadora",
