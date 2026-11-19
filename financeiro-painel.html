@@ -127,7 +127,7 @@ input.busca{font:inherit;font-size:13px;background:var(--navy2);color:var(--txt)
     <h2>Seu painel aparece aqui</h2>
     <p>Lance entradas e saídas no <b>FLUXO DE CAIXA</b> ou registre seus <b>EVENTOS</b> (recebido, gastos e cachês da equipe). O painel monta os números sozinho.</p>
     <div class="acoes" style="justify-content:center">
-      <a class="btn" href="fluxo.html">FLUXO DE CAIXA</a>
+      <a class="btn" href="lancamentos.html">LANÇAMENTOS</a>
       <a class="btn" href="eventos.html">EVENTOS</a>
       <button class="btn" type="button" data-acao="enviar">ENVIAR PLANILHA</button>
       <button class="btn" type="button" id="verGoogle" hidden>VER PLANILHA GOOGLE</button>
@@ -148,7 +148,7 @@ input.busca{font:inherit;font-size:13px;background:var(--navy2);color:var(--txt)
         <span class="muted" style="font-size:12px" id="atualizadoEm"></span>
       </div>
       <div class="demo" id="demoAviso" hidden><b>EXEMPLO</b><span>Estes números são de um negócio fictício, só para você ver como o painel fica. Eles somem sozinhos no seu primeiro lançamento.</span>
-        <a class="btn" href="fluxo.html">COMEÇAR NO FLUXO DE CAIXA</a><a class="btn" href="eventos.html">EVENTOS</a></div>
+        <a class="btn" href="lancamentos.html?novo=1">COMEÇAR NOS LANÇAMENTOS</a><a class="btn" href="eventos.html">EVENTOS</a></div>
       <div class="acoes">
         <button class="btn" type="button" data-acao="baixar">⬇ BAIXAR PLANILHA</button>
         <button class="btn" type="button" data-acao="enviar">⬆ ENVIAR PLANILHA</button>
@@ -360,7 +360,7 @@ input.busca{font:inherit;font-size:13px;background:var(--navy2);color:var(--txt)
       [].forEach.call(document.querySelectorAll("#fonteSeg button"), function (b) { b.classList.toggle("on", b.dataset.fonte === FONTE); });
       $("capEventos").textContent = FONTE === "google" ? "Aba Eventos da planilha" : "Recebimentos dos seus eventos";
       $("subtitulo").textContent = FONTE === "google" ? "Planilha Google conectada (extrato do banco) · atualiza sozinho quando a planilha muda"
-        : "Montado com os seus lançamentos da plataforma (Fluxo de caixa, Eventos, Equipe e Custos fixos)";
+        : "Montado com os seus lançamentos da plataforma (Lançamentos, Eventos, Equipe e Custos fixos)";
       $("verGoogle").hidden = !(temGoogle && FONTE === "plataforma");
       if (!LANC.length && !EVENTOS.length) { $("semDados").hidden = false; $("painel").hidden = true; return; }
       $("semDados").hidden = true; $("painel").hidden = false;

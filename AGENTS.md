@@ -327,6 +327,10 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
     (o mesmo para criar, mostrar e mudar de lugar). Mudar de lugar = criar no destino e SÓ ENTÃO apagar a origem. Dado derivado (linhas gasto_/
     receita_ do fluxo) é refeito pela mesma regra de quem deriva — nunca editado direto; linha automática de outra tela só ganha atalho.
 
+98. Tirar uma página: ANTES, listar tudo o que só ela fazia (Fluxo de caixa: lançar, FIXOS recorrentes, PDF do mês) e levar para a página nova
+    no MESMO formato de dados (neg_fixos, ids fixo_<id>_<data>); o endereço antigo vira redirecionamento (e entra em SEM_MENU do vigia), e
+    todo link, menu, sino, agenda, agente e manual que apontava para ela é trocado no mesmo commit.
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -1058,8 +1062,17 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   botão VER OS PAGAMENTOS NOS LANÇAMENTOS (lancamentos.html?nicho=evento&tipo=e&periodo=tudo; some quando a fonte é a planilha Google do ADM, que
   não é lançamento da plataforma). LANÇAMENTOS: aceita filtros pelo endereço (nicho, tipo, periodo) e o recebido de cada evento aparece como
   "Pagamento do evento NOME · cliente X", com alterar/excluir. teste_lancamentos.py +3 checagens (0 falhas). lancamentos.js v2, sw v129.
+- 19/11/2026 00:10 · Claude (dono: "a área de fluxo de caixa se tornou redundante; retire e confira se o banco de dados está na nova página"):
+  FLUXO DE CAIXA saiu — fluxo.html só redireciona para lancamentos.html. O que só ela tinha foi para LANÇAMENTOS: seção 🔁 FIXOS DO NEGÓCIO
+  (neg_fixos, mesmo formato; cria os 6 próximos lançamentos, excluir tira os futuros) e botão 📄 PDF DO MÊS (pdfMake sob demanda). Os dados
+  (neg_fluxo, neg_fixos) não mudaram de lugar nem de formato: tudo o que estava no fluxo aparece na lista (manual = alterar/excluir; cachê e
+  fixo = AUTOMÁTICO; linha ev_ antiga agora aparece e pode ser excluída). CACHÊS E CUSTOS virou página própria (sem abas) e entrou no menu Meu
+  negócio e no card do negocio.html no lugar do Fluxo. Links trocados: painel financeiro, sino, agenda do Início, Tio Cláudio ("abrir fluxo" →
+  Lançamentos), textos de custos/equipe/eventos. Manual 48 → 47 p. (saiu "Fluxo de caixa"). teste_lancamentos.py +7 checagens (0 falhas);
+  PDF DO MÊS NÃO conferido aqui (sem acesso à biblioteca) nem nada na conta real do dono. lancamentos.js v3, layout.js v54, bw-agente v19, sw v130. PENTE FINO 98.
 
 ## Pendências (dono)
+- [ ] (19/11) LANÇAMENTOS: dono conferir na conta dele se os lançamentos e os fixos antigos do Fluxo aparecem, e tocar em 📄 PDF DO MÊS (não deu para testar o PDF daqui).
 - [ ] (18/11) LANÇAMENTOS: dono usar na conta dele (lançar um gasto, mudar de lugar, excluir um teste) e dizer se falta algum tipo de lançamento.
 - [ ] (18/11) APLICATIVO 1.1: os arquivos novos foram para a pasta do PC; dono abrir pelo ícone BW Reels e conferir PERSONAGENS e EDITOR DE VÍDEO.
 - [ ] (18/11) QUADRO: dono testar no ar, logado — arrastar bolinhas, ✨ PROMPT com 🎙 FALAR no PC e no celular (IA real e microfone de verdade).

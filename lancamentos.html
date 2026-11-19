@@ -23,6 +23,7 @@
 .lc-bt.peq{min-height:36px;padding:0 10px;font-size:10.5px}
 .lc-bt:disabled{opacity:.4;cursor:default}
 .lc-cx{min-width:0;border-radius:18px;background:linear-gradient(180deg,#111a2c,#0c1220);border:1px solid rgba(120,160,255,.16);padding:14px;box-shadow:0 10px 30px -18px rgba(0,0,0,.7)}
+.lc-fixo-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:12px}.lc-fixo-form label{min-width:0;display:flex;flex-direction:column;gap:5px;font:700 11px Inter,sans-serif;letter-spacing:.06em;color:#B9C6E0;text-transform:none}.lc-fixo-form input,.lc-fixo-form select{min-width:0;width:100%;min-height:44px;border-radius:12px;border:1px solid rgba(245,241,234,.16);background:#0a0f1c;color:#F5F1EA;font:500 16px Inter,sans-serif;padding:0 12px}
 .lc-cx h3{margin:0 0 10px;font:800 11px Inter,sans-serif;letter-spacing:.14em;color:#B9C6E0}
 /* cartões de números (referência: painel de indicadores) */
 .lc-kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin-bottom:12px}
@@ -99,6 +100,7 @@ html.lc-aberto,html.lc-aberto body{overflow:hidden}
   <div class="lc-topo">
     <h1><b>LANÇAMENTOS</b> · tudo num lugar só</h1>
     <select class="lc-bt" id="lcMes" aria-label="Mês dos números" style="padding-right:10px"></select>
+    <button class="lc-bt" id="lcPdf" type="button" title="Relatório do mês em PDF (entradas, saídas e saldo), pronto para mandar ao contador">📄 PDF DO MÊS</button>
     <button class="lc-bt pri" id="lcNovo" type="button">＋ NOVO LANÇAMENTO</button>
   </div>
   <div class="lc-kpis" id="lcKpis"></div>
@@ -118,7 +120,24 @@ html.lc-aberto,html.lc-aberto body{overflow:hidden}
       <input id="lcBusca" type="search" placeholder="Procurar (nome, evento, categoria…)" aria-label="Procurar lançamento">
     </div>
     <div class="lc-lista" id="lcLista"></div>
-    <p class="lc-nota">Os marcados AUTOMÁTICO nascem de outra tela (cachê da equipe, custo fixo): o botão leva até lá. Todo o resto você altera, muda de lugar ou exclui aqui mesmo.</p>
+    <p class="lc-nota">Os marcados AUTOMÁTICO nascem sozinhos: o cachê da equipe vem de Cachês e custos de evento e o custo fixo vem dos FIXOS DO NEGÓCIO, logo abaixo. Todo o resto você altera, muda de lugar ou exclui aqui mesmo.</p>
+  </div>
+  <div class="lc-cx" id="lcFixos" style="margin-top:14px;scroll-margin-top:90px">
+    <h3 data-seta="lc-fixos">🔁 FIXOS DO NEGÓCIO · ENTRAM SOZINHOS TODO MÊS</h3>
+    <div>
+      <div class="lc-lista" id="lcFixosLista"></div>
+      <div class="lc-fixo-form">
+        <label>Nome<input id="fzNome" type="text" placeholder="Ex.: Aluguel do estúdio" autocomplete="off"></label>
+        <label>Valor (R$)<input id="fzValor" type="text" inputmode="decimal" placeholder="0,00" autocomplete="off"></label>
+        <label>É<select id="fzTipo"><option value="Saída">Custo (saída)</option><option value="Entrada">Recebimento (entrada)</option></select></label>
+        <label>Repete<select id="fzRec"><option value="mensal">Todo mês</option><option value="anual">Uma vez por ano</option></select></label>
+        <label>Dia (1 a 28)<input id="fzDia" type="number" min="1" max="28" value="5"></label>
+        <label>Começa em<input id="fzMes" type="month"></label>
+      </div>
+      <div class="lc-linha"><button type="button" class="lc-bt" id="fzAdd">＋ CRIAR FIXO</button></div>
+      <div class="lc-aviso" id="lcFixoAviso" hidden aria-live="polite"></div>
+      <p class="lc-nota">Todo mês cria os lançamentos dos próximos 6 meses (anual = 1). Para mudar valor ou dia, exclua o fixo e crie de novo.</p>
+    </div>
   </div>
 </div>
 
@@ -128,9 +147,9 @@ html.lc-aberto,html.lc-aberto body{overflow:hidden}
   <div class="lc-aviso" id="lcFxAviso" hidden aria-live="polite"></div>
 </div></div>
 
-<script src="assets/layout.js?v=53"></script>
+<script src="assets/layout.js?v=54"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="assets/bw-sync.js"></script>
-<script src="assets/lancamentos.js?v=2"></script>
+<script src="assets/lancamentos.js?v=3"></script>
 </body>
 </html>

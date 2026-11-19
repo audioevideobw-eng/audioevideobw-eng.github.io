@@ -260,7 +260,7 @@ footer b{color:var(--gold)}
     </div>
     <div class="nav-col"><b>Ferramentas</b>
       <a href="preco.html">Calculadora de preço</a>
-      <a href="fluxo.html" class="on">Fluxo de caixa</a>
+      <a href="custos.html" class="on">Cachês e custos</a>
       <a href="viagem.html">Conversor de viagem</a>
       <a href="diario.html">Diário de câmbio</a>
       <a href="leitor.html">Leitor de comprovantes</a>
@@ -281,7 +281,7 @@ footer b{color:var(--gold)}
   <h2 id="custos" style="margin-top:0">CACHÊS E CUSTOS DE EVENTO</h2>
   <div class="card">
     <h3>Cachês da equipe e custos do evento</h3>
-    <div class="sub">Lance o cachê de cada colaborador, os gastos durante o evento e marque o que já foi pago. Tudo entra sozinho no Fluxo de caixa e no Painel Financeiro.</div>
+    <div class="sub">Lance o cachê de cada colaborador, os gastos durante o evento e marque o que já foi pago. Tudo entra sozinho nos Lançamentos e no Painel Financeiro.</div>
   </div>
   <div id="pagBox" style="margin-top:14px"></div>
   <div id="custoBox" style="margin-top:14px"></div>
@@ -296,7 +296,7 @@ footer b{color:var(--gold)}
     Não é recomendação de investimento.
   </footer>
 </div>
-<script src="assets/layout.js?v=53"></script>
+<script src="assets/layout.js?v=54"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="assets/bw-sync.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/pdfmake@0.2.20/build/pdfmake.min.js"></script>
@@ -1671,7 +1671,7 @@ function renderFinBox() {
   box.innerHTML = `
     <div class="card">
       <h3>3 · Pagamentos${eq ? " — " + esc(eq.nome) : ""}</h3>
-      <div class="sub">${eq ? "Clique em NÃO PAGO para pagar (fica verde). Cada lançamento entra nos custos do evento, no Fluxo de caixa e no Painel Financeiro." : "Escolha a equipe no passo 1."}</div>
+      <div class="sub">${eq ? "Clique em NÃO PAGO para pagar (fica verde). Cada lançamento entra nos custos do evento, nos Lançamentos e no Painel Financeiro." : "Escolha a equipe no passo 1."}</div>
       <div class="colap-titulo" data-colap="pgs" style="margin-top:10px">
         <h3 style="font-size:13px">Lançamentos da equipe</h3><span class="colap-seta" data-seta="pgs">▶</span>
       </div>
@@ -1850,7 +1850,7 @@ function init(aoMudar) {
   const total = gastos.reduce((t, g) => t + (parseFloat(g.valor || 0) || 0), 0);
   box.innerHTML = `<div class="card">
     <h3>Custos durante o evento</h3>
-    <div class="sub">Toque num atalho, digite o valor e lance. Entra nos custos do evento, no Fluxo de caixa e no Painel Financeiro.</div>
+    <div class="sub">Toque num atalho, digite o valor e lance. Entra nos custos do evento, nos Lançamentos e no Painel Financeiro.</div>
     ${evs.length ? `
     <div class="frow" style="margin-top:8px"><div><label>Evento</label>
       <select id="ctEvento">${evs.map(e => `<option value="${e.id}" ${ev && String(e.id) === String(ev.id) ? "selected" : ""}>${esc(e.nome)}${e.data ? " · " + e.data.split("-").reverse().join("/") : ""}</option>`).join("")}</select></div></div>

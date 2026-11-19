@@ -258,7 +258,7 @@ footer b{color:var(--gold)}
     </div>
     <div class="nav-col"><b>Ferramentas</b>
       <a href="preco.html">Calculadora de preço</a>
-      <a href="fluxo.html">Fluxo de caixa</a>
+      <a href="custos.html">Cachês e custos</a>
       <a href="viagem.html">Conversor de viagem</a>
       <a href="diario.html">Diário de câmbio</a>
       <a href="leitor.html">Leitor de contas</a>
@@ -387,7 +387,7 @@ footer b{color:var(--gold)}
 </div>
 
 </div>
-<script src="assets/layout.js?v=53"></script>
+<script src="assets/layout.js?v=54"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="assets/bw-sync.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/pdfmake@0.2.20/build/pdfmake.min.js"></script>
@@ -1188,7 +1188,7 @@ function itensEntre(ini, fim) {
   ler("neg_fluxo").forEach(f => {
     const id = String(f.id || ""), d = String(f.c0 || "").slice(0, 10);
     if (!dentro(d) || f.c1 !== "Saída") return;
-    if (/^fixo_/.test(id)) out.push({ tipo: "pagamento", data: d, titulo: String(f.c3 || "Custo fixo").replace(/ \(fixo\)$/, ""), valor: num(f.c2), onde: "fluxo.html", sub: "Custo fixo do negócio", chave: "fx|" + id, feito: !!FEITOS["fx|" + id] });
+    if (/^fixo_/.test(id)) out.push({ tipo: "pagamento", data: d, titulo: String(f.c3 || "Custo fixo").replace(/ \(fixo\)$/, ""), valor: num(f.c2), onde: "lancamentos.html#lcFixos", sub: "Custo fixo do negócio", chave: "fx|" + id, feito: !!FEITOS["fx|" + id] });
     else if (/^cache_/.test(id) && f.fonte === "pendente") out.push({ tipo: "pagamento", data: d, titulo: String(f.c3 || "Cachê").replace(/^A pagar — /, ""), valor: num(f.c2), onde: "custos.html", sub: "Cachê a pagar", chave: "fx|" + id, feito: !!FEITOS["fx|" + id] });
   });
   /* eventos: dia, montagem e desmontagem */

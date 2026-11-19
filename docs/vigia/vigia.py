@@ -79,7 +79,7 @@ for p in PAGINAS:
 
 # 4) pedidos do dono
 neg = ler("negocio.html") if os.path.exists("negocio.html") else ""
-for h in ["eventos.html", "equipe.html", "fluxo.html", "preco.html", "leitor.html", "financeiro-painel.html", "propostas.html"]:
+for h in ["eventos.html", "equipe.html", "custos.html", "preco.html", "leitor.html", "financeiro-painel.html", "propostas.html"]:
     if not re.search(r'class="menu-card[^"]*" href="' + re.escape(h) + '"', neg):
         problemas.append(f"negocio.html: falta o card da ferramenta {h} (o dono pediu TODAS as ferramentas do negócio)")
 if os.path.exists("app.html") and "rs.find(" in ler("app.html"):
@@ -305,7 +305,7 @@ for p, t2 in todos.items():
     if re.search(r"(?<![\w-])(gsk_[A-Za-z0-9]{20,}|sk-(ant-|proj-)?[A-Za-z0-9_-]*\d[A-Za-z0-9_-]{18,}|AIza[0-9A-Za-z_-]{30,})", t2):
         problemas.append(f"{p}: chave de API de IA no código (vaza para qualquer visitante) — use Edge Function do Supabase")
 # 7.9 páginas com o visual novo (menu lateral) — exceto as de propósito
-SEM_MENU = {"login.html", "cadastro.html", "pedido.html", "baixar.html", "privacidade.html", "termos.html", "financeiro-painel.html", "investimentos-painel.html", "casa.html", "app.html", "financeiro.html"}
+SEM_MENU = {"login.html", "cadastro.html", "pedido.html", "baixar.html", "privacidade.html", "termos.html", "financeiro-painel.html", "investimentos-painel.html", "casa.html", "app.html", "financeiro.html", "fluxo.html"}
 for p, t in todos.items():
     if p not in SEM_MENU and "assets/layout.js" not in t:
         problemas.append(f"{p}: sem o visual novo (não carrega assets/layout.js)")

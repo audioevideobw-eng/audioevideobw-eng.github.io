@@ -80,7 +80,7 @@
     },
     fluxo: function (o) {       /* fluxo de caixa do negócio: c0 data · c1 Entrada/Saída · c2 valor · c3 descrição */
       var tipo = o.entrada ? "Entrada" : "Saída", l = ler("neg_fluxo"), it = { id: novoId("ag_"), c0: o.data || hoje(), c1: tipo, c2: String(num(o.valor)), c3: cap(o.descricao || tipo), origem: o.origem || "agente" };
-      l.push(it); gravar("neg_fluxo", l); return { id: it.id, onde: "Fluxo de caixa (" + tipo.toLowerCase() + ")", link: "fluxo.html" };
+      l.push(it); gravar("neg_fluxo", l); return { id: it.id, onde: "Lançamentos do negócio (" + tipo.toLowerCase() + ")", link: "lancamentos.html" };
     },
     tarefa: function (o) {
       var l = ler("agenda_tarefas"), it = { id: novoId("tf_"), titulo: cap(o.titulo || "Tarefa"), data: o.data || hoje(), hora: o.hora || "", cat: o.categoria || "tarefa", rep: "", nota: o.nota || "", feitos: [] };
@@ -196,7 +196,7 @@
 
   /* ================= páginas ================= */
   var PAGINAS = { inicio: ["index.html", "Início"], agenda: ["index.html", "Agenda"], contas: ["contas.html", "Contas a pagar"], orcamento: ["orcamento.html", "Orçamento da casa"],
-    reserva: ["reserva.html", "Reserva"], fluxo: ["fluxo.html", "Fluxo de caixa"], custos: ["custos.html", "Cachês e custos"], eventos: ["eventos.html", "Eventos"],
+    reserva: ["reserva.html", "Reserva"], fluxo: ["lancamentos.html", "Lançamentos"], custos: ["custos.html", "Cachês e custos"], eventos: ["eventos.html", "Eventos"],
     orcamentos: ["propostas.html", "Gerador de orçamento"], painel: ["financeiro-painel.html", "Painel financeiro"], equipe: ["equipe.html", "Gestão de pessoas"],
     crm: ["crm.html", "CRM"], funil: ["captacao.html", "Funil"], fotos: ["fotos.html", "Editor de fotos"], criador: ["criador.html", "Criador IA"],
     leitor: ["leitor.html", "Leitor de contas"], investimentos: ["investimentos-painel.html", "Investimentos"], pdf: ["pdf.html", "PDF"],

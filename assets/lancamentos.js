@@ -32,15 +32,15 @@
   var DEST = {
     casa_gasto: {rot: "Casa › Gasto", grupo: "s", nicho: "casa", alimenta: ["Orçamento familiar"]},
     casa_receita: {rot: "Casa › Receita", grupo: "e", nicho: "casa", alimenta: ["Orçamento familiar"]},
-    neg_saida: {rot: "Negócio › Saída", grupo: "s", nicho: "negocio", alimenta: ["Fluxo de caixa", "Painel Financeiro"]},
-    neg_entrada: {rot: "Negócio › Entrada", grupo: "e", nicho: "negocio", alimenta: ["Fluxo de caixa", "Painel Financeiro"]},
-    ev_custo: {rot: "Evento › Custo", grupo: "s", nicho: "evento", evento: true, alimenta: ["Dossiê do evento", "Fluxo de caixa", "Painel Financeiro"]},
-    ev_receita: {rot: "Evento › Recebido", grupo: "e", nicho: "evento", evento: true, alimenta: ["Dossiê do evento", "Fluxo de caixa", "Painel Financeiro"]},
+    neg_saida: {rot: "Negócio › Saída", grupo: "s", nicho: "negocio", alimenta: ["Painel Financeiro"]},
+    neg_entrada: {rot: "Negócio › Entrada", grupo: "e", nicho: "negocio", alimenta: ["Painel Financeiro"]},
+    ev_custo: {rot: "Evento › Custo", grupo: "s", nicho: "evento", evento: true, alimenta: ["Dossiê do evento", "Painel Financeiro"]},
+    ev_receita: {rot: "Evento › Recebido", grupo: "e", nicho: "evento", evento: true, alimenta: ["Dossiê do evento", "Painel Financeiro"]},
     casa_conta: {rot: "Casa › Conta a pagar", grupo: "s", nicho: "conta", alimenta: ["Contas a pagar", "Agenda e avisos"]},
     reserva: {rot: "Reserva de emergência", grupo: "r", nicho: "reserva", alimenta: ["Reserva de emergência"]},
     invest: {rot: "Investimentos", grupo: "i", nicho: "invest", alimenta: ["Painel de Investimentos"]}
   };
-  var LINKS = {"Orçamento familiar": "orcamento.html", "Fluxo de caixa": "fluxo.html", "Painel Financeiro": "financeiro-painel.html", "Dossiê do evento": "eventos.html", "Contas a pagar": "contas.html", "Agenda e avisos": "index.html", "Reserva de emergência": "reserva.html", "Painel de Investimentos": "investimentos-painel.html"};
+  var LINKS = {"Orçamento familiar": "orcamento.html", "Painel Financeiro": "financeiro-painel.html", "Dossiê do evento": "eventos.html", "Contas a pagar": "contas.html", "Agenda e avisos": "index.html", "Reserva de emergência": "reserva.html", "Painel de Investimentos": "investimentos-painel.html"};
 
   /* ---------- espelho evento → fluxo (igual ao modules/sincronia, partes 2 e 3) ---------- */
   function espelharEventos() {
@@ -64,9 +64,9 @@
     ler("casa_contas").forEach(function (x) { if (!x || x.id == null) return; var pg = String(x.c3 || "").toLowerCase().indexOf("s") === 0; add({fonte: "conta", id: x.id, dest: "casa_conta", data: x.c2, desc: x.c0, valor: num(x.c1), sinal: "s", pago: pg, aberto: !pg}); });
     ler("casa_reserva").forEach(function (x) { if (!x || x.id == null) return; add({fonte: "reserva", id: x.id, dest: "reserva", data: /^\d{4}-\d{2}$/.test(x.c0 || "") ? x.c0 + "-01" : (x.c0 || ""), desc: "Guardado na reserva", valor: num(x.c1), sinal: "n"}); });
     ler("neg_fluxo").forEach(function (x) { if (!x || x.id == null) return; var id = String(x.id), ent = String(x.c1 || "").toLowerCase().indexOf("entrada") === 0;
-      if (/^(gasto_|receita_|ev_)/.test(id)) return;   /* vêm do evento, logo abaixo */
-      if (id.indexOf("cache_") === 0) { add({fonte: "auto", id: id, dest: "", nicho: "evento", data: x.c0, desc: x.c3, valor: num(x.c2), sinal: "s", aberto: x.fonte === "pendente", auto: "Cachê da equipe", link: "custos.html", alimenta: ["Fluxo de caixa", "Painel Financeiro"]}); return; }
-      if (id.indexOf("fixo_") === 0) { add({fonte: "auto", id: id, dest: "", nicho: "negocio", data: x.c0, desc: x.c3, valor: num(x.c2), sinal: ent ? "e" : "s", auto: "Custo fixo do negócio", link: "fluxo.html", alimenta: ["Fluxo de caixa", "Painel Financeiro"]}); return; }
+      if (/^(gasto_|receita_)/.test(id)) return;   /* vêm do evento, logo abaixo (ev_ antigo aparece como linha comum, para poder excluir) */
+      if (id.indexOf("cache_") === 0) { add({fonte: "auto", id: id, dest: "", nicho: "evento", data: x.c0, desc: x.c3, valor: num(x.c2), sinal: "s", aberto: x.fonte === "pendente", auto: "Cachê da equipe", link: "custos.html", alimenta: ["Painel Financeiro"]}); return; }
+      if (id.indexOf("fixo_") === 0) { add({fonte: "auto", id: id, dest: "", nicho: "negocio", data: x.c0, desc: x.c3, valor: num(x.c2), sinal: ent ? "e" : "s", auto: ent ? "Recebimento fixo do negócio" : "Custo fixo do negócio", link: "#lcFixos", alimenta: ["Painel Financeiro"]}); return; }
       add({fonte: "fluxo", id: x.id, dest: ent ? "neg_entrada" : "neg_saida", data: x.c0, desc: x.c3, valor: num(x.c2), sinal: ent ? "e" : "s"}); });
     ler("neg_eventos").forEach(function (e) { if (!e || e.id == null) return;
       (e.gastos || []).forEach(function (g, i) { if (String(g.id || "").indexOf("pag_") === 0) return; add({fonte: "evgasto", id: e.id + "|" + (g.id || "#" + i), dest: "ev_custo", evId: String(e.id), evNome: e.nome, gi: i, data: g.data || e.data, desc: g.desc, valor: num(g.valor), sinal: "s"}); });
@@ -115,6 +115,7 @@
   /* ---------- telas ---------- */
   var MES = hoje().slice(0, 7), NICHO = "", TODOS = [];
   function desenhar() {
+    desenharFixos();
     TODOS = itens();
     /* meses do seletor: os que têm lançamento + o atual */
     var ms = {}; ms[hoje().slice(0, 7)] = 1; TODOS.forEach(function (o) { if (/^\d{4}-\d{2}/.test(o.data || "")) ms[o.data.slice(0, 7)] = 1; });
@@ -154,8 +155,55 @@
         '<div class="v ' + o.sinal + '">' + (o.sinal === "e" ? "+ " : o.sinal === "s" ? "− " : "") + brl(o.valor) + '</div><div class="a"><span class="lc-tag" style="--c:' + cor + '">' + (NICHOS[o.nicho] || ["?"])[0] + '</span>' +
         (o.auto ? '<span class="lc-tag cz">AUTOMÁTICO</span>' : "") + (o.aberto ? '<span class="lc-tag" style="--c:#FFB547">EM ABERTO</span>' : o.futuro ? '<span class="lc-tag" style="--c:#FFB547">DATA FUTURA</span>' : o.fonte === "conta" ? '<span class="lc-tag" style="--c:#22c55e">PAGA</span>' : "") + '<span style="flex:1"></span>' +
         (o.fonte === "conta" ? '<button type="button" class="lc-bt peq" data-pg="' + esc(o.uid) + '" data-bw-status="' + (o.pago ? "volta" : "ok") + '" data-bw-msg="' + (o.pago ? "Conta voltou para em aberto" : "Conta paga!") + '" data-bw-id="' + esc(o.uid) + '">' + (o.pago ? "↺ NÃO PAGA" : "✓ MARCAR PAGA") + '</button>' : "") +
-        (o.auto ? '<a class="lc-bt peq" href="' + o.link + '">ABRIR ONDE NASCEU ↗</a>' : '<button type="button" class="lc-bt peq" data-ed="' + esc(o.uid) + '" aria-label="Alterar ' + esc(o.desc || "lançamento") + '">✎ ALTERAR</button><button type="button" class="lc-bt peq perigo" data-del="' + esc(o.uid) + '" aria-label="Excluir ' + esc(o.desc || "lançamento") + '">✕</button>') + '</div></div>'; });
+        (o.auto ? '<a class="lc-bt peq" href="' + o.link + '">' + (o.link.charAt(0) === "#" ? "VER O FIXO ↓" : "ABRIR ONDE NASCEU ↗") + '</a>' : '<button type="button" class="lc-bt peq" data-ed="' + esc(o.uid) + '" aria-label="Alterar ' + esc(o.desc || "lançamento") + '">✎ ALTERAR</button><button type="button" class="lc-bt peq perigo" data-del="' + esc(o.uid) + '" aria-label="Excluir ' + esc(o.desc || "lançamento") + '">✕</button>') + '</div></div>'; });
     $("lcLista").innerHTML = h || '<div class="lc-vazio">' + (TODOS.length ? "Nenhum lançamento com esse filtro. Troque o mês, o nicho ou a busca." : "Ainda não há lançamentos. Toque em <b>＋ NOVO LANÇAMENTO</b> e responda o que é e para onde vai.") + '</div>';
+  }
+  /* ---------- FIXOS DO NEGÓCIO (vieram da antiga página Fluxo de caixa; mesmo formato: neg_fixos c0 nome · c1 valor · c2 mensal/anual · c3 dia · c4 mês inicial · c5 Saída/Entrada) ---------- */
+  function expandirFixos() {   /* cada fixo gera os próximos lançamentos (mensal = 6 meses, anual = 1) com id fixo_<id>_<data> */
+    var fixos = ler("neg_fixos"); if (!fixos.length) return 0; var fluxo = ler("neg_fluxo"), h = hoje(), n = 0;
+    fixos.forEach(function (f) { if (!f || f.id == null) return; var dia = Math.min(Math.max(parseInt(f.c3 || "1", 10) || 1, 1), 28), ini = /^\d{4}-\d{2}$/.test(f.c4 || "") ? f.c4 : h.slice(0, 7), ai = +ini.slice(0, 4), mi = +ini.slice(5);
+      for (var k = 0; k < 6; k++) { if (f.c2 === "anual" && k > 0) break; var ano = ai, mes = mi + k; while (mes > 12) { mes -= 12; ano++; }
+        var data = ano + "-" + p2(mes) + "-" + p2(dia), id = "fixo_" + f.id + "_" + data; if (data < h || fluxo.some(function (o) { return o.id === id; })) continue;
+        fluxo.push({id: id, c0: data, c1: f.c5 === "Entrada" ? "Entrada" : "Saída", c2: f.c1, c3: f.c0 + " (fixo)"}); n++; } });
+    if (n) gravar("neg_fluxo", fluxo); return n;
+  }
+  function desenharFixos() {
+    var l = ler("neg_fixos").filter(function (f) { return f && f.id != null; }), box = $("lcFixosLista"); if (!box) return;
+    box.innerHTML = l.length ? l.map(function (f) { var ent = f.c5 === "Entrada";
+      return '<div class="lc-item" data-fixo="' + esc(f.id) + '" style="--c:#7C3AED"><div class="t"><b>' + esc(f.c0 || "Sem nome") + '</b><small>' + (f.c2 === "anual" ? "Uma vez por ano" : "Todo mês") + ", dia " + esc(f.c3 || "1") + " · desde " + esc(f.c4 || "") + ' — alimenta: Painel Financeiro, Agenda e avisos</small></div>' +
+        '<div class="v ' + (ent ? "e" : "s") + '">' + (ent ? "+ " : "− ") + brl(num(f.c1)) + '</div><div class="a"><span class="lc-tag" style="--c:#7C3AED">' + (ent ? "RECEBIMENTO FIXO" : "CUSTO FIXO") + '</span><span style="flex:1"></span><button type="button" class="lc-bt peq perigo" data-delfixo="' + esc(f.id) + '" aria-label="Excluir o fixo ' + esc(f.c0 || "") + '">✕ EXCLUIR</button></div></div>'; }).join("")
+      : '<div class="lc-vazio">Nenhum fixo ainda. Aluguel, internet, contador, mensalidade de cliente… cadastre uma vez e ele entra sozinho todo mês.</div>';
+  }
+  function criarFixo() {
+    var nome = cap($("fzNome").value), v = num($("fzValor").value), av = $("lcFixoAviso");
+    if (!nome || !(v > 0)) { aviso(av, "Preencha o nome e o valor do fixo.", true); return; }
+    var l = ler("neg_fixos"); l.push({id: Date.now(), c0: nome, c1: String(v), c2: $("fzRec").value, c3: String(Math.min(Math.max(parseInt($("fzDia").value, 10) || 1, 1), 28)), c4: /^\d{4}-\d{2}$/.test($("fzMes").value) ? $("fzMes").value : hoje().slice(0, 7), c5: $("fzTipo").value});
+    gravar("neg_fixos", l); var n = expandirFixos(); $("fzNome").value = ""; $("fzValor").value = ""; desenhar();
+    aviso(av, "✓ Fixo \u201c" + nome + "\u201d salvo — " + n + " lançamento(s) criado(s) para os próximos meses.");   /* depois do re-render (regra 2) */
+  }
+  function apagarFixo(id) {   /* apaga o fixo e os lançamentos FUTUROS que ele gerou; o que já passou fica no histórico (regra 3) */
+    var f = ler("neg_fixos").filter(function (x) { return String(x.id) === String(id); })[0]; if (!f) return;
+    if (!confirm("Excluir o fixo \u201c" + (f.c0 || "") + "\u201d? Os lançamentos futuros dele também saem; os que já passaram ficam.")) return;
+    gravar("neg_fixos", ler("neg_fixos").filter(function (x) { return String(x.id) !== String(id); }));
+    var h = hoje(), fl = ler("neg_fluxo"), r = fl.filter(function (o) { return !(String(o.id).indexOf("fixo_" + id + "_") === 0 && (o.c0 || "") >= h); }); if (r.length !== fl.length) gravar("neg_fluxo", r);
+    desenhar(); aviso($("lcFixoAviso"), "Fixo excluído.");
+  }
+  /* ---------- PDF DO MÊS (era o "Exportar fluxo de caixa em PDF" da página que saiu): entradas e saídas do mês e do nicho escolhidos ---------- */
+  function carregarPdf() {
+    var um = function (u) { return new Promise(function (ok, erro) { var s = document.createElement("script"); s.src = u; s.onload = ok; s.onerror = function () { erro(new Error("sem internet para carregar o gerador de PDF")); }; document.head.appendChild(s); }); };
+    if (window.pdfMake && pdfMake.vfs) return Promise.resolve();
+    return um("https://cdn.jsdelivr.net/npm/pdfmake@0.2.20/build/pdfmake.min.js").then(function () { return um("https://cdn.jsdelivr.net/npm/pdfmake@0.2.20/build/vfs_fonts.js"); });
+  }
+  function pdfMes() {
+    var l = TODOS.filter(function (o) { return (o.data || "").slice(0, 7) === MES && (!NICHO || o.nicho === NICHO) && (o.sinal === "e" || o.sinal === "s"); }).sort(function (a, b) { return String(a.data || "").localeCompare(String(b.data || "")); });
+    var feitos = l.filter(function (o) { return o.realizado; }), ent = feitos.filter(function (o) { return o.sinal === "e"; }).reduce(function (a, o) { return a + o.valor; }, 0), sai = feitos.filter(function (o) { return o.sinal === "s"; }).reduce(function (a, o) { return a + o.valor; }, 0);
+    var tit = "Lançamentos de " + MESES[+MES.slice(5) - 1] + "/" + MES.slice(0, 4) + (NICHO ? " · " + NICHOS[NICHO][0] : ""), limpo = function (v) { return brl(v).replace(/\u00a0/g, " "); };
+    var def = {pageSize: "A4", pageMargins: [36, 40, 36, 40], defaultStyle: {fontSize: 9}, content: [
+      {text: tit, fontSize: 16, bold: true}, {text: "Entradas " + limpo(ent) + "   ·   Saídas " + limpo(sai) + "   ·   Resultado " + limpo(ent - sai) + "   (só o que já aconteceu e foi pago)", margin: [0, 6, 0, 12]},
+      {table: {headerRows: 1, widths: [52, "*", 150, 60, 70], body: [["Data", "O que foi", "Onde", "Situação", "Valor"].map(function (t) { return {text: t, bold: true, fillColor: "#eeeeee"}; })].concat(l.map(function (o) {
+        return [dataBR(o.data), String(o.desc || "Sem nome"), onde(o), o.aberto ? "em aberto" : o.futuro ? "data futura" : "feito", {text: (o.sinal === "e" ? "+ " : "− ") + limpo(o.valor), alignment: "right"}]; })) }, layout: "lightHorizontalLines"},
+      {text: l.length ? "" : "Nenhuma entrada ou saída neste mês.", margin: [0, 10, 0, 0]}]};
+    return carregarPdf().then(function () { return new Promise(function (ok, erro) { try { pdfMake.createPdf(def).getBuffer(function (b) { ok({blob: new Blob([b], {type: "application/pdf"}), nome: "lancamentos-" + MES + ".pdf", linhas: l.length}); }); } catch (e) { erro(e); } }); });
   }
   function achar(uid) { return TODOS.filter(function (o) { return o.uid === uid; })[0]; }
 
@@ -238,9 +286,13 @@
     el.innerHTML = u ? '<a href="login.html" class="bw-logado" title="Conta: ' + esc(u.email) + '"><i></i>LOGADO</a>' : '<a href="login.html" class="bw-btn bw-btn--vidro" style="min-height:34px;padding:0 14px;font-size:12px">LOGIN</a>'; })();
   try { var pr = new URLSearchParams(location.search);   /* atalhos de outras telas: ?nicho=evento&tipo=e&periodo=tudo */
     if (NICHOS[pr.get("nicho")]) NICHO = pr.get("nicho"); if (pr.get("tipo") === "e" || pr.get("tipo") === "s") $("lcTipo").value = pr.get("tipo"); if (pr.get("periodo") === "tudo") $("lcPeriodo").value = "tudo"; } catch (e) {}
-  desenhar();
+  try { $("fzMes").value = hoje().slice(0, 7); $("fzAdd").onclick = criarFixo;
+    $("lcFixosLista").addEventListener("click", function (e) { var b = e.target.closest("[data-delfixo]"); if (b) apagarFixo(b.dataset.delfixo); }); } catch (e) {}
+  $("lcPdf").onclick = function () { var b = this; b.disabled = true; pdfMes().then(function (r) { var a = document.createElement("a"); a.href = URL.createObjectURL(r.blob); a.download = r.nome; document.body.appendChild(a); a.click(); a.remove(); aviso($("lcAviso"), "✓ PDF do mês gerado (" + r.linhas + " lançamentos)."); })
+    .catch(function (e) { aviso($("lcAviso"), "Não deu para gerar o PDF: " + (e && e.message || e), true); }).then(function () { b.disabled = false; }); };
+  expandirFixos(); desenhar();
   try { if (/[?&]novo=1/.test(location.search)) $("lcNovo").click(); } catch (e) {}
-  setTimeout(desenhar, 1500);   /* a sincronia ao abrir pode trazer dados da conta */
-  window.__lanc = {itens: itens, desenhar: desenhar, criar: criar, DEST: DEST, espelhar: espelharEventos};
+  setTimeout(function () { expandirFixos(); desenhar(); }, 1500);   /* a sincronia ao abrir pode trazer dados da conta */
+  window.__lanc = {pdfMes: pdfMes, expandirFixos: expandirFixos, itens: itens, desenhar: desenhar, criar: criar, DEST: DEST, espelhar: espelharEventos};
   if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(function () { });
 })();

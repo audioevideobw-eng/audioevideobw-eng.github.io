@@ -63,7 +63,7 @@
     { id: "conta",   nome: "Conta",             href: "login.html", icon: '<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/>' }
   ];
   var SUBPAGINAS = {
-    negocio: [["negocio","Ferramentas do negócio"],["financeiro-painel","Painel Financeiro"],["propostas","Gerador de orçamento"],["eventos","Eventos"],["equipe","Gestão de pessoas"],["leitor","Leitor de comprovantes"],["preco","Calculadora de preço"],["fluxo","Fluxo de caixa"]],
+    negocio: [["negocio","Ferramentas do negócio"],["financeiro-painel","Painel Financeiro"],["propostas","Gerador de orçamento"],["eventos","Eventos"],["equipe","Gestão de pessoas"],["leitor","Leitor de comprovantes"],["preco","Calculadora de preço"],["custos","Cachês e custos"]],
     casa: [["orcamento","Orçamento familiar"],["contas","Contas a pagar"],["reserva","Reserva de emergência"]],
     invest: [["investimentos-painel","Painel de Investimentos"],["cambio","Câmbio"],["evento","Evento no exterior"],["milhas","Mercado de milhas"],["meta","Meta de milhas"],["recs","★ Recomendações"],["noticias","Notícias"]],
     crm: [["crm","Painel do CRM"],["captacao","Funil de clientes"],["resultados","Indicadores"]],
@@ -180,14 +180,7 @@
     ti.innerHTML = '<a href="investimentos-painel.html">Painel de Investimentos</a><a href="invest.html" class="ativo" aria-current="page">Simulador de rendimento</a>';
     var pgi = conteudo.querySelector("#bwPagina"); pgi.insertBefore(ti, pgi.firstChild);
   }
-  /* 15/11 (Claude, pedido do dono): CACHÊS E CUSTOS de evento é uma aba do FLUXO DE CAIXA */
-  if (PAGINA === "fluxo" || PAGINA === "custos") {
-    var tf = document.createElement("nav");
-    tf.className = "bw-cambio-abas"; tf.setAttribute("aria-label", "Fluxo de caixa");
-    tf.innerHTML = '<a href="fluxo.html"' + (PAGINA === "fluxo" ? ' class="ativo" aria-current="page"' : "") + '>Lançamentos</a>' +
-      '<a href="custos.html"' + (PAGINA === "custos" ? ' class="ativo" aria-current="page"' : "") + '>Cachês e custos de evento</a>';
-    var pgf = conteudo.querySelector("#bwPagina"); pgf.insertBefore(tf, pgf.firstChild);
-  }
+  /* 18/11 (dono): a página Fluxo de caixa saiu — os lançamentos ficam em LANÇAMENTOS; CACHÊS E CUSTOS virou página própria (sem abas) */
   /* abas do celular */
   var abasEl = document.createElement("nav");
   abasEl.className = "bw-abas";
@@ -327,7 +320,7 @@
     ler("neg_fluxo").forEach(function (f) {
       if (!/^fixo_/.test(String(f.id)) || f.c1 !== "Saída" || FEITOS["fx|" + f.id]) return;
       var n = dias(f.c0); if (n === null || n < 0 || n > 3) return;
-      contas.push({ nome: String(f.c3 || "Custo fixo").replace(/ \(fixo\)$/, "") + " (negócio)", valor: f.c2, venc: f.c0, n: n, onde: "fluxo.html" });
+      contas.push({ nome: String(f.c3 || "Custo fixo").replace(/ \(fixo\)$/, "") + " (negócio)", valor: f.c2, venc: f.c0, n: n, onde: "lancamentos.html#lcFixos" });
     });
     contas.sort(function (a, b) { return a.n - b.n; });
     var vistos = {}, eventos = [];
@@ -569,7 +562,7 @@
 /* ===== AGENTE (16/11): o robô fica em todas as páginas — carregado aqui para não precisar mexer em cada página ===== */
 (function () {
   if (window.BWLanca || document.querySelector('script[src*="bw-agente.js"]')) return;
-  var s = document.createElement("script"); s.src = "assets/bw-agente.js?v=18"; s.defer = true; document.head.appendChild(s);
+  var s = document.createElement("script"); s.src = "assets/bw-agente.js?v=19"; s.defer = true; document.head.appendChild(s);
 })();
 
 /* 18/11: SETAS de abrir/fechar seções (data-seta). Fechada por padrão com data-seta-padrao="fechada"; a escolha fica em ui_dobras. */

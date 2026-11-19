@@ -260,7 +260,7 @@ footer b{color:var(--gold)}
     </div>
     <div class="nav-col"><b>Ferramentas</b>
       <a href="preco.html">Calculadora de preço</a>
-      <a href="fluxo.html">Fluxo de caixa</a>
+      <a href="custos.html">Cachês e custos</a>
       <a href="viagem.html">Conversor de viagem</a>
       <a href="diario.html">Diário de câmbio</a>
       <a href="leitor.html">Leitor de comprovantes</a>
@@ -301,7 +301,7 @@ footer b{color:var(--gold)}
     Não é recomendação de investimento.
   </footer>
 </div>
-<script src="assets/layout.js?v=53"></script>
+<script src="assets/layout.js?v=54"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="assets/bw-sync.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/pdfmake@0.2.20/build/pdfmake.min.js"></script>
@@ -4128,7 +4128,7 @@ window.__evAbrir = id => abrirDossie(id);
 window.__evDel = id => {
   /* 15/11: pedia nenhuma confirmação e deixava a receita/gastos do evento no Fluxo de caixa */
   const ev = eventos().find(x => String(x.id) === String(id));
-  if (!confirm("Excluir o evento \"" + ((ev && ev.nome) || "") + "\"? A receita e os gastos dele também saem do Fluxo de caixa.")) return;
+  if (!confirm("Excluir o evento \"" + ((ev && ev.nome) || "") + "\"? A receita e os gastos dele também saem dos Lançamentos.")) return;
   salvarEventos(eventos().filter(x => String(x.id) !== String(id)));
   const fl = load("neg_fluxo", 1, []), i = fl.findIndex(o => o.id === "ev_" + id);
   if (i > -1) { fl.splice(i, 1); save("neg_fluxo", 1, fl); }

@@ -157,7 +157,6 @@ def main():
         c.close()
         # 5) Fluxo de caixa — aba Cachês e custos
         c, pg = pagina(); pg.goto(base + "custos.html"); pg.wait_for_timeout(1200)
-        foto(pg, ".bw-cambio-abas", "fluxo-abas.png", 6)
         foto(pg, "#pagBox", "custos-cache.png")
         pg.click('[data-rapido="Combustível"]'); pg.fill("#ctVal", "120"); pg.wait_for_timeout(150)
         foto(pg, "#custoBox .card", "custos-evento.png")
