@@ -344,6 +344,11 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
      Cortar bloco de HTML por texto: o fim "  </div>" também casa com "    </div>" (use "\n  </div>\n") e o teste confere que o conteúdo está VISÍVEL,
      não só que existe (a página saiu com os números escondidos e a contagem passava). `if (x) var a = …; b[a] = …` sem chaves só protege o var.
 
+102. PROMPT IA (promptia.html + assets/promptia.js): biblioteca em public.bw_trends (leitura pública, gravação só is_bw_admin, RLS —
+     docs/sql/2026-11-19-prompt-ia.sql) + imagens no bucket público "trends" (só ADM envia); a análise manda a imagem para a bw-ia
+     (campo "imagem", modelo com VISÃO da Groq) SÓ depois de confirm(), cópia ≤ 768 px JPEG, nada guardado; o promptia.js nunca grava na
+     conta (vigia). Modelo de visão da Groq muda de nome: a função tenta uma LISTA (MODELOS_VISAO) e devolve {erro:"visao", detalhe}.
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -1107,8 +1112,19 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   direto para a casa). Atalhos no alto: ORÇAMENTO FAMILIAR, CONTAS A PAGAR, RESERVA, LER CONTA, TIO CLÁUDIO, TODOS OS LANÇAMENTOS. Menu: Gestão de
   casa → Painel da casa (primeiro item). As páginas Orçamento, Contas e Reserva continuam como estavam. teste_lancamentos.py +10 checagens (0 falhas).
   lancamentos.js v6, layout.js v57, sw v133. PENTE FINO 101.
+- 19/11/2026 02:30 · Claude (dono, com 5 exemplos de trends + referência de app com cartões altos: "ferramenta PROMPT IA — biblioteca que o
+  ADM alimenta e uma ferramenta que, ao enviar a trend, diz qual prompt usar, onde fazer e como"; "escolher passando para o lado, galeria
+  flutuante"): nova página PROMPT IA em Marketing (menu, galeria de Marketing, Ferramentas e Início). BIBLIOTECA: cartões altos coloridos por
+  tipo em carrossel com encaixe (passa para o lado / setas / teclado), o do meio maior e flutuando, os dos lados menores e inclinados; filtros
+  por tipo; em cada cartão PROMPT · COMO FAZER · ONDE FAZER (links das IAs) e ⧉ COPIAR PROMPT; sem trends cadastradas mostra 3 EXEMPLOS de
+  texto. ANALISAR: print (escolher/arrastar/colar) + "o que você quer fazer" + detalhe → confirm → bw-ia com visão → cartão com nome, prompt
+  (inglês, [COLCHETES] para personalizar), onde fazer, passos e dicas. ADM: ＋ NOVA TREND, ＋ SALVAR NA BIBLIOTECA a partir da análise, ✎ ALTERAR,
+  ✕ EXCLUIR. Supabase (com o "sim" do dono): SQL rodado (rls true, 4 regras + 3 no bucket, bucket público) e bw-ia publicada com visão
+  (conferida por SHA-256 antes e depois). docs/testes/teste_promptia.py (≈30 checagens × 1280/390, Supabase e IA SIMULADOS, 0 falhas).
+  Manual 46 → 47 p. layout.js v58, sw v134. PENTE FINO 102.
 
 ## Pendências (dono)
+- [ ] (19/11) PROMPT IA: dono cadastrar as primeiras trends (＋ NOVA TREND, com a imagem de exemplo) e testar ANALISAR com um print real.
 - [ ] (19/11) PAINEL DA CASA: dono abrir Gestão de casa na conta dele e dizer se quer mais algum dado da casa ali (metas do orçamento, meta da reserva).
 - [ ] (19/11) EVENTO DE VÁRIOS DIAS: dono editar um evento real, preencher "Termina em" e ver o risco na agenda (PC e celular).
 - [ ] (19/11) CACHÊ nos LANÇAMENTOS: dono conferir se os cachês antigos aparecem com PAGO / NÃO PAGO certo e marcar um como pago (ver no dossiê do evento).

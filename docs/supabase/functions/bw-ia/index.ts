@@ -2,11 +2,15 @@
 // Recebe {sistema, pedido, max} de um usuário LOGADO, chama a Groq com a chave guardada no Supabase
 // (Secret GROQ_API_KEY) e devolve {texto}. Também transcreve áudio (Content-Type audio/*) com whisper-large-v3-turbo. A chave nunca vai para o site. Limite: 60 pedidos/dia por conta.
 // {ping:true} só diz se está pronta (tem chave). Nada do texto é gravado.
+// 19/11/2026 (PROMPT IA, com o "sim" do dono): {imagem:"data:image/jpeg;base64,…", sistema, pedido} → modelo com VISÃO da Groq lê a imagem
+// (cópia pequena feita no site, só depois de a pessoa confirmar) e devolve {texto}. A imagem não é gravada. Conta no mesmo limite diário.
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
 const LIMITE_DIA = 60;          // textos por dia (conta junto com os pedaços de áudio)
 const LIMITE_AUDIO_DIA = 200;   // pedaços de ~3 min de áudio por dia (~10 h)
 const MODELOS = ["openai/gpt-oss-120b", "openai/gpt-oss-20b"];
+// modelos com visão, na ordem de tentativa (a Groq troca os nomes de tempos em tempos — conferir em console.groq.com/docs/vision)
+const MODELOS_VISAO = ["qwen/qwen3.8-27b", "qwen/qwen3.6-27b", "meta-llama/llama-4-scout-17b-16e-instruct"];
 const CORS = {
   "Access-Control-Allow-Origin": "https://audioevideobw-eng.github.io",
   "Access-Control-Allow-Headers": "authorization, apikey, content-type, x-client-info",
@@ -53,7 +57,7 @@ Deno.serve(async (req) => {
     return resp({ texto: j.text || "", trechos: (j.segments || []).map((s: { start: number; end: number; text: string }) => ({ i: s.start, f: s.end, t: s.text })) });
   }
 
-  let corpo: { ping?: boolean; sistema?: string; pedido?: string; max?: number } = {};
+  let corpo: { ping?: boolean; sistema?: string; pedido?: string; max?: number; imagem?: string } = {};
   try { corpo = await req.json(); } catch { return resp({ erro: "corpo" }, 400); }
   if (corpo.ping) return resp({ pronto: !!chave });
   if (!chave) return resp({ erro: "sem_chave" }, 503);
@@ -67,6 +71,30 @@ Deno.serve(async (req) => {
   const { data: ok, error: e1 } = await adm.rpc("bw_ia_contar", { p_dono: u.user.id, p_limite: LIMITE_DIA });
   if (e1) return resp({ erro: "contador" }, 500);
   if (!ok) return resp({ erro: "limite" }, 429);
+
+  // VISÃO: imagem em data URL (JPEG/PNG/WEBP, até ~1,5 MB de texto base64)
+  const imagem = String(corpo.imagem || "");
+  if (imagem) {
+    if (!/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(imagem) || imagem.length > 2_000_000) return resp({ erro: "imagem" }, 400);
+    let detalhe = "";
+    for (const modelo of MODELOS_VISAO) {
+      const r = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+        method: "POST",
+        headers: { "Authorization": `Bearer ${chave}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: modelo,
+          messages: [{ role: "system", content: sistema }, { role: "user", content: [{ type: "text", text: pedido }, { type: "image_url", image_url: { url: imagem } }] }],
+          temperature: 0.4,
+          max_completion_tokens: max + 600,
+        }),
+      });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) { detalhe = String(j?.error?.message || r.status).slice(0, 200); continue; }   // modelo trocado/ocupado: tenta o próximo
+      const texto = j?.choices?.[0]?.message?.content || "";
+      if (texto.trim()) return resp({ texto, modelo });
+    }
+    return resp({ erro: "visao", detalhe }, 502);
+  }
 
   for (const modelo of MODELOS) {
     const r = await fetch("https://api.groq.com/openai/v1/chat/completions", {

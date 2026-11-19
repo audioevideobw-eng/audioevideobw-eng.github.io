@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prompt IA — Brightway</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#06080D">
+<link rel="icon" type="image/png" href="icons/favicon-64.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Brightway">
+<link rel="stylesheet" href="assets/brightway.css?v=29">
+<style>
+.wrap{max-width:1320px;margin:0 auto;padding:0 16px 120px}
+.pi-topo{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.pi-topo h1{margin:0 auto 0 0;font:800 22px Montserrat,Inter,sans-serif;letter-spacing:.03em;color:#F5F1EA}
+.pi-topo h1 b{color:#FFB547}
+.pi-sub{margin:0 0 14px;color:#B9C6E0;font:500 14px/1.5 Inter,sans-serif;max-width:760px}
+.pi-bt{min-height:44px;padding:0 16px;border-radius:13px;border:1px solid rgba(245,241,234,.16);background:rgba(255,255,255,.05);color:#F5F1EA;font:800 12px Inter,sans-serif;letter-spacing:.07em;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:7px;text-decoration:none;text-align:center;touch-action:manipulation;transition:.15s}
+.pi-bt:hover{border-color:rgba(255,181,71,.5)}.pi-bt:active{transform:scale(.97)}
+.pi-bt.pri{background:linear-gradient(180deg,#ffc56b,#FFB547);color:#1a1205;border-color:transparent}
+.pi-bt.peq{min-height:36px;padding:0 12px;font-size:11px}.pi-bt.perigo{color:#ff8a8a;border-color:rgba(239,68,68,.5)}.pi-bt.off{opacity:.75;cursor:default}
+.pi-bt:disabled{opacity:.5;cursor:wait}
+.pi-vistas{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.pi-vista{min-height:44px;padding:0 18px;border-radius:999px;border:1px solid rgba(245,241,234,.16);background:transparent;color:#B9C6E0;font:800 12px Inter,sans-serif;letter-spacing:.09em;cursor:pointer}
+.pi-vista.on{background:linear-gradient(90deg,#7C3AED,#38bdf8);border-color:transparent;color:#fff;box-shadow:0 8px 24px -10px #7C3AED}
+.pi-chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;scrollbar-width:none}.pi-chips::-webkit-scrollbar{display:none}
+.pi-chip{flex:none;min-height:38px;padding:0 14px;border-radius:999px;border:1px solid rgba(245,241,234,.14);background:rgba(255,255,255,.04);color:#B9C6E0;font:800 11px Inter,sans-serif;letter-spacing:.08em;cursor:pointer}
+.pi-chip.on{background:#FFB547;color:#1a1205;border-color:transparent}
+.pi-barra{display:flex;align-items:center;gap:10px;margin:8px 0 2px}.pi-barra small{margin-right:auto;color:#8ea0c2;font:600 12px Inter,sans-serif}
+.pi-seta{width:44px;height:44px;border-radius:50%;border:1px solid rgba(245,241,234,.16);background:rgba(255,255,255,.05);color:#F5F1EA;font-size:20px;cursor:pointer}
+/* carrossel: passa para o lado; cada cartão encaixa no meio */
+.pi-car{display:flex;gap:18px;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;padding:26px max(16px,calc(50% - 170px)) 34px;margin:0 -16px;scrollbar-width:none;outline:none}
+.pi-car::-webkit-scrollbar{display:none}
+.pi-card{position:relative;flex:none;width:min(340px,82vw);min-width:0;scroll-snap-align:center;border-radius:26px;overflow:hidden;background:linear-gradient(180deg,#131a2b,#0a0e19);border:1px solid rgba(120,160,255,.16);box-shadow:0 26px 60px -30px rgba(0,0,0,.9);display:flex;flex-direction:column;transition:transform .18s ease-out,opacity .18s ease-out,box-shadow .2s;transform-origin:center 60%;will-change:transform}
+.pi-card.meio{box-shadow:0 30px 70px -28px var(--a),0 0 0 1px var(--a) inset;animation:piFlutua 5s ease-in-out infinite}
+.pi-card.solo{width:min(460px,100%);animation:none;transform:none!important;opacity:1!important}
+@keyframes piFlutua{0%,100%{translate:0 0}50%{translate:0 -6px}}
+@media (prefers-reduced-motion:reduce){.pi-card,.pi-card.meio{animation:none;transition:none}}
+.pi-hero{position:relative;height:270px;background:linear-gradient(135deg,var(--a),var(--b));overflow:hidden;flex:none}
+.pi-hero img{width:100%;height:100%;object-fit:cover;object-position:center top;display:block}
+.pi-emoji{position:absolute;inset:0;display:grid;place-items:center;font-size:96px;filter:drop-shadow(0 12px 22px rgba(0,0,0,.45))}
+.pi-faixa{position:absolute;right:-30%;top:-10%;width:75%;height:130%;background:linear-gradient(180deg,var(--a),var(--b));opacity:.55;transform:skewX(-24deg);mix-blend-mode:screen;pointer-events:none}
+.pi-hero::after{content:"";position:absolute;inset:auto 0 0 0;height:55%;background:linear-gradient(180deg,transparent,#131a2b);pointer-events:none}
+.pi-cat,.pi-ex{position:absolute;z-index:2;top:14px;left:14px;padding:5px 10px;border-radius:999px;background:rgba(6,8,13,.72);color:#fff;font:800 10px Inter,sans-serif;letter-spacing:.12em;text-transform:uppercase;backdrop-filter:blur(6px)}
+.pi-ex{left:auto;right:14px;background:#FFB547;color:#1a1205}
+.pi-info{padding:0 16px 6px;margin-top:-34px;position:relative;z-index:2;flex:1;display:flex;flex-direction:column;min-width:0}
+.pi-info h3{margin:0 0 10px;font:800 21px/1.15 Montserrat,Inter,sans-serif;color:#fff;text-shadow:0 2px 14px rgba(0,0,0,.7);overflow-wrap:anywhere}
+.pi-resumo{margin:0 0 8px;color:#dbe4f5;font:500 13.5px/1.45 Inter,sans-serif}
+.pi-adm{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.pi-pills{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap}
+.pi-pill{min-height:34px;padding:0 12px;border-radius:999px;border:0;background:transparent;color:#B9C6E0;font:800 10.5px Inter,sans-serif;letter-spacing:.1em;cursor:pointer}
+.pi-pill.on{background:linear-gradient(90deg,var(--a),var(--b));color:#fff}
+.pi-corpo{flex:1;min-height:150px;max-height:230px;overflow:auto;border-radius:16px;background:rgba(0,0,0,.28);border:1px solid rgba(245,241,234,.07);padding:12px;-webkit-overflow-scrolling:touch}
+.pi-card.solo .pi-corpo{max-height:none}
+.pi-prompt{font:500 13.5px/1.55 ui-monospace,Menlo,Consolas,monospace;color:#eef3ff;white-space:pre-wrap;overflow-wrap:anywhere;user-select:all}
+.pi-nota{margin:10px 0 0;color:#8ea0c2;font:500 12px/1.45 Inter,sans-serif}
+.pi-passos{margin:0;padding-left:20px;color:#eef3ff;font:500 13.5px/1.5 Inter,sans-serif}.pi-passos li{margin-bottom:7px}
+.pi-dicas{margin-top:10px;display:flex;flex-direction:column;gap:6px;color:#dbe4f5;font:500 12.5px/1.45 Inter,sans-serif}.pi-dicas b{font:800 10px Inter,sans-serif;letter-spacing:.14em;color:#FFB547}
+.pi-onde{display:flex;flex-direction:column;gap:8px}.pi-onde .pi-bt{justify-content:space-between}
+.pi-pe{padding:12px 16px 16px}.pi-pe .pi-bt{width:100%}
+.pi-vazio{flex:1;padding:40px 16px;text-align:center;color:#8ea0c2;font:500 14px Inter,sans-serif}
+.pi-aviso{margin:10px 0;padding:11px 14px;border-radius:13px;background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.4);color:#bbf7d0;font:600 13px Inter,sans-serif}
+.pi-aviso.erro{background:rgba(239,68,68,.12);border-color:rgba(239,68,68,.45);color:#fecaca}
+/* analisar */
+.pi-an{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:900px){.pi-an{grid-template-columns:minmax(0,1fr)}}
+.pi-cx{min-width:0;border-radius:20px;background:linear-gradient(180deg,#111a2c,#0c1220);border:1px solid rgba(120,160,255,.16);padding:16px}
+.pi-cx h2{margin:0 0 6px;font:800 12px Inter,sans-serif;letter-spacing:.14em;color:#B9C6E0}
+.pi-zona{position:relative;margin-top:10px;border:2px dashed rgba(120,160,255,.35);border-radius:18px;min-height:190px;display:grid;place-items:center;text-align:center;padding:16px;color:#B9C6E0;font:600 14px/1.5 Inter,sans-serif;cursor:pointer;transition:.15s}
+.pi-zona.sobre{border-color:#FFB547;background:rgba(255,181,71,.07)}.pi-zona input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.pi-zona.tem .pi-zona-txt{display:none}
+#anPrev{display:flex;flex-direction:column;align-items:center;gap:10px;position:relative;z-index:2}#anPrev img{max-width:100%;max-height:300px;border-radius:14px;display:block}
+.pi-campo{display:flex;flex-direction:column;gap:6px;margin-top:12px;font:700 11px Inter,sans-serif;letter-spacing:.06em;color:#B9C6E0;text-transform:none}
+.pi-campo input,.pi-campo select,.pi-campo textarea{min-width:0;width:100%;min-height:46px;border-radius:13px;border:1px solid rgba(245,241,234,.16);background:#0a0f1c;color:#F5F1EA;font:500 16px Inter,sans-serif;padding:10px 12px}
+.pi-campo textarea{min-height:92px;resize:vertical;line-height:1.45}
+/* folha do ADM */
+.pi-folha{position:fixed;inset:0;z-index:1200;background:rgba(3,5,10,.78);backdrop-filter:blur(6px);display:grid;place-items:center;padding:14px}
+.pi-folha[hidden]{display:none}
+.pi-fx{width:min(620px,100%);max-height:92vh;overflow:auto;border-radius:22px;background:#0f1626;border:1px solid rgba(120,160,255,.22);padding:18px;-webkit-overflow-scrolling:touch}
+.pi-fx-topo{display:flex;align-items:center;gap:10px;margin-bottom:4px}.pi-fx-topo h2{margin:0 auto 0 0;font:800 16px Montserrat,Inter,sans-serif;color:#fff}
+#fmPrev img{max-width:160px;max-height:160px;border-radius:12px;display:block;margin-top:8px}
+.pi-linha{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.pi-linha .pi-bt{flex:1 1 auto}
+html.pi-aberto,html.pi-aberto body{overflow:hidden}
+@media (max-width:480px){.pi-topo h1{font-size:19px}.pi-hero{height:230px}.pi-seta{display:none}}
+</style>
+</head>
+<body>
+<header><div class="hd"><button id="btnVoltar" type="button">‹</button><div id="userBox"></div></div></header>
+<div class="wrap">
+  <div class="pi-topo">
+    <h1><b>PROMPT IA</b> · as trends e o prompt para fazer igual</h1>
+    <button class="pi-bt pri so-admin" id="piNova" type="button">＋ NOVA TREND</button>
+  </div>
+  <p class="pi-sub">Veja as trends que estão rodando nas redes, copie o prompt e saiba em qual IA fazer. Viu uma trend nova? Envie o print e a IA explica como reproduzir.</p>
+  <div class="pi-vistas" role="tablist" aria-label="Partes do Prompt IA">
+    <button type="button" class="pi-vista on" role="tab" data-vista="bib" aria-selected="true">📚 BIBLIOTECA</button>
+    <button type="button" class="pi-vista" role="tab" data-vista="an" aria-selected="false">🔎 ANALISAR UMA TREND</button>
+  </div>
+  <div class="pi-aviso" id="piAviso" hidden aria-live="polite"></div>
+
+  <section id="piBib">
+    <div class="pi-chips" id="piCats" role="group" aria-label="Filtrar por tipo de trend"></div>
+    <div class="pi-barra"><small id="piConta"></small><button type="button" class="pi-seta" id="piAnt" aria-label="Trend anterior">‹</button><button type="button" class="pi-seta" id="piProx" aria-label="Próxima trend">›</button></div>
+    <div class="pi-car" id="piCar" tabindex="0" aria-label="Biblioteca de trends: passe para o lado"></div>
+  </section>
+
+  <section id="piAn" hidden>
+    <div class="pi-an">
+      <div class="pi-cx">
+        <h2>1 · ENVIE O PRINT DA TREND</h2>
+        <label class="pi-zona" id="anZona">
+          <input id="anArq" type="file" accept="image/*" aria-label="Escolher a imagem da trend">
+          <span class="pi-zona-txt">📲 Toque para escolher o print<br><small style="font-weight:500;color:#8ea0c2">ou arraste a imagem / cole com Ctrl+V</small></span>
+          <span id="anPrev"></span>
+        </label>
+        <label class="pi-campo">O que você quer fazer?
+          <select id="anTipo"><option value="uma imagem igual usando a minha foto">Imagem igual, com a minha foto</option><option value="uma imagem igual criada do zero">Imagem igual, criada do zero</option><option value="um vídeo nesse estilo">Vídeo nesse estilo</option></select></label>
+        <label class="pi-campo">Detalhe ou descrição (opcional com o print; obrigatório sem ele)
+          <textarea id="anTexto" maxlength="600" placeholder="Ex.: quero de corpo inteiro, com a camisa da minha empresa. Ou descreva a trend: boneco 3D de cabeça grande em fundo branco…"></textarea></label>
+        <div class="pi-linha"><button type="button" class="pi-bt pri" id="anBt">✨ ANALISAR E GERAR O PROMPT</button></div>
+        <div class="pi-aviso" id="anAviso" hidden aria-live="polite"></div>
+        <p class="pi-nota">A imagem só sai do aparelho depois que você confirmar: vai uma cópia pequena para a IA Brightway ler e nada fica guardado. Precisa estar logado.</p>
+      </div>
+      <div class="pi-cx">
+        <h2>2 · PROMPT, ONDE FAZER E COMO</h2>
+        <div id="anRes"><p class="pi-nota" style="margin-top:6px">O resultado aparece aqui: o prompt pronto para copiar, as IAs onde fazer e o passo a passo.</p></div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="pi-folha" id="piFolha" hidden><div class="pi-fx" role="dialog" aria-label="Trend da biblioteca">
+  <div class="pi-fx-topo"><h2 id="fmTit">NOVA TREND</h2><button type="button" class="pi-bt peq" id="fmFechar" aria-label="Fechar">✕</button></div>
+  <label class="pi-campo">Nome da trend<input id="fmTitulo" maxlength="120" autocomplete="off" placeholder="Ex.: Boneco 3D urbano a partir da foto"></label>
+  <label class="pi-campo">Tipo<select id="fmCat"><option>Avatar 3D</option><option>Ilustração</option><option>Brinquedo</option><option>Foto realista</option><option>Vídeo</option><option selected>Outros</option></select></label>
+  <label class="pi-campo">Onde fazer (separe por vírgula)<input id="fmOnde" maxlength="300" autocomplete="off" placeholder="Gemini (Nano Banana), ChatGPT, Kling…"></label>
+  <label class="pi-campo">Prompt (use [COLCHETES] no que a pessoa deve trocar)<textarea id="fmPrompt" maxlength="6000" style="min-height:150px"></textarea></label>
+  <label class="pi-campo">Como fazer (um passo por linha)<textarea id="fmPassos" maxlength="4000"></textarea></label>
+  <label class="pi-campo">Dicas (uma por linha)<textarea id="fmDicas" maxlength="2000" style="min-height:70px"></textarea></label>
+  <label class="pi-campo">Imagem de exemplo (o resultado da trend)<input id="fmArq" type="file" accept="image/*"></label>
+  <div id="fmPrev"></div>
+  <p class="pi-nota">Use uma imagem que você mesmo gerou ou tem direito de publicar: ela fica pública para todos os usuários.</p>
+  <div class="pi-aviso" id="fmAviso" hidden aria-live="polite"></div>
+  <div class="pi-linha"><button type="button" class="pi-bt pri" id="fmSalvar">✓ SALVAR NA BIBLIOTECA</button><button type="button" class="pi-bt" id="fmCancelar">CANCELAR</button></div>
+</div></div>
+
+<script src="assets/layout.js?v=58"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="assets/bw-sync.js"></script>
+<script src="assets/promptia.js?v=1"></script>
+</body>
+</html>

@@ -275,6 +275,12 @@ if fnuv:
         problemas.append("assets/fotos.js: a IA criativa precisa pedir confirmação antes de enviar a foto")
 # 16/11: CRIADOR IA — só fala com as Edge Functions bw-ia (textos) e, pelo fotos-nuvem.js, bw-ia-imagem; nada gravado na nuvem;
 # foto só sai no modo "IA coloca a pessoa", com confirmação
+pia = ler("assets/promptia.js") if os.path.exists("assets/promptia.js") else ""
+if pia:
+    # PROMPT IA (19/11): a imagem da trend só vai para a IA Brightway (bw-ia) e só depois de confirm(); a biblioteca grava em bw_trends (só ADM, RLS)
+    if "confirm(" not in pia or "functions/v1/bw-ia" not in pia: problemas.append("assets/promptia.js: a imagem só pode ir para a bw-ia e depois de confirm()")
+    if re.search(r"fetch\((?!FN_IA)", pia): problemas.append("assets/promptia.js: só pode chamar a Edge Function bw-ia (fetch(FN_IA…))")
+    if "antesDeSalvar" in pia or "user_data" in pia: problemas.append("assets/promptia.js: o PROMPT IA não grava nada na conta do usuário")
 pjs = ler("assets/personagens.js") if os.path.exists("assets/personagens.js") else ""
 if pjs:
     if [u for u in re.findall(r"https?://[^\s\"']+", pjs) if "functions/v1/bw-ia" not in u]: problemas.append("assets/personagens.js: só pode chamar a Edge Function bw-ia")

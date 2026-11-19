@@ -266,6 +266,15 @@ Tamanho > 0 e sem erro = o pdfmake montou o arquivo. Localmente (T1) confira o `
 - Ligar no celular: botão ➜ no bloco de origem → próximo toque num bloco é o destino (sem arrastar linha). A ordem da história segue as setas.
 - Teste: IA de texto e de imagem simuladas pela rota; confere envio pequeno da foto, confirmação, persistência depois de recarregar e o reel montado.
 
+## Rodar SQL no painel do Supabase sem errar o texto (19/11)
+- SQL Editor → nova consulta → `monaco.editor.getModels()[n].setValue(sql)` com o texto do arquivo do repositório em JSON; conferir o SHA-256 do
+  editor (crypto.subtle) contra `sha256sum` do arquivo ANTES de rodar. O aviso "destructive operations" aparece por causa de `drop policy if exists`.
+- O SQL termina com uma consulta de CONFERÊNCIA (rls, nº de regras, bucket) — ler o resultado antes de seguir.
+
+## Cartão que flutua (animação infinita) no teste
+- Playwright espera o elemento "parar" para clicar: com `animation: … infinite` o clique dá timeout. No teste use `locator.click(force=True)`
+  (o usuário real clica normal). Conferir a galeria pelo `style.transform` dos cartões e pela classe do cartão do meio.
+
 ## Publicar uma Edge Function pelo painel do Supabase sem errar o texto (17/11)
 - Abrir .../functions/<nome>/code no navegador do app (logado). O editor é Monaco: `monaco.editor.getModels()[0].getValue()`.
 - Conferir que o publicado é igual à versão anterior do repositório por SHA-256 (crypto.subtle) — se não for, parar e comparar.
