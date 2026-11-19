@@ -60,7 +60,8 @@ falhas = []
 def ok(c, m):
     print(("  ✓ " if c else "  ✗ ") + m)
     if not c: falhas.append(m)
-def clk(pg, sel): pg.locator(sel).first.click(force=True)   # o cartão do meio flutua sem parar (animação): clicar sem esperar "parado"
+def clk(pg, sel):
+    l = pg.locator(sel).first; l.evaluate("e => e.scrollIntoView({block: 'center'})"); pg.wait_for_timeout(150); l.click(force=True)   # centro da tela: no celular a barra de abas fixa cobre o rodapé   # o cartão do meio flutua sem parar (animação): clicar sem esperar "parado"
 SEM = "document.documentElement.scrollWidth - document.documentElement.clientWidth"
 
 with sync_playwright() as p:
