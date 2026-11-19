@@ -1122,6 +1122,11 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   ✕ EXCLUIR. Supabase (com o "sim" do dono): SQL rodado (rls true, 4 regras + 3 no bucket, bucket público) e bw-ia publicada com visão
   (conferida por SHA-256 antes e depois). docs/testes/teste_promptia.py (≈30 checagens × 1280/390, Supabase e IA SIMULADOS, 0 falhas).
   Manual 46 → 47 p. layout.js v58, sw v134. PENTE FINO 102.
+- 19/11/2026 03:00 · Claude: PROMPT IA testado NO AR, logado: a análise dava 502 — o modelo de visão também "pensa" e o espaço da resposta
+  (max + 600) acabava antes do texto; o erro mostrava só o ÚLTIMO modelo da lista (um nome que nem existia), escondendo o motivo.
+  bw-ia republicada (SHA 7f4e9407…): max + 3000, lista só com modelos da página oficial e o motivo de CADA modelo no detalhe. Teste com imagem
+  de TESTE desenhada: descrição certa em 3,4 s (qwen/qwen3.8-27b) e análise completa pela tela (nome, prompt em inglês com [COLCHETES], como/onde).
+  Regra 102 vale assim: lista de modelos = só nomes conferidos na página oficial no dia; erro de lista mostra todos os motivos.
 
 ## Pendências (dono)
 - [ ] (19/11) PROMPT IA: dono cadastrar as primeiras trends (＋ NOVA TREND, com a imagem de exemplo) e testar ANALISAR com um print real.
