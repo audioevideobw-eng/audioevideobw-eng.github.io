@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lançamentos — Brightway</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#06080D">
+<link rel="icon" type="image/png" href="icons/favicon-64.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Brightway">
+<link rel="stylesheet" href="assets/brightway.css?v=28">
+<style>
+.wrap{max-width:1320px;margin:0 auto;padding:0 16px 120px}
+.lc-topo{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.lc-topo h1{margin:0 auto 0 0;font:800 22px Montserrat,Inter,sans-serif;letter-spacing:.03em;color:#F5F1EA}
+.lc-topo h1 b{color:#FFB547}
+.lc-bt{min-height:44px;padding:0 16px;border-radius:13px;border:1px solid rgba(245,241,234,.16);background:rgba(255,255,255,.05);color:#F5F1EA;font:800 12px Inter,sans-serif;letter-spacing:.07em;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:7px;text-decoration:none;touch-action:manipulation;white-space:nowrap}
+.lc-bt.pri{background:linear-gradient(180deg,#ffc56b,#FFB547);border-color:#FFB547;color:#1a1205}
+.lc-bt.perigo{color:#ff9a9d;border-color:rgba(242,104,107,.4)}
+.lc-bt.peq{min-height:36px;padding:0 10px;font-size:10.5px}
+.lc-bt:disabled{opacity:.4;cursor:default}
+.lc-cx{min-width:0;border-radius:18px;background:linear-gradient(180deg,#111a2c,#0c1220);border:1px solid rgba(120,160,255,.16);padding:14px;box-shadow:0 10px 30px -18px rgba(0,0,0,.7)}
+.lc-cx h3{margin:0 0 10px;font:800 11px Inter,sans-serif;letter-spacing:.14em;color:#B9C6E0}
+/* cartões de números (referência: painel de indicadores) */
+.lc-kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin-bottom:12px}
+.lc-kpi{min-width:0;border-radius:16px;padding:12px 12px 10px;background:linear-gradient(180deg,#111a2c,#0c1220);border:1px solid var(--c);box-shadow:0 0 0 1px rgba(0,0,0,.2),0 12px 26px -18px var(--c)}
+.lc-kpi small{display:flex;align-items:center;gap:6px;font:800 9.5px Inter,sans-serif;letter-spacing:.1em;color:var(--c)}
+.lc-kpi small i{flex:none;width:22px;height:22px;border-radius:50%;background:var(--c);color:#06080D;font-style:normal;font-size:12px;display:inline-flex;align-items:center;justify-content:center}
+.lc-kpi b{display:block;margin-top:6px;font:800 20px Montserrat,Inter,sans-serif;color:#F5F1EA;font-variant-numeric:tabular-nums;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lc-kpi span{display:block;margin-top:2px;font:600 10.5px Inter,sans-serif;color:#8ea0bf}
+.lc-meio{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr) minmax(0,1fr);gap:10px;margin-bottom:12px}
+.lc-barras{display:flex;align-items:flex-end;gap:8px;height:130px}
+.lc-barras div{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:4px;height:100%}
+.lc-barras .par{display:flex;align-items:flex-end;gap:3px;height:100%;width:100%;justify-content:center}
+.lc-barras .par i{display:block;width:42%;max-width:22px;border-radius:5px 5px 0 0;min-height:2px}
+.lc-barras .e{background:linear-gradient(180deg,#4ade80,#16a34a)}.lc-barras .s{background:linear-gradient(180deg,#f87171,#dc2626)}
+.lc-barras small{font:700 9.5px Inter,sans-serif;color:#8ea0bf}
+.lc-leg{display:flex;gap:12px;flex-wrap:wrap;margin-top:8px;font:600 10.5px Inter,sans-serif;color:#B9C6E0}
+.lc-leg i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;vertical-align:-1px}
+.lc-rosca{display:flex;align-items:center;gap:12px}
+.lc-rosca svg{flex:none;width:112px;height:112px}
+.lc-rosca ul{margin:0;padding:0;list-style:none;min-width:0;flex:1;font:600 11px Inter,sans-serif;color:#D6DEEE}
+.lc-rosca li{display:flex;gap:6px;align-items:center;margin:3px 0}.lc-rosca li span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.lc-rosca li b{font-variant-numeric:tabular-nums}
+.lc-ali li{display:flex;justify-content:space-between;gap:8px;padding:6px 0;border-bottom:1px solid rgba(120,160,255,.1);font:600 11.5px Inter,sans-serif;color:#D6DEEE}
+.lc-ali{margin:0;padding:0;list-style:none}.lc-ali b{color:#FFB547;font-variant-numeric:tabular-nums;white-space:nowrap}
+/* novo lançamento: passos */
+.lc-passo{margin-bottom:12px}
+.lc-passo h4{margin:0 0 8px;font:800 12px Inter,sans-serif;letter-spacing:.1em;color:#F5F1EA}
+.lc-passo h4 em{font-style:normal;display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;margin-right:6px;border-radius:50%;background:#FFB547;color:#1a1205;font-size:11px}
+.lc-ops{display:grid;grid-template-columns:repeat(auto-fit,minmax(128px,1fr));gap:8px}
+.lc-op{min-width:0;min-height:74px;padding:10px 8px;border-radius:14px;border:1.5px solid rgba(120,160,255,.2);background:rgba(255,255,255,.03);color:#F5F1EA;font:800 11.5px Inter,sans-serif;letter-spacing:.05em;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;text-align:center;touch-action:manipulation}
+.lc-op i{font-style:normal;font-size:22px;line-height:1}
+.lc-op small{font:500 10px/1.25 Inter,sans-serif;letter-spacing:0;color:#8ea0bf}
+.lc-op.on{border-color:var(--c,#FFB547);background:color-mix(in srgb,var(--c,#FFB547) 18%,transparent);box-shadow:0 0 0 1px var(--c,#FFB547)}
+.lc-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.lc-form label{min-width:0;display:block;font:700 10.5px Inter,sans-serif;letter-spacing:.1em;color:#B9C6E0;text-transform:uppercase}
+.lc-form label.cheio{grid-column:1/-1}
+.lc-form input,.lc-form select{display:block;width:100%;box-sizing:border-box;margin-top:4px;min-height:46px;padding:0 12px;border-radius:12px;border:1px solid rgba(120,160,255,.25);background:#0a1020;color:#F5F1EA;font:600 16px Inter,sans-serif;text-transform:none}
+.lc-resumo{margin:10px 0 0;padding:10px 12px;border-radius:12px;background:rgba(255,181,71,.1);border:1px solid rgba(255,181,71,.35);font:600 12.5px/1.45 Inter,sans-serif;color:#ffe2b0}
+/* lista */
+.lc-filtros{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
+.lc-filtros select,.lc-filtros input{min-height:42px;padding:0 10px;border-radius:12px;border:1px solid rgba(120,160,255,.25);background:#0a1020;color:#F5F1EA;font:600 16px Inter,sans-serif;min-width:0}
+.lc-filtros input{flex:1 1 160px}
+.lc-chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.lc-chip{min-height:36px;padding:0 12px;border-radius:999px;border:1px solid rgba(120,160,255,.25);background:transparent;color:#D6DEEE;font:700 11px Inter,sans-serif;letter-spacing:.05em;cursor:pointer}
+.lc-chip.on{background:var(--c,#FFB547);border-color:var(--c,#FFB547);color:#06080D}
+.lc-lista{display:flex;flex-direction:column;gap:6px}
+.lc-dia{margin:10px 0 2px;font:800 10.5px Inter,sans-serif;letter-spacing:.12em;color:#8ea0bf}
+.lc-item{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 10px;align-items:center;padding:10px 12px;border-radius:14px;background:rgba(255,255,255,.03);border:1px solid rgba(120,160,255,.12);border-left:4px solid var(--c)}
+.lc-item .t{min-width:0}
+.lc-item .t b{display:block;font:700 13.5px Inter,sans-serif;color:#F5F1EA;overflow-wrap:anywhere}
+.lc-item .t small{display:block;margin-top:2px;font:500 11px/1.35 Inter,sans-serif;color:#8ea0bf}
+.lc-item .v{font:800 14px Montserrat,Inter,sans-serif;font-variant-numeric:tabular-nums;white-space:nowrap;text-align:right}
+.lc-item .v.e{color:#4ade80}.lc-item .v.s{color:#f87171}.lc-item .v.n{color:#93c5fd}
+.lc-item .a{grid-column:1/-1;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.lc-tag{display:inline-flex;align-items:center;min-height:22px;padding:0 8px;border-radius:999px;font:800 9.5px Inter,sans-serif;letter-spacing:.06em;background:color-mix(in srgb,var(--c) 20%,transparent);color:var(--c);border:1px solid color-mix(in srgb,var(--c) 45%,transparent)}
+.lc-tag.cz{--c:#94a3b8}
+.lc-vazio{padding:22px 14px;border:1px dashed rgba(120,160,255,.25);border-radius:14px;text-align:center;color:#B9C6E0;font:500 13.5px/1.5 Inter,sans-serif}
+.lc-aviso{margin:10px 0;padding:10px 12px;border-radius:12px;font:600 12.5px/1.4 Inter,sans-serif;background:rgba(62,207,142,.12);border:1px solid rgba(62,207,142,.4);color:#9af0c4}
+.lc-aviso.erro{background:rgba(242,104,107,.12);border-color:rgba(242,104,107,.45);color:#ffb3b5}
+.lc-aviso[hidden]{display:none}
+.lc-folha{position:fixed;inset:0;z-index:1300;background:rgba(4,6,10,.72);display:flex;justify-content:flex-end}
+.lc-folha[hidden]{display:none}
+.lc-fx{width:min(520px,100%);height:100%;box-sizing:border-box;overflow:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;background:#0e1524;border-left:1px solid rgba(255,181,71,.4);padding:14px 16px calc(24px + env(safe-area-inset-bottom));padding-top:max(14px,env(safe-area-inset-top));color:#F5F1EA}
+.lc-fx .cab{display:flex;align-items:center;gap:8px;margin-bottom:12px}.lc-fx .cab b{flex:1;font:800 13px Inter,sans-serif;letter-spacing:.1em}
+.lc-linha{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.lc-linha .lc-bt{flex:1 1 auto}
+.lc-nota{margin:8px 0 0;font:500 12px/1.45 Inter,sans-serif;color:#8ea0bf}
+html.lc-aberto,html.lc-aberto body{overflow:hidden}
+@media (max-width:980px){.lc-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.lc-kpis .lc-kpi:last-child{grid-column:1/-1}.lc-meio{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:520px){.lc-form{grid-template-columns:minmax(0,1fr)}.lc-ops{grid-template-columns:repeat(2,minmax(0,1fr))}.lc-kpi b{font-size:17px}}
+</style>
+</head>
+<body>
+<header><div class="hd"><button id="btnVoltar" type="button">‹</button><div id="userBox"></div></div></header>
+<div class="wrap">
+  <div class="lc-topo">
+    <h1><b>LANÇAMENTOS</b> · tudo num lugar só</h1>
+    <select class="lc-bt" id="lcMes" aria-label="Mês dos números" style="padding-right:10px"></select>
+    <button class="lc-bt pri" id="lcNovo" type="button">＋ NOVO LANÇAMENTO</button>
+  </div>
+  <div class="lc-kpis" id="lcKpis"></div>
+  <div class="lc-meio">
+    <div class="lc-cx"><h3 data-seta="lc-meses">ENTRADAS × SAÍDAS · 6 MESES</h3><div><div class="lc-barras" id="lcBarras"></div><div class="lc-leg"><span><i style="background:#22c55e"></i>Entradas</span><span><i style="background:#ef4444"></i>Saídas</span></div></div></div>
+    <div class="lc-cx"><h3 data-seta="lc-nichos">SAÍDAS DO MÊS POR NICHO</h3><div class="lc-rosca" id="lcRosca"></div></div>
+    <div class="lc-cx"><h3 data-seta="lc-alimenta">O QUE ESTES LANÇAMENTOS ALIMENTAM</h3><ul class="lc-ali" id="lcAlimenta"></ul></div>
+  </div>
+  <div class="lc-aviso" id="lcAviso" hidden aria-live="polite"></div>
+  <div class="lc-cx">
+    <h3>TODOS OS LANÇAMENTOS</h3>
+    <div class="lc-chips" id="lcNichos" role="group" aria-label="Filtrar por nicho"></div>
+    <div class="lc-filtros">
+      <select id="lcPeriodo" aria-label="Período da lista"><option value="mes">Só o mês escolhido</option><option value="tudo">Tudo</option></select>
+      <select id="lcTipo" aria-label="Entradas ou saídas"><option value="">Entradas e saídas</option><option value="e">Só entradas</option><option value="s">Só saídas</option></select>
+      <select id="lcOrdem" aria-label="Ordem da lista"><option value="novo">Mais novos primeiro</option><option value="velho">Mais antigos primeiro</option><option value="maior">Maior valor primeiro</option></select>
+      <input id="lcBusca" type="search" placeholder="Procurar (nome, evento, categoria…)" aria-label="Procurar lançamento">
+    </div>
+    <div class="lc-lista" id="lcLista"></div>
+    <p class="lc-nota">Os marcados AUTOMÁTICO nascem de outra tela (cachê da equipe, custo fixo): o botão leva até lá. Todo o resto você altera, muda de lugar ou exclui aqui mesmo.</p>
+  </div>
+</div>
+
+<div class="lc-folha" id="lcFolha" hidden><div class="lc-fx" role="dialog" aria-label="Lançamento">
+  <div class="cab"><b id="lcFxTit">NOVO LANÇAMENTO</b><button class="lc-bt peq" id="lcFxFechar" type="button" aria-label="Fechar">✕</button></div>
+  <div id="lcFxCorpo"></div>
+  <div class="lc-aviso" id="lcFxAviso" hidden aria-live="polite"></div>
+</div></div>
+
+<script src="assets/layout.js?v=53"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="assets/bw-sync.js"></script>
+<script src="assets/lancamentos.js?v=1"></script>
+</body>
+</html>

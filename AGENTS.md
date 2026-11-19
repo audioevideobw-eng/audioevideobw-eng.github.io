@@ -323,6 +323,10 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
     fechadas (data-seta-padrao="fechada"); a seção se abre sozinha quando a pessoa acabou de criar algo nela. No teste, clique na seta antes
     de mexer no que está dentro (elemento escondido não recebe clique).
 
+97. Página que junta dados de várias telas (LANÇAMENTOS) NÃO cria chave nova: lê e grava no formato de cada dona, com um mapa único de destinos
+    (o mesmo para criar, mostrar e mudar de lugar). Mudar de lugar = criar no destino e SÓ ENTÃO apagar a origem. Dado derivado (linhas gasto_/
+    receita_ do fluxo) é refeito pela mesma regra de quem deriva — nunca editado direto; linha automática de outra tela só ganha atalho.
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -1036,8 +1040,22 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   ui_dobras; data-seta-padrao="fechada"; o Início já usava data-dobra para as seções dele — nome diferente de propósito). Já usa: EDITOR DE VÍDEO (caixas MÍDIA e AJUSTES; ajustes em grupos TEXTO, TAMANHO E POSIÇÃO, SOM,
   TEMPO E CAMADA) e PERSONAGENS (FICHA E PROMPT, FOTOS DE REFERÊNCIA, VARIAÇÕES, USAR). Outras páginas com painéis longos (Criador IA, BW Reels,
   orçamentos) ainda não foram agrupadas — basta pôr data-seta no título. fotos.js v13, layout.js v52, brightway.css v28, sw v127. PENTE FINO 96.
+- 18/11/2026 23:40 · Claude (dono, com 2 referências de painel de indicadores: "dificuldade em achar lançamentos… uma página só para lançamentos; botões
+  perguntando de que e onde; lista com todos por data e nicho, vendo o que alimenta os indicadores; editar valores, editar para onde foi e
+  excluir" + "na plataforma e no assistente exe"): PÁGINA LANÇAMENTOS (lancamentos.html + assets/lancamentos.js), item novo do menu logo depois do
+  Início (2ª aba no celular) e o atalho LANÇAMENTOS do Início aponta para ela. ＋ NOVO LANÇAMENTO em passos: O QUE É (GASTEI, RECEBI, CONTA A PAGAR,
+  GUARDEI, INVESTI) → DE ONDE (CASA, NEGÓCIO, EVENTO) → valor/data/nome, com a faixa "vai para… e alimenta…"; LANÇAR E FAZER OUTRO. Grava nos
+  MESMOS lugares das páginas (casa_orcamento, casa_contas, casa_reserva, neg_fluxo, neg_eventos gastos/recebido, inv_lancamentos) com antesDeSalvar
+  — nenhuma chave nova. Custo e recebido de evento são espelhados no fluxo na hora (mesma regra do modules/sincronia). LISTA ÚNICA por data com
+  nicho, "alimenta:", filtros (mês, nicho, entradas/saídas, ordem, busca), ✓ MARCAR PAGA nas contas, ✎ ALTERAR (valor, data, nome e PARA ONDE
+  FOI: casa ↔ negócio ↔ evento ↔ conta, sem lançar de novo) e ✕ excluir com confirmação; cachê da equipe e custo fixo aparecem como AUTOMÁTICO
+  com atalho para onde nascem. No alto: 5 números do mês (entradas, saídas pagas, resultado, a pagar, quantidade), 6 meses, saídas por nicho e
+  quantos lançamentos alimentam cada indicador. docs/testes/teste_lancamentos.py (31 checagens × 1280/390, 0 falhas). NÃO testado na conta real do
+  dono (não mexo nos dados dele sem pedir). Aplicativo 1.2: cartão LANÇAMENTOS + página na cópia sem internet. Manual 47 → 48 p.
+  layout.js v53, sw v128. PENTE FINO 97.
 
 ## Pendências (dono)
+- [ ] (18/11) LANÇAMENTOS: dono usar na conta dele (lançar um gasto, mudar de lugar, excluir um teste) e dizer se falta algum tipo de lançamento.
 - [ ] (18/11) APLICATIVO 1.1: os arquivos novos foram para a pasta do PC; dono abrir pelo ícone BW Reels e conferir PERSONAGENS e EDITOR DE VÍDEO.
 - [ ] (18/11) QUADRO: dono testar no ar, logado — arrastar bolinhas, ✨ PROMPT com 🎙 FALAR no PC e no celular (IA real e microfone de verdade).
 - [ ] (18/11 09:02–09:07, pedidos do dono na fila) EDITOR DE FOTOS: FEITO 10:10 (dono testar no celular: pintar máscara com o dedo e segurar para

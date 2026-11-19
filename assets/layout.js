@@ -53,6 +53,7 @@
 
   var CATEGORIAS = [
     { id: "inicio",  nome: "Início",           href: "./", icon: '<path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/>' },
+    { id: "lanc",    nome: "Lançamentos",       href: "lancamentos.html", icon: '<path d="M12 5v14M5 12h14"/><rect x="3" y="3" width="18" height="18" rx="4"/>' },
     { id: "negocio", nome: "Meu negócio",       href: "negocio.html", icon: '<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>' },
     { id: "casa",    nome: "Gestão de casa",    href: "orcamento.html", icon: '<path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M9 21v-6h6v6"/>' },
     { id: "invest",  nome: "Investimentos",     href: "investimentos-painel.html", icon: '<path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/>' },
@@ -72,6 +73,7 @@
   };
   function categoriaDe(p){
     if (p === "index") return "inicio";
+    if (p === "lancamentos") return "lanc";
     if (["negocio","financeiro-painel","eventos","equipe","leitor","preco","fluxo","custos"].indexOf(p) > -1) return "negocio";
     if (["orcamento","casa","contas","reserva"].indexOf(p) > -1) return "casa";
     if (["investimentos-painel","cambio","comparador","serie","calc","viagem","diario","alertas","evento","milhas","meta","invest","recs","noticias"].indexOf(p) > -1) return "invest";
@@ -83,7 +85,7 @@
   var CAT = categoriaDe(PAGINA);
   var TITULOS = { index:"Início", ferramentas:"Ferramentas", negocio:"Ferramentas do negócio", eventos:"Eventos", evento:"Evento no exterior",
     equipe:"Gestão de pessoas", "financeiro-painel":"Painel Financeiro", financeiro:"Financeiro de eventos", preco:"Calculadora de preço",
-    fluxo:"Fluxo de caixa", custos:"Cachês e custos", orcamento:"Orçamento familiar", casa:"Casa", contas:"Contas a pagar",
+    lancamentos:"Lançamentos", fluxo:"Fluxo de caixa", custos:"Cachês e custos", orcamento:"Orçamento familiar", casa:"Casa", contas:"Contas a pagar",
     reserva:"Reserva de emergência", milhas:"Mercado de milhas", meta:"Meta de milhas",
     comparador:"Comparador de moedas", alertas:"Alertas de preço", cambio:"Câmbio",
     invest:"Simulador de rendimento", "investimentos-painel":"Painel de Investimentos", serie:"Série histórica", diario:"Diário de câmbio", calc:"Calculadora",

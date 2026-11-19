@@ -21,7 +21,7 @@ SAIDA = os.path.abspath(os.path.join(AQUI, "..", "Brightway-Guia-do-usuario.pdf"
 
 # ("base", n) = página n (1 = capa) do base.pdf  ·  "arquivo.html" = página de docs/manual/paginas/
 PLANO = [("base", 1), ("base", 2), ("base", 3), ("base", 4), ("base", 5),
-         "04a-conhecendo-a-tela.html", "04b-agenda.html",
+         "04a-conhecendo-a-tela.html", "04b-agenda.html", "04c-lancamentos.html",
          "05a-meu-negocio.html", "05b-eventos.html", "05c-relatorios-pdf.html", "05d-gestao-de-pessoas.html", "05d2-equipes.html",
          "05b2-leitor-e-agente.html",   # 16/11: substitui a página antiga "Comprovantes pela foto" (base 10)
          "05e-fluxo-de-caixa.html", "05f-caches-e-custos.html", ("base", 12),
