@@ -1,0 +1,27 @@
+{
+ "versao": "1.4",
+ "data": "19/11/2026",
+ "pacote": "downloads/BW-Reels-Studio.zip",
+ "sha256": "92fa68ab20980faf195c346e6c31688a390223e838e89dafa0dee57763bd5b85",
+ "bytes": 8229430,
+ "novidades": [
+  {
+   "titulo": "Agora o app se chama BW",
+   "texto": "Ele não é só de reels: reúne as ferramentas da plataforma Brightway no seu computador."
+  },
+  {
+   "titulo": "Atualizações automáticas",
+   "texto": "Quando sair uma versão nova, o BW avisa assim que tiver internet. Você escolhe ATUALIZAR AGORA ou DEPOIS, e depois de atualizar aparece esta tela com o que mudou."
+  },
+  {
+   "titulo": "Personagens prontos em 3D",
+   "texto": "12 personagens com 5 ângulos cada, para usar no Quadro de História e no BW Reels.",
+   "abrir": "personagens"
+  },
+  {
+   "titulo": "Lançamentos num lugar só",
+   "texto": "Gastos, recebimentos, contas, cachês da equipe e fixos na mesma página.",
+   "abrir": "lancamentos"
+  }
+ ]
+}

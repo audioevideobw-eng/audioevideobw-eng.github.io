@@ -1139,7 +1139,7 @@
     return "Use the reference image: the same character" + (dados.desc ? " (" + dados.desc + ")" : "") + ", same face, design, colors and outfit. " + c.pose + ". " + ACAO_EN[c.acao] +
       ". Vertical 9:16, 5 seconds, smooth cinematic camera movement, natural motion, no text on screen." + (c.fala ? ' The character says in Brazilian Portuguese: "' + c.fala + '"' : "");
   }
-  /* ---------- IA DE VÍDEO CONECTADA (18/11): dentro do aplicativo BW Reels do PC, com a IA que o próprio usuário conectou.
+  /* ---------- IA DE VÍDEO CONECTADA (18/11): dentro do aplicativo BW do PC, com a IA que o próprio usuário conectou.
      A chave fica no PC dele (o site nunca vê); aqui só pedimos ao aplicativo: "gere este clipe". Fora do aplicativo o botão explica onde fica. ---------- */
   var VIA = null;                                   // {modelos:[{id,nome,usd,segs,obs}], padrao}
   var NO_APP = !!(window.BW_APP && window.bwNode);
@@ -1149,7 +1149,7 @@
     var box = $("promptsCenas"), l = P && P.promptsCenas || [];
     if (!l.length) { box.innerHTML = ""; return; }
     var topo = '<div class="rl-eyebrow" style="margin:12px 0 6px">Cenas para a IA de vídeo</div>';
-    if (!NO_APP) topo += '<p class="rl-nota" id="gvEstado">Para gerar o clipe aqui dentro, abra este reel no aplicativo <b>BW Reels</b> do computador e conecte a sua IA em IA DE VÍDEO. Ou copie o texto, gere no site da IA e importe o clipe.</p>';
+    if (!NO_APP) topo += '<p class="rl-nota" id="gvEstado">Para gerar o clipe aqui dentro, abra este reel no aplicativo <b>BW</b> do computador e conecte a sua IA em IA DE VÍDEO. Ou copie o texto, gere no site da IA e importe o clipe.</p>';
     else if (!VIA || !VIA.modelos.length) topo += '<p class="rl-nota" id="gvEstado">Nenhuma IA de vídeo conectada. Toque em <b>⌂ BW REELS</b> › <b>IA DE VÍDEO</b>, conecte a sua e volte aqui. Ou copie o texto e gere fora.</p>';
     else topo += '<div class="rl-campo" id="gvEstado"><label for="gvModelo">IA conectada que vai gerar</label><select id="gvModelo">' + VIA.modelos.map(function (m) { return '<option value="' + esc(m.id) + '"' + (m.id === VIA.padrao ? " selected" : "") + '>' + esc(m.nome) + " · 5 s ≈ " + dolarV(m.usd * 5) + '</option>'; }).join("") + '</select></div>';
     var pode = NO_APP && VIA && VIA.modelos.length;

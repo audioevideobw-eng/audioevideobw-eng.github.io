@@ -302,3 +302,11 @@ Tamanho > 0 e sem erro = o pdfmake montou o arquivo. Localmente (T1) confira o `
   (BWREELS_VIDEO_TESTE) guarda o corpo do pedido para conferir o formato; resultado grande volta pela ponte em base64.
 - Instalador: Inno Setup em pasta de usuário (`{localappdata}`, `PrivilegesRequired=lowest`) porque o app grava projetos e node_modules
   na própria pasta; `robocopy /XD node_modules` monta a pasta limpa antes de compilar.
+
+## Atualização automática do app BW (19/11/2026)
+- Site publica `downloads/app-versao.json` {versao, data, pacote, sha256, bytes, novidades[{titulo, texto, abrir}]} com
+  `python3 docs/automacoes/publicar-app.py --pacote <pasta limpa> --novidades <json>` (zip e json saem juntos — sha sempre bate).
+- App: `checar` (fetch no-store, 9 s) → aviso; `atualizar` recusa pacote fora do site e sha diferente, extrai, acha a pasta com motor/app.mjs,
+  copia sem projetos/node_modules/instalador/site-offline, roda npm install se o package.json mudou, grava novidades-pendentes.json e reabre.
+- Teste: servidor simulado servindo json + zip; pasta "instalada" falsa por BWREELS_RAIZ_ATU_TESTE e HOME de teste; conferir projeto do usuário intacto,
+  pacote adulterado recusado, tutorial uma vez só.

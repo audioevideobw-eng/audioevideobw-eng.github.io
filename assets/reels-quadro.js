@@ -267,7 +267,7 @@
     try { await BWReels.montarDoQuadro(q); } catch (e) { ocupado(); aviso("Não deu para montar: " + (e && e.message || e), true); return; }
     ocupado(); fechar();
     var semImg = q.cenas.filter(function (c) { return !c.imagem && !c.video; }).length;
-    setTimeout(function () { alert("Reel montado com " + q.cenas.length + " cena(s)! Plano: " + res.texto + "." + (p.comIA ? " Textos organizados pela IA Brightway." : " Textos montados no aparelho.") + (res.video ? " As cenas de IA de vídeo já têm o texto pronto na aba MÍDIA: no aplicativo BW Reels do PC, com a sua IA conectada, toque em GERAR O CLIPE AQUI; fora dele, copie o texto, gere no site da IA e importe. Preços de referência de " + VIDEO_IA.conferido + "; confira no site da IA antes de pagar." : semImg ? " " + semImg + " cena(s) sem imagem ficaram com o personagem animado ou só com o texto." : "")); }, 250);
+    setTimeout(function () { alert("Reel montado com " + q.cenas.length + " cena(s)! Plano: " + res.texto + "." + (p.comIA ? " Textos organizados pela IA Brightway." : " Textos montados no aparelho.") + (res.video ? " As cenas de IA de vídeo já têm o texto pronto na aba MÍDIA: no aplicativo BW do PC, com a sua IA conectada, toque em GERAR O CLIPE AQUI; fora dele, copie o texto, gere no site da IA e importe. Preços de referência de " + VIDEO_IA.conferido + "; confira no site da IA antes de pagar." : semImg ? " " + semImg + " cena(s) sem imagem ficaram com o personagem animado ou só com o texto." : "")); }, 250);
   }
 
   /* ---------- abrir / fechar ---------- */

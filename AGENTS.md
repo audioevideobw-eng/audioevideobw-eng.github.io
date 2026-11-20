@@ -347,6 +347,11 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
 103. IMAGEM DA IA RECUSADA ("filtro" / "flagged" da Cloudflare) acontece até com pedido inocente: em lote, se a imagem de FRENTE (a base) falhar, pare os
      ângulos desse personagem (sem a base eles saem como pessoas diferentes) e tente outra descrição. Upload no bucket "trends" com upsert:true dá
      "row-level security" (falta regra de update): use upsert:false.
+104. ATUALIZAÇÃO DO APP BW (PC): o app só instala o que vem do PRÓPRIO site (downloads/app-versao.json + pacote do mesmo endereço) e confere o
+     sha256 antes de copiar; nunca mexe em projetos/, node_modules/ nem ~/.bw-reels; só instala quando a pessoa toca em ATUALIZAR (DEPOIS adia 24 h,
+     o menu Atualizações fica marcado) e a tela O QUE MUDOU aparece uma vez na 1ª abertura da versão nova. Lançar versão = subir VERSAO em
+     motor/app.mjs + `python3 docs/automacoes/publicar-app.py --pacote … --novidades …` (gera o zip e o json juntos). Teste do atualizador NUNCA
+     aponta para a pasta de trabalho (BWREELS_RAIZ_ATU_TESTE): a cópia por cima apagaria o código.
 102. PROMPT IA (promptia.html + assets/promptia.js): biblioteca em public.bw_trends (leitura pública, gravação só is_bw_admin, RLS —
      docs/sql/2026-11-19-prompt-ia.sql) + imagens no bucket público "trends" (só ADM envia); a análise manda a imagem para a bw-ia
      (campo "imagem", modelo com VISÃO da Groq) SÓ depois de confirm(), cópia ≤ 768 px JPEG, nada guardado; o promptia.js nunca grava na
@@ -1164,9 +1169,16 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   BRIGHTWAY NO PC", botão ⌂ BW). CRIAR-ATALHO apaga o ícone antigo "BW Reels" ao criar o novo. Ficaram com o nome antigo: a ferramenta do site
   BW REELS PRO, os nomes internos dos arquivos (BW-REELS.bat, bw-reels.ico) e a pasta bw-reels-studio. AppId do instalador mantido (atualiza
   por cima). teste-app 0 falhas; instalador gerado de novo no PC do dono (4,7 MB). downloads/BW-Setup.exe no lugar do antigo. sw v140.
+- 19/11/2026 23:00 · Claude (dono: "quando houver atualizações o usuário recebe a notificação quando tiver rede, instala se quiser e depois recebe o
+  tutorial do que mudou" + "confira se renomeou na plataforma web"): APP BW 1.4 com ATUALIZAÇÕES (motor/atualizar.mjs): procura ao abrir, a cada 30 min e
+  quando a internet volta; aviso na tela do app (folha com a lista do que vem, ATUALIZAR AGORA / DEPOIS) ou toast nas páginas da plataforma; menu
+  Atualizações com marcador; instala baixando o pacote do site, conferindo sha256, copiando por cima sem tocar em projetos e reabrindo; depois mostra
+  "✨ O que mudou no BW 1.4" com cada novidade abrindo a ferramenta. Site: downloads/app-versao.json + docs/automacoes/publicar-app.py. teste-app.mjs
+  +11 checagens (servidor simulado, pacote adulterado e de fora recusados), 0 falhas. Nome no site: textos do BW Reels Pro, Quadro e manual agora falam
+  do "app BW" (reels.js v16, reels-quadro.js v8). A 1.3 não tem o atualizador: quem instalou a 1.3 instala a 1.4 uma vez pelo BW-Setup.exe. sw v141. PENTE FINO 104.
 
 ## Pendências (dono)
-- [ ] (19/11) INSTALADOR: dono abrir Vídeos\\bw-reels-studio\\instalador\\BW-Setup.exe, avançar até o fim e abrir o ícone BW; dizer se instalou e abriu. Decidir sobre a licença comercial do Inno Setup.
+- [ ] (19/11) INSTALADOR 1.4: gerar de novo no PC (AppVersion 1.4) e o dono instalar; a partir dela as atualizações chegam sozinhas. Antes: dono abrir Vídeos\\bw-reels-studio\\instalador\\BW-Setup.exe, avançar até o fim e abrir o ícone BW; dizer se instalou e abriu. Decidir sobre a licença comercial do Inno Setup.
 - [ ] (19/11) PROMPT IA: dono cadastrar as primeiras trends (＋ NOVA TREND, com a imagem de exemplo) e testar ANALISAR com um print real.
 - [ ] (19/11) PAINEL DA CASA: dono abrir Gestão de casa na conta dele e dizer se quer mais algum dado da casa ali (metas do orçamento, meta da reserva).
 - [ ] (19/11) EVENTO DE VÁRIOS DIAS: dono editar um evento real, preencher "Termina em" e ver o risco na agenda (PC e celular).
