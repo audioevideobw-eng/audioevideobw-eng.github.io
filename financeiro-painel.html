@@ -1,9 +1,11 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" data-amb="pj">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Painel Financeiro — Brightway</title>
+<script>/* cor do ambiente antes de desenhar: ?a=pj|pf, senão o último usado */
+(function(){var a="";try{a=new URLSearchParams(location.search).get("a")||"";if(a!=="pj"&&a!=="pf")a=JSON.parse(localStorage.getItem("ui_amb")||'""');}catch(e){}document.documentElement.setAttribute("data-amb",a==="pf"?"pf":"pj");})();</script>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#06080D">
 <link rel="icon" type="image/png" href="icons/favicon-64.png">
@@ -101,6 +103,22 @@ input.busca{font:inherit;font-size:13px;background:var(--navy2);color:var(--txt)
 .msg{font-size:12px;color:var(--up);margin-top:8px;min-height:1em}
 .hd-logo{flex:1 1 auto;min-width:0;display:flex;justify-content:center}.hd-logo img{height:34px;max-width:100%;object-fit:contain;display:block}
 @media(max-width:560px){.hd-logo img{height:24px}#btnAtualizar{font-size:0;padding:8px 10px}#btnAtualizar::before{content:"↻";font-size:14px}.vivo #vivoTxt{display:none}}
+/* 20/11 (dono): PAINEL PJ (empresa, azul) e PAINEL PF (casa, verde) — abas com dados totalmente separados */
+html[data-amb="pj"]{--amb:#4C8DFF;--amb-2:#8AB4FF;--amb-tinta:#04122e;--amb-rgb:76,141,255}
+html[data-amb="pf"]{--amb:#2FD08A;--amb-2:#7BE8B5;--amb-tinta:#03241a;--amb-rgb:47,208,138}
+html[data-amb]::before{content:"";position:fixed;left:0;right:0;top:0;height:4px;z-index:2000;pointer-events:none;background:linear-gradient(90deg,var(--amb),var(--amb-2),var(--amb));box-shadow:0 0 18px rgba(var(--amb-rgb),.75)}
+[data-amb-cor="pj"]{--c:#4C8DFF;--c2:#8AB4FF;--ct:#04122e;--c-rgb:76,141,255}
+[data-amb-cor="pf"]{--c:#2FD08A;--c2:#7BE8B5;--ct:#03241a;--c-rgb:47,208,138}
+.amb-abas{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:18px 0 0}
+.amb-aba{min-width:0;min-height:60px;padding:8px 14px;border-radius:16px;border:1.5px solid rgba(var(--c-rgb),.4);background:rgba(var(--c-rgb),.07);color:#D6DEEE;font:800 13px Inter,system-ui,sans-serif;letter-spacing:.08em;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:12px;text-decoration:none;text-align:left;touch-action:manipulation}
+.amb-aba svg{flex:none;width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;color:var(--c)}
+.amb-aba span{min-width:0}.amb-aba small{display:block;margin-top:2px;font:600 10.5px Inter,system-ui,sans-serif;letter-spacing:.03em;color:#8ea0bf}
+.amb-aba.on{background:linear-gradient(180deg,var(--c2),var(--c));color:var(--ct);border-color:var(--c);box-shadow:0 14px 30px -14px rgba(var(--c-rgb),.95)}
+.amb-aba.on svg,.amb-aba.on small{color:var(--ct)}
+html[data-amb] .hero{border-color:rgba(var(--amb-rgb),.45);background:radial-gradient(900px 400px at 0% -20%,rgba(var(--amb-rgb),.22),transparent 60%),linear-gradient(180deg,#0a0e19,#0b1220)}
+html[data-amb] .hero h1 span{color:var(--amb)}
+html[data-amb] .hero .take b{color:var(--amb-2)}
+@media (max-width:520px){.amb-aba{min-height:56px;padding:8px;gap:8px;font-size:11px;letter-spacing:.05em}.amb-aba svg{width:22px;height:22px}.amb-aba small{font-size:9.5px}}
 </style>
 </head>
 <body>
@@ -117,6 +135,10 @@ input.busca{font:inherit;font-size:13px;background:var(--navy2);color:var(--txt)
 </div></header>
 
 <main class="wrap">
+  <div class="amb-abas" id="fpAbas" role="tablist" aria-label="Painel de qual ambiente">
+    <a class="amb-aba" role="tab" data-amb="pj" data-amb-cor="pj" href="financeiro-painel.html?a=pj"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M3 12h18"/></svg><span>PAINEL PJ<small>MINHA EMPRESA</small></span></a>
+    <a class="amb-aba" role="tab" data-amb="pf" data-amb-cor="pf" href="financeiro-painel.html?a=pf"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M9 21v-6h6v6"/></svg><span>PAINEL PF<small>MINHA CASA</small></span></a>
+  </div>
   <section class="aviso card" id="semLogin" hidden>
     <h2>Faça login para ver o Painel Financeiro</h2>
     <p>Os dados financeiros são privados: cada conta vê só os próprios números.</p>
@@ -125,11 +147,11 @@ input.busca{font:inherit;font-size:13px;background:var(--navy2);color:var(--txt)
 
   <section class="aviso card" id="semDados" hidden>
     <h2>Seu painel aparece aqui</h2>
-    <p>Lance entradas e saídas no <b>FLUXO DE CAIXA</b> ou registre seus <b>EVENTOS</b> (recebido, gastos e cachês da equipe). O painel monta os números sozinho.</p>
+    <p id="semDadosTxt">Lance entradas e saídas nos <b>LANÇAMENTOS PJ</b> ou registre seus <b>EVENTOS</b> (recebido, gastos e cachês da equipe). O painel monta os números sozinho.</p>
     <div class="acoes" style="justify-content:center">
-      <a class="btn" href="lancamentos.html">LANÇAMENTOS</a>
-      <a class="btn" href="eventos.html">EVENTOS</a>
-      <button class="btn" type="button" data-acao="enviar">ENVIAR PLANILHA</button>
+      <a class="btn" id="semDadosLanc" href="lancamentos.html?a=pj">LANÇAMENTOS PJ</a>
+      <a class="btn" data-so="pj" href="eventos.html">EVENTOS</a>
+      <button class="btn" type="button" data-acao="enviar" data-so="pj">ENVIAR PLANILHA</button>
       <button class="btn" type="button" id="verGoogle" hidden>VER PLANILHA GOOGLE</button>
     </div>
     <div class="msg" id="msgVazio"></div>
@@ -138,7 +160,7 @@ input.busca{font:inherit;font-size:13px;background:var(--navy2);color:var(--txt)
 
   <div id="painel" hidden>
     <section class="hero">
-      <h1>PAINEL <span>FINANCEIRO</span></h1>
+      <h1>PAINEL <span id="tituloAmb">PJ</span> <small id="tituloSub" style="font-size:.5em;letter-spacing:.14em;color:var(--mut);font-weight:700">MINHA EMPRESA</small></h1>
       <p id="subtitulo">Montado com os seus lançamentos da plataforma · atualiza sozinho</p>
       <p class="take" id="frase">—</p>
       <div class="filtros">
@@ -147,12 +169,13 @@ input.busca{font:inherit;font-size:13px;background:var(--navy2);color:var(--txt)
         <span class="seg" id="fonteSeg" hidden><button type="button" data-fonte="plataforma">PLATAFORMA</button><button type="button" data-fonte="google">PLANILHA GOOGLE</button></span>
         <span class="muted" style="font-size:12px" id="atualizadoEm"></span>
       </div>
-      <div class="demo" id="demoAviso" hidden><b>EXEMPLO</b><span>Estes números são de um negócio fictício, só para você ver como o painel fica. Eles somem sozinhos no seu primeiro lançamento.</span>
-        <a class="btn" href="lancamentos.html?novo=1">COMEÇAR NOS LANÇAMENTOS</a><a class="btn" href="eventos.html">EVENTOS</a></div>
+      <div class="demo" id="demoAviso" hidden><b>EXEMPLO</b><span id="demoTxt">Estes números são de um negócio fictício, só para você ver como o painel fica. Eles somem sozinhos no seu primeiro lançamento.</span>
+        <a class="btn" id="demoLanc" href="lancamentos.html?a=pj&amp;novo=1">COMEÇAR NOS LANÇAMENTOS</a><a class="btn" data-so="pj" href="eventos.html">EVENTOS</a></div>
       <div class="acoes">
+        <a class="btn" id="irLanc" href="lancamentos.html?a=pj">▤ LANÇAMENTOS PJ</a>
         <button class="btn" type="button" data-acao="baixar">⬇ BAIXAR PLANILHA</button>
-        <button class="btn" type="button" data-acao="enviar">⬆ ENVIAR PLANILHA</button>
-        <button class="btn" type="button" id="btnAjuda">? COMO FUNCIONA</button>
+        <button class="btn" type="button" data-acao="enviar" data-so="pj">⬆ ENVIAR PLANILHA</button>
+        <button class="btn" type="button" id="btnAjuda" data-so="pj">? COMO FUNCIONA</button>
       </div>
       <div class="msg" id="msgPlanilha"></div>
       <div class="previa" id="previa" hidden></div>
@@ -170,24 +193,24 @@ input.busca{font:inherit;font-size:13px;background:var(--navy2);color:var(--txt)
     </section>
 
     <section class="grid kpis" id="kpis">
-      <div class="card"><span class="barra" style="background:var(--ciano);box-shadow:0 0 12px var(--ciano)"></span><div class="kl">Receita</div><div class="kv" id="kReceita">—</div><div class="ks">pagamentos de clientes</div></div>
-      <div class="card"><span class="barra" style="background:var(--rosa);box-shadow:0 0 12px var(--rosa)"></span><div class="kl">Custos dos eventos</div><div class="kv" id="kCustos">—</div><div class="ks">equipe, fornecedores e aluguel</div></div>
-      <div class="card"><span class="barra" style="background:var(--roxo);box-shadow:0 0 12px var(--roxo)"></span><div class="kl">Despesas e contas</div><div class="kv" id="kDespesas">—</div><div class="ks">inclui compra de equipamento</div></div>
-      <div class="card"><span class="barra" style="background:var(--up);box-shadow:0 0 12px var(--up)"></span><div class="kl">Lucro da empresa</div><div class="kv" id="kLucro">—</div><div class="ks">receita − custos − despesas</div></div>
-      <div class="card"><span class="barra" style="background:var(--azul);box-shadow:0 0 12px var(--azul)"></span><div class="kl">Pró-labore e pessoal</div><div class="kv" id="kSocio">—</div><div class="ks">pró-labore, casa e gastos pessoais</div></div>
-      <div class="card"><span class="barra" style="background:var(--gold);box-shadow:0 0 12px var(--gold)"></span><div class="kl">Sobra no período</div><div class="kv" id="kSaldo">—</div><div class="ks">depois de investimentos e pró-labore</div></div>
+      <div class="card"><span class="barra" style="background:var(--ciano);box-shadow:0 0 12px var(--ciano)"></span><div class="kl" data-pf="Receitas da casa">Receita</div><div class="kv" id="kReceita">—</div><div class="ks" data-pf="salário e outras rendas da família">pagamentos de clientes</div></div>
+      <div class="card"><span class="barra" style="background:var(--rosa);box-shadow:0 0 12px var(--rosa)"></span><div class="kl" data-pf="Contas pagas">Custos dos eventos</div><div class="kv" id="kCustos">—</div><div class="ks" data-pf="luz, água, cartão e outras com vencimento">equipe, fornecedores e aluguel</div></div>
+      <div class="card"><span class="barra" style="background:var(--roxo);box-shadow:0 0 12px var(--roxo)"></span><div class="kl" data-pf="Gastos do dia a dia">Despesas e contas</div><div class="kv" id="kDespesas">—</div><div class="ks" data-pf="mercado, lazer, transporte…">inclui compra de equipamento</div></div>
+      <div class="card"><span class="barra" style="background:var(--up);box-shadow:0 0 12px var(--up)"></span><div class="kl" data-pf="Sobrou no período">Lucro da empresa</div><div class="kv" id="kLucro">—</div><div class="ks" data-pf="receitas − contas − gastos">receita − custos − despesas</div></div>
+      <div class="card"><span class="barra" style="background:var(--azul);box-shadow:0 0 12px var(--azul)"></span><div class="kl" data-pf="Guardado na reserva">Pró-labore e retiradas</div><div class="kv" id="kSocio">—</div><div class="ks" data-pf="aportes na reserva de emergência">o que os sócios tiraram da empresa</div></div>
+      <div class="card"><span class="barra" style="background:var(--gold);box-shadow:0 0 12px var(--gold)"></span><div class="kl" data-pf="Saldo livre">Sobra no período</div><div class="kv" id="kSaldo">—</div><div class="ks" data-pf="depois de guardar na reserva">depois de investimentos e pró-labore</div></div>
     </section>
 
     <section class="grid tres" id="aneis">
-      <div class="card anel"><svg width="82" height="82" viewBox="0 0 82 82" id="aMargem" role="img" aria-label="Margem de lucro"></svg><div><div class="kl">Margem de lucro</div><div class="ks">quanto da receita vira lucro</div></div></div>
-      <div class="card anel"><svg width="82" height="82" viewBox="0 0 82 82" id="aEquip" role="img" aria-label="Reinvestido em equipamento"></svg><div><div class="kl">Reinvestido em equipamento</div><div class="ks">parte da receita usada em equipamento</div></div></div>
-      <div class="card anel"><svg width="82" height="82" viewBox="0 0 82 82" id="aTop2" role="img" aria-label="Dependência dos 2 maiores clientes"></svg><div><div class="kl">Dependência dos 2 maiores clientes</div><div class="ks">parte da receita dos dois que mais pagam</div></div></div>
+      <div class="card anel"><svg width="82" height="82" viewBox="0 0 82 82" id="aMargem" role="img" aria-label="Margem de lucro"></svg><div><div class="kl" data-pf="Quanto sobra da renda">Margem de lucro</div><div class="ks" data-pf="parte das receitas que não foi gasta">quanto da receita vira lucro</div></div></div>
+      <div class="card anel"><svg width="82" height="82" viewBox="0 0 82 82" id="aEquip" role="img" aria-label="Reinvestido em equipamento"></svg><div><div class="kl" data-pf="Guardado na reserva">Reinvestido em equipamento</div><div class="ks" data-pf="parte das receitas que foi para a reserva">parte da receita usada em equipamento</div></div></div>
+      <div class="card anel"><svg width="82" height="82" viewBox="0 0 82 82" id="aTop2" role="img" aria-label="Dependência dos 2 maiores clientes"></svg><div><div class="kl" data-pf="Peso das contas a pagar">Dependência dos 2 maiores clientes</div><div class="ks" data-pf="parte das receitas que vai para contas com vencimento">parte da receita dos dois que mais pagam</div></div></div>
     </section>
 
     <section class="grid dois">
       <div class="card">
-        <h2>Receita × saídas por mês</h2><p class="cap">Saídas = custos dos eventos + despesas e contas</p>
-        <div class="legenda"><span><i class="dot" style="background:#3FD0E0"></i>Receita</span><span><i class="dot" style="background:#f472b6"></i>Saídas</span><span><i class="dot" style="background:#3ecf8e"></i>Lucro do mês</span></div>
+        <h2 data-pf="Receitas × saídas por mês">Receita × saídas por mês</h2><p class="cap" data-pf="Saídas = contas pagas + gastos do dia a dia">Saídas = custos dos eventos + despesas e contas</p>
+        <div class="legenda"><span><i class="dot" style="background:#3FD0E0"></i>Receita</span><span><i class="dot" style="background:#f472b6"></i>Saídas</span><span><i class="dot" style="background:#3ecf8e"></i><span data-pf="Sobra do mês">Lucro do mês</span></span></div>
         <div class="graf"><canvas id="gMensal" role="img" aria-label="Receita, saídas e lucro por mês"></canvas></div>
       </div>
       <div class="card">
@@ -197,11 +220,11 @@ input.busca{font:inherit;font-size:13px;background:var(--navy2);color:var(--txt)
     </section>
 
     <section class="grid dois">
-      <div class="card"><h2>Maiores clientes</h2><p class="cap">Receita do período por cliente</p><div id="bClientes"></div></div>
-      <div class="card"><h2>Maiores saídas por categoria</h2><p class="cap">Sem valores de terceiros e aplicações resgatadas</p><div id="bCategorias"></div></div>
+      <div class="card"><h2 data-pf="De onde veio o dinheiro">Maiores clientes</h2><p class="cap" data-pf="Receitas do período por fonte">Receita do período por cliente</p><div id="bClientes"></div></div>
+      <div class="card"><h2>Maiores saídas por categoria</h2><p class="cap" data-pf="Contas pagas e gastos, por categoria">Sem valores de terceiros e aplicações resgatadas</p><div id="bCategorias"></div></div>
     </section>
 
-    <section class="card" style="margin-top:14px">
+    <section class="card" style="margin-top:14px" data-so="pj">
       <h2>Pagamentos de eventos</h2><p class="cap" id="capEventos">Recebimentos dos seus eventos</p>
       <div class="grid tres" style="margin-top:4px">
         <div class="card"><div class="kl">Pagamentos</div><div class="kv" id="eQtd">—</div></div>
@@ -209,7 +232,7 @@ input.busca{font:inherit;font-size:13px;background:var(--navy2);color:var(--txt)
         <div class="card"><div class="kl">Ticket médio</div><div class="kv" id="eTicket">—</div></div>
       </div>
       <p class="cap" style="margin:12px 0 10px">A lista com cada pagamento saiu daqui: agora fica junto de todos os outros lançamentos, onde dá para alterar, mudar de lugar e excluir.</p>
-      <a class="bt" id="verLancamentos" href="lancamentos.html?nicho=evento&amp;tipo=e&amp;periodo=tudo" style="display:inline-flex;align-items:center;min-height:44px;padding:0 16px;border-radius:12px;background:linear-gradient(180deg,#ffc56b,#FFB547);color:#1a1205;font:800 12px Inter,sans-serif;letter-spacing:.07em;text-decoration:none">VER OS PAGAMENTOS NOS LANÇAMENTOS ↗</a>
+      <a class="bt" id="verLancamentos" href="lancamentos.html?a=pj&amp;nicho=evento&amp;tipo=e&amp;periodo=tudo" style="display:inline-flex;align-items:center;min-height:44px;padding:0 16px;border-radius:12px;background:linear-gradient(180deg,#ffc56b,#FFB547);color:#1a1205;font:800 12px Inter,sans-serif;letter-spacing:.07em;text-decoration:none">VER OS PAGAMENTOS NOS LANÇAMENTOS ↗</a>
     </section>
   </div>
 </main>
@@ -231,6 +254,51 @@ input.busca{font:inherit;font-size:13px;background:var(--navy2);color:var(--txt)
   var reduz = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   var LANC = [], EVENTOS = [], META = null, gM = null, gD = null;
+  /* 20/11 (decisão do dono): PJ e PF NÃO se misturam. PAINEL PJ lê só a empresa (neg_fluxo + neg_eventos, e a planilha Google do ADM);
+     PAINEL PF lê só a casa (casa_orcamento + casa_contas pagas + casa_reserva). Trocar de aba troca os dados inteiros. */
+  var AMB = document.documentElement.getAttribute("data-amb") === "pf" ? "pf" : "pj", PF = AMB === "pf";
+  function aplicarAmb() {
+    PF = AMB === "pf"; document.documentElement.setAttribute("data-amb", AMB);
+    try { localStorage.setItem("ui_amb", JSON.stringify(AMB)); } catch (e) { }
+    [].forEach.call(document.querySelectorAll("#fpAbas [data-amb]"), function (b) { var on = b.getAttribute("data-amb") === AMB; b.classList.toggle("on", on); b.setAttribute("aria-selected", String(on)); });
+    [].forEach.call(document.querySelectorAll("[data-so]"), function (el) { el.hidden = el.getAttribute("data-so") !== AMB; });
+    [].forEach.call(document.querySelectorAll("[data-pf]"), function (el) { if (!el.hasAttribute("data-pj")) el.setAttribute("data-pj", el.textContent); el.textContent = el.getAttribute(PF ? "data-pf" : "data-pj"); });
+    $("tituloAmb").textContent = PF ? "PF" : "PJ"; $("tituloSub").textContent = PF ? "MINHA CASA" : "MINHA EMPRESA";
+    document.title = (PF ? "Painel PF (minha casa)" : "Painel PJ (minha empresa)") + " — Brightway";
+    var lk = "lancamentos.html?a=" + AMB, rot = PF ? "LANÇAMENTOS PF" : "LANÇAMENTOS PJ";
+    $("irLanc").href = lk; $("irLanc").textContent = "▤ " + rot; $("semDadosLanc").href = lk; $("semDadosLanc").textContent = rot; $("demoLanc").href = lk + "&novo=1";
+    $("semDadosTxt").innerHTML = PF ? "Lance os gastos e as receitas da família nos <b>LANÇAMENTOS PF</b>, as contas com vencimento e o que guardou na reserva. O painel monta os números sozinho."
+      : "Lance entradas e saídas nos <b>LANÇAMENTOS PJ</b> ou registre seus <b>EVENTOS</b> (recebido, gastos e cachês da equipe). O painel monta os números sozinho.";
+    $("demoTxt").textContent = PF ? "Estes números são de uma casa fictícia, só para você ver como o painel fica. Eles somem sozinhos no seu primeiro lançamento."
+      : "Estes números são de um negócio fictício, só para você ver como o painel fica. Eles somem sozinhos no seu primeiro lançamento.";
+    $("ajuda").hidden = true; $("previa").hidden = true; $("msgPlanilha").textContent = "";
+    try { var u = new URL(location.href); if (u.searchParams.get("a") !== AMB) { u.searchParams.set("a", AMB); history.replaceState(null, "", u.pathname + u.search + u.hash); } } catch (e) { }
+  }
+  /* a casa → linhas do painel (mesmos grupos do desenho: Receita · contas pagas · gastos · reserva) */
+  function montarCasa() {
+    var hoje = hojeISO(), L = [];
+    ler("casa_orcamento").forEach(function (x) { if (!x) return; var d = x.data || (x.c4 ? x.c4 + "-01" : ""), v = num(x.c3); if (!d || String(d) > hoje || !v) return; var rec = x.c2 === "Receita";
+      L.push({data: d, descricao: x.c0 || "", valor: rec ? v : -v, quem: x.c0 || (rec ? "Receita" : "Gasto"), categoria: x.c1 || "Outros", grupo: rec ? "Receita" : "Despesas e contas"}); });
+    ler("casa_contas").forEach(function (x) { if (!x) return; var d = String(x.c2 || "").slice(0, 10), v = num(x.c1); if (!d || d > hoje || !v || String(x.c3 || "").toLowerCase().indexOf("s") !== 0) return;
+      L.push({data: d, descricao: x.c0 || "", valor: -v, quem: x.c0 || "Conta", categoria: x.c0 || "Conta paga", grupo: "Custos dos eventos"}); });
+    ler("casa_reserva").forEach(function (x) { if (!x) return; var d = /^\d{4}-\d{2}$/.test(x.c0 || "") ? x.c0 + "-01" : String(x.c0 || ""), v = num(x.c1); if (!d || d > hoje || !v) return;
+      L.push({data: d, descricao: "Guardado na reserva", valor: -v, quem: "Reserva", categoria: "Reserva de emergência", grupo: "Sócio"}); });
+    L.forEach(function (r) { r.mes = per(r.data); });
+    return {L: L, E: []};
+  }
+  function exemploCasa() {   /* casa fictícia para quem ainda não lançou nada (só na tela, nunca gravado) */
+    var hoje = new Date(), L = [];
+    for (var k = 5; k >= 0; k--) {
+      var d = new Date(hoje.getFullYear(), hoje.getMonth() - k, 1), ano = d.getFullYear(), mes = d.getMonth() + 1;
+      var dia = function (n) { return ano + "-" + ("0" + mes).slice(-2) + "-" + ("0" + Math.min(n, k === 0 ? Math.max(1, hoje.getDate()) : 28)).slice(-2); };
+      var add = function (data, grupo, categoria, quem, valor) { L.push({data: data, mes: per(data), grupo: grupo, categoria: categoria, quem: quem, descricao: quem, valor: Math.round(valor)}); };
+      add(dia(5), "Receita", "Salário", "Salário", 5200); if (k % 2 === 0) add(dia(18), "Receita", "Renda extra", "Renda extra", 800);
+      add(dia(8), "Custos dos eventos", "Aluguel", "Aluguel", -1500); add(dia(10), "Custos dos eventos", "Conta de luz", "Conta de luz", -210 - k * 6); add(dia(12), "Custos dos eventos", "Internet", "Internet", -110);
+      add(dia(9), "Despesas e contas", "Alimentação", "Mercado", -1150 - k * 20); add(dia(14), "Despesas e contas", "Transporte", "Combustível", -380); add(dia(20), "Despesas e contas", "Lazer", "Lazer", -320); add(dia(22), "Despesas e contas", "Saúde", "Farmácia", -140);
+      add(dia(25), "Sócio", "Reserva de emergência", "Reserva", -400);
+    }
+    return {L: L, E: []};
+  }
   var G_LANC = [], G_EVENTOS = [], FONTE = "plataforma";
   var hojeISO = function () { var d = new Date(); return d.getFullYear() + "-" + ("0" + (d.getMonth() + 1)).slice(-2) + "-" + ("0" + d.getDate()).slice(-2); };
   var num = function (v) { if (typeof v === "number") return v; var t = String(v == null ? "" : v).trim(); if (/,\d{1,2}$/.test(t)) t = t.replace(/\./g, "").replace(",", "."); return parseFloat(t.replace(/[^0-9.\-]/g, "")) || 0; };
@@ -339,7 +407,16 @@ input.busca{font:inherit;font-size:13px;background:var(--navy2);color:var(--txt)
     if (!silencioso) document.body.classList.add("carregando");
     try {
       if (window.BWSync && BWSync.sincronizar) {
-        try { await Promise.race([BWSync.sincronizar(["neg_fluxo", "neg_eventos", "neg_equipe_pagamentos", "neg_fixos"]), new Promise(function (ok) { setTimeout(ok, 6000); })]); } catch (e) { }
+        try { await Promise.race([BWSync.sincronizar(PF ? ["casa_orcamento", "casa_contas", "casa_reserva"] : ["neg_fluxo", "neg_eventos", "neg_equipe_pagamentos", "neg_fixos"]), new Promise(function (ok) { setTimeout(ok, 6000); })]); } catch (e) { }
+      }
+      if (PF) {   /* PAINEL PF: só a casa. Nada da empresa nem da planilha Google do ADM entra aqui. */
+        var casa = montarCasa(), demoC = false;
+        if (!casa.L.length && !ler("casa_orcamento").length && !ler("casa_contas").length && !ler("casa_reserva").length) { casa = exemploCasa(); demoC = true; }
+        LANC = casa.L; EVENTOS = []; FONTE = "plataforma";
+        $("demoAviso").hidden = !demoC; $("fonteSeg").hidden = true; $("verGoogle").hidden = true;
+        $("subtitulo").textContent = "Montado com os lançamentos da casa (gastos e receitas da família, contas pagas e reserva) · só o que já aconteceu";
+        if (!LANC.length) { $("semDados").hidden = false; $("painel").hidden = true; return; }
+        $("semDados").hidden = true; $("painel").hidden = false; periodos(); desenhar(); return;
       }
       var res = await Promise.all([lerTudo("fin_lancamentos", "id"), lerTudo("fin_eventos", "id"), sb.from("fin_sync_meta").select("*").maybeSingle()]);
       G_LANC = res[0].map(function (r) { r.valor = Number(r.valor) || 0; r.mes = per(r.data) || r.mes; return r; });
@@ -408,15 +485,23 @@ input.busca{font:inherit;font-size:13px;background:var(--navy2);color:var(--txt)
     L.filter(function (r) { return r.categoria === "Receita de cliente"; }).forEach(function (r) {
       var k = nomeCliente(r.quem); porCli[k] = porCli[k] || {v: 0, n: 0}; porCli[k].v += r.valor; porCli[k].n++;
     });
+    if (PF) { porCli = {}; L.filter(function (r) { return r.grupo === "Receita"; }).forEach(function (r) { var k = nomeCliente(r.quem); porCli[k] = porCli[k] || {v: 0, n: 0}; porCli[k].v += r.valor; porCli[k].n++; }); }
     var cli = Object.keys(porCli).map(function (k) { return {nome: k, v: porCli[k].v, n: porCli[k].n}; }).sort(function (a, b) { return b.v - a.v; });
     var top2 = cli.filter(function (x) { return x.nome !== "Outras entradas"; }).slice(0, 2).reduce(function (s, x) { return s + x.v; }, 0);
     var p = function (v) { return receita ? v / receita * 100 : 0; };
     anel("aMargem", p(lucro), "#3ecf8e");
-    anel("aEquip", p(equip), "#a78bfa");
-    anel("aTop2", p(top2), "#3FD0E0");
+    anel("aEquip", p(PF ? socio : equip), "#a78bfa");
+    anel("aTop2", p(PF ? custos : top2), "#3FD0E0");
 
     var periodoTxt = mes ? "Em " + perNome(mes) : "No período todo";
-    $("frase").replaceChildren(
+    if (PF) $("frase").replaceChildren(
+      document.createTextNode(periodoTxt + " a casa recebeu "), b(brl(receita)),
+      document.createTextNode(", pagou "), b(brl(custos + despesas)),
+      document.createTextNode(" em contas e gastos, guardou "), b(brl(socio)),
+      document.createTextNode(" na reserva e ficou com "), b(brl(saldo)),
+      document.createTextNode(" de saldo livre.")
+    );
+    else $("frase").replaceChildren(
       document.createTextNode(periodoTxt + " a empresa faturou "), b(brl(receita)),
       document.createTextNode(", lucrou "), b(brl(lucro)),
       document.createTextNode(" (" + pct(p(lucro)) + " da receita) e a conta fechou com "), b(brl(saldo)),
@@ -425,7 +510,7 @@ input.busca{font:inherit;font-size:13px;background:var(--navy2);color:var(--txt)
 
     mensal();
     destinos(custos, socio, equip, invest, despesas - equip);
-    barras("bClientes", cli.slice(0, 8).map(function (x) { return {nome: x.nome, v: x.v, extra: x.n + " pagamentos"}; }), "#3FD0E0", "#a78bfa");
+    barras("bClientes", cli.slice(0, 8).map(function (x) { return {nome: x.nome, v: x.v, extra: x.n + (PF ? " lançamentos" : " pagamentos")}; }), "#3FD0E0", "#a78bfa");
     var cat = {};
     L.filter(function (r) { return r.valor < 0 && r.grupo !== "Terceiros" && !/RDC/.test(r.categoria || ""); }).forEach(function (r) {
       var k = r.categoria || "Outros"; cat[k] = (cat[k] || 0) - r.valor;
@@ -469,9 +554,9 @@ input.busca{font:inherit;font-size:13px;background:var(--navy2);color:var(--txt)
     var cfg = {
       type: "line",
       data: {labels: linhas.map(function (x) { return perNome(x.m); }), datasets: [
-        serie("Receita", linhas.map(function (x) { return x.rec; }), "#3FD0E0", true),
+        serie(PF ? "Receitas" : "Receita", linhas.map(function (x) { return x.rec; }), "#3FD0E0", true),
         serie("Saídas", linhas.map(function (x) { return x.sai; }), "#f472b6", false),
-        Object.assign(serie("Lucro do mês", linhas.map(function (x) { return x.luc; }), "#3ecf8e", false), {borderDash: [6, 4]})
+        Object.assign(serie(PF ? "Sobra do mês" : "Lucro do mês", linhas.map(function (x) { return x.luc; }), "#3ecf8e", false), {borderDash: [6, 4]})
       ]},
       options: {
         responsive: true, maintainAspectRatio: false, animation: reduz ? false : {duration: 900},
@@ -489,6 +574,7 @@ input.busca{font:inherit;font-size:13px;background:var(--navy2);color:var(--txt)
           var px = ch.scales.x.getPixelForValue(i), x = ch.ctx; x.save(); x.strokeStyle = "rgba(255,181,71,.6)"; x.setLineDash([3, 3]);
           x.beginPath(); x.moveTo(px, ch.chartArea.top); x.lineTo(px, ch.chartArea.bottom); x.stroke(); x.restore(); }}]
     };
+    if (!window.Chart) return;   /* sem internet para a biblioteca de gráficos: os números continuam; só o gráfico não aparece */
     if (gM) gM.destroy();
     gM = new Chart($("gMensal"), cfg);
   }
@@ -501,12 +587,13 @@ input.busca{font:inherit;font-size:13px;background:var(--navy2);color:var(--txt)
   }
 
   function destinos(custos, socio, equip, invest, outras) {
-    var d = [["Equipe, fornecedores e aluguel", custos, "#f472b6"], ["Pró-labore e gastos pessoais", socio, "#60a5fa"], ["Compra de equipamento", equip, "#a78bfa"],
-      ["Investimentos", invest, "#FFB547"], ["Contas e outras despesas", outras, "#3ecf8e"]].filter(function (x) { return x[1] > 0; });
+    var d = (PF ? [["Contas pagas", custos, "#f472b6"], ["Gastos do dia a dia", outras, "#3ecf8e"], ["Guardado na reserva", socio, "#60a5fa"]]
+      : [["Equipe, fornecedores e aluguel", custos, "#f472b6"], ["Pró-labore e retiradas", socio, "#60a5fa"], ["Compra de equipamento", equip, "#a78bfa"],
+      ["Investimentos", invest, "#FFB547"], ["Contas e outras despesas", outras, "#3ecf8e"]]).filter(function (x) { return x[1] > 0; });
     var tot = d.reduce(function (s, x) { return s + x[1]; }, 0) || 1;
     $("totSaidas").textContent = brl(tot);
     if (gD) gD.destroy();
-    gD = new Chart($("gDestino"), {type: "doughnut",
+    if (window.Chart) gD = new Chart($("gDestino"), {type: "doughnut",
       data: {labels: d.map(function (x) { return x[0]; }), datasets: [{data: d.map(function (x) { return Math.round(x[1]); }), backgroundColor: d.map(function (x) { return x[2]; }), borderColor: "#11141B", borderWidth: 3, hoverOffset: 6}]},
       options: {cutout: "72%", responsive: true, maintainAspectRatio: false, animation: reduz ? false : {duration: 900},
         plugins: {legend: {display: false}, tooltip: {backgroundColor: "#0b1220", borderColor: "#3FD0E0", borderWidth: 1,
@@ -565,7 +652,25 @@ input.busca{font:inherit;font-size:13px;background:var(--navy2);color:var(--txt)
       document.head.append(s);
     });
   }
+  async function baixarCasa() {   /* PAINEL PF: planilha só com os lançamentos da casa (para conferir ou guardar) */
+    aviso("Montando a planilha…");
+    try {
+      var X = await carregarXLSX(), linhas = [];
+      ler("casa_orcamento").forEach(function (x) { if (x) linhas.push([x.data || (x.c4 ? x.c4 + "-01" : ""), x.c2 === "Receita" ? "Receita" : "Gasto", num(x.c3), x.c0 || "", x.c1 || "", "Orçamento da casa"]); });
+      ler("casa_contas").forEach(function (x) { if (x) linhas.push([String(x.c2 || "").slice(0, 10), "Conta a pagar", num(x.c1), x.c0 || "", String(x.c3 || "").toLowerCase().indexOf("s") === 0 ? "Paga" : "Em aberto", "Contas a pagar"]); });
+      ler("casa_reserva").forEach(function (x) { if (x) linhas.push([/^\d{4}-\d{2}$/.test(x.c0 || "") ? x.c0 + "-01" : (x.c0 || ""), "Reserva", num(x.c1), "Guardado na reserva", "", "Reserva de emergência"]); });
+      linhas.sort(function (a, b) { return String(a[0]).localeCompare(String(b[0])); });
+      linhas = linhas.map(function (l) { if (/^\d{4}-\d{2}-\d{2}/.test(l[0])) l[0] = new Date(l[0] + "T12:00:00"); return l; });
+      var wb = X.utils.book_new(), ws = X.utils.aoa_to_sheet([["Data", "Tipo", "Valor", "O que foi", "Categoria / situação", "Onde está"]].concat(linhas), {cellDates: true});
+      ws["!cols"] = [{wch: 12}, {wch: 14}, {wch: 12}, {wch: 34}, {wch: 22}, {wch: 22}];
+      for (var i = 1; i <= linhas.length; i++) { var c = ws[X.utils.encode_cell({r: i, c: 0})]; if (c && c.t === "d") c.z = "dd/mm/yyyy"; var v = ws[X.utils.encode_cell({r: i, c: 2})]; if (v) v.z = "#,##0.00"; }
+      X.utils.book_append_sheet(wb, ws, "Casa (PF)");
+      X.writeFile(wb, "Brightway-casa-PF-" + hojeISO() + ".xlsx");
+      aviso("✓ Planilha da casa baixada (" + linhas.length + " lançamentos).");
+    } catch (e) { aviso(e.message || String(e), true); }
+  }
   async function baixar() {
+    if (PF) return baixarCasa();
     aviso("Montando a planilha…");
     try {
       var X = await carregarXLSX();
@@ -657,9 +762,13 @@ input.busca{font:inherit;font-size:13px;background:var(--navy2);color:var(--txt)
     carregar().then(function () { aviso("✓ Gravado: " + p.novos.length + " novos, " + p.alterados.length + " alterados, " + p.apagar.length + " apagados."); });
   }
   [].forEach.call(document.querySelectorAll("[data-acao]"), function (bt) {
-    bt.onclick = function () { if (bt.dataset.acao === "baixar") baixar(); else $("arqPlanilha").click(); };
+    bt.onclick = function () { if (bt.dataset.acao === "baixar") baixar(); else if (!PF) $("arqPlanilha").click(); };
   });
-  $("arqPlanilha").onchange = function () { var f = this.files && this.files[0]; if (f) lerArquivo(f); };
+  $("arqPlanilha").onchange = function () { var f = this.files && this.files[0]; if (f && !PF) lerArquivo(f); };
+  $("fpAbas").addEventListener("click", function (e) { var bt = e.target.closest("[data-amb]"); if (!bt) return; e.preventDefault(); var a = bt.getAttribute("data-amb"); if (a === AMB) return;
+    AMB = a; aplicarAmb(); $("fPeriodo").value = ""; LANC = []; EVENTOS = []; carregar(); });
+  aplicarAmb();
+  window.__painel = {amb: function () { return AMB; }, linhas: function () { return LANC.slice(); }, montarCasa: montarCasa, montarNativo: montarNativo};
 
   iniciar();
 })();

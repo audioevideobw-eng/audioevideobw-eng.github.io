@@ -339,8 +339,8 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
      Início, agenda de EVENTOS, sino, Tio Cláudio) percorre de data a dataFim; na agenda a CHAVE é a mesma em todos os dias (ev|id|dia): concluir
      uma vez conclui o evento, e PENDENTES mostra uma linha só. "Hoje" em comparação de datas = data LOCAL (o cartão de EVENTOS usava toISOString).
 
-101. casa.html (PAINEL DA GESTÃO DE CASA) é GERADO de lancamentos.html por `python3 docs/automacoes/gerar-casa.py` e usa o mesmo
-     assets/lancamentos.js em modo casa (<body data-lc-modo="casa">): mudou o lancamentos.html → rodar o gerador; nunca editar o casa.html na mão.
+101. (mudou em 20/11 — ver 116) negocio.html e casa.html são GERADOS por `python3 docs/automacoes/gerar-ambientes.py` (molde único + cartoes.json);
+     nunca editar na mão. A lista da casa agora é a aba PF dos LANÇAMENTOS (o modo data-lc-modo="casa" acabou).
      Cortar bloco de HTML por texto: o fim "  </div>" também casa com "    </div>" (use "\n  </div>\n") e o teste confere que o conteúdo está VISÍVEL,
      não só que existe (a página saiu com os números escondidos e a contagem passava). `if (x) var a = …; b[a] = …` sem chaves só protege o var.
 
@@ -396,6 +396,20 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
 115. Efeito de cor em canvas que precisa valer no iPhone: modos de mistura (saturation, color, soft-light, overlay, multiply) numa camada
      fora da tela + destination-in com a própria mídia; desfoque por reduzir/ampliar. Transição entre clipes = o que sai fica no último
      quadro e o que entra é desenhado por cima com recorte/posição/opacidade; teste confere o PIXEL no meio da transição.
+
+**Aprendidos em 20/11 (AMBIENTES: MINHA EMPRESA × MINHA CASA)**
+116. PJ E PF NÃO SE MISTURAM (decisão do dono, 20/11): empresa = chaves neg_* (+ mkt_*), casa = casa_* e inv_*. Toda tela que LISTA, SOMA ou CRIA
+     lançamento trabalha num ambiente só (<html data-amb="pj|pf">, ?a=pj|pf, último usado em ui_amb): LANÇAMENTOS (abas PJ | PF; criar() recusa
+     destino do outro ambiente; "para onde foi" só dentro do ambiente), PAINEL FINANCEIRO (PAINEL PJ | PAINEL PF), AGENDA (data-amb na caixa;
+     tarefa nova leva `amb`; tarefa antiga vai pela categoria: Pessoal/Casa/Saúde = casa). Nenhuma chave nova. Link para LANÇAMENTOS/PAINEL
+     sempre com ?a= do ambiente de quem chama. Cor: empresa azul #4C8DFF, casa verde #2FD08A (variáveis --amb no brightway.css).
+     Teste de independência = FOTO DO TEXTO das chaves do outro ambiente antes e depois de lançar (docs/testes/teste_ambientes.py) (auto: vigia 7.8c).
+117. Tirar um módulo do pacote de uma página (agenda saiu do Início → assets/agenda.js): quem usava a função global de lá (Tio Cláudio →
+     window.BWAgendaItens) continua precisando dela — a página carrega o arquivo mesmo sem a caixa na tela. Endereço que ganha ?a= por
+     history.replaceState: teste e código que comparavam o FIM do endereço (`endsWith("lancamentos.html")`) passam a olhar se CONTÉM.
+118. Página que desenha gráfico com biblioteca de fora (Chart.js) confere `window.Chart` antes: sem internet os números continuam e só o
+     gráfico some (o PAINEL FINANCEIRO parava com "Chart is not defined"). inner_text no teste vem com o text-transform da tela (MAIÚSCULAS):
+     comparar em minúsculas.
 
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
@@ -1293,7 +1307,26 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   Motion perdia o último passo (espera de 350 ms); Telas tocando podia dar erro com tempo negativo no 1º quadro; menu aberto por toque
   escolhia o 1º item ao soltar o dedo; Esc do menu fechava também o editor de fotos. Testes: teste_video (+23), teste_telas (+17),
   teste_motion (+9), teste_fotos (+16) 0 falhas; teste-app 0; vigia ✅. App BW 1.8 publicado. Manual 49 → 50 p. sw v145. PENTE FINO 112–115.
-  NÃO testado: iPhone/Android reais, vídeos de câmera (MP4/HEVC), exportação em 4K de verdade no editor de vídeo (gravação em tempo real).
+  NÃO testado: iPhone/Android reais, vídeos de câmera (MP4/HEVC), exportação em 4K de verdade no editor de vídeo (gravação em tempo real).- 20/11/2026 11:00 · Claude (dono, com o retorno dos usuários: "duas abas nos lançamentos; OS DADOS NÃO PODEM SE MISTURAR — pessoa física separada de jurídica,
+  cada área com a sua cor; painel financeiro com PAINEL PJ e PAINEL PF; página principal com MINHA EMPRESA e MINHA CASA, cada ecossistema com agenda
+  independente e as ferramentas que fazem sentido; botão de download = o .exe"): AMBIENTES. (1) INÍCIO só com as duas portas (MINHA EMPRESA azul →
+  negocio.html; MINHA CASA verde → casa.html), cada uma com 2 números. (2) negocio.html e casa.html refeitas pelo MESMO molde
+  (docs/automacoes/gerar-ambientes.py + cartoes.json; saiu o gerar-casa.py): 5 números do mês (assets/ambiente.js), botões LANÇAMENTOS PJ/PF e
+  PAINEL FINANCEIRO, AGENDA própria e galerias — empresa: gestão, CRM, marketing, ferramentas; casa: gestão, investimentos, ferramentas.
+  (3) LANÇAMENTOS com abas LANÇAMENTOS PJ | LANÇAMENTOS PF: lista, números, gráficos, filtros, NOVO, ALTERAR e PDF só do ambiente; criar() recusa
+  destino do outro; "para onde foi" só dentro do ambiente (não existe mais casa ↔ negócio); FIXOS só na PJ; INVESTI ficou na PF.
+  (4) PAINEL FINANCEIRO com abas PAINEL PJ | PAINEL PF: o PF é novo (casa_orcamento + contas pagas + reserva; receitas, contas pagas, gastos,
+  sobrou, guardado, saldo livre; exemplo de casa fictícia; BAIXAR PLANILHA da casa); ENVIAR PLANILHA, pagamentos de eventos e planilha Google
+  só na PJ; "Pró-labore e pessoal" virou "Pró-labore e retiradas". (5) AGENDA saiu do pacote do Início → assets/agenda.js por ambiente: empresa =
+  eventos, fixos, cachês, CRM e tarefas de trabalho; casa = contas da casa e tarefas pessoais; conta/entrada escrita na agenda grava no ambiente
+  dela. (6) Menu: "Minha empresa" e "Minha casa" (com Lançamentos PJ/PF e Painel PJ/PF). (7) APP DOWNLOAD no computador abre baixar.html com
+  o botão principal BAIXAR O APP BW (.EXE) (downloads/BW-Setup.exe) sempre à vista. Achado no caminho: PAINEL parava sem a biblioteca de gráficos.
+  Testes: novo docs/testes/teste_ambientes.py (61 checagens × 1280/390, 0 falhas — lançar num ambiente não muda NENHUMA chave do outro);
+  lancamentos, agenda, layout, evento_dias, crm, agente_leitor, concluir 0 falhas (adaptados); varredura só as fotos do Supabase (sem rede aqui);
+  vigia ✅ (item 7.8c novo). NÃO feito: sino de AVISOS continua juntando casa e empresa; cópia sem internet do app BW (PC) só ganha as páginas
+  novas no próximo pacote do app; NÃO testado na conta real do dono nem em iPhone/Android reais. brightway.css v30, layout.js v61,
+  lancamentos.js v7, agenda.js v1, ambiente.js v1, sw v146. PENTE FINO 116–118.
+
 ## Pendências (dono)
 - [ ] (20/11) FERRAMENTAS/ATALHOS e TELA FIXA: dono testar no PC (V, C, H, Z, T, Delete, botão direito) e no celular (segurar o dedo; prévia presa no topo) nos 4 editores; dizer se quer a tela fixa também no BW Reels Pro/Criador (já têm prévia presa) com o mesmo jeito.
 - [ ] (20/11) TELAS: dono testar o arrastar no PC e no celular e gerar um vídeo 1450×2000 para o telão.

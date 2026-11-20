@@ -37,6 +37,9 @@
     var ua = navigator.userAgent || "";
     var ios = /iPhone|iPad|iPod/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
     if (instalado()) { avisoApp("App já instalado", "<p>Você já está usando o Brightway como aplicativo neste aparelho.</p>"); return; }
+    /* 20/11 (dono): no COMPUTADOR o APP DOWNLOAD leva ao instalador do app BW (.exe) — a página baixar.html mostra o botão do .exe em destaque */
+    var pc = !ios && !/Android/i.test(ua) && !(window.matchMedia && matchMedia("(max-width: 899px)").matches);
+    if (pc) { location.href = "baixar.html"; return; }
     if (window.__bwInstall) {
       var ev = window.__bwInstall; window.__bwInstall = null;
       ev.prompt();
@@ -54,8 +57,8 @@
   var CATEGORIAS = [
     { id: "inicio",  nome: "Início",           href: "./", icon: '<path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/>' },
     { id: "lanc",    nome: "Lançamentos",       href: "lancamentos.html", icon: '<path d="M12 5v14M5 12h14"/><rect x="3" y="3" width="18" height="18" rx="4"/>' },
-    { id: "negocio", nome: "Meu negócio",       href: "negocio.html", icon: '<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>' },
-    { id: "casa",    nome: "Gestão de casa",    href: "casa.html", icon: '<path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M9 21v-6h6v6"/>' },
+    { id: "negocio", nome: "Minha empresa",     href: "negocio.html", icon: '<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>' },
+    { id: "casa",    nome: "Minha casa",        href: "casa.html", icon: '<path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M9 21v-6h6v6"/>' },
     { id: "invest",  nome: "Investimentos",     href: "investimentos-painel.html", icon: '<path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/>' },
     { id: "crm",     nome: "CRM",               href: "crm.html", icon: '<path d="M3 4h18l-7 8v6l-4 2v-8z"/>' },
     { id: "mkt",     nome: "Marketing",         href: "marketing.html", icon: '<path d="M3 11v2a1 1 0 0 0 1 1h2l5 4V6L6 10H4a1 1 0 0 0-1 1z"/><path d="M15 9a4 4 0 0 1 0 6M18 6a8 8 0 0 1 0 12"/>' },
@@ -63,8 +66,9 @@
     { id: "conta",   nome: "Conta",             href: "login.html", icon: '<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/>' }
   ];
   var SUBPAGINAS = {
-    negocio: [["negocio","Ferramentas do negócio"],["financeiro-painel","Painel Financeiro"],["propostas","Gerador de orçamento"],["eventos","Eventos"],["equipe","Gestão de pessoas"],["leitor","Leitor de comprovantes"],["preco","Calculadora de preço"]],
-    casa: [["casa","Painel da casa"],["orcamento","Orçamento familiar"],["contas","Contas a pagar"],["reserva","Reserva de emergência"]],
+    /* 20/11 (dono): dois ecossistemas — MINHA EMPRESA (PJ) e MINHA CASA (PF); o 3º item, quando existe, é o endereço completo */
+    negocio: [["negocio","Minha empresa (PJ)"],["lancamentos-pj","Lançamentos PJ","lancamentos.html?a=pj"],["financeiro-painel-pj","Painel PJ","financeiro-painel.html?a=pj"],["propostas","Gerador de orçamento"],["eventos","Eventos"],["equipe","Gestão de pessoas"],["leitor","Leitor de comprovantes"],["preco","Calculadora de preço"]],
+    casa: [["casa","Minha casa (PF)"],["lancamentos-pf","Lançamentos PF","lancamentos.html?a=pf"],["financeiro-painel-pf","Painel PF","financeiro-painel.html?a=pf"],["orcamento","Orçamento familiar"],["contas","Contas a pagar"],["reserva","Reserva de emergência"]],
     invest: [["investimentos-painel","Painel de Investimentos"],["cambio","Câmbio"],["evento","Evento no exterior"],["milhas","Mercado de milhas"],["meta","Meta de milhas"],["recs","★ Recomendações"],["noticias","Notícias"]],
     crm: [["crm","Painel do CRM"],["captacao","Funil de clientes"],["resultados","Indicadores"]],
     mkt: [["marketing","Todas de marketing"],["promptia","Prompt IA"],["reels","BW Reels Pro"],["personagens","Personagens"],["video","Editor de vídeo"],["motion","Estúdio de motion"],["telas","Telas em movimento"],["criador","Criador IA"],["fotos","Editor de fotos"],["assistente","Assistente de texto"],["transcricao","Transcrição e legendas"]],
@@ -83,9 +87,9 @@
     return "conta";
   }
   var CAT = categoriaDe(PAGINA);
-  var TITULOS = { index:"Início", ferramentas:"Ferramentas", negocio:"Ferramentas do negócio", eventos:"Eventos", evento:"Evento no exterior",
+  var TITULOS = { index:"Início", ferramentas:"Ferramentas", negocio:"Minha empresa", eventos:"Eventos", evento:"Evento no exterior",
     equipe:"Gestão de pessoas", "financeiro-painel":"Painel Financeiro", financeiro:"Financeiro de eventos", preco:"Calculadora de preço",
-    lancamentos:"Lançamentos", fluxo:"Fluxo de caixa", custos:"Cachês e custos", orcamento:"Orçamento familiar", casa:"Gestão de casa", contas:"Contas a pagar",
+    lancamentos:"Lançamentos", fluxo:"Fluxo de caixa", custos:"Cachês e custos", orcamento:"Orçamento familiar", casa:"Minha casa", contas:"Contas a pagar",
     reserva:"Reserva de emergência", milhas:"Mercado de milhas", meta:"Meta de milhas",
     comparador:"Comparador de moedas", alertas:"Alertas de preço", cambio:"Câmbio",
     invest:"Simulador de rendimento", "investimentos-painel":"Painel de Investimentos", serie:"Série histórica", diario:"Diário de câmbio", calc:"Calculadora",
@@ -104,7 +108,7 @@
       html += SUBPAGINAS[c.id].map(function(s){
         var a = s[0] === PAGINA ? ' style="color:var(--gold)"' : "";
         var adm = (s[0] === "configadm") ? " so-admin" : "";
-        return '<a class="bw-sub' + adm + '" href="' + s[0] + '.html"' + a + '>' + s[1] + '</a>';
+        return '<a class="bw-sub' + adm + '" href="' + (s[2] || s[0] + ".html") + '"' + a + '>' + s[1] + '</a>';
       }).join("");
     }
     return html;
@@ -320,7 +324,7 @@
     ler("neg_fluxo").forEach(function (f) {
       if (!/^fixo_/.test(String(f.id)) || f.c1 !== "Saída" || FEITOS["fx|" + f.id]) return;
       var n = dias(f.c0); if (n === null || n < 0 || n > 3) return;
-      contas.push({ nome: String(f.c3 || "Custo fixo").replace(/ \(fixo\)$/, "") + " (negócio)", valor: f.c2, venc: f.c0, n: n, onde: "lancamentos.html#lcFixos" });
+      contas.push({ nome: String(f.c3 || "Custo fixo").replace(/ \(fixo\)$/, "") + " (negócio)", valor: f.c2, venc: f.c0, n: n, onde: "lancamentos.html?a=pj#lcFixos" });
     });
     contas.sort(function (a, b) { return a.n - b.n; });
     var vistos = {}, eventos = [];

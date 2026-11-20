@@ -357,3 +357,14 @@ Tamanho > 0 e sem erro = o pdfmake montou o arquivo. Localmente (T1) confira o `
   segurar o dedo = CDP `Input.dispatchTouchEvent` touchStart → esperar → touchEnd; item de menu por texto exato/regex (um rótulo continha o outro).
 - Tela fixa no PC: conferir com a tela do dono (1534×816) que a prévia não fica minúscula — título da página some, aviso vira toast, nome da
   ferramenta some abaixo de 1700 px; painel de baixo com no máximo 36vh.
+
+## Ambientes PJ × PF (20/11/2026)
+- **Provar que dois ambientes não se misturam:** antes de lançar no ambiente A, guardar o TEXTO de todas as chaves do ambiente B
+  (`ks.map(k => localStorage.getItem('bw_' + k + '_v1') || '').join('§')`); lançar; comparar o texto de novo. Igual = nada cruzou.
+  Vale para tela, agenda e função chamada direto (`__lanc.criar('casa_gasto', …)` na aba PJ tem de RECUSAR).
+- **Testar página que exige login sem conta de verdade:** rota do Playwright devolve um supabase-js falso COM sessão e troca o bw-sync.js por um
+  arquivo vazio só nessa página (senão a sincronia mexe nos dados locais do teste). Chart.js também é simulado (`window.Chart = function(){…}`).
+- **Tirar um módulo de dentro de uma página gerada (pacote MOD):** recortar o trecho por texto num script, com `assert s.count(a) == 1` em cada
+  troca; trocar as dependências (`MOD['core/…']`) por funções pequenas iguais; rodar `node --check`; depois os testes antigos do módulo.
+- **Teste antigo de um motor que mudou de página:** servir pela rota do teste a página nova com um atributo trocado (agenda em modo "tudo")
+  em vez de reescrever 34 checagens.

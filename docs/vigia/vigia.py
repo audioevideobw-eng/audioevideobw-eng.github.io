@@ -80,7 +80,7 @@ for p in PAGINAS:
 # 4) pedidos do dono
 neg = ler("negocio.html") if os.path.exists("negocio.html") else ""
 for h in ["eventos.html", "equipe.html", "lancamentos.html", "preco.html", "leitor.html", "financeiro-painel.html", "propostas.html"]:
-    if not re.search(r'class="menu-card[^"]*" href="' + re.escape(h) + '"', neg):
+    if not re.search(r'class="(menu-card|bw-tool-card|amb-principal)[^"]*" href="' + re.escape(h) + r'(\?a=pj)?"', neg):
         problemas.append(f"negocio.html: falta o card da ferramenta {h} (o dono pediu TODAS as ferramentas do negócio)")
 if os.path.exists("app.html") and "rs.find(" in ler("app.html"):
     problemas.append("app.html: botão 'Sincronizar agora' voltou com o erro rs.find")
@@ -324,6 +324,25 @@ if "fotos.html" in todos and "assets/fotos.js" not in todos["fotos.html"]:
 for p, t2 in todos.items():
     if re.search(r"(?<![\w-])(gsk_[A-Za-z0-9]{20,}|sk-(ant-|proj-)?[A-Za-z0-9_-]*\d[A-Za-z0-9_-]{18,}|AIza[0-9A-Za-z_-]{30,})", t2):
         problemas.append(f"{p}: chave de API de IA no código (vaza para qualquer visitante) — use Edge Function do Supabase")
+# 7.8c AMBIENTES (20/11/2026, decisão do dono): MINHA EMPRESA (PJ) e MINHA CASA (PF) não se misturam
+def _arq(n):
+    return ler(n) if os.path.exists(n) else ""
+_lj, _ag, _pn, _ix = _arq("assets/lancamentos.js"), _arq("assets/agenda.js"), todos.get("financeiro-painel.html", ""), todos.get("index.html", "")
+if "DEST[dest].amb !== AMB" not in _lj or "NICHOS_AMB[AMB][n]" not in _lj or "DEST[k].amb === DEST[o.dest].amb" not in _lj:
+    problemas.append("assets/lancamentos.js: sem a trava PJ × PF (lista, criar e mudar de lugar só dentro do ambiente)")
+if "function montarCasa" not in _pn or 'id="fpAbas"' not in _pn or "if (PF) {" not in _pn:
+    problemas.append("financeiro-painel.html: sem as abas PAINEL PJ | PAINEL PF com dados separados")
+if "if (amb && ambDe(t) !== amb) return;" not in _ag or 'if (PF) ler("casa_contas")' not in _ag or 'if (PJ) ler("neg_eventos")' not in _ag:
+    problemas.append("assets/agenda.js: a agenda não separa empresa e casa")
+if 'id="ambPortal"' not in _ix or 'id="bwAgenda"' in _ix or "MOD['modules/agenda']" in _ix:
+    problemas.append("index.html: o Início deve ter só as duas portas (MINHA EMPRESA / MINHA CASA); a agenda fica em cada ambiente")
+for _p, _a in (("negocio.html", "pj"), ("casa.html", "pf")):
+    _t = todos.get(_p, "")
+    if '<html lang="pt-BR" data-amb="%s">' % _a not in _t or 'id="bwAgenda" data-amb="%s"' % _a not in _t or 'href="lancamentos.html?a=%s"' % _a not in _t \
+            or 'href="financeiro-painel.html?a=%s"' % _a not in _t or "assets/agenda.js" not in _t or "assets/ambiente.js" not in _t:
+        problemas.append(f"{_p}: página do ambiente incompleta (gere de novo: python3 docs/automacoes/gerar-ambientes.py)")
+if 'href="downloads/BW-Setup.exe"' not in todos.get("baixar.html", "") or not os.path.exists("downloads/BW-Setup.exe") or open("downloads/BW-Setup.exe", "rb").read(2) != b"MZ":
+    problemas.append("baixar.html: o botão de download do app BW (.exe) sumiu ou o instalador não está em downloads/")
 # 7.9 páginas com o visual novo (menu lateral) — exceto as de propósito
 SEM_MENU = {"login.html", "cadastro.html", "pedido.html", "baixar.html", "privacidade.html", "termos.html", "financeiro-painel.html", "investimentos-painel.html", "app.html", "financeiro.html", "fluxo.html", "custos.html"}
 for p, t in todos.items():

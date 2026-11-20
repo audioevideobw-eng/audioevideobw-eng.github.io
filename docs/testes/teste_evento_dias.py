@@ -30,6 +30,8 @@ BASE = f"http://127.0.0.1:{PORTA}/"
 
 def rota(r):
     u = r.request.url
+    if u.endswith("/agenda-tudo.html"):   # 20/11: a agenda saiu do Início e vive em cada ambiente; aqui a página da empresa com a agenda em modo "tudo" (motor inteiro)
+        return r.fulfill(body=open("negocio.html", encoding="utf8").read().replace('id="bwAgenda" data-amb="pj"', 'id="bwAgenda" data-amb=""'), content_type="text/html; charset=utf-8")
     if "127.0.0.1" in u: return r.continue_()
     if "supabase-js" in u: return r.fulfill(body=STUB_SB, content_type="application/javascript")
     return r.abort()
@@ -50,7 +52,7 @@ with sync_playwright() as p:
         ctx = b.new_context(viewport={"width": largura, "height": 900}, service_workers="block", locale="pt-BR")
         ctx.route("**/*", rota); ctx.add_init_script("if(!sessionStorage.getItem('sem')){" + semente + "sessionStorage.setItem('sem','1')}")
         pg = ctx.new_page(); erros = []; pg.on("pageerror", lambda e: erros.append(str(e))); pg.on("dialog", lambda d: d.accept())
-        pg.goto(BASE + "index.html"); pg.wait_for_timeout(1000)
+        pg.goto(BASE + "agenda-tudo.html"); pg.wait_for_timeout(1000)
         ov = pg.evaluate("document.documentElement.scrollWidth - document.documentElement.clientWidth")
         ok(not erros and ov <= 0, f"index: erros={erros[:2]} estouro={ov}")
         its = pg.evaluate(f"BWAgendaItens('{D(-1)}','{D(2)}').filter(i => i.tipo === 'evento').map(i => [i.data, i.titulo, i.sub, i.faixa || '', i.chave])")

@@ -1,0 +1,332 @@
+{
+ "propostas.html": {
+  "nome": "GERADOR DE ORÇAMENTO",
+  "title": "Propostas e recibos com a sua marca: botões do que você sempre faz, PDF e Word, Pix, aprovado vira evento.",
+  "ico": "<span class=\"ico\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M6 2h9l5 5v15H6z\"/><path d=\"M15 2v5h5\"/><path d=\"M9 12h6M9 16h4\"/><path d=\"M12 8.5v1M12 17.5v1\"/></svg></span>",
+  "de": "index.html"
+ },
+ "financeiro-painel.html": {
+  "nome": "PAINEL FINANCEIRO",
+  "title": "Receita, lucro, clientes e pagamentos de eventos — monta sozinho com os seus lançamentos.",
+  "ico": "<span class=\"ico\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M3 3v18h18\"/><path d=\"M7 15l4-4 3 3 5-6\"/></svg></span>",
+  "de": "index.html"
+ },
+ "negocio.html": {
+  "nome": "MEU NEGÓCIO",
+  "title": "Eventos, equipe, fluxo de caixa, preço e painel financeiro.",
+  "ico": "<span class=\"ico\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><rect x=\"3\" y=\"7\" width=\"18\" height=\"13\" rx=\"2\"/><path d=\"M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2\"/></svg></span>",
+  "de": "index.html"
+ },
+ "equipe.html": {
+  "nome": "GESTÃO DE PESSOAS",
+  "title": "Colaboradores, equipes, veículos e PDFs da equipe.",
+  "ico": "<span class=\"ico\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><circle cx=\"9\" cy=\"8\" r=\"3.5\"/><path d=\"M2.5 20c0-3.5 3-5.5 6.5-5.5s6.5 2 6.5 5.5\"/><circle cx=\"17.5\" cy=\"9\" r=\"2.5\"/><path d=\"M16 14.6c3 .2 5.5 1.9 5.5 5.4\"/></svg></span>",
+  "de": "index.html"
+ },
+ "eventos.html": {
+  "nome": "EVENTOS",
+  "title": "Dossiê completo: ficha, equipe, escala em PDF, presença, checklist, mídia, relatório e clientes.",
+  "ico": "<span class=\"ico\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><rect x=\"3\" y=\"5\" width=\"18\" height=\"16\" rx=\"2\"/><path d=\"M3 10h18M8 3v4M16 3v4\"/></svg></span>",
+  "de": "index.html"
+ },
+ "orcamento.html": {
+  "nome": "ORÇAMENTO",
+  "title": "Receitas, despesas por categoria e saldo do mês.",
+  "ico": "<span class=\"ico\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M21 12A9 9 0 1 1 12 3v9z\"/><path d=\"M15 3.5A9 9 0 0 1 20.5 9H15z\"/></svg></span>",
+  "de": "index.html"
+ },
+ "contas.html": {
+  "nome": "CONTAS A PAGAR",
+  "title": "Vencimentos, marcação de pago e total em aberto.",
+  "ico": "<span class=\"ico\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><rect x=\"4\" y=\"3\" width=\"16\" height=\"18\" rx=\"2\"/><path d=\"M8 8h8M8 12h8M8 16h4\"/></svg></span>",
+  "de": "index.html"
+ },
+ "reserva.html": {
+  "nome": "RESERVA",
+  "title": "Aportes por mês e total acumulado.",
+  "ico": "<span class=\"ico\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6z\"/></svg></span>",
+  "de": "index.html"
+ },
+ "investimentos-painel.html": {
+  "nome": "PAINEL DE INVESTIMENTOS",
+  "title": "Patrimônio, ganho e posições: milhas, moedas, renda fixa, Tesouro, fundos, ações, FIIs, previdência e cripto.",
+  "ico": "<span class=\"ico\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M3 3v18h18\"/><path d=\"M7 15l4-4 3 3 5-6\"/></svg></span>",
+  "de": "index.html"
+ },
+ "milhas.html": {
+  "nome": "MILHAS",
+  "title": "Preço do milheiro por programa e comprador, com histórico.",
+  "ico": "<span class=\"ico\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M2 16l20-7-3-2-6 2-6-4-2 1 4 4-5 2-2-1-1 1z\"/></svg></span>",
+  "de": "index.html"
+ },
+ "meta.html": {
+  "nome": "META DE MILHAS",
+  "title": "Quanto falta para fechar a passagem — e o custo de comprar hoje.",
+  "ico": "<span class=\"ico\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"9\"/><circle cx=\"12\" cy=\"12\" r=\"5\"/><circle cx=\"12\" cy=\"12\" r=\"1\"/></svg></span>",
+  "de": "index.html"
+ },
+ "comparador.html": {
+  "nome": "COMPARADOR",
+  "title": "Duas moedas lado a lado com gráfico de 90 dias.",
+  "ico": "<span class=\"ico\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M12 3v18M5 7h14M5 7l-3 7h6zM19 7l-3 7h6z\"/></svg></span>",
+  "de": "index.html"
+ },
+ "alertas.html": {
+  "nome": "ALERTAS",
+  "title": "Avisa no celular quando a moeda bater o alvo.",
+  "ico": "<span class=\"ico\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M18 8a6 6 0 1 0-12 0c0 7-3 8-3 8h18s-3-1-3-8\"/><path d=\"M10 21h4\"/></svg></span>",
+  "de": "index.html"
+ },
+ "cambio.html": {
+  "nome": "CÂMBIO",
+  "title": "PTAX + mercado ao vivo de 15 moedas.",
+  "ico": "<span class=\"ico\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><circle cx=\"8\" cy=\"8\" r=\"5\"/><circle cx=\"16\" cy=\"16\" r=\"5\"/></svg></span>",
+  "de": "index.html"
+ },
+ "recs.html": {
+  "nome": "RECOMENDAÇÕES",
+  "title": "O que vale a pena comprar e vender hoje.",
+  "ico": "<span class=\"ico\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z\"/></svg></span>",
+  "de": "index.html"
+ },
+ "noticias.html": {
+  "nome": "NOTÍCIAS",
+  "title": "Manchetes do Valor Econômico, atualizadas a cada 2h.",
+  "ico": "<span class=\"ico\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><rect x=\"3\" y=\"4\" width=\"18\" height=\"16\" rx=\"2\"/><path d=\"M7 8h10M7 12h10M7 16h6\"/></svg></span>",
+  "de": "index.html"
+ },
+ "captacao.html": {
+  "nome": "FUNIL",
+  "title": "Os contatos em colunas, do novo ao fechado.",
+  "ico": "<span class=\"ico\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M3 4h18l-7 8v6l-4 2v-8z\"/></svg></span>",
+  "de": "index.html"
+ },
+ "captacao.html#agente": {
+  "nome": "AGENTE DE VENDAS",
+  "title": "A fila do dia: retornos, propostas paradas, pós-venda e indicação.",
+  "ico": "<span class=\"ico\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><rect x=\"5\" y=\"8\" width=\"14\" height=\"11\" rx=\"3\"/><path d=\"M12 4v4M9 13h.01M15 13h.01M9 16h6M3 13v2M21 13v2\"/></svg></span>",
+  "de": "index.html"
+ },
+ "captacao.html#colar": {
+  "nome": "CAPTURA COM IA",
+  "title": "Cole a conversa do cliente e a IA preenche o contato.",
+  "ico": "<span class=\"ico\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M6 18l2.5-2.5M15.5 8.5 18 6\"/></svg></span>",
+  "de": "index.html"
+ },
+ "resultados.html": {
+  "nome": "INDICADORES",
+  "title": "Taxa de fechamento, origens, motivos de perda e redes sociais.",
+  "ico": "<span class=\"ico\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M3 3v18h18\"/><path d=\"M7 15l4-4 3 3 5-6\"/></svg></span>",
+  "de": "index.html"
+ },
+ "assistente.html#legenda": {
+  "nome": "LEGENDA DE POST",
+  "title": "Legenda pronta para Instagram, TikTok ou LinkedIn.",
+  "ico": "<span class=\"ico\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z\"/><path d=\"M8 9h8M8 13h5\"/></svg></span>",
+  "de": "index.html"
+ },
+ "assistente.html#ideias": {
+  "nome": "IDEIAS DE CONTEÚDO",
+  "title": "Ideias de posts e vídeos para o seu negócio.",
+  "ico": "<span class=\"ico\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M9 18h6M10 21h4\"/><path d=\"M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z\"/></svg></span>",
+  "de": "index.html"
+ },
+ "assistente.html#email": {
+  "nome": "E-MAIL AO CLIENTE",
+  "title": "Proposta, confirmação, agradecimento ou lembrete de pagamento.",
+  "ico": "<span class=\"ico\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><rect x=\"3\" y=\"5\" width=\"18\" height=\"14\" rx=\"2\"/><path d=\"m3 7 9 6 9-6\"/></svg></span>",
+  "de": "index.html"
+ },
+ "reels.html": {
+  "nome": "BW REELS PRO",
+  "title": "BW Reels Pro — Reels, Shorts e TikToks cinematográficos com IA: gancho, roteiro com fontes, linha do tempo e prévia ao vivo; o vídeo final sai pelo motor no seu PC.",
+  "ico": "<span class=\"ico\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><rect x=\"6\" y=\"2\" width=\"12\" height=\"20\" rx=\"2.5\"/><path d=\"M10.5 9.5v5l4-2.5z\"/><path d=\"M9 18.5h6\"/></svg></span>",
+  "de": "index.html"
+ },
+ "promptia.html": {
+  "nome": "PROMPT IA",
+  "title": "Trends virais feitas com IA: veja o exemplo, copie o prompt e saiba onde fazer. Envie o print de uma trend e a IA explica como reproduzir.",
+  "ico": "<span class=\"ico\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M4 5h16v11H9l-5 4z\"/><path d=\"m12 7.5 1 2.3 2.3 1-2.3 1-1 2.3-1-2.3-2.3-1 2.3-1z\"/></svg></span>",
+  "de": "index.html"
+ },
+ "personagens.html": {
+  "nome": "PERSONAGENS",
+  "title": "Crie personagens conversando com o agente (ficha + prompt), gere a imagem e use no Quadro de História e no BW Reels.",
+  "ico": "<span class=\"ico\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><circle cx=\"9\" cy=\"8\" r=\"3.5\"/><path d=\"M2.5 20c.6-3.6 3.2-5.5 6.5-5.5s5.9 1.9 6.5 5.5\"/><path d=\"m18 3 .9 2.1L21 6l-2.1.9L18 9l-.9-2.1L15 6l2.1-.9z\"/></svg></span>",
+  "de": "index.html"
+ },
+ "video.html": {
+  "nome": "EDITOR DE VÍDEO",
+  "title": "Linha do tempo em camadas: junte vídeos, imagens e criações de IA, ponha textos, trilha e efeitos sonoros e exporte o vídeo.",
+  "ico": "<span class=\"ico\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><rect x=\"3\" y=\"4\" width=\"18\" height=\"11\" rx=\"2\"/><path d=\"m10 7.5 4 2-4 2z\"/><path d=\"M3 19h7M13 19h8M10 17.5v3\"/></svg></span>",
+  "de": "index.html"
+ },
+ "motion.html": {
+  "nome": "ESTÚDIO DE MOTION",
+  "title": "Biblioteca de itens com efeitos prontos, keyframes e motion automático; vídeo com fundo para chroma key ou transparente.",
+  "ico": "<span class=\"ico\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M4 18c3-9 6-12 9-12\"/><circle cx=\"16\" cy=\"6\" r=\"2.5\"/><path d=\"M4 18h16\"/><path d=\"M8 14l2 2M14 10l2 2\"/><path d=\"m19 3 .6 1.4L21 5l-1.4.6L19 7l-.6-1.4L17 5l1.4-.6z\"/></svg></span>",
+  "de": "index.html"
+ },
+ "telas.html": {
+  "nome": "TELAS EM MOVIMENTO",
+  "title": "Fotos e takes dentro de divisões de tela e transições geométricas (tiras, mosaico, cacos, painéis 3D), no ritmo da música.",
+  "ico": "<span class=\"ico\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><rect x=\"3\" y=\"3\" width=\"8\" height=\"8\" rx=\"1.5\"/><rect x=\"13\" y=\"3\" width=\"8\" height=\"8\" rx=\"1.5\" transform=\"rotate(8 17 7)\"/><rect x=\"3\" y=\"13\" width=\"8\" height=\"8\" rx=\"1.5\" transform=\"rotate(-8 7 17)\"/><path d=\"M14 14l6 6M20 14l-6 6\"/></svg></span>",
+  "de": "index.html"
+ },
+ "criador.html": {
+  "nome": "CRIADOR IA",
+  "title": "Convites, posts, flyers e cartões de visita com arte feita por IA — textos sem erro, no formato certo.",
+  "ico": "<span class=\"ico\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"m12 3 1.8 4.7L18.5 9l-4.7 1.8L12 15.5l-1.8-4.7L5.5 9l4.7-1.3z\"/><path d=\"M19 15l.9 2.1L22 18l-2.1.9L19 21l-.9-2.1L16 18l2.1-.9zM5 15l.7 1.6L7.3 17l-1.6.7L5 19.3l-.7-1.6L2.7 17l1.6-.4z\"/></svg></span>",
+  "de": "index.html"
+ },
+ "fotos.html": {
+  "nome": "FOTOS",
+  "title": "Logo automática, bordas, ajustes e filtros — em várias fotos de uma vez.",
+  "ico": "<span class=\"ico\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><rect x=\"3\" y=\"5\" width=\"18\" height=\"15\" rx=\"2\"/><circle cx=\"9\" cy=\"11\" r=\"2\"/><path d=\"m21 17-5-5-8 8\"/></svg></span>",
+  "de": "index.html"
+ },
+ "transcricao.html": {
+  "nome": "LEGENDAS DE VÍDEO",
+  "title": "Áudio ou vídeo vira texto e legenda .srt.",
+  "ico": "<span class=\"ico\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><rect x=\"2\" y=\"5\" width=\"20\" height=\"14\" rx=\"2\"/><path d=\"M7 13h3M13 13h4M7 16h6M15 16h2\"/></svg></span>",
+  "de": "index.html"
+ },
+ "pdf.html": {
+  "nome": "PDF",
+  "title": "Juntar, separar, assinar e fotos → PDF, sem enviar o arquivo.",
+  "ico": "<span class=\"ico\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z\"/><path d=\"M14 3v6h6\"/><path d=\"M8 13h8M8 17h5\"/></svg></span>",
+  "de": "index.html"
+ },
+ "dados.html": {
+  "nome": "MEUS DADOS",
+  "title": "Coleções organizadas por você.",
+  "ico": "<span class=\"ico\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><ellipse cx=\"12\" cy=\"5\" rx=\"8\" ry=\"3\"/><path d=\"M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3\"/></svg></span>",
+  "de": "index.html"
+ },
+ "configadm.html": {
+  "nome": "CONFIGURAÇÃO",
+  "title": "Administrador: conexão, convites e integrações.",
+  "ico": "<span class=\"ico\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"3\"/><path d=\"M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z\"/></svg></span>",
+  "de": "index.html"
+ },
+ "login.html": {
+  "nome": "ACESSO",
+  "title": "Entrar, criar conta (por convite) e recuperar senha.",
+  "ico": "<span class=\"ico\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"8\" r=\"4\"/><path d=\"M4 21c0-4 4-6 8-6s8 2 8 6\"/></svg></span>",
+  "de": "index.html"
+ },
+ "leitor.html": {
+  "nome": "LEITOR DE CONTAS",
+  "title": "PDF ou foto de conta, boleto ou comprovante → lê no aparelho e lança onde você escolher.",
+  "ico": "<span class=\"ico\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M4 7V5a1 1 0 0 1 1-1h2M17 4h2a1 1 0 0 1 1 1v2M20 17v2a1 1 0 0 1-1 1h-2M7 20H5a1 1 0 0 1-1-1v-2\"/><path d=\"M8 9h8M8 12h8M8 15h5\"/></svg></span>",
+  "de": "ferramentas.html"
+ },
+ "assistente.html": {
+  "nome": "ASSISTENTE DE TEXTO",
+  "title": "Legendas, e-mails, resumos, revisão e tradução com IA no seu aparelho.",
+  "ico": "<span class=\"ico\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M12 3l1.8 4.2L18 9l-4.2 1.8L12 15l-1.8-4.2L6 9l4.2-1.8z\"/><path d=\"M19 15l.9 2.1L22 18l-2.1.9L19 21l-.9-2.1L16 18l2.1-.9z\"/></svg></span>",
+  "de": "ferramentas.html"
+ },
+ "crm.html": {
+  "nome": "CRM",
+  "title": "Funil de clientes, agente de vendas com IA e indicadores.",
+  "ico": "<span class=\"ico\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M3 4h18l-7 8v6l-4 2v-8z\"/></svg></span>",
+  "de": "ferramentas.html"
+ },
+ "marketing.html": {
+  "nome": "MARKETING",
+  "title": "Todas as ferramentas de marketing.",
+  "ico": "<span class=\"ico\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M3 11v2a1 1 0 0 0 1 1h2l5 4V6L6 10H4a1 1 0 0 0-1 1z\"/><path d=\"M15 9a4 4 0 0 1 0 6M18 6a8 8 0 0 1 0 12\"/></svg></span>",
+  "de": "ferramentas.html"
+ },
+ "calc.html": {
+  "nome": "CALCULADORA DE CÂMBIO",
+  "title": "Custo real da compra de moeda com spread e IOF.",
+  "ico": "<span class=\"ico\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><rect x=\"5\" y=\"2\" width=\"14\" height=\"20\" rx=\"2\"/><path d=\"M8 6h8M8 11h.01M12 11h.01M16 11h.01M8 15h.01M12 15h.01M16 15h.01M8 19h8\"/></svg></span>",
+  "de": "ferramentas.html"
+ },
+ "viagem.html": {
+  "nome": "CONVERSOR DE VIAGEM",
+  "title": "Quanto rende o que você troca no destino.",
+  "ico": "<span class=\"ico\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18\"/></svg></span>",
+  "de": "ferramentas.html"
+ },
+ "preco.html": {
+  "nome": "CALCULADORA DE PREÇO",
+  "title": "Custo + imposto + margem → quanto cobrar.",
+  "ico": "<span class=\"ico\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z\"/><circle cx=\"7.5\" cy=\"7.5\" r=\"1.5\"/></svg></span>",
+  "de": "ferramentas.html"
+ },
+ "invest.html": {
+  "nome": "SIMULADOR DE RENDIMENTO",
+  "title": "Poupança × CDB × Tesouro, já descontando o imposto.",
+  "ico": "<span class=\"ico\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M3 17l6-6 4 4 8-8\"/><path d=\"M14 7h7v7\"/></svg></span>",
+  "de": "ferramentas.html"
+ },
+ "lancamentos.html": {
+  "nome": "LANÇAMENTOS",
+  "title": "Tudo o que entra e sai: negócio, eventos, cachês da equipe (pago / não pago) e fixos.",
+  "ico": "<span class=\"ico\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M4 8h13l-3-3M20 16H7l3 3\"/></svg></span>",
+  "de": "negocio.html"
+ },
+ "assistente.html#revisar": {
+  "nome": "REVISAR TEXTO",
+  "title": "Corrige o português ou deixa o texto mais profissional, descontraído ou curto.",
+  "ico": "<span class=\"ico\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M12 20h9\"/><path d=\"M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z\"/></svg></span>",
+  "de": "marketing.html"
+ },
+ "assistente.html#traduzir": {
+  "nome": "TRADUZIR",
+  "title": "Traduz para inglês, espanhol, francês, italiano ou alemão.",
+  "ico": "<span class=\"ico\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M4 5h8M8 3v2M6 5c0 4 3 7 6 8M10 5c0 4-3 7-6 8\"/><path d=\"m13 21 4-9 4 9M14.5 18h5\"/></svg></span>",
+  "de": "marketing.html"
+ },
+ "assistente.html#resumo": {
+  "nome": "RESUMIR",
+  "title": "Resume briefing, reunião ou e-mail longo em tópicos ou lista de tarefas.",
+  "ico": "<span class=\"ico\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M4 6h16M4 10h16M4 14h10M4 18h6\"/></svg></span>",
+  "de": "marketing.html"
+ },
+ "captacao.html#funil": {
+  "nome": "FUNIL",
+  "title": "Os contatos em colunas: novo, conversando, proposta, negociando, fechado e perdido.",
+  "ico": "<span class=\"ico\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M3 4h18l-7 8v6l-4 2v-8z\"/></svg></span>",
+  "de": "crm.html"
+ },
+ "captacao.html?novo=1": {
+  "nome": "NOVO CONTATO",
+  "title": "Cadastrar um contato novo no funil.",
+  "ico": "<span class=\"ico\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><circle cx=\"10\" cy=\"8\" r=\"4\"/><path d=\"M3 21c0-4 3-6 7-6M18 14v6M15 17h6\"/></svg></span>",
+  "de": "crm.html"
+ },
+ "captacao.html#link": {
+  "nome": "PEDIR ORÇAMENTO",
+  "title": "Seu link para a bio: o cliente pede orçamento e cai direto no funil.",
+  "ico": "<span class=\"ico\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1\"/><path d=\"M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1\"/></svg></span>",
+  "de": "crm.html"
+ },
+ "captacao.html#mensagens": {
+  "nome": "MENSAGENS PRONTAS",
+  "title": "Primeiro contato, proposta, retorno, pós-evento, indicação — com o nome do cliente.",
+  "ico": "<span class=\"ico\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z\"/><path d=\"M8 9h8M8 13h5\"/></svg></span>",
+  "de": "crm.html"
+ },
+ "resultados.html#redes": {
+  "nome": "REDES SOCIAIS",
+  "title": "Seguidores e alcance por mês, e quantos clientes cada rede trouxe.",
+  "ico": "<span class=\"ico\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><circle cx=\"6\" cy=\"12\" r=\"2.5\"/><circle cx=\"18\" cy=\"6\" r=\"2.5\"/><circle cx=\"18\" cy=\"18\" r=\"2.5\"/><path d=\"m8.2 10.8 7.6-3.6M8.2 13.2l7.6 3.6\"/></svg></span>",
+  "de": "crm.html"
+ },
+ "eventos.html#cliBox": {
+  "nome": "CLIENTES",
+  "title": "A lista de clientes (a mesma dos eventos).",
+  "ico": "<span class=\"ico\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><circle cx=\"9\" cy=\"8\" r=\"3.5\"/><path d=\"M2.5 20c0-3.5 3-5.5 6.5-5.5s6.5 2 6.5 5.5\"/><circle cx=\"17.5\" cy=\"9\" r=\"2.5\"/><path d=\"M16 14.6c3 .2 5.5 1.9 5.5 5.4\"/></svg></span>",
+  "de": "crm.html"
+ },
+ "captacao.html#ajustes": {
+  "nome": "AJUSTES",
+  "title": "Seus serviços, assinatura das mensagens e meta de fechamentos.",
+  "ico": "<span class=\"ico\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0\"/><circle cx=\"16\" cy=\"6\" r=\"2\"/><circle cx=\"10\" cy=\"12\" r=\"2\"/><circle cx=\"18\" cy=\"18\" r=\"2\"/></svg></span>",
+  "de": "crm.html"
+ }
+}

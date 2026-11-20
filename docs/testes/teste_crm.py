@@ -131,8 +131,10 @@ with sync_playwright() as p:
         pg.screenshot(path="/tmp/shot_resultados_ex.png", full_page=True)
         # ---------- index: agenda com retorno ----------
         pg.evaluate(f"""localStorage.setItem('bw_mkt_leads_v1',JSON.stringify([{{id:'ld_t',nome:'Retorno Teste',etapa:'proposta',criadoEm:'{D(-3)}',prox:{{data:'{D(0)}',oque:'Mandar proposta'}},hist:[]}}]))""")
-        pg.goto(BASE + "index.html"); pg.wait_for_timeout(800)
-        ok("Retornar — Retorno Teste" in pg.inner_text("body"), "agenda mostra retorno do CRM")
+        pg.goto(BASE + "negocio.html"); pg.wait_for_timeout(1000)
+        ok("Retornar — Retorno Teste" in pg.inner_text("#bwAgenda"), "agenda da EMPRESA mostra retorno do CRM")
+        pg.goto(BASE + "casa.html"); pg.wait_for_timeout(1000)
+        ok("Retorno Teste" not in pg.inner_text("#bwAgenda"), "agenda da CASA não mostra o retorno do CRM")
         # ---------- crm hub ----------
         pg.goto(BASE + "crm.html"); pg.wait_for_timeout(500)
         ok("Retorno Teste" in pg.inner_text("#agLista") and "1" in pg.inner_text("#kpis"), "CRM: agente e KPIs")

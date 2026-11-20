@@ -1,4 +1,4 @@
-/* LANÇAMENTOS (18/11/2026, Claude) — lancamentos.html
+/* LANÇAMENTOS (18/11/2026, Claude; 20/11: abas PJ | PF com dados separados) — lancamentos.html
    UMA página para lançar tudo (o que é → onde vai → valor) e UMA lista com tudo o que alimenta os indicadores, com alterar, mudar de lugar e
    excluir. Não cria dado novo: lê e grava nos MESMOS lugares das páginas (casa_orcamento c0–c4, casa_contas c0–c3, casa_reserva c0–c1,
    neg_fluxo c0–c3, neg_eventos[].gastos / .recebido, inv_lancamentos), sempre com BWSync.antesDeSalvar → sobe para a conta sozinho.
@@ -30,20 +30,47 @@
   var NICHOS = {casa: ["CASA", "#38bdf8"], negocio: ["NEGÓCIO", "#a78bfa"], evento: ["EVENTOS", "#FFB547"], conta: ["CONTAS A PAGAR", "#fb7185"], reserva: ["RESERVA", "#34d399"], invest: ["INVESTIMENTOS", "#facc15"]};
   /* DESTINOS: para onde um lançamento pode ir (o mesmo mapa serve para criar, mostrar e mudar de lugar) */
   var DEST = {
-    casa_gasto: {rot: "Casa › Gasto", grupo: "s", nicho: "casa", alimenta: ["Orçamento familiar"]},
-    casa_receita: {rot: "Casa › Receita", grupo: "e", nicho: "casa", alimenta: ["Orçamento familiar"]},
-    neg_saida: {rot: "Negócio › Saída", grupo: "s", nicho: "negocio", alimenta: ["Painel Financeiro"]},
-    neg_entrada: {rot: "Negócio › Entrada", grupo: "e", nicho: "negocio", alimenta: ["Painel Financeiro"]},
-    ev_custo: {rot: "Evento › Custo", grupo: "s", nicho: "evento", evento: true, alimenta: ["Dossiê do evento", "Painel Financeiro"]},
-    ev_receita: {rot: "Evento › Recebido", grupo: "e", nicho: "evento", evento: true, alimenta: ["Dossiê do evento", "Painel Financeiro"]},
-    cache: {rot: "Equipe › Cachê", grupo: "c", nicho: "evento", evento: true, alimenta: ["Dossiê do evento", "Painel Financeiro", "Agenda e avisos"]},
-    casa_conta: {rot: "Casa › Conta a pagar", grupo: "s", nicho: "conta", alimenta: ["Contas a pagar", "Agenda e avisos"]},
-    reserva: {rot: "Reserva de emergência", grupo: "r", nicho: "reserva", alimenta: ["Reserva de emergência"]},
+    casa_gasto: {rot: "Casa › Gasto", grupo: "s", nicho: "casa", alimenta: ["Orçamento familiar", "Painel PF"]},
+    casa_receita: {rot: "Casa › Receita", grupo: "e", nicho: "casa", alimenta: ["Orçamento familiar", "Painel PF"]},
+    neg_saida: {rot: "Negócio › Saída", grupo: "s", nicho: "negocio", alimenta: ["Painel PJ"]},
+    neg_entrada: {rot: "Negócio › Entrada", grupo: "e", nicho: "negocio", alimenta: ["Painel PJ"]},
+    ev_custo: {rot: "Evento › Custo", grupo: "s", nicho: "evento", evento: true, alimenta: ["Dossiê do evento", "Painel PJ"]},
+    ev_receita: {rot: "Evento › Recebido", grupo: "e", nicho: "evento", evento: true, alimenta: ["Dossiê do evento", "Painel PJ"]},
+    cache: {rot: "Equipe › Cachê", grupo: "c", nicho: "evento", evento: true, alimenta: ["Dossiê do evento", "Painel PJ", "Agenda e avisos"]},
+    casa_conta: {rot: "Casa › Conta a pagar", grupo: "s", nicho: "conta", alimenta: ["Contas a pagar", "Painel PF", "Agenda e avisos"]},
+    reserva: {rot: "Reserva de emergência", grupo: "r", nicho: "reserva", alimenta: ["Reserva de emergência", "Painel PF"]},
     invest: {rot: "Investimentos", grupo: "i", nicho: "invest", alimenta: ["Painel de Investimentos"]}
   };
-  /* 19/11 (dono): a mesma tela serve de PAINEL DA GESTÃO DE CASA (casa.html, <body data-lc-modo="casa">): só casa, contas e reserva */
-  var MODO = (document.body && document.body.getAttribute("data-lc-modo")) || "", CASA = MODO === "casa", NICHOS_CASA = {casa: 1, conta: 1, reserva: 1};
-  var LINKS = {"Orçamento familiar": "orcamento.html", "Painel Financeiro": "financeiro-painel.html", "Dossiê do evento": "eventos.html", "Contas a pagar": "contas.html", "Agenda e avisos": "index.html", "Reserva de emergência": "reserva.html", "Painel de Investimentos": "investimentos-painel.html"};
+  /* 20/11 (decisão do dono): PESSOA JURÍDICA e PESSOA FÍSICA NÃO SE MISTURAM. A página tem duas abas — LANÇAMENTOS PJ (MINHA EMPRESA: negócio,
+     eventos, cachês, fixos) e LANÇAMENTOS PF (MINHA CASA: casa, contas a pagar, reserva, investimentos) — e cada aba só lê, mostra, soma, cria e
+     muda de lugar DENTRO do seu ambiente. As chaves já eram separadas (neg_* = empresa; casa_* e inv_* = casa); agora a tela também é.
+     O ambiente vem do endereço (?a=pj|pf), senão do nicho pedido (?nicho=), senão do último usado (ui_amb), senão PJ. */
+  var NICHOS_AMB = {pj: {negocio: 1, evento: 1}, pf: {casa: 1, conta: 1, reserva: 1, invest: 1}};
+  var AMB_NOME = {pj: "MINHA EMPRESA", pf: "MINHA CASA"};
+  function ambDoNicho(n) { return NICHOS_AMB.pf[n] ? "pf" : NICHOS_AMB.pj[n] ? "pj" : ""; }
+  var AMB = (function () { var a = "", q; try { q = new URLSearchParams(location.search); a = q.get("a") || ambDoNicho(q.get("nicho")); } catch (e) { }
+    if (a !== "pj" && a !== "pf") { try { a = JSON.parse(localStorage.getItem("ui_amb") || '""'); } catch (e) { a = ""; } }
+    return a === "pf" ? "pf" : "pj"; })();
+  var CASA = AMB === "pf";
+  Object.keys(DEST).forEach(function (k) { DEST[k].amb = ambDoNicho(DEST[k].nicho); });
+  var LINKS = {"Orçamento familiar": "orcamento.html", "Painel PJ": "financeiro-painel.html?a=pj", "Painel PF": "financeiro-painel.html?a=pf", "Dossiê do evento": "eventos.html", "Contas a pagar": "contas.html", "Agenda e avisos": "negocio.html", "Reserva de emergência": "reserva.html", "Painel de Investimentos": "investimentos-painel.html"};
+  function aplicarAmb() {   /* cor, abas, textos e blocos que só existem num dos ambientes */
+    CASA = AMB === "pf"; document.documentElement.setAttribute("data-amb", AMB);
+    try { localStorage.setItem("ui_amb", JSON.stringify(AMB)); } catch (e) { }
+    [].forEach.call(document.querySelectorAll("#lcAbas [data-amb]"), function (b) { var on = b.getAttribute("data-amb") === AMB; b.classList.toggle("on", on); b.setAttribute("aria-selected", String(on)); });
+    [].forEach.call(document.querySelectorAll("[data-so]"), function (el) { el.hidden = el.getAttribute("data-so") !== AMB; });
+    var t = function (id, v) { var el = $(id); if (el) el.innerHTML = v; };
+    t("lcTitulo", CASA ? "<b>LANÇAMENTOS PF</b> · minha casa" : "<b>LANÇAMENTOS PJ</b> · minha empresa");
+    t("lcTitRosca", CASA ? "GASTOS DA CASA POR CATEGORIA" : "SAÍDAS DO MÊS POR NICHO");
+    t("lcTitAli", CASA ? "O QUE ESTES LANÇAMENTOS ALIMENTAM NA CASA" : "O QUE ESTES LANÇAMENTOS ALIMENTAM NA EMPRESA");
+    t("lcTitLista", CASA ? "LANÇAMENTOS DA CASA (PF)" : "LANÇAMENTOS DA EMPRESA (PJ)");
+    var bq = $("lcBusca"); if (bq) bq.placeholder = CASA ? "Procurar (nome, categoria…)" : "Procurar (nome, evento, categoria…)";
+    var vl = $("lcVoltaAmb"); if (vl) { vl.href = CASA ? "casa.html" : "negocio.html"; vl.textContent = CASA ? "‹ MINHA CASA" : "‹ MINHA EMPRESA"; }
+    LINKS["Agenda e avisos"] = CASA ? "casa.html" : "negocio.html";
+    QUE_USO = QUE.filter(function (q) { return ONDE_AMB[AMB][q[0]]; }); ONDE_USO = ONDE_AMB[AMB];
+    try { var u = new URL(location.href); if (u.searchParams.get("a") !== AMB) { u.searchParams.set("a", AMB); history.replaceState(null, "", u.pathname + u.search + u.hash); } } catch (e) { }
+  }
+  function trocarAmb(a) { if (a !== "pj" && a !== "pf" || a === AMB) return; if (F) fecharFolha(); AMB = a; NICHO = ""; aplicarAmb(); aviso($("lcAviso"), ""); desenhar(); }
 
   /* ---------- espelho evento → fluxo (igual ao modules/sincronia, partes 2 e 3) ---------- */
   function espelharEventos() {
@@ -93,7 +120,7 @@
     ler("neg_fluxo").forEach(function (x) { if (!x || x.id == null) return; var id = String(x.id), ent = String(x.c1 || "").toLowerCase().indexOf("entrada") === 0;
       if (/^(gasto_|receita_)/.test(id)) return;   /* vêm do evento, logo abaixo (ev_ antigo aparece como linha comum, para poder excluir) */
       if (id.indexOf("cache_") === 0) return;   /* vem da lista de cachês, logo abaixo */
-      if (id.indexOf("fixo_") === 0) { add({fonte: "auto", id: id, dest: "", nicho: "negocio", data: x.c0, desc: x.c3, valor: num(x.c2), sinal: ent ? "e" : "s", auto: ent ? "Recebimento fixo do negócio" : "Custo fixo do negócio", link: "#lcFixos", alimenta: ["Painel Financeiro"]}); return; }
+      if (id.indexOf("fixo_") === 0) { add({fonte: "auto", id: id, dest: "", nicho: "negocio", data: x.c0, desc: x.c3, valor: num(x.c2), sinal: ent ? "e" : "s", auto: ent ? "Recebimento fixo do negócio" : "Custo fixo do negócio", link: "#lcFixos", alimenta: ["Painel PJ"]}); return; }
       add({fonte: "fluxo", id: x.id, dest: ent ? "neg_entrada" : "neg_saida", data: x.c0, desc: x.c3, valor: num(x.c2), sinal: ent ? "e" : "s"}); });
     ler("neg_eventos").forEach(function (e) { if (!e || e.id == null) return;
       (e.gastos || []).forEach(function (g, i) { if (String(g.id || "").indexOf("pag_") === 0) return; add({fonte: "evgasto", id: e.id + "|" + (g.id || "#" + i), dest: "ev_custo", evId: String(e.id), evNome: e.nome, gi: i, data: g.data || e.data, desc: g.desc, valor: num(g.valor), sinal: "s"}); });
@@ -102,7 +129,7 @@
     ler("neg_equipe_pagamentos").forEach(function (p) { if (!p || p.id == null) return; add({fonte: "cache", id: p.id, dest: "cache", evId: String(p.eventoId || ""), evNome: nomesEv[String(p.eventoId)] || p.evento || "", colab: p.colab || "", obs: p.obs || "", data: p.data || "", desc: "Cachê — " + (p.colab || "equipe"), valor: num(p.valor), sinal: "s", aberto: !p.pago, pago: !!p.pago}); });
     ler("inv_lancamentos").forEach(function (x) { if (!x || x.id == null || String(x.id).indexOf("ex") === 0) return; add({fonte: "inv", id: x.id, dest: "invest", data: x.c0, desc: x.ativo, cat: x.classe, op: x.op, valor: num(x.valor), sinal: "n"}); });
     var h = hoje();
-    if (CASA) L = L.filter(function (o) { var d = DEST[o.dest]; return d && NICHOS_CASA[d.nicho]; });
+    L = L.filter(function (o) { var n = DEST[o.dest] ? DEST[o.dest].nicho : o.nicho; return !!NICHOS_AMB[AMB][n]; });   /* só o que é deste ambiente */
     L.forEach(function (o) { var d = DEST[o.dest]; if (d) { o.nicho = d.nicho; o.alimenta = d.alimenta; } o.futuro = (o.data || "") > h; o.realizado = !o.futuro && !o.aberto && (o.sinal === "e" || o.sinal === "s"); });
     return L;
   }
@@ -111,6 +138,7 @@
   /* ---------- gravar / apagar na origem ---------- */
   function eventosLista() { return ler("neg_eventos").filter(function (e) { return e && e.id != null; }).sort(function (a, b) { return String(b.data || "").localeCompare(String(a.data || "")); }); }
   function criar(dest, f) {
+    if (!DEST[dest] || DEST[dest].amb !== AMB) throw new Error("Este lançamento é de " + AMB_NOME[AMB === "pj" ? "pf" : "pj"] + ". Troque de aba para lançar lá.");   /* trava: nada cruza de um ambiente para o outro */
     var d = f.data || hoje(), v = num(f.valor), l, e;
     if (dest === "casa_gasto" || dest === "casa_receita") { l = ler("casa_orcamento"); l.push({id: novoId("lc_"), c0: cap(f.desc), c1: f.cat || "Outros", c2: dest === "casa_receita" ? "Receita" : "Despesa", c3: String(v), c4: d.slice(0, 7), data: d, origem: "lancamentos"}); gravar("casa_orcamento", l); }
     else if (dest === "neg_saida" || dest === "neg_entrada") { l = ler("neg_fluxo"); l.push({id: novoId("lc_"), c0: d, c1: dest === "neg_entrada" ? "Entrada" : "Saída", c2: String(v), c3: cap(f.desc), origem: "lancamentos"}); gravar("neg_fluxo", l); }
@@ -173,9 +201,9 @@
       : '<p class="lc-nota" style="margin:0">Sem saídas pagas neste mês.</p>';
     /* o que alimenta */
     var al = {}; doMes.forEach(function (o) { (o.alimenta || []).forEach(function (a) { al[a] = (al[a] || 0) + 1; }); });
-    $("lcAlimenta").innerHTML = Object.keys(LINKS).filter(function (a) { return !CASA || /Orçamento|Contas a pagar|Agenda|Reserva/.test(a); }).map(function (a) { return '<li><a href="' + LINKS[a] + '" style="color:inherit">' + a + ' ↗</a><b>' + (al[a] || 0) + '</b></li>'; }).join("");
+    $("lcAlimenta").innerHTML = Object.keys(LINKS).filter(function (a) { return CASA ? /Orçamento|Contas a pagar|Agenda|Reserva|Painel PF|Investimentos/.test(a) : /Painel PJ|Dossiê|Agenda/.test(a); }).map(function (a) { return '<li><a href="' + LINKS[a] + '" style="color:inherit">' + a + ' ↗</a><b>' + (al[a] || 0) + '</b></li>'; }).join("");
     /* chips */
-    $("lcNichos").innerHTML = '<button type="button" class="lc-chip' + (!NICHO ? " on" : "") + '" data-n="" aria-pressed="' + !NICHO + '">TODOS</button>' + Object.keys(NICHOS).filter(function (n) { return !CASA || NICHOS_CASA[n]; }).map(function (n) { return '<button type="button" class="lc-chip' + (NICHO === n ? " on" : "") + '" data-n="' + n + '" style="--c:' + NICHOS[n][1] + '" aria-pressed="' + (NICHO === n) + '">' + NICHOS[n][0] + '</button>'; }).join("");
+    $("lcNichos").innerHTML = '<button type="button" class="lc-chip' + (!NICHO ? " on" : "") + '" data-n="" aria-pressed="' + !NICHO + '">TODOS</button>' + Object.keys(NICHOS).filter(function (n) { return NICHOS_AMB[AMB][n]; }).map(function (n) { return '<button type="button" class="lc-chip' + (NICHO === n ? " on" : "") + '" data-n="' + n + '" style="--c:' + NICHOS[n][1] + '" aria-pressed="' + (NICHO === n) + '">' + NICHOS[n][0] + '</button>'; }).join("");
     desenharLista();
   }
   function desenharLista() {
@@ -192,7 +220,7 @@
         (o.fonte === "conta" ? '<button type="button" class="lc-bt peq" data-pg="' + esc(o.uid) + '" data-bw-status="' + (o.pago ? "volta" : "ok") + '" data-bw-msg="' + (o.pago ? "Conta voltou para em aberto" : "Conta paga!") + '" data-bw-id="' + esc(o.uid) + '">' + (o.pago ? "↺ NÃO PAGA" : "✓ MARCAR PAGA") + '</button>' : "") +
         (o.fonte === "cache" ? '<button type="button" class="lc-bt peq" data-cg="' + esc(o.uid) + '" style="' + (o.pago ? "background:#16a34a;border-color:#16a34a;color:#fff" : "color:#ff8a8a;border-color:#ef4444") + '" data-bw-status="' + (o.pago ? "volta" : "ok") + '" data-bw-msg="' + (o.pago ? "Cachê voltou para NÃO PAGO" : "Cachê pago!") + '" data-bw-id="' + esc(o.uid) + '" aria-label="' + (o.pago ? "Marcar como não pago: " : "Marcar como pago: ") + esc(o.desc) + '">' + (o.pago ? "PAGO ✓" : "NÃO PAGO") + '</button>' : "") +
         (o.auto ? '<a class="lc-bt peq" href="' + o.link + '">' + (o.link.charAt(0) === "#" ? "VER O FIXO ↓" : "ABRIR ONDE NASCEU ↗") + '</a>' : '<button type="button" class="lc-bt peq" data-ed="' + esc(o.uid) + '" aria-label="Alterar ' + esc(o.desc || "lançamento") + '">✎ ALTERAR</button><button type="button" class="lc-bt peq perigo" data-del="' + esc(o.uid) + '" aria-label="Excluir ' + esc(o.desc || "lançamento") + '">✕</button>') + '</div></div>'; });
-    $("lcLista").innerHTML = h || '<div class="lc-vazio">' + (TODOS.length ? "Nenhum lançamento com esse filtro. Troque o mês, o nicho ou a busca." : "Ainda não há lançamentos. Toque em <b>＋ NOVO LANÇAMENTO</b> e responda o que é e para onde vai.") + '</div>';
+    $("lcLista").innerHTML = h || '<div class="lc-vazio">' + (TODOS.length ? "Nenhum lançamento com esse filtro. Troque o mês, o nicho ou a busca." : "Ainda não há lançamentos " + (CASA ? "da casa" : "da empresa") + ". Toque em <b>＋ NOVO LANÇAMENTO</b> e responda o que é e para onde vai.") + '</div>';
   }
   /* ---------- FIXOS DO NEGÓCIO (vieram da antiga página Fluxo de caixa; mesmo formato: neg_fixos c0 nome · c1 valor · c2 mensal/anual · c3 dia · c4 mês inicial · c5 Saída/Entrada) ---------- */
   function expandirFixos() {   /* cada fixo gera os próximos lançamentos (mensal = 6 meses, anual = 1) com id fixo_<id>_<data> */
@@ -204,9 +232,10 @@
     if (n) gravar("neg_fluxo", fluxo); return n;
   }
   function desenharFixos() {
+    if (CASA) return;   /* os fixos são do negócio */
     var l = ler("neg_fixos").filter(function (f) { return f && f.id != null; }), box = $("lcFixosLista"); if (!box) return;
     box.innerHTML = l.length ? l.map(function (f) { var ent = f.c5 === "Entrada";
-      return '<div class="lc-item" data-fixo="' + esc(f.id) + '" style="--c:#7C3AED"><div class="t"><b>' + esc(f.c0 || "Sem nome") + '</b><small>' + (f.c2 === "anual" ? "Uma vez por ano" : "Todo mês") + ", dia " + esc(f.c3 || "1") + " · desde " + esc(f.c4 || "") + ' — alimenta: Painel Financeiro, Agenda e avisos</small></div>' +
+      return '<div class="lc-item" data-fixo="' + esc(f.id) + '" style="--c:#7C3AED"><div class="t"><b>' + esc(f.c0 || "Sem nome") + '</b><small>' + (f.c2 === "anual" ? "Uma vez por ano" : "Todo mês") + ", dia " + esc(f.c3 || "1") + " · desde " + esc(f.c4 || "") + ' — alimenta: Painel PJ, Agenda e avisos</small></div>' +
         '<div class="v ' + (ent ? "e" : "s") + '">' + (ent ? "+ " : "− ") + brl(num(f.c1)) + '</div><div class="a"><span class="lc-tag" style="--c:#7C3AED">' + (ent ? "RECEBIMENTO FIXO" : "CUSTO FIXO") + '</span><span style="flex:1"></span><button type="button" class="lc-bt peq perigo" data-delfixo="' + esc(f.id) + '" aria-label="Excluir o fixo ' + esc(f.c0 || "") + '">✕ EXCLUIR</button></div></div>'; }).join("")
       : '<div class="lc-vazio">Nenhum fixo ainda. Aluguel, internet, contador, mensalidade de cliente… cadastre uma vez e ele entra sozinho todo mês.</div>';
   }
@@ -233,13 +262,13 @@
   function pdfMes() {
     var l = TODOS.filter(function (o) { return (o.data || "").slice(0, 7) === MES && (!NICHO || o.nicho === NICHO) && (o.sinal === "e" || o.sinal === "s"); }).sort(function (a, b) { return String(a.data || "").localeCompare(String(b.data || "")); });
     var feitos = l.filter(function (o) { return o.realizado; }), ent = feitos.filter(function (o) { return o.sinal === "e"; }).reduce(function (a, o) { return a + o.valor; }, 0), sai = feitos.filter(function (o) { return o.sinal === "s"; }).reduce(function (a, o) { return a + o.valor; }, 0);
-    var tit = (CASA ? "Gestão de casa — " : "Lançamentos de ") + MESES[+MES.slice(5) - 1] + "/" + MES.slice(0, 4) + (NICHO ? " · " + NICHOS[NICHO][0] : ""), limpo = function (v) { return brl(v).replace(/\u00a0/g, " "); };
+    var tit = (CASA ? "Minha casa (PF) — lançamentos de " : "Minha empresa (PJ) — lançamentos de ") + MESES[+MES.slice(5) - 1] + "/" + MES.slice(0, 4) + (NICHO ? " · " + NICHOS[NICHO][0] : ""), limpo = function (v) { return brl(v).replace(/\u00a0/g, " "); };
     var def = {pageSize: "A4", pageMargins: [36, 40, 36, 40], defaultStyle: {fontSize: 9}, content: [
       {text: tit, fontSize: 16, bold: true}, {text: "Entradas " + limpo(ent) + "   ·   Saídas " + limpo(sai) + "   ·   Resultado " + limpo(ent - sai) + "   (só o que já aconteceu e foi pago)", margin: [0, 6, 0, 12]},
       {table: {headerRows: 1, widths: [52, "*", 150, 60, 70], body: [["Data", "O que foi", "Onde", "Situação", "Valor"].map(function (t) { return {text: t, bold: true, fillColor: "#eeeeee"}; })].concat(l.map(function (o) {
         return [dataBR(o.data), String(o.desc || "Sem nome"), onde(o), o.aberto ? "em aberto" : o.futuro ? "data futura" : "feito", {text: (o.sinal === "e" ? "+ " : "− ") + limpo(o.valor), alignment: "right"}]; })) }, layout: "lightHorizontalLines"},
       {text: l.length ? "" : "Nenhuma entrada ou saída neste mês.", margin: [0, 10, 0, 0]}]};
-    return carregarPdf().then(function () { return new Promise(function (ok, erro) { try { pdfMake.createPdf(def).getBuffer(function (b) { ok({blob: new Blob([b], {type: "application/pdf"}), nome: "lancamentos-" + MES + ".pdf", linhas: l.length}); }); } catch (e) { erro(e); } }); });
+    return carregarPdf().then(function () { return new Promise(function (ok, erro) { try { pdfMake.createPdf(def).getBuffer(function (b) { ok({blob: new Blob([b], {type: "application/pdf"}), nome: "lancamentos-" + AMB + "-" + MES + ".pdf", linhas: l.length}); }); } catch (e) { erro(e); } }); });
   }
   function achar(uid) { return TODOS.filter(function (o) { return o.uid === uid; })[0]; }
 
@@ -249,8 +278,10 @@
   var ONDE = {gasto: [["casa_gasto", "🏠", "DA CASA", "família, mercado, lazer"], ["neg_saida", "💼", "DO NEGÓCIO", "despesa da empresa"], ["ev_custo", "🎬", "DE UM EVENTO", "custo daquele trabalho"]],
     entrada: [["casa_receita", "🏠", "DA CASA", "salário, renda da família"], ["neg_entrada", "💼", "DO NEGÓCIO", "venda, serviço avulso"], ["ev_receita", "🎬", "DE UM EVENTO", "cliente pagou o evento"]],
     conta: [["casa_conta", "🏠", "DA CASA", "luz, água, cartão…"], ["neg_saida", "💼", "DO NEGÓCIO", "sai do caixa na data"]], cache: [["cache", "", "", ""]], reserva: [["reserva", "", "", ""]], invest: [["invest", "", "", ""]]};
-  var QUE_USO = CASA ? QUE.filter(function (q) { return /^(gasto|entrada|conta|reserva)$/.test(q[0]); }) : QUE;
-  var ONDE_USO = CASA ? {gasto: [ONDE.gasto[0]], entrada: [ONDE.entrada[0]], conta: [ONDE.conta[0]], reserva: ONDE.reserva} : ONDE;
+  /* cada ambiente só oferece os SEUS destinos: na empresa não existe "da casa" e na casa não existe "do negócio" */
+  var ONDE_AMB = {pj: {gasto: [ONDE.gasto[1], ONDE.gasto[2]], entrada: [ONDE.entrada[1], ONDE.entrada[2]], cache: ONDE.cache, conta: [ONDE.conta[1]]},
+    pf: {gasto: [ONDE.gasto[0]], entrada: [ONDE.entrada[0]], conta: [ONDE.conta[0]], reserva: ONDE.reserva, invest: ONDE.invest}};
+  var QUE_USO = QUE, ONDE_USO = ONDE_AMB[AMB];
   function abrirFolha() { $("lcFolha").hidden = false; document.documentElement.classList.add("lc-aberto"); aviso($("lcFxAviso"), ""); }
   function fecharFolha() { $("lcFolha").hidden = true; document.documentElement.classList.remove("lc-aberto"); F = null; }
   function campos(dest, v) {
@@ -270,10 +301,10 @@
     var ops = F.que ? ONDE_USO[F.que] : null;
     if (ops && ops.length > 1) h += '<div class="lc-passo"><h4><em>2</em>' + (F.que === "entrada" ? "DE ONDE VEIO?" : "É DE ONDE?") + '</h4><div class="lc-ops">' + ops.map(function (q) { return '<button type="button" class="lc-op' + (F.dest === q[0] ? " on" : "") + '" data-dest="' + q[0] + '" aria-pressed="' + (F.dest === q[0]) + '"><i>' + q[1] + '</i>' + q[2] + '<small>' + q[3] + '</small></button>'; }).join("") + '</div></div>';
     if (F.dest) h += '<div class="lc-passo"><h4><em>' + (ops.length > 1 ? 3 : 2) + '</em>QUANTO E QUANDO?</h4>' + campos(F.dest, F.guardado) + '</div><div class="lc-linha"><button type="button" class="lc-bt pri" id="fxLancar">✓ LANÇAR</button><button type="button" class="lc-bt" id="fxLancarOutro">✓ LANÇAR E FAZER OUTRO</button></div>';
-    $("lcFxTit").textContent = "NOVO LANÇAMENTO"; $("lcFxCorpo").innerHTML = h;
+    $("lcFxTit").textContent = CASA ? "NOVO LANÇAMENTO · MINHA CASA (PF)" : "NOVO LANÇAMENTO · MINHA EMPRESA (PJ)"; $("lcFxCorpo").innerHTML = h;
   }
   function desenharEditar() {
-    var o = F.o, grupo = DEST[o.dest].grupo, podem = Object.keys(DEST).filter(function (k) { return DEST[k].grupo === grupo; });
+    var o = F.o, grupo = DEST[o.dest].grupo, podem = Object.keys(DEST).filter(function (k) { return DEST[k].grupo === grupo && DEST[k].amb === DEST[o.dest].amb; });   /* muda de lugar só DENTRO do ambiente */
     var h = '<div class="lc-passo"><h4><em>↪</em>PARA ONDE FOI</h4><div class="lc-form"><label class="cheio">Este lançamento está em<select id="fxDest"' + (podem.length < 2 ? " disabled" : "") + '>' + podem.map(function (k) { return '<option value="' + k + '"' + (k === F.dest ? " selected" : "") + '>' + DEST[k].rot + '</option>'; }).join("") + '</select></label></div>' + (podem.length > 1 ? '<p class="lc-nota">Trocar aqui tira o lançamento de onde está e põe no lugar novo, com o mesmo valor.</p>' : "") + '</div>' +
       '<div class="lc-passo"><h4><em>✎</em>VALOR E DADOS</h4>' + campos(F.dest, F.guardado) + '</div><div class="lc-linha"><button type="button" class="lc-bt pri" id="fxSalvar">✓ SALVAR</button><button type="button" class="lc-bt perigo" id="fxExcluir">✕ EXCLUIR</button></div>';
     $("lcFxTit").textContent = "ALTERAR LANÇAMENTO"; $("lcFxCorpo").innerHTML = h;
@@ -326,15 +357,16 @@
   (async function () { var el = $("userBox"); if (!el) return; var u = null; try { var c = window.BWSync && BWSync.cliente && BWSync.cliente(), s = c ? await c.auth.getSession() : null; u = s && s.data && s.data.session && s.data.session.user; } catch (e) {}
     el.innerHTML = u ? '<a href="login.html" class="bw-logado" title="Conta: ' + esc(u.email) + '"><i></i>LOGADO</a>' : '<a href="login.html" class="bw-btn bw-btn--vidro" style="min-height:34px;padding:0 14px;font-size:12px">LOGIN</a>'; })();
   try { var pr = new URLSearchParams(location.search);   /* atalhos de outras telas: ?nicho=evento&tipo=e&periodo=tudo */
-    if (NICHOS[pr.get("nicho")]) NICHO = pr.get("nicho"); if (pr.get("tipo") === "e" || pr.get("tipo") === "s") $("lcTipo").value = pr.get("tipo"); if (pr.get("periodo") === "tudo") $("lcPeriodo").value = "tudo"; } catch (e) {}
+    if (NICHOS[pr.get("nicho")] && NICHOS_AMB[AMB][pr.get("nicho")]) NICHO = pr.get("nicho"); if (pr.get("tipo") === "e" || pr.get("tipo") === "s") $("lcTipo").value = pr.get("tipo"); if (pr.get("periodo") === "tudo") $("lcPeriodo").value = "tudo"; } catch (e) {}
   try { $("fzMes").value = hoje().slice(0, 7); $("fzAdd").onclick = criarFixo;
     $("lcFixosLista").addEventListener("click", function (e) { var b = e.target.closest("[data-delfixo]"); if (b) apagarFixo(b.dataset.delfixo); }); } catch (e) {}
   $("lcPdf").onclick = function () { var b = this; b.disabled = true; pdfMes().then(function (r) { var a = document.createElement("a"); a.href = URL.createObjectURL(r.blob); a.download = r.nome; document.body.appendChild(a); a.click(); a.remove(); aviso($("lcAviso"), "✓ PDF do mês gerado (" + r.linhas + " lançamentos)."); })
     .catch(function (e) { aviso($("lcAviso"), "Não deu para gerar o PDF: " + (e && e.message || e), true); }).then(function () { b.disabled = false; }); };
   $("lcFalar").onclick = function () { if (window.BWAgente) BWAgente.abrir(false); else aviso($("lcAviso"), "O Tio Cláudio ainda está carregando. Tente de novo em instantes.", true); };
-  expandirFixos(); desenhar();
+  var abas = $("lcAbas"); if (abas) abas.addEventListener("click", function (e) { var b = e.target.closest("[data-amb]"); if (b) { e.preventDefault(); trocarAmb(b.getAttribute("data-amb")); } });
+  aplicarAmb(); expandirFixos(); desenhar();
   try { if (/[?&]novo=1/.test(location.search)) $("lcNovo").click(); } catch (e) {}
   setTimeout(function () { expandirFixos(); desenhar(); }, 1500);   /* a sincronia ao abrir pode trazer dados da conta */
-  window.__lanc = {pdfMes: pdfMes, expandirFixos: expandirFixos, itens: itens, desenhar: desenhar, criar: criar, DEST: DEST, espelhar: espelharEventos};
+  window.__lanc = {pdfMes: pdfMes, expandirFixos: expandirFixos, itens: itens, desenhar: desenhar, criar: criar, DEST: DEST, espelhar: espelharEventos, amb: function () { return AMB; }, trocarAmb: trocarAmb};
   if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(function () { });
 })();

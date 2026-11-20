@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" data-amb="pj">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -11,20 +11,22 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Brightway">
-<link rel="stylesheet" href="assets/brightway.css?v=29">
+<link rel="stylesheet" href="assets/brightway.css?v=30">
+<script>/* cor do ambiente antes de desenhar (sem piscar): ?a=pj|pf, senão o último usado */
+(function(){var a="";try{var q=new URLSearchParams(location.search);a=q.get("a")||"";var n=q.get("nicho");if(!a&&n)a=/^(casa|conta|reserva|invest)$/.test(n)?"pf":"pj";if(a!=="pj"&&a!=="pf")a=JSON.parse(localStorage.getItem("ui_amb")||'""');}catch(e){}document.documentElement.setAttribute("data-amb",a==="pf"?"pf":"pj");})();</script>
 <style>
 .wrap{max-width:1320px;margin:0 auto;padding:0 16px 120px}
 .lc-topo{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
 .lc-topo h1{margin:0 auto 0 0;font:800 22px Montserrat,Inter,sans-serif;letter-spacing:.03em;color:#F5F1EA}
-.lc-topo h1 b{color:#FFB547}
+.lc-topo h1 b{color:var(--amb)}
 .lc-bt{min-height:44px;padding:0 16px;border-radius:13px;border:1px solid rgba(245,241,234,.16);background:rgba(255,255,255,.05);color:#F5F1EA;font:800 12px Inter,sans-serif;letter-spacing:.07em;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:7px;text-decoration:none;touch-action:manipulation;white-space:nowrap}
-.lc-bt.pri{background:linear-gradient(180deg,#ffc56b,#FFB547);border-color:#FFB547;color:#1a1205}
+.lc-bt.pri{background:linear-gradient(180deg,var(--amb-2),var(--amb));border-color:var(--amb);color:var(--amb-tinta)}
 .lc-bt.perigo{color:#ff9a9d;border-color:rgba(242,104,107,.4)}
 .lc-bt.peq{min-height:36px;padding:0 10px;font-size:10.5px}
 .lc-bt:disabled{opacity:.4;cursor:default}
-.lc-cx{min-width:0;border-radius:18px;background:linear-gradient(180deg,#111a2c,#0c1220);border:1px solid rgba(120,160,255,.16);padding:14px;box-shadow:0 10px 30px -18px rgba(0,0,0,.7)}
+.lc-cx{min-width:0;border-radius:18px;background:linear-gradient(180deg,#111a2c,#0c1220);border:1px solid rgba(var(--amb-rgb),.28);padding:14px;box-shadow:0 10px 30px -18px rgba(0,0,0,.7)}
 .lc-fixo-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:12px}.lc-fixo-form label{min-width:0;display:flex;flex-direction:column;gap:5px;font:700 11px Inter,sans-serif;letter-spacing:.06em;color:#B9C6E0;text-transform:none}.lc-fixo-form input,.lc-fixo-form select{min-width:0;width:100%;min-height:44px;border-radius:12px;border:1px solid rgba(245,241,234,.16);background:#0a0f1c;color:#F5F1EA;font:500 16px Inter,sans-serif;padding:0 12px}
-.lc-cx h3{margin:0 0 10px;font:800 11px Inter,sans-serif;letter-spacing:.14em;color:#B9C6E0}
+.lc-cx h3{margin:0 0 10px;font:800 11px Inter,sans-serif;letter-spacing:.14em;color:var(--amb-2)}
 /* cartões de números (referência: painel de indicadores) */
 .lc-kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin-bottom:12px}
 .lc-kpi{min-width:0;border-radius:16px;padding:12px 12px 10px;background:linear-gradient(180deg,#111a2c,#0c1220);border:1px solid var(--c);box-shadow:0 0 0 1px rgba(0,0,0,.2),0 12px 26px -18px var(--c)}
@@ -50,7 +52,7 @@
 /* novo lançamento: passos */
 .lc-passo{margin-bottom:12px}
 .lc-passo h4{margin:0 0 8px;font:800 12px Inter,sans-serif;letter-spacing:.1em;color:#F5F1EA}
-.lc-passo h4 em{font-style:normal;display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;margin-right:6px;border-radius:50%;background:#FFB547;color:#1a1205;font-size:11px}
+.lc-passo h4 em{font-style:normal;display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;margin-right:6px;border-radius:50%;background:var(--amb);color:var(--amb-tinta);font-size:11px}
 .lc-ops{display:grid;grid-template-columns:repeat(auto-fit,minmax(128px,1fr));gap:8px}
 .lc-op{min-width:0;min-height:74px;padding:10px 8px;border-radius:14px;border:1.5px solid rgba(120,160,255,.2);background:rgba(255,255,255,.03);color:#F5F1EA;font:800 11.5px Inter,sans-serif;letter-spacing:.05em;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;text-align:center;touch-action:manipulation}
 .lc-op i{font-style:normal;font-size:22px;line-height:1}
@@ -85,7 +87,7 @@
 .lc-aviso[hidden]{display:none}
 .lc-folha{position:fixed;inset:0;z-index:1300;background:rgba(4,6,10,.72);display:flex;justify-content:flex-end}
 .lc-folha[hidden]{display:none}
-.lc-fx{width:min(520px,100%);height:100%;box-sizing:border-box;overflow:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;background:#0e1524;border-left:1px solid rgba(255,181,71,.4);padding:14px 16px calc(24px + env(safe-area-inset-bottom));padding-top:max(14px,env(safe-area-inset-top));color:#F5F1EA}
+.lc-fx{width:min(520px,100%);height:100%;box-sizing:border-box;overflow:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;background:#0e1524;border-left:2px solid var(--amb);padding:14px 16px calc(24px + env(safe-area-inset-bottom));padding-top:max(14px,env(safe-area-inset-top));color:#F5F1EA}
 .lc-fx .cab{display:flex;align-items:center;gap:8px;margin-bottom:12px}.lc-fx .cab b{flex:1;font:800 13px Inter,sans-serif;letter-spacing:.1em}
 .lc-linha{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.lc-linha .lc-bt{flex:1 1 auto}
 .lc-nota{margin:8px 0 0;font:500 12px/1.45 Inter,sans-serif;color:#8ea0bf}
@@ -97,8 +99,14 @@ html.lc-aberto,html.lc-aberto body{overflow:hidden}
 <body>
 <header><div class="hd"><button id="btnVoltar" type="button">‹</button><div id="userBox"></div></div></header>
 <div class="wrap">
+  <!-- 20/11 (dono): duas abas, dados totalmente separados e uma cor para cada: PJ = empresa (azul) · PF = casa (verde) -->
+  <div class="amb-abas" id="lcAbas" role="tablist" aria-label="Lançamentos de qual ambiente">
+    <a class="amb-aba" role="tab" data-amb="pj" data-amb-cor="pj" href="lancamentos.html?a=pj"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M3 12h18"/></svg><span>LANÇAMENTOS PJ<small>MINHA EMPRESA</small></span></a>
+    <a class="amb-aba" role="tab" data-amb="pf" data-amb-cor="pf" href="lancamentos.html?a=pf"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M9 21v-6h6v6"/></svg><span>LANÇAMENTOS PF<small>MINHA CASA</small></span></a>
+  </div>
   <div class="lc-topo">
-    <h1><b>LANÇAMENTOS</b> · tudo num lugar só</h1>
+    <h1 id="lcTitulo"><b>LANÇAMENTOS PJ</b> · minha empresa</h1>
+    <a class="lc-bt" id="lcVoltaAmb" href="negocio.html">‹ MINHA EMPRESA</a>
     <select class="lc-bt" id="lcMes" aria-label="Mês dos números" style="padding-right:10px"></select>
     <button class="lc-bt" id="lcPdf" type="button" title="Relatório do mês em PDF (entradas, saídas e saldo), pronto para mandar ao contador">📄 PDF DO MÊS</button>
     <button class="lc-bt pri" id="lcNovo" type="button">＋ NOVO LANÇAMENTO</button>
@@ -106,21 +114,26 @@ html.lc-aberto,html.lc-aberto body{overflow:hidden}
   <div class="lc-cx" id="lcFerr" style="margin-bottom:14px">
     <h3 data-seta="lc-ferr">🧰 FERRAMENTAS PARA LANÇAR MAIS RÁPIDO</h3>
     <div class="lc-linha" style="margin-top:0">
-      <a class="lc-bt" href="leitor.html" title="PDF, foto ou código de barras de conta, boleto ou comprovante: lê e lança">📷 LER CONTA OU COMPROVANTE</a>
+      <a class="lc-bt" data-so="pj" href="financeiro-painel.html?a=pj" title="Receita, lucro e clientes da empresa; BAIXAR / ENVIAR PLANILHA (Excel) fica lá">📊 PAINEL PJ · PLANILHA</a>
+      <a class="lc-bt" data-so="pj" href="leitor.html" title="PDF, foto ou código de barras de boleto ou comprovante: lê e lança">📷 LER COMPROVANTE</a>
+      <a class="lc-bt" data-so="pj" href="#lcFixos" title="Aluguel, internet, contador: cadastre uma vez e entra todo mês">🔁 FIXOS DO MÊS ↓</a>
+      <a class="lc-bt" data-so="pf" href="financeiro-painel.html?a=pf" title="Receitas, contas, gastos e o que sobrou no mês da casa" hidden>📊 PAINEL PF</a>
+      <a class="lc-bt" data-so="pf" href="leitor.html?d=conta" title="PDF, foto ou código de barras da conta: lê e lança" hidden>📷 LER CONTA</a>
+      <a class="lc-bt" data-so="pf" href="orcamento.html" title="Receitas e despesas da família por categoria, com metas" hidden>📒 ORÇAMENTO</a>
+      <a class="lc-bt" data-so="pf" href="contas.html" title="Contas com vencimento: luz, água, cartão…" hidden>🧾 CONTAS A PAGAR</a>
+      <a class="lc-bt" data-so="pf" href="reserva.html" title="Quanto já guardou e quanto falta para a meta" hidden>🏦 RESERVA</a>
       <button class="lc-bt" type="button" id="lcFalar" title="Fale ou escreva: gastei 50 de gasolina, recebi 2 mil do evento…">🎙 FALAR COM O TIO CLÁUDIO</button>
-      <a class="lc-bt" href="financeiro-painel.html" title="BAIXAR / ENVIAR PLANILHA (Excel) fica no Painel Financeiro">📊 LANÇAR POR PLANILHA</a>
-      <a class="lc-bt" href="#lcFixos" title="Aluguel, internet, contador: cadastre uma vez e entra todo mês">🔁 FIXOS DO MÊS ↓</a>
     </div>
   </div>
   <div class="lc-kpis" id="lcKpis"></div>
   <div class="lc-meio">
     <div class="lc-cx"><h3 data-seta="lc-meses">ENTRADAS × SAÍDAS · 6 MESES</h3><div><div class="lc-barras" id="lcBarras"></div><div class="lc-leg"><span><i style="background:#22c55e"></i>Entradas</span><span><i style="background:#ef4444"></i>Saídas</span></div></div></div>
-    <div class="lc-cx"><h3 data-seta="lc-nichos">SAÍDAS DO MÊS POR NICHO</h3><div class="lc-rosca" id="lcRosca"></div></div>
-    <div class="lc-cx"><h3 data-seta="lc-alimenta">O QUE ESTES LANÇAMENTOS ALIMENTAM</h3><ul class="lc-ali" id="lcAlimenta"></ul></div>
+    <div class="lc-cx"><h3 data-seta="lc-nichos" id="lcTitRosca">SAÍDAS DO MÊS POR NICHO</h3><div class="lc-rosca" id="lcRosca"></div></div>
+    <div class="lc-cx"><h3 data-seta="lc-alimenta" id="lcTitAli">O QUE ESTES LANÇAMENTOS ALIMENTAM NA EMPRESA</h3><ul class="lc-ali" id="lcAlimenta"></ul></div>
   </div>
   <div class="lc-aviso" id="lcAviso" hidden aria-live="polite"></div>
   <div class="lc-cx">
-    <h3>TODOS OS LANÇAMENTOS</h3>
+    <h3 id="lcTitLista">LANÇAMENTOS DA EMPRESA (PJ)</h3>
     <div class="lc-chips" id="lcNichos" role="group" aria-label="Filtrar por nicho"></div>
     <div class="lc-filtros">
       <select id="lcPeriodo" aria-label="Período da lista"><option value="mes">Só o mês escolhido</option><option value="tudo">Tudo</option></select>
@@ -129,9 +142,10 @@ html.lc-aberto,html.lc-aberto body{overflow:hidden}
       <input id="lcBusca" type="search" placeholder="Procurar (nome, evento, categoria…)" aria-label="Procurar lançamento">
     </div>
     <div class="lc-lista" id="lcLista"></div>
-    <p class="lc-nota">Cachê da equipe: toque em NÃO PAGO quando pagar — fica verde PAGO ✓ e passa a contar como custo do evento. Os marcados AUTOMÁTICO vêm dos FIXOS DO NEGÓCIO, logo abaixo. Todo o resto você altera, muda de lugar ou exclui aqui mesmo.</p>
+    <p class="lc-nota" data-so="pj">Aqui só entram os lançamentos da EMPRESA (pessoa jurídica). Cachê da equipe: toque em NÃO PAGO quando pagar — fica verde PAGO ✓ e passa a contar como custo do evento. Os marcados AUTOMÁTICO vêm dos FIXOS DO NEGÓCIO, logo abaixo. Todo o resto você altera, muda de lugar (dentro da empresa) ou exclui aqui mesmo.</p>
+    <p class="lc-nota" data-so="pf" hidden>Aqui só entram os lançamentos da CASA (pessoa física): gastos e receitas da família, contas a pagar, reserva e investimentos. Toque em ✓ MARCAR PAGA quando pagar uma conta; ✎ ALTERAR muda valor, data e para onde foi (dentro da casa).</p>
   </div>
-  <div class="lc-cx" id="lcFixos" style="margin-top:14px;scroll-margin-top:90px">
+  <div class="lc-cx" id="lcFixos" data-so="pj" style="margin-top:14px;scroll-margin-top:90px">
     <h3 data-seta="lc-fixos">🔁 FIXOS DO NEGÓCIO · ENTRAM SOZINHOS TODO MÊS</h3>
     <div>
       <div class="lc-lista" id="lcFixosLista"></div>
@@ -156,9 +170,9 @@ html.lc-aberto,html.lc-aberto body{overflow:hidden}
   <div class="lc-aviso" id="lcFxAviso" hidden aria-live="polite"></div>
 </div></div>
 
-<script src="assets/layout.js?v=60"></script>
+<script src="assets/layout.js?v=61"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="assets/bw-sync.js"></script>
-<script src="assets/lancamentos.js?v=6"></script>
+<script src="assets/lancamentos.js?v=7"></script>
 </body>
 </html>

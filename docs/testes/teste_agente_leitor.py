@@ -213,7 +213,7 @@ with sync_playwright() as p:
         # abrir página
         pg.click("#bwAgente"); pg.wait_for_timeout(300); pg.evaluate("window.__fala=''")
         with pg.expect_navigation(timeout=8000): diz("abrir fluxo de caixa"); pg.wait_for_timeout(900)
-        ok(pg.url.endswith("lancamentos.html"), "'abrir fluxo de caixa' abre os LANÇAMENTOS (o Fluxo de caixa saiu)")
+        ok("lancamentos.html" in pg.url, "'abrir fluxo de caixa' abre os LANÇAMENTOS (o Fluxo de caixa saiu)")
         pg.goto(BASE + "login.html"); pg.wait_for_timeout(700)
         ok(pg.locator("#bwAgente").count() == 0, "sem robô nas páginas públicas (login)")
 

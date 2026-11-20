@@ -637,3 +637,75 @@ body a.menu-card:focus-visible, body a.bw-tool-card:focus-visible{outline:2px so
 [data-seta].fechada{margin-bottom:0!important}
 [data-seta].fechada ~ *{display:none!important}
 [data-seta]:focus-visible{outline:2px solid #FFB547;outline-offset:3px;border-radius:6px}
+
+/* ===== AMBIENTES (20/11/2026 — dono: "PJ e PF não se misturam; cada área com a sua cor para não errar") =====
+   MINHA EMPRESA (PJ) = azul · MINHA CASA (PF) = verde. A página diz o ambiente em <html data-amb="pj|pf">. */
+:root{--amb:#FFB547;--amb-2:#ffc56b;--amb-tinta:#1a1205;--amb-rgb:255,181,71}
+html[data-amb="pj"]{--amb:#4C8DFF;--amb-2:#8AB4FF;--amb-tinta:#04122e;--amb-rgb:76,141,255}
+html[data-amb="pf"]{--amb:#2FD08A;--amb-2:#7BE8B5;--amb-tinta:#03241a;--amb-rgb:47,208,138}
+html[data-amb]::before{content:"";position:fixed;left:0;right:0;top:0;height:4px;z-index:2000;pointer-events:none;
+  background:linear-gradient(90deg,var(--amb),var(--amb-2),var(--amb));box-shadow:0 0 18px rgba(var(--amb-rgb),.75)}
+[data-amb-cor="pj"]{--c:#4C8DFF;--c2:#8AB4FF;--ct:#04122e;--c-rgb:76,141,255}
+[data-amb-cor="pf"]{--c:#2FD08A;--c2:#7BE8B5;--ct:#03241a;--c-rgb:47,208,138}
+/* abas PJ | PF (lançamentos e painel financeiro) */
+.amb-abas{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:0 0 14px}
+.amb-aba{min-width:0;min-height:60px;padding:8px 14px;border-radius:16px;border:1.5px solid rgba(var(--c-rgb),.4);background:rgba(var(--c-rgb),.07);
+  color:#D6DEEE;font:800 13px Inter,sans-serif;letter-spacing:.08em;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:12px;
+  text-decoration:none;text-align:left;touch-action:manipulation;transition:transform .15s,box-shadow .15s}
+.amb-aba svg{flex:none;width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;color:var(--c)}
+.amb-aba span{min-width:0}
+.amb-aba small{display:block;margin-top:2px;font:600 10.5px Inter,sans-serif;letter-spacing:.03em;color:#8ea0bf}
+.amb-aba:hover{transform:translateY(-1px)}
+.amb-aba.on{background:linear-gradient(180deg,var(--c2),var(--c));color:var(--ct);border-color:var(--c);box-shadow:0 14px 30px -14px rgba(var(--c-rgb),.95)}
+.amb-aba.on svg,.amb-aba.on small{color:var(--ct)}
+/* portal do Início: os dois ecossistemas */
+.amb-portal{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin-top:10px}
+.amb-porta{position:relative;min-width:0;min-height:300px;padding:26px 24px 22px;border-radius:26px;overflow:hidden;text-decoration:none;color:#F5F1EA;
+  display:flex;flex-direction:column;gap:10px;border:1.5px solid rgba(var(--c-rgb),.5);
+  background:radial-gradient(520px 300px at 100% 0%,rgba(var(--c-rgb),.34),transparent 62%),linear-gradient(180deg,rgba(var(--c-rgb),.16),rgba(var(--c-rgb),.04) 70%),#0c1220;
+  box-shadow:0 26px 60px -30px rgba(var(--c-rgb),.9),inset 0 1px 0 rgba(255,255,255,.08);transition:transform .2s,box-shadow .2s}
+.amb-porta:hover{transform:translateY(-4px);box-shadow:0 34px 70px -28px rgba(var(--c-rgb),1),inset 0 1px 0 rgba(255,255,255,.12)}
+.amb-porta .ico{width:74px;height:74px;border-radius:22px;display:inline-flex;align-items:center;justify-content:center;color:var(--ct);
+  background:linear-gradient(180deg,var(--c2),var(--c));box-shadow:0 14px 30px -12px rgba(var(--c-rgb),.9)}
+.amb-porta .ico svg{width:38px;height:38px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.amb-porta .selo{align-self:flex-start;padding:4px 10px;border-radius:999px;font:800 10px Inter,sans-serif;letter-spacing:.14em;color:var(--c2);border:1px solid rgba(var(--c-rgb),.55);background:rgba(var(--c-rgb),.12)}
+.amb-porta .nome{font:800 clamp(24px,3.4vw,34px) Montserrat,Inter,sans-serif;letter-spacing:.04em;line-height:1.05}
+.amb-porta .nome b{color:var(--c2)}
+.amb-porta .nums{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:auto}
+.amb-porta .nums div{min-width:0;padding:10px 12px;border-radius:14px;background:rgba(4,8,16,.45);border:1px solid rgba(var(--c-rgb),.25)}
+.amb-porta .nums small{display:block;font:700 9.5px Inter,sans-serif;letter-spacing:.1em;color:#B9C6E0;text-transform:uppercase}
+.amb-porta .nums b{display:block;margin-top:4px;font:800 17px Montserrat,Inter,sans-serif;font-variant-numeric:tabular-nums;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.amb-porta .entrar{display:flex;align-items:center;justify-content:center;gap:8px;min-height:50px;border-radius:15px;font:800 13px Inter,sans-serif;letter-spacing:.12em;
+  color:var(--ct);background:linear-gradient(180deg,var(--c2),var(--c));box-shadow:inset 0 1px 0 rgba(255,255,255,.45),inset 0 -3px 0 rgba(0,0,0,.16)}
+/* página de cada ecossistema (negocio.html / casa.html) */
+.amb-topo{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 14px}
+.amb-topo h1{margin:0 auto 0 0;font:800 24px Montserrat,Inter,sans-serif;letter-spacing:.03em;color:#F5F1EA}
+.amb-topo h1 b{color:var(--amb)}
+.amb-selo{padding:5px 11px;border-radius:999px;font:800 10px Inter,sans-serif;letter-spacing:.14em;color:var(--amb-2);border:1px solid rgba(var(--amb-rgb),.55);background:rgba(var(--amb-rgb),.12);white-space:nowrap}
+.amb-troca{min-height:44px;padding:0 14px;border-radius:13px;border:1.5px solid rgba(var(--c-rgb),.5);background:rgba(var(--c-rgb),.1);color:var(--c2);
+  font:800 11.5px Inter,sans-serif;letter-spacing:.07em;display:inline-flex;align-items:center;gap:8px;text-decoration:none;white-space:nowrap}
+.amb-troca svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.amb-kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin-bottom:14px}
+.amb-kpi{min-width:0;border-radius:16px;padding:12px 12px 10px;background:linear-gradient(180deg,#111a2c,#0c1220);border:1px solid var(--k);box-shadow:0 12px 26px -18px var(--k)}
+.amb-kpi small{display:block;font:800 9.5px Inter,sans-serif;letter-spacing:.1em;color:var(--k)}
+.amb-kpi b{display:block;margin-top:6px;font:800 19px Montserrat,Inter,sans-serif;color:#F5F1EA;font-variant-numeric:tabular-nums;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.amb-kpi span{display:block;margin-top:2px;font:600 10.5px Inter,sans-serif;color:#8ea0bf}
+.amb-principais{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-bottom:16px}
+.amb-principal{min-width:0;min-height:96px;padding:14px 18px;border-radius:20px;text-decoration:none;display:flex;align-items:center;gap:14px;
+  color:var(--amb-tinta);background:linear-gradient(180deg,var(--amb-2),var(--amb));font:800 15px Inter,sans-serif;letter-spacing:.09em;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.5),inset 0 -4px 0 rgba(0,0,0,.16),0 18px 36px -18px rgba(var(--amb-rgb),.95);transition:transform .15s}
+.amb-principal:hover{transform:translateY(-2px)}
+.amb-principal .ico{flex:none;width:52px;height:52px;border-radius:16px;display:inline-flex;align-items:center;justify-content:center;background:rgba(4,8,16,.2)}
+.amb-principal .ico svg{width:28px;height:28px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.amb-sec{min-width:0;margin-top:16px;border-radius:20px;padding:16px;background:linear-gradient(180deg,rgba(var(--amb-rgb),.07),rgba(255,255,255,.015));border:1px solid rgba(var(--amb-rgb),.22)}
+.amb-sec>h3{margin:0 0 12px;font:800 11.5px Inter,sans-serif;letter-spacing:.16em;color:var(--amb-2)}
+html[data-amb] .ag{border-color:rgba(var(--amb-rgb),.35)}
+html[data-amb] .ag-titulo .ico{color:var(--amb)}
+@media (max-width:980px){.amb-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.amb-kpis .amb-kpi:last-child{grid-column:1/-1}}
+@media (max-width:720px){.amb-portal{grid-template-columns:minmax(0,1fr);gap:14px}.amb-porta{min-height:0;padding:20px 18px 18px}.amb-porta .ico{width:60px;height:60px;border-radius:18px}}
+@media (max-width:520px){.amb-aba{min-height:56px;padding:8px 8px;gap:8px;font-size:11px;letter-spacing:.05em}.amb-aba svg{width:22px;height:22px}.amb-aba small{font-size:9.5px}
+  .amb-principais{gap:8px}.amb-principal{min-height:84px;padding:10px 10px;gap:9px;font-size:11.5px;letter-spacing:.05em;border-radius:16px}.amb-principal .ico{width:40px;height:40px;border-radius:12px}.amb-principal .ico svg{width:22px;height:22px}
+  .amb-topo h1{font-size:20px}.amb-kpi b{font-size:16px}}
+@media (prefers-reduced-motion:reduce){.amb-porta,.amb-aba,.amb-principal{transition:none}}
+.bw-home-escolha{margin:0 0 6px;font:500 14.5px/1.5 Inter,sans-serif;color:var(--bw-texto-2,#B9C6E0)}
+.bw-home-escolha b{color:#F5F1EA}
