@@ -1,26 +1,14 @@
 {
- "versao": "1.5",
+ "versao": "1.5.1",
  "data": "19/11/2026",
  "pacote": "downloads/BW-Reels-Studio.zip",
- "sha256": "7076716f71afb1aa1f7f47f85072243b3f8343fa1a116e6076d47c1c6bae1575",
- "bytes": 8283400,
+ "sha256": "554b4e407009ee0e813ec4e62d3c11e63ce9c207ecbca2d54fa9d3082b696e7c",
+ "bytes": 8283891,
  "novidades": [
   {
-   "titulo": "Chegou a BW SKILL",
-   "texto": "Skills testadas pela BW para a sua IA (Claude, ChatGPT/Codex ou Gemini). Escolha no carrossel, toque em INSTALAR e responda às etapas: pastas, jeito de trabalhar e marca. No fim aparece o tutorial.",
+   "titulo": "Instalador da BW SKILL mais fácil de ler",
+   "texto": "Os botões AVANÇAR, VOLTAR e CANCELAR ficam sempre à vista, a janela ficou maior e, quando tem mais coisa embaixo, aparece a barra de rolagem e o aviso ▼ ROLE PARA VER MAIS.",
    "abrir": "skills"
-  },
-  {
-   "titulo": "Editor de vídeo profissional",
-   "texto": "A skill que transforma a sua IA num editor de produtora: decupagem, cor por camada de ajuste, depoimentos, after em duas versões, legendas e nome e cargo."
-  },
-  {
-   "titulo": "Animação por código",
-   "texto": "Personagens, logo animado e vinhetas feitos por código e gerados aqui no PC pelo motor do BW, sem gastar créditos de IA de vídeo."
-  },
-  {
-   "titulo": "Abre sozinho na primeira vez",
-   "texto": "Se faltar alguma peça do motor, o BW se prepara sozinho antes de abrir."
   }
  ]
 }

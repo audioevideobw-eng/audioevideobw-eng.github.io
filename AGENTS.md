@@ -358,6 +358,9 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
      {{CAMPOS}} preenchidos no instalador (o teste recusa VALE MINA/FIEMG/E:\\…/C:\\Users\\audio); o nome leva prefixo bw- (não colide com a skill
      do dono). As skills chegam DENTRO do pacote do app (atualizações) e a ponte só atende com login. Cartão que flutua (animação contínua) nunca fica
      "estável" para o Playwright: no teste, clique com force; para a pessoa, a animação pausa no hover.
+107. Janela/painel com cabeçalho + conteúdo + rodapé fixo em GRADE ou FLEX: o item que rola precisa de min-height:0 (e a linha da grade minmax(0,1fr)),
+     senão cresce com o conteúdo e empurra o rodapé (botões) para fora — no PC do dono, com zoom de 125%, o AVANÇAR sumia. Conteúdo longo: barra de
+     rolagem visível + aviso "ROLE PARA VER MAIS". Testar com a tela do dono (1534×816 CSS = 1920×1020 a 125%) e conferir que o rodapé está na tela.
 102. PROMPT IA (promptia.html + assets/promptia.js): biblioteca em public.bw_trends (leitura pública, gravação só is_bw_admin, RLS —
      docs/sql/2026-11-19-prompt-ia.sql) + imagens no bucket público "trends" (só ADM envia); a análise manda a imagem para a bw-ia
      (campo "imagem", modelo com VISÃO da Groq) SÓ depois de confirm(), cópia ≤ 768 px JPEG, nada guardado; o promptia.js nunca grava na
@@ -1194,6 +1197,10 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   trabalhar → Sua marca → Conferir → Instalar (+ teste rápido) → Tutorial. Skills: EDITOR DE VÍDEO PROFISSIONAL (versão para usuários da skill do
   dono, sem pastas/clientes dele) e ANIMAÇÃO POR CÓDIGO (aponta para o motor do app). teste-app.mjs +19 checagens (0 falhas). Pacote 1.5 publicado
   (aviso de atualização para quem está na 1.4). NÃO testado no Windows (janela de pasta) nem com o Codex/Gemini de verdade. PENTE FINO 106.
+- 19/11/2026 23:45 · Claude (dono, prints do instalador da BW SKILL: "nestas partes ele fica omitindo e atrapalhando; uma linha de rolagem para baixo"):
+  a coluna da direita do instalador crescia além da janela (item de grade sem min-height:0) e escondia o rodapé com AVANÇAR/VOLTAR. Agora a janela tem
+  linha de grade minmax(0,1fr), o conteúdo rola por dentro com barra dourada sempre visível e aparece "▼ ROLE PARA VER MAIS" enquanto houver algo
+  embaixo; janela um pouco maior (720 px). APP BW 1.5.1 publicado (aviso de atualização). teste-app 0 falhas. PENTE FINO 107.
 
 ## Pendências (dono)
 - [ ] (19/11) BW SKILL: dono atualizar o BW para a 1.5 (aviso no app), instalar o EDITOR DE VÍDEO pela BW SKILL apontando as pastas dele e dizer se ficou claro; validar a skill no Codex/Gemini quando quiser abrir para eles.
