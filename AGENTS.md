@@ -1159,9 +1159,14 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   BW-Reels-Setup.exe 4,7 MB em ~15 s. Publicado em downloads/BW-Reels-Setup.exe: botão principal no ⚙ MOTOR NO PC do BW Reels Pro (o .zip virou
   opção) e seção "App BW Reels" no cartão do computador em baixar.html. sw.js não guarda zip/exe/pdf no cache. Instalação NÃO concluída no teste
   (a janela do instalador não abriu para o computer use) — aguarda o dono. Inno Setup 6.5+ pede licença comercial (paga, não obrigatória) para uso comercial. sw v139.
+- 19/11/2026 22:10 · Claude (dono: "mudar o nome para BW — a plataforma não é só de reels"): o aplicativo do PC passou a se chamar BW (instalador
+  BW-Setup.exe, pasta %LOCALAPPDATA%\BW, ícone "BW" no menu Iniciar e na Área de Trabalho, títulos das janelas, tela de entrada "BW · PLATAFORMA
+  BRIGHTWAY NO PC", botão ⌂ BW). CRIAR-ATALHO apaga o ícone antigo "BW Reels" ao criar o novo. Ficaram com o nome antigo: a ferramenta do site
+  BW REELS PRO, os nomes internos dos arquivos (BW-REELS.bat, bw-reels.ico) e a pasta bw-reels-studio. AppId do instalador mantido (atualiza
+  por cima). teste-app 0 falhas; instalador gerado de novo no PC do dono (4,7 MB). downloads/BW-Setup.exe no lugar do antigo. sw v140.
 
 ## Pendências (dono)
-- [ ] (19/11) INSTALADOR: dono abrir Vídeos\\BW-Reels-Setup.exe, avançar até o fim e abrir o ícone BW Reels; dizer se instalou e abriu. Decidir sobre a licença comercial do Inno Setup.
+- [ ] (19/11) INSTALADOR: dono abrir Vídeos\\bw-reels-studio\\instalador\\BW-Setup.exe, avançar até o fim e abrir o ícone BW; dizer se instalou e abriu. Decidir sobre a licença comercial do Inno Setup.
 - [ ] (19/11) PROMPT IA: dono cadastrar as primeiras trends (＋ NOVA TREND, com a imagem de exemplo) e testar ANALISAR com um print real.
 - [ ] (19/11) PAINEL DA CASA: dono abrir Gestão de casa na conta dele e dizer se quer mais algum dado da casa ali (metas do orçamento, meta da reserva).
 - [ ] (19/11) EVENTO DE VÁRIOS DIAS: dono editar um evento real, preencher "Termina em" e ver o risco na agenda (PC e celular).
