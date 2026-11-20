@@ -1,32 +1,33 @@
 {
- "versao": "1.8",
+ "versao": "1.9",
  "data": "20/11/2026",
  "pacote": "downloads/BW-Reels-Studio.zip",
- "sha256": "7d481265a12d42f9ade87c7d840ac04a4edec1430ac4c560cfbcbaede1bf0ccd",
- "bytes": 8410661,
+ "sha256": "3560b1436494610254f1537e03ef11ae794134c497376b72e0e85254583fc4c5",
+ "bytes": 8530972,
  "novidades": [
   {
-   "titulo": "Ferramentas e atalhos como na Adobe",
-   "texto": "Editor de vídeo, Estúdio de motion, Telas em movimento e Editor de fotos ganharam barra de ferramentas: V seleção, C lâmina (clique e corta ali), H mão, Z zoom, T texto, B pincel, E borracha, I conta-gotas. Delete apaga, Ctrl+K corta na agulha, Ctrl+Z desfaz e a tecla ? mostra todos os atalhos. Botão direito abre as opções (duplicar, substituir mídia, velocidade…).",
-   "abrir": "video"
+   "titulo": "MINHA EMPRESA e MINHA CASA",
+   "texto": "Dois ecossistemas separados: pessoa jurídica (azul) e pessoa física (verde). Cada um com os seus números do mês, a sua agenda e as suas ferramentas. Os dados não se misturam.",
+   "abrir": "empresa"
   },
   {
-   "titulo": "Editor de vídeo: transições, efeitos e velocidade",
-   "texto": "11 transições entre clipes, 12 efeitos (preto e branco, vintage, VHS, grão…), velocidade de 0,25× a 3× e congelar quadro.",
-   "abrir": "video"
+   "titulo": "Lançamentos PJ e PF, Painel PJ e PF",
+   "texto": "Duas abas em Lançamentos e duas no Painel Financeiro: uma para a empresa e outra para a casa.",
+   "abrir": "lancamentos"
   },
   {
-   "titulo": "Telas em movimento: arrastar e soltar",
-   "texto": "Arraste fotos e takes para a sequência e as transições/divisões para cima das cenas. Escolha a cor das linhas das transições, sem linha ou com transparência.",
-   "abrir": "telas"
+   "titulo": "Página principal nova",
+   "texto": "O robô no centro e quatro telas em volta: MEU NEGÓCIO, GESTÃO DE CASA, MARKETING e FERRAMENTAS. O Tio Cláudio ganhou o visual do robô.",
+   "abrir": "plataforma"
   },
   {
-   "titulo": "Tamanho personalizado e 4K",
-   "texto": "Telas, Motion e Editor de vídeo aceitam 4K e tamanho em pixels (ex.: telão de LED 1450 × 2000)."
+   "titulo": "Modos de aparência",
+   "texto": "Na engrenagem: 22 modos — claros, vidro com luz em nove cores (preto e dourado, verde e preto…), FUTURISTA, NATAL, ANO NOVO — e um modo com as cores da sua marca. A escolha vale para este computador.",
+   "abrir": "config"
   },
   {
-   "titulo": "A tela fica parada",
-   "texto": "Nos editores, a mídia que você está editando fica sempre à vista; os painéis e a linha do tempo é que rolam."
+   "titulo": "Painéis acompanham o modo",
+   "texto": "O Painel Financeiro e o Painel de Investimentos mudam de cor junto com o modo escolhido."
   }
  ]
 }

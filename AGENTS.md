@@ -451,7 +451,16 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
    para ser usada nos próximos trabalhos.
 4. **ATUALIZAR O MANUAL DO USUÁRIO** — `docs/Brightway-Guia-do-usuario.pdf`, gerado por `docs/manual/gerar.py` (páginas em
    `docs/manual/paginas/`, telas com a empresa fictícia "Produtora Exemplo"). Página nova ou alterada → rodar o gerador.
-5. **PUBLICAR** — vigia ✅, diário, commit/push na main, conferir no site no ar e mandar ao dono o resumo do que mudou.
+5. **PC E APP JUNTOS (regra do dono, 20/11/2026: "APÓS UMA ATUALIZAÇÃO, SEMPRE CRIE PARA O PC E PARA O APP, ATUALIZE O MANUAL E SUBA O ARQUIVO BW EXE
+   E O NOVO MANUAL")** — toda atualização da plataforma sai, na MESMA entrega, também no app BW do computador:
+   a) subir `VERSAO` em `motor/app.mjs` e `AppVersion` no `instalador.iss` (o pacote atual está em `downloads/BW-Reels-Studio.zip`);
+   b) página nova → `DESTINOS` (app.mjs), cartão em `app/index.html`, `PAGINAS` do `motor/offline.mjs`; refazer `site-offline.zip` com o site de hoje;
+   c) `TUTORIAL.md` → `TUTORIAL.pdf` → `downloads/BW-Reels-Studio-Tutorial.pdf`; `docs/automacoes/novidades-app-X.json`;
+   d) `node motor/teste-app.mjs` (0 falhas) e `python3 docs/automacoes/publicar-app.py --pacote … --novidades …` (zip + app-versao.json);
+   e) copiar o pacote para `Vídeos\bw-reels-studio` no PC do dono, rodar `5 - GERAR INSTALADOR EXE.bat` lá e trazer `instalador\BW-Setup.exe`
+      para `downloads/BW-Setup.exe` (conferir a versão dentro do .exe e acertar o tamanho em baixar.html);
+   f) manual do usuário (etapa 4) e tutorial novos publicados junto. PC do dono desligado = publicar o resto e deixar o .exe em Pendências.
+6. **PUBLICAR** — vigia ✅, diário, commit/push na main, conferir no site no ar e mandar ao dono o resumo do que mudou.
 
 ## Diário de mudanças
 - 13/11/2026 16:14 · MAESTRO: corrigido o gerador conforme a seção 10: verificador de IMPORTS REAL (resolve caminhos relativos e falha o build se faltar módulo — pegou as 4 faltas exatas), store com 3 argumentos, nuvem só delegação, mcp_push RECUSA binários (PNG via push_files/git trees), PNGs restaurados como binário real (commit efeea132, confirmado via git trees).
@@ -1395,15 +1404,24 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   cabeçalho, cartão de abertura, cartões, tabelas, abas, botões e campos seguem o modo (claros, escuros, vidro e neon); investimentos entrou em
   CLARO_OK; gráficos leem a cor da página (window.__cv em modos.js). teste_modos.py confere os 3 painéis nos 22 modos (0 falhas). modos.js v3,
   modos.css v3, sw v150. PENTE FINO 122.
+- 20/11/2026 14:20 · Claude (dono: "atualize o assistente no PC com as novas atualizações e na web, atualize o tutorial e o arquivo exe. Deixe como regra:
+  após uma atualização, sempre crie para o PC e para o app, atualize o manual e suba o BW exe e o novo manual"): REGRA nova no FECHAMENTO (etapa 5).
+  APP BW 1.9: cartões MINHA EMPRESA, MINHA CASA, LANÇAMENTOS PJ E PF e APARÊNCIA E MODOS (22 ferramentas); cópia sem internet refeita com o site de
+  hoje (130 arquivos: ambientes, robô, modos, config); tutorial refeito (app BW, instalar/atualizar, novidades 1.9; 8 p.); pacote e app-versao.json
+  publicados (aviso de atualização para quem está na 1.8); arquivos copiados para Vídeos\bw-reels-studio no PC do dono e BW-Setup.exe 1.9 gerado lá
+  (4,9 MB, versão conferida dentro do arquivo) → downloads/BW-Setup.exe. MANUAL DO USUÁRIO 50 → 52 p.: refeitas Conhecendo a tela (robô e 4 telas),
+  Lançamentos PJ e PF, Minha empresa, Painel PJ e PF; novas Minha casa e Configurações e modos de aparência (docs/manual/telas_ambientes.py).
+  teste-app 0 falhas (provedores simulados). NÃO testado: instalar o .exe 1.9 do zero e a atualização 1.8 → 1.9 num PC de verdade. sw v151.
 
 ## Pendências (dono)
+- [ ] (20/11) APP BW 1.9: dono abrir o BW no PC, tocar em ATUALIZAR quando o aviso aparecer e conferir MINHA EMPRESA, MINHA CASA e APARÊNCIA; fechar as
+      janelas pretas do gerador do instalador que ficaram abertas ("Pressione qualquer tecla").
 - [ ] (20/11) MODOS: dono testar no PC e no celular (engrenagem → APARÊNCIA), dizer quais modos ficam, o que ajustar em cada um e mandar a logo/manual
       da marca para o teste do MINHA MARCA. (Decidido 20/11: a escolha fica por aparelho, não vai para a conta.) Claude: clarear as demais
       ferramentas página por página, ler manual em PDF, pôr a logo da marca no menu.
 - [ ] (20/11) AMBIENTES: dono conferir na conta dele se cada lançamento antigo caiu no lugar certo (LANÇAMENTOS PJ × PF) e se as tarefas antigas da
       agenda foram para a agenda certa (Pessoal/Casa/Saúde = casa; o resto = empresa). Decidir: INVESTIMENTOS fica em MINHA CASA? o sino de AVISOS
-      deve separar empresa e casa? Claude: refazer as páginas do MANUAL (Início, Lançamentos, Painel PJ/PF, Minha empresa, Minha casa) e gerar
-      o pacote novo do app BW (PC) com as páginas novas na cópia sem internet.
+      deve separar empresa e casa? (Manual e pacote 1.9 do app BW: FEITOS 20/11 14:20.)
 - [ ] (20/11) FERRAMENTAS/ATALHOS e TELA FIXA: dono testar no PC (V, C, H, Z, T, Delete, botão direito) e no celular (segurar o dedo; prévia presa no topo) nos 4 editores; dizer se quer a tela fixa também no BW Reels Pro/Criador (já têm prévia presa) com o mesmo jeito.
 - [ ] (20/11) TELAS: dono testar o arrastar no PC e no celular e gerar um vídeo 1450×2000 para o telão.
 - [ ] (20/11) TELAS EM MOVIMENTO: dono abrir no ar com fotos e takes REAIS do celular + uma música, MONTAR SOZINHO e GERAR VÍDEO (no PC e no celular); dizer se os vídeos do iPhone abriram e quanto tempo levou.

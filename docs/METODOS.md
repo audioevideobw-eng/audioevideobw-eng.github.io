@@ -368,3 +368,15 @@ Tamanho > 0 e sem erro = o pdfmake montou o arquivo. Localmente (T1) confira o `
   troca; trocar as dependências (`MOD['core/…']`) por funções pequenas iguais; rodar `node --check`; depois os testes antigos do módulo.
 - **Teste antigo de um motor que mudou de página:** servir pela rota do teste a página nova com um atributo trocado (agenda em modo "tudo")
   em vez de reescrever 34 checagens.
+
+## App BW junto com o site (regra de 20/11/2026)
+1. `unzip downloads/BW-Reels-Studio.zip` numa pasta de trabalho → mexer em motor/app.mjs (VERSAO, DESTINOS), app/index.html (cartões),
+   motor/offline.mjs (PAGINAS), instalador.iss (AppVersion, UTF-8 com BOM), TUTORIAL.md.
+2. site-offline.zip = todos os .html da raiz + assets/ (sem .mp4) + icons/ + manifest.json, milhas.json, noticias.json, vfs_fonts.js + versao.txt.
+3. Teste: `ln -s /opt/npm-tools/node_modules/playwright-core node_modules/playwright-core` e `node motor/teste-app.mjs`; apagar node_modules e
+   projetos/motion-* antes de empacotar. O teste conta as ferramentas (.fer) e usa a versão atual em 3 linhas.
+4. `python3 docs/automacoes/publicar-app.py --pacote <pasta> --novidades docs/automacoes/novidades-app-X.json`.
+5. PC do dono: device_request_folder_access em ~/Videos/bw-reels-studio; device_commit_files em 2 chamadas (≤ 50 arquivos; .claude é recusado, tudo bem);
+   computer use no Explorador (modo clique): Vídeos → bw-reels-studio → dois cliques em "5 - GERAR INSTALADOR EXE"; ~60 s depois o
+   instalador\BW-Setup.exe muda de data (device_list_dir); device_stage_files traz o arquivo; `strings -el` mostra a versão.
+6. Tutorial em PDF: markdown → HTML → Chromium (page.pdf A4).
