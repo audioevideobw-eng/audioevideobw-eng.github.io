@@ -1153,8 +1153,15 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   (mesmo personagem em outro ângulo, sem a regra de espaço para texto) e LIMITE_ADM 100/dia só para is_bw_admin (usuários seguem com 15) —
   publicada conferindo SHA-256 (antes 11c58878 = repo, depois 53226614). O filtro da Cloudflare recusou várias vezes "cowboy" e "mecânico" (trocados
   por professora e surfista). teste_personagens.py +12 checagens (0 falhas). Manual atualizado. bw-personagens v3, personagens.js v4, sw v138.
+- 19/11/2026 21:55 · Claude (dono: "gerar o instalador .exe" + testar no PC + publicar o download): GERAR-INSTALADOR.bat (CRLF) e instalador.iss
+  (UTF-8 com BOM — sem o BOM o Inno lê os acentos errado) ajustados: versão 1.3, ícone opcional na Área de Trabalho, fora do pacote .claude/.mcp.json/
+  os .bat de manutenção (0/5/8/9) e o próprio gerador, e tira o "oculto" dos arquivos copiados. Rodado no PC do dono (Inno Setup 6.7 já instalado):
+  BW-Reels-Setup.exe 4,7 MB em ~15 s. Publicado em downloads/BW-Reels-Setup.exe: botão principal no ⚙ MOTOR NO PC do BW Reels Pro (o .zip virou
+  opção) e seção "App BW Reels" no cartão do computador em baixar.html. sw.js não guarda zip/exe/pdf no cache. Instalação NÃO concluída no teste
+  (a janela do instalador não abriu para o computer use) — aguarda o dono. Inno Setup 6.5+ pede licença comercial (paga, não obrigatória) para uso comercial. sw v139.
 
 ## Pendências (dono)
+- [ ] (19/11) INSTALADOR: dono abrir Vídeos\\BW-Reels-Setup.exe, avançar até o fim e abrir o ícone BW Reels; dizer se instalou e abriu. Decidir sobre a licença comercial do Inno Setup.
 - [ ] (19/11) PROMPT IA: dono cadastrar as primeiras trends (＋ NOVA TREND, com a imagem de exemplo) e testar ANALISAR com um print real.
 - [ ] (19/11) PAINEL DA CASA: dono abrir Gestão de casa na conta dele e dizer se quer mais algum dado da casa ali (metas do orçamento, meta da reserva).
 - [ ] (19/11) EVENTO DE VÁRIOS DIAS: dono editar um evento real, preencher "Termina em" e ver o risco na agenda (PC e celular).
