@@ -1,0 +1,127 @@
+/* MODOS DE APARÊNCIA (20/11/2026) — as cores vêm de assets/modos.js (variáveis --m-*). Nenhuma regra daqui vale no modo DARK (sem data-modo).
+   data-base = escuro|claro (o modo) · data-conteudo = escuro|claro (o miolo desta página) · data-fx = efeitos ligados. */
+
+/* ---------- casca: menu, abas do celular, topo (todos os modos) ---------- */
+html[data-modo] .bw-menu{background:var(--m-menu);border-right-color:var(--m-menu-linha)}
+html[data-modo] .bw-menu a.bw-item{color:var(--m-menu-txt)}
+html[data-modo] .bw-menu a.bw-item:hover{color:var(--m-menu-forte);background:rgba(var(--m-dest-rgb),.12)}
+html[data-modo] .bw-menu a.bw-item.ativo{color:var(--m-tinta);border-color:transparent;background:linear-gradient(135deg,var(--m-dest),rgba(var(--m-dest2-rgb),.9));box-shadow:0 10px 24px -12px rgba(var(--m-dest-rgb),.9)}
+html[data-modo] .bw-menu a.bw-sub{color:var(--m-menu-txt)}
+html[data-modo] .bw-menu .logo [role="img"]{color:var(--m-menu-forte)!important}
+html[data-modo] .bw-menu .sync-card{background:rgba(var(--m-dest-rgb),.08);border-color:var(--m-menu-linha)}
+html[data-modo] .bw-menu .sync-card .info{color:var(--m-menu-txt)}
+html[data-modo] .bw-menu .sync-card a,html[data-modo] .bw-menu .sync-card .linha{color:var(--m-dest2)}
+html[data-modo] .bw-app-dl{background:linear-gradient(180deg,var(--m-dest),rgba(var(--m-dest-rgb),.82));color:var(--m-tinta);box-shadow:0 12px 26px -12px rgba(var(--m-dest-rgb),.9)}
+html[data-modo] .bw-app-dl svg{stroke:var(--m-tinta)}
+html[data-modo] .bw-menu .bw-fb-btn{color:var(--m-menu-forte);border-color:rgba(var(--m-dest-rgb),.45);background:rgba(var(--m-dest-rgb),.08)}
+html[data-modo] .bw-menu .bw-fb-btn svg{stroke:currentColor}
+@media(max-width:899px){html[data-modo] .bw-abas{background:var(--m-menu);border-top-color:var(--m-menu-linha)}
+  html[data-modo] .bw-abas a{color:var(--m-menu-txt)}html[data-modo] .bw-abas a.ativo{color:var(--m-dest)}
+  html[data-modo][data-base="claro"] .bw-abas a.ativo{color:var(--m-menu-forte)}}
+
+/* ---------- miolo (páginas ajustadas) ---------- */
+html[data-base="escuro"] body,html[data-conteudo="claro"] body{background:var(--m-fundo-css);color:var(--m-texto)}   /* modo claro numa ferramenta ainda escura: o miolo não muda */
+html[data-conteudo][data-modo] .bw-topo{border-bottom-color:var(--m-linha)}
+html[data-modo] .bw-icone{border-color:rgba(var(--m-dest-rgb),.35);background:rgba(var(--m-dest-rgb),.08)}
+html[data-modo] .bw-icone svg{stroke:var(--m-dest)}
+html[data-modo] .bw-atualizar{color:var(--m-dest);border-color:rgba(var(--m-dest-rgb),.5);background:rgba(var(--m-dest-rgb),.08)}
+html[data-modo] .bw-home-frase span{color:var(--m-dest)}
+html[data-modo] .hub-seta{border-color:rgba(var(--m-dest-rgb),.5)}
+
+/* ----- escuros com personalidade (futurista, aconchego, natal…): cartões de vidro na cor do modo ----- */
+html[data-conteudo="escuro"][data-modo]:not([data-base="claro"]) .amb-kpi,html[data-conteudo="escuro"][data-modo]:not([data-base="claro"]) .lc-kpi,
+html[data-conteudo="escuro"][data-modo]:not([data-base="claro"]) .lc-cx{background:linear-gradient(180deg,rgba(var(--m-dest-rgb),.09),rgba(var(--m-dest2-rgb),.04)),var(--m-cartao)}
+html[data-conteudo="escuro"][data-modo]:not([data-base="claro"]) .lc-cx,html[data-conteudo="escuro"][data-modo]:not([data-base="claro"]) .amb-sec{border-color:rgba(var(--m-dest-rgb),.28)}
+html[data-conteudo="escuro"][data-modo]:not([data-base="claro"]) .ag{background:linear-gradient(180deg,rgba(var(--m-dest-rgb),.07),rgba(var(--m-dest2-rgb),.04) 60%,rgba(255,255,255,.02)),var(--m-cartao)}
+html[data-conteudo="escuro"][data-modo]:not([data-base="claro"]) .lc-fx{background:var(--m-cartao)}
+html[data-conteudo="escuro"][data-modo]:not([data-base="claro"]) .bw-titulo-pagina{background:linear-gradient(90deg,var(--m-texto),var(--m-dest));-webkit-background-clip:text;background-clip:text;color:transparent}
+
+/* ----- CLAROS (clean, azul e branco, preto e branco, marca clara) ----- */
+html[data-conteudo="claro"] .bw-titulo-pagina,html[data-conteudo="claro"] .bw-home-frase{color:var(--m-texto)}
+html[data-conteudo="claro"] .bw-home-data,html[data-conteudo="claro"] .hub-txt small{color:var(--m-texto3)}
+html[data-conteudo="claro"] .hub-txt b{color:var(--m-texto)}
+html[data-conteudo="claro"] .bw-btn--vidro{background:var(--m-cartao);color:var(--m-texto);border-color:var(--m-linha)}
+html[data-conteudo="claro"] .bw-icone{background:var(--m-cartao);border-color:var(--m-linha);box-shadow:0 4px 12px -8px rgba(20,26,44,.35)}
+html[data-conteudo="claro"] .wrap img[src*="brightway-logo"]{filter:brightness(0)}
+html[data-conteudo="claro"] header{background:transparent}
+/* ecossistemas */
+html[data-conteudo="claro"] .amb-topo h1{color:var(--m-texto)}
+html[data-conteudo="claro"] .amb-selo{color:var(--amb);background:rgba(var(--amb-rgb),.1)}
+html[data-conteudo="claro"] .amb-troca{color:var(--c);background:rgba(var(--c-rgb),.08)}
+html[data-conteudo="claro"] .amb-kpi{background:linear-gradient(180deg,color-mix(in srgb,var(--k) 9%,#fff),#fff);border-color:color-mix(in srgb,var(--k) 38%,#fff);box-shadow:0 14px 30px -22px rgba(20,26,44,.5)}
+html[data-conteudo="claro"] .amb-kpi small{color:color-mix(in srgb,var(--k) 80%,#000)}
+html[data-conteudo="claro"] .amb-kpi b{color:var(--m-texto)}html[data-conteudo="claro"] .amb-kpi span{color:var(--m-texto3)}
+html[data-conteudo="claro"] .amb-sec{background:var(--m-cartao);border-color:var(--m-linha);box-shadow:0 16px 36px -28px rgba(20,26,44,.5)}
+html[data-conteudo="claro"] .amb-sec>h3{color:var(--m-texto2)}
+html[data-conteudo="claro"] .amb-aba:not(.on){color:var(--m-texto2);background:rgba(var(--c-rgb),.06)}html[data-conteudo="claro"] .amb-aba small{color:var(--m-texto3)}
+html[data-conteudo="claro"] .amb-aba.on{color:#fff}html[data-conteudo="claro"] .amb-aba.on small,html[data-conteudo="claro"] .amb-aba.on svg{color:#fff}
+html[data-conteudo="claro"] .amb-principal{color:#fff}
+html[data-conteudo="claro"] [data-seta]::after{color:var(--m-texto3)}
+/* agenda */
+html[data-conteudo="claro"] .ag{background:var(--m-cartao);border-color:var(--m-linha);box-shadow:0 16px 36px -28px rgba(20,26,44,.5)}
+html[data-conteudo="claro"] .ag::before{display:none}
+html[data-conteudo="claro"] .ag-btn,html[data-conteudo="claro"] .ag-sel,html[data-conteudo="claro"] .ag-chip{background:var(--m-cartao2);border-color:var(--m-linha);color:var(--m-texto)}
+html[data-conteudo="claro"] .ag-btn.on,html[data-conteudo="claro"] .ag-btn.pri{background:var(--m-dest);border-color:var(--m-dest);color:var(--m-tinta)}
+html[data-conteudo="claro"] .ag-sel option{background:#fff;color:#111}
+html[data-conteudo="claro"] .ag-dia{background:var(--m-cartao2);border-color:var(--m-linha);color:var(--m-texto)}
+html[data-conteudo="claro"] .ag-dia.hoje{border-color:var(--m-dest);box-shadow:0 0 0 1px rgba(var(--m-dest-rgb),.35) inset}
+html[data-conteudo="claro"] .ag-dia.hoje .n{background:var(--m-dest);color:var(--m-tinta)}
+html[data-conteudo="claro"] .ag-lado,html[data-conteudo="claro"] .ag-item,html[data-conteudo="claro"] .ag-aba-cab,html[data-conteudo="claro"] .ag-magica{background:var(--m-cartao2);border-color:var(--m-linha);color:var(--m-texto)}
+html[data-conteudo="claro"] .ag-magica input{color:var(--m-texto)}
+html[data-conteudo="claro"] .ag-folha{background:var(--m-cartao);color:var(--m-texto)}
+html[data-conteudo="claro"] .ag-folha input,html[data-conteudo="claro"] .ag-folha select{background:var(--m-cartao2);color:var(--m-texto);border-color:var(--m-linha)}
+html[data-conteudo="claro"] .ag-tile{background:var(--m-cartao2);color:var(--m-texto);border-color:var(--m-linha)}
+/* lançamentos */
+html[data-conteudo="claro"] .lc-topo h1{color:var(--m-texto)}
+html[data-conteudo="claro"] .lc-bt{background:var(--m-cartao);color:var(--m-texto);border-color:var(--m-linha)}
+html[data-conteudo="claro"] .lc-bt.pri{background:linear-gradient(180deg,var(--amb-2),var(--amb));border-color:var(--amb);color:#fff}
+html[data-conteudo="claro"] .lc-bt.perigo{color:#d2383c;border-color:rgba(210,56,60,.4)}
+html[data-conteudo="claro"] .lc-cx,html[data-conteudo="claro"] .lc-kpi{background:var(--m-cartao);box-shadow:0 16px 36px -28px rgba(20,26,44,.5)}
+html[data-conteudo="claro"] .lc-cx{border-color:var(--m-linha)}
+html[data-conteudo="claro"] .lc-kpi{background:linear-gradient(180deg,color-mix(in srgb,var(--c) 9%,#fff),#fff);border-color:color-mix(in srgb,var(--c) 38%,#fff)}
+html[data-conteudo="claro"] .lc-cx h3{color:var(--m-texto2)}
+html[data-conteudo="claro"] .lc-kpi b,html[data-conteudo="claro"] .lc-item .t b,html[data-conteudo="claro"] .lc-passo h4,html[data-conteudo="claro"] .lc-fx,html[data-conteudo="claro"] .lc-op{color:var(--m-texto)}
+html[data-conteudo="claro"] .lc-kpi span,html[data-conteudo="claro"] .lc-item .t small,html[data-conteudo="claro"] .lc-nota,html[data-conteudo="claro"] .lc-dia,html[data-conteudo="claro"] .lc-barras small,html[data-conteudo="claro"] .lc-op small{color:var(--m-texto3)}
+html[data-conteudo="claro"] .lc-leg,html[data-conteudo="claro"] .lc-rosca ul,html[data-conteudo="claro"] .lc-ali li,html[data-conteudo="claro"] .lc-vazio,html[data-conteudo="claro"] .lc-form label,html[data-conteudo="claro"] .lc-fixo-form label,html[data-conteudo="claro"] .lc-chip{color:var(--m-texto2)}
+html[data-conteudo="claro"] .lc-ali b{color:var(--m-dest)}
+html[data-conteudo="claro"] .lc-ali li{border-bottom-color:var(--m-linha)}
+html[data-conteudo="claro"] .lc-item{background:var(--m-cartao2);border-color:var(--m-linha);border-left-color:var(--c)}
+html[data-conteudo="claro"] .lc-item .v.e{color:#15803d}html[data-conteudo="claro"] .lc-item .v.s{color:#dc2626}html[data-conteudo="claro"] .lc-item .v.n{color:#2563eb}
+html[data-conteudo="claro"] .lc-chip{border-color:var(--m-linha)}html[data-conteudo="claro"] .lc-chip.on{color:#fff}
+html[data-conteudo="claro"] .lc-filtros select,html[data-conteudo="claro"] .lc-filtros input,html[data-conteudo="claro"] .lc-form input,html[data-conteudo="claro"] .lc-form select,
+html[data-conteudo="claro"] .lc-fixo-form input,html[data-conteudo="claro"] .lc-fixo-form select{background:#fff;color:var(--m-texto);border-color:var(--m-linha)}
+html[data-conteudo="claro"] .lc-fx{background:var(--m-cartao)}html[data-conteudo="claro"] .lc-op{background:var(--m-cartao2);border-color:var(--m-linha)}
+html[data-conteudo="claro"] .lc-resumo{background:rgba(var(--amb-rgb),.1);border-color:rgba(var(--amb-rgb),.4);color:var(--m-texto)}
+html[data-conteudo="claro"] .lc-tag{color:color-mix(in srgb,var(--c) 75%,#000)}
+/* painel financeiro */
+html[data-conteudo="claro"] main .card,html[data-conteudo="claro"] main .hero{background:var(--m-cartao)!important;border-color:var(--m-linha);box-shadow:0 16px 36px -28px rgba(20,26,44,.5)}
+html[data-conteudo="claro"] header .hd-logo img{filter:brightness(0)}
+html[data-conteudo="claro"] body>header{background:rgba(255,255,255,.92);border-bottom-color:var(--m-linha)}
+html[data-conteudo="claro"] main .btn,html[data-conteudo="claro"] body>header .btn,html[data-conteudo="claro"] select.sel{background:var(--m-cartao2);color:var(--m-texto);border-color:var(--m-linha)}
+html[data-conteudo="claro"] .hero .take b{color:var(--amb)}
+html[data-conteudo="claro"] .kv.pos{color:#15803d}html[data-conteudo="claro"] .kv.neg{color:#dc2626}
+
+/* ---------- EFEITOS ---------- */
+@property --bw-ang{syntax:"<angle>";inherits:false;initial-value:0deg}
+@keyframes bwGiraLuz{to{--bw-ang:360deg}}
+@keyframes bwAurora{0%{transform:translate3d(-6%,-4%,0) scale(1)}100%{transform:translate3d(6%,5%,0) scale(1.12)}}
+@keyframes bwPulsoNeon{0%,100%{box-shadow:0 10px 24px -12px rgba(var(--m-dest-rgb),.9),0 0 0 0 rgba(var(--m-dest-rgb),.0)}50%{box-shadow:0 10px 28px -8px rgba(var(--m-dest-rgb),1),0 0 22px 2px rgba(var(--m-dest2-rgb),.45)}}
+@keyframes bwPisca{0%,100%{opacity:1;filter:hue-rotate(0deg)}50%{opacity:.45;filter:hue-rotate(60deg)}}
+@keyframes bwCorre{from{background-position:0% 100%}to{background-position:200% 100%}}
+/* neon: uma luz que dá a volta na borda dos cartões principais */
+html[data-fx~="neon"][data-modo][data-base][data-conteudo] .amb-kpi,html[data-fx~="neon"][data-modo][data-base][data-conteudo] .lc-kpi,html[data-fx~="neon"][data-modo][data-base][data-conteudo] .ag,html[data-fx~="neon"][data-modo][data-base][data-conteudo] .hub-palco,html[data-fx~="neon"][data-modo][data-base][data-conteudo] .cfg-modo.on{border:1.5px solid transparent;
+  background:linear-gradient(var(--m-cartao),var(--m-cartao)) padding-box,conic-gradient(from var(--bw-ang),rgba(var(--m-dest-rgb),.15),var(--m-dest),rgba(var(--m-dest2-rgb),.2),var(--m-dest2),rgba(var(--m-dest-rgb),.15)) border-box;
+  animation:bwGiraLuz 7s linear infinite}
+html[data-fx~="neon"][data-modo][data-base][data-conteudo] .hub-palco{background:radial-gradient(60% 46% at 50% 62%,rgba(var(--m-dest-rgb),.28),transparent 70%) padding-box,linear-gradient(180deg,#050a16,#07122a 55%,#040812) padding-box,
+  conic-gradient(from var(--bw-ang),rgba(var(--m-dest-rgb),.15),var(--m-dest),rgba(var(--m-dest2-rgb),.2),var(--m-dest2),rgba(var(--m-dest-rgb),.15)) border-box}
+html[data-fx~="neon"][data-modo][data-base][data-conteudo] .bw-menu a.bw-item.ativo,html[data-fx~="neon"][data-modo][data-base][data-conteudo] .amb-principal,html[data-fx~="neon"][data-modo][data-base][data-conteudo] .hub-entrar{animation:bwPulsoNeon 2.8s ease-in-out infinite}
+html[data-fx~="neon"][data-modo][data-base][data-conteudo] .bw-topo{border-bottom:0;background:linear-gradient(90deg,transparent,rgba(var(--m-dest-rgb),.9),rgba(var(--m-dest2-rgb),.9),transparent) bottom/200% 1.5px no-repeat;animation:bwCorre 5s linear infinite}
+html[data-fx~="neon"][data-modo][data-base][data-conteudo] .bwg-fab{animation:bwPulsoNeon 2.8s ease-in-out infinite}
+/* aurora: duas manchas de luz que passeiam devagar atrás de tudo (sem desfoque: é só degradê) */
+html[data-fx~="aurora"] body::before{content:"";position:fixed;inset:-12%;z-index:0;pointer-events:none;
+  background:radial-gradient(38% 34% at 22% 28%,rgba(var(--m-dest-rgb),.16),transparent 70%),radial-gradient(34% 30% at 78% 64%,rgba(var(--m-dest2-rgb),.15),transparent 70%);animation:bwAurora 16s ease-in-out infinite alternate}
+html[data-fx~="aurora"] .bw-shell{position:relative;z-index:1}
+/* pisca: cordão de luzes no alto da página */
+html[data-fx~="pisca"] .bw-conteudo::before{content:"";display:block;height:12px;background:radial-gradient(circle,#F04B4B 0 4px,transparent 5px) 0 2px/56px 12px repeat-x,radial-gradient(circle,#F5C451 0 4px,transparent 5px) 18px 2px/56px 12px repeat-x,radial-gradient(circle,#4ADE80 0 4px,transparent 5px) 37px 2px/56px 12px repeat-x;animation:bwPisca 1.6s ease-in-out infinite}
+@media (prefers-reduced-motion:reduce){html[data-fx] *,html[data-fx] body::before,html[data-fx] .bw-conteudo::before{animation:none!important}}
+html[data-conteudo="claro"] .anel svg text{fill:var(--m-texto)}

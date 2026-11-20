@@ -1,0 +1,145 @@
+/* MODOS DE APARÊNCIA (20/11/2026, Claude — pedido do dono: "o usuário escolhe o modo: dark, clean, futurista… natal, ano novo… ou com a marca
+   do cliente; deixe fácil incluir modelos no futuro").
+
+   COMO INCLUIR UM MODO NOVO: acrescente UM item na lista MODOS, logo abaixo. Só isso — ele aparece sozinho em CONFIGURAÇÕES › APARÊNCIA.
+     id      nome curto sem espaço (fica guardado no aparelho)
+     nome    o que aparece no cartão            grupo  "SIMPLES" | "OUSADOS" | "DATAS ESPECIAIS"
+     base    "escuro" ou "claro"                frase  uma linha que explica o modo
+     cores   fundo, cartao, linha, texto, destaque, destaque2 (2ª cor dos brilhos), menu  — o resto é calculado
+     fundoCss (opcional) um degradê para o fundo da página
+     fx      (opcional) efeitos animados: "neon" (bordas de luz que giram) · "aurora" (luzes de fundo que se movem) · "estrelas" ·
+             "neve" · "fogos" · "pisca" (cordão de luzes no topo) · "confete"
+   O modo "dark" é o visual de sempre: não muda nada na página. A escolha fica só no aparelho (ui_modo) — nada vai para a conta.
+   Este arquivo é carregado no <head> de todas as páginas, antes de desenhar, para a página já nascer na cor certa. */
+(function () {
+  "use strict";
+  var MODOS = [
+    {id: "dark", nome: "DARK", grupo: "SIMPLES", base: "escuro", frase: "O visual de sempre: preto com âmbar.",
+      cores: {fundo: "#06080D", cartao: "#11141B", linha: "#262B36", texto: "#F5F1EA", destaque: "#FFB547", destaque2: "#3FD0E0", menu: "#0A0D13"}},
+    {id: "pb", nome: "PRETO E BRANCO", grupo: "SIMPLES", base: "claro", frase: "Só o essencial: fundo branco, letras pretas.",
+      cores: {fundo: "#F4F4F5", cartao: "#FFFFFF", linha: "#DCDCE0", texto: "#111114", destaque: "#111114", destaque2: "#6B6B73", menu: "#0B0B0D"}},
+    {id: "azul", nome: "AZUL E BRANCO", grupo: "SIMPLES", base: "claro", frase: "Claro e sério, com azul nos destaques.",
+      cores: {fundo: "#F1F5FF", cartao: "#FFFFFF", linha: "#D6E0F7", texto: "#0F1B3D", destaque: "#1F5EFF", destaque2: "#12B5E5", menu: "#0E2A6E"}},
+    {id: "clean", nome: "CLEAN", grupo: "SIMPLES", base: "claro", frase: "Branco, leve e colorido, com menu escuro e roxo nos destaques.",
+      cores: {fundo: "#F6F7FB", cartao: "#FFFFFF", linha: "#E6E8F2", texto: "#171A2C", destaque: "#6C4DF6", destaque2: "#19B36B", menu: "#14163A"},
+      fundoCss: "linear-gradient(180deg,#F8F8FE,#F2F4FB)"},
+    {id: "futurista", nome: "FUTURISTA", grupo: "OUSADOS", base: "escuro", frase: "Vidro, neon ciano e roxo e luzes em movimento.",
+      cores: {fundo: "#050816", cartao: "#0C1330", linha: "#1E2A5A", texto: "#EAF2FF", destaque: "#3FE0FF", destaque2: "#A78BFA", menu: "#070B1E"},
+      fundoCss: "radial-gradient(900px 520px at 85% -10%,rgba(124,92,255,.22),transparent 60%),radial-gradient(800px 500px at 0% 20%,rgba(40,170,255,.16),transparent 60%),#050816",
+      fx: ["neon", "aurora", "estrelas"]},
+    {id: "aconchego", nome: "ACONCHEGO", grupo: "OUSADOS", base: "escuro", frase: "Escuro e quente, laranja e verde, como uma sala à noite.",
+      cores: {fundo: "#14110E", cartao: "#1F1A15", linha: "#3A2F25", texto: "#F6EDE2", destaque: "#FF8A3D", destaque2: "#5FD39A", menu: "#100D0A"},
+      fundoCss: "radial-gradient(900px 520px at 90% 0%,rgba(255,138,61,.16),transparent 60%),radial-gradient(700px 480px at 0% 100%,rgba(95,211,154,.10),transparent 60%),#14110E",
+      fx: ["neon", "aurora"]},
+    {id: "natal", nome: "NATAL", grupo: "DATAS ESPECIAIS", base: "escuro", frase: "Verde, vermelho e dourado, com neve caindo e luzes piscando.",
+      cores: {fundo: "#07140F", cartao: "#0E2219", linha: "#1F4A36", texto: "#FFF7EC", destaque: "#F04B4B", destaque2: "#F5C451", menu: "#06100C"},
+      fundoCss: "radial-gradient(900px 500px at 50% -10%,rgba(240,75,75,.16),transparent 60%),#07140F", fx: ["neve", "pisca", "neon"]},
+    {id: "anonovo", nome: "ANO NOVO", grupo: "DATAS ESPECIAIS", base: "escuro", frase: "Noite de festa: dourado, brilho e fogos de artifício.",
+      cores: {fundo: "#07060F", cartao: "#121024", linha: "#2B2750", texto: "#FFF9EA", destaque: "#F5C451", destaque2: "#C9B6FF", menu: "#05040B"},
+      fundoCss: "radial-gradient(900px 500px at 50% 0%,rgba(245,196,81,.14),transparent 60%),#07060F", fx: ["fogos", "estrelas", "neon"]},
+    {id: "festa", nome: "FESTA", grupo: "DATAS ESPECIAIS", base: "escuro", frase: "Para comemorar: rosa, roxo e confete.",
+      cores: {fundo: "#0D0716", cartao: "#1A0F2B", linha: "#3A2460", texto: "#FFF4FD", destaque: "#FF5FB7", destaque2: "#7CF3FF", menu: "#0A0512"},
+      fundoCss: "radial-gradient(900px 500px at 15% 0%,rgba(255,95,183,.18),transparent 60%),radial-gradient(800px 500px at 100% 30%,rgba(124,243,255,.12),transparent 60%),#0D0716",
+      fx: ["confete", "neon", "aurora"]}
+  ];
+  /* páginas já ajustadas para fundo CLARO. Nas outras (e nos editores, onde a mídia pede fundo escuro) um modo claro muda o menu e os
+     destaques, e o miolo da ferramenta continua escuro. Página nova ajustada → acrescentar aqui. */
+  var CLARO_OK = {index: 1, negocio: 1, casa: 1, lancamentos: 1, config: 1, ferramentas: 1, marketing: 1, crm: 1, "financeiro-painel": 1};
+  var R = document.documentElement, PAG = (location.pathname.split("/").pop() || "index.html").replace(".html", "") || "index";
+
+  function ler(k, p) { try { var v = JSON.parse(localStorage.getItem(k)); return v == null ? p : v; } catch (e) { return p; } }
+  function gravar(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { } }
+  function rgb(h) { h = String(h || "").replace("#", ""); if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2]; var n = parseInt(h, 16); return isNaN(n) || h.length !== 6 ? [128, 128, 128] : [n >> 16 & 255, n >> 8 & 255, n & 255]; }
+  function hex(c) { return "#" + c.map(function (x) { x = Math.max(0, Math.min(255, Math.round(x))); return (x < 16 ? "0" : "") + x.toString(16); }).join(""); }
+  function mix(a, b, t) { a = rgb(a); b = rgb(b); return hex([a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t]); }
+  function luz(h) { var c = rgb(h); return (0.299 * c[0] + 0.587 * c[1] + 0.114 * c[2]) / 255; }
+  function meus() { var l = ler("ui_modos_meus", []); return Array.isArray(l) ? l.filter(function (m) { return m && m.id && m.cores; }) : []; }
+  function lista() { return MODOS.concat(meus().map(function (m) { m.grupo = "MINHA MARCA"; m.meu = true; return m; })); }
+  function achar(id) { return lista().filter(function (m) { return m.id === id; })[0] || MODOS[0]; }
+  /* MODO COM A MARCA DO CLIENTE: de 3 cores (destaque, menu, fundo) sai o modo inteiro */
+  function montar(o) {
+    var claro = o.base === "claro", dest = o.destaque || "#1F5EFF", fundo = o.fundo || (claro ? "#F5F6FA" : "#090B12");
+    return {id: o.id || ("meu_" + Date.now()), nome: String(o.nome || "MINHA MARCA").toUpperCase().slice(0, 24), base: claro ? "claro" : "escuro", frase: "Modo criado com as cores da sua marca.",
+      cores: {fundo: fundo, cartao: claro ? "#FFFFFF" : mix(fundo, "#ffffff", 0.07), linha: mix(fundo, claro ? "#000000" : "#ffffff", claro ? 0.12 : 0.16), texto: claro ? "#14161F" : "#F4F2EC",
+        destaque: dest, destaque2: o.destaque2 || mix(dest, claro ? "#000000" : "#ffffff", 0.35), menu: o.menu || (claro ? mix(dest, "#000000", 0.72) : mix(fundo, "#000000", 0.35))},
+      fx: o.fx || [], logo: o.logo || ""};
+  }
+  function paleta(m) {
+    var c = m.cores, claro = m.base === "claro", tx = c.texto, mt = luz(c.menu) > 0.6;
+    return {fundo: c.fundo, cartao: c.cartao, cartao2: mix(c.cartao, claro ? "#000000" : "#ffffff", claro ? 0.04 : 0.06), linha: c.linha, texto: tx, texto2: mix(tx, c.fundo, 0.25), texto3: mix(tx, c.fundo, 0.48),
+      dest: c.destaque, dest2: c.destaque2 || c.destaque, destRgb: rgb(c.destaque).join(","), dest2Rgb: rgb(c.destaque2 || c.destaque).join(","), tinta: luz(c.destaque) > 0.6 ? "#0B0D14" : "#FFFFFF",
+      menu: c.menu, menuTxt: mt ? mix(c.menu, "#000000", 0.7) : mix(c.menu, "#ffffff", 0.74), menuForte: mt ? "#0B0D14" : "#FFFFFF", menuLinha: mix(c.menu, mt ? "#000000" : "#ffffff", 0.12),
+      fundoCss: m.fundoCss || c.fundo, claro: claro};
+  }
+  var VARS = [];
+  function limpar() { VARS.forEach(function (v) { R.style.removeProperty(v); }); VARS = []; ["data-modo", "data-base", "data-conteudo", "data-fx"].forEach(function (a) { R.removeAttribute(a); }); }
+  function def(o) { Object.keys(o).forEach(function (k) { R.style.setProperty(k, o[k]); VARS.push(k); }); }
+  function aplicar(id, soVer) {
+    var m = achar(id), p = paleta(m); limpar(); pararFx();
+    if (!soVer) gravar("ui_modo", m.id);
+    if (m.id === "dark") { avisar(m); return m; }
+    var miolo = !p.claro || CLARO_OK[PAG];   /* modo claro numa ferramenta ainda escura: só o menu e os destaques mudam */
+    R.setAttribute("data-modo", m.id); R.setAttribute("data-base", m.base); R.setAttribute("data-conteudo", miolo ? m.base : "escuro");
+    def({"--m-menu": p.menu, "--m-menu-txt": p.menuTxt, "--m-menu-forte": p.menuForte, "--m-menu-linha": p.menuLinha, "--m-dest": p.dest, "--m-dest2": p.dest2, "--m-dest-rgb": p.destRgb, "--m-dest2-rgb": p.dest2Rgb, "--m-tinta": p.tinta});
+    if (miolo) def({"--m-fundo": p.fundo, "--m-fundo-css": p.fundoCss, "--m-cartao": p.cartao, "--m-cartao2": p.cartao2, "--m-linha": p.linha, "--m-texto": p.texto, "--m-texto2": p.texto2, "--m-texto3": p.texto3,
+      /* nomes que as páginas já usam */
+      "--navy": p.fundo, "--navy2": p.cartao, "--navy3": p.cartao2, "--line": p.linha, "--gold": p.dest, "--gold2": p.claro ? mix(p.dest, "#000000", 0.18) : mix(p.dest, "#ffffff", 0.6), "--txt": p.texto, "--mut": p.texto3,
+      "--ciano": p.dest2, "--bw-noite": p.claro ? p.tinta : p.fundo, "--bw-grafite": p.cartao, "--bw-marfim": p.texto, "--bw-texto-2": p.texto2, "--bw-texto-3": p.texto3, "--bw-ambar": p.dest,
+      "--bw-ambar-escuro": mix(p.dest, "#000000", 0.3), "--bw-brilho": p.claro ? p.texto : mix(p.dest, "#ffffff", 0.8), "--bw-ciano": p.dest2,
+      "--bw-card-bg": p.claro ? p.cartao : "rgba(255,255,255,.04)", "--bw-card-borda": p.linha, "--card-bg": p.claro ? p.cartao : "rgba(255,255,255,.04)", "--card-borda": p.linha});
+    else def({"--gold": p.claro ? mix(p.dest, "#ffffff", 0.35) : p.dest, "--bw-ambar": p.claro ? mix(p.dest, "#ffffff", 0.35) : p.dest});
+    var fx = ler("ui_modo_fx", 1) && !(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches) ? (m.fx || []) : [];
+    R.setAttribute("data-fx", fx.join(" "));
+    var tc = document.querySelector('meta[name="theme-color"]'); if (tc) tc.setAttribute("content", miolo ? p.fundo : "#06080D");
+    if (fx.length) quandoPronto(function () { ligarFx(fx, p); });
+    avisar(m); return m;
+  }
+  function avisar(m) { try { window.dispatchEvent(new CustomEvent("bw-modo", {detail: {id: m.id}})); } catch (e) { } }
+  function quandoPronto(f) { if (document.body) f(); else document.addEventListener("DOMContentLoaded", f); }
+
+  /* ---------- efeitos em tela (leves: um canvas só, poucas partículas, param com a aba escondida) ---------- */
+  var cv = null, raf = 0, parts = [], FX = [], PAL = null, ultimo = 0, prox = 0;
+  function pararFx() { if (raf) cancelAnimationFrame(raf); raf = 0; parts = []; if (cv) { cv.remove(); cv = null; } }
+  function ligarFx(fx, p) {
+    FX = fx.filter(function (f) { return /^(neve|fogos|estrelas|confete)$/.test(f); }); PAL = p; if (!FX.length || cv) return;
+    cv = document.createElement("canvas"); cv.id = "bwFx"; cv.setAttribute("aria-hidden", "true");
+    cv.style.cssText = "position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:58";
+    document.body.appendChild(cv); medir(); window.addEventListener("resize", medir);
+    var pequeno = window.innerWidth < 700, i;
+    if (FX.indexOf("neve") >= 0) for (i = 0; i < (pequeno ? 26 : 60); i++) parts.push(floco(true));
+    if (FX.indexOf("confete") >= 0) for (i = 0; i < (pequeno ? 18 : 40); i++) parts.push(papel(true));
+    if (FX.indexOf("estrelas") >= 0) for (i = 0; i < (pequeno ? 26 : 60); i++) parts.push({t: "e", x: Math.random(), y: Math.random() * 0.75, r: 0.5 + Math.random() * 1.3, f: Math.random() * 6.28, v: 0.6 + Math.random() * 1.6});
+    ultimo = performance.now(); raf = requestAnimationFrame(quadro);
+  }
+  function medir() { if (!cv) return; var d = Math.min(window.devicePixelRatio || 1, 1.5); cv.width = Math.round(window.innerWidth * d); cv.height = Math.round(window.innerHeight * d); cv._d = d; }
+  function floco(novo) { return {t: "n", x: Math.random(), y: novo ? Math.random() : -0.03, r: 1 + Math.random() * 2.6, vy: 0.03 + Math.random() * 0.06, f: Math.random() * 6.28, a: 0.45 + Math.random() * 0.5}; }
+  function papel(novo) { var cs = [PAL.dest, PAL.dest2, "#FFD86B", "#FFFFFF", "#7CF3FF"]; return {t: "c", x: Math.random(), y: novo ? Math.random() : -0.03, w: 5 + Math.random() * 6, vy: 0.05 + Math.random() * 0.08, f: Math.random() * 6.28, g: Math.random() * 6.28, c: cs[Math.floor(Math.random() * cs.length)]}; }
+  function estouro() {
+    var cs = [PAL.dest, PAL.dest2, "#FFFFFF", "#FF7AB6", "#7CF3FF"], c = cs[Math.floor(Math.random() * cs.length)], x = 0.12 + Math.random() * 0.76, y = 0.1 + Math.random() * 0.32, n = window.innerWidth < 700 ? 22 : 38;
+    for (var i = 0; i < n; i++) { var a = i / n * 6.283, v = 0.07 + Math.random() * 0.1; parts.push({t: "f", x: x, y: y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, vida: 1, c: c}); }
+  }
+  function quadro(agora) {
+    raf = requestAnimationFrame(quadro); if (document.hidden || !cv) { ultimo = agora; return; }
+    var dt = Math.min(0.05, (agora - ultimo) / 1000); ultimo = agora;
+    var g = cv.getContext("2d"), W = cv.width, H = cv.height, d = cv._d || 1, razao = W / H; g.clearRect(0, 0, W, H);
+    if (FX.indexOf("fogos") >= 0 && agora > prox) { estouro(); prox = agora + 1400 + Math.random() * 2600; }
+    for (var i = parts.length - 1; i >= 0; i--) { var q = parts[i];
+      if (q.t === "n") { q.y += q.vy * dt; q.f += dt; q.x += Math.sin(q.f) * 0.0006; if (q.y > 1.03) parts[i] = floco(false);
+        g.globalAlpha = q.a; g.fillStyle = "#fff"; g.beginPath(); g.arc(q.x * W, q.y * H, q.r * d, 0, 6.283); g.fill(); }
+      else if (q.t === "c") { q.y += q.vy * dt; q.f += dt * 2; q.g += dt * 5; q.x += Math.sin(q.f) * 0.0009; if (q.y > 1.03) parts[i] = papel(false);
+        g.globalAlpha = 0.9; g.fillStyle = q.c; g.save(); g.translate(q.x * W, q.y * H); g.rotate(q.f); g.fillRect(-q.w * d / 2, -q.w * d * 0.3 * Math.abs(Math.cos(q.g)), q.w * d, q.w * d * 0.6 * Math.abs(Math.cos(q.g)) + 1); g.restore(); }
+      else if (q.t === "e") { q.f += dt * q.v; g.globalAlpha = 0.25 + 0.55 * Math.abs(Math.sin(q.f)); g.fillStyle = "#fff"; g.beginPath(); g.arc(q.x * W, q.y * H, q.r * d, 0, 6.283); g.fill(); }
+      else { q.x += q.vx * dt / razao; q.y += q.vy * dt; q.vy += 0.07 * dt; q.vx *= 0.985; q.vida -= dt * 0.75; if (q.vida <= 0) { parts.splice(i, 1); continue; }
+        g.globalAlpha = Math.max(0, q.vida); g.fillStyle = q.c; g.beginPath(); g.arc(q.x * W, q.y * H, 2.1 * d, 0, 6.283); g.fill(); } }
+    g.globalAlpha = 1;
+  }
+
+  /* folha de estilo dos modos (as regras só valem quando há data-modo) */
+  try { var lk = document.createElement("link"); lk.rel = "stylesheet"; lk.href = "assets/modos.css?v=1"; (document.head || R).appendChild(lk); } catch (e) { }
+  window.BWModos = {lista: lista, achar: achar, aplicar: aplicar, paleta: paleta, montar: montar, atual: function () { return achar(ler("ui_modo", "dark")).id; },
+    animado: function () { return !!ler("ui_modo_fx", 1); }, animar: function (v) { gravar("ui_modo_fx", v ? 1 : 0); aplicar(ler("ui_modo", "dark")); },
+    salvarMeu: function (o) { var m = montar(o), l = meus().filter(function (x) { return x.id !== m.id; }); l.push(m); gravar("ui_modos_meus", l); return m; },
+    apagarMeu: function (id) { gravar("ui_modos_meus", meus().filter(function (x) { return x.id !== id; })); if (ler("ui_modo", "dark") === id) aplicar("dark"); }};
+  aplicar(ler("ui_modo", "dark"), true);
+  window.addEventListener("storage", function (e) { if (e.key === "ui_modo" || e.key === "ui_modos_meus" || e.key === "ui_modo_fx") aplicar(ler("ui_modo", "dark"), true); });   /* outra aba trocou o modo */
+})();

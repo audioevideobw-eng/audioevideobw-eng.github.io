@@ -417,6 +417,18 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
      do PAI, não do item (as telas do Início ficaram com 84 px de respiro) → usar clamp() em px/vw. Elemento que não para de se mexer (roda que
      "respira") nunca fica estável para o Playwright: clicar com force e, se outro item cobre o centro, num canto visível (position).
 
+**Aprendidos em 20/11 (MODOS DE APARÊNCIA)**
+120. MODOS (assets/modos.js + modos.css; decisão do dono, 20/11): modo novo = UM item na lista MODOS do modos.js (id, nome, grupo, base, cores, fx) —
+     nunca regras de cor por modo espalhadas no CSS. As cores chegam às páginas pelas variáveis que elas já usam (--navy/--gold/--txt…,
+     --bw-*) e pelas --m-*; cor nova em página nova = usar variável, não cor escrita. O modo DARK não põe data-modo (a página fica como sempre).
+     Modo CLARO só clareia o miolo das páginas da lista CLARO_OK (ajustadas e conferidas no olho); nas outras e nos editores o miolo fica escuro.
+     A escolha é só do aparelho (ui_modo, ui_modo_fx, ui_modos_meus) e a imagem da marca é lida no aparelho — nada vai para a conta (auto: vigia 7.8d).
+     modos.js fica no <head> de TODA página (auto); página nova gerada por script → pôr no molde também.
+121. Regra de modo com seletor mais forte que a regra do estado (.amb-aba no modo claro × .amb-aba.on) apaga o estado: escrever com :not(.on).
+     Regra larga tipo ".wrap a{color}" pinta botões que são links (texto sumiu no botão principal). Animar background-position só no eixo X
+     (keyframe com o Y explícito) — a linha de luz do topo subia para o meio do título. Efeito em tela = um canvas só, poucas partículas, parado
+     com a aba escondida e com "reduzir movimento"; borda de luz por conic-gradient + @property (sem suporte, vira borda parada — aceitável).
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -1346,8 +1358,30 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   e que o portal.js não lê nem grava dados). NÃO feito: os braços do robô não se mexem (é uma imagem só; o vídeo de referência é gerado por IA);
   MANUAL DO USUÁRIO ainda com as telas antigas (Início, Lançamentos, Painel, Gestão de casa) — refazer as páginas; cópia sem internet do app BW
   só no próximo pacote. NÃO testado em iPhone/Android reais nem na conta do dono. brightway.css v31, layout.js v62, bw-agente v22, portal.js v1, sw v147. PENTE FINO 119.
+- 20/11/2026 13:20 · Claude (dono, com 4 referências de layout: "modos de aparência — dark, clean, futurista…; engrenagem no menu e área de configuração
+  do usuário com os dados dele; combinações simples (preto e branco, azul e branco) e ousadas com animações — neon em movimento, o robô piscando e
+  reagindo ao mouse; fácil incluir modelos no futuro; modos animados de datas (Natal, Ano Novo); modelos com a marca do cliente; ler o manual da
+  marca e se ajustar"): MODOS DE APARÊNCIA. (1) assets/modos.js (no <head> de todas as páginas) com a lista MODOS — 9 modos: SIMPLES = DARK,
+  PRETO E BRANCO, AZUL E BRANCO, CLEAN; OUSADOS = FUTURISTA, ACONCHEGO; DATAS ESPECIAIS = NATAL, ANO NOVO, FESTA. Modo novo = um item na lista.
+  (2) assets/modos.css: menu, topo, abas, cartões, agenda, lançamentos, ecossistemas e painel acompanham o modo; claros com cartões brancos e
+  menu escuro na cor do modo; as cores dos ambientes (azul/verde) continuam. (3) EFEITOS dos animados: borda de neon que gira nos cartões, luzes
+  de fundo que passeiam, linha de luz no topo, estrelas, NEVE + cordão de luzes (Natal), FOGOS (Ano Novo), CONFETE (Festa); chave para desligar.
+  (4) ROBÔ do Início pisca, acompanha o ponteiro com o corpo, pisca mais rápido com o mouse em cima e dá um "oi" ao ser tocado; o do Tio Cláudio
+  mexe ao passar o mouse. (5) CONFIGURAÇÕES (config.html + assets/config.js; engrenagem no topo e botão no menu): MEUS DADOS (nome, e-mail, como
+  entra, desde quando, "Como te chamo?", atalhos da conta/manual/app), APARÊNCIA (modos em grupos com miniatura) e CRIAR UM MODO COM A MINHA
+  MARCA: 📎 lê as cores de uma imagem (logo ou print do manual da marca) no aparelho, preenche principal/segunda/menu/fundo, VER COMO FICA e
+  SALVAR (grupo MINHA MARCA; excluir volta ao DARK). Novo docs/testes/teste_modos.py (≈24 checagens × 1280/390, 0 falhas); ambientes, layout,
+  agenda, lancamentos, agente_leitor, crm, concluir, evento_dias 0 falhas; varredura 56 páginas só as fotos do Supabase; vigia ✅ (7.8d).
+  LIMITES: modo claro só clareia o miolo de Início, Minha empresa, Minha casa, Lançamentos, Painel, Configurações e galerias — nas demais
+  ferramentas muda menu e destaques e o miolo fica escuro (falta ajustar página por página); manual da marca em PDF ainda não é lido (só imagem)
+  e fontes/logo da marca não entram; a escolha não acompanha a conta (é por aparelho); no topo do celular o feedback saiu (fica no menu).
+  NÃO testado em iPhone/Android reais nem na conta do dono. Manual do usuário continua pendente. brightway.css v32, layout.js v63, bw-agente v23,
+  portal.js v2, modos.js v1, config.js v1, sw v148. PENTE FINO 120–121.
 
 ## Pendências (dono)
+- [ ] (20/11) MODOS: dono testar no PC e no celular (engrenagem → APARÊNCIA), dizer quais modos ficam, o que ajustar em cada um e mandar a logo/manual
+      da marca para o teste do MINHA MARCA. Decidir: a escolha deve ir para a conta (acompanhar todos os aparelhos)? Claude: clarear as demais
+      ferramentas página por página, ler manual em PDF, pôr a logo da marca no menu.
 - [ ] (20/11) AMBIENTES: dono conferir na conta dele se cada lançamento antigo caiu no lugar certo (LANÇAMENTOS PJ × PF) e se as tarefas antigas da
       agenda foram para a agenda certa (Pessoal/Casa/Saúde = casa; o resto = empresa). Decidir: INVESTIMENTOS fica em MINHA CASA? o sino de AVISOS
       deve separar empresa e casa? Claude: refazer as páginas do MANUAL (Início, Lançamentos, Painel PJ/PF, Minha empresa, Minha casa) e gerar

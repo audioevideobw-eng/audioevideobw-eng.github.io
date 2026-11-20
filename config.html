@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Configurações — Brightway</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#06080D">
+<link rel="icon" type="image/png" href="icons/favicon-64.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Brightway">
+<link rel="stylesheet" href="assets/brightway.css?v=32">
+<style>
+.wrap{max-width:1180px;margin:0 auto;padding:0 16px 120px}
+.cfg-cx{min-width:0;margin-bottom:16px;padding:18px;border-radius:20px;background:var(--bw-card-bg);border:1px solid var(--bw-card-borda)}
+.cfg-cx>h2{margin:0 0 4px;font:800 13px Inter,sans-serif;letter-spacing:.14em;color:var(--bw-marfim)}
+.cfg-cx>p{margin:0 0 14px;font:500 13.5px/1.5 Inter,sans-serif;color:var(--bw-texto-3)}
+.cfg-eu{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.cfg-foto{flex:none;width:72px;height:72px;border-radius:50%;display:flex;align-items:center;justify-content:center;font:800 28px Montserrat,Inter,sans-serif;color:var(--bw-noite);background:linear-gradient(135deg,var(--bw-ambar),var(--bw-ciano))}
+.cfg-eu .txt{min-width:0;flex:1 1 220px}.cfg-eu .txt b{display:block;font:800 18px Inter,sans-serif;color:var(--bw-marfim);overflow-wrap:anywhere}
+.cfg-eu .txt small{display:block;margin-top:3px;font:500 13px/1.45 Inter,sans-serif;color:var(--bw-texto-3);overflow-wrap:anywhere}
+.cfg-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-top:16px}
+.cfg-form label{min-width:0;display:flex;flex-direction:column;gap:6px;font:700 11px Inter,sans-serif;letter-spacing:.08em;color:var(--bw-texto-2);text-transform:none}
+.cfg-form input[type=text],.cfg-form select{min-width:0;min-height:46px;padding:0 12px;border-radius:12px;border:1px solid var(--bw-card-borda);background:rgba(127,127,127,.08);color:var(--bw-marfim);font:600 16px Inter,sans-serif}
+.cfg-form input[type=color]{width:100%;min-height:46px;padding:4px;border-radius:12px;border:1px solid var(--bw-card-borda);background:rgba(127,127,127,.08);cursor:pointer}
+.cfg-linha{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.cfg-bt{min-height:46px;padding:0 16px;border-radius:13px;border:1px solid var(--bw-card-borda);background:rgba(127,127,127,.1);color:var(--bw-marfim);font:800 12px Inter,sans-serif;letter-spacing:.07em;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;touch-action:manipulation}
+.cfg-bt.pri{background:var(--bw-ambar);border-color:var(--bw-ambar);color:var(--bw-noite)}
+.cfg-grupo{margin:18px 0 10px;font:800 11px Inter,sans-serif;letter-spacing:.16em;color:var(--bw-texto-3)}
+.cfg-modos{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px}
+.cfg-modo{position:relative;min-width:0;padding:10px;border-radius:18px;border:1.5px solid var(--bw-card-borda);background:var(--bw-card-bg);color:var(--bw-marfim);text-align:left;cursor:pointer;font:inherit;touch-action:manipulation;transition:transform .15s}
+.cfg-modo:hover{transform:translateY(-3px)}
+.cfg-modo.on{border-color:var(--bw-ambar);box-shadow:0 0 0 2px var(--bw-ambar) inset}
+.cfg-modo .selo{position:absolute;right:16px;top:16px;z-index:2;padding:3px 8px;border-radius:999px;font:800 9px Inter,sans-serif;letter-spacing:.1em;background:rgba(0,0,0,.55);color:#fff}
+.cfg-modo b{display:block;margin:10px 4px 2px;font:800 13px Inter,sans-serif;letter-spacing:.08em}
+.cfg-modo small{display:block;margin:0 4px 4px;font:500 12px/1.4 Inter,sans-serif;color:var(--bw-texto-3)}
+.cfg-modo .x{position:absolute;right:10px;bottom:10px;width:30px;height:30px;border-radius:50%;border:1px solid var(--bw-card-borda);background:rgba(127,127,127,.15);color:var(--bw-marfim);font:700 13px Inter,sans-serif;cursor:pointer}
+/* miniatura da plataforma em cada modo (as cores vêm do próprio modo) */
+.cfg-mini{display:flex;height:112px;border-radius:12px;overflow:hidden;border:1px solid var(--p-linha);background:var(--p-fundo)}
+.cfg-mini .m{flex:none;width:26%;background:var(--p-menu);padding:9px 6px;display:flex;flex-direction:column;gap:5px}
+.cfg-mini .m i{display:block;height:6px;border-radius:3px;background:var(--p-menu-txt);opacity:.5}
+.cfg-mini .m i.a{background:var(--p-dest);opacity:1;height:9px}
+.cfg-mini .c{flex:1;min-width:0;padding:9px;display:flex;flex-direction:column;gap:6px}
+.cfg-mini .t{height:7px;width:52%;border-radius:4px;background:var(--p-texto)}
+.cfg-mini .k{display:flex;gap:5px}.cfg-mini .k i{flex:1;height:26px;border-radius:6px;background:var(--p-cartao);border:1px solid var(--p-linha)}
+.cfg-mini .k i:first-child{border-color:var(--p-dest)}.cfg-mini .k i:last-child{border-color:var(--p-dest2)}
+.cfg-mini .b{margin-top:auto;height:16px;width:60%;border-radius:8px;background:linear-gradient(90deg,var(--p-dest),var(--p-dest2))}
+.cfg-aviso{margin-top:12px;padding:10px 12px;border-radius:12px;font:600 12.5px/1.45 Inter,sans-serif;background:rgba(62,207,142,.12);border:1px solid rgba(62,207,142,.4);color:#3ecf8e}
+.cfg-aviso[hidden]{display:none}
+.cfg-chave{display:flex;align-items:center;gap:10px;font:600 14px Inter,sans-serif;color:var(--bw-marfim);cursor:pointer}
+.cfg-chave input{width:22px;height:22px;accent-color:var(--bw-ambar)}
+.cfg-cores{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.cfg-cores button{width:44px;height:44px;border-radius:12px;border:2px solid rgba(127,127,127,.4);cursor:pointer}
+</style>
+<script src="assets/modos.js?v=1"></script>
+</head>
+<body>
+<header><div class="hd"><button id="btnVoltar" type="button" title="Voltar">‹</button><div id="userBox"></div></div></header>
+<div class="wrap">
+  <section class="cfg-cx" id="cfgEu">
+    <h2>MEUS DADOS</h2><p>Quem está usando a plataforma neste aparelho.</p>
+    <div class="cfg-eu"><div class="cfg-foto" id="cfgFoto">B</div><div class="txt"><b id="cfgNome">Visitante</b><small id="cfgEmail">Entre na sua conta para ver os seus dados.</small></div></div>
+    <div class="cfg-form"><label>Como te chamo? (o Tio Cláudio usa este nome)<input type="text" id="cfgChamo" maxlength="30" autocomplete="off" placeholder="seu nome"></label></div>
+    <div class="cfg-linha">
+      <a class="cfg-bt pri" id="cfgConta" href="login.html">ENTRAR NA CONTA</a>
+      <a class="cfg-bt" href="login.html#dados" title="Baixar os seus dados ou excluir a conta">BAIXAR MEUS DADOS / EXCLUIR CONTA</a>
+      <a class="cfg-bt" href="docs/Brightway-Guia-do-usuario.pdf" target="_blank" rel="noopener">MANUAL DO USUÁRIO</a>
+      <a class="cfg-bt" href="baixar.html">BAIXAR O APP</a>
+    </div>
+  </section>
+
+  <section class="cfg-cx" id="cfgAparencia">
+    <h2>APARÊNCIA · MODOS</h2><p>Escolha a cara da plataforma. Troca na hora e vale neste aparelho — no celular você pode usar um modo e no computador outro.</p>
+    <label class="cfg-chave"><input type="checkbox" id="cfgFx"> Animações dos modos (luzes de neon, neve, fogos)</label>
+    <div id="cfgModos"></div>
+    <div class="cfg-aviso" id="cfgAviso" hidden aria-live="polite"></div>
+  </section>
+
+  <section class="cfg-cx" id="cfgMarca">
+    <h2>CRIAR UM MODO COM A MINHA MARCA</h2><p>Mande a logo ou uma página do manual da marca: a plataforma lê as cores e monta o modo. Você ajusta e salva. A imagem não sai do aparelho.</p>
+    <div class="cfg-linha" style="margin-top:0"><button type="button" class="cfg-bt pri" id="mkLer">📎 LER A LOGO OU O MANUAL DA MARCA</button><input type="file" id="mkArq" accept="image/*" hidden></div>
+    <div class="cfg-cores" id="mkAchadas" aria-label="Cores encontradas na imagem"></div>
+    <div class="cfg-form">
+      <label>Nome do modo<input type="text" id="mkNome" maxlength="24" placeholder="Ex.: MINHA EMPRESA" autocomplete="off"></label>
+      <label>Fundo<select id="mkBase"><option value="escuro">Escuro</option><option value="claro">Claro</option></select></label>
+      <label>Cor principal (destaques e botões)<input type="color" id="mkDest" value="#1F5EFF"></label>
+      <label>Segunda cor (brilhos)<input type="color" id="mkDest2" value="#12B5E5"></label>
+      <label>Cor do menu<input type="color" id="mkMenu" value="#0E2A6E"></label>
+      <label>Animação<select id="mkFx"><option value="">Sem animação</option><option value="neon">Luzes de neon</option><option value="neon aurora">Neon + luzes de fundo</option><option value="neon estrelas">Neon + estrelas</option></select></label>
+    </div>
+    <div class="cfg-linha"><button type="button" class="cfg-bt" id="mkVer">👁 VER COMO FICA</button><button type="button" class="cfg-bt pri" id="mkSalvar">✓ SALVAR E USAR ESTE MODO</button></div>
+    <div class="cfg-aviso" id="mkAviso" hidden aria-live="polite"></div>
+  </section>
+</div>
+<script src="assets/layout.js?v=63"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="assets/bw-sync.js"></script>
+<script src="assets/config.js?v=1"></script>
+</body>
+</html>

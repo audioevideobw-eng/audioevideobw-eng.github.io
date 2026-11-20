@@ -556,7 +556,7 @@
   var ROBO = '<img class="bwg-robo" src="icons/robo-bw-128.png" alt="" width="46" height="46" decoding="async">';
   var CSS = ".bwg-fab{position:fixed;right:16px;bottom:24px;z-index:70;width:60px;height:60px;border-radius:50%;border:0;padding:0;cursor:pointer;touch-action:manipulation;" +
     "background:radial-gradient(circle at 50% 35%,#16305e,#081226 70%);box-shadow:0 10px 26px rgba(0,0,0,.5),0 0 0 1.5px rgba(96,165,255,.75) inset,0 0 22px rgba(56,132,255,.6);display:flex;align-items:center;justify-content:center;transition:transform .15s;overflow:visible}" +
-    ".bwg-robo{display:block;width:46px;height:46px;object-fit:contain;pointer-events:none}.bwg-cab .bwg-robo{width:32px;height:32px;flex:none}" +
+    ".bwg-robo{display:block;width:46px;height:46px;object-fit:contain;pointer-events:none;transition:transform .25s cubic-bezier(.2,.8,.2,1)}.bwg-fab:hover .bwg-robo{transform:rotate(-10deg) scale(1.12) translateY(-2px)}.bwg-cab .bwg-robo{width:32px;height:32px;flex:none}" +
     ".bwg-fab.ouvindo{box-shadow:0 10px 26px rgba(0,0,0,.5),0 0 0 2px #5FE0A0 inset,0 0 26px rgba(95,224,160,.8)}" +
     ".bwg-fab:active{transform:scale(.94)}.bwg-fab svg{width:36px;height:36px;fill:none;stroke:#1a1306;stroke-width:2.3;stroke-linecap:round;stroke-linejoin:round}.bwg-fab svg .vis{fill:#1a1306}.bwg-fab svg .olho{fill:#7CF3FF;stroke:none}" +
     ".bwg-fab.ouvindo{animation:bwgPulso 1.2s ease-in-out infinite}.bwg-fab.ouvindo svg .olho{fill:#5FE0A0}@keyframes bwgPulso{0%,100%{box-shadow:0 0 0 0 rgba(232,194,106,.55),0 10px 26px rgba(0,0,0,.45)}50%{box-shadow:0 0 0 14px rgba(232,194,106,0),0 10px 26px rgba(0,0,0,.45)}}" +

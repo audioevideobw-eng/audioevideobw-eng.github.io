@@ -351,6 +351,17 @@ for _p, _a in (("negocio.html", "pj"), ("casa.html", "pf")):
         problemas.append(f"{_p}: página do ambiente incompleta (gere de novo: python3 docs/automacoes/gerar-ambientes.py)")
 if 'href="downloads/BW-Setup.exe"' not in todos.get("baixar.html", "") or not os.path.exists("downloads/BW-Setup.exe") or open("downloads/BW-Setup.exe", "rb").read(2) != b"MZ":
     problemas.append("baixar.html: o botão de download do app BW (.exe) sumiu ou o instalador não está em downloads/")
+# 7.8d MODOS DE APARÊNCIA (20/11/2026): modos.js no <head> de toda página; só preferências locais (ui_*); nada de rede
+_mj, _cj = _arq("assets/modos.js"), _arq("assets/config.js")
+for _p, _t in todos.items():
+    if "</head>" in _t and "assets/modos.js" not in _t.split("</head>")[0]:
+        problemas.append(f"{_p}: sem assets/modos.js no <head> (a página não acompanha o modo de aparência escolhido)")
+if re.search(r"fetch\(|XMLHttpRequest|supabase|BWSync|indexedDB|\.upload\(", _mj) or re.search(r"(get|set)Item\(\s*[\"']bw_", _mj + _cj):
+    problemas.append("assets/modos.js / config.js: os modos só guardam preferências locais (ui_*); não usam rede nem mexem nos dados da conta")
+if re.search(r"fetch\(|XMLHttpRequest|\.upload\(|\.from\(", _cj):
+    problemas.append("assets/config.js: a imagem da marca é lida no aparelho — a página não envia nem grava nada na conta")
+if 'href="config.html"' not in lay or not os.path.exists("assets/modos.css") or 'id="cfgModos"' not in todos.get("config.html", ""):
+    problemas.append("CONFIGURAÇÕES: falta a engrenagem no layout.js, o assets/modos.css ou a lista de modos em config.html")
 # 7.9 páginas com o visual novo (menu lateral) — exceto as de propósito
 SEM_MENU = {"login.html", "cadastro.html", "pedido.html", "baixar.html", "privacidade.html", "termos.html", "financeiro-painel.html", "investimentos-painel.html", "app.html", "financeiro.html", "fluxo.html", "custos.html"}
 for p, t in todos.items():

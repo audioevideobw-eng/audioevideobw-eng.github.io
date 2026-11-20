@@ -73,7 +73,7 @@
     crm: [["crm","Painel do CRM"],["captacao","Funil de clientes"],["resultados","Indicadores"]],
     mkt: [["marketing","Todas de marketing"],["promptia","Prompt IA"],["reels","BW Reels Pro"],["personagens","Personagens"],["video","Editor de vídeo"],["motion","Estúdio de motion"],["telas","Telas em movimento"],["criador","Criador IA"],["fotos","Editor de fotos"],["assistente","Assistente de texto"],["transcricao","Transcrição e legendas"]],
     ferr: [["ferramentas","Todas as ferramentas"],["pdf","PDF"],["dados","Meus dados"]],
-    conta: [["login","Acesso"],["configadm","Configuração"]]
+    conta: [["config","Configurações e aparência"],["login","Acesso"],["configadm","Configuração (ADM)"]]
   };
   function categoriaDe(p){
     if (p === "index") return "inicio";
@@ -95,7 +95,7 @@
     invest:"Simulador de rendimento", "investimentos-painel":"Painel de Investimentos", serie:"Série histórica", diario:"Diário de câmbio", calc:"Calculadora",
     viagem:"Conversor de viagem", leitor:"Leitor de contas", recs:"Recomendações",
     noticias:"Notícias", dados:"Meus dados", app:"App & sincronização", login:"Acesso",
-    configadm:"Configuração", marketing:"Marketing", assistente:"Assistente de texto", transcricao:"Transcrição e legendas", pdf:"Ferramentas de PDF",
+    configadm:"Configuração", config:"Configurações", marketing:"Marketing", assistente:"Assistente de texto", transcricao:"Transcrição e legendas", pdf:"Ferramentas de PDF",
     crm:"CRM", captacao:"Funil de clientes", resultados:"Indicadores", fotos:"Editor de fotos", criador:"Criador IA", reels:"BW Reels Pro", personagens:"Personagens", promptia:"Prompt IA", video:"Editor de vídeo", motion:"Estúdio de motion", telas:"Telas em movimento", propostas:"Gerador de orçamento" };
   var NOMES_CAT = {}; CATEGORIAS.forEach(function(c){ NOMES_CAT[c.id] = c.nome; });
 
@@ -119,6 +119,7 @@
     itens +
     '<button type="button" class="bw-app-dl" onclick="window.bwInstalarApp()"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M5 21h14"/></svg><span>APP DOWNLOAD</span></button>' +
     '<button type="button" class="bw-fb-btn" onclick="window.bwFeedback()"><svg width="17" height="17" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M8 9h8M8 13h5"/></svg><span>ENVIAR FEEDBACK</span></button>' +
+    '<a class="bw-fb-btn bw-cfg" href="config.html" title="Meus dados e modos de aparência"><svg width="17" height="17" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M12 2v3M12 19v3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M2 12h3M19 12h3M4.9 19.1 7 17M17 7l2.1-2.1"/></svg><span>CONFIGURAÇÕES</span></a>' +
     /* 15/11 (pedido do dono): baixar o Guia do usuário (PDF) direto do menu */
     '<a class="bw-fb-btn bw-manual" href="docs/Brightway-Guia-do-usuario.pdf" target="_blank" rel="noopener" download="Brightway-Guia-do-usuario.pdf" title="Guia do usuário em PDF"><svg width="17" height="17" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/><path d="M12 7v6M9.5 10.5 12 13l2.5-2.5"/></svg><span>MANUAL DO USUÁRIO</span></a>' +
     '<div class="sync-card">' +
@@ -137,6 +138,8 @@
       '<button class="bw-btn bw-btn--vidro" data-slot="btnVoltar" title="Voltar" aria-label="Voltar" style="min-height:44px;padding:0 16px">‹</button>' +
       '<button type="button" class="bw-sino" id="bwSino" onclick="window.bwAvisos()" title="Avisos" aria-label="Avisos"><span class="bw-icone" style="width:40px;height:40px"><svg width="19" height="19" viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg></span><b class="bw-sino-n" id="bwSinoN" hidden></b></button>' +
       '<button type="button" class="bw-fb-topo" onclick="window.bwFeedback()" title="Enviar feedback" aria-label="Enviar feedback"><span class="bw-icone" style="width:40px;height:40px"><svg width="19" height="19" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span></button>' +
+      /* 20/11 (dono): engrenagem → CONFIGURAÇÕES (meus dados + modos de aparência) */
+      '<a class="bw-cfg-topo" href="config.html" title="Configurações e aparência" aria-label="Configurações"><span class="bw-icone" style="width:40px;height:40px"><svg width="19" height="19" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3h.1a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9v.1a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></span></a>' +
       /* 16/11 (pedido do dono): botão MENU ao lado do feedback — no celular abre o menu completo; no computador mostra/esconde o menu lateral */
       '<button type="button" class="bw-menu-topo" id="bwMenuBtn" onclick="window.bwMenu()" title="Menu" aria-label="Abrir o menu" aria-controls="bwMenu"><span class="bw-icone" style="width:40px;height:40px"><svg width="20" height="20" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg></span></button>' +
       '<a href="login.html" title="Conta" aria-label="Conta"><span class="bw-icone" style="width:40px;height:40px"><svg width="20" height="20" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></span></a>' +
@@ -567,7 +570,7 @@
 /* ===== AGENTE (16/11): o robô fica em todas as páginas — carregado aqui para não precisar mexer em cada página ===== */
 (function () {
   if (window.BWLanca || document.querySelector('script[src*="bw-agente.js"]')) return;
-  var s = document.createElement("script"); s.src = "assets/bw-agente.js?v=22"; s.defer = true; document.head.appendChild(s);
+  var s = document.createElement("script"); s.src = "assets/bw-agente.js?v=23"; s.defer = true; document.head.appendChild(s);
 })();
 
 /* 18/11: SETAS de abrir/fechar seções (data-seta). Fechada por padrão com data-seta-padrao="fechada"; a escolha fica em ui_dobras. */

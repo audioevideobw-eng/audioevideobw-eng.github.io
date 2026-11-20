@@ -56,7 +56,7 @@ with sync_playwright() as p:
         pg.goto(BASE + "index.html"); pg.wait_for_timeout(1200)
         hr = pg.eval_on_selector_all(".hub-tela", "ts => ts.map(t => t.getAttribute('href') + '|' + t.querySelector('b').textContent)")
         ok(sorted(hr) == sorted(["negocio.html|MEU NEGÓCIO", "casa.html|GESTÃO DE CASA", "marketing.html|MARKETING", "ferramentas.html|FERRAMENTAS"]), f"Início: o robô e as 4 telas do desenho {hr}")
-        ok(pg.evaluate("(() => { const r = document.getElementById('hubRobo'); return r.complete && r.naturalWidth > 100; })()") and pg.locator("#hubEntrar").is_hidden(), "o robô novo aparece no centro; parado, nenhuma tela está escolhida")
+        ok(pg.evaluate("(() => { const r = document.querySelector('#hubRobo img'); return r.complete && r.naturalWidth > 100; })()") and pg.locator("#hubEntrar").is_hidden(), "o robô novo aparece no centro; parado, nenhuma tela está escolhida")
         ok(pg.locator("#bwAgenda").count() == 0 and pg.locator("[data-dobra]").count() == 0, "a agenda e as seções saíram do Início (estão dentro de cada ambiente)")
         ok(pg.evaluate("typeof window.BWAgendaItens") == "function", "Início mantém o cálculo da agenda para o Tio Cláudio")
         pos = lambda sel: pg.evaluate("s => { const r = document.querySelector(s).getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2, r.width]; }", sel)

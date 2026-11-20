@@ -13,7 +13,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Brightway">
-<link rel="stylesheet" href="assets/brightway.css?v=31">
+<link rel="stylesheet" href="assets/brightway.css?v=32">
 <style>
 :root{
   /* Identidade Brightway — paleta oficial */
@@ -222,6 +222,7 @@ footer b{color:var(--gold)}
 #evDossie>.bw-card:first-child{grid-column:1/-1}
 @media(max-width:899px){#evDossie{grid-template-columns:1fr}}
 </style>
+<script src="assets/modos.js?v=1"></script>
 </head>
 <body>
 <header><div class="hd">
@@ -293,7 +294,7 @@ footer b{color:var(--gold)}
         <g fill="#7fd6ff"><circle cx="120" cy="150" r="4"/><circle cx="680" cy="150" r="4"/><circle cx="262" cy="222" r="3.5"/><circle cx="560" cy="80" r="3"/><circle cx="400" cy="260" r="4"/></g></svg></div>
       <button type="button" class="hub-seta" id="hubAnt" aria-label="Tela anterior">‹</button>
       <button type="button" class="hub-seta" id="hubProx" aria-label="Próxima tela">›</button>
-      <img class="hub-robo" id="hubRobo" src="icons/robo-bw.webp" alt="Robô da Brightway" width="520" height="696" draggable="false">
+      <div class="hub-robo" id="hubRobo" role="img" aria-label="Robô da Brightway"><div class="hub-robo-in"><img src="icons/robo-bw.webp" alt="" width="520" height="696" draggable="false"><i class="olho e"></i><i class="olho d"></i></div></div>
       <a class="hub-tela" data-cor="roxo" data-ang="225" data-nome="MEU NEGÓCIO" data-sub="Minha empresa (PJ): lançamentos, painel, eventos, equipe, orçamentos e CRM" href="negocio.html"><b>MEU NEGÓCIO</b>
         <svg viewBox="0 0 200 110" aria-hidden="true"><path d="M8 100V62h30v38M4 62l6-16h26l6 16M17 100V80h12v20"/><path d="M60 102V20M60 102h84"/><rect class="ch" x="70" y="76" width="13" height="26" rx="2"/><rect class="ch" x="89" y="62" width="13" height="40" rx="2"/><rect class="ch" x="108" y="50" width="13" height="52" rx="2"/><rect class="ch" x="127" y="36" width="13" height="66" rx="2"/><path d="M66 64l22-20 16 10 34-34M124 18h16v16"/><rect x="158" y="24" width="36" height="26" rx="5"/><path d="M168 24v-6h16v6M158 36h36"/><path d="M158 100V84M170 100V72M182 100V78M194 100V64"/></svg></a>
       <a class="hub-tela" data-cor="ciano" data-ang="135" data-nome="GESTÃO DE CASA" data-sub="Minha casa (PF): lançamentos, painel, contas a pagar, reserva e investimentos" href="casa.html"><b>GESTÃO DE CASA</b>
@@ -317,11 +318,11 @@ footer b{color:var(--gold)}
 </div>
 
 </div>
-<script src="assets/layout.js?v=62"></script>
+<script src="assets/layout.js?v=63"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="assets/bw-sync.js"></script>
 <script src="assets/agenda.js?v=1"></script>
-<script src="assets/portal.js?v=1"></script>
+<script src="assets/portal.js?v=2"></script>
 <script src="https://cdn.jsdelivr.net/npm/pdfmake@0.2.20/build/pdfmake.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>

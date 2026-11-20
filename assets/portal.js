@@ -64,7 +64,10 @@
   palco.addEventListener("pointerdown", function (e) { if (e.target.closest(".hub-seta")) return; x0 = e.clientX; arrastou = false; });
   window.addEventListener("pointerup", function (e) { if (x0 == null) return; var dx = e.clientX - x0; x0 = null;
     if (Math.abs(dx) > 44) { arrastou = true; passo(dx < 0 ? 1 : -1); setTimeout(function () { arrastou = false; }, 60); } });
-  if (robo) robo.addEventListener("click", function () { passo(1); });
+  /* o robô reage: acompanha o ponteiro com o corpo, pisca mais rápido com o mouse em cima e dá um "oi" (pulinho + piscadela) ao ser tocado */
+  if (robo) { robo.addEventListener("click", function () { robo.classList.remove("oi"); void robo.offsetWidth; robo.classList.add("oi"); setTimeout(function () { robo.classList.remove("oi"); }, 720); passo(1); });
+    if (!calmo) palco.addEventListener("pointermove", function (e) { var r = palco.getBoundingClientRect(); robo.style.setProperty("--rx", (((e.clientX - r.left) / r.width - 0.5) * 2).toFixed(2)); robo.style.setProperty("--ry", (((e.clientY - r.top) / r.height - 0.5) * 2).toFixed(2)); });
+    palco.addEventListener("pointerleave", function () { robo.style.setProperty("--rx", 0); robo.style.setProperty("--ry", 0); }); }
   window.addEventListener("resize", ligar);
   window.BWPortal = {focar: focar, passo: passo, foco: function () { return foco; }, abrir: abrir};
   textos(); desenhar(performance.now()); ligar();
