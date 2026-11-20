@@ -140,23 +140,29 @@
     }
   }
 
-  /* gerar({ html, largura, altura, fps, duracao, som: {L, R} | null, alturaSaida, aoProgredir, cancelar: () => bool }) → { blob, comSom, codecSom } */
+  /* gerar({ html, largura, altura, fps, duracao, som: {L, R} | null, alturaSaida, aoProgredir, cancelar: () => bool }) → { blob, comSom, codecSom }
+     20/11: OU desenhar: async (t, ctx, largura, altura) → o próprio quadro desenhado num canvas (Telas em movimento: fotos e vídeos). */
   async function gerar(o) {
-    if (/<video/i.test(o.html)) throw new Error("este vídeo usa filmagens: gere no computador (RENDERIZAR NO PC)");
+    if (!o.desenhar && /<video/i.test(o.html)) throw new Error("este vídeo usa filmagens: gere no computador (RENDERIZAR NO PC)");
     var W = o.largura, H = o.altura, oh = Math.min(o.alturaSaida || 1280, H), ow = Math.round(W * oh / H / 2) * 2; oh = Math.round(oh / 2) * 2;
     var fps = o.fps || 30, total = Math.round(o.duracao * fps), prog = o.aoProgredir || function () {};
-    var fr = document.createElement("iframe");
-    fr.setAttribute("aria-hidden", "true"); fr.style.cssText = "position:fixed;left:-99999px;top:0;width:" + W + "px;height:" + H + "px;border:0;opacity:0;pointer-events:none";
-    document.body.appendChild(fr);
+    var fr = null, win = null, doc = null;
+    if (!o.desenhar) {
+      fr = document.createElement("iframe");
+      fr.setAttribute("aria-hidden", "true"); fr.style.cssText = "position:fixed;left:-99999px;top:0;width:" + W + "px;height:" + H + "px;border:0;opacity:0;pointer-events:none";
+      document.body.appendChild(fr);
+    }
     try {
-      await new Promise(function (ok) { fr.onload = ok; fr.srcdoc = o.html; });
-      var win = fr.contentWindow, doc = fr.contentDocument;
-      for (var e = 0; e < 100 && !win.__seek; e++) await dorme(50);
-      if (!win.__seek) throw new Error("o motor não carregou");
-      prog({ etapa: "Preparando as letras e imagens", pct: 1 });
-      var fontes = await fontesEmbutidas(doc); await embutirImagens(doc);
-      [].forEach.call(doc.querySelectorAll("script,link"), function (x) { x.remove(); });
-      if (fontes) { var st = doc.createElement("style"); st.textContent = fontes; doc.head.appendChild(st); }
+      if (fr) {
+        await new Promise(function (ok) { fr.onload = ok; fr.srcdoc = o.html; });
+        win = fr.contentWindow; doc = fr.contentDocument;
+        for (var e = 0; e < 100 && !win.__seek; e++) await dorme(50);
+        if (!win.__seek) throw new Error("o motor não carregou");
+        prog({ etapa: "Preparando as letras e imagens", pct: 1 });
+        var fontes = await fontesEmbutidas(doc); await embutirImagens(doc);
+        [].forEach.call(doc.querySelectorAll("script,link"), function (x) { x.remove(); });
+        if (fontes) { var st = doc.createElement("style"); st.textContent = fontes; doc.head.appendChild(st); }
+      }
 
       var trilhas = [], vAm = [], avcC = null, erro = null, somInfo = "sem som no roteiro", aacNativo = false, gravando = null;
       if (o.som) {
@@ -169,10 +175,13 @@
       var cv = document.createElement("canvas"); cv.width = ow; cv.height = oh; var ctx = cv.getContext("2d"), xs = new XMLSerializer();
       for (var f = 0; f < total; f++) {
         if (erro) throw erro; if (o.cancelar && o.cancelar()) throw new Error("cancelado");
-        await win.__seek(f / fps);
-        var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + W + '" height="' + H + '"><foreignObject x="0" y="0" width="100%" height="100%">' + xs.serializeToString(doc.documentElement) + "</foreignObject></svg>";
-        var img = new Image(); img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg); await img.decode();
-        ctx.drawImage(img, 0, 0, ow, oh); img.src = ""; img = null; svg = null;
+        if (o.desenhar) await o.desenhar(f / fps, ctx, ow, oh);
+        else {
+          await win.__seek(f / fps);
+          var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + W + '" height="' + H + '"><foreignObject x="0" y="0" width="100%" height="100%">' + xs.serializeToString(doc.documentElement) + "</foreignObject></svg>";
+          var img = new Image(); img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg); await img.decode();
+          ctx.drawImage(img, 0, 0, ow, oh); img.src = ""; img = null; svg = null;
+        }
         var vf = new VideoFrame(cv, { timestamp: Math.round(f * 1e6 / fps), duration: Math.round(1e6 / fps) });
         enc.encode(vf, { keyFrame: f % (fps * 2) === 0 }); vf.close();
         while (enc.encodeQueueSize > 6) await dorme(5);
@@ -231,7 +240,7 @@
       var blob = mp4(trilhas, Math.round(total / fps * 1000));
       prog({ etapa: "Pronto", pct: 100 });
       return { blob: blob, comSom: !!codecSom, codecSom: codecSom, somInfo: somInfo, largura: ow, altura: oh, quadros: total };
-    } finally { fr.remove(); }
+    } finally { if (fr) fr.remove(); }
   }
   window.BWReelsCelular = { suporta: suporta, gerar: gerar, _extrairAac: extrairAac, _mp4: mp4, _stsdAudio: stsdAudio };
 })();

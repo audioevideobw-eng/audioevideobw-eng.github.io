@@ -1,23 +1,18 @@
 {
- "versao": "1.6",
+ "versao": "1.7",
  "data": "20/11/2026",
  "pacote": "downloads/BW-Reels-Studio.zip",
- "sha256": "a8426e1d914347577e94997a0316034c92973e328fab78388cd0abe6fff06eae",
- "bytes": 8354773,
+ "sha256": "c499d5e07566aefe6796ad113916907dd5decdef2b54804c345c7efb81401a1d",
+ "bytes": 8379115,
  "novidades": [
   {
-   "titulo": "Estúdio de motion",
-   "texto": "Monte animações escolhendo itens (títulos neon, cartões, chat, gráfico, foto, antes e depois, lupa, número contando…) e o efeito de cada um, ou desenhe o caminho com keyframes. Tem motion automático e um ajudante que cria o efeito a partir de uma frase.",
-   "abrir": "motion"
+   "titulo": "Telas em movimento",
+   "texto": "Suas fotos e takes entram dentro de divisões de tela e de transições geométricas (tiras, cacos, mosaico, cata-vento, painéis 3D, X, túnel…). ✨ MONTAR SOZINHO corta na batida da música. No computador o vídeo sai bem mais rápido.",
+   "abrir": "telas"
   },
   {
-   "titulo": "Vídeo para recortar direto do app",
-   "texto": "No Estúdio de motion, GERAR NO APP BW faz o vídeo neste computador com fundo verde, azul ou magenta (chroma key) ou transparente (.mov) e abre quando fica pronto."
-  },
-  {
-   "titulo": "Skill ANIMAÇÃO POR CÓDIGO 1.2",
-   "texto": "A skill agora sabe partir do HTML exportado pelo Estúdio de motion. Abra BW SKILL e toque em ATUALIZAR.",
-   "abrir": "skills"
+   "titulo": "Gerar vídeo com filmagem no aparelho",
+   "texto": "O gerador de vídeo do app agora também desenha quadro a quadro com os seus takes (antes era só para animações sem filmagem)."
   }
  ]
 }

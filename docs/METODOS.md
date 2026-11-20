@@ -335,3 +335,12 @@ Tamanho > 0 e sem erro = o pdfmake montou o arquivo. Localmente (T1) confira o `
   saída (mesmo efeito invertido) ∘ loop. Efeito próprio = {chaves:{dx,dy,s,r,o,b,rx,ry:[[p,v,curva]]}}; em p=1 tudo neutro (o editor força).
 - Mesma saída em 3 lugares: prévia (montar no editor), aparelho (BWMotion.html → BWReelsCelular.gerar) e PC (o app monta o HTML com o motor local).
 - Teste de exportar no aparelho: buscar o blob do link de baixar com fetch dentro da página → base64 → ffprobe + pixel do canto (fundo de recorte).
+
+
+## Telas em movimento (20/11/2026)
+- Transição "com a mídia dentro": para cada peça, `ctx.save(); transformar(peça); clip(polígono no lugar final); desenharCenaNova(); ctx.restore()` —
+  a imagem anda junto com a peça (cacos, mosaico, tiras). Clip sem transformação = a peça só "revela" (persiana, cata-vento, círculo).
+- Aleatório das peças com semente pelo id da cena (mulberry32) → o mesmo quadro sempre igual.
+- Batida: energia RMS em blocos de 10 ms → diferença positiva (início de nota) → autocorrelação entre 60/180 e 60/70 s; cenas = 1, 2 ou 4 batidas.
+- Exportar com filmagem: BWReelsCelular.gerar({desenhar: async (t, ctx, w, h) => { await videosNoTempo(t); BWTelas.desenhar(ctx, P, t, w, h, fonte) }}).
+- Teste: imagens de cor lisa por cena → pixel do MP4 no meio de cada cena e no meio da transição (duas cores); WebM no Chromium de teste.

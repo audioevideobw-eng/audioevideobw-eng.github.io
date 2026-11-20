@@ -370,6 +370,11 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
      Motor de motion = cada quadro só de t (montar + seek), textos sempre por textContent (marcação no texto vira texto). Teste com mouse:
      elemento fora da tela não recebe clique (scroll_into_view antes) e ◆ por cima da barra pega o toque (escolher barra sem ◆). Inserir trecho
      por texto num arquivo: contar antes quantas vezes o texto aparece (o bloco entrou duas vezes no teste-app).
+110. Vídeo com FILMAGEM gerado no navegador: desenhar em CANVAS (BWReelsCelular.gerar com `desenhar(t, ctx)`), nunca foreignObject (ele não
+     pega <video>). Antes de cada quadro, cada take é posto no ponto certo e espera o `seeked` (com prazo); a prévia tocando usa play() e só corrige
+     quando o take se afasta > 0,3 s. Teste confere a COR de cada cena no MP4 no tempo certo (mídia certa na tela certa) + som com volumedetect
+     sem `-v error` (ele esconde a medição). Desfazer grava antes o passo pendente (o histórico espera 0,3 s para juntar mudanças).
+     Transição que traz a cena nova + painéis que deslizam = buracos pretos: com transição, a transição é a entrada.
 102. PROMPT IA (promptia.html + assets/promptia.js): biblioteca em public.bw_trends (leitura pública, gravação só is_bw_admin, RLS —
      docs/sql/2026-11-19-prompt-ia.sql) + imagens no bucket público "trends" (só ADM envia); a análise manda a imagem para a bw-ia
      (campo "imagem", modelo com VISÃO da Groq) SÓ depois de confirm(), cópia ≤ 768 px JPEG, nada guardado; o promptia.js nunca grava na
@@ -1233,7 +1238,20 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   (+8: magenta, .mov com alfa, texto com <img> não executa, projeto inválido recusado, motor igual ao do site) 0 falhas; varredura 54 páginas
   (só as fotos do Supabase, sem rede aqui); vigia ✅ (motion.js só chama a bw-ia; motor sem rede). Manual 47 → 48 p. layout.js v59, sw v142.
   NÃO testado: a IA real criando efeito (logado), iPhone/Android reais, o app BW no Windows. PENTE FINO 109.
+- 20/11/2026 01:55 · Claude (dono, com 4 vídeos de referência — 3 pacotes de transição em chroma verde e um vídeo de imóvel: "ferramenta onde você insere fotos
+  e takes e eles são aplicados de acordo com o motion de screens e suas divisões"; escolheu ferramenta própria, fotos e vídeos): TELAS EM MOVIMENTO
+  (telas.html + assets/telas.js + assets/telas-motor.js) em Marketing (menu, galerias, Ferramentas e Início). Tudo em CANVAS: 16 transições em que as
+  peças levam a mídia nova por dentro (tiras diagonais, persiana, mosaico, cata-vento, cacos, painéis 3D, X, janela, túnel, losango, chicote com
+  borrão, zoom, círculo, faixas, flash, corte) com prévia animada; 6 divisões (cheia, 2, 3, 4 telas, diagonal, janela) com uma mídia por tela e
+  trecho do take; movimento de câmera; contorno neon; 4 pacotes (Geométrico, Imóvel/lifestyle, Energia, Suave). MÚSICA com batida achada no
+  aparelho (energia → autocorrelação 70–180 BPM) e ✨ MONTAR SOZINHO cortando na batida. SEQUÊNCIA com miniaturas, desfazer, projetos e mídias
+  no IndexedDB bw_telas (nada sai do aparelho — vigia). GERAR VÍDEO: reels-celular.js v4 ganhou `desenhar` (quadro em canvas, takes no quadro
+  certo) + som da música com fim suave. docs/testes/teste_telas.py (27 checagens × 1280/390: batida 120 BPM = 0,500 s, 4 cenas de 1,0 s, MP4 com
+  a cor certa em cada cena, take verde dentro da tela, duas fotos no meio da transição, som −26,6 dB) 0 falhas; teste_reels_celular, teste_motion e
+  teste-app 0 falhas; varredura 55 páginas. App BW 1.7 (cartão + página sem internet). Manual 48 → 49 p. layout.js v60, sw v143.
+  NÃO testado: vídeos de câmera reais (MP4/HEVC; o Chromium de teste só abre WebM), iPhone/Android reais, música MP3 real. PENTE FINO 110.
 ## Pendências (dono)
+- [ ] (20/11) TELAS EM MOVIMENTO: dono abrir no ar com fotos e takes REAIS do celular + uma música, MONTAR SOZINHO e GERAR VÍDEO (no PC e no celular); dizer se os vídeos do iPhone abriram e quanto tempo levou.
 - [ ] (20/11) ESTÚDIO DE MOTION: dono abrir no ar (Marketing → Estúdio de motion), montar algo, testar ✨ CRIAR EFEITO logado e GERAR NESTE APARELHO no celular; no PC, atualizar o BW para 1.6 e testar GERAR NO APP BW com fundo transparente.
 - [ ] (20/11) RECORTE: dono atualizar para 1.5.2, tocar ATUALIZAR na skill ANIMAÇÃO POR CÓDIGO e testar o .mp4 verde no CapCut do celular (Chroma key) em cima de uma filmagem dele.
 - [ ] (19/11) BW SKILL: dono atualizar o BW para a 1.5 (aviso no app), instalar o EDITOR DE VÍDEO pela BW SKILL apontando as pastas dele e dizer se ficou claro; validar a skill no Codex/Gemini quando quiser abrir para eles.
