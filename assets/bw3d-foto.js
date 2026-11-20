@@ -177,8 +177,9 @@
     for (i = 0; i < verts.length; i++) {
       var g = S.V[i], nx = normais[i][0], ny = normais[i][1], nz = normais[i][2];
       var px = Math.round(lim(g[0], 0, R - 1)), py = Math.round(lim(g[1], 0, R - 1)), pz = Math.round(lim(g[2], 0, R - 1));
+      /* a câmera olha do -Z: normal com z NEGATIVO é a FRENTE; z POSITIVO são as costas */
       var fonte = V.frente, cx2 = px, cy2 = py;
-      if (V.costas && nz < -Math.abs(nx) * 0.9 && nz < 0) { fonte = V.costas; cx2 = R - 1 - px; }
+      if (V.costas && nz > Math.abs(nx) * 0.9 && nz > 0) { fonte = V.costas; cx2 = R - 1 - px; }
       else if (V.lado && Math.abs(nx) > Math.abs(nz)) { fonte = V.lado; cx2 = pz; }
       var ix = perto(fonte, cx2, cy2, R);
       if (ix < 0 && fonte !== V.frente) { fonte = V.frente; ix = perto(fonte, px, py, R); }
@@ -193,7 +194,7 @@
       return { i: q, cor: "#" + hex2(r) + hex2(gg) + hex2(b) };
     });
     var malha = window.BW3D.malha(verts, faces, { cor: "#aab2c2", mat: { metal: 0.08, brilho: 0.3 }, fechado: true, nome: op.nome || "Foto 3D" });
-    malha.vcor = vcor; malha.selar = true;
+    malha.vcor = vcor; malha.selar = true; malha.luzPlana = true;
     malha.info = { vertices: verts.length, faces: faces.length, res: R, ms: Math.round(((performance || Date).now()) - t0),
       vistas: ["frente"].concat(V.lado ? ["lado"] : [], V.costas ? ["costas"] : []) };
     return malha;

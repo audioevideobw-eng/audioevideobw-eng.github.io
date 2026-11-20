@@ -428,7 +428,9 @@
         var vis = B.unit(B.sub(olho, a)), frente = B.dot(n, vis) > 0;
         if (!frente) { if (o.fechado) continue; n = [-n[0], -n[1], -n[2]]; }
         var lam = Math.max(0, B.dot(n, L)), cor = fc.cor || o.cor, mat = o.mat || {};
-        var rgb = B.hexRGB(cor), kk = fc.led ? 1 : amb + (1 - amb) * lam, r = rgb[0] * kk, g = rgb[1] * kk, bb = rgb[2] * kk;
+        /* malha vinda de FOTO já traz a luz da foto: luz quase plana, senão escurece duas vezes */
+        var rgb = B.hexRGB(cor), kk = fc.led ? 1 : o.luzPlana ? 0.72 + 0.34 * lam : amb + (1 - amb) * lam;
+        var r = rgb[0] * kk, g = rgb[1] * kk, bb = rgb[2] * kk;
         if (!fc.led && mat.metal) { var sp = Math.pow(lam, 8 + (mat.brilho || 0.3) * 60) * mat.metal * 230; r += sp; g += sp; bb += sp; }
         prims.push({ z: zs / ix.length, obj: o, face: fc, pts: ix.map(function (q) { return S[q]; }),
           cor: B.rgbTxt([Math.min(255, r), Math.min(255, g), Math.min(255, bb)]), led: !!fc.led, lam: lam });
