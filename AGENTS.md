@@ -354,6 +354,10 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
      aponta para a pasta de trabalho (BWREELS_RAIZ_ATU_TESTE): a cópia por cima apagaria o código.
 105. App instalado não pode depender de um passo opcional do instalador: quem abre (BW-REELS.bat) confere o que precisa (Node, node_modules) e
      prepara sozinho. Todo .bat sai com CRLF (`file *.bat`): LF quebra goto/rótulos no cmd.
+106. BW SKILL (app BW, bw-skills/): skill que vai para usuários é uma VERSÃO PÚBLICA gerada da do dono — pastas, clientes, LUTs e presets dele viram
+     {{CAMPOS}} preenchidos no instalador (o teste recusa VALE MINA/FIEMG/E:\\…/C:\\Users\\audio); o nome leva prefixo bw- (não colide com a skill
+     do dono). As skills chegam DENTRO do pacote do app (atualizações) e a ponte só atende com login. Cartão que flutua (animação contínua) nunca fica
+     "estável" para o Playwright: no teste, clique com force; para a pessoa, a animação pausa no hover.
 102. PROMPT IA (promptia.html + assets/promptia.js): biblioteca em public.bw_trends (leitura pública, gravação só is_bw_admin, RLS —
      docs/sql/2026-11-19-prompt-ia.sql) + imagens no bucket público "trends" (só ADM envia); a análise manda a imagem para a bw-ia
      (campo "imagem", modelo com VISÃO da Groq) SÓ depois de confirm(), cópia ≤ 768 px JPEG, nada guardado; o promptia.js nunca grava na
@@ -1182,8 +1186,17 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   depende do INSTALAR.bat do fim da instalação; se ele é desmarcado ou falha, o BW abre sem o motor. BW-REELS.bat agora confere Node e
   node_modules\playwright-core e, se faltar, roda o INSTALAR.bat em modo "auto" (sem Claude Code e sem vídeo de demonstração) antes de abrir.
   INSTALAR.bat convertido para CRLF (estava LF; goto em .bat LF falha). Pacote 1.4 refeito no site. PENTE FINO 105.
+- 19/11/2026 23:30 · Claude (dono: "área BW SKILL… só para logados dentro do assistente… instalação passo a passo como a do Windows, pedindo as pastas…
+  funciona com ChatGPT, Llama?"): APP BW 1.5 — BW SKILL (app/skills.html + motor/skills.mjs + bw-skills/). Carrossel com aproximação; cada skill com
+  nível, o que faz, selos por IA (TESTADA no Claude; COMPATÍVEL no Codex e no Gemini CLI; EXPERIMENTAL em outra) e INSTALAR / TUTORIAL / PASTA /
+  REMOVER. Instalador estilo Windows (etapas na lateral, Voltar/Avançar, barra): Boas-vindas → Requisitos (FFmpeg, programa de edição, IA que
+  trabalha no PC) → Sua IA (acha Claude/Codex/Gemini no PC; "outra" gera .zip em Downloads) → Suas pastas (janela do Windows) → Seu jeito de
+  trabalhar → Sua marca → Conferir → Instalar (+ teste rápido) → Tutorial. Skills: EDITOR DE VÍDEO PROFISSIONAL (versão para usuários da skill do
+  dono, sem pastas/clientes dele) e ANIMAÇÃO POR CÓDIGO (aponta para o motor do app). teste-app.mjs +19 checagens (0 falhas). Pacote 1.5 publicado
+  (aviso de atualização para quem está na 1.4). NÃO testado no Windows (janela de pasta) nem com o Codex/Gemini de verdade. PENTE FINO 106.
 
 ## Pendências (dono)
+- [ ] (19/11) BW SKILL: dono atualizar o BW para a 1.5 (aviso no app), instalar o EDITOR DE VÍDEO pela BW SKILL apontando as pastas dele e dizer se ficou claro; validar a skill no Codex/Gemini quando quiser abrir para eles.
 - [ ] (19/11) INSTALADOR 1.4: GERADO e publicado em 19/11 22:25 (com a preparação automática); dono instalar; a partir dela as atualizações chegam sozinhas. Antes: dono abrir Vídeos\\bw-reels-studio\\instalador\\BW-Setup.exe, avançar até o fim e abrir o ícone BW; dizer se instalou e abriu. Decidir sobre a licença comercial do Inno Setup.
 - [ ] (19/11) PROMPT IA: dono cadastrar as primeiras trends (＋ NOVA TREND, com a imagem de exemplo) e testar ANALISAR com um print real.
 - [ ] (19/11) PAINEL DA CASA: dono abrir Gestão de casa na conta dele e dizer se quer mais algum dado da casa ali (metas do orçamento, meta da reserva).

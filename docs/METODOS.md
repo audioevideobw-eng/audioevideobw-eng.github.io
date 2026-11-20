@@ -310,3 +310,11 @@ Tamanho > 0 e sem erro = o pdfmake montou o arquivo. Localmente (T1) confira o `
   copia sem projetos/node_modules/instalador/site-offline, roda npm install se o package.json mudou, grava novidades-pendentes.json e reabre.
 - Teste: servidor simulado servindo json + zip; pasta "instalada" falsa por BWREELS_RAIZ_ATU_TESTE e HOME de teste; conferir projeto do usuário intacto,
   pacote adulterado recusado, tutorial uma vez só.
+
+## BW SKILL — publicar uma skill para os usuários (19/11/2026)
+1. Copie a skill validada para `bw-reels-studio/bw-skills/bw-<nome>/SKILL.md` com `name: bw-<nome>`.
+2. Troque por {{CAMPOS}} tudo o que é do dono (pastas, clientes, câmeras, LUTs, presets, marca) e ponha no topo a seção "Configuração deste usuário".
+   Script de substituição + `grep` dos nomes do dono; o teste recusa os conhecidos.
+3. Escreva `TUTORIAL.md` (o que pedir, como ela trabalha, limites) e a entrada em `bw-skills/catalogo.json` (campos por etapa: pastas | trabalho | marca;
+   tipos pasta, texto, cor, escolha; `obrigatorio`, `padrao`, `vazio`, `padraoPC`).
+4. `node motor/teste-app.mjs` → copiar para o pacote → subir VERSAO → `publicar-app.py` (a skill chega pela atualização do app).
