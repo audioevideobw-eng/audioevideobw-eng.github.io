@@ -1184,7 +1184,7 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   INSTALAR.bat convertido para CRLF (estava LF; goto em .bat LF falha). Pacote 1.4 refeito no site. PENTE FINO 105.
 
 ## Pendências (dono)
-- [ ] (19/11) INSTALADOR 1.4: gerar de novo no PC (AppVersion 1.4) e o dono instalar; a partir dela as atualizações chegam sozinhas. Antes: dono abrir Vídeos\\bw-reels-studio\\instalador\\BW-Setup.exe, avançar até o fim e abrir o ícone BW; dizer se instalou e abriu. Decidir sobre a licença comercial do Inno Setup.
+- [ ] (19/11) INSTALADOR 1.4: GERADO e publicado em 19/11 22:25 (com a preparação automática); dono instalar; a partir dela as atualizações chegam sozinhas. Antes: dono abrir Vídeos\\bw-reels-studio\\instalador\\BW-Setup.exe, avançar até o fim e abrir o ícone BW; dizer se instalou e abriu. Decidir sobre a licença comercial do Inno Setup.
 - [ ] (19/11) PROMPT IA: dono cadastrar as primeiras trends (＋ NOVA TREND, com a imagem de exemplo) e testar ANALISAR com um print real.
 - [ ] (19/11) PAINEL DA CASA: dono abrir Gestão de casa na conta dele e dizer se quer mais algum dado da casa ali (metas do orçamento, meta da reserva).
 - [ ] (19/11) EVENTO DE VÁRIOS DIAS: dono editar um evento real, preencher "Termina em" e ver o risco na agenda (PC e celular).
