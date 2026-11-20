@@ -46,11 +46,24 @@
     if (!conhecida && INTEGRADA.test(limpo)) { vram = 0; conhecida = true; }
     return { nome: limpo || "não deu para ler", marca: marca, vram: vram, conhecida: conhecida, integrada: INTEGRADA.test(limpo), via: via };
   }
+  /* Dentro do app BW o PC responde com a placa DE VERDADE (o navegador só vê o vídeo integrado). */
+  async function doApp() {
+    var p = window.bwNode || window.BWNode;
+    if (typeof p !== "function") return null;
+    try {
+      var r = await p("maquina");
+      if (!r || !r.ok || !r.valor || !r.valor.nome) return null;
+      var v = r.valor, g = { vram: v.vram || 0, marca: v.marca || "", nome: v.nome, doApp: true };
+      try { localStorage.setItem("ui_3d_maquina", JSON.stringify(g)); } catch (e) {}
+      return g;
+    } catch (e) { return null; }
+  }
   function maquina() {
     var p = lerPlaca(), g = null;
     try { g = JSON.parse(localStorage.getItem("ui_3d_maquina") || "null"); } catch (e) {}
     p.soNavegador = p.nome;
     if (g && g.vram != null) { p.vram = g.vram; p.conhecida = true; p.doUsuario = true; }
+    if (g && g.doApp) p.doApp = true;
     if (g && g.marca) { p.marca = g.marca; p.doUsuario = true; p.integrada = g.marca === "nenhuma"; if (g.nome) p.nome = g.nome; }
     /* notebook: o navegador quase sempre mostra o vídeo INTEGRADO, não a placa dedicada */
     p.talvezOutra = !(g && g.marca) && (p.integrada || !p.vram);
@@ -173,13 +186,13 @@
   }
   function resumo(maq) {
     var p = maq.placa, l = [];
-    l.push(p.nome === "não deu para ler" ? "Placa de vídeo: não deu para ler pelo navegador" : (p.doUsuario ? "Placa: " : "O navegador vê: ") + p.nome);
+    l.push(p.nome === "não deu para ler" ? "Placa de vídeo: não deu para ler pelo navegador" : (p.doApp ? "Placa (lida pelo app BW): " : p.doUsuario ? "Placa: " : "O navegador vê: ") + p.nome);
     if (p.vram) l.push(p.vram + " GB de vídeo (estimado pelo modelo)");
     else if (p.integrada) l.push("vídeo integrado (sem memória dedicada)");
     if (maq.ram) l.push(maq.ram + " GB de RAM"); if (maq.nucleos) l.push(maq.nucleos + " núcleos");
     l.push(maq.so); if (maq.celular) l.push("celular");
     return l.join(" · ");
   }
-  window.BW3DPlano = { BIBLIOTECAS: BIBLIOTECAS, REGRA_LICENCA: REGRA_LICENCA, maquina: maquina, lerPlaca: lerPlaca, PROJETOS: PROJETOS, GERADORES: GERADORES, avaliar: avaliar, resumo: resumo,
+  window.BW3DPlano = { doApp: doApp, BIBLIOTECAS: BIBLIOTECAS, REGRA_LICENCA: REGRA_LICENCA, maquina: maquina, lerPlaca: lerPlaca, PROJETOS: PROJETOS, GERADORES: GERADORES, avaliar: avaliar, resumo: resumo,
     FONTES: "Conferido em 20/11/2026: TRELLIS.2 24 GB (MIT); Hunyuan3D 2.1 10 GB forma / 21 GB textura / 29 GB completo; Hunyuan3D 2.0 6 GB forma e 16 GB com textura; Hunyuan3D 2 mini 5–6 GB (só a forma); TripoSR ~6 GB. Aluguel de placa de 24 GB por hora: US$ 0,34 a 0,89. Preço e requisito mudam — confira antes de contratar." };
 })();

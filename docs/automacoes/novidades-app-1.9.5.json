@@ -1,0 +1,12 @@
+[
+ {
+  "titulo": "O BW agora sabe a sua placa de vídeo",
+  "texto": "No Estúdio 3D, a tela O QUE VOU FAZER? pergunta ao próprio computador qual é a placa de vídeo e quanta memória ela tem — o navegador sozinho só enxerga o vídeo integrado do notebook e errava o plano. Dentro do app você não precisa escolher nada: o veredito de cada tipo de trabalho já sai certo. Só leitura do nome e da memória; nada é enviado para lugar nenhum.",
+  "abrir": "estudio3d"
+ },
+ {
+  "titulo": "Modelos prontos e grátis no plano do projeto",
+  "texto": "Todo projeto que pedia IA agora começa por um atalho: partir de um modelo pronto e grátis (Pixabay 3D, Mixamo para o esqueleto) e trabalhar em cima dele. A regra da licença vem junto: o modelo entra no SEU trabalho; o que não pode é revender o arquivo como ele veio.",
+  "abrir": "estudio3d"
+ }
+]

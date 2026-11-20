@@ -73,6 +73,17 @@ with sync_playwright() as p:
         t6 = pg.inner_text("#d3Painel")
         ok("mini" in t6.lower(), "RTX de 6 GB: oferece o modelo pequeno do Hunyuan3D (só a forma)")
         ok(pg.evaluate("JSON.parse(localStorage.getItem('ui_3d_maquina')||'{}').marca") == "nvidia", "guarda a marca informada")
+        # dentro do app BW, o PC responde com a placa de verdade
+        pg.evaluate("""() => { localStorage.removeItem('ui_3d_maquina');
+          window.bwNode = async (acao) => acao === 'maquina'
+            ? { ok: true, valor: { nome: 'NVIDIA GeForce RTX 3050 6GB Laptop GPU', vram: 6, marca: 'nvidia', nucleos: 12, ram: 16, via: 'app' } }
+            : { ok: false, erro: 'recusado' }; }""")
+        app = pg.evaluate("async () => { const g = await BW3DPlano.doApp(); const m = BW3DPlano.maquina(); return [g && g.nome, m.placa.vram, m.placa.marca, m.placa.doApp === true, BW3DPlano.resumo(m)]; }")
+        ok(app[1] == 6 and app[2] == "nvidia" and app[3], f"no app BW a placa vem do PC, não do navegador ({app[0]})")
+        ok("app BW" in app[4], "o resumo diz que a placa foi lida pelo app BW")
+        appv = pg.evaluate("""() => { const m = BW3DPlano.maquina(); const r = BW3DPlano.avaliar('avatar', m); return [r.nivel, r.geradores.map(g=>g.id)]; }""")
+        ok(appv[0] == "ok" and "hunyuan-mini" in appv[1], "com a placa do PC o veredito sai certo sem o usuário escolher nada")
+        pg.evaluate("() => { delete window.bwNode; localStorage.removeItem('ui_3d_maquina'); }")
         # a memória informada pelo usuário manda e fica guardada
         pg.click('#d3Modos [data-m="plano"]'); pg.wait_for_timeout(300)
         if largura < 500: pg.click('#d3AbasCel [data-aba="objeto"]'); pg.wait_for_timeout(150)

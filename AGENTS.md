@@ -1508,11 +1508,18 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   aparece junto, em uma linha: o modelo entra no SEU trabalho; o que não pode é revender o arquivo como veio, nem usar modelo com marca
   registrada ou rosto de pessoa real em peça comercial. Vale para a máquina do dono: a 3050 6 GB não gera no nível do Tripo, mas ABRE e
   trabalha em cima de qualquer GLB/OBJ/STL pronto. Vigia: lista branca dos 3 endereços no bw3d-plano.js. teste_3d_plano.py +2 (0 falhas). sw v159.
+- 20/11/2026 20:05 · Claude (dono conferiu o veredito da RTX 3050 6 GB: "ESTÁ CORRETO"): o app BW passa a responder a PLACA DE VERDADE.
+  Nova ação `maquina` na ponte do app (motor/app.mjs, em DO_SITE e LIVRES): nvidia-smi → nome + memória; sem ele, PowerShell
+  Get-CimInstance Win32_VideoController; no Mac, system_profiler; mais núcleos e RAM. Só leitura, nada é enviado. No site,
+  BW3DPlano.doApp() pergunta ao app quando a página roda dentro dele, guarda em ui_3d_maquina e redesenha o plano — dentro do app o
+  usuário não escolhe nada e o resumo diz "Placa (lida pelo app BW)". Fora do app continua a leitura do navegador + os dois seletores.
+  teste_3d_plano.py +3 checagens (ponte simulada com a placa do dono) e teste-app +1 (0 falhas); vigia ✅. App BW 1.9.5 (pacote, cópia sem
+  internet e novidades publicadas) e manual atualizado. BW-Setup.exe continua o 1.9.1 — quem já tem o app atualiza sozinho. sw v160.
 
 ## Pendências (dono)
-- [ ] (20/11) PLANO DO PROJETO: a placa do dono é RTX 3050 6 GB Laptop (16 GB de RAM, 12 núcleos) — o navegador mostra o Intel integrado, então
-      ele precisa escolher uma vez NVIDIA + 6 GB em A SUA MÁQUINA (fica guardado). Depois dizer se o veredito e o caminho do AVATAR fazem
-      sentido para o que ele quer vender. Próximo passo possível: o app BW ler a placa de verdade (nvidia-smi) e mandar para a página.
+- [x] (20/11) PLANO DO PROJETO: veredito da RTX 3050 6 GB conferido pelo dono ("está correto"). No navegador ele escolhe NVIDIA + 6 GB uma
+      vez; no app BW (1.9.5) a placa é lida pelo próprio PC. DECISÃO ABERTA do dono: construir o INSTALAR O GERADOR 3D no app BW (baixa e
+      instala o Hunyuan3D 2 mini no PC dele, ~5 GB; só Windows com NVIDIA, não dá para testar daqui) — é o que tira a dependência de IA paga.
 - [ ] (20/11) ESTÚDIO 3D: dono abrir em Marketing → Estúdio 3D no PC e no celular; testar com um modelo 3D de verdade (GLB), com a logo da BW
       (LOGO 3D → fundo transparente → PNG) e montar a maquete de um evento real (painéis, pitch) → conferir se a RESOLUÇÃO EM PIXELS bate com
       a do fornecedor do telão, gerar a PLANTA EM PDF e um vídeo do giro. Dizer o que falta (mais itens de palco? medidas em pés? treliça por metro?).

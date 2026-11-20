@@ -305,7 +305,12 @@
   /* ---------- PLANO DO PROJETO: a máquina do usuário decide o caminho ---------- */
   var MAQ = null;
   function maquina() {
-    if (!MAQ && window.BW3DPlano) MAQ = BW3DPlano.maquina();
+    if (!MAQ && window.BW3DPlano) {
+      MAQ = BW3DPlano.maquina();
+      if (!MAQ.placa.doApp && (window.bwNode || window.BWNode)) BW3DPlano.doApp().then(function (g) {
+        if (!g) return; MAQ = BW3DPlano.maquina(); if (P.modo === "plano") painel();
+      });
+    }
     return MAQ;
   }
   function painelPlano() {
