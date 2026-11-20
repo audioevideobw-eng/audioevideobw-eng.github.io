@@ -361,6 +361,10 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
 107. Janela/painel com cabeçalho + conteúdo + rodapé fixo em GRADE ou FLEX: o item que rola precisa de min-height:0 (e a linha da grade minmax(0,1fr)),
      senão cresce com o conteúdo e empurra o rodapé (botões) para fora — no PC do dono, com zoom de 125%, o AVANÇAR sumia. Conteúdo longo: barra de
      rolagem visível + aviso "ROLE PARA VER MAIS". Testar com a tela do dono (1534×816 CSS = 1920×1020 a 125%) e conferir que o rodapé está na tela.
+108. ANIMAÇÃO PARA RECORTE (motor/animar.mjs): `--alfa` (.mov ProRes 4444) e `--chroma verde|azul|magenta|#hex` (.mp4 H.264) escondem o fundo do HTML
+     (body transparente + tudo com data-fundo some; classe html.bw-recorte para trocar sombra larga por contorno — sombra larga vira mancha no
+     chroma key). O render confere se a animação usa a cor do fundo (lente azul do Bê some no fundo azul) e sugere outra. Teste de verdade =
+     recortar com o chromakey do ffmpeg e conferir o pixel do fundo e do cartão (motor/teste-recorte.mjs), não só "o arquivo saiu".
 102. PROMPT IA (promptia.html + assets/promptia.js): biblioteca em public.bw_trends (leitura pública, gravação só is_bw_admin, RLS —
      docs/sql/2026-11-19-prompt-ia.sql) + imagens no bucket público "trends" (só ADM envia); a análise manda a imagem para a bw-ia
      (campo "imagem", modelo com VISÃO da Groq) SÓ depois de confirm(), cópia ≤ 768 px JPEG, nada guardado; o promptia.js nunca grava na
@@ -1202,7 +1206,14 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   linha de grade minmax(0,1fr), o conteúdo rola por dentro com barra dourada sempre visível e aparece "▼ ROLE PARA VER MAIS" enquanto houver algo
   embaixo; janela um pouco maior (720 px). APP BW 1.5.1 publicado (aviso de atualização). teste-app 0 falhas. PENTE FINO 107.
 
+- 20/11/2026 00:05 · Claude (dono: "versões com fundo chroma key para recorte" + 3 vídeos de referência): APP BW 1.5.2 — motor/animar.mjs ganhou
+  `--chroma verde|azul|magenta|#hex` (MP4 leve com fundo de recorte; o --alfa .mov transparente continua) e esconde o fundo do HTML (data-fundo);
+  aviso quando a animação usa a cor do fundo. Modelo novo modelos/animacoes/cartao-ui.html no estilo das referências (cartão com gráfico que se
+  desenha, selo, comentário digitando, legenda em etiquetas), animação em cima e rosto livre embaixo. Skill ANIMAÇÃO POR CÓDIGO 1.1 (BW SKILL
+  mostra VERSÃO NOVA) + tutorial explicando o Chroma key do CapCut. motor/teste-recorte.mjs (10 checagens, recorte real com chromakey) e
+  teste-app 0 falhas. PENTE FINO 108.
 ## Pendências (dono)
+- [ ] (20/11) RECORTE: dono atualizar para 1.5.2, tocar ATUALIZAR na skill ANIMAÇÃO POR CÓDIGO e testar o .mp4 verde no CapCut do celular (Chroma key) em cima de uma filmagem dele.
 - [ ] (19/11) BW SKILL: dono atualizar o BW para a 1.5 (aviso no app), instalar o EDITOR DE VÍDEO pela BW SKILL apontando as pastas dele e dizer se ficou claro; validar a skill no Codex/Gemini quando quiser abrir para eles.
 - [ ] (19/11) INSTALADOR 1.4: GERADO e publicado em 19/11 22:25 (com a preparação automática); dono instalar; a partir dela as atualizações chegam sozinhas. Antes: dono abrir Vídeos\\bw-reels-studio\\instalador\\BW-Setup.exe, avançar até o fim e abrir o ícone BW; dizer se instalou e abriu. Decidir sobre a licença comercial do Inno Setup.
 - [ ] (19/11) PROMPT IA: dono cadastrar as primeiras trends (＋ NOVA TREND, com a imagem de exemplo) e testar ANALISAR com um print real.

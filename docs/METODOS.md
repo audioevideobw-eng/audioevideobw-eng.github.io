@@ -318,3 +318,12 @@ Tamanho > 0 e sem erro = o pdfmake montou o arquivo. Localmente (T1) confira o `
 3. Escreva `TUTORIAL.md` (o que pedir, como ela trabalha, limites) e a entrada em `bw-skills/catalogo.json` (campos por etapa: pastas | trabalho | marca;
    tipos pasta, texto, cor, escolha; `obrigatorio`, `padrao`, `vazio`, `padraoPC`).
 4. `node motor/teste-app.mjs` → copiar para o pacote → subir VERSAO → `publicar-app.py` (a skill chega pela atualização do app).
+
+
+## Animação por código com fundo de recorte (20/11/2026)
+- `node motor/animar.mjs x.html --chroma verde` → página com `html,body{background:transparent}` + `[data-fundo]{display:none}`, print PNG com
+  omitBackground, e o ffmpeg põe sobre `color=c=0x00B140` (overlay format=auto → yuv420p). `--alfa` = mesmo PNG → prores_ks 4444 yuva444p10le.
+- Verde de broadcast 00B140 (não 00FF00 puro: menos "vazamento" na pele). Azul 0047BB, magenta FF00FF para animações que usam verde.
+- Sombra grande e desfoque semitransparente viram mancha esverdeada no recorte: no modo recorte use contorno fino (`html.bw-recorte .card{…}`).
+- Conferir: recortar de verdade (`chromakey=0x00B140:0.13:0.06,despill=type=green` sobre cor escura) e medir o pixel do fundo (deve sumir) e do
+  cartão (deve continuar branco). Colisão de cor: matiz a menos de 28° da cor do fundo em pixels opacos de 4 quadros (> 0,5% = aviso).
