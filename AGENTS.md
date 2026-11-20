@@ -1422,8 +1422,19 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   do Início). 28 modos no total. Pela regra nova: app BW 1.9.1 (pacote, cópia sem internet, tutorial, BW-Setup.exe gerado no PC do dono — versão
   conferida) e manual do usuário atualizados e publicados. teste_modos e teste-app 0 falhas; vigia ✅. NÃO feito: o robô não troca de roupa por
   modo (precisaria de uma imagem por modo). modos.js v4, modos.css v4, sw v152. PENTE FINO 123.
+- 20/11/2026 15:05 · Claude (dono perguntou se dava para ficar parecido com os jogos famosos; resposta: não — só criação própria; ele aceitou "pode ser"):
+  JOGOS mais ricos. Cenário DESENHADO no Início (SVG próprio dentro do modos.css): NEON 80 (céu com estrelas, sol listrado, serra em linha de luz e
+  pista), TÁTICO (mapa de curvas de nível, cantoneiras, mira e leitura de coordenadas + radar), ARCADE 8-BIT (cidade em pixel e piso quadriculado).
+  Os 6 modos de JOGOS ganharam letra de título do tema (Google Fonts, pedida só quando o modo liga: campo `fonte`) e o robô na cor do modo
+  (campo `robo`, filtro de cor; vale no Início e no Tio Cláudio); TÁTICO com cantos retos e rótulos em letra de terminal; ARCADE com cantos retos e
+  sombra dura. Campos novos servem para qualquer modo (fonte, robo, cena). teste_modos, teste_ambientes e teste-app 0 falhas; vigia ✅.
+  App BW 1.9.2 (pacote, cópia sem internet, tutorial) e manual publicados; arquivos copiados para o PC do dono. BW-Setup.exe: o gerador NÃO rodou
+  desta vez pelo clique remoto (3 tentativas) — o .exe publicado continua o 1.9.1, que se atualiza para 1.9.2 ao abrir. NÃO testado: as letras
+  novas na tela (sem internet no teste elas caem na letra padrão) e iPhone/Android reais. modos.js v5, modos.css v5, sw v153.
 
 ## Pendências (dono)
+- [ ] (20/11) BW-Setup.exe 1.9.2: dono dar dois cliques em "5 - GERAR INSTALADOR EXE" (Vídeos\\bw-reels-studio) e avisar o Claude, que traz o
+      arquivo e publica; ou o Claude tenta de novo na próxima entrega. Conferir no PC e no celular as letras novas dos modos de JOGOS.
 - [ ] (20/11) APP BW 1.9: dono abrir o BW no PC, tocar em ATUALIZAR quando o aviso aparecer e conferir MINHA EMPRESA, MINHA CASA e APARÊNCIA; fechar as
       janelas pretas do gerador do instalador que ficaram abertas ("Pressione qualquer tecla").
 - [ ] (20/11) MODOS: dono testar no PC e no celular (engrenagem → APARÊNCIA), dizer quais modos ficam, o que ajustar em cada um e mandar a logo/manual

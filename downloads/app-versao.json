@@ -1,23 +1,18 @@
 {
- "versao": "1.9.1",
+ "versao": "1.9.2",
  "data": "20/11/2026",
  "pacote": "downloads/BW-Reels-Studio.zip",
- "sha256": "b4bcff8467a218db2c12979dc909267feb45d609bd039d939d6b00c6bf690496",
- "bytes": 8533215,
+ "sha256": "b9bf77551782d44e47a31fbe8d1808e6d44b79c31f0062db945361f3609fd651",
+ "bytes": 8537797,
  "novidades": [
   {
-   "titulo": "Modos de JOGOS",
-   "texto": "Seis modos novos na engrenagem: NEON 80 (sol de arcade e pista de luz), TÁTICO (radar), ARCADE 8-BIT (blocos de pixel), CORRIDA, FANTASIA e ESPACIAL. A plataforma agora tem 28 modos.",
+   "titulo": "Modos de JOGOS com cenário próprio",
+   "texto": "NEON 80 (pôr do sol de arcade, serra de luz e pista), TÁTICO (mapa de missão com radar) e ARCADE 8-BIT (cidade em pixel) ganharam cenário desenhado no Início. Os seis modos de JOGOS têm letra de título do tema e o robô na cor do modo.",
    "abrir": "config"
   },
   {
-   "titulo": "Painéis acompanham o modo",
-   "texto": "O Painel Financeiro (PJ e PF) e o Painel de Investimentos mudam de cor junto com o modo escolhido.",
-   "abrir": "painel"
-  },
-  {
-   "titulo": "Vidro e luz em nove cores",
-   "texto": "PRETO E DOURADO, VERDE E PRETO, AZUL E PRETO e outros, mais quatro modos claros novos e o estilo vidro no modo com a sua marca.",
+   "titulo": "28 modos de aparência",
+   "texto": "Claros, vidro com luz em nove cores, jogos, futurista e datas especiais, mais o modo com as cores da sua marca.",
    "abrir": "config"
   }
  ]

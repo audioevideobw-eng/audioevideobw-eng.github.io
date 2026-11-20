@@ -24,7 +24,8 @@
   }
   /* MODOS DE JOGOS: o mesmo vidro, com cenário e efeito de gênero (corrida, tático, arcade…). jogo(id, NOME, frase, fundo, destaque, 2ª cor, fx).
      São temas ORIGINAIS de gênero: nada de nome, letreiro, personagem ou mapa de jogo de verdade. */
-  function jogo(id, nome, frase, fundo, d, d2, fx) { var m = vidro(id, nome, frase, fundo, d, d2); m.grupo = "JOGOS"; m.fx = fx; return m; }
+  /* extras (opcionais, servem para qualquer modo): fonte = letra dos títulos (Google Fonts) · robo = filtro de cor do robô · cena = cenário do Início (modos.css) */
+  function jogo(id, nome, frase, fundo, d, d2, fx, extra) { var m = vidro(id, nome, frase, fundo, d, d2), k; m.grupo = "JOGOS"; m.fx = fx; for (k in (extra || {})) m[k] = extra[k]; return m; }
   function vmix(x, y, t) { var f = function (h) { h = h.replace("#", ""); return [parseInt(h.substr(0, 2), 16), parseInt(h.substr(2, 2), 16), parseInt(h.substr(4, 2), 16)]; }, A = f(x), B = f(y);
     return "#" + [0, 1, 2].map(function (i) { var v = Math.round(A[i] + (B[i] - A[i]) * t); return (v < 16 ? "0" : "") + v.toString(16); }).join(""); }
   var MODOS = [
@@ -55,12 +56,12 @@
     vidro("roxopreto", "ROXO E PRETO", "Preto, branco e roxo nos destaques.", "#09060F", "#A855F7", "#E9C8FF"),
     vidro("rosapreto", "ROSA E PRETO", "Preto, branco e rosa nos destaques.", "#0C060A", "#FF4F9A", "#FFC2DC"),
     vidro("pratapreto", "PRETO E PRATA", "Preto, branco e cinza: sem cor, só brilho.", "#07080A", "#E6E8EC", "#9AA3B2"),
-    jogo("neon80", "NEON 80", "Noite de cidade em rosa e laranja, com sol de arcade e pista de luz.", "#0D0618", "#FF4FB8", "#FFA24A", ["grade", "neon", "aurora"]),
-    jogo("tatico", "TÁTICO", "Verde-oliva e areia, com radar de missão varrendo a tela.", "#0A0D08", "#9BD14B", "#D9C27A", ["radar", "neon"]),
-    jogo("arcade", "ARCADE 8-BIT", "Fliperama: amarelo e azul, com blocos de pixel caindo.", "#070A1F", "#FFD23F", "#3FA9FF", ["pixels", "neon"]),
-    jogo("corrida", "CORRIDA", "Vermelho, preto e branco, com riscos de velocidade.", "#0B0707", "#FF2D2D", "#F4F4F4", ["velocidade", "neon"]),
-    jogo("fantasia", "FANTASIA", "Roxo e dourado, com brasas subindo e estrelas.", "#0C0714", "#E8B84A", "#A66BFF", ["brasas", "estrelas", "neon"]),
-    jogo("espacial", "ESPACIAL", "Azul profundo, estrelas e luzes de nebulosa.", "#04060F", "#5CE1FF", "#B48CFF", ["estrelas", "aurora", "neon"]),
+    jogo("neon80", "NEON 80", "Noite de cidade em rosa e laranja, com sol de arcade e pista de luz.", "#0D0618", "#FF4FB8", "#FFA24A", ["grade", "neon", "aurora"], {fonte: "Audiowide", robo: "hue-rotate(95deg) saturate(1.25)", cena: "neon80"}),
+    jogo("tatico", "TÁTICO", "Verde-oliva e areia, com radar de missão varrendo a tela.", "#0A0D08", "#9BD14B", "#D9C27A", ["radar", "neon"], {fonte: "Saira Stencil One", robo: "hue-rotate(-125deg) saturate(.75) brightness(.95)", cena: "tatico"}),
+    jogo("arcade", "ARCADE 8-BIT", "Fliperama: amarelo e azul, com blocos de pixel caindo.", "#070A1F", "#FFD23F", "#3FA9FF", ["pixels", "neon"], {fonte: "Press Start 2P", robo: "hue-rotate(190deg) saturate(1.2)", cena: "arcade"}),
+    jogo("corrida", "CORRIDA", "Vermelho, preto e branco, com riscos de velocidade.", "#0B0707", "#FF2D2D", "#F4F4F4", ["velocidade", "neon"], {fonte: "Racing Sans One", robo: "hue-rotate(140deg) saturate(1.3)"}),
+    jogo("fantasia", "FANTASIA", "Roxo e dourado, com brasas subindo e estrelas.", "#0C0714", "#E8B84A", "#A66BFF", ["brasas", "estrelas", "neon"], {fonte: "Cinzel Decorative", robo: "hue-rotate(55deg)"}),
+    jogo("espacial", "ESPACIAL", "Azul profundo, estrelas e luzes de nebulosa.", "#04060F", "#5CE1FF", "#B48CFF", ["estrelas", "aurora", "neon"], {fonte: "Orbitron"}),
     {id: "futurista", nome: "FUTURISTA", grupo: "OUSADOS", base: "escuro", frase: "Vidro, neon ciano e roxo e luzes em movimento.",
       cores: {fundo: "#050816", cartao: "#0C1330", linha: "#1E2A5A", texto: "#EAF2FF", destaque: "#3FE0FF", destaque2: "#A78BFA", menu: "#070B1E"},
       fundoCss: "radial-gradient(900px 520px at 85% -10%,rgba(124,92,255,.22),transparent 60%),radial-gradient(800px 500px at 0% 20%,rgba(40,170,255,.16),transparent 60%),#050816",
@@ -111,7 +112,7 @@
       fundoCss: m.fundoCss || c.fundo, claro: claro};
   }
   var VARS = [];
-  function limpar() { VARS.forEach(function (v) { R.style.removeProperty(v); }); VARS = []; ["data-modo", "data-base", "data-conteudo", "data-fx", "data-estilo"].forEach(function (a) { R.removeAttribute(a); }); }
+  function limpar() { VARS.forEach(function (v) { R.style.removeProperty(v); }); VARS = []; ["data-modo", "data-base", "data-conteudo", "data-fx", "data-estilo", "data-cena", "data-fonte"].forEach(function (a) { R.removeAttribute(a); }); }
   function def(o) { Object.keys(o).forEach(function (k) { R.style.setProperty(k, o[k]); VARS.push(k); }); }
   function aplicar(id, soVer) {
     var m = achar(id), p = paleta(m); limpar(); pararFx();
@@ -120,6 +121,10 @@
     var miolo = !p.claro || CLARO_OK[PAG];   /* modo claro numa ferramenta ainda escura: só o menu e os destaques mudam */
     R.setAttribute("data-modo", m.id); R.setAttribute("data-base", m.base); R.setAttribute("data-conteudo", miolo ? m.base : "escuro");
     if (m.estilo) R.setAttribute("data-estilo", m.estilo);
+    if (m.cena) R.setAttribute("data-cena", m.cena);
+    if (m.robo) def({"--m-robo": m.robo});
+    if (m.fonte) { R.setAttribute("data-fonte", "1"); def({"--m-fonte": "'" + m.fonte + "'"});   /* a letra do modo: um arquivo de fonte só, pedido quando o modo liga */
+      var idf = "bwFonte_" + m.fonte.replace(/\W/g, ""); if (!document.getElementById(idf)) { var lf = document.createElement("link"); lf.id = idf; lf.rel = "stylesheet"; lf.href = "https://fonts.googleapis.com/css2?family=" + m.fonte.replace(/ /g, "+") + "&display=swap"; (document.head || R).appendChild(lf); } }
     def({"--m-menu": p.menu, "--m-menu-txt": p.menuTxt, "--m-menu-forte": p.menuForte, "--m-menu-linha": p.menuLinha, "--m-dest": p.dest, "--m-dest2": p.dest2, "--m-dest-rgb": p.destRgb, "--m-dest2-rgb": p.dest2Rgb, "--m-tinta": p.tinta});
     if (miolo) def({"--m-fundo": p.fundo, "--m-fundo-css": p.fundoCss, "--m-cartao": p.cartao, "--m-cartao2": p.cartao2, "--m-linha": p.linha, "--m-texto": p.texto, "--m-texto2": p.texto2, "--m-texto3": p.texto3,
       /* nomes que as páginas já usam */
@@ -187,7 +192,7 @@
   }
 
   /* folha de estilo dos modos (as regras só valem quando há data-modo) */
-  try { var lk = document.createElement("link"); lk.rel = "stylesheet"; lk.href = "assets/modos.css?v=4"; (document.head || R).appendChild(lk); } catch (e) { }
+  try { var lk = document.createElement("link"); lk.rel = "stylesheet"; lk.href = "assets/modos.css?v=5"; (document.head || R).appendChild(lk); } catch (e) { }
   /* cor de uma variável da página (gráficos desenhados em canvas não leem CSS sozinhos) */
   window.__cv = function (v, p) { try { return getComputedStyle(R).getPropertyValue(v).trim() || p; } catch (e) { return p; } };
   window.BWModos = {lista: lista, achar: achar, aplicar: aplicar, paleta: paleta, montar: montar, atual: function () { return achar(ler("ui_modo", "dark")).id; },
