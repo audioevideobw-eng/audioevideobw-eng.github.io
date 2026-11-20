@@ -1501,6 +1501,13 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   com o aviso de que a TEXTURA é que pede 16 GB ou nuvem; (4) aviso de RAM (placa pequena usa a RAM como apoio; 24 GB é o confortável) e preço
   de referência do aluguel de placa de 24 GB (US$ 0,34–0,89/h, conferido em 20/11/2026). teste_3d_plano.py +5 checagens (0 falhas).
   sw v158.
+- 20/11/2026 19:50 · Claude (dono mandou pixabay.com/pt/3d-models: "isso ajuda em alguma coisa?"): SIM — e entrou no PLANO DO PROJETO como
+  "MODELOS PRONTOS E GRÁTIS (pulam a IA)" em todo projeto menos o logo: Pixabay 3D (sem direitos de autor, atribuição não exigida, pode
+  modificar — licença conferida em 20/11/2026), Mixamo (esqueleto e animações de graça) e Poly Haven/Sketchfab/Quaternius (licença por
+  arquivo). O caminho de todo projeto que pedia IA agora começa por "atalho que pula a IA: começar de um modelo pronto". A REGRA DA LICENÇA
+  aparece junto, em uma linha: o modelo entra no SEU trabalho; o que não pode é revender o arquivo como veio, nem usar modelo com marca
+  registrada ou rosto de pessoa real em peça comercial. Vale para a máquina do dono: a 3050 6 GB não gera no nível do Tripo, mas ABRE e
+  trabalha em cima de qualquer GLB/OBJ/STL pronto. Vigia: lista branca dos 3 endereços no bw3d-plano.js. teste_3d_plano.py +2 (0 falhas). sw v159.
 
 ## Pendências (dono)
 - [ ] (20/11) PLANO DO PROJETO: a placa do dono é RTX 3050 6 GB Laptop (16 GB de RAM, 12 núcleos) — o navegador mostra o Intel integrado, então

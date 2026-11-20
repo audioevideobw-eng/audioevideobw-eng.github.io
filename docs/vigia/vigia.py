@@ -307,8 +307,11 @@ if os.path.exists("assets/bw3d.js"):
 # PLANO DO PROJETO (20/11): só lê a placa do próprio navegador — não manda nada para lugar nenhum
 if os.path.exists("assets/bw3d-plano.js"):
     _pl = ler("assets/bw3d-plano.js")
-    if re.search(r"fetch\(|XMLHttpRequest|supabase\.|BWSync|indexedDB|\.upload\(|https?://", _pl):
+    if re.search(r"fetch\(|XMLHttpRequest|supabase\.|BWSync|indexedDB|\.upload\(", _pl):
         problemas.append("assets/bw3d-plano.js: o plano do projeto só lê a máquina do usuário (sem rede nem envio)")
+    _okbib = {"https://pixabay.com/pt/3d-models/", "https://www.mixamo.com/", "https://polyhaven.com/models"}
+    _forabib = set(re.findall(r"https?://[^\"'\s)]+", _pl)) - _okbib
+    if _forabib: problemas.append("assets/bw3d-plano.js: endereco de fora nao permitido (" + ", ".join(sorted(_forabib)) + ")")
     if "WEBGL_debug_renderer_info" not in _pl:
         problemas.append("assets/bw3d-plano.js: sem a leitura da placa de vídeo")
 if os.path.exists("3d.html"):

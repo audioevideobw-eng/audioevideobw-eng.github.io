@@ -122,11 +122,20 @@
       aviso: "Aqui o gargalo deixa de ser a IA e passa a ser o render e o seu tempo." }
   ];
 
+  /* ---------- bibliotecas de modelos prontos (grátis) — conferido em 20/11/2026 ---------- */
+  var BIBLIOTECAS = [
+    { nome: "Pixabay 3D", url: "https://pixabay.com/pt/3d-models/", nota: "sem direitos de autor, atribuição não exigida, pode modificar" },
+    { nome: "Mixamo (Adobe)", url: "https://www.mixamo.com/", nota: "põe o esqueleto e as animações no seu personagem, de graça" },
+    { nome: "Poly Haven · Sketchfab · Quaternius", url: "https://polyhaven.com/models", nota: "confira a licença de CADA arquivo antes de usar" }
+  ];
+  var REGRA_LICENCA = "A regra que vale em todas: o modelo baixado entra no SEU trabalho (vídeo, maquete, animação, peça do cliente) — o que não pode é revender o arquivo como ele veio, nem usar modelo com marca registrada ou rosto de pessoa real em peça comercial.";
+
   /* ---------- o veredito ---------- */
   function avaliar(proj, maq) {
     var p = typeof proj === "string" ? PROJETOS.filter(function (x) { return x.id === proj; })[0] : proj;
     if (!p) return null;
     var v = maq.placa.vram, nvidia = maq.placa.marca === "nvidia", r = { projeto: p, nivel: "", titulo: "", porque: "", caminho: [], geradores: [] };
+    r.bibliotecas = p.id === "logo" ? [] : BIBLIOTECAS;
     if (!p.ia) {
       r.nivel = "ok"; r.titulo = "Dá para fazer agora, aqui mesmo";
       r.porque = "Este projeto é geometria, não IA: roda no seu aparelho" + (maq.celular ? " (até no celular)" : "") + ", de graça e sem internet.";
@@ -138,12 +147,14 @@
     if (podem.length && v >= precisa) {
       r.nivel = "ok"; r.titulo = "A sua placa aguenta";
       r.porque = "Com " + v + " GB de vídeo você roda: " + podem.map(function (g) { return g.nome; }).join(" · ") + ".";
-      r.caminho = ["Instalar o gerador no seu PC (o app BW faz isso por você)"].concat(p.passos);
+      r.caminho = ["Atalho que pula a IA: começar de um modelo pronto e grátis e trabalhar em cima dele",
+        "Ou instalar o gerador no seu PC (o app BW faz isso por você)"].concat(p.passos);
       if (v <= 8) r.caminho.push("Placa pequena troca memória de vídeo por memória do PC: deixe 24 GB de RAM livres e espere mais tempo por peça");
     } else if (v > 0 && nvidia) {
       r.nivel = "quase"; r.titulo = "A sua placa faz parte do caminho";
       r.porque = "Você tem " + v + " GB e este projeto pede " + precisa + " GB para rodar aqui. Dá para fazer a parte leve na máquina e a parte pesada na nuvem.";
-      r.caminho = ["Parte leve no aparelho (recorte, montagem, redução, formatos, vídeo)",
+      r.caminho = ["Atalho que pula a IA: começar de um modelo pronto e grátis e trabalhar em cima dele",
+        "Parte leve no aparelho (recorte, montagem, redução, formatos, vídeo)",
         "Parte pesada: alugar uma placa de 24 GB por hora (referência de 20/11/2026: US$ 0,34 a 0,89 por hora) ou pagar por peça",
         "O resultado volta para cá e segue na esteira"].concat(p.passos);
     } else {
@@ -153,7 +164,8 @@
         : maq.placa.integrada || !v
         ? "Esta máquina não tem placa de vídeo dedicada — os geradores 3D abertos pedem placa NVIDIA com CUDA."
         : "Os geradores abertos rodam em CUDA (NVIDIA); a sua é " + maq.placa.marca.toUpperCase() + ".";
-      r.caminho = ["Gerar na nuvem: IA paga por peça, ou alugar uma placa de 24 GB por hora (referência de 20/11/2026: US$ 0,34 a 0,89 por hora)",
+      r.caminho = ["Atalho que pula a IA: começar de um modelo pronto e grátis e trabalhar em cima dele",
+        "Gerar na nuvem: IA paga por peça, ou alugar uma placa de 24 GB por hora (referência de 20/11/2026: US$ 0,34 a 0,89 por hora)",
         "Tudo o que vem depois — reduzir, conferir, formatos, maquete, vídeo, entrega — roda aqui no seu aparelho"].concat(p.passos);
       if (!maq.celular) r.caminho.push("Dá para testar o TripoSR na CPU (sem placa), mas é lento e o resultado é simples");
     }
@@ -168,6 +180,6 @@
     l.push(maq.so); if (maq.celular) l.push("celular");
     return l.join(" · ");
   }
-  window.BW3DPlano = { maquina: maquina, lerPlaca: lerPlaca, PROJETOS: PROJETOS, GERADORES: GERADORES, avaliar: avaliar, resumo: resumo,
+  window.BW3DPlano = { BIBLIOTECAS: BIBLIOTECAS, REGRA_LICENCA: REGRA_LICENCA, maquina: maquina, lerPlaca: lerPlaca, PROJETOS: PROJETOS, GERADORES: GERADORES, avaliar: avaliar, resumo: resumo,
     FONTES: "Conferido em 20/11/2026: TRELLIS.2 24 GB (MIT); Hunyuan3D 2.1 10 GB forma / 21 GB textura / 29 GB completo; Hunyuan3D 2.0 6 GB forma e 16 GB com textura; Hunyuan3D 2 mini 5–6 GB (só a forma); TripoSR ~6 GB. Aluguel de placa de 24 GB por hora: US$ 0,34 a 0,89. Preço e requisito mudam — confira antes de contratar." };
 })();

@@ -340,6 +340,11 @@
         if (r2.geradores.length) h += "<br><b>RODA NA SUA PLACA</b><br>" + r2.geradores.map(function (g) { return esc2(g.nome) + " — " + g.vram + " GB · " + esc2(g.licenca); }).join("<br>");
         if (r2.projeto.entrega) h += "<br><br><b>O QUE VOCÊ ENTREGA</b><br>" + r2.projeto.entrega.map(esc2).join(" · ");
         if (r2.projeto.aviso) h += '<br><br><span style="color:#ffd9da">⚠ ' + esc2(r2.projeto.aviso) + "</span>";
+        if (r2.bibliotecas && r2.bibliotecas.length) {
+          h += "<br><br><b>MODELOS PRONTOS E GRÁTIS (pulam a IA)</b><br>" + r2.bibliotecas.map(function (b) {
+            return '<a href="' + b.url + '" target="_blank" rel="noopener" style="color:#7CC4FF">' + esc2(b.nome) + "</a> — " + esc2(b.nota);
+          }).join("<br>") + '<br><span style="opacity:.85">' + esc2(BW3DPlano.REGRA_LICENCA) + "</span>";
+        }
         h += '<div class="d3-fx" style="margin-top:10px">' + atalhoDoProjeto(r2.projeto) + "</div></div>";
       }
     }
