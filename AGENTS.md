@@ -418,7 +418,8 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
      "respira") nunca fica estável para o Playwright: clicar com force e, se outro item cobre o centro, num canto visível (position).
 
 **Aprendidos em 20/11 (MODOS DE APARÊNCIA)**
-120. MODOS (assets/modos.js + modos.css; decisão do dono, 20/11): modo novo = UM item na lista MODOS do modos.js (id, nome, grupo, base, cores, fx) —
+120. MODOS (assets/modos.js + modos.css; decisão do dono, 20/11): modo novo = UM item na lista MODOS do modos.js (id, nome, grupo, base, cores, fx;
+     modo de vidro em outra cor = uma linha vidro(...); a escolha é POR APARELHO, decisão do dono) —
      nunca regras de cor por modo espalhadas no CSS. As cores chegam às páginas pelas variáveis que elas já usam (--navy/--gold/--txt…,
      --bw-*) e pelas --m-*; cor nova em página nova = usar variável, não cor escrita. O modo DARK não põe data-modo (a página fica como sempre).
      Modo CLARO só clareia o miolo das páginas da lista CLARO_OK (ajustadas e conferidas no olho); nas outras e nos editores o miolo fica escuro.
@@ -1378,9 +1379,18 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   NÃO testado em iPhone/Android reais nem na conta do dono. Manual do usuário continua pendente. brightway.css v32, layout.js v63, bw-agente v23,
   portal.js v2, modos.js v1, config.js v1, sw v148. PENTE FINO 120–121.
 
+- 20/11/2026 13:40 · Claude (dono, com 2 referências de vidro: "senti falta de modos com este layout e com outras cores — preto, branco e detalhes dourado;
+  verde, branco e preto… — para o usuário se identificar com a marca dele"; e decidiu: a escolha do modo fica POR APARELHO, não vai para a conta):
+  13 modos novos. Grupo novo VIDRO E LUZ (9): VIDRO CIANO, PRETO E DOURADO, VERDE E PRETO, AZUL E PRETO, VERMELHO E PRETO, LARANJA E PRETO, ROXO E
+  PRETO, ROSA E PRETO, PRETO E PRATA — cartões de vidro com borda de luz, galerias de acesso, telas e piso do Início, menu e botões na cor do modo
+  (estilo: "vidro" → <html data-estilo="vidro">). SIMPLES ganhou 4 claros: BRANCO E DOURADO, VERDE E BRANCO, VERMELHO E BRANCO, LARANJA E BRANCO.
+  Modo de vidro em outra cor = UMA linha no modos.js: vidro(id, NOME, frase, fundo, destaque, 2ª cor). MINHA MARCA ganhou "Estilo: vidro com luz".
+  teste_modos.py +3 checagens (0 falhas); ambientes, layout, lancamentos, agenda 0 falhas; varredura só as fotos do Supabase; vigia ✅.
+  NÃO testado em iPhone/Android reais. modos.js v2, modos.css v2, config.js v2, sw v149.
+
 ## Pendências (dono)
 - [ ] (20/11) MODOS: dono testar no PC e no celular (engrenagem → APARÊNCIA), dizer quais modos ficam, o que ajustar em cada um e mandar a logo/manual
-      da marca para o teste do MINHA MARCA. Decidir: a escolha deve ir para a conta (acompanhar todos os aparelhos)? Claude: clarear as demais
+      da marca para o teste do MINHA MARCA. (Decidido 20/11: a escolha fica por aparelho, não vai para a conta.) Claude: clarear as demais
       ferramentas página por página, ler manual em PDF, pôr a logo da marca no menu.
 - [ ] (20/11) AMBIENTES: dono conferir na conta dele se cada lançamento antigo caiu no lugar certo (LANÇAMENTOS PJ × PF) e se as tarefas antigas da
       agenda foram para a agenda certa (Pessoal/Casa/Saúde = casa; o resto = empresa). Decidir: INVESTIMENTOS fica em MINHA CASA? o sino de AVISOS

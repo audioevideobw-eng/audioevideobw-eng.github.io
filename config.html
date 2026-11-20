@@ -46,6 +46,8 @@
 .cfg-mini .t{height:7px;width:52%;border-radius:4px;background:var(--p-texto)}
 .cfg-mini .k{display:flex;gap:5px}.cfg-mini .k i{flex:1;height:26px;border-radius:6px;background:var(--p-cartao);border:1px solid var(--p-linha)}
 .cfg-mini .k i:first-child{border-color:var(--p-dest)}.cfg-mini .k i:last-child{border-color:var(--p-dest2)}
+.cfg-mini.vidro{background:radial-gradient(90% 80% at 95% 0%,color-mix(in srgb,var(--p-dest) 30%,transparent),transparent 70%),var(--p-fundo)}
+.cfg-mini.vidro .k i{background:linear-gradient(160deg,color-mix(in srgb,var(--p-dest) 28%,var(--p-cartao)),var(--p-cartao));border-color:var(--p-dest);box-shadow:0 0 9px -2px var(--p-dest)}
 .cfg-mini .b{margin-top:auto;height:16px;width:60%;border-radius:8px;background:linear-gradient(90deg,var(--p-dest),var(--p-dest2))}
 .cfg-aviso{margin-top:12px;padding:10px 12px;border-radius:12px;font:600 12.5px/1.45 Inter,sans-serif;background:rgba(62,207,142,.12);border:1px solid rgba(62,207,142,.4);color:#3ecf8e}
 .cfg-aviso[hidden]{display:none}
@@ -54,7 +56,7 @@
 .cfg-cores{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
 .cfg-cores button{width:44px;height:44px;border-radius:12px;border:2px solid rgba(127,127,127,.4);cursor:pointer}
 </style>
-<script src="assets/modos.js?v=1"></script>
+<script src="assets/modos.js?v=2"></script>
 </head>
 <body>
 <header><div class="hd"><button id="btnVoltar" type="button" title="Voltar">‹</button><div id="userBox"></div></div></header>
@@ -88,6 +90,7 @@
       <label>Cor principal (destaques e botões)<input type="color" id="mkDest" value="#1F5EFF"></label>
       <label>Segunda cor (brilhos)<input type="color" id="mkDest2" value="#12B5E5"></label>
       <label>Cor do menu<input type="color" id="mkMenu" value="#0E2A6E"></label>
+      <label>Estilo<select id="mkEstilo"><option value="">Liso</option><option value="vidro">Vidro com luz (fundo escuro)</option></select></label>
       <label>Animação<select id="mkFx"><option value="">Sem animação</option><option value="neon">Luzes de neon</option><option value="neon aurora">Neon + luzes de fundo</option><option value="neon estrelas">Neon + estrelas</option></select></label>
     </div>
     <div class="cfg-linha"><button type="button" class="cfg-bt" id="mkVer">👁 VER COMO FICA</button><button type="button" class="cfg-bt pri" id="mkSalvar">✓ SALVAR E USAR ESTE MODO</button></div>
@@ -97,6 +100,6 @@
 <script src="assets/layout.js?v=63"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="assets/bw-sync.js"></script>
-<script src="assets/config.js?v=1"></script>
+<script src="assets/config.js?v=2"></script>
 </body>
 </html>

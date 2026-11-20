@@ -7,12 +7,23 @@
      base    "escuro" ou "claro"                frase  uma linha que explica o modo
      cores   fundo, cartao, linha, texto, destaque, destaque2 (2ª cor dos brilhos), menu  — o resto é calculado
      fundoCss (opcional) um degradê para o fundo da página
+     estilo  (opcional) "vidro" = cartões de vidro com borda de luz na cor do modo (galerias, telas do Início e menu acompanham)
      fx      (opcional) efeitos animados: "neon" (bordas de luz que giram) · "aurora" (luzes de fundo que se movem) · "estrelas" ·
              "neve" · "fogos" · "pisca" (cordão de luzes no topo) · "confete"
    O modo "dark" é o visual de sempre: não muda nada na página. A escolha fica só no aparelho (ui_modo) — nada vai para a conta.
    Este arquivo é carregado no <head> de todas as páginas, antes de desenhar, para a página já nascer na cor certa. */
 (function () {
   "use strict";
+  /* MODOS DE VIDRO EM OUTRA COR: uma linha. vidro(id, NOME, frase, fundo, destaque, 2ª cor) — fundo quase preto puxado para a cor. */
+  function vidro(id, nome, frase, fundo, d, d2) {
+    var a = function (h, o) { h = h.replace("#", ""); return "rgba(" + parseInt(h.substr(0, 2), 16) + "," + parseInt(h.substr(2, 2), 16) + "," + parseInt(h.substr(4, 2), 16) + "," + o + ")"; };
+    return {id: id, nome: nome, grupo: "VIDRO E LUZ", base: "escuro", estilo: "vidro", frase: frase,
+      cores: {fundo: fundo, cartao: vmix(fundo, "#ffffff", 0.06), linha: vmix(fundo, d, 0.26), texto: "#FFFFFF", destaque: d, destaque2: d2, menu: vmix(fundo, "#000000", 0.3)},
+      fundoCss: "radial-gradient(900px 520px at 88% -8%," + a(d, 0.2) + ",transparent 62%),radial-gradient(760px 480px at -4% 30%," + a(d2, 0.11) + ",transparent 62%),radial-gradient(700px 460px at 60% 110%," + a(d, 0.1) + ",transparent 60%)," + fundo,
+      fx: ["neon", "aurora"]};
+  }
+  function vmix(x, y, t) { var f = function (h) { h = h.replace("#", ""); return [parseInt(h.substr(0, 2), 16), parseInt(h.substr(2, 2), 16), parseInt(h.substr(4, 2), 16)]; }, A = f(x), B = f(y);
+    return "#" + [0, 1, 2].map(function (i) { var v = Math.round(A[i] + (B[i] - A[i]) * t); return (v < 16 ? "0" : "") + v.toString(16); }).join(""); }
   var MODOS = [
     {id: "dark", nome: "DARK", grupo: "SIMPLES", base: "escuro", frase: "O visual de sempre: preto com âmbar.",
       cores: {fundo: "#06080D", cartao: "#11141B", linha: "#262B36", texto: "#F5F1EA", destaque: "#FFB547", destaque2: "#3FD0E0", menu: "#0A0D13"}},
@@ -23,6 +34,24 @@
     {id: "clean", nome: "CLEAN", grupo: "SIMPLES", base: "claro", frase: "Branco, leve e colorido, com menu escuro e roxo nos destaques.",
       cores: {fundo: "#F6F7FB", cartao: "#FFFFFF", linha: "#E6E8F2", texto: "#171A2C", destaque: "#6C4DF6", destaque2: "#19B36B", menu: "#14163A"},
       fundoCss: "linear-gradient(180deg,#F8F8FE,#F2F4FB)"},
+    {id: "brancodourado", nome: "BRANCO E DOURADO", grupo: "SIMPLES", base: "claro", frase: "Branco, menu preto e detalhes em dourado.",
+      cores: {fundo: "#FAF8F3", cartao: "#FFFFFF", linha: "#E8E1D0", texto: "#15130E", destaque: "#B8902F", destaque2: "#DDBB5E", menu: "#0B0B0D"}},
+    {id: "verdebranco", nome: "VERDE E BRANCO", grupo: "SIMPLES", base: "claro", frase: "Branco, menu preto e verde nos destaques.",
+      cores: {fundo: "#F3F8F4", cartao: "#FFFFFF", linha: "#D5E6DA", texto: "#0C1710", destaque: "#15803D", destaque2: "#34C46A", menu: "#080C09"}},
+    {id: "vermelhobranco", nome: "VERMELHO E BRANCO", grupo: "SIMPLES", base: "claro", frase: "Branco, menu preto e vermelho nos destaques.",
+      cores: {fundo: "#FAF5F5", cartao: "#FFFFFF", linha: "#EBD9DA", texto: "#190D0E", destaque: "#D92D3A", destaque2: "#F2757E", menu: "#0D0909"}},
+    {id: "laranjabranco", nome: "LARANJA E BRANCO", grupo: "SIMPLES", base: "claro", frase: "Branco, menu escuro e laranja nos destaques.",
+      cores: {fundo: "#FBF7F2", cartao: "#FFFFFF", linha: "#ECDFD0", texto: "#1A120A", destaque: "#E8650E", destaque2: "#F5A04D", menu: "#120D08"}},
+    /* VIDRO E LUZ: o mesmo layout de vidro com borda de luz, numa cor por modo — para quem quer a cara da própria marca */
+    vidro("vidrociano", "VIDRO CIANO", "Preto azulado com vidro e luz ciano.", "#050B10", "#3FE0E0", "#5B9DFF"),
+    vidro("pretodourado", "PRETO E DOURADO", "Preto, branco e detalhes em dourado.", "#08070A", "#D9B24C", "#F6E3A6"),
+    vidro("verdepreto", "VERDE E PRETO", "Preto, branco e verde nos destaques.", "#050A07", "#22C55E", "#B9F5CF"),
+    vidro("azulpreto", "AZUL E PRETO", "Preto, branco e azul nos destaques.", "#05070F", "#3B82F6", "#A5C8FF"),
+    vidro("vermelhopreto", "VERMELHO E PRETO", "Preto, branco e vermelho nos destaques.", "#0B0607", "#FF3B4E", "#FFB8BF"),
+    vidro("laranjapreto", "LARANJA E PRETO", "Preto, branco e laranja nos destaques.", "#0B0805", "#FF7A1A", "#FFD39A"),
+    vidro("roxopreto", "ROXO E PRETO", "Preto, branco e roxo nos destaques.", "#09060F", "#A855F7", "#E9C8FF"),
+    vidro("rosapreto", "ROSA E PRETO", "Preto, branco e rosa nos destaques.", "#0C060A", "#FF4F9A", "#FFC2DC"),
+    vidro("pratapreto", "PRETO E PRATA", "Preto, branco e cinza: sem cor, só brilho.", "#07080A", "#E6E8EC", "#9AA3B2"),
     {id: "futurista", nome: "FUTURISTA", grupo: "OUSADOS", base: "escuro", frase: "Vidro, neon ciano e roxo e luzes em movimento.",
       cores: {fundo: "#050816", cartao: "#0C1330", linha: "#1E2A5A", texto: "#EAF2FF", destaque: "#3FE0FF", destaque2: "#A78BFA", menu: "#070B1E"},
       fundoCss: "radial-gradient(900px 520px at 85% -10%,rgba(124,92,255,.22),transparent 60%),radial-gradient(800px 500px at 0% 20%,rgba(40,170,255,.16),transparent 60%),#050816",
@@ -62,7 +91,8 @@
     return {id: o.id || ("meu_" + Date.now()), nome: String(o.nome || "MINHA MARCA").toUpperCase().slice(0, 24), base: claro ? "claro" : "escuro", frase: "Modo criado com as cores da sua marca.",
       cores: {fundo: fundo, cartao: claro ? "#FFFFFF" : mix(fundo, "#ffffff", 0.07), linha: mix(fundo, claro ? "#000000" : "#ffffff", claro ? 0.12 : 0.16), texto: claro ? "#14161F" : "#F4F2EC",
         destaque: dest, destaque2: o.destaque2 || mix(dest, claro ? "#000000" : "#ffffff", 0.35), menu: o.menu || (claro ? mix(dest, "#000000", 0.72) : mix(fundo, "#000000", 0.35))},
-      fx: o.fx || [], logo: o.logo || ""};
+      fx: o.fx || [], logo: o.logo || "", estilo: o.estilo === "vidro" && !claro ? "vidro" : "",
+      fundoCss: o.estilo === "vidro" && !claro ? "radial-gradient(900px 520px at 88% -8%,rgba(" + rgb(dest).join(",") + ",.2),transparent 62%),radial-gradient(760px 480px at -4% 30%,rgba(" + rgb(o.destaque2 || dest).join(",") + ",.11),transparent 62%)," + fundo : ""};
   }
   function paleta(m) {
     var c = m.cores, claro = m.base === "claro", tx = c.texto, mt = luz(c.menu) > 0.6;
@@ -72,7 +102,7 @@
       fundoCss: m.fundoCss || c.fundo, claro: claro};
   }
   var VARS = [];
-  function limpar() { VARS.forEach(function (v) { R.style.removeProperty(v); }); VARS = []; ["data-modo", "data-base", "data-conteudo", "data-fx"].forEach(function (a) { R.removeAttribute(a); }); }
+  function limpar() { VARS.forEach(function (v) { R.style.removeProperty(v); }); VARS = []; ["data-modo", "data-base", "data-conteudo", "data-fx", "data-estilo"].forEach(function (a) { R.removeAttribute(a); }); }
   function def(o) { Object.keys(o).forEach(function (k) { R.style.setProperty(k, o[k]); VARS.push(k); }); }
   function aplicar(id, soVer) {
     var m = achar(id), p = paleta(m); limpar(); pararFx();
@@ -80,6 +110,7 @@
     if (m.id === "dark") { avisar(m); return m; }
     var miolo = !p.claro || CLARO_OK[PAG];   /* modo claro numa ferramenta ainda escura: só o menu e os destaques mudam */
     R.setAttribute("data-modo", m.id); R.setAttribute("data-base", m.base); R.setAttribute("data-conteudo", miolo ? m.base : "escuro");
+    if (m.estilo) R.setAttribute("data-estilo", m.estilo);
     def({"--m-menu": p.menu, "--m-menu-txt": p.menuTxt, "--m-menu-forte": p.menuForte, "--m-menu-linha": p.menuLinha, "--m-dest": p.dest, "--m-dest2": p.dest2, "--m-dest-rgb": p.destRgb, "--m-dest2-rgb": p.dest2Rgb, "--m-tinta": p.tinta});
     if (miolo) def({"--m-fundo": p.fundo, "--m-fundo-css": p.fundoCss, "--m-cartao": p.cartao, "--m-cartao2": p.cartao2, "--m-linha": p.linha, "--m-texto": p.texto, "--m-texto2": p.texto2, "--m-texto3": p.texto3,
       /* nomes que as páginas já usam */
@@ -135,7 +166,7 @@
   }
 
   /* folha de estilo dos modos (as regras só valem quando há data-modo) */
-  try { var lk = document.createElement("link"); lk.rel = "stylesheet"; lk.href = "assets/modos.css?v=1"; (document.head || R).appendChild(lk); } catch (e) { }
+  try { var lk = document.createElement("link"); lk.rel = "stylesheet"; lk.href = "assets/modos.css?v=2"; (document.head || R).appendChild(lk); } catch (e) { }
   window.BWModos = {lista: lista, achar: achar, aplicar: aplicar, paleta: paleta, montar: montar, atual: function () { return achar(ler("ui_modo", "dark")).id; },
     animado: function () { return !!ler("ui_modo_fx", 1); }, animar: function (v) { gravar("ui_modo_fx", v ? 1 : 0); aplicar(ler("ui_modo", "dark")); },
     salvarMeu: function (o) { var m = montar(o), l = meus().filter(function (x) { return x.id !== m.id; }); l.push(m); gravar("ui_modos_meus", l); return m; },

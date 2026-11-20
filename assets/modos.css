@@ -125,3 +125,41 @@ html[data-fx~="aurora"] .bw-shell{position:relative;z-index:1}
 html[data-fx~="pisca"] .bw-conteudo::before{content:"";display:block;height:12px;background:radial-gradient(circle,#F04B4B 0 4px,transparent 5px) 0 2px/56px 12px repeat-x,radial-gradient(circle,#F5C451 0 4px,transparent 5px) 18px 2px/56px 12px repeat-x,radial-gradient(circle,#4ADE80 0 4px,transparent 5px) 37px 2px/56px 12px repeat-x;animation:bwPisca 1.6s ease-in-out infinite}
 @media (prefers-reduced-motion:reduce){html[data-fx] *,html[data-fx] body::before,html[data-fx] .bw-conteudo::before{animation:none!important}}
 html[data-conteudo="claro"] .anel svg text{fill:var(--m-texto)}
+
+/* ---------- ESTILO VIDRO (20/11, dono: "senti falta de modos com este layout e com outras cores, para o usuário se identificar com a marca") ----------
+   data-estilo="vidro": cartões de vidro com borda de luz na cor do modo; galerias, telas do Início, menu e botões acompanham a cor. */
+html[data-estilo="vidro"] .amb-sec,html[data-estilo="vidro"] .lc-cx,html[data-estilo="vidro"] .cfg-cx,html[data-estilo="vidro"] .cfg-modo:not(.on){
+  background:linear-gradient(160deg,rgba(255,255,255,.07),rgba(var(--m-dest-rgb),.05) 46%,rgba(255,255,255,.02));border:1px solid rgba(var(--m-dest-rgb),.3);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.14),0 20px 44px -30px rgba(var(--m-dest-rgb),.7)}
+@media(min-width:900px){html[data-estilo="vidro"] .amb-sec,html[data-estilo="vidro"] .lc-cx,html[data-estilo="vidro"] .cfg-cx{-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}}
+html[data-estilo="vidro"][data-modo][data-base][data-conteudo] .amb-kpi,html[data-estilo="vidro"][data-modo][data-base][data-conteudo] .lc-kpi,html[data-estilo="vidro"][data-modo][data-base][data-conteudo] .ag{
+  border:1.5px solid rgba(var(--m-dest-rgb),.4);background:linear-gradient(160deg,color-mix(in srgb,var(--m-dest) 15%,var(--m-cartao)),var(--m-cartao) 55%,color-mix(in srgb,var(--m-dest2) 7%,var(--m-cartao)));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 0 26px -10px rgba(var(--m-dest-rgb),.75)}
+html[data-estilo="vidro"][data-fx~="neon"][data-modo][data-base][data-conteudo] .amb-kpi,html[data-estilo="vidro"][data-fx~="neon"][data-modo][data-base][data-conteudo] .lc-kpi,html[data-estilo="vidro"][data-fx~="neon"][data-modo][data-base][data-conteudo] .ag{border-color:transparent;
+  background:linear-gradient(160deg,color-mix(in srgb,var(--m-dest) 15%,var(--m-cartao)),var(--m-cartao) 55%,color-mix(in srgb,var(--m-dest2) 7%,var(--m-cartao))) padding-box,
+  conic-gradient(from var(--bw-ang),rgba(var(--m-dest-rgb),.2),var(--m-dest),rgba(var(--m-dest2-rgb),.25),var(--m-dest2),rgba(var(--m-dest-rgb),.2)) border-box}
+html[data-estilo="vidro"] .amb-kpi small,html[data-estilo="vidro"] .lc-kpi small{color:var(--m-dest)}
+/* galerias de acesso: todos os cartões na cor da marca, em vidro */
+html[data-estilo="vidro"] body a.menu-card,html[data-estilo="vidro"] body a.bw-tool-card{background:linear-gradient(150deg,rgba(var(--m-dest-rgb),.26),rgba(var(--m-dest2-rgb),.07) 58%,rgba(255,255,255,.03)),var(--m-cartao);
+  border:1px solid rgba(var(--m-dest-rgb),.5);box-shadow:inset 0 1px 0 rgba(255,255,255,.2),inset 0 0 22px rgba(var(--m-dest-rgb),.12),0 14px 30px -18px rgba(var(--m-dest-rgb),.8)}
+html[data-estilo="vidro"] body a.menu-card:nth-child(even),html[data-estilo="vidro"] body a.bw-tool-card:nth-child(even){background:linear-gradient(150deg,rgba(var(--m-dest-rgb),.14),rgba(255,255,255,.05) 58%,rgba(var(--m-dest2-rgb),.1)),var(--m-cartao)}
+html[data-estilo="vidro"] body a.menu-card .ico,html[data-estilo="vidro"] body a.bw-tool-card .ico{background:rgba(var(--m-dest-rgb),.14);border-color:rgba(var(--m-dest-rgb),.6);box-shadow:0 0 16px -4px rgba(var(--m-dest-rgb),.9)}
+html[data-estilo="vidro"] body a.menu-card .ico svg,html[data-estilo="vidro"] body a.bw-tool-card .ico svg{stroke:var(--m-dest)}
+html[data-estilo="vidro"] body a.menu-card::after,html[data-estilo="vidro"] body a.bw-tool-card::after{border-color:var(--m-dest)}
+html[data-estilo="vidro"] body a.menu-card:hover,html[data-estilo="vidro"] body a.bw-tool-card:hover{border-color:var(--m-dest);box-shadow:inset 0 1px 0 rgba(255,255,255,.25),inset 0 0 26px rgba(var(--m-dest-rgb),.2),0 0 30px -6px rgba(var(--m-dest-rgb),.9)}
+/* menu e botões: contorno de luz no lugar do bloco cheio */
+html[data-estilo="vidro"][data-modo] .bw-menu{background:linear-gradient(180deg,rgba(var(--m-dest-rgb),.07),transparent 40%),var(--m-menu)}
+html[data-estilo="vidro"][data-modo] .bw-menu a.bw-item.ativo{color:var(--m-menu-forte);background:rgba(var(--m-dest-rgb),.16);border-color:var(--m-dest);box-shadow:0 0 18px -4px rgba(var(--m-dest-rgb),.9),inset 0 0 14px rgba(var(--m-dest-rgb),.18)}
+html[data-estilo="vidro"] .amb-principal{background:linear-gradient(160deg,rgba(var(--amb-rgb),.34),rgba(var(--amb-rgb),.1));border:1.5px solid var(--amb);color:#fff;box-shadow:0 0 22px -6px rgba(var(--amb-rgb),.9),inset 0 1px 0 rgba(255,255,255,.2)}
+html[data-estilo="vidro"][data-fx~="neon"][data-modo][data-base][data-conteudo] .amb-principal{animation:none}
+html[data-estilo="vidro"] .hub-entrar{background:rgba(var(--m-dest-rgb),.16);border:1.5px solid var(--m-dest);color:#fff;box-shadow:0 0 24px -4px rgba(var(--m-dest-rgb),.95),inset 0 1px 0 rgba(255,255,255,.2)}
+/* Início: as 4 telas e o piso na cor da marca */
+html[data-estilo="vidro"] .hub-tela[data-cor]{--t:color-mix(in srgb,var(--m-dest) 55%,#fff);--t-rgb:var(--m-dest-rgb)}
+html[data-estilo="vidro"] .hub-tela[data-cor="ciano"],html[data-estilo="vidro"] .hub-tela[data-cor="rosa"]{--t:color-mix(in srgb,var(--m-dest2) 70%,#fff);--t-rgb:var(--m-dest2-rgb)}
+html[data-estilo="vidro"][data-modo][data-base][data-conteudo] .hub-palco{border:1.5px solid rgba(var(--m-dest-rgb),.4);background:radial-gradient(60% 46% at 50% 62%,rgba(var(--m-dest-rgb),.3),transparent 70%),linear-gradient(180deg,color-mix(in srgb,var(--m-dest) 5%,var(--m-fundo)),color-mix(in srgb,var(--m-dest) 11%,var(--m-fundo)) 55%,var(--m-fundo))}
+html[data-estilo="vidro"][data-fx~="neon"][data-modo][data-base][data-conteudo] .hub-palco{border-color:transparent;background:radial-gradient(60% 46% at 50% 62%,rgba(var(--m-dest-rgb),.3),transparent 70%) padding-box,
+  linear-gradient(180deg,color-mix(in srgb,var(--m-dest) 5%,var(--m-fundo)),color-mix(in srgb,var(--m-dest) 11%,var(--m-fundo)) 55%,var(--m-fundo)) padding-box,
+  conic-gradient(from var(--bw-ang),rgba(var(--m-dest-rgb),.15),var(--m-dest),rgba(var(--m-dest2-rgb),.2),var(--m-dest2),rgba(var(--m-dest-rgb),.15)) border-box}
+html[data-estilo="vidro"] .hub-chao stop{stop-color:var(--m-dest)}
+html[data-estilo="vidro"] .hub-chao [stroke]{stroke:var(--m-dest)}
+html[data-estilo="vidro"] .hub-chao circle[fill]:not([fill^="url"]):not([fill="none"]){fill:var(--m-dest2)}

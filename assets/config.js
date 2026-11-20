@@ -23,7 +23,7 @@
 
   /* ---------- modos ---------- */
   function mini(m) { var p = M.paleta(m);
-    return '<span class="cfg-mini" style="--p-fundo:' + p.fundo + ';--p-cartao:' + p.cartao + ';--p-linha:' + p.linha + ';--p-texto:' + p.texto + ';--p-dest:' + p.dest + ';--p-dest2:' + p.dest2 + ';--p-menu:' + p.menu + ';--p-menu-txt:' + p.menuTxt + '">' +
+    return '<span class="cfg-mini' + (m.estilo === "vidro" ? " vidro" : "") + '" style="--p-fundo:' + p.fundo + ';--p-cartao:' + p.cartao + ';--p-linha:' + p.linha + ';--p-texto:' + p.texto + ';--p-dest:' + p.dest + ';--p-dest2:' + p.dest2 + ';--p-menu:' + p.menu + ';--p-menu-txt:' + p.menuTxt + '">' +
       '<span class="m"><i class="a"></i><i></i><i></i><i></i></span><span class="c"><span class="t"></span><span class="k"><i></i><i></i><i></i></span><span class="b"></span></span></span>'; }
   function desenhar() {
     var atual = M.atual(), grupos = {}, ordem = [];
@@ -42,7 +42,7 @@
   desenhar();
 
   /* ---------- modo com a minha marca ---------- */
-  function daTela() { return {nome: $("mkNome").value.trim() || "MINHA MARCA", base: $("mkBase").value, destaque: $("mkDest").value, destaque2: $("mkDest2").value, menu: $("mkMenu").value, fx: $("mkFx").value ? $("mkFx").value.split(" ") : []}; }
+  function daTela() { return {nome: $("mkNome").value.trim() || "MINHA MARCA", base: $("mkBase").value, destaque: $("mkDest").value, destaque2: $("mkDest2").value, menu: $("mkMenu").value, fx: $("mkFx").value ? $("mkFx").value.split(" ") : [], estilo: $("mkEstilo").value}; }
   var previa = null;
   $("mkVer").onclick = function () { previa = M.salvarMeu(Object.assign(daTela(), {id: "meu_previa", nome: (daTela().nome + " (prévia)").slice(0, 24)})); M.aplicar(previa.id, true); desenhar(); aviso($("mkAviso"), "Assim fica. Ajuste as cores e toque em VER de novo, ou SALVAR para ficar com ele."); };
   $("mkSalvar").onclick = function () { M.apagarMeu("meu_previa"); var m = M.salvarMeu(daTela()); M.aplicar(m.id); desenhar(); aviso($("mkAviso"), "✓ Modo " + m.nome + " salvo e ligado. Ele fica em MINHA MARCA, na lista de modos."); };
