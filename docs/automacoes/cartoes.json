@@ -173,6 +173,12 @@
   "ico": "<span class=\"ico\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><rect x=\"3\" y=\"3\" width=\"8\" height=\"8\" rx=\"1.5\"/><rect x=\"13\" y=\"3\" width=\"8\" height=\"8\" rx=\"1.5\" transform=\"rotate(8 17 7)\"/><rect x=\"3\" y=\"13\" width=\"8\" height=\"8\" rx=\"1.5\" transform=\"rotate(-8 7 17)\"/><path d=\"M14 14l6 6M20 14l-6 6\"/></svg></span>",
   "de": "index.html"
  },
+ "3d.html": {
+  "nome": "ESTÚDIO 3D",
+  "title": "Modelo 3D, logo em relevo, maquete de palco com painéis de LED (com a resolução em pixels do telão) e pedido pronto para IA de 3D — vídeo do giro feito no aparelho.",
+  "ico": "<span class=\"ico\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M12 2.6 20.5 7v10L12 21.4 3.5 17V7z\"/><path d=\"M12 2.6V21.4M20.5 7 12 11.6 3.5 7\"/></svg></span>",
+  "de": "index.html"
+ },
  "criador.html": {
   "nome": "CRIADOR IA",
   "title": "Convites, posts, flyers e cartões de visita com arte feita por IA — textos sem erro, no formato certo.",

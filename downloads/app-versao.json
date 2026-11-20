@@ -1,19 +1,19 @@
 {
- "versao": "1.9.2",
+ "versao": "1.9.3",
  "data": "20/11/2026",
  "pacote": "downloads/BW-Reels-Studio.zip",
- "sha256": "b9bf77551782d44e47a31fbe8d1808e6d44b79c31f0062db945361f3609fd651",
- "bytes": 8537797,
+ "sha256": "c7d5f896a0362eede6ff0f4e8597e90d11d99fdafdf3985dce72c725274aef8a",
+ "bytes": 8582753,
  "novidades": [
   {
-   "titulo": "Modos de JOGOS com cenário próprio",
-   "texto": "NEON 80 (pôr do sol de arcade, serra de luz e pista), TÁTICO (mapa de missão com radar) e ARCADE 8-BIT (cidade em pixel) ganharam cenário desenhado no Início. Os seis modos de JOGOS têm letra de título do tema e o robô na cor do modo.",
-   "abrir": "config"
+   "titulo": "ESTÚDIO 3D: modelo, logo, maquete de palco e IA 3D",
+   "texto": "Quatro modos num lugar só: abrir GLB/OBJ/STL e gerar o vídeo do giro; a sua logo em relevo dourado com fundo transparente ou verde; a maquete do palco com painéis de LED de 0,5 m, medidas reais e a RESOLUÇÃO EM PIXELS do telão (com planta em PDF); e o pedido pronto para a IA de 3D. Tudo no aparelho, sem biblioteca de fora e sem internet.",
+   "abrir": "estudio3d"
   },
   {
-   "titulo": "28 modos de aparência",
-   "texto": "Claros, vidro com luz em nove cores, jogos, futurista e datas especiais, mais o modo com as cores da sua marca.",
-   "abrir": "config"
+   "titulo": "O tamanho do telão vai direto para a arte",
+   "texto": "Na maquete, um botão abre o Estúdio de motion ou as Telas em movimento já no tamanho exato do painel (ex.: 1280 × 640 px) — a arte nasce sem sobrar nem faltar pixel.",
+   "abrir": "motion"
   }
  ]
 }

@@ -436,6 +436,22 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
      gênero (corrida, tático, arcade, fantasia…) com nome próprio; dizer isso ao dono numa frase. Cenário de modo no Início = fx de CSS no
      .hub-palco (::before livre) com seletor mais forte que o do vidro+neon.
 
+**Aprendidos em 20/11 (ESTÚDIO 3D)**
+124. 3D no site é MOTOR PRÓPRIO em canvas 2D (assets/bw3d-motor.js — sem biblioteca de fora, sem WebGL: funciona sem internet, no iPhone e
+     dentro do BWReelsCelular.gerar com `desenhar(t,ctx)`): projeta, ordena por profundidade (pintor) e pinta cada face com luz; face virada
+     para o outro lado some quando a malha é fechada (`fechado`), senão a normal é invertida para iluminar os dois lados. Limite do método:
+     uma face grande pode passar à frente de faces pequenas — modelo fechado e bem exportado resolve. Leitores: GLB (sem Draco/meshopt — o
+     JSON do GLB pode vir terminado em \0, tirar antes do JSON.parse; baseColorFactor é LINEAR → converter para sRGB), OBJ e STL (texto e binário).
+125. Logo/arte em relevo não se desenha fatia por fatia (dezenas de desenhos por quadro): "esfrega" a silhueta na direção da espessura
+     DOBRANDO o passo (1, 2, 4, 8… em ~7 desenhos) e pinta a parede com `source-in` — sem degrau e rápido. Imagem dentro de um quadro 3D
+     (arte no painel de LED, face de um objeto) entra por transformação afim com 3 cantos (ctx.transform, nunca setTransform: apaga o
+     que já está na tela).
+126. Prova de PIXEL com animação ligada é loteria: no teste, PARAR o giro e desenhar em t=0 antes de medir (uma conferência pegava o quadro
+     em que a câmera estava atrás do painel). Medir cor CONTANDO os pixels da tela inteira, não pelas "4 cores mais comuns" de uma amostragem.
+     Teste que mede se algo anima tem de durar mais que a pausa da animação (a prévia das transições fica ~0,5 s parada a cada 1,8 s → 4 fotos em 1,2 s).
+127. Plano colado na frente de uma grade de faces (a arte em cima dos módulos de LED) entra na ordem pela profundidade do canto MAIS PERTO,
+     nunca pela média — com a média, metade dos módulos fica na frente da arte.
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -1432,7 +1448,30 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   desta vez pelo clique remoto (3 tentativas) — o .exe publicado continua o 1.9.1, que se atualiza para 1.9.2 ao abrir. NÃO testado: as letras
   novas na tela (sem internet no teste elas caem na letra padrão) e iPhone/Android reais. modos.js v5, modos.css v5, sw v153.
 
+- 20/11/2026 18:10 · Claude (dono: "VAMOS CRIAR ESTA FERRAMENTA AINDA MELHOR NO APP BW?" sobre o Tripo 3D → "Estúdio 3D + vídeo (Recomendado),
+  PODEMOS FAZER TUDO ISSO E DEIXAR O USUÁRIO ESCOLHER?"): ESTÚDIO 3D (3d.html + assets/bw3d.js + assets/bw3d-motor.js) em Marketing (menu,
+  galerias de Marketing e Ferramentas, cartão de MINHA EMPRESA). Dito ao dono com todas as letras: o gerador deles (foto → objeto) é modelo
+  treinado e não se copia; o que o BW faz melhor é tudo o que vem DEPOIS do objeto. Quatro modos num seletor, como ele pediu:
+  (1) MODELO 3D — abre GLB, OBJ e STL com motor próprio (sem biblioteca de fora), altura em metros, cor e material, giro, luz;
+  (2) LOGO 3D — PNG (ou ★ MINHA MARCA do Editor de fotos) vira relevo dourado/prata/cromado/cobre/cor, espessura e bisel;
+  (3) MAQUETE DE PALCO E LED — painéis de 0,5 m (cols × linhas, pitch P2.6…P10), palco, treliça, torres, pessoas de escala e câmeras, com
+      MEDIDAS em metros e a FICHA do telão: nº de painéis, m² e a RESOLUÇÃO EM PIXELS (10 × 5 P3.9 = 1280 × 640 px) + botões que abrem o
+      ESTÚDIO DE MOTION e as TELAS já nesse tamanho (motion.html/telas.html?w=&h=), arte do cliente acesa no painel e PLANTA EM PDF
+      (ficha + vista em 3/4 + vista de cima);
+  (4) IA 3D — monta o pedido em inglês para Tripo/Meshy/Rodin/Hunyuan, abre a IA e traz o .glb de volta; o site NÃO chama nenhuma IA de 3D e
+      avisa o preço de referência (US$ 0,20–0,30 por modelo, 20/11) e que em plano grátis o modelo pode sair público e sem uso comercial.
+  Fundo estúdio/claro/cor/verde/azul/magenta/transparente; GERAR VÍDEO no próprio aparelho (BWReelsCelular, 9:16, 4K, tamanho do telão ou livre)
+  e SALVAR PNG (transparente de verdade). TELA FIXA + ferramentas V/H/Z e atalhos (regras 112–113). Nada sai do aparelho (IndexedDB bw_3d; vigia confere).
+  Teste novo docs/testes/teste_3d.py (≈30 checagens × 1280/390: abre GLB/OBJ/STL de verdade, confere a cor do material no PIXEL, ficha 7×4 P3.9 =
+  896 × 512 px, o tamanho chegando no Motion e nas Telas, PNG transparente, MP4 do telão conferido no ffprobe) — 0 falhas; telas, motion e layout 0 falhas;
+  vigia ✅. App BW 1.9.3 (cartão ESTÚDIO 3D, destino, cópia sem internet refeita com o site de hoje, tutorial e novidades publicados) e manual
+  52 → 53 p. BW-Setup.exe continua o 1.9.1 (depende do PC do dono; quem já tem o app atualiza sozinho). NÃO testado: iPhone/Android reais e
+  modelos 3D grandes de verdade (os do teste são pequenos). layout.js v64, sw v154. PENTE FINO 124–127.
+
 ## Pendências (dono)
+- [ ] (20/11) ESTÚDIO 3D: dono abrir em Marketing → Estúdio 3D no PC e no celular; testar com um modelo 3D de verdade (GLB), com a logo da BW
+      (LOGO 3D → fundo transparente → PNG) e montar a maquete de um evento real (painéis, pitch) → conferir se a RESOLUÇÃO EM PIXELS bate com
+      a do fornecedor do telão, gerar a PLANTA EM PDF e um vídeo do giro. Dizer o que falta (mais itens de palco? medidas em pés? treliça por metro?).
 - [ ] (20/11) BW-Setup.exe 1.9.2: dono dar dois cliques em "5 - GERAR INSTALADOR EXE" (Vídeos\\bw-reels-studio) e avisar o Claude, que traz o
       arquivo e publica; ou o Claude tenta de novo na próxima entrega. Conferir no PC e no celular as letras novas dos modos de JOGOS.
 - [ ] (20/11) APP BW 1.9: dono abrir o BW no PC, tocar em ATUALIZAR quando o aviso aparecer e conferir MINHA EMPRESA, MINHA CASA e APARÊNCIA; fechar as

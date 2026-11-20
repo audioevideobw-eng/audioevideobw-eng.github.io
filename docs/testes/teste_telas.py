@@ -68,8 +68,11 @@ with sync_playwright() as p:
         pg.click('#tlFila [data-cena="1"]'); pg.wait_for_timeout(300); aba("cena")
         ok(pg.locator("#tlPainel .tl-trans canvas").count() == 16, "16 transições com prévia animada")
         # a prévia mexe: dois quadros diferentes
-        a1 = pg.evaluate("document.querySelector('[data-mini=\"cacos\"]').toDataURL()"); pg.wait_for_timeout(350); a2 = pg.evaluate("document.querySelector('[data-mini=\"cacos\"]').toDataURL()")
-        ok(a1 != a2, "a prévia da transição anima (peças verdes entrando)")
+        # a animação tem uma pausa de ~0,5 s a cada 1,8 s: tira 4 fotos ao longo de 1,2 s e basta duas serem diferentes
+        quadros = []
+        for _ in range(4):
+            quadros.append(pg.evaluate("document.querySelector('[data-mini=\"cacos\"]').toDataURL()")); pg.wait_for_timeout(400)
+        ok(len(set(quadros)) > 1, "a prévia da transição anima (peças verdes entrando)")
         pg.click('#tlPainel [data-trans="mosaico"]'); pg.wait_for_timeout(200)
         ok(pg.evaluate(f"{P}.cenas[1].trans") == "mosaico", "trocar a transição da cena")
         pg.click('#tlPainel [data-lay="dupla"]'); pg.wait_for_timeout(300)

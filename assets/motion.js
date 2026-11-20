@@ -520,6 +520,9 @@
     var ult = null; try { ult = localStorage.getItem("ui_motion_ultimo"); } catch (e) {}
     var r = null; if (ult) { try { r = await dbOp("readonly", function (s) { return s.get(ult); }); } catch (e) {} }
     if (r && r.projeto) P = r.projeto; else { P = M.novoProjeto("9:16"); P.id = M.uid(); P.nome = "Vitrine de prompts"; P.itens = MODELOS.vitrine.f(P); }
+    /* 20/11: tamanho vindo do ESTÚDIO 3D (resolução do telão): motion.html?w=896&h=512 */
+    try { var uq = new URLSearchParams(location.search), uw = parseInt(uq.get("w"), 10), uh = parseInt(uq.get("h"), 10);
+      if (uw > 79 && uh > 79 && uw < 4097 && uh < 4097) { P.formato = "livre"; P.w = uw; P.h = uh; } } catch (e) {}
     HIST = [JSON.stringify(P)]; remontar(); desenharTudo(); botoesHist();
     if (window.BWDobras) BWDobras.aplicar(document);
 

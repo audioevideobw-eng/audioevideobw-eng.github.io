@@ -34,7 +34,7 @@ AMBIENTES = {
                                                              cartao("leitor.html"), cartao("eventos.html#cliBox")], False),
                        ("emp-crm", "CRM · CLIENTES", [cartao("captacao.html"), cartao("captacao.html#agente"), cartao("captacao.html#colar"),
                                                      cartao("captacao.html#link"), cartao("resultados.html")], False),
-                       ("emp-mkt", "MARKETING", [cartao(h) for h in ["reels.html", "promptia.html", "personagens.html", "video.html", "motion.html", "telas.html", "criador.html",
+                       ("emp-mkt", "MARKETING", [cartao(h) for h in ["reels.html", "promptia.html", "personagens.html", "video.html", "motion.html", "telas.html", "3d.html", "criador.html",
                                                                   "fotos.html", "transcricao.html", "assistente.html#legenda", "assistente.html#ideias", "assistente.html#email"]], False),
                        ("emp-ferr", "FERRAMENTAS DA EMPRESA", [cartao("pdf.html"), cartao("assistente.html"), cartao("dados.html"), cartao("configadm.html", adm=True)], True)]),
     "pf": dict(arquivo="casa.html", titulo="Minha casa — Brightway", h1="MINHA <b>CASA</b>", selo="PF · PESSOA FÍSICA", outro="pj", outro_href="negocio.html",

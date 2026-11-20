@@ -1,0 +1,12 @@
+[
+ {
+  "titulo": "ESTÚDIO 3D: modelo, logo, maquete de palco e IA 3D",
+  "texto": "Quatro modos num lugar só: abrir GLB/OBJ/STL e gerar o vídeo do giro; a sua logo em relevo dourado com fundo transparente ou verde; a maquete do palco com painéis de LED de 0,5 m, medidas reais e a RESOLUÇÃO EM PIXELS do telão (com planta em PDF); e o pedido pronto para a IA de 3D. Tudo no aparelho, sem biblioteca de fora e sem internet.",
+  "abrir": "estudio3d"
+ },
+ {
+  "titulo": "O tamanho do telão vai direto para a arte",
+  "texto": "Na maquete, um botão abre o Estúdio de motion ou as Telas em movimento já no tamanho exato do painel (ex.: 1280 × 640 px) — a arte nasce sem sobrar nem faltar pixel.",
+  "abrir": "motion"
+ }
+]

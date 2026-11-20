@@ -294,7 +294,21 @@ for _f in ("assets/telas-motor.js", "assets/telas.js"):
 # ESTÚDIO DE MOTION (20/11): o motor só desenha (nada de rede); o editor só fala com a IA Brightway (bw-ia) e nunca grava na conta
 # 20/11: ferramentas/atalhos comuns dos editores — só interface; nada de rede, conta ou armazenamento
 if os.path.exists("assets/bw-ferramentas.js") and re.search(r"fetch\(|XMLHttpRequest|supabase\.|BWSync|localStorage|indexedDB|\.upload\(", ler("assets/bw-ferramentas.js")): problemas.append("assets/bw-ferramentas.js: as ferramentas dos editores não podem usar rede, conta nem armazenamento")
-for _p in ("video.html", "telas.html", "motion.html", "fotos.html"):
+# ESTÚDIO 3D (20/11): modelo, logo e foto ficam no aparelho; o site não chama nenhuma IA de 3D
+if os.path.exists("assets/bw3d-motor.js") and re.search(r"fetch\(|XMLHttpRequest|supabase\.|BWSync|localStorage|indexedDB|\.upload\(|https?://", ler("assets/bw3d-motor.js")):
+    problemas.append("assets/bw3d-motor.js: o motor 3D só desenha (sem rede, conta nem armazenamento)")
+if os.path.exists("assets/bw3d.js"):
+    _t3 = ler("assets/bw3d.js")
+    if re.search(r"fetch\(|XMLHttpRequest|supabase\.|BWSync\.(?!cliente)|\.upload\(|antesDeSalvar", _t3):
+        problemas.append("assets/bw3d.js: o Estúdio 3D não envia nada (modelo, logo e foto ficam no aparelho)")
+    _ok3d = {"https://www.tripo3d.ai/", "https://www.meshy.ai/", "https://hyper3d.ai/", "https://3d.hunyuan.tencent.com/"}
+    _fora3d = {u for u in re.findall(r"https?://[^\"'\s)]+", _t3) if not u.startswith("https://cdn.jsdelivr.net/npm/pdfmake@")} - _ok3d
+    if _fora3d: problemas.append("assets/bw3d.js: endereco de fora nao permitido (" + ", ".join(sorted(_fora3d)) + ")")
+if os.path.exists("3d.html"):
+    _h3 = ler("3d.html")
+    for _n3 in ("assets/bw3d-motor.js", "assets/bw3d.js", "assets/reels-celular.js", "assets/bw-ferramentas.js", "assets/modos.js"):
+        if _n3 not in _h3: problemas.append("3d.html: falta " + _n3)
+for _p in ("video.html", "telas.html", "motion.html", "fotos.html", "3d.html"):
     if os.path.exists(_p) and "assets/bw-ferramentas.js" not in ler(_p): problemas.append(_p + ": editor sem as ferramentas/atalhos comuns (assets/bw-ferramentas.js) e sem a TELA FIXA")
 if os.path.exists("assets/motion-motor.js") and re.search(r"fetch\(|XMLHttpRequest|supabase\.|BWSync|localStorage|indexedDB|\.upload\(", ler("assets/motion-motor.js")): problemas.append("assets/motion-motor.js: o motor de motion só desenha (sem rede, conta nem armazenamento)")
 if os.path.exists("assets/motion.js"):

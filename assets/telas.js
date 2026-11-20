@@ -479,6 +479,10 @@
     desenharEfx(); ligarArrastar(); ligarFerramentas();
     if (window.BWFerr) FIXA = BWFerr.telaFixa({ wrap: document.querySelector(".wrap"), grade: $("tlGrade"), palco: document.querySelector(".tl-palco"), rola: [document.querySelector(".tl-seq")], some: [document.querySelector(".wrap > .tl-nota")], aviso: $("tlAviso"), aoMedir: function () { if (P) { medir(); if (!TOCANDO) ver(TEMPO); } } });
     if (r && r.projeto) await abrirProjeto(r); else { P = novoProjeto("9:16"); ORDEM = Object.keys(MID); P.ordem = ORDEM.slice(); HIST = [JSON.stringify(P)]; desenharTudo(); }
+    /* 20/11: tamanho vindo do ESTÚDIO 3D (resolução do telão): telas.html?w=896&h=512 */
+    try { var uq = new URLSearchParams(location.search), uw = parseInt(uq.get("w"), 10), uh = parseInt(uq.get("h"), 10);
+      if (uw > 79 && uh > 79 && uw < 4097 && uh < 4097) { P.formato = "livre"; P.w = uw; P.h = uh; $("tlFmt").value = "livre"; livre(); medir(); mudou();
+        aviso("Tamanho do telão: " + uw + " × " + uh + " px."); } } catch (e) {}
     ORDEM = ORDEM.concat(Object.keys(MID).filter(function (id) { return ORDEM.indexOf(id) < 0; }));
     desenharMidias(); botoesHist(); if (window.BWDobras) BWDobras.aplicar(document); requestAnimationFrame(animarMinis);
 

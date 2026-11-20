@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Estúdio 3D — Brightway</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#06080D">
+<link rel="icon" type="image/png" href="icons/favicon-64.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Brightway">
+<link rel="stylesheet" href="assets/brightway.css?v=32">
+<style>
+.wrap{max-width:1560px;margin:0 auto;padding:0 14px 110px}
+.d3-topo{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.d3-topo h1{margin:0 auto 0 0;font:800 17px Montserrat,Inter,sans-serif;letter-spacing:.04em;color:#F5F1EA}
+.d3-bt{min-height:42px;padding:0 13px;border-radius:12px;border:1px solid rgba(245,241,234,.16);background:rgba(255,255,255,.05);color:#F5F1EA;font:800 11.5px Inter,sans-serif;letter-spacing:.06em;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap;touch-action:manipulation;text-decoration:none}
+.d3-bt:disabled{opacity:.35;cursor:default}
+.d3-bt.pri{background:linear-gradient(135deg,#B6FF3B,#3BFF6A);border-color:transparent;color:#0a120a}
+.d3-bt.ia{background:linear-gradient(135deg,#7C5CFF,#C04CFF);border-color:transparent;color:#fff}
+.d3-bt.perigo{color:#ff9a9d;border-color:rgba(242,104,107,.4)}
+.d3-bt.mini{min-height:34px;padding:0 9px;font-size:10.5px;border-radius:10px}
+.d3-bt.on{background:rgba(182,255,59,.16);border-color:rgba(182,255,59,.5);color:#EAF7D2}
+.d3-in,.d3-sel{min-height:42px;border-radius:12px;border:1px solid rgba(245,241,234,.16);background:#12151c;color:#F5F1EA;font:700 16px Inter,sans-serif;padding:0 10px;box-sizing:border-box;min-width:0;width:100%}
+.d3-in.nome{width:190px;flex:0 0 auto}
+.d3-modos{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:10px}
+.d3-modo{min-width:0;min-height:74px;border-radius:16px;border:1px solid rgba(245,241,234,.12);background:linear-gradient(150deg,rgba(124,92,255,.14),rgba(255,255,255,.04));color:#F5F1EA;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:8px 6px;font:800 11px Inter,sans-serif;letter-spacing:.05em;text-align:center;line-height:1.25;touch-action:manipulation}
+.d3-modo .ic{font-size:21px;line-height:1}
+.d3-modo.on{background:linear-gradient(150deg,#7C5CFF,#C04CFF);border-color:transparent;box-shadow:0 10px 24px rgba(124,92,255,.3)}
+.d3-nota{margin:0 0 10px;font:600 12px/1.5 Inter,sans-serif;color:#B9C0CC}
+.d3-grade{display:grid;grid-template-columns:minmax(0,1fr) 370px;gap:12px;align-items:start}
+.d3-cx{min-width:0;border-radius:20px;background:#12151c;border:1px solid rgba(245,241,234,.08);padding:12px}
+.d3-lado{max-height:calc(100vh - 300px);min-height:320px;overflow:auto;overscroll-behavior:contain}
+.d3-palco{position:relative;min-width:0;border-radius:20px;background:#0B0E14;border:1px solid rgba(245,241,234,.08);overflow:hidden;display:flex;align-items:center;justify-content:center}
+#d3Cv{display:block;max-width:100%;touch-action:none;cursor:grab;background:transparent;background-image:linear-gradient(45deg,#1a1d24 25%,transparent 25%,transparent 75%,#1a1d24 75%),linear-gradient(45deg,#1a1d24 25%,transparent 25%,transparent 75%,#1a1d24 75%);background-size:22px 22px;background-position:0 0,11px 11px}
+#d3Cv.arrastando{cursor:grabbing}
+.d3-cam{position:absolute;right:8px;top:8px;display:flex;flex-direction:column;gap:5px;z-index:3}
+.d3-cam button{width:38px;height:38px;border-radius:11px;border:1px solid rgba(245,241,234,.16);background:rgba(10,13,19,.72);color:#F5F1EA;font:800 13px Inter,sans-serif;cursor:pointer;padding:0;touch-action:manipulation}
+.d3-dica{position:absolute;left:10px;bottom:10px;max-width:72%;padding:7px 10px;border-radius:11px;background:rgba(8,11,17,.76);border:1px solid rgba(245,241,234,.1);color:#D8DEE9;font:600 11px/1.4 Inter,sans-serif;z-index:3;transition:opacity .4s}
+.d3-g{margin-bottom:12px}
+.d3-g > h4{margin:0 0 7px;font:800 10.5px Inter,sans-serif;letter-spacing:.12em;color:#F5F1EA;padding:6px 0;border-bottom:1px solid rgba(245,241,234,.07)}
+.d3-l{display:block;margin-bottom:8px;font:700 10.5px Inter,sans-serif;letter-spacing:.09em;color:#8C93A1}
+.d3-l > span{display:block;margin-bottom:4px}
+.d3-l2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.d3-l3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.d3-fx{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.d3-sl{width:100%;height:30px}
+.d3-cor{width:100%;height:40px;border-radius:11px;border:1px solid rgba(245,241,234,.16);background:#12151c;padding:3px;cursor:pointer}
+.d3-ficha{border-radius:14px;background:rgba(182,255,59,.07);border:1px solid rgba(182,255,59,.22);padding:10px;font:600 12px/1.6 Inter,sans-serif;color:#EAF7D2}
+.d3-ficha b{color:#fff}
+.d3-ficha .px{font:800 15px Inter,sans-serif;color:#B6FF3B;letter-spacing:.02em}
+.d3-aviso{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:60;max-width:92vw;padding:11px 15px;border-radius:14px;background:rgba(10,13,19,.95);border:1px solid rgba(182,255,59,.4);color:#EAF7D2;font:700 12.5px/1.45 Inter,sans-serif;box-shadow:0 14px 40px rgba(0,0,0,.5)}
+.d3-aviso[data-erro="1"]{border-color:rgba(242,104,107,.5);color:#ffd9da}
+.d3-folha{position:fixed;inset:0;z-index:70;background:rgba(4,6,10,.72);display:flex;align-items:flex-end;justify-content:center}
+.d3-folha > div{width:min(560px,100%);max-height:88vh;overflow:auto;background:#12151c;border:1px solid rgba(245,241,234,.12);border-radius:22px 22px 0 0;padding:16px}
+.d3-folha h3{margin:0 0 10px;font:800 14px Inter,sans-serif;letter-spacing:.06em;color:#F5F1EA}
+.d3-lista{display:flex;flex-direction:column;gap:6px}
+.d3-obj{display:flex;align-items:center;gap:7px;padding:7px 9px;border-radius:12px;background:#0B0E14;border:1px solid rgba(245,241,234,.1);font:700 11.5px Inter,sans-serif;color:#D8DEE9}
+.d3-obj .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.d3-abas{display:none}
+.d3-prog{margin-top:8px}
+.d3-prog progress{width:100%;height:12px}
+#d3Video{width:100%;border-radius:14px;background:#000;max-height:50vh}
+.d3-chips{display:flex;gap:6px;flex-wrap:wrap}
+.d3-chip{min-height:34px;padding:0 10px;border-radius:999px;border:1px solid rgba(245,241,234,.16);background:rgba(255,255,255,.04);color:#D8DEE9;font:700 11px Inter,sans-serif;cursor:pointer;touch-action:manipulation}
+.d3-chip.on{background:rgba(182,255,59,.16);border-color:rgba(182,255,59,.5);color:#EAF7D2}
+@media (max-width:1100px){
+  .d3-grade{grid-template-columns:minmax(0,1fr)}
+  .d3-modos{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .d3-lado{max-height:none;overflow:visible}
+  .d3-in.nome{width:100%}
+  .d3-abas{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:10px 0}
+  .d3-abas button{min-height:40px;border-radius:12px;border:1px solid rgba(245,241,234,.14);background:rgba(255,255,255,.04);color:#D8DEE9;font:800 10.5px Inter,sans-serif;letter-spacing:.06em;cursor:pointer}
+  .d3-abas button.on{background:rgba(182,255,59,.16);border-color:rgba(182,255,59,.5);color:#EAF7D2}
+  .d3-grade[data-aba] .d3-g[data-aba]{display:none}
+  .d3-grade[data-aba="objeto"] .d3-g[data-aba="objeto"],
+  .d3-grade[data-aba="cena"] .d3-g[data-aba="cena"],
+  .d3-grade[data-aba="exportar"] .d3-g[data-aba="exportar"]{display:block}
+}
+</style>
+<script src="assets/modos.js?v=5"></script>
+</head>
+<body>
+<div class="wrap">
+  <div class="d3-topo">
+    <h1>ESTÚDIO 3D</h1>
+    <input id="d3Nome" class="d3-in nome" placeholder="Nome do projeto">
+    <button class="d3-bt mini" id="d3Ajuda" title="Atalhos e ajuda">? AJUDA</button>
+  </div>
+
+  <div class="d3-modos" id="d3Modos">
+    <button class="d3-modo" data-m="modelo" type="button"><span class="ic">🧊</span>MODELO 3D</button>
+    <button class="d3-modo" data-m="logo" type="button"><span class="ic">✨</span>LOGO 3D</button>
+    <button class="d3-modo" data-m="palco" type="button"><span class="ic">🎪</span>MAQUETE DE PALCO E LED</button>
+    <button class="d3-modo" data-m="ia" type="button"><span class="ic">🤖</span>IA 3D · FOTO → OBJETO</button>
+  </div>
+  <p class="d3-nota" id="d3Nota">Tudo roda no seu aparelho: nenhum modelo, foto ou logo sai daqui.</p>
+
+  <div class="d3-abas" id="d3AbasCel">
+    <button data-aba="objeto" class="on" type="button">OBJETO</button>
+    <button data-aba="cena" type="button">CENA E CÂMERA</button>
+    <button data-aba="exportar" type="button">EXPORTAR</button>
+  </div>
+
+  <div class="d3-grade" id="d3Grade" data-aba="objeto">
+    <div class="d3-palco">
+      <canvas id="d3Cv" width="900" height="600"></canvas>
+      <div class="d3-cam">
+        <button id="d3Zmais" title="Aproximar">＋</button>
+        <button id="d3Zmenos" title="Afastar">－</button>
+        <button id="d3Giro" title="Girar sozinho">⟳</button>
+        <button id="d3Reset" title="Voltar ao ângulo inicial">⌂</button>
+      </div>
+      <div class="d3-dica" id="d3Dica">Arraste para girar · roda do mouse ou dois dedos para aproximar</div>
+    </div>
+    <div class="d3-cx d3-lado" id="d3Painel"></div>
+  </div>
+
+  <div class="d3-aviso" id="d3Aviso" hidden></div>
+
+  <div class="d3-folha" id="d3Folha" hidden><div>
+    <h3 id="d3FolhaTit">GERAR VÍDEO</h3>
+    <div id="d3FolhaCorpo"></div>
+    <div class="d3-fx" style="margin-top:12px"><button class="d3-bt" id="d3Fechar" type="button">FECHAR</button></div>
+  </div></div>
+
+  <input type="file" id="d3Arq" accept=".glb,.obj,.stl,model/gltf-binary" hidden>
+  <input type="file" id="d3Img" accept="image/png,image/jpeg,image/webp" hidden>
+</div>
+<script src="assets/layout.js?v=64"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="assets/bw-sync.js"></script>
+<script src="assets/bw3d-motor.js?v=1"></script>
+<script src="assets/reels-celular.js?v=5"></script>
+<script src="assets/bw-ferramentas.js?v=1"></script>
+<script src="assets/bw3d.js?v=1"></script>
+</body>
+</html>
