@@ -189,3 +189,23 @@ html[data-estilo="vidro"][data-fx~="neon"][data-modo][data-base][data-conteudo] 
 html[data-estilo="vidro"] .hub-chao stop{stop-color:var(--m-dest)}
 html[data-estilo="vidro"] .hub-chao [stroke]{stroke:var(--m-dest)}
 html[data-estilo="vidro"] .hub-chao circle[fill]:not([fill^="url"]):not([fill="none"]){fill:var(--m-dest2)}
+
+/* ---------- JOGOS (20/11): cenários de gênero no palco do Início — "grade" (sol de arcade + pista de luz) e "radar" (varredura) ---------- */
+@keyframes bwPista{from{background-position:0 0,0 0}to{background-position:0 0,0 44px}}
+@keyframes bwRadar{to{transform:translate(-50%,-50%) rotate(360deg)}}
+html[data-estilo="vidro"][data-fx~="grade"][data-modo][data-base][data-conteudo] .hub-palco{border-color:transparent;
+  background:radial-gradient(circle at 50% 36%,rgba(var(--m-dest2-rgb),.95) 0,rgba(var(--m-dest-rgb),.9) 25%,transparent 25.6%) padding-box,
+  linear-gradient(180deg,color-mix(in srgb,var(--m-dest2) 10%,var(--m-fundo)) 0,color-mix(in srgb,var(--m-dest) 34%,var(--m-fundo)) 52%,var(--m-fundo) 52.2%) padding-box,
+  conic-gradient(from var(--bw-ang),rgba(var(--m-dest-rgb),.15),var(--m-dest),rgba(var(--m-dest2-rgb),.2),var(--m-dest2),rgba(var(--m-dest-rgb),.15)) border-box}
+html[data-fx~="grade"] .hub-palco::before{content:"";position:absolute;left:-40%;right:-40%;top:52%;bottom:-30%;pointer-events:none;transform-origin:50% 0;transform:perspective(340px) rotateX(64deg);
+  background:repeating-linear-gradient(90deg,rgba(var(--m-dest-rgb),.75) 0 1.5px,transparent 1.5px 44px),repeating-linear-gradient(180deg,rgba(var(--m-dest-rgb),.75) 0 1.5px,transparent 1.5px 44px);
+  animation:bwPista 1.6s linear infinite;-webkit-mask-image:linear-gradient(180deg,transparent 0,#000 30%);mask-image:linear-gradient(180deg,transparent 0,#000 30%)}
+html[data-fx~="grade"] .hub-chao{opacity:0}
+html[data-estilo="vidro"][data-fx~="radar"][data-modo][data-base][data-conteudo] .hub-palco{border-color:transparent;
+  background:repeating-radial-gradient(circle at 50% 56%,transparent 0 58px,rgba(var(--m-dest-rgb),.2) 58px 59.5px) padding-box,
+  linear-gradient(rgba(var(--m-dest-rgb),.07) 1px,transparent 1px) 0 0/100% 34px padding-box,linear-gradient(90deg,rgba(var(--m-dest-rgb),.07) 1px,transparent 1px) 0 0/34px 100% padding-box,
+  linear-gradient(180deg,color-mix(in srgb,var(--m-dest) 9%,var(--m-fundo)),var(--m-fundo)) padding-box,
+  conic-gradient(from var(--bw-ang),rgba(var(--m-dest-rgb),.15),var(--m-dest),rgba(var(--m-dest2-rgb),.2),var(--m-dest2),rgba(var(--m-dest-rgb),.15)) border-box}
+html[data-fx~="radar"] .hub-palco::before{content:"";position:absolute;left:50%;top:56%;width:150%;aspect-ratio:1;pointer-events:none;transform:translate(-50%,-50%);border-radius:50%;
+  background:conic-gradient(from 0deg,rgba(var(--m-dest-rgb),.34),transparent 16%,transparent);animation:bwRadar 5s linear infinite}
+@media (prefers-reduced-motion:reduce){html[data-fx] .hub-palco::before{animation:none!important}}

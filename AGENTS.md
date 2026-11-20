@@ -432,6 +432,9 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
 122. Página SEM o menu (painéis: header + .hero + .card com cor escrita no próprio arquivo) não acompanha o modo só pelas variáveis: fundo de cartão
      em rgba/hex fixo fica escuro no modo claro. Regras do modo para essas páginas ficam num bloco só do modos.css (PAINÉIS) e o teste percorre
      TODOS os modos em cada painel (teste_modos.py). Gráfico em canvas lê a cor por window.__cv("--var", padrão), nunca cor escrita.
+123. Tema "de jogo/filme/marca famosa": nunca usar nome, letreiro, personagem, mapa ou logo de terceiros (nem "parecido"). Fazer tema ORIGINAL de
+     gênero (corrida, tático, arcade, fantasia…) com nome próprio; dizer isso ao dono numa frase. Cenário de modo no Início = fx de CSS no
+     .hub-palco (::before livre) com seletor mais forte que o do vidro+neon.
 
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
@@ -1412,6 +1415,13 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   (4,9 MB, versão conferida dentro do arquivo) → downloads/BW-Setup.exe. MANUAL DO USUÁRIO 50 → 52 p.: refeitas Conhecendo a tela (robô e 4 telas),
   Lançamentos PJ e PF, Minha empresa, Painel PJ e PF; novas Minha casa e Configurações e modos de aparência (docs/manual/telas_ambientes.py).
   teste-app 0 falhas (provedores simulados). NÃO testado: instalar o .exe 1.9 do zero e a atualização 1.8 → 1.9 num PC de verdade. sw v151.
+- 20/11/2026 14:45 · Claude (dono, com 2 imagens de referência: "está na moda o lançamento do GTA 6; crie um modelo para ele e para outros jogos famosos,
+  como Counter-Strike"): marcas, letreiros, personagens e mapas de jogos de verdade NÃO entram na plataforma (são de terceiros). Feito no lugar:
+  grupo JOGOS com 6 modos ORIGINAIS de gênero — NEON 80 (sol de arcade + pista de luz no Início), TÁTICO (radar varrendo), ARCADE 8-BIT (blocos de
+  pixel), CORRIDA (riscos de velocidade), FANTASIA (brasas) e ESPACIAL. Efeitos novos: pixels, brasas, velocidade (canvas), grade e radar (palco
+  do Início). 28 modos no total. Pela regra nova: app BW 1.9.1 (pacote, cópia sem internet, tutorial, BW-Setup.exe gerado no PC do dono — versão
+  conferida) e manual do usuário atualizados e publicados. teste_modos e teste-app 0 falhas; vigia ✅. NÃO feito: o robô não troca de roupa por
+  modo (precisaria de uma imagem por modo). modos.js v4, modos.css v4, sw v152. PENTE FINO 123.
 
 ## Pendências (dono)
 - [ ] (20/11) APP BW 1.9: dono abrir o BW no PC, tocar em ATUALIZAR quando o aviso aparecer e conferir MINHA EMPRESA, MINHA CASA e APARÊNCIA; fechar as

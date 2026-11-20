@@ -1,0 +1,17 @@
+[
+ {
+  "titulo": "Modos de JOGOS",
+  "texto": "Seis modos novos na engrenagem: NEON 80 (sol de arcade e pista de luz), TÁTICO (radar), ARCADE 8-BIT (blocos de pixel), CORRIDA, FANTASIA e ESPACIAL. A plataforma agora tem 28 modos.",
+  "abrir": "config"
+ },
+ {
+  "titulo": "Painéis acompanham o modo",
+  "texto": "O Painel Financeiro (PJ e PF) e o Painel de Investimentos mudam de cor junto com o modo escolhido.",
+  "abrir": "painel"
+ },
+ {
+  "titulo": "Vidro e luz em nove cores",
+  "texto": "PRETO E DOURADO, VERDE E PRETO, AZUL E PRETO e outros, mais quatro modos claros novos e o estilo vidro no modo com a sua marca.",
+  "abrir": "config"
+ }
+]

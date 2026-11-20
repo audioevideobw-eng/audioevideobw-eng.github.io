@@ -3,13 +3,13 @@
 
    COMO INCLUIR UM MODO NOVO: acrescente UM item na lista MODOS, logo abaixo. Só isso — ele aparece sozinho em CONFIGURAÇÕES › APARÊNCIA.
      id      nome curto sem espaço (fica guardado no aparelho)
-     nome    o que aparece no cartão            grupo  "SIMPLES" | "OUSADOS" | "DATAS ESPECIAIS"
+     nome    o que aparece no cartão            grupo  "SIMPLES" | "VIDRO E LUZ" | "JOGOS" | "OUSADOS" | "DATAS ESPECIAIS"
      base    "escuro" ou "claro"                frase  uma linha que explica o modo
      cores   fundo, cartao, linha, texto, destaque, destaque2 (2ª cor dos brilhos), menu  — o resto é calculado
      fundoCss (opcional) um degradê para o fundo da página
      estilo  (opcional) "vidro" = cartões de vidro com borda de luz na cor do modo (galerias, telas do Início e menu acompanham)
      fx      (opcional) efeitos animados: "neon" (bordas de luz que giram) · "aurora" (luzes de fundo que se movem) · "estrelas" ·
-             "neve" · "fogos" · "pisca" (cordão de luzes no topo) · "confete"
+             "neve" · "fogos" · "pisca" (cordão de luzes no topo) · "confete" · "pixels" · "brasas" · "velocidade" · "grade" (sol e pista de luz no Início) · "radar"
    O modo "dark" é o visual de sempre: não muda nada na página. A escolha fica só no aparelho (ui_modo) — nada vai para a conta.
    Este arquivo é carregado no <head> de todas as páginas, antes de desenhar, para a página já nascer na cor certa. */
 (function () {
@@ -22,6 +22,9 @@
       fundoCss: "radial-gradient(900px 520px at 88% -8%," + a(d, 0.2) + ",transparent 62%),radial-gradient(760px 480px at -4% 30%," + a(d2, 0.11) + ",transparent 62%),radial-gradient(700px 460px at 60% 110%," + a(d, 0.1) + ",transparent 60%)," + fundo,
       fx: ["neon", "aurora"]};
   }
+  /* MODOS DE JOGOS: o mesmo vidro, com cenário e efeito de gênero (corrida, tático, arcade…). jogo(id, NOME, frase, fundo, destaque, 2ª cor, fx).
+     São temas ORIGINAIS de gênero: nada de nome, letreiro, personagem ou mapa de jogo de verdade. */
+  function jogo(id, nome, frase, fundo, d, d2, fx) { var m = vidro(id, nome, frase, fundo, d, d2); m.grupo = "JOGOS"; m.fx = fx; return m; }
   function vmix(x, y, t) { var f = function (h) { h = h.replace("#", ""); return [parseInt(h.substr(0, 2), 16), parseInt(h.substr(2, 2), 16), parseInt(h.substr(4, 2), 16)]; }, A = f(x), B = f(y);
     return "#" + [0, 1, 2].map(function (i) { var v = Math.round(A[i] + (B[i] - A[i]) * t); return (v < 16 ? "0" : "") + v.toString(16); }).join(""); }
   var MODOS = [
@@ -52,6 +55,12 @@
     vidro("roxopreto", "ROXO E PRETO", "Preto, branco e roxo nos destaques.", "#09060F", "#A855F7", "#E9C8FF"),
     vidro("rosapreto", "ROSA E PRETO", "Preto, branco e rosa nos destaques.", "#0C060A", "#FF4F9A", "#FFC2DC"),
     vidro("pratapreto", "PRETO E PRATA", "Preto, branco e cinza: sem cor, só brilho.", "#07080A", "#E6E8EC", "#9AA3B2"),
+    jogo("neon80", "NEON 80", "Noite de cidade em rosa e laranja, com sol de arcade e pista de luz.", "#0D0618", "#FF4FB8", "#FFA24A", ["grade", "neon", "aurora"]),
+    jogo("tatico", "TÁTICO", "Verde-oliva e areia, com radar de missão varrendo a tela.", "#0A0D08", "#9BD14B", "#D9C27A", ["radar", "neon"]),
+    jogo("arcade", "ARCADE 8-BIT", "Fliperama: amarelo e azul, com blocos de pixel caindo.", "#070A1F", "#FFD23F", "#3FA9FF", ["pixels", "neon"]),
+    jogo("corrida", "CORRIDA", "Vermelho, preto e branco, com riscos de velocidade.", "#0B0707", "#FF2D2D", "#F4F4F4", ["velocidade", "neon"]),
+    jogo("fantasia", "FANTASIA", "Roxo e dourado, com brasas subindo e estrelas.", "#0C0714", "#E8B84A", "#A66BFF", ["brasas", "estrelas", "neon"]),
+    jogo("espacial", "ESPACIAL", "Azul profundo, estrelas e luzes de nebulosa.", "#04060F", "#5CE1FF", "#B48CFF", ["estrelas", "aurora", "neon"]),
     {id: "futurista", nome: "FUTURISTA", grupo: "OUSADOS", base: "escuro", frase: "Vidro, neon ciano e roxo e luzes em movimento.",
       cores: {fundo: "#050816", cartao: "#0C1330", linha: "#1E2A5A", texto: "#EAF2FF", destaque: "#3FE0FF", destaque2: "#A78BFA", menu: "#070B1E"},
       fundoCss: "radial-gradient(900px 520px at 85% -10%,rgba(124,92,255,.22),transparent 60%),radial-gradient(800px 500px at 0% 20%,rgba(40,170,255,.16),transparent 60%),#050816",
@@ -132,7 +141,7 @@
   var cv = null, raf = 0, parts = [], FX = [], PAL = null, ultimo = 0, prox = 0;
   function pararFx() { if (raf) cancelAnimationFrame(raf); raf = 0; parts = []; if (cv) { cv.remove(); cv = null; } }
   function ligarFx(fx, p) {
-    FX = fx.filter(function (f) { return /^(neve|fogos|estrelas|confete)$/.test(f); }); PAL = p; if (!FX.length || cv) return;
+    FX = fx.filter(function (f) { return /^(neve|fogos|estrelas|confete|pixels|brasas|velocidade)$/.test(f); }); PAL = p; if (!FX.length || cv) return;
     cv = document.createElement("canvas"); cv.id = "bwFx"; cv.setAttribute("aria-hidden", "true");
     cv.style.cssText = "position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:58";
     document.body.appendChild(cv); medir(); window.addEventListener("resize", medir);
@@ -140,11 +149,17 @@
     if (FX.indexOf("neve") >= 0) for (i = 0; i < (pequeno ? 26 : 60); i++) parts.push(floco(true));
     if (FX.indexOf("confete") >= 0) for (i = 0; i < (pequeno ? 18 : 40); i++) parts.push(papel(true));
     if (FX.indexOf("estrelas") >= 0) for (i = 0; i < (pequeno ? 26 : 60); i++) parts.push({t: "e", x: Math.random(), y: Math.random() * 0.75, r: 0.5 + Math.random() * 1.3, f: Math.random() * 6.28, v: 0.6 + Math.random() * 1.6});
+    if (FX.indexOf("pixels") >= 0) for (i = 0; i < (pequeno ? 16 : 34); i++) parts.push(bloco(true));
+    if (FX.indexOf("brasas") >= 0) for (i = 0; i < (pequeno ? 16 : 36); i++) parts.push(brasa(true));
+    if (FX.indexOf("velocidade") >= 0) for (i = 0; i < (pequeno ? 10 : 22); i++) parts.push(risco(true));
     ultimo = performance.now(); raf = requestAnimationFrame(quadro);
   }
   function medir() { if (!cv) return; var d = Math.min(window.devicePixelRatio || 1, 1.5); cv.width = Math.round(window.innerWidth * d); cv.height = Math.round(window.innerHeight * d); cv._d = d; }
   function floco(novo) { return {t: "n", x: Math.random(), y: novo ? Math.random() : -0.03, r: 1 + Math.random() * 2.6, vy: 0.03 + Math.random() * 0.06, f: Math.random() * 6.28, a: 0.45 + Math.random() * 0.5}; }
   function papel(novo) { var cs = [PAL.dest, PAL.dest2, "#FFD86B", "#FFFFFF", "#7CF3FF"]; return {t: "c", x: Math.random(), y: novo ? Math.random() : -0.03, w: 5 + Math.random() * 6, vy: 0.05 + Math.random() * 0.08, f: Math.random() * 6.28, g: Math.random() * 6.28, c: cs[Math.floor(Math.random() * cs.length)]}; }
+  function bloco(novo) { var cs = [PAL.dest, PAL.dest2, "#FF5C8A", "#5CFF9B"]; return {t: "p", x: Math.floor(Math.random() * 40) / 40, y: novo ? Math.random() : -0.04, s: 6 + Math.floor(Math.random() * 3) * 4, vy: 0.05 + Math.random() * 0.09, a: 0.25 + Math.random() * 0.45, c: cs[Math.floor(Math.random() * cs.length)], k: 0}; }
+  function brasa(novo) { return {t: "b", x: Math.random(), y: novo ? Math.random() : 1.03, r: 0.8 + Math.random() * 1.8, vy: 0.03 + Math.random() * 0.06, f: Math.random() * 6.28, a: 0.4 + Math.random() * 0.5}; }
+  function risco(novo) { return {t: "v", x: novo ? Math.random() : -0.2, y: Math.random(), w: 0.05 + Math.random() * 0.14, vx: 0.5 + Math.random() * 0.9, a: 0.12 + Math.random() * 0.3, c: Math.random() < 0.6 ? PAL.dest : PAL.dest2}; }
   function estouro() {
     var cs = [PAL.dest, PAL.dest2, "#FFFFFF", "#FF7AB6", "#7CF3FF"], c = cs[Math.floor(Math.random() * cs.length)], x = 0.12 + Math.random() * 0.76, y = 0.1 + Math.random() * 0.32, n = window.innerWidth < 700 ? 22 : 38;
     for (var i = 0; i < n; i++) { var a = i / n * 6.283, v = 0.07 + Math.random() * 0.1; parts.push({t: "f", x: x, y: y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, vida: 1, c: c}); }
@@ -160,13 +175,19 @@
       else if (q.t === "c") { q.y += q.vy * dt; q.f += dt * 2; q.g += dt * 5; q.x += Math.sin(q.f) * 0.0009; if (q.y > 1.03) parts[i] = papel(false);
         g.globalAlpha = 0.9; g.fillStyle = q.c; g.save(); g.translate(q.x * W, q.y * H); g.rotate(q.f); g.fillRect(-q.w * d / 2, -q.w * d * 0.3 * Math.abs(Math.cos(q.g)), q.w * d, q.w * d * 0.6 * Math.abs(Math.cos(q.g)) + 1); g.restore(); }
       else if (q.t === "e") { q.f += dt * q.v; g.globalAlpha = 0.25 + 0.55 * Math.abs(Math.sin(q.f)); g.fillStyle = "#fff"; g.beginPath(); g.arc(q.x * W, q.y * H, q.r * d, 0, 6.283); g.fill(); }
+      else if (q.t === "p") { q.k += dt; if (q.k > 0.09) { q.k = 0; q.y += q.vy * 0.09; } if (q.y > 1.04) parts[i] = bloco(false);   /* cai aos pulinhos, como sprite */
+        g.globalAlpha = q.a; g.fillStyle = q.c; g.fillRect(Math.round(q.x * W), Math.round(q.y * H), q.s * d, q.s * d); }
+      else if (q.t === "b") { q.y -= q.vy * dt; q.f += dt * 1.6; q.x += Math.sin(q.f) * 0.0008; if (q.y < -0.03) parts[i] = brasa(false);
+        g.globalAlpha = q.a * (0.55 + 0.45 * Math.sin(q.f * 3)); g.fillStyle = PAL.dest; g.shadowColor = PAL.dest; g.shadowBlur = 6 * d; g.beginPath(); g.arc(q.x * W, q.y * H, q.r * d, 0, 6.283); g.fill(); g.shadowBlur = 0; }
+      else if (q.t === "v") { q.x += q.vx * dt; if (q.x > 1.1) parts[i] = risco(false);
+        g.globalAlpha = q.a; g.fillStyle = q.c; g.fillRect(q.x * W, q.y * H, q.w * W, 1.5 * d); }
       else { q.x += q.vx * dt / razao; q.y += q.vy * dt; q.vy += 0.07 * dt; q.vx *= 0.985; q.vida -= dt * 0.75; if (q.vida <= 0) { parts.splice(i, 1); continue; }
         g.globalAlpha = Math.max(0, q.vida); g.fillStyle = q.c; g.beginPath(); g.arc(q.x * W, q.y * H, 2.1 * d, 0, 6.283); g.fill(); } }
     g.globalAlpha = 1;
   }
 
   /* folha de estilo dos modos (as regras só valem quando há data-modo) */
-  try { var lk = document.createElement("link"); lk.rel = "stylesheet"; lk.href = "assets/modos.css?v=3"; (document.head || R).appendChild(lk); } catch (e) { }
+  try { var lk = document.createElement("link"); lk.rel = "stylesheet"; lk.href = "assets/modos.css?v=4"; (document.head || R).appendChild(lk); } catch (e) { }
   /* cor de uma variável da página (gráficos desenhados em canvas não leem CSS sozinhos) */
   window.__cv = function (v, p) { try { return getComputedStyle(R).getPropertyValue(v).trim() || p; } catch (e) { return p; } };
   window.BWModos = {lista: lista, achar: achar, aplicar: aplicar, paleta: paleta, montar: montar, atual: function () { return achar(ler("ui_modo", "dark")).id; },

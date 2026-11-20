@@ -1,33 +1,24 @@
 {
- "versao": "1.9",
+ "versao": "1.9.1",
  "data": "20/11/2026",
  "pacote": "downloads/BW-Reels-Studio.zip",
- "sha256": "3560b1436494610254f1537e03ef11ae794134c497376b72e0e85254583fc4c5",
- "bytes": 8530972,
+ "sha256": "b4bcff8467a218db2c12979dc909267feb45d609bd039d939d6b00c6bf690496",
+ "bytes": 8533215,
  "novidades": [
   {
-   "titulo": "MINHA EMPRESA e MINHA CASA",
-   "texto": "Dois ecossistemas separados: pessoa jurídica (azul) e pessoa física (verde). Cada um com os seus números do mês, a sua agenda e as suas ferramentas. Os dados não se misturam.",
-   "abrir": "empresa"
-  },
-  {
-   "titulo": "Lançamentos PJ e PF, Painel PJ e PF",
-   "texto": "Duas abas em Lançamentos e duas no Painel Financeiro: uma para a empresa e outra para a casa.",
-   "abrir": "lancamentos"
-  },
-  {
-   "titulo": "Página principal nova",
-   "texto": "O robô no centro e quatro telas em volta: MEU NEGÓCIO, GESTÃO DE CASA, MARKETING e FERRAMENTAS. O Tio Cláudio ganhou o visual do robô.",
-   "abrir": "plataforma"
-  },
-  {
-   "titulo": "Modos de aparência",
-   "texto": "Na engrenagem: 22 modos — claros, vidro com luz em nove cores (preto e dourado, verde e preto…), FUTURISTA, NATAL, ANO NOVO — e um modo com as cores da sua marca. A escolha vale para este computador.",
+   "titulo": "Modos de JOGOS",
+   "texto": "Seis modos novos na engrenagem: NEON 80 (sol de arcade e pista de luz), TÁTICO (radar), ARCADE 8-BIT (blocos de pixel), CORRIDA, FANTASIA e ESPACIAL. A plataforma agora tem 28 modos.",
    "abrir": "config"
   },
   {
    "titulo": "Painéis acompanham o modo",
-   "texto": "O Painel Financeiro e o Painel de Investimentos mudam de cor junto com o modo escolhido."
+   "texto": "O Painel Financeiro (PJ e PF) e o Painel de Investimentos mudam de cor junto com o modo escolhido.",
+   "abrir": "painel"
+  },
+  {
+   "titulo": "Vidro e luz em nove cores",
+   "texto": "PRETO E DOURADO, VERDE E PRETO, AZUL E PRETO e outros, mais quatro modos claros novos e o estilo vidro no modo com a sua marca.",
+   "abrir": "config"
   }
  ]
 }
