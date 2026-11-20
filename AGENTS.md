@@ -352,6 +352,8 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
      o menu Atualizações fica marcado) e a tela O QUE MUDOU aparece uma vez na 1ª abertura da versão nova. Lançar versão = subir VERSAO em
      motor/app.mjs + `python3 docs/automacoes/publicar-app.py --pacote … --novidades …` (gera o zip e o json juntos). Teste do atualizador NUNCA
      aponta para a pasta de trabalho (BWREELS_RAIZ_ATU_TESTE): a cópia por cima apagaria o código.
+105. App instalado não pode depender de um passo opcional do instalador: quem abre (BW-REELS.bat) confere o que precisa (Node, node_modules) e
+     prepara sozinho. Todo .bat sai com CRLF (`file *.bat`): LF quebra goto/rótulos no cmd.
 102. PROMPT IA (promptia.html + assets/promptia.js): biblioteca em public.bw_trends (leitura pública, gravação só is_bw_admin, RLS —
      docs/sql/2026-11-19-prompt-ia.sql) + imagens no bucket público "trends" (só ADM envia); a análise manda a imagem para a bw-ia
      (campo "imagem", modelo com VISÃO da Groq) SÓ depois de confirm(), cópia ≤ 768 px JPEG, nada guardado; o promptia.js nunca grava na
@@ -1176,6 +1178,10 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   "✨ O que mudou no BW 1.4" com cada novidade abrindo a ferramenta. Site: downloads/app-versao.json + docs/automacoes/publicar-app.py. teste-app.mjs
   +11 checagens (servidor simulado, pacote adulterado e de fora recusados), 0 falhas. Nome no site: textos do BW Reels Pro, Quadro e manual agora falam
   do "app BW" (reels.js v16, reels-quadro.js v8). A 1.3 não tem o atualizador: quem instalou a 1.3 instala a 1.4 uma vez pelo BW-Setup.exe. sw v141. PENTE FINO 104.
+- 19/11/2026 22:30 · Claude (dono, print: "Cannot find package 'playwright-core'" ao abrir o BW instalado): o instalador copia o app sem node_modules e
+  depende do INSTALAR.bat do fim da instalação; se ele é desmarcado ou falha, o BW abre sem o motor. BW-REELS.bat agora confere Node e
+  node_modules\playwright-core e, se faltar, roda o INSTALAR.bat em modo "auto" (sem Claude Code e sem vídeo de demonstração) antes de abrir.
+  INSTALAR.bat convertido para CRLF (estava LF; goto em .bat LF falha). Pacote 1.4 refeito no site. PENTE FINO 105.
 
 ## Pendências (dono)
 - [ ] (19/11) INSTALADOR 1.4: gerar de novo no PC (AppVersion 1.4) e o dono instalar; a partir dela as atualizações chegam sozinhas. Antes: dono abrir Vídeos\\bw-reels-studio\\instalador\\BW-Setup.exe, avançar até o fim e abrir o ícone BW; dizer se instalou e abriu. Decidir sobre a licença comercial do Inno Setup.
