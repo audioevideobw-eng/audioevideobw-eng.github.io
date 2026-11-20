@@ -41,10 +41,11 @@ with sync_playwright() as p:
         v0 = pg.evaluate(VER, 0); v8 = pg.evaluate(VER, 8); v12 = pg.evaluate(VER, 12); v24 = pg.evaluate(VER, 24)
         ok(v0["logo"][0] == "ok" and v0["evento"][0] == "ok", "logo 3D e maquete de palco: dá no aparelho mesmo sem placa")
         ok(v0["avatar"][0] == "nuvem" and v0["hard"][0] == "nuvem", "sem placa, avatar e trabalho pesado vão para a nuvem")
-        ok(v8["avatar"][0] == "quase" and "triposr" in v8["avatar"][1], "8 GB: parte no aparelho (TripoSR) e parte na nuvem")
+        ok(v8["avatar"][0] == "ok" and "hunyuan-mini" in v8["avatar"][1], "8 GB: a forma já sai no aparelho (modelo pequeno do Hunyuan3D)")
+        ok(v8["hard"][0] == "quase", "8 GB: trabalho pesado é parte aqui, parte na nuvem")
         ok(v12["avatar"][0] == "ok" and "hunyuan-forma" in v12["avatar"][1], "12 GB: roda o Hunyuan3D 2.1 (forma)")
         ok(v24["hard"][0] == "ok" and "trellis2" in v24["hard"][1], "24 GB: roda o TRELLIS.2 e encara o trabalho pesado")
-        amd = pg.evaluate("""(()=>{const m=BW3DPlano.maquina(); m.placa.vram=24; m.placa.marca='amd';
+        amd = pg.evaluate("""(()=>{const m=BW3DPlano.maquina(); m.placa.vram=24; m.placa.marca='amd'; m.placa.talvezOutra=false; m.placa.integrada=false;
           const r=BW3DPlano.avaliar('avatar',m); return [r.nivel, r.porque];})()""")
         ok(amd[0] == "nuvem" and "CUDA" in amd[1], f"placa AMD de 24 GB: avisa que os geradores pedem CUDA ({amd[1][:40]}…)")
         # escolher um projeto mostra o caminho e o atalho
@@ -54,6 +55,19 @@ with sync_playwright() as p:
         ok(pg.locator('[data-ir="logo"]').count() == 1, "tem o atalho que abre a ferramenta certa")
         pg.click('[data-ir="logo"]'); pg.wait_for_timeout(400)
         ok(pg.evaluate("BW3DEditor.projeto().modo") == "logo", "o atalho leva para o LOGO 3D")
+        # notebook: o navegador vê o vídeo integrado — a tela avisa e deixa dizer a placa de verdade
+        pg.click('#d3Modos [data-m="plano"]'); pg.wait_for_timeout(300)
+        if largura < 500: pg.click('#d3AbasCel [data-aba="objeto"]'); pg.wait_for_timeout(150)
+        intg = pg.evaluate("""(()=>{const m=BW3DPlano.maquina(); m.placa.talvezOutra=true; m.placa.soNavegador='Intel(R) UHD Graphics';
+          const r=BW3DPlano.avaliar('avatar',m); return r.porque;})()""")
+        ok("integrado" in intg.lower() and "NVIDIA" in intg, "placa integrada: avisa que em notebook o navegador mostra o vídeo integrado")
+        ok(pg.locator("#d3PlacaMarca").count() == 1, "dá para dizer a MARCA da placa, não só a memória")
+        pg.select_option("#d3PlacaMarca", "nvidia"); pg.wait_for_timeout(300)
+        pg.select_option("#d3Vram", "6"); pg.wait_for_timeout(400)
+        pg.click('[data-pj="avatar"]'); pg.wait_for_timeout(400)
+        t6 = pg.inner_text("#d3Painel")
+        ok("mini" in t6.lower(), "RTX de 6 GB: oferece o modelo pequeno do Hunyuan3D (só a forma)")
+        ok(pg.evaluate("JSON.parse(localStorage.getItem('ui_3d_maquina')||'{}').marca") == "nvidia", "guarda a marca informada")
         # a memória informada pelo usuário manda e fica guardada
         pg.click('#d3Modos [data-m="plano"]'); pg.wait_for_timeout(300)
         if largura < 500: pg.click('#d3AbasCel [data-aba="objeto"]'); pg.wait_for_timeout(150)

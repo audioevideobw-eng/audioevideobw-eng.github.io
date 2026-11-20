@@ -8,6 +8,13 @@
 
   /* ---------- placas conhecidas: nome → VRAM em GB ---------- */
   var PLACAS = [
+    /* notebook primeiro: a mesma sigla tem MENOS memória no portátil (3060 laptop 6 GB, 4070 laptop 8 GB…) */
+    [/rtx\s*5090\s*(laptop|mobile)/i, 24], [/rtx\s*5080\s*(laptop|mobile)/i, 16], [/rtx\s*5070\s*ti\s*(laptop|mobile)/i, 12],
+    [/rtx\s*50[56]0\s*(laptop|mobile)/i, 8], [/rtx\s*5070\s*(laptop|mobile)/i, 8],
+    [/rtx\s*4090\s*(laptop|mobile)/i, 16], [/rtx\s*4080\s*(laptop|mobile)/i, 12], [/rtx\s*40[67]0\s*(laptop|mobile)/i, 8],
+    [/rtx\s*4050\s*(laptop|mobile)/i, 6],
+    [/rtx\s*3080\s*ti\s*(laptop|mobile)/i, 16], [/rtx\s*30[78]0\s*(laptop|mobile)/i, 8],
+    [/rtx\s*30[56]0\s*(laptop|mobile)/i, 6],
     [/rtx\s*(50)?90/i, 32], [/rtx\s*5080/i, 16], [/rtx\s*5070\s*ti/i, 16], [/rtx\s*5070/i, 12],
     [/rtx\s*5060\s*ti/i, 16], [/rtx\s*5060/i, 8], [/rtx\s*5050/i, 8],
     [/rtx\s*4090/i, 24], [/rtx\s*4080/i, 16], [/rtx\s*4070\s*ti\s*super/i, 16], [/rtx\s*4070\s*ti/i, 12],
@@ -42,7 +49,11 @@
   function maquina() {
     var p = lerPlaca(), g = null;
     try { g = JSON.parse(localStorage.getItem("ui_3d_maquina") || "null"); } catch (e) {}
-    if (g && g.vram != null) { p.vram = g.vram; p.conhecida = true; p.doUsuario = true; if (g.marca) p.marca = g.marca; }
+    p.soNavegador = p.nome;
+    if (g && g.vram != null) { p.vram = g.vram; p.conhecida = true; p.doUsuario = true; }
+    if (g && g.marca) { p.marca = g.marca; p.doUsuario = true; p.integrada = g.marca === "nenhuma"; if (g.nome) p.nome = g.nome; }
+    /* notebook: o navegador quase sempre mostra o vídeo INTEGRADO, não a placa dedicada */
+    p.talvezOutra = !(g && g.marca) && (p.integrada || !p.vram);
     var cel = /Android|iPhone|iPad|Mobile/i.test(navigator.userAgent || "");
     return { placa: p, ram: navigator.deviceMemory || 0, nucleos: navigator.hardwareConcurrency || 0,
       webgpu: !!navigator.gpu, celular: cel, appBW: !!(window.bwNode || window.BWNode),
@@ -54,9 +65,11 @@
     { id: "trellis2", nome: "TRELLIS.2 (Microsoft)", vram: 24, licenca: "MIT — pode vender o que sair", cuda: true,
       nota: "melhor qualidade aberta hoje; sai GLB com PBR" },
     { id: "hunyuan-forma", nome: "Hunyuan3D 2.1 — só a forma (Tencent)", vram: 10, licenca: "comunitária, com ressalvas", cuda: true,
-      nota: "a malha sai boa; a textura fica para depois (21 GB só ela)" },
+      nota: "a malha sai melhor que a do mini; a textura fica para depois (21 GB só ela)" },
     { id: "hunyuan-full", nome: "Hunyuan3D 2.1 completo (forma + textura PBR)", vram: 29, licenca: "comunitária, com ressalvas", cuda: true,
       nota: "é o que mais se parece com o resultado do Tripo" },
+    { id: "hunyuan-mini", nome: "Hunyuan3D 2 mini — só a forma (Tencent)", vram: 5, licenca: "comunitária, com ressalvas", cuda: true,
+      nota: "o modelo pequeno (0,6B) feito para placa de 5–6 GB; entrega a MALHA, sem textura" },
     { id: "triposr", nome: "TripoSR", vram: 6, licenca: "MIT", cuda: false,
       nota: "rápido e leve; objeto simples, textura fraca — roda até sem placa (devagar)" }
   ];
@@ -78,22 +91,22 @@
       entrega: ["PDF da planta", "GLB", "vídeo do giro"] },
     { id: "peca", icone: "🧊", nome: "UMA PEÇA OU PRODUTO EM 3D",
       exemplo: "troféu, embalagem, brinde, objeto do cliente para girar num post",
-      ia: "ajuda", vram: 6, onde: "FOTO → 3D (grátis) ou gerador de IA",
+      ia: "ajuda", vram: 5, onde: "FOTO → 3D (grátis) ou gerador de IA",
       passos: ["Objeto simétrico e simples: FOTO → 3D com frente, lado e costas já resolve",
         "Objeto com detalhe e textura: precisa de gerador de IA (local ou nuvem)",
         "Depois: reduzir a malha, conferir escala e exportar nos formatos do cliente"],
       entrega: ["GLB", "OBJ", "STL (impressão)", "vídeo do giro"] },
     { id: "avatar", icone: "🧍", nome: "AVATAR MEU E DA EQUIPE PARA ANIMAR",
       exemplo: "desenho institucional, mascote da empresa falando, equipe em Reels",
-      ia: true, vram: 10, rig: true, onde: "gerador de IA + esqueleto",
-      passos: ["Gerar o corpo: IA local (Hunyuan 2.1 a partir de 10 GB) ou nuvem",
+      ia: true, vram: 5, rig: true, onde: "gerador de IA + esqueleto",
+      passos: ["Gerar o corpo: IA local (a forma cabe a partir de 5–6 GB; a TEXTURA pede 16 GB ou nuvem)",
         "Esqueleto para animar: Mixamo (grátis, aceita GLB/FBX humanoide) ou o rig do próprio gerador",
         "Animar no Blender, no Unreal ou direto no Mixamo; trazer para o BW Reels como clipe"],
       entrega: ["GLB com esqueleto", "FBX", "clipes de animação"],
-      aviso: "Rosto parecido de verdade só sai com gerador de IA. A nossa FOTO → 3D entrega silhueta, não retrato." },
+      aviso: "Rosto parecido de verdade só sai com gerador de IA. A nossa FOTO → 3D entrega silhueta, não retrato. Em placa pequena sai a FORMA; a textura é a parte que pede placa grande ou nuvem." },
     { id: "jogo", icone: "🎮", nome: "PEÇAS PARA UM JOGO (2D OU 3D)",
       exemplo: "cenário, itens, personagem para um joguinho da marca",
-      ia: "ajuda", vram: 6, onde: "2D no CRIADOR IA · 3D com gerador + redução",
+      ia: "ajuda", vram: 5, onde: "2D no CRIADOR IA · 3D com gerador + redução",
       passos: ["Jogo 2D: as artes saem do CRIADOR IA e do Editor de fotos — não precisa de placa nenhuma",
         "Jogo 3D: cada peça precisa ser LEVE (abaixo de 30 mil polígonos) e ter textura em UV",
         "Motor do jogo: Godot (grátis), Unity ou Unreal — todos abrem GLB e FBX"],
@@ -126,18 +139,21 @@
       r.nivel = "ok"; r.titulo = "A sua placa aguenta";
       r.porque = "Com " + v + " GB de vídeo você roda: " + podem.map(function (g) { return g.nome; }).join(" · ") + ".";
       r.caminho = ["Instalar o gerador no seu PC (o app BW faz isso por você)"].concat(p.passos);
+      if (v <= 8) r.caminho.push("Placa pequena troca memória de vídeo por memória do PC: deixe 24 GB de RAM livres e espere mais tempo por peça");
     } else if (v > 0 && nvidia) {
       r.nivel = "quase"; r.titulo = "A sua placa faz parte do caminho";
       r.porque = "Você tem " + v + " GB e este projeto pede " + precisa + " GB para rodar aqui. Dá para fazer a parte leve na máquina e a parte pesada na nuvem.";
       r.caminho = ["Parte leve no aparelho (recorte, montagem, redução, formatos, vídeo)",
-        "Parte pesada: alugar GPU por hora ou usar uma IA paga por peça",
+        "Parte pesada: alugar uma placa de 24 GB por hora (referência de 20/11/2026: US$ 0,34 a 0,89 por hora) ou pagar por peça",
         "O resultado volta para cá e segue na esteira"].concat(p.passos);
     } else {
       r.nivel = "nuvem"; r.titulo = maq.celular ? "No celular, esta parte é na nuvem" : "Esta parte não roda na sua placa";
-      r.porque = maq.placa.integrada || !v
-        ? "A sua máquina não tem placa de vídeo dedicada" + (maq.placa.nome !== "não deu para ler" ? " (" + maq.placa.nome + ")" : "") + " — os geradores 3D abertos pedem placa NVIDIA com CUDA."
+      r.porque = maq.placa.talvezOutra
+        ? "O navegador leu \u201c" + maq.placa.soNavegador + "\u201d. Em notebook isso costuma ser o vídeo INTEGRADO — se este computador tem placa NVIDIA, diga qual acima que o plano muda na hora."
+        : maq.placa.integrada || !v
+        ? "Esta máquina não tem placa de vídeo dedicada — os geradores 3D abertos pedem placa NVIDIA com CUDA."
         : "Os geradores abertos rodam em CUDA (NVIDIA); a sua é " + maq.placa.marca.toUpperCase() + ".";
-      r.caminho = ["Gerar na nuvem: IA paga por peça (de centavos a poucos reais) ou aluguel de GPU por hora",
+      r.caminho = ["Gerar na nuvem: IA paga por peça, ou alugar uma placa de 24 GB por hora (referência de 20/11/2026: US$ 0,34 a 0,89 por hora)",
         "Tudo o que vem depois — reduzir, conferir, formatos, maquete, vídeo, entrega — roda aqui no seu aparelho"].concat(p.passos);
       if (!maq.celular) r.caminho.push("Dá para testar o TripoSR na CPU (sem placa), mas é lento e o resultado é simples");
     }
@@ -145,7 +161,7 @@
   }
   function resumo(maq) {
     var p = maq.placa, l = [];
-    l.push(p.nome === "não deu para ler" ? "Placa de vídeo: não deu para ler pelo navegador" : "Placa: " + p.nome);
+    l.push(p.nome === "não deu para ler" ? "Placa de vídeo: não deu para ler pelo navegador" : (p.doUsuario ? "Placa: " : "O navegador vê: ") + p.nome);
     if (p.vram) l.push(p.vram + " GB de vídeo (estimado pelo modelo)");
     else if (p.integrada) l.push("vídeo integrado (sem memória dedicada)");
     if (maq.ram) l.push(maq.ram + " GB de RAM"); if (maq.nucleos) l.push(maq.nucleos + " núcleos");
@@ -153,5 +169,5 @@
     return l.join(" · ");
   }
   window.BW3DPlano = { maquina: maquina, lerPlaca: lerPlaca, PROJETOS: PROJETOS, GERADORES: GERADORES, avaliar: avaliar, resumo: resumo,
-    FONTES: "VRAM dos geradores abertos conferida em 20/11/2026: TRELLIS.2 24 GB (MIT); Hunyuan3D 2.1 10 GB forma / 21 GB textura / 29 GB completo; TripoSR ~6 GB." };
+    FONTES: "Conferido em 20/11/2026: TRELLIS.2 24 GB (MIT); Hunyuan3D 2.1 10 GB forma / 21 GB textura / 29 GB completo; Hunyuan3D 2.0 6 GB forma e 16 GB com textura; Hunyuan3D 2 mini 5–6 GB (só a forma); TripoSR ~6 GB. Aluguel de placa de 24 GB por hora: US$ 0,34 a 0,89. Preço e requisito mudam — confira antes de contratar." };
 })();

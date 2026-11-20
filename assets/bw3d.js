@@ -312,9 +312,15 @@
     if (!window.BW3DPlano) return '<p class="d3-nota">Recarregue a página para carregar o plano.</p>';
     var mq = maquina(), h = "", esc2 = esc;
     h += '<div class="d3-ficha" style="background:rgba(124,92,255,.1);border-color:rgba(124,92,255,.3)"><b>A SUA MÁQUINA</b><br>' + esc2(BW3DPlano.resumo(mq)) +
-      (mq.placa.doUsuario ? "" : mq.placa.vram ? '<br><span style="opacity:.8">memória de vídeo estimada pelo modelo da placa — confira abaixo</span>' : "") +
-      '<div class="d3-fx" style="margin-top:8px"><label class="d3-l" style="margin:0;flex:1"><span>Memória da sua placa de vídeo</span>' +
-      '<select class="d3-sel" id="d3Vram">' + op([[0, "Sem placa dedicada / não sei"], [4, "4 GB"], [6, "6 GB"], [8, "8 GB"], [10, "10 GB"], [12, "12 GB"], [16, "16 GB"], [24, "24 GB"], [32, "32 GB ou mais"]], mq.placa.vram || 0) + "</select></label></div></div>";
+      (mq.placa.doUsuario ? "" : mq.placa.talvezOutra
+        ? '<br><span style="color:#FFB547">⚠ Em notebook o navegador quase sempre mostra o vídeo integrado. Se este computador tem placa NVIDIA, diga qual abaixo.</span>'
+        : mq.placa.vram ? '<br><span style="opacity:.8">memória de vídeo estimada pelo modelo da placa — confira abaixo</span>' : "") +
+      '<div class="d3-fx" style="margin-top:8px;flex-wrap:wrap">' +
+      '<label class="d3-l" style="margin:0;flex:1;min-width:150px"><span>Marca da placa</span><select class="d3-sel" id="d3PlacaMarca">' +
+      op([["nvidia", "NVIDIA (GeForce/RTX)"], ["amd", "AMD Radeon"], ["intel", "Intel Arc"], ["apple", "Apple (M1/M2/M3…)"], ["nenhuma", "Só o vídeo integrado"]], mq.placa.integrada && !mq.placa.doUsuario ? "nenhuma" : mq.placa.marca) + "</select></label>" +
+      '<label class="d3-l" style="margin:0;flex:1;min-width:150px"><span>Memória de vídeo</span><select class="d3-sel" id="d3Vram">' +
+      op([[0, "Não sei / nenhuma"], [4, "4 GB"], [6, "6 GB"], [8, "8 GB"], [10, "10 GB"], [12, "12 GB"], [16, "16 GB"], [24, "24 GB"], [32, "32 GB ou mais"]], mq.placa.vram || 0) + "</select></label></div>" +
+      (mq.ram && mq.ram <= 16 ? '<div style="margin-top:6px;opacity:.85">Com placa de até 8 GB o gerador usa a RAM do PC como apoio: com ' + mq.ram + ' GB dá para rodar os modelos pequenos, mas feche o resto.</div>' : "") + "</div>";
     h += '<p class="d3-nota" style="margin:10px 0 6px"><b>O que você quer fazer?</b></p><div class="d3-lista">';
     BW3DPlano.PROJETOS.forEach(function (pj) {
       var r = BW3DPlano.avaliar(pj, mq), cor = r.nivel === "ok" ? "#B6FF3B" : r.nivel === "quase" ? "#FFB547" : "#7C5CFF";
@@ -387,10 +393,20 @@
     pn.querySelectorAll("[data-pj]").forEach(function (b) { b.onclick = function () { P.plano.projeto = b.getAttribute("data-pj"); painel(); guardarTarde();
       var el = pn.querySelector(".d3-ficha[style*='margin-top']"); if (el && el.scrollIntoView) el.scrollIntoView({ behavior: "smooth", block: "nearest" }); }; });
     pn.querySelectorAll("[data-ir]").forEach(function (b) { b.onclick = function () { trocarModo(b.getAttribute("data-ir")); }; });
+    function guardarMaquina(msg) {
+      MAQ.placa.doUsuario = true; MAQ.placa.conhecida = true; MAQ.placa.talvezOutra = false;
+      MAQ.placa.integrada = MAQ.placa.marca === "nenhuma";
+      try { localStorage.setItem("ui_3d_maquina", JSON.stringify({ vram: MAQ.placa.vram, marca: MAQ.placa.marca })); } catch (e) {}
+      painel(); aviso(msg);
+    }
     if ($("d3Vram")) $("d3Vram").onchange = function () {
-      var v = num(this.value, 0); MAQ.placa.vram = v; MAQ.placa.doUsuario = true; MAQ.placa.conhecida = true;
-      try { localStorage.setItem("ui_3d_maquina", JSON.stringify({ vram: v, marca: MAQ.placa.marca })); } catch (e) {}
-      painel(); aviso(v ? "Pronto: plano refeito para uma placa de " + v + " GB." : "Pronto: plano refeito para máquina sem placa dedicada.");
+      MAQ.placa.vram = num(this.value, 0);
+      guardarMaquina(MAQ.placa.vram ? "Pronto: plano refeito para uma placa de " + MAQ.placa.vram + " GB." : "Pronto: plano refeito para máquina sem placa dedicada.");
+    };
+    if ($("d3PlacaMarca")) $("d3PlacaMarca").onchange = function () {
+      MAQ.placa.marca = this.value;
+      if (this.value === "nenhuma") MAQ.placa.vram = 0;
+      guardarMaquina("Pronto: plano refeito para placa " + (this.value === "nenhuma" ? "integrada" : this.value.toUpperCase()) + ".");
     };
     if ($("d3Fr")) $("d3Fr").onclick = function () { $("d3Img").setAttribute("data-alvo", "frente"); $("d3Img").click(); };
     if ($("d3La")) $("d3La").onclick = function () { $("d3Img").setAttribute("data-alvo", "lado"); $("d3Img").click(); };

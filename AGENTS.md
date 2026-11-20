@@ -458,6 +458,11 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
      em CUDA, então placa AMD/Intel/Apple com 24 GB NÃO "aguenta" — cai em nuvem; número de VRAM de modelo de IA leva a data da conferência
      (auto: teste_3d_plano.py, vigia 7.8e).
 
+129. O navegador NÃO enxerga a placa dedicada de um notebook: o WebGL do Chrome no PC do dono (RTX 3050 6 GB Laptop) devolveu
+     "Intel(R) UHD Graphics" — o Chrome roda no vídeo integrado para poupar bateria. Leitura de hardware pelo navegador é PALPITE:
+     quando vier integrada (ou vazia), avisar que em notebook é normal e pedir MARCA + memória da placa de verdade (ui_3d_maquina
+     guarda as duas); nunca cravar "esta máquina não tem placa". O número certo só vem do app BW (nvidia-smi/wmic no PC) (auto: teste_3d_plano.py).
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -1486,11 +1491,21 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   teste_3d, teste_3d_foto, teste_telas e teste_motion 0 falhas; vigia ✅. App BW 1.9.4 (cartão do Estúdio 3D, cópia sem internet com o
   arquivo novo, novidades publicadas) e manual 53 → 54 p. (página "O que a sua máquina consegue fazer"). BW-Setup.exe continua o 1.9.1 —
   quem já tem o app atualiza sozinho. NÃO testado: placa de verdade (aqui o navegador do teste não tem GPU) nem iPhone/Android reais. sw v157.
+- 20/11/2026 19:40 · Claude (dono: "MINHA PLACA É UMA RTX 3050 6G NOTEBOOK" + "DEIXEI ABERTO, PODE CONFERIR OS DADOS"): li a máquina dele
+  pelo navegador e o WebGL devolveu "Intel(R) UHD Graphics" — o Chrome do notebook roda no vídeo INTEGRADO, então o plano o classificava
+  como "sem placa → nuvem", errado (o painel NVIDIA dele mostra RTX 3050 6GB Laptop, 12 núcleos, 16 GB de RAM). Correções: (1) tabela com as
+  placas de NOTEBOOK antes das de mesa (a mesma sigla tem menos memória no portátil: 3060 laptop 6 GB, 4070 laptop 8 GB, 4090 laptop 16 GB…);
+  (2) quando a leitura dá vídeo integrado, a tela AVISA que em notebook isso é normal e pede MARCA + memória (ui_3d_maquina guarda as duas;
+  o resumo diz "O navegador vê:" enquanto o usuário não confirmar); (3) gerador novo na lista: Hunyuan3D 2 mini (5–6 GB, só a FORMA — é o
+  modelo que a documentação cita justamente para GTX 1060 6 GB e RTX 3050), e por isso peça/avatar/jogo passam a "DÁ AQUI" a partir de 5–6 GB,
+  com o aviso de que a TEXTURA é que pede 16 GB ou nuvem; (4) aviso de RAM (placa pequena usa a RAM como apoio; 24 GB é o confortável) e preço
+  de referência do aluguel de placa de 24 GB (US$ 0,34–0,89/h, conferido em 20/11/2026). teste_3d_plano.py +5 checagens (0 falhas).
+  sw v158.
 
 ## Pendências (dono)
-- [ ] (20/11) PLANO DO PROJETO: dono abrir Marketing → Estúdio 3D no PC e conferir se a placa que aparece em A SUA MÁQUINA é a dele e se a
-      memória de vídeo está certa (se não, escolher no seletor) — e dizer qual é a placa, para eu acertar a tabela. Depois tocar em
-      AVATAR MEU E DA EQUIPE e dizer se o veredito e o caminho fazem sentido para o que ele quer vender.
+- [ ] (20/11) PLANO DO PROJETO: a placa do dono é RTX 3050 6 GB Laptop (16 GB de RAM, 12 núcleos) — o navegador mostra o Intel integrado, então
+      ele precisa escolher uma vez NVIDIA + 6 GB em A SUA MÁQUINA (fica guardado). Depois dizer se o veredito e o caminho do AVATAR fazem
+      sentido para o que ele quer vender. Próximo passo possível: o app BW ler a placa de verdade (nvidia-smi) e mandar para a página.
 - [ ] (20/11) ESTÚDIO 3D: dono abrir em Marketing → Estúdio 3D no PC e no celular; testar com um modelo 3D de verdade (GLB), com a logo da BW
       (LOGO 3D → fundo transparente → PNG) e montar a maquete de um evento real (painéis, pitch) → conferir se a RESOLUÇÃO EM PIXELS bate com
       a do fornecedor do telão, gerar a PLANTA EM PDF e um vídeo do giro. Dizer o que falta (mais itens de palco? medidas em pés? treliça por metro?).
