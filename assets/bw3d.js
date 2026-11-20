@@ -46,7 +46,7 @@
 
   /* ---------- projeto ---------- */
   function novo(modo) {
-    return { v: 1, id: uid("p3"), nome: "Meu 3D", modo: modo || "modelo", atualizado: Date.now(),
+    return { v: 1, id: uid("p3"), nome: "Meu 3D", modo: modo || "plano", atualizado: Date.now(),
       fundo: { tipo: "estudio", cor: "#0B0E14" }, chao: { mostrar: true, tam: 10, passo: 1 },
       luz: { preset: "estudio", amb: 0.26 }, cam: { yaw: 0.6, pitch: 0.34, dist: 6, alvo: [0, 0.8, 0], fov: 0.62, auto: true },
       giro: { liga: true, seg: 8 },
@@ -56,6 +56,7 @@
         trelica: true, torres: true, pessoas: 4, cameras: 1, medidas: true, conteudoId: "" },
       ia: { pedido: "", estilo: "produto", ia: "tripo" },
       foto: { frenteId: "", ladoId: "", costasId: "", alturaM: 1.75, res: 128, espessura: 1, suave: 3, nome: "Avatar" },
+      plano: { vram: null, projeto: "" },
       exportar: { formato: "9:16", w: 1080, h: 1920, dur: 8, qual: 1280 } };
   }
   function limpar(o) {   /* garante campos novos em projeto antigo */
@@ -76,7 +77,9 @@
   }
   function montar(t, w, h) {
     var objs = [], med = [], mat = MATS[P.modelo.material] || MATS.plastico, modo = P.modo;
-    if (modo === "foto") {
+    if (modo === "plano") {
+      objs.push(B.caixa({ tam: [1.1, 1.1, 1.1], cor: "#7C5CFF", mat: MATS.plastico, rot: [0, 0.5, 0], nome: "Estúdio 3D" }));
+    } else if (modo === "foto") {
       if (MALHA3D) objs.push(MALHA3D);
       else objs.push(B.caixa({ tam: [0.6, 1.7, 0.35], cor: "#2a3346", mat: MATS.fosco, nome: "Mande os seus planos em PNG" }));
     } else if (modo === "modelo" || modo === "ia") {
@@ -215,7 +218,9 @@
     var h = "", m = P.modo, f = m === "palco" ? fichaLED() : null;
     /* ---- objeto ---- */
     h += '<div class="d3-g" data-aba="objeto"><h4 data-seta="d3obj">' + (m === "logo" ? "A SUA LOGO" : m === "palco" ? "PALCO E PAINEL DE LED" : m === "ia" ? "PEDIR PARA A IA" : "O MODELO") + "</h4><div>";
-    if (m === "modelo") {
+    if (m === "plano") {
+      h += painelPlano();
+    } else if (m === "modelo") {
       var a = ARQ[P.modelo.arqId];
       h += '<div class="d3-fx" style="margin-bottom:8px"><button class="d3-bt pri" id="d3Abrir" type="button">📂 ABRIR MODELO (GLB · OBJ · STL)</button></div>';
       h += '<p class="d3-nota" style="margin:0 0 8px">' + (a ? "<b>" + esc(a.nome) + "</b> · " + (a.faces ? a.faces.length.toLocaleString("pt-BR") + " triângulos" : "") + (a.medida ? " · " + nm(a.medida.originais[1]) + " de altura no arquivo" : "") : "Sem modelo: mostrando uma forma pronta. GLB, OBJ e STL abrem direto (sem Draco).") + "</p>";
@@ -297,6 +302,53 @@
     ligarPainel();
     if (window.BWDobras) BWDobras.aplicar($("d3Painel"));
   }
+  /* ---------- PLANO DO PROJETO: a máquina do usuário decide o caminho ---------- */
+  var MAQ = null;
+  function maquina() {
+    if (!MAQ && window.BW3DPlano) MAQ = BW3DPlano.maquina();
+    return MAQ;
+  }
+  function painelPlano() {
+    if (!window.BW3DPlano) return '<p class="d3-nota">Recarregue a página para carregar o plano.</p>';
+    var mq = maquina(), h = "", esc2 = esc;
+    h += '<div class="d3-ficha" style="background:rgba(124,92,255,.1);border-color:rgba(124,92,255,.3)"><b>A SUA MÁQUINA</b><br>' + esc2(BW3DPlano.resumo(mq)) +
+      (mq.placa.doUsuario ? "" : mq.placa.vram ? '<br><span style="opacity:.8">memória de vídeo estimada pelo modelo da placa — confira abaixo</span>' : "") +
+      '<div class="d3-fx" style="margin-top:8px"><label class="d3-l" style="margin:0;flex:1"><span>Memória da sua placa de vídeo</span>' +
+      '<select class="d3-sel" id="d3Vram">' + op([[0, "Sem placa dedicada / não sei"], [4, "4 GB"], [6, "6 GB"], [8, "8 GB"], [10, "10 GB"], [12, "12 GB"], [16, "16 GB"], [24, "24 GB"], [32, "32 GB ou mais"]], mq.placa.vram || 0) + "</select></label></div></div>";
+    h += '<p class="d3-nota" style="margin:10px 0 6px"><b>O que você quer fazer?</b></p><div class="d3-lista">';
+    BW3DPlano.PROJETOS.forEach(function (pj) {
+      var r = BW3DPlano.avaliar(pj, mq), cor = r.nivel === "ok" ? "#B6FF3B" : r.nivel === "quase" ? "#FFB547" : "#7C5CFF";
+      var selo = r.nivel === "ok" ? "DÁ AQUI" : r.nivel === "quase" ? "PARTE AQUI" : "NA NUVEM";
+      h += '<button class="d3-obj" type="button" data-pj="' + pj.id + '" style="text-align:left;cursor:pointer;border-color:' + cor + '40">' +
+        '<span style="font-size:19px">' + pj.icone + "</span><span class=\"nm\" style=\"white-space:normal\"><b>" + esc2(pj.nome) + "</b><br><span style=\"opacity:.75;font-weight:600\">" + esc2(pj.exemplo) + "</span></span>" +
+        '<span style="font:800 9.5px Inter,sans-serif;letter-spacing:.08em;color:' + cor + ';border:1px solid ' + cor + '55;border-radius:999px;padding:3px 7px;white-space:nowrap">' + selo + "</span></button>";
+    });
+    h += "</div>";
+    if (P.plano.projeto) {
+      var r2 = BW3DPlano.avaliar(P.plano.projeto, mq);
+      if (r2) {
+        var c2 = r2.nivel === "ok" ? "#B6FF3B" : r2.nivel === "quase" ? "#FFB547" : "#7C5CFF";
+        h += '<div class="d3-ficha" style="margin-top:12px;border-color:' + c2 + '55;background:' + c2 + '12">';
+        h += '<b style="color:' + c2 + '">' + esc2(r2.titulo.toUpperCase()) + "</b><br>" + esc2(r2.porque) + "<br><br><b>O CAMINHO</b><br>";
+        r2.caminho.forEach(function (x, i) { h += (i + 1) + ". " + esc2(x) + "<br>"; });
+        if (r2.geradores.length) h += "<br><b>RODA NA SUA PLACA</b><br>" + r2.geradores.map(function (g) { return esc2(g.nome) + " — " + g.vram + " GB · " + esc2(g.licenca); }).join("<br>");
+        if (r2.projeto.entrega) h += "<br><br><b>O QUE VOCÊ ENTREGA</b><br>" + r2.projeto.entrega.map(esc2).join(" · ");
+        if (r2.projeto.aviso) h += '<br><br><span style="color:#ffd9da">⚠ ' + esc2(r2.projeto.aviso) + "</span>";
+        h += '<div class="d3-fx" style="margin-top:10px">' + atalhoDoProjeto(r2.projeto) + "</div></div>";
+      }
+    }
+    h += '<p class="d3-nota" style="margin:10px 0 0">' + esc2(BW3DPlano.FONTES) + " Nada disso sai do aparelho: a leitura da placa é do próprio navegador.</p>";
+    return h;
+  }
+  function atalhoDoProjeto(pj) {
+    var b = '<button class="d3-bt pri" type="button" data-ir="';
+    if (pj.id === "logo") return b + 'logo">✨ ABRIR O LOGO 3D</button>';
+    if (pj.id === "evento") return b + 'palco">🎪 ABRIR A MAQUETE</button>';
+    if (pj.id === "peca") return b + 'foto">🧍 ABRIR O FOTO → 3D</button>' + '<a class="d3-bt" href="criador.html">🎨 CRIADOR IA</a>';
+    if (pj.id === "avatar") return b + 'foto">🧍 COMEÇAR PELO FOTO → 3D</button>' + '<a class="d3-bt" href="personagens.html">👤 PERSONAGENS</a>';
+    if (pj.id === "jogo") return '<a class="d3-bt pri" href="criador.html">🎨 ARTES 2D NO CRIADOR IA</a>' + b + 'modelo">🧊 ABRIR MODELO 3D</button>';
+    return b + 'modelo">🧊 ABRIR MODELO 3D</button>';
+  }
   function chip(k, txt) { return '<button class="d3-chip' + (getK(k) ? " on" : "") + '" data-ch="' + k + '" type="button">' + txt + "</button>"; }
   function fichaHTML(f) {
     if (!f) return "";
@@ -332,6 +384,14 @@
       (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(function () { aviso("Pedido copiado — cole na IA."); }, function () { $("d3PromptTxt").select(); aviso("Toque e segure para copiar o texto.", true); });
     };
     if ($("d3AbrirIA")) $("d3AbrirIA").href = { tripo: "https://www.tripo3d.ai/", meshy: "https://www.meshy.ai/", rodin: "https://hyper3d.ai/", hunyuan: "https://3d.hunyuan.tencent.com/" }[P.ia.ia] || "https://www.tripo3d.ai/";
+    pn.querySelectorAll("[data-pj]").forEach(function (b) { b.onclick = function () { P.plano.projeto = b.getAttribute("data-pj"); painel(); guardarTarde();
+      var el = pn.querySelector(".d3-ficha[style*='margin-top']"); if (el && el.scrollIntoView) el.scrollIntoView({ behavior: "smooth", block: "nearest" }); }; });
+    pn.querySelectorAll("[data-ir]").forEach(function (b) { b.onclick = function () { trocarModo(b.getAttribute("data-ir")); }; });
+    if ($("d3Vram")) $("d3Vram").onchange = function () {
+      var v = num(this.value, 0); MAQ.placa.vram = v; MAQ.placa.doUsuario = true; MAQ.placa.conhecida = true;
+      try { localStorage.setItem("ui_3d_maquina", JSON.stringify({ vram: v, marca: MAQ.placa.marca })); } catch (e) {}
+      painel(); aviso(v ? "Pronto: plano refeito para uma placa de " + v + " GB." : "Pronto: plano refeito para máquina sem placa dedicada.");
+    };
     if ($("d3Fr")) $("d3Fr").onclick = function () { $("d3Img").setAttribute("data-alvo", "frente"); $("d3Img").click(); };
     if ($("d3La")) $("d3La").onclick = function () { $("d3Img").setAttribute("data-alvo", "lado"); $("d3Img").click(); };
     if ($("d3Co")) $("d3Co").onclick = function () { $("d3Img").setAttribute("data-alvo", "costas"); $("d3Img").click(); };
@@ -594,6 +654,7 @@
 
   /* ---------- modos ---------- */
   var NOTAS = {
+    plano: "Diga o que você quer fazer: o sistema olha a sua placa de vídeo e responde o que dá para fazer aqui, o que precisa de IA e de que tamanho de placa, e o que só sai na nuvem.",
     modelo: "Abra um modelo 3D (GLB, OBJ ou STL), gire, ilumine e gere o vídeo do giro — tudo no aparelho.",
     logo: "A sua logo em PNG vira relevo 3D com dourado, prata ou cromado. Fundo transparente = PNG com recorte; fundo verde = chroma key.",
     palco: "Monte o palco com medida real: painéis de LED de 0,5 m, treliça, pessoas de escala — e veja a RESOLUÇÃO EM PIXELS do telão para já criar a arte do tamanho certo.",
@@ -609,6 +670,7 @@
       if (m === "logo") { P.cam.pitch = 0.1; P.cam.yaw = 0.5; P.chao.mostrar = false; }
       if (m === "palco") { P.cam.pitch = 0.26; P.cam.yaw = 0.55; P.chao.mostrar = true; P.giro.seg = Math.max(P.giro.seg, 10); }
       if (m === "modelo" || m === "ia") { P.cam.pitch = 0.3; P.chao.mostrar = true; }
+      if (m === "plano") { P.cam.pitch = 0.3; P.chao.mostrar = true; }
       if (m === "foto") { P.cam.pitch = 0.18; P.cam.yaw = 0.5; P.chao.mostrar = true; P.giro.seg = Math.max(P.giro.seg, 8); }
     }
     painel(); medir(); ver(primeira ? 0 : 0); guardar();
@@ -663,7 +725,7 @@
   async function ligar() {
     CV = $("d3Cv");
     var salvo = null; try { salvo = JSON.parse(localStorage.getItem("ui_3d_atual") || "null"); } catch (e) {}
-    P = salvo && salvo.v ? limpar(salvo) : novo("modelo");
+    P = salvo && salvo.v ? limpar(salvo) : novo("plano");
     var u = new URLSearchParams(location.search);
     if (u.get("modo") && NOTAS[u.get("modo")]) P.modo = u.get("modo");
     if (u.get("w") && u.get("h")) { P.exportar.formato = "livre"; P.exportar.w = num(u.get("w"), 1080); P.exportar.h = num(u.get("h"), 1920); }

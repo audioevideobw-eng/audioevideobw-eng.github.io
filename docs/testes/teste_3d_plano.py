@@ -1,0 +1,71 @@
+#!/usr/bin/env python3
+"""Teste do PLANO DO PROJETO 3D (ESTÚDIO 3D, 20/11): o sistema lê a placa de vídeo do usuário e,
+para cada tipo de projeto (logo, palco, peça, avatar, jogo, pesado), diz o que dá para fazer no
+aparelho, o que precisa de IA e de quanta VRAM, e o que só sai na nuvem. 1280 e 390 px.
+Uso (na raiz): python3 docs/testes/teste_3d_plano.py"""
+import os, http.server, socketserver, threading
+from playwright.sync_api import sync_playwright
+RAIZ = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")); PORTA = 8867
+STUB = "window.supabase={createClient:function(){return {auth:{getSession:async()=>({data:{session:null}}),getUser:async()=>({data:{user:null}}),onAuthStateChange(){return {data:{subscription:{unsubscribe(){}}}}}},from(){const q={select(){return q},eq(){return q},then(r){return Promise.resolve({data:[],error:null}).then(r)}};return q},rpc:async()=>({data:null,error:null})}}};"
+class Q(http.server.SimpleHTTPRequestHandler):
+    def log_message(self, *a): pass
+os.chdir(RAIZ); socketserver.TCPServer.allow_reuse_address = True
+srv = socketserver.TCPServer(("127.0.0.1", PORTA), Q); threading.Thread(target=srv.serve_forever, daemon=True).start()
+BASE = f"http://127.0.0.1:{PORTA}/"; FORA = []
+def rota(r):
+    u = r.request.url
+    if "127.0.0.1" in u or u.startswith(("blob:", "data:", "about:")): return r.continue_()
+    if "supabase-js" in u: return r.fulfill(body=STUB, content_type="application/javascript")
+    if "fonts.g" in u: return r.fulfill(body="", content_type="text/css")
+    FORA.append(u); return r.abort()
+falhas = []
+def ok(c, m):
+    print(("  ✓ " if c else "  ✗ ") + m)
+    if not c: falhas.append(m)
+VER = """(vram) => { const m = BW3DPlano.maquina(); m.placa.vram = vram; m.placa.marca = 'nvidia'; m.placa.integrada = vram === 0;
+  const o = {}; BW3DPlano.PROJETOS.forEach(p => { const r = BW3DPlano.avaliar(p.id, m); o[p.id] = [r.nivel, r.geradores.map(g => g.id)]; }); return o; }"""
+with sync_playwright() as p:
+    b = p.chromium.launch(args=["--no-sandbox"])
+    for largura, altura in ((1280, 950), (390, 844)):
+        print(f"\n=== {largura}px ===")
+        FORA.clear(); ctx = b.new_context(viewport={"width": largura, "height": altura}, service_workers="block", has_touch=largura < 500)
+        ctx.route("**/*", rota); pg = ctx.new_page(); erros = []
+        pg.on("pageerror", lambda e: erros.append(str(e))); pg.on("dialog", lambda d: d.accept())
+        pg.goto(BASE + "3d.html"); pg.wait_for_function("window.BW3DEditor && window.BW3DPlano"); pg.wait_for_timeout(500)
+        ok(pg.evaluate("BW3DEditor.projeto().modo") == "plano", "quem chega pela primeira vez cai no PLANO DO PROJETO")
+        ok(pg.evaluate(SEM := "document.documentElement.scrollWidth - document.documentElement.clientWidth") <= 0, "abre sem estouro")
+        if largura < 500: pg.click('#d3AbasCel [data-aba="objeto"]'); pg.wait_for_timeout(150)
+        ok(pg.locator("[data-pj]").count() == 6, "mostra os 6 tipos de projeto")
+        ok("Placa" in pg.inner_text("#d3Painel") or "placa" in pg.inner_text("#d3Painel").lower(), "diz qual placa de vídeo leu")
+        # vereditos por tamanho de placa
+        v0 = pg.evaluate(VER, 0); v8 = pg.evaluate(VER, 8); v12 = pg.evaluate(VER, 12); v24 = pg.evaluate(VER, 24)
+        ok(v0["logo"][0] == "ok" and v0["evento"][0] == "ok", "logo 3D e maquete de palco: dá no aparelho mesmo sem placa")
+        ok(v0["avatar"][0] == "nuvem" and v0["hard"][0] == "nuvem", "sem placa, avatar e trabalho pesado vão para a nuvem")
+        ok(v8["avatar"][0] == "quase" and "triposr" in v8["avatar"][1], "8 GB: parte no aparelho (TripoSR) e parte na nuvem")
+        ok(v12["avatar"][0] == "ok" and "hunyuan-forma" in v12["avatar"][1], "12 GB: roda o Hunyuan3D 2.1 (forma)")
+        ok(v24["hard"][0] == "ok" and "trellis2" in v24["hard"][1], "24 GB: roda o TRELLIS.2 e encara o trabalho pesado")
+        amd = pg.evaluate("""(()=>{const m=BW3DPlano.maquina(); m.placa.vram=24; m.placa.marca='amd';
+          const r=BW3DPlano.avaliar('avatar',m); return [r.nivel, r.porque];})()""")
+        ok(amd[0] == "nuvem" and "CUDA" in amd[1], f"placa AMD de 24 GB: avisa que os geradores pedem CUDA ({amd[1][:40]}…)")
+        # escolher um projeto mostra o caminho e o atalho
+        pg.click('[data-pj="logo"]'); pg.wait_for_timeout(400)
+        txt = pg.inner_text("#d3Painel")
+        ok("O CAMINHO" in txt and "O QUE VOCÊ ENTREGA" in txt, "ao escolher o projeto, mostra o caminho e o que se entrega")
+        ok(pg.locator('[data-ir="logo"]').count() == 1, "tem o atalho que abre a ferramenta certa")
+        pg.click('[data-ir="logo"]'); pg.wait_for_timeout(400)
+        ok(pg.evaluate("BW3DEditor.projeto().modo") == "logo", "o atalho leva para o LOGO 3D")
+        # a memória informada pelo usuário manda e fica guardada
+        pg.click('#d3Modos [data-m="plano"]'); pg.wait_for_timeout(300)
+        if largura < 500: pg.click('#d3AbasCel [data-aba="objeto"]'); pg.wait_for_timeout(150)
+        pg.select_option("#d3Vram", "24"); pg.wait_for_timeout(400)
+        ok(pg.evaluate("JSON.parse(localStorage.getItem('ui_3d_maquina')||'{}').vram") == 24, "guarda a memória de vídeo que o usuário informou")
+        pg.reload(); pg.wait_for_function("window.BW3DEditor && window.BW3DPlano"); pg.wait_for_timeout(600)
+        if largura < 500: pg.click('#d3AbasCel [data-aba="objeto"]'); pg.wait_for_timeout(150)
+        ok(pg.evaluate("BW3DPlano.maquina().placa.vram") == 24, "depois de recarregar, o plano continua com a placa informada")
+        ok(not erros, f"0 erros de JavaScript ({erros[:2]})")
+        ok(not FORA, f"nada sai do aparelho ({FORA[:3]})")
+        ctx.close()
+    b.close()
+srv.shutdown()
+print("\n" + ("✅ PLANO DO PROJETO: 0 falhas" if not falhas else f"❌ {len(falhas)} falha(s):\n - " + "\n - ".join(falhas)))
+raise SystemExit(1 if falhas else 0)

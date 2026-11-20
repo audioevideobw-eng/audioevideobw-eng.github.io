@@ -304,9 +304,16 @@ if os.path.exists("assets/bw3d.js"):
     _ok3d = {"https://www.tripo3d.ai/", "https://www.meshy.ai/", "https://hyper3d.ai/", "https://3d.hunyuan.tencent.com/"}
     _fora3d = {u for u in re.findall(r"https?://[^\"'\s)]+", _t3) if not u.startswith("https://cdn.jsdelivr.net/npm/pdfmake@")} - _ok3d
     if _fora3d: problemas.append("assets/bw3d.js: endereco de fora nao permitido (" + ", ".join(sorted(_fora3d)) + ")")
+# PLANO DO PROJETO (20/11): só lê a placa do próprio navegador — não manda nada para lugar nenhum
+if os.path.exists("assets/bw3d-plano.js"):
+    _pl = ler("assets/bw3d-plano.js")
+    if re.search(r"fetch\(|XMLHttpRequest|supabase\.|BWSync|indexedDB|\.upload\(|https?://", _pl):
+        problemas.append("assets/bw3d-plano.js: o plano do projeto só lê a máquina do usuário (sem rede nem envio)")
+    if "WEBGL_debug_renderer_info" not in _pl:
+        problemas.append("assets/bw3d-plano.js: sem a leitura da placa de vídeo")
 if os.path.exists("3d.html"):
     _h3 = ler("3d.html")
-    for _n3 in ("assets/bw3d-motor.js", "assets/bw3d.js", "assets/reels-celular.js", "assets/bw-ferramentas.js", "assets/modos.js"):
+    for _n3 in ("assets/bw3d-motor.js", "assets/bw3d.js", "assets/bw3d-plano.js", "assets/reels-celular.js", "assets/bw-ferramentas.js", "assets/modos.js"):
         if _n3 not in _h3: problemas.append("3d.html: falta " + _n3)
 for _p in ("video.html", "telas.html", "motion.html", "fotos.html", "3d.html"):
     if os.path.exists(_p) and "assets/bw-ferramentas.js" not in ler(_p): problemas.append(_p + ": editor sem as ferramentas/atalhos comuns (assets/bw-ferramentas.js) e sem a TELA FIXA")
