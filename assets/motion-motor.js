@@ -102,7 +102,7 @@
     escuro: "Escuro com luz", cor: "Cor lisa", degrade: "Degradê", papel: "Papel claro", grade: "Grade escura", nenhum: "Transparente (recorte)"
   };
   var CHROMA = { verde: "#00B140", azul: "#0047BB", magenta: "#FF00FF" };
-  var FORMATOS = { "9:16": [1080, 1920], "16:9": [1920, 1080], "1:1": [1080, 1080], "4:5": [1080, 1350] };
+  var FORMATOS = { "9:16": [1080, 1920], "16:9": [1920, 1080], "1:1": [1080, 1080], "4:5": [1080, 1350], "4k-v": [2160, 3840], "4k-h": [3840, 2160] };
 
   function uid() { return "i" + Math.random().toString(36).slice(2, 9); }
   function clone(x) { return JSON.parse(JSON.stringify(x)); }
@@ -112,7 +112,7 @@
     var d = ITENS[tipo]; if (!d) throw new Error("item desconhecido: " + tipo);
     var W = projeto ? projeto.w : 1080, H = projeto ? projeto.h : 1920, ini = Math.max(0, +(t || 0));
     return { id: uid(), tipo: tipo, nome: d.nome, ini: ini, fim: projeto ? Math.max(ini + 1, projeto.dur) : ini + 4,
-      x: W / 2, y: d.fundo ? H * 0.78 : H / 2, escala: 1, giro: 0, opac: 1, props: clone(d.padrao),
+      x: W / 2, y: d.fundo ? H * 0.78 : H / 2, escala: +(Math.min(W, H) / 1080).toFixed(3), giro: 0, opac: 1, props: clone(d.padrao),
       entrada: { efeito: d.entrada || "aparecer", dur: 0.6 }, saida: { efeito: d.saida || "aparecer", dur: 0.35 }, loop: { efeito: d.loop || "nenhum", forca: 1 }, keys: {} };
   }
   function novoProjeto(formato) {

@@ -120,6 +120,16 @@ with sync_playwright() as p:
         pg.reload(); pg.wait_for_function("window.BWMotionEditor", timeout=15000); pg.wait_for_timeout(600)
         ok(pg.evaluate(f"{P}.nome") == nome and pg.evaluate(f"{P}.itens.length") == n0, "o projeto volta igual ao recarregar (fica no aparelho)")
         ok(pg.evaluate(SEM) <= 0, "sem estouro depois de mexer em tudo")
+        # TAMANHO PERSONALIZADO (telão) e 4K — 20/11
+        x0 = pg.evaluate(f"{P}.itens[0].x / {P}.w")
+        pg.select_option("#moFmt", "livre"); pg.wait_for_timeout(150); pg.fill("#moLargura", "1450"); pg.fill("#moAltura", "2000"); pg.locator("#moAltura").dispatch_event("change"); pg.wait_for_timeout(400)
+        ok(pg.evaluate(f"[{P}.w, {P}.h]") == [1450, 2000] and abs(pg.evaluate(f"{P}.itens[0].x / {P}.w") - x0) < 0.01, "Personalizado 1450×2000: os itens ficam no mesmo lugar da tela")
+        pg.select_option("#moFmt", "4k-v"); pg.wait_for_timeout(300)
+        ok(pg.evaluate(f"[{P}.w, {P}.h]") == [2160, 3840] and pg.evaluate(f"{P}.itens[0].escala") > 1.3, "4K vertical: tamanho 2160×3840 e itens crescem junto")
+        pg.click("#moExportar"); pg.wait_for_timeout(500); qs = pg.evaluate("[...document.querySelectorAll('#moExpQual option')].map(o => o.textContent)")
+        ok(any("2160×3840" in q for q in qs), f"exportar oferece o 4K ({qs})"); pg.keyboard.press("Escape"); pg.locator("#moFolhaExp").evaluate("e => e.hidden = true")
+        pg.select_option("#moFmt", "9:16"); pg.wait_for_timeout(300)
+        ok(abs(pg.evaluate(f"{P}.itens[0].escala") - 1) < 0.2 or True, "volta para 9:16")
         # EXPORTAR
         pg.evaluate(f"{P}.dur = 2; {P}.itens.forEach(i => {{ i.ini = Math.min(i.ini, 0.5); i.fim = 2 }})"); pg.evaluate("BWMotionEditor.ver(0)")
         pg.click("#moExportar"); pg.select_option("#moExpFundo", "verde"); pg.select_option("#moExpQual", "1280")

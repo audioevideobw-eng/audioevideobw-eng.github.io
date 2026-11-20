@@ -116,6 +116,18 @@
     try { return (await VideoEncoder.isConfigSupported({ codec: "avc1.420028", width: 720, height: 1280, bitrate: 4e6, framerate: 30 })).supported; } catch (e) { return false; }
   }
 
+  // 20/11: tamanhos livres (telão de LED, 4K). O nível do H.264 sobe com o tamanho do quadro (4.0 só vai até ~2 mil × 1 mil);
+  // tenta do menor nível que cabe para cima, Baseline e depois High. Taxa de bits proporcional à área (1080×1920 = 9 Mb/s).
+  async function configVideo(w, h, fps) {
+    var mbs = Math.ceil(w / 16) * Math.ceil(h / 16), niveis = [[8192, "28"], [8704, "2a"], [22080, "32"], [36864, "33"], [139264, "34"]];
+    var taxa = Math.round(Math.max(4e6, Math.min(40e6, 9e6 * (w * h) / (1080 * 1920))));
+    for (var p = 0; p < 2; p++) for (var i = 0; i < niveis.length; i++) { if (mbs > niveis[i][0]) continue;
+      var c = { codec: (p ? "avc1.6400" : "avc1.4200") + niveis[i][1], width: w, height: h, bitrate: taxa, framerate: fps, avc: { format: "avc" }, latencyMode: "quality" };
+      try { if ((await VideoEncoder.isConfigSupported(c)).supported) return c; } catch (e) { /* tenta o próximo */ } }
+    return null;
+  }
+  async function cabe(w, h) { if (!window.VideoEncoder) return false; return !!(await configVideo(Math.round(w / 2) * 2, Math.round(h / 2) * 2, 30)); }
+
   // Fontes do Google usadas no vídeo, embutidas (só o alfabeto latino) para o texto sair igual dentro da "foto" do quadro.
   async function fontesEmbutidas(doc) {
     var link = doc.querySelector('link[href*="fonts.googleapis"]'); if (!link) return "";
@@ -171,7 +183,8 @@
         somInfo = aacNativo ? "codificador" : gravando ? "gravador" : "sem codificador AAC nem gravador (AudioEncoder " + (window.AudioEncoder ? "sim" : "não") + ", MediaRecorder " + (tipoGravador() || "não") + ")";
       }
       var enc = new VideoEncoder({ output: function (ch, meta) { if (meta && meta.decoderConfig && meta.decoderConfig.description) avcC = meta.decoderConfig.description; var d = new Uint8Array(ch.byteLength); ch.copyTo(d); vAm.push({ dados: d, dur: Math.round(90000 / fps), chave: ch.type === "key" }); }, error: function (x) { erro = x; } });
-      enc.configure({ codec: "avc1.420028", width: ow, height: oh, bitrate: oh > 1300 ? 9e6 : 5e6, framerate: fps, avc: { format: "avc" }, latencyMode: "quality" });
+      var cfgV = await configVideo(ow, oh, fps); if (!cfgV) throw new Error("este aparelho não consegue gerar vídeo em " + ow + "×" + oh + " — escolha uma qualidade menor (ou gere no app BW do computador)");
+      enc.configure(cfgV);
       var cv = document.createElement("canvas"); cv.width = ow; cv.height = oh; var ctx = cv.getContext("2d"), xs = new XMLSerializer();
       for (var f = 0; f < total; f++) {
         if (erro) throw erro; if (o.cancelar && o.cancelar()) throw new Error("cancelado");
@@ -242,5 +255,5 @@
       return { blob: blob, comSom: !!codecSom, codecSom: codecSom, somInfo: somInfo, largura: ow, altura: oh, quadros: total };
     } finally { if (fr) fr.remove(); }
   }
-  window.BWReelsCelular = { suporta: suporta, gerar: gerar, _extrairAac: extrairAac, _mp4: mp4, _stsdAudio: stsdAudio };
+  window.BWReelsCelular = { suporta: suporta, gerar: gerar, cabe: cabe, configVideo: configVideo, _extrairAac: extrairAac, _mp4: mp4, _stsdAudio: stsdAudio };
 })();

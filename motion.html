@@ -88,6 +88,9 @@
 .mo-kf.on{background:#FF4D6D}
 .mo-agulha{position:absolute;top:0;bottom:0;width:2px;background:#FF8A3D;pointer-events:none;z-index:3}
 .mo-agulha::before{content:"";position:absolute;left:-6px;top:0;width:14px;height:12px;border-radius:3px 3px 8px 8px;background:#FF8A3D}
+.mo-livre{display:inline-flex;align-items:center;gap:4px;color:#B9C0CC;font:700 12px Inter,sans-serif}
+.mo-livre[hidden]{display:none}
+.mo-livre input{width:78px;font-size:16px}
 .mo-aviso{margin-top:8px;padding:9px 12px;border-radius:12px;font:600 12.5px/1.4 Inter,sans-serif;background:rgba(62,207,142,.12);border:1px solid rgba(62,207,142,.4);color:#9af0c4}
 .mo-aviso.erro{background:rgba(242,104,107,.12);border-color:rgba(242,104,107,.45);color:#ffb3b5}
 .mo-aviso[hidden]{display:none}
@@ -124,7 +127,8 @@
   <div class="mo-topo">
     <h1>ESTÚDIO DE MOTION</h1>
     <input class="mo-in nome" id="moNome" type="text" aria-label="Nome do projeto" maxlength="40">
-    <select class="mo-sel" id="moFmt" aria-label="Formato"><option value="9:16">9:16 Reels</option><option value="16:9">16:9 YouTube</option><option value="1:1">1:1 Quadrado</option><option value="4:5">4:5 Feed</option></select>
+    <select class="mo-sel" id="moFmt" aria-label="Formato"><option value="9:16">9:16 Reels</option><option value="16:9">16:9 YouTube</option><option value="1:1">1:1 Quadrado</option><option value="4:5">4:5 Feed</option><option value="4k-v">4K vertical</option><option value="4k-h">4K paisagem</option><option value="livre">Personalizado (px)…</option></select>
+    <span class="mo-livre" id="moLivre" hidden><input class="mo-in" id="moLargura" type="number" min="240" max="4096" step="2" aria-label="Largura em pixels">×<input class="mo-in" id="moAltura" type="number" min="240" max="4096" step="2" aria-label="Altura em pixels"><small>px</small></span>
     <select class="mo-sel" id="moDur" aria-label="Duração"></select>
     <button class="mo-bt" id="moDesfazer" type="button" title="Desfazer">↶</button>
     <button class="mo-bt" id="moRefazer" type="button" title="Refazer">↷</button>
@@ -190,8 +194,8 @@
 <script src="assets/layout.js?v=60"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="assets/bw-sync.js"></script>
-<script src="assets/motion-motor.js?v=1"></script>
-<script src="assets/reels-celular.js?v=4"></script>
-<script src="assets/motion.js?v=1"></script>
+<script src="assets/motion-motor.js?v=2"></script>
+<script src="assets/reels-celular.js?v=5"></script>
+<script src="assets/motion.js?v=2"></script>
 </body>
 </html>

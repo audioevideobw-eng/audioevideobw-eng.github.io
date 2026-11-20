@@ -21,6 +21,16 @@
     alinhar: [["center", "Centro"], ["left", "Esquerda"], ["right", "Direita"]], forma: [["circulo", "Círculo"], ["ret", "Retângulo"], ["linha", "Linha"], ["seta", "Seta"]] };
   var FAIXAS = { tamanho: [20, 400, 2], larg: [100, 2000, 10], alt: [100, 2000, 10], raio: [0, 200, 2], zoom: [1.2, 5, 0.1], casas: [0, 3, 1], espessura: [2, 60, 1], velocidade: [0, 4, 0.1] };
 
+  function livre() { var l = P.formato === "livre"; $("moLivre").hidden = !l; if (l) { $("moLargura").value = P.w; $("moAltura").value = P.h; } }
+  // 20/11: qualidades conforme o tamanho (Rápida ~720p, Alta ~1080p, Tamanho real — telão, 4K); marca o que o aparelho não aguenta
+  async function qualidades() {
+    var menor = Math.min(P.w, P.h), sel = $("moExpQual"), ops = [], vistos = {};
+    [["Rápida", 720], ["Alta", 1080], ["Tamanho real", menor]].forEach(function (q) { var h = Math.min(P.h, Math.round(P.h * q[1] / menor / 2) * 2); if (!vistos[h]) { vistos[h] = 1; ops.push([q[0], h]); } });
+    sel.innerHTML = ops.map(function (q) { var w = Math.round(P.w * q[1] / P.h / 2) * 2; return '<option value="' + q[1] + '">' + q[0] + " (" + w + "×" + q[1] + ")</option>"; }).join("");
+    sel.value = String(ops[innerWidth <= 1100 ? 0 : Math.min(1, ops.length - 1)][1]);
+    if (window.BWReelsCelular && BWReelsCelular.cabe) for (var i = 0; i < sel.options.length; i++) { var o = sel.options[i], h = +o.value, w = Math.round(P.w * h / P.h / 2) * 2;
+      if (!(await BWReelsCelular.cabe(w, h))) { o.disabled = true; o.textContent += " — não cabe neste aparelho (use o app BW)"; if (sel.value === o.value) sel.value = sel.options[0].value; } }
+  }
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
   function fmt(n, c) { return Number(n).toLocaleString("pt-BR", { minimumFractionDigits: c === undefined ? 1 : c, maximumFractionDigits: c === undefined ? 1 : c }); }
   function aviso(txt, erro) { var a = $("moAviso"); a.textContent = txt; a.className = "mo-aviso" + (erro ? " erro" : ""); a.hidden = false; clearTimeout(aviso.t); aviso.t = setTimeout(function () { a.hidden = true; }, 5000); }
@@ -440,7 +450,7 @@
   function abaCel(a) { $("moGrade").setAttribute("data-aba", a); [].forEach.call($("moAbasCel").children, function (b) { b.classList.toggle("on", b.getAttribute("data-aba") === a); }); }
 
   function desenharTudo() {
-    $("moNome").value = P.nome || ""; $("moFmt").value = P.formato || "9:16"; $("moDur").value = String(P.dur);
+    $("moNome").value = P.nome || ""; $("moFmt").value = P.formato || "9:16"; livre(); $("moDur").value = String(P.dur);
     desenharFundo(); desenharPainel(); desenharTimeline(); desenharProjetos(); medir(); ver(T);
   }
 
@@ -465,9 +475,12 @@
         dbOp("readwrite", function (s) { return s.delete(id); }).then(function () { if (id === P.id) novoProjeto(); else desenharProjetos(); }); }
     });
     $("moNome").addEventListener("input", function () { P.nome = this.value.slice(0, 40); mudou({ remontar: false }); });
-    $("moFmt").addEventListener("change", function () { var f = M.FORMATOS[this.value], kx = f[0] / P.w, ky = f[1] / P.h; P.formato = this.value;
-      P.itens.forEach(function (it) { it.x *= kx; it.y *= ky; ["x", "y"].forEach(function (pr) { ((it.keys || {})[pr] || []).forEach(function (k) { k.v *= pr === "x" ? kx : ky; }); }); });
-      P.w = f[0]; P.h = f[1]; mudou(); });
+    function redimensionar(w, h) { var kx = w / P.w, ky = h / P.h, ks = Math.min(kx, ky);
+      P.itens.forEach(function (it) { it.x *= kx; it.y *= ky; it.escala = +((+it.escala || 1) * ks).toFixed(3); ["x", "y", "escala"].forEach(function (pr) { ((it.keys || {})[pr] || []).forEach(function (k) { k.v *= pr === "x" ? kx : pr === "y" ? ky : ks; }); }); });
+      P.w = w; P.h = h; livre(); mudou(); }
+    $("moFmt").addEventListener("change", function () { P.formato = this.value; var f = M.FORMATOS[this.value]; if (f) redimensionar(f[0], f[1]); else livre(); });
+    ["moLargura", "moAltura"].forEach(function (id) { $(id).addEventListener("change", function () { if (P.formato !== "livre") return; var par = function (v) { v = Math.round(Number(v) || 0); return Math.max(240, Math.min(4096, v - v % 2)); };
+      redimensionar(par($("moLargura").value), par($("moAltura").value)); aviso("Tamanho " + P.w + " × " + P.h + " px (telão, painel de LED…)."); }); });
     $("moDur").addEventListener("change", function () { var n = Number(this.value), ant = P.dur; P.dur = n; P.itens.forEach(function (it) { if (it.fim >= ant - 0.01 || it.fim > n) it.fim = n; if (it.ini >= n) it.ini = Math.max(0, n - 1); }); mudou({ painel: true }); });
     $("moTocar").onclick = tocar; $("moInicio").onclick = function () { ver(0); };
     $("moGravar").onclick = function () { GRAVAR = !GRAVAR; this.classList.toggle("on", GRAVAR); aviso(GRAVAR ? "◆ GRAVANDO: mova a agulha e arraste o item na tela — cada arraste cria um keyframe." : "Gravação de movimento desligada."); };
@@ -477,7 +490,7 @@
     $("moCriarEfeito").onclick = abrirEfeito; $("moEfFechar").onclick = function () { $("moFolhaEfeito").hidden = true; };
     $("moEfGerar").onclick = criarEfeito; $("moEfDoItem").onclick = efeitoDoItem;
     $("moEfEx").addEventListener("click", function (e) { var b = e.target.closest("[data-ex]"); if (b) { $("moEfTexto").value = b.getAttribute("data-ex"); criarEfeito(); } });
-    $("moExportar").onclick = function () { if (TOCANDO) tocar(); $("moFolhaExp").hidden = false; $("moExpProg").hidden = true; dicaExp(); };
+    $("moExportar").onclick = function () { if (TOCANDO) tocar(); $("moFolhaExp").hidden = false; $("moExpProg").hidden = true; dicaExp(); qualidades(); };
     $("moExpFundo").onchange = dicaExp; $("moExpFechar").onclick = function () { EXP.parar = true; $("moFolhaExp").hidden = true; };
     $("moExpAqui").onclick = gerarAqui; $("moExpCancelar").onclick = function () { EXP.parar = true; }; $("moExpPC").onclick = gerarPC;
     $("moExpHtml").onclick = function () { baixar(new Blob([M.html(P, { src: urlMotor() })], { type: "text/html" }), nomeArq() + ".html"); aviso("HTML baixado: na skill ANIMAÇÃO POR CÓDIGO, rode o motor com --chroma ou --alfa nele."); };

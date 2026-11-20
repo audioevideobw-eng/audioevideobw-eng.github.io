@@ -5,7 +5,8 @@
 (function () {
   "use strict";
   var T = window.BWTelas, $ = function (id) { return document.getElementById(id); };
-  var FORMATOS = { "9:16": [1080, 1920], "16:9": [1920, 1080], "1:1": [1080, 1080], "4:5": [1080, 1350] };
+  var FORMATOS = { "9:16": [1080, 1920], "16:9": [1920, 1080], "1:1": [1080, 1080], "4:5": [1080, 1350], "4k-v": [2160, 3840], "4k-h": [3840, 2160] };
+  function par(v) { v = Math.round(Number(v) || 0); return Math.max(240, Math.min(4096, v - v % 2)); }
   var P = null, MID = {}, ORDEM = [], SEL = -1, TEMPO = 0, TOCANDO = false, HIST = [], FUT = [], SALVAR_T = 0, HIST_T = 0, SOM = null, BATIDA = 0;
   var PREVIA = { esc: 0.5 };
 
@@ -59,7 +60,7 @@
   }
   function desenharMidias() {
     $("tlMidias").innerHTML = ORDEM.map(function (id, i) { var m = MID[id]; if (!m) return "";
-      return '<div class="tl-mid" title="' + esc(m.nome) + '">' + (m.thumb ? '<img src="' + esc(m.thumb.src) + '" alt="">' : "") + '<span class="n">' + (i + 1) + "</span>" +
+      return '<div class="tl-mid" data-arr="m:' + id + '" title="' + esc(m.nome) + ' — arraste para a SEQUÊNCIA ou para uma cena">' + (m.thumb ? '<img src="' + esc(m.thumb.src) + '" alt="">' : "") + '<span class="n">' + (i + 1) + "</span>" +
         (m.tipo === "video" ? '<span class="v">▶ ' + fmt(m.dur || 0) + "s</span>" : "") + '<button class="x" type="button" data-tirar="' + id + '" aria-label="Tirar">✕</button>' +
         '<span class="mv"><button type="button" data-mover="' + id + '" data-d="-1" aria-label="Antes">◀</button><button type="button" data-mover="' + id + '" data-d="1" aria-label="Depois">▶</button></span></div>'; }).join("");
   }
@@ -136,7 +137,7 @@
   }
 
   /* ---------- cena selecionada ---------- */
-  var MINI = [];
+  var MINI = [], MINI2 = [];
   function desenharPainel() {
     var c = P.cenas[SEL], p = $("tlPainel"); MINI = [];
     $("tlSemCena").hidden = !!c; if (!c) { p.innerHTML = ""; return; }
@@ -161,10 +162,10 @@
   var A_IMG = null, B_IMG = null;
   function quadro(c1, c2) { var c = document.createElement("canvas"); c.width = 90; c.height = 140; var x = c.getContext("2d"), g = x.createLinearGradient(0, 0, 90, 140); g.addColorStop(0, c1); g.addColorStop(1, c2); x.fillStyle = g; x.fillRect(0, 0, 90, 140); return c; }
   function animarMinis(agora) {
-    if (MINI.length && document.visibilityState === "visible") {
+    var TODAS = MINI.concat(MINI2); if (TODAS.length && document.visibilityState === "visible") {
       if (!A_IMG) { A_IMG = quadro("#151a24", "#05070a"); B_IMG = quadro("#3BFF6A", "#0d8a33"); }
       var p = ((agora / 1000) % 1.8) / 1.3; p = Math.min(1, p);
-      MINI.forEach(function (m) { if (!m.cv.isConnected) return; var x = m.cv.getContext("2d"), W = m.cv.width, H = m.cv.height;
+      TODAS.forEach(function (m) { if (!m.cv.isConnected) return; var x = m.cv.getContext("2d"), W = m.cv.width, H = m.cv.height;
         var Pm = { fundo: "#000", contorno: P.contorno ? "#B6FF3B" : null, cenas: [{ id: "a", layout: "cheia", midias: ["a"], dur: 1, mov: "nenhum" }, { id: "b" + m.k, layout: "cheia", midias: ["b"], dur: 1, mov: "nenhum", trans: m.k, transDur: 1 }] };
         T.desenhar(x, Pm, 1 + p * 0.999, W, H, function (id) { return id === "a" ? { el: A_IMG, w: 90, h: 140 } : { el: B_IMG, w: 90, h: 140 }; }); });
     }
@@ -174,13 +175,137 @@
   /* ---------- sequência ---------- */
   function desenharFila() {
     var h = ""; P.cenas.forEach(function (c, i) {
-      if (i) h += '<span class="tl-tr" title="Transição">' + esc((T.TRANS[c.trans] || T.TRANS.corte).nome.toUpperCase()) + "</span>";
-      h += '<button type="button" class="tl-cena' + (i === SEL ? " on" : "") + '" data-cena="' + i + '"><canvas width="84" height="149" data-cmini="' + i + '"></canvas><span>' + (i + 1) + " · " + esc(T.LAYOUTS[c.layout || "cheia"].nome) + " · " + fmt(c.dur) + "s</span></button>";
+      if (i) h += '<span class="tl-tr" data-tr="' + i + '" title="Transição — solte um efeito aqui para trocar">' + esc((T.TRANS[c.trans] || T.TRANS.corte).nome.toUpperCase()) + "</span>";
+      h += '<button type="button" class="tl-cena' + (i === SEL ? " on" : "") + '" data-cena="' + i + '" data-arr="c:' + i + '"><canvas width="84" height="149" data-cmini="' + i + '"></canvas><span>' + (i + 1) + " · " + esc(T.LAYOUTS[c.layout || "cheia"].nome) + " · " + fmt(c.dur) + "s</span></button>";
     });
-    if (!P.cenas.length) h = '<div class="tl-vazio">A sequência aparece aqui depois do ✨ MONTAR SOZINHO (ou ＋ CENA).</div>';
+    if (!P.cenas.length) h = '<div class="tl-vazio tl-soltaqui">Arraste fotos e vídeos para cá — ou toque em ✨ MONTAR SOZINHO.</div>';
     $("tlFila").innerHTML = h;
     [].forEach.call($("tlFila").querySelectorAll("canvas[data-cmini]"), function (cv) { var i = +cv.getAttribute("data-cmini"), c = P.cenas[i];
       var Pm = { fundo: P.fundo, gap: P.gap, contorno: P.contorno, cenas: [Object.assign({}, c, { trans: "corte" })] }; T.desenhar(cv.getContext("2d"), Pm, c.dur * 0.6, cv.width, cv.height, fonteMini); });
+  }
+
+
+  /* ---------- efeitos de tela (faixa para arrastar) ---------- */
+  var EFX_ABA = "trans";
+  function desenharEfx() {
+    var box = $("tlEfx"); if (!box) return; MINI2 = [];
+    [].forEach.call(document.querySelectorAll("[data-efxaba]"), function (b) { b.classList.toggle("on", b.getAttribute("data-efxaba") === EFX_ABA); });
+    if (EFX_ABA === "trans") box.innerHTML = Object.keys(T.TRANS).map(function (k) { return '<button type="button" class="tl-efx-it" data-arr="t:' + k + '" title="Arraste para uma cena"><canvas width="54" height="84" data-mini="' + k + '"></canvas><span>' + esc(T.TRANS[k].nome) + "</span></button>"; }).join("");
+    else box.innerHTML = Object.keys(T.LAYOUTS).map(function (k) { return '<button type="button" class="tl-efx-it" data-arr="l:' + k + '" title="Arraste para uma cena"><canvas width="54" height="84" data-lmini="' + k + '"></canvas><span>' + esc(T.LAYOUTS[k].nome) + "</span></button>"; }).join("");
+    [].forEach.call(box.querySelectorAll("canvas[data-mini]"), function (cv) { MINI2.push({ cv: cv, k: cv.getAttribute("data-mini") }); });
+    [].forEach.call(box.querySelectorAll("canvas[data-lmini]"), function (cv) { var x = cv.getContext("2d"), W = cv.width, H = cv.height, cores = ["#3BFF6A", "#7C5CFF", "#FFB547", "#3FC1FF"];
+      x.fillStyle = "#000"; x.fillRect(0, 0, W, H); T.paineis(cv.getAttribute("data-lmini"), W, H, 4).forEach(function (p, i) { x.beginPath(); p.pts.forEach(function (q, j) { if (j) x.lineTo(q[0], q[1]); else x.moveTo(q[0], q[1]); }); x.closePath(); x.fillStyle = cores[i % 4]; x.globalAlpha = 0.85; x.fill(); x.globalAlpha = 1; }); });
+  }
+  // aplica um efeito (t:trans | l:layout) a uma cena
+  function aplicarEfx(tipo, k, i, comoTrans) {
+    var c = P.cenas[i]; if (!c) return;
+    if (tipo === "t") { if (i === 0) return aviso("A 1ª cena abre o vídeo e não tem transição. Solte na 2ª cena em diante (ou na etiqueta entre duas cenas).", true);
+      c.trans = k; c.transDur = c.transDur || 0.6; aviso("✓ Transição “" + T.TRANS[k].nome + "” na cena " + (i + 1) + "."); }
+    else { c.layout = k; var n = T.LAYOUTS[k].n, base = ORDEM.indexOf(c.midias[0]); c.midias = (c.midias || []).slice(0, Math.max(n, 1));
+      while (c.midias.length < n) c.midias.push(ORDEM[(base + c.midias.length) % Math.max(1, ORDEM.length)] || "");
+      c.desde = c.midias.map(function (x, j) { return (c.desde || [])[j] || 0; }); aviso("✓ Divisão “" + T.LAYOUTS[k].nome + "” na cena " + (i + 1) + "."); }
+    SEL = i; mudou({ painel: true });
+    var ini = T.inicios(P)[i] || 0; if (!TOCANDO) ver(ini + (tipo === "t" ? Math.min(0.3, c.dur / 2) : Math.min(0.9, c.dur)));
+  }
+  // em qual tela (painel) de uma cena caiu o ponto (fx, fy em fração 0–1)
+  function painelEm(c, fx, fy) {
+    var W = 1000, H = Math.round(1000 * P.h / P.w), ps = T.paineis(c.layout || "cheia", W, H, 10), x = fx * W, y = fy * H, achou = 0;
+    ps.forEach(function (p, i) { var dentro = false, q = p.pts; for (var a = 0, b = q.length - 1; a < q.length; b = a++) { if ((q[a][1] > y) !== (q[b][1] > y) && x < (q[b][0] - q[a][0]) * (y - q[a][1]) / (q[b][1] - q[a][1]) + q[a][0]) dentro = !dentro; } if (dentro) achou = i; });
+    return achou;
+  }
+  function midiaNaCena(id, i, fx, fy) {
+    var c = P.cenas[i]; if (!c) return; var k = painelEm(c, fx, fy); c.midias = c.midias || []; c.midias[k] = id; c.desde = c.desde || []; c.desde[k] = 0;
+    SEL = i; mudou({ painel: true }); var n = T.LAYOUTS[c.layout || "cheia"].n;
+    aviso("✓ Mídia trocada na cena " + (i + 1) + (n > 1 ? " (tela " + (k + 1) + ")" : "") + ".");
+  }
+  function novaCenaCom(id, pos) {
+    var lista = (T.PACOTES[P.pacote] || T.PACOTES.geometrico).lista, bt = SOM && (P.musica || {}).batida !== false && BATIDA ? BATIDA : 0;
+    var c = { id: uid(), layout: "cheia", midias: [id], dur: bt ? Math.max(0.6, Math.round(1.6 / bt) * bt) : 1.6, mov: ["zoom", "afasta", "esq", "dir"][P.cenas.length % 4], trans: pos ? lista[pos % lista.length] : "corte", transDur: 0.6, desde: [0] };
+    P.cenas.splice(pos, 0, c); if (pos === 0 && P.cenas[1] && P.cenas[1].trans === "corte") P.cenas[1].trans = lista[0];
+    SEL = pos; mudou({ painel: true }); aviso("＋ Cena " + (pos + 1) + " criada com a mídia. Arraste uma transição ou divisão para cima dela.");
+  }
+
+  /* ---------- arrastar (mouse e toque) ---------- */
+  var ARR = null;
+  function alvoEm(x, y) {
+    var el = document.elementFromPoint(x, y); if (!el) return null;
+    var cn = el.closest(".tl-cena[data-cena]"); if (cn) { var r = cn.getBoundingClientRect(), i = +cn.getAttribute("data-cena");
+      var cv = cn.querySelector("canvas").getBoundingClientRect(); return { tipo: "cena", i: i, el: cn, fx: Math.max(0, Math.min(1, (x - cv.left) / cv.width)), fy: Math.max(0, Math.min(1, (y - cv.top) / cv.height)), meio: x < r.left + r.width / 2, borda: x < r.left + r.width * 0.18 ? -1 : x > r.right - r.width * 0.18 ? 1 : 0 }; }
+    var tr = el.closest(".tl-tr[data-tr]"); if (tr) return { tipo: "tr", i: +tr.getAttribute("data-tr"), el: tr };
+    if (el.closest("#tlFila")) { var fila = $("tlFila"), cs = fila.querySelectorAll(".tl-cena"), pos = cs.length;
+      for (var j = 0; j < cs.length; j++) { var rr = cs[j].getBoundingClientRect(); if (x < rr.left + rr.width / 2) { pos = j; break; } } return { tipo: "fila", pos: pos, el: fila }; }
+    if (el.closest("#tlCv")) { var cr = $("tlCv").getBoundingClientRect(), at = T.ativas(P, TEMPO); if (!at.length) return { tipo: "fila", pos: P.cenas.length, el: $("tlCv") };
+      return { tipo: "cena", i: at[at.length - 1].i, el: $("tlCv"), fx: (x - cr.left) / cr.width, fy: (y - cr.top) / cr.height, previa: true }; }
+    return null;
+  }
+  function marcarAlvo(a) {
+    [].forEach.call(document.querySelectorAll(".tl-sobre"), function (e) { e.classList.remove("tl-sobre"); });
+    var ind = $("tlInsere"); if (ind) ind.hidden = true; if (!a || !ARR) return;
+    var m = ARR.tipo === "m" || ARR.tipo === "c";
+    if (ARR.tipo === "c" && a.tipo === "cena" && !a.previa) { a.tipo = "fila"; a.pos = a.i + (a.meio ? 0 : 1); }
+    if (ARR.tipo === "m" && a.tipo === "cena" && !a.previa && a.borda) { a.tipo = "fila"; a.pos = a.i + (a.borda > 0 ? 1 : 0); }
+    if (a.tipo === "cena" && ARR.tipo !== "c" && (m || ARR.tipo !== "t" || a.i > 0)) a.el.classList.add("tl-sobre");
+    else if (a.tipo === "tr" && ARR.tipo === "t") a.el.classList.add("tl-sobre");
+    else if (a.tipo === "fila" && m && ind) { var fila = $("tlFila"), cs = fila.querySelectorAll(".tl-cena"), fr = fila.getBoundingClientRect(), xx;
+      if (!cs.length) { fila.classList.add("tl-sobre"); return; }
+      xx = a.pos < cs.length ? cs[a.pos].getBoundingClientRect().left - 4 : cs[cs.length - 1].getBoundingClientRect().right + 2;
+      ind.hidden = false; ind.style.left = Math.round(xx - fr.left) + "px"; }
+  }
+  function soltar(a) {
+    if (!a || !ARR) return; var t = ARR.tipo, k = ARR.k;
+    if (t === "c") { var de = +k, para = a.tipo === "fila" ? a.pos : a.tipo === "cena" ? a.i + (a.meio ? 0 : 1) : a.tipo === "tr" ? a.i : -1; if (para < 0) return;
+      if (para > de) para--; if (para === de) return; P.cenas.splice(para, 0, P.cenas.splice(de, 1)[0]); if (para === 0 && P.cenas[1] && P.cenas[1].trans === "corte") P.cenas[1].trans = (P.cenas[0].trans && P.cenas[0].trans !== "corte") ? P.cenas[0].trans : "tiras";
+      SEL = para; mudou({ painel: true }); aviso("✓ Cena levada para a posição " + (para + 1) + "."); return; }
+    if (t === "m") { if (a.tipo === "cena") midiaNaCena(k, a.i, a.fx, a.fy); else if (a.tipo === "fila") novaCenaCom(k, a.pos); else if (a.tipo === "tr") novaCenaCom(k, a.i); return; }
+    if (a.tipo === "cena") aplicarEfx(t, k, a.i); else if (a.tipo === "tr" && t === "t") aplicarEfx("t", k, a.i);
+    else if (a.tipo === "tr" && t === "l") aplicarEfx("l", k, a.i);
+  }
+  function fantasma(origem) {
+    var g = document.createElement("div"); g.className = "tl-fantasma"; var cv = origem.querySelector("canvas"), img = origem.querySelector("img");
+    if (img) { var i2 = new Image(); i2.src = img.src; g.appendChild(i2); } else if (cv) { var c2 = document.createElement("canvas"); c2.width = cv.width; c2.height = cv.height; try { c2.getContext("2d").drawImage(cv, 0, 0); } catch (e) {} g.appendChild(c2); }
+    var sp = origem.querySelector("span:not(.n):not(.v):not(.mv)"); if (sp) { var s2 = document.createElement("b"); s2.textContent = sp.textContent; g.appendChild(s2); }
+    document.body.appendChild(g); return g;
+  }
+  function mover(x, y) { if (!ARR || !ARR.ativo) return; ARR.g.style.transform = "translate(" + (x - 30) + "px," + (y - 40) + "px)"; var a = alvoEm(x, y); ARR.alvo = a; marcarAlvo(a);
+    if (!ARR.rolar) ARR.rolar = requestAnimationFrame(rolarBorda); }
+  // enquanto o dedo/mouse fica perto da borda, a página (e a sequência) rolam sozinhas
+  function rolarBorda() {
+    if (!ARR || !ARR.ativo) return; var x = ARR.x, y = ARR.y, mexeu = false, fila = $("tlFila"), fr = fila.getBoundingClientRect();
+    if (y > fr.top - 20 && y < fr.bottom + 20) { var sl = fila.scrollLeft; if (x < fr.left + 40) fila.scrollLeft -= 10; else if (x > fr.right - 40) fila.scrollLeft += 10; mexeu = sl !== fila.scrollLeft; }
+    var sy = scrollY; if (y < 44) scrollBy(0, -14); else if (y > innerHeight - 44) scrollBy(0, 14); if (sy !== scrollY) mexeu = true;
+    if (mexeu) { var a = alvoEm(x, y); ARR.alvo = a; marcarAlvo(a); }
+    ARR.rolar = requestAnimationFrame(rolarBorda);
+  }
+  function comecar() { ARR.ativo = true; ARR.g = fantasma(ARR.origem); ARR.origem.classList.add("tl-pego"); document.documentElement.classList.add("tl-arrastando"); if (navigator.vibrate && ARR.toque) try { navigator.vibrate(12); } catch (e) {} mover(ARR.x, ARR.y); }
+  function terminar(ok) {
+    if (!ARR) return; var a = ARR; clearTimeout(a.timer);
+    if (a.rolar) cancelAnimationFrame(a.rolar);
+    if (a.ativo) { a.g.remove(); a.origem.classList.remove("tl-pego"); document.documentElement.classList.remove("tl-arrastando"); marcarAlvo(null); a.solto = Date.now(); if (ok) soltar(a.alvo); }
+    ULTIMO_ARR = a.ativo ? Date.now() : 0; ARR = null;
+  }
+  var ULTIMO_ARR = 0;
+  function ligarArrastar() {
+    document.addEventListener("pointerdown", function (e) {
+      if (e.button > 0) return; var o = e.target.closest("[data-arr]"); if (!o || e.target.closest("button.x,.mv button")) return;
+      var v = o.getAttribute("data-arr").split(":"), toque = e.pointerType !== "mouse";
+      ARR = { tipo: v[0], k: v.slice(1).join(":"), origem: o, x: e.clientX, y: e.clientY, x0: e.clientX, y0: e.clientY, toque: toque, ativo: false, id: e.pointerId };
+      if (toque) ARR.timer = setTimeout(function () { if (ARR && !ARR.ativo) comecar(); }, 220);
+      else e.preventDefault();
+    });
+    document.addEventListener("pointermove", function (e) { if (!ARR || e.pointerId !== ARR.id) return; ARR.x = e.clientX; ARR.y = e.clientY;
+      var d = Math.hypot(e.clientX - ARR.x0, e.clientY - ARR.y0);
+      if (!ARR.ativo) { if (ARR.toque) { if (d > 10) { clearTimeout(ARR.timer); ARR = null; } return; } if (d > 5) comecar(); else return; }
+      mover(e.clientX, e.clientY); });
+    document.addEventListener("pointerup", function (e) { if (ARR && e.pointerId === ARR.id) terminar(true); });
+    document.addEventListener("pointercancel", function (e) { if (ARR && e.pointerId === ARR.id) { if (ARR.ativo) terminar(false); else { clearTimeout(ARR.timer); ARR = null; } } });
+    document.addEventListener("touchmove", function (e) { if (ARR && ARR.ativo) e.preventDefault(); }, { passive: false });
+    document.addEventListener("contextmenu", function (e) { if (ARR || e.target.closest("[data-arr]")) e.preventDefault(); });
+    document.addEventListener("click", function (e) { if (Date.now() - ULTIMO_ARR < 350) { e.stopPropagation(); e.preventDefault(); } }, true);
+    document.addEventListener("keydown", function (e) { if (e.key === "Escape" && ARR) terminar(false); });
+    // tocar num efeito = aplicar na cena escolhida
+    $("tlEfx").addEventListener("click", function (e) { var b = e.target.closest("[data-arr]"); if (!b) return; var v = b.getAttribute("data-arr").split(":");
+      if (SEL < 0 || !P.cenas[SEL]) return aviso("Escolha uma cena na SEQUÊNCIA (ou arraste o efeito para cima dela).", true); aplicarEfx(v[0], v[1], SEL); });
+    [].forEach.call(document.querySelectorAll("[data-efxaba]"), function (b) { b.onclick = function () { EFX_ABA = b.getAttribute("data-efxaba"); desenharEfx(); }; });
   }
 
   /* ---------- salvar / desfazer ---------- */
@@ -249,8 +374,18 @@
   function abaCel(a) { $("tlGrade").setAttribute("data-aba", a); [].forEach.call($("tlAbasCel").children, function (b) { b.classList.toggle("on", b.getAttribute("data-aba") === a); }); }
   function selecionar(i) { SEL = i; desenharPainel(); desenharFila(); var ini = T.inicios(P)[i] || 0; if (!TOCANDO) ver(ini + Math.min(0.9, (P.cenas[i] || {}).dur || 0)); if (innerWidth <= 1100) abaCel("cena"); }
 
+  function livre() { var l = P.formato === "livre"; $("tlLivre").hidden = !l; if (l) { $("tlLargura").value = P.w; $("tlAltura").value = P.h; } }
+  // opções de qualidade conforme o tamanho do projeto (Rápida ~720p, Alta ~1080p, Tamanho real); marca o que o aparelho não aguenta
+  async function qualidades() {
+    var menor = Math.min(P.w, P.h), sel = $("tlQual"), ops = [], vistos = {};
+    [["Rápida", 720], ["Alta", 1080], ["Tamanho real", menor]].forEach(function (q) { var h = Math.min(P.h, Math.round(P.h * q[1] / menor / 2) * 2); if (!vistos[h]) { vistos[h] = 1; ops.push([q[0], h]); } });
+    sel.innerHTML = ops.map(function (q) { var w = Math.round(P.w * q[1] / P.h / 2) * 2; return '<option value="' + q[1] + '">' + q[0] + " (" + w + "×" + q[1] + ")</option>"; }).join("");
+    sel.value = String(ops[innerWidth <= 1100 ? 0 : Math.min(1, ops.length - 1)][1]);
+    if (window.BWReelsCelular && BWReelsCelular.cabe) for (var i = 0; i < sel.options.length; i++) { var o = sel.options[i], h = +o.value, w = Math.round(P.w * h / P.h / 2) * 2;
+      if (!(await BWReelsCelular.cabe(w, h))) { o.disabled = true; o.textContent += " — não cabe neste aparelho"; if (sel.value === o.value) sel.value = sel.options[0].value; } }
+  }
   function desenharTudo() {
-    $("tlNome").value = P.nome || ""; $("tlFmt").value = P.formato; $("tlPacote").value = P.pacote || "geometrico"; $("tlRitmo").value = P.ritmo || "medio";
+    $("tlNome").value = P.nome || ""; $("tlFmt").value = P.formato; livre(); $("tlPacote").value = P.pacote || "geometrico"; $("tlRitmo").value = P.ritmo || "medio";
     medir(); desenharMidias(); desenharMusica(); desenharVisual(); desenharPainel(); desenharFila(); desenharProjetos(); relogio(); ver(TEMPO);
   }
 
@@ -260,6 +395,7 @@
     for (var i = 0; i < regs.length; i++) if (regs[i].tipo !== "musica") MID[regs[i].id] = await abrirMidia(regs[i]);
     var ult = null; try { ult = localStorage.getItem("ui_telas_ultimo"); } catch (e) {}
     var r = ult ? await op("projetos", "readonly", function (s) { return s.get(ult); }).catch(function () { return null; }) : null;
+    desenharEfx(); ligarArrastar();
     if (r && r.projeto) await abrirProjeto(r); else { P = novoProjeto("9:16"); ORDEM = Object.keys(MID); P.ordem = ORDEM.slice(); HIST = [JSON.stringify(P)]; desenharTudo(); }
     ORDEM = ORDEM.concat(Object.keys(MID).filter(function (id) { return ORDEM.indexOf(id) < 0; }));
     desenharMidias(); botoesHist(); if (window.BWDobras) BWDobras.aplicar(document); requestAnimationFrame(animarMinis);
@@ -292,11 +428,12 @@
       if (el.id === "tlFundo") P.fundo = el.value; if (el.id === "tlGap") { P.gap = Number(el.value); el.nextElementSibling.textContent = el.value; }
       if (el.id === "tlContornoLiga") { P.contorno = el.checked ? "#B6FF3B" : ""; desenharVisual(); } if (el.id === "tlContorno") P.contorno = el.value; mudou(); });
     $("tlProjetos").addEventListener("click", async function (e) { var b = e.target.closest("button"); if (!b) return;
-      if (b.hasAttribute("data-pnovo")) { salvarJa(); P = novoProjeto(P.formato); P.ordem = ORDEM.slice(); SEL = -1; TEMPO = 0; HIST = [JSON.stringify(P)]; FUT = []; trocou(); }
+      if (b.hasAttribute("data-pnovo")) { salvarJa(); var w0 = P.w, h0 = P.h; P = novoProjeto(P.formato); if (P.formato === "livre") { P.w = w0; P.h = h0; } P.ordem = ORDEM.slice(); SEL = -1; TEMPO = 0; HIST = [JSON.stringify(P)]; FUT = []; trocou(); }
       if (b.hasAttribute("data-pabrir")) { var r2 = await op("projetos", "readonly", function (s) { return s.get(b.getAttribute("data-pabrir")); }); if (r2) abrirProjeto(r2); }
       if (b.hasAttribute("data-papagar")) { var id = b.getAttribute("data-papagar"); if (!confirm("Apagar este projeto? As fotos e vídeos continuam no aparelho.")) return; await op("projetos", "readwrite", function (s) { return s.delete(id); }); if (id === P.id) { P = novoProjeto(P.formato); P.ordem = ORDEM.slice(); SEL = -1; trocou(); } else desenharProjetos(); } });
     $("tlNome").addEventListener("input", function () { P.nome = this.value.slice(0, 40); mudou({ fila: false }); });
-    $("tlFmt").addEventListener("change", function () { var f = FORMATOS[this.value]; P.formato = this.value; P.w = f[0]; P.h = f[1]; medir(); mudou(); });
+    $("tlFmt").addEventListener("change", function () { P.formato = this.value; var f = FORMATOS[this.value]; if (f) { P.w = f[0]; P.h = f[1]; } livre(); medir(); mudou(); });
+    ["tlLargura", "tlAltura"].forEach(function (id) { $(id).addEventListener("change", function () { if (P.formato !== "livre") return; P.w = par($("tlLargura").value); P.h = par($("tlAltura").value); livre(); medir(); mudou(); aviso("Tamanho " + P.w + " × " + P.h + " px (telão, painel de LED…)."); }); });
     $("tlPacote").addEventListener("change", function () { P.pacote = this.value; mudou({ fila: false }); aviso("Estilo escolhido. Toque em ✨ MONTAR SOZINHO para aplicar."); });
     $("tlRitmo").addEventListener("change", function () { P.ritmo = this.value; mudou({ fila: false }); });
     $("tlMontar").onclick = montarSozinho; $("tlTocar").onclick = tocar;
@@ -327,7 +464,7 @@
     pn.addEventListener("change", function (e) { var c = P.cenas[SEL], el = e.target; if (!c || !el.hasAttribute("data-mid")) return; c.midias[+el.getAttribute("data-mid")] = el.value; mudou({ painel: true }); });
     function verTrans() { var ini = T.inicios(P)[SEL] || 0, c = P.cenas[SEL]; if (TOCANDO) tocar(); var t0 = performance.now(), fim = ini + (c.transDur || 0.6) + 0.4;
       (function passo(a) { var t = ini - 0.3 + (a - t0) / 1000; TEMPO = Math.max(0, t); videosTocando(TEMPO); desenharAgora(); relogio(); if (t < fim) requestAnimationFrame(passo); else ver(TEMPO); })(t0); }
-    $("tlExportar").onclick = function () { if (TOCANDO) tocar(); $("tlFolha").hidden = false; $("tlProg").hidden = true;
+    $("tlExportar").onclick = function () { if (TOCANDO) tocar(); $("tlFolha").hidden = false; $("tlProg").hidden = true; qualidades();
       var nv = P.cenas.some(function (c) { return (c.midias || []).some(function (id) { return MID[id] && MID[id].tipo === "video"; }); });
       $("tlExpDica").textContent = "Vídeo de " + fmt(T.duracao(P)) + " s" + (SOM ? " com a música" : "") + "." + (nv ? " Tem vídeo dentro das telas: cada quadro procura o ponto certo do take, então leva mais tempo (no celular, mais ainda)." : ""); };
     $("tlFechar").onclick = function () { EXP.parar = true; $("tlFolha").hidden = true; };

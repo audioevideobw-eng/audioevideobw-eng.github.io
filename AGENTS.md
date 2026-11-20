@@ -379,6 +379,10 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
      docs/sql/2026-11-19-prompt-ia.sql) + imagens no bucket público "trends" (só ADM envia); a análise manda a imagem para a bw-ia
      (campo "imagem", modelo com VISÃO da Groq) SÓ depois de confirm(), cópia ≤ 768 px JPEG, nada guardado; o promptia.js nunca grava na
      conta (vigia). Modelo de visão da Groq muda de nome: a função tenta uma LISTA (MODELOS_VISAO) e devolve {erro:"visao", detalhe}.
+111. Arrastar-e-soltar próprio (pointer events, sem HTML5 drag): mouse começa depois de 5 px; toque só depois de segurar ~220 ms (senão é
+     rolagem) e então touchmove com preventDefault (listener passive:false); rolagem na borda num laço de requestAnimationFrame (dedo PARADO
+     na borda não gera pointermove); alvo por elementFromPoint com o fantasma em pointer-events:none; clique logo depois do soltar é engolido.
+     Teste: mouse do Playwright e toque pelo CDP (Input.dispatchTouchEvent). Tamanho livre de vídeo: o nível do H.264 sobe com a área do quadro.
 
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
@@ -1250,7 +1254,16 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   a cor certa em cada cena, take verde dentro da tela, duas fotos no meio da transição, som −26,6 dB) 0 falhas; teste_reels_celular, teste_motion e
   teste-app 0 falhas; varredura 55 páginas. App BW 1.7 (cartão + página sem internet). Manual 48 → 49 p. layout.js v60, sw v143.
   NÃO testado: vídeos de câmera reais (MP4/HEVC; o Chromium de teste só abre WebM), iPhone/Android reais, música MP3 real. PENTE FINO 110.
+- 20/11/2026 02:20 · Claude (dono: "arrastar a mídia para a time line e o efeito de tela para cima" + "formato personalizado, telão de LED 1450×2000 ou 4K"):
+  TELAS EM MOVIMENTO — ARRASTAR E SOLTAR (mouse; no celular segura ~0,2 s): foto/take → SEQUÊNCIA cria cena no ponto (barra verde mostra onde;
+  bordas da cena = antes/depois), → no meio de uma cena troca a mídia da TELA onde caiu (cena dividida = tela certa), → prévia grande idem;
+  nova faixa EFEITOS DE TELA (16 transições animadas + 6 divisões) → arrastar para a cena ou para a etiqueta entre duas cenas; tocar no
+  efeito aplica na cena escolhida; arrastar cena reordena; perto da borda a página/sequência rolam sozinhas. TAMANHO: 4K vertical/paisagem
+  e Personalizado (240–4096 px) no Telas e no Estúdio de motion (itens acompanham); GERAR VÍDEO oferece Rápida/Alta/Tamanho real e marca o
+  que o aparelho não aguenta. reels-celular.js v5: nível do H.264 escolhido pelo tamanho (4.0 não passava de ~2 MP; 1450×2000 sai em 5.0).
+  teste_telas.py (+18: arrastes por mouse e por toque, MP4 1450×2000 conferido no ffprobe) e teste_motion (+4) 0 falhas. sw v144. PENTE FINO 111.
 ## Pendências (dono)
+- [ ] (20/11) TELAS: dono testar o arrastar no PC e no celular e gerar um vídeo 1450×2000 para o telão.
 - [ ] (20/11) TELAS EM MOVIMENTO: dono abrir no ar com fotos e takes REAIS do celular + uma música, MONTAR SOZINHO e GERAR VÍDEO (no PC e no celular); dizer se os vídeos do iPhone abriram e quanto tempo levou.
 - [ ] (20/11) ESTÚDIO DE MOTION: dono abrir no ar (Marketing → Estúdio de motion), montar algo, testar ✨ CRIAR EFEITO logado e GERAR NESTE APARELHO no celular; no PC, atualizar o BW para 1.6 e testar GERAR NO APP BW com fundo transparente.
 - [ ] (20/11) RECORTE: dono atualizar para 1.5.2, tocar ATUALIZAR na skill ANIMAÇÃO POR CÓDIGO e testar o .mp4 verde no CapCut do celular (Chroma key) em cima de uma filmagem dele.
