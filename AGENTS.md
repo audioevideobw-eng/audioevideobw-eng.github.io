@@ -1472,8 +1472,9 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
 - [ ] (20/11) ESTÚDIO 3D: dono abrir em Marketing → Estúdio 3D no PC e no celular; testar com um modelo 3D de verdade (GLB), com a logo da BW
       (LOGO 3D → fundo transparente → PNG) e montar a maquete de um evento real (painéis, pitch) → conferir se a RESOLUÇÃO EM PIXELS bate com
       a do fornecedor do telão, gerar a PLANTA EM PDF e um vídeo do giro. Dizer o que falta (mais itens de palco? medidas em pés? treliça por metro?).
-- [ ] (20/11) BW-Setup.exe 1.9.2: dono dar dois cliques em "5 - GERAR INSTALADOR EXE" (Vídeos\\bw-reels-studio) e avisar o Claude, que traz o
-      arquivo e publica; ou o Claude tenta de novo na próxima entrega. Conferir no PC e no celular as letras novas dos modos de JOGOS.
+- [ ] (20/11) BW-Setup.exe 1.9.3: o pacote e a atualização automática já estão no ar (quem tem o app a partir da 1.4 atualiza sozinho); só o
+      instalador novo depende do PC do dono — dois cliques em "5 - GERAR INSTALADOR EXE" (Vídeos\\bw-reels-studio, com os arquivos da 1.9.3) e
+      avisar o Claude, que traz o .exe e publica. Conferir no PC e no celular as letras novas dos modos de JOGOS.
 - [ ] (20/11) APP BW 1.9: dono abrir o BW no PC, tocar em ATUALIZAR quando o aviso aparecer e conferir MINHA EMPRESA, MINHA CASA e APARÊNCIA; fechar as
       janelas pretas do gerador do instalador que ficaram abertas ("Pressione qualquer tecla").
 - [ ] (20/11) MODOS: dono testar no PC e no celular (engrenagem → APARÊNCIA), dizer quais modos ficam, o que ajustar em cada um e mandar a logo/manual
