@@ -73,7 +73,7 @@
   ];
   /* páginas já ajustadas para fundo CLARO. Nas outras (e nos editores, onde a mídia pede fundo escuro) um modo claro muda o menu e os
      destaques, e o miolo da ferramenta continua escuro. Página nova ajustada → acrescentar aqui. */
-  var CLARO_OK = {index: 1, negocio: 1, casa: 1, lancamentos: 1, config: 1, ferramentas: 1, marketing: 1, crm: 1, "financeiro-painel": 1};
+  var CLARO_OK = {index: 1, negocio: 1, casa: 1, lancamentos: 1, config: 1, ferramentas: 1, marketing: 1, crm: 1, "financeiro-painel": 1, "investimentos-painel": 1};
   var R = document.documentElement, PAG = (location.pathname.split("/").pop() || "index.html").replace(".html", "") || "index";
 
   function ler(k, p) { try { var v = JSON.parse(localStorage.getItem(k)); return v == null ? p : v; } catch (e) { return p; } }
@@ -166,7 +166,9 @@
   }
 
   /* folha de estilo dos modos (as regras só valem quando há data-modo) */
-  try { var lk = document.createElement("link"); lk.rel = "stylesheet"; lk.href = "assets/modos.css?v=2"; (document.head || R).appendChild(lk); } catch (e) { }
+  try { var lk = document.createElement("link"); lk.rel = "stylesheet"; lk.href = "assets/modos.css?v=3"; (document.head || R).appendChild(lk); } catch (e) { }
+  /* cor de uma variável da página (gráficos desenhados em canvas não leem CSS sozinhos) */
+  window.__cv = function (v, p) { try { return getComputedStyle(R).getPropertyValue(v).trim() || p; } catch (e) { return p; } };
   window.BWModos = {lista: lista, achar: achar, aplicar: aplicar, paleta: paleta, montar: montar, atual: function () { return achar(ler("ui_modo", "dark")).id; },
     animado: function () { return !!ler("ui_modo_fx", 1); }, animar: function (v) { gravar("ui_modo_fx", v ? 1 : 0); aplicar(ler("ui_modo", "dark")); },
     salvarMeu: function (o) { var m = montar(o), l = meus().filter(function (x) { return x.id !== m.id; }); l.push(m); gravar("ui_modos_meus", l); return m; },

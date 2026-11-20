@@ -65,7 +65,7 @@ MOLDE = '''<!DOCTYPE html>
 <style>
 .wrap{{max-width:1320px;margin:0 auto;padding:0 16px 120px}}
 </style>
-<script src="assets/modos.js?v=2"></script>
+<script src="assets/modos.js?v=3"></script>
 </head>
 <body>
 <header><div class="hd"><button id="btnVoltar" type="button" title="Voltar ao Início">‹</button><div id="userBox"></div></div></header>

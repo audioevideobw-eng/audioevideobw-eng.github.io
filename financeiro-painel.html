@@ -120,7 +120,7 @@ html[data-amb] .hero h1 span{color:var(--amb)}
 html[data-amb] .hero .take b{color:var(--amb-2)}
 @media (max-width:520px){.amb-aba{min-height:56px;padding:8px;gap:8px;font-size:11px;letter-spacing:.05em}.amb-aba svg{width:22px;height:22px}.amb-aba small{font-size:9.5px}}
 </style>
-<script src="assets/modos.js?v=2"></script>
+<script src="assets/modos.js?v=3"></script>
 </head>
 <body>
 <header><div class="hd">
@@ -562,11 +562,11 @@ html[data-amb] .hero .take b{color:var(--amb-2)}
       options: {
         responsive: true, maintainAspectRatio: false, animation: reduz ? false : {duration: 900},
         interaction: {mode: "index", intersect: false},
-        plugins: {legend: {display: false}, tooltip: {backgroundColor: "#0b1220", borderColor: "#3FD0E0", borderWidth: 1, padding: 10,
+        plugins: {legend: {display: false}, tooltip: {backgroundColor: "#0b1220", titleColor: "#fff", bodyColor: "#fff", borderColor: "#3FD0E0", borderWidth: 1, padding: 10,
           callbacks: {label: function (ctx) { return " " + ctx.dataset.label + ": " + brl(ctx.parsed.y); }}}},
         scales: {
-          x: {grid: {display: false}, ticks: {color: "#9aa0ab"}},
-          y: {grid: {color: "rgba(154,160,171,.12)"}, ticks: {color: "#9aa0ab", callback: function (v) { return Math.abs(v) >= 1000 ? (v / 1000).toLocaleString("pt-BR") + " mil" : v; }}}
+          x: {grid: {display: false}, ticks: {color: (window.__cv ? __cv("--mut", "#9aa0ab") : "#9aa0ab")}},
+          y: {grid: {color: "rgba(154,160,171,.12)"}, ticks: {color: (window.__cv ? __cv("--mut", "#9aa0ab") : "#9aa0ab"), callback: function (v) { return Math.abs(v) >= 1000 ? (v / 1000).toLocaleString("pt-BR") + " mil" : v; }}}
         }
       },
       plugins: [{id: "brilho", beforeDatasetDraw: function (ch, a) { var x = ch.ctx; x.save(); x.shadowColor = a.meta.dataset.options.borderColor; x.shadowBlur = 12; }, afterDatasetDraw: function (ch) { ch.ctx.restore(); }},
@@ -595,9 +595,9 @@ html[data-amb] .hero .take b{color:var(--amb-2)}
     $("totSaidas").textContent = brl(tot);
     if (gD) gD.destroy();
     if (window.Chart) gD = new Chart($("gDestino"), {type: "doughnut",
-      data: {labels: d.map(function (x) { return x[0]; }), datasets: [{data: d.map(function (x) { return Math.round(x[1]); }), backgroundColor: d.map(function (x) { return x[2]; }), borderColor: "#11141B", borderWidth: 3, hoverOffset: 6}]},
+      data: {labels: d.map(function (x) { return x[0]; }), datasets: [{data: d.map(function (x) { return Math.round(x[1]); }), backgroundColor: d.map(function (x) { return x[2]; }), borderColor: (window.__cv ? __cv("--navy2", "#11141B") : "#11141B"), borderWidth: 3, hoverOffset: 6}]},
       options: {cutout: "72%", responsive: true, maintainAspectRatio: false, animation: reduz ? false : {duration: 900},
-        plugins: {legend: {display: false}, tooltip: {backgroundColor: "#0b1220", borderColor: "#3FD0E0", borderWidth: 1,
+        plugins: {legend: {display: false}, tooltip: {backgroundColor: "#0b1220", titleColor: "#fff", bodyColor: "#fff", borderColor: "#3FD0E0", borderWidth: 1,
           callbacks: {label: function (ctx) { return " " + ctx.label + ": " + brl(ctx.parsed) + " (" + pct(ctx.parsed / tot * 100) + ")"; }}}}}});
     $("legDestino").replaceChildren.apply($("legDestino"), d.map(function (x) {
       var r = document.createElement("div"), a = document.createElement("span"), s = document.createElement("i"), v = document.createElement("b");

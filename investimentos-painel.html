@@ -118,7 +118,7 @@ input.busca{font:inherit;font-size:13px;background:var(--navy2);color:var(--txt)
 .x{background:none;border:0;color:var(--dn);cursor:pointer;font-size:16px;padding:0 6px}
 .tag{display:inline-block;font-size:10px;letter-spacing:.06em;padding:2px 8px;border-radius:999px;border:1px solid var(--line);color:var(--mut)}
 </style>
-<script src="assets/modos.js?v=2"></script>
+<script src="assets/modos.js?v=3"></script>
 </head>
 <body>
 <header><div class="hd">
@@ -331,9 +331,9 @@ input.busca{font:inherit;font-size:13px;background:var(--navy2);color:var(--txt)
     if (gC) gC.destroy();
     if (!window.Chart) return;   /* sem internet para a biblioteca de gráficos: o resto do painel continua */
     gC = new Chart($("gClasse"), {type: "doughnut",
-      data: {labels: itens.map(function (x) { return x[0]; }), datasets: [{data: itens.map(function (x) { return Math.round(x[1]); }), backgroundColor: itens.map(function (x) { return COR[x[0]] || "#999"; }), borderColor: "#11141B", borderWidth: 3, hoverOffset: 6}]},
+      data: {labels: itens.map(function (x) { return x[0]; }), datasets: [{data: itens.map(function (x) { return Math.round(x[1]); }), backgroundColor: itens.map(function (x) { return COR[x[0]] || "#999"; }), borderColor: (window.__cv ? __cv("--navy2", "#11141B") : "#11141B"), borderWidth: 3, hoverOffset: 6}]},
       options: {cutout: "72%", responsive: true, maintainAspectRatio: false, animation: reduz ? false : {duration: 900},
-        plugins: {legend: {display: false}, tooltip: {backgroundColor: "#0b1220", borderColor: "#3FD0E0", borderWidth: 1,
+        plugins: {legend: {display: false}, tooltip: {backgroundColor: "#0b1220", titleColor: "#fff", bodyColor: "#fff", borderColor: "#3FD0E0", borderWidth: 1,
           callbacks: {label: function (c) { return " " + c.label + ": " + brl0(c.parsed) + " (" + Math.round(c.parsed / (tot || 1) * 100) + "%)"; }}}}}});
     $("legClasse").replaceChildren.apply($("legClasse"), itens.map(function (x) {
       var r = document.createElement("div"), a = document.createElement("span"), s = document.createElement("i"), v = document.createElement("b");
@@ -351,11 +351,11 @@ input.busca{font:inherit;font-size:13px;background:var(--navy2);color:var(--txt)
     if (gE) gE.destroy();
     if (!window.Chart) return;
     gE = new Chart($("gEvolucao"), {type: "line",
-      data: {labels: ms.map(function (m) { return MESES[Number(m.slice(5, 7)) - 1] + "/" + m.slice(2, 4); }), datasets: [{label: "Aplicado acumulado", data: serie, borderColor: "#FFB547", borderWidth: 2.5, tension: 0, pointRadius: 3, pointBackgroundColor: "#0b1220", pointBorderColor: "#FFB547", fill: true,
+      data: {labels: ms.map(function (m) { return MESES[Number(m.slice(5, 7)) - 1] + "/" + m.slice(2, 4); }), datasets: [{label: "Aplicado acumulado", data: serie, borderColor: (window.__cv ? __cv("--gold", "#FFB547") : "#FFB547"), borderWidth: 2.5, tension: 0, pointRadius: 3, pointBackgroundColor: "#0b1220", pointBorderColor: "#FFB547", fill: true,
         backgroundColor: function (ctx) { var a = ctx.chart.chartArea; if (!a) return "transparent"; var g = ctx.chart.ctx.createLinearGradient(0, a.top, 0, a.bottom); g.addColorStop(0, "rgba(255,181,71,.28)"); g.addColorStop(1, "rgba(255,181,71,0)"); return g; }}]},
       options: {responsive: true, maintainAspectRatio: false, animation: reduz ? false : {duration: 900},
-        plugins: {legend: {display: false}, tooltip: {backgroundColor: "#0b1220", borderColor: "#FFB547", borderWidth: 1, callbacks: {label: function (c) { return " " + brl0(c.parsed.y); }}}},
-        scales: {x: {grid: {display: false}, ticks: {color: "#9aa0ab"}}, y: {grid: {color: "rgba(154,160,171,.12)"}, ticks: {color: "#9aa0ab", callback: function (v) { return Math.abs(v) >= 1000 ? (v / 1000).toLocaleString("pt-BR") + " mil" : v; }}}}}});
+        plugins: {legend: {display: false}, tooltip: {backgroundColor: "#0b1220", titleColor: "#fff", bodyColor: "#fff", borderColor: "#FFB547", borderWidth: 1, callbacks: {label: function (c) { return " " + brl0(c.parsed.y); }}}},
+        scales: {x: {grid: {display: false}, ticks: {color: (window.__cv ? __cv("--mut", "#9aa0ab") : "#9aa0ab")}}, y: {grid: {color: "rgba(154,160,171,.12)"}, ticks: {color: (window.__cv ? __cv("--mut", "#9aa0ab") : "#9aa0ab"), callback: function (v) { return Math.abs(v) >= 1000 ? (v / 1000).toLocaleString("pt-BR") + " mil" : v; }}}}}});
   }
   function tabelaPosicoes(P) {
     var tb = $("tPosicoes");

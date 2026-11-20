@@ -93,13 +93,39 @@ html[data-conteudo="claro"] .lc-fixo-form input,html[data-conteudo="claro"] .lc-
 html[data-conteudo="claro"] .lc-fx{background:var(--m-cartao)}html[data-conteudo="claro"] .lc-op{background:var(--m-cartao2);border-color:var(--m-linha)}
 html[data-conteudo="claro"] .lc-resumo{background:rgba(var(--amb-rgb),.1);border-color:rgba(var(--amb-rgb),.4);color:var(--m-texto)}
 html[data-conteudo="claro"] .lc-tag{color:color-mix(in srgb,var(--c) 75%,#000)}
-/* painel financeiro */
-html[data-conteudo="claro"] main .card,html[data-conteudo="claro"] main .hero{background:var(--m-cartao)!important;border-color:var(--m-linha);box-shadow:0 16px 36px -28px rgba(20,26,44,.5)}
+/* ---------- PAINÉIS (financeiro-painel.html e investimentos-painel.html: páginas sem o menu, com header + .hero + .card próprios) ---------- */
+html[data-modo][data-conteudo] body>header{background:color-mix(in srgb,var(--m-fundo) 90%,transparent);border-bottom-color:var(--m-linha)}
+html[data-modo][data-conteudo] main .hero{border-color:rgba(var(--m-dest-rgb),.32);
+  background:radial-gradient(900px 400px at 0% -20%,rgba(var(--m-dest-rgb),.2),transparent 60%),radial-gradient(700px 380px at 110% 0%,rgba(var(--m-dest2-rgb),.16),transparent 55%),linear-gradient(180deg,var(--m-cartao),var(--m-cartao2))}
+html[data-modo][data-conteudo] main .card{background:linear-gradient(180deg,var(--m-cartao2),var(--m-cartao));border-color:var(--m-linha)}
+html[data-modo][data-conteudo] main td{border-bottom-color:var(--m-linha)}
+html[data-modo][data-conteudo] main .hb .tr{background:rgba(var(--m-dest-rgb),.12)}
+html[data-modo][data-conteudo] .seg button.on,html[data-modo][data-conteudo] .abas button.on,html[data-modo][data-conteudo] .topo-abas a.ativo{background:var(--m-dest);border-color:var(--m-dest);color:var(--m-tinta)}
+html[data-modo][data-conteudo] main .previa,html[data-modo][data-conteudo] main .demo{background:rgba(var(--m-dest-rgb),.08);border-color:var(--m-dest)}
+html[data-modo][data-conteudo] main .demo b,html[data-modo][data-conteudo] .hero h1 span{color:var(--m-dest)}
+html[data-modo][data-conteudo] .hero .take b{color:var(--m-dest2)}
+html[data-modo][data-conteudo] main .btn:hover,html[data-modo][data-conteudo] body>header .btn:hover{border-color:var(--m-dest);color:var(--m-dest)}
+/* claros */
+html[data-conteudo="claro"] main .card,html[data-conteudo="claro"] main .hero{box-shadow:0 16px 36px -28px rgba(20,26,44,.5)}
+html[data-conteudo="claro"] main .card{background:var(--m-cartao)}
+html[data-conteudo="claro"] main .hero{background:radial-gradient(900px 400px at 0% -20%,rgba(var(--m-dest-rgb),.14),transparent 60%),radial-gradient(700px 380px at 110% 0%,rgba(var(--m-dest2-rgb),.12),transparent 55%),var(--m-cartao)}
 html[data-conteudo="claro"] header .hd-logo img{filter:brightness(0)}
-html[data-conteudo="claro"] body>header{background:rgba(255,255,255,.92);border-bottom-color:var(--m-linha)}
-html[data-conteudo="claro"] main .btn,html[data-conteudo="claro"] body>header .btn,html[data-conteudo="claro"] select.sel{background:var(--m-cartao2);color:var(--m-texto);border-color:var(--m-linha)}
-html[data-conteudo="claro"] .hero .take b{color:var(--amb)}
-html[data-conteudo="claro"] .kv.pos{color:#15803d}html[data-conteudo="claro"] .kv.neg{color:#dc2626}
+html[data-conteudo="claro"] main .btn,html[data-conteudo="claro"] body>header .btn,html[data-conteudo="claro"] select.sel,html[data-conteudo="claro"] main .form input,html[data-conteudo="claro"] main .form select,
+html[data-conteudo="claro"] input.busca,html[data-conteudo="claro"] .abas button:not(.on),html[data-conteudo="claro"] .seg button:not(.on){background:var(--m-cartao2);color:var(--m-texto);border-color:var(--m-linha)}
+html[data-conteudo="claro"] .topo-abas a:not(.ativo){background:var(--m-cartao);color:var(--m-texto2)}
+html[data-modo][data-conteudo="claro"] main .hero .take b{color:var(--amb,var(--m-dest))}
+html[data-conteudo="claro"] .kv.pos,html[data-conteudo="claro"] main .pos,html[data-conteudo="claro"] main .msg{color:#15803d}html[data-conteudo="claro"] .kv.neg,html[data-conteudo="claro"] main .neg,html[data-conteudo="claro"] main .x{color:#dc2626}
+html[data-conteudo="claro"] main .amb-aba.on,html[data-conteudo="claro"] main .amb-aba.on small{color:#fff}
+/* vidro */
+html[data-estilo="vidro"][data-conteudo] main .card{border-color:rgba(var(--m-dest-rgb),.3);background:linear-gradient(160deg,color-mix(in srgb,var(--m-dest) 11%,var(--m-cartao)),var(--m-cartao) 55%,color-mix(in srgb,var(--m-dest2) 6%,var(--m-cartao)));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.14),0 20px 44px -30px rgba(var(--m-dest-rgb),.7)}
+html[data-estilo="vidro"][data-conteudo] main .kl{color:var(--m-dest)}
+/* neon: a luz dá a volta no cartão de abertura do painel */
+html[data-fx~="neon"][data-modo][data-base][data-conteudo] main .hero{border:1.5px solid transparent;
+  background:radial-gradient(900px 400px at 0% -20%,rgba(var(--m-dest-rgb),.2),transparent 60%) padding-box,linear-gradient(180deg,var(--m-cartao),var(--m-cartao2)) padding-box,
+  conic-gradient(from var(--bw-ang),rgba(var(--m-dest-rgb),.15),var(--m-dest),rgba(var(--m-dest2-rgb),.2),var(--m-dest2),rgba(var(--m-dest-rgb),.15)) border-box;animation:bwGiraLuz 7s linear infinite}
+html[data-fx~="aurora"] body>header,html[data-fx~="aurora"] body>main{position:relative;z-index:1}
+html[data-fx~="aurora"] body>header{position:sticky}
 
 /* ---------- EFEITOS ---------- */
 @property --bw-ang{syntax:"<angle>";inherits:false;initial-value:0deg}

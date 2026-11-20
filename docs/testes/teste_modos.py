@@ -49,6 +49,21 @@ with sync_playwright() as p:
         pg.click('[data-modo-id="pretodourado"]'); pg.wait_for_timeout(300)
         ok(pg.evaluate("document.documentElement.getAttribute('data-estilo')") == "vidro" and pg.evaluate("getComputedStyle(document.documentElement).getPropertyValue('--m-dest').trim().toLowerCase()") == "#d9b24c" and "217, 178, 76" in pg.evaluate("getComputedStyle(document.querySelector('.cfg-cx')).borderTopColor"), "PRETO E DOURADO: estilo vidro ligado e os cartões ganham a borda dourada")
         pg.click('[data-modo-id="dark"]'); pg.wait_for_timeout(300)
+        # painéis (financeiro e investimentos) acompanham TODOS os modos: fundo, cartões e cabeçalho mudam; sem erro nem estouro
+        todos = pg.evaluate("BWModos.lista().map(m => [m.id, m.base, BWModos.paleta(m).fundo])"); ruins = []
+        for pagina in ["investimentos-painel.html", "financeiro-painel.html?a=pj", "financeiro-painel.html?a=pf"]:
+            for mid, base, fundo in todos:
+                pg.evaluate("m => localStorage.setItem('ui_modo', JSON.stringify(m))", mid); pg.goto(BASE + pagina); pg.wait_for_timeout(350)
+                r = pg.evaluate("""() => { const c = s => getComputedStyle(document.querySelector(s)); const lum = x => { const m = x.match(/\\d+/g).map(Number); return (0.299*m[0]+0.587*m[1]+0.114*m[2])/255; };
+                    return {modo: document.documentElement.getAttribute('data-modo'), bg: c('body').backgroundImage !== 'none' ? -1 : lum(c('body').backgroundColor), txt: lum(c('main .card .kv, main .card h2, main .card').color), card: c('main .card').backgroundImage + c('main .card').backgroundColor,
+                    est: document.documentElement.scrollWidth - document.documentElement.clientWidth}; }""")
+                if mid == "dark":
+                    if r["modo"] is not None: ruins.append((pagina, mid, "dark mexeu"))
+                    continue
+                claro = base == "claro"
+                if r["modo"] != mid or (claro and ((0 <= r["bg"] < 0.8) or r["txt"] > 0.35)) or ((not claro) and (r["bg"] > 0.2 or r["txt"] < 0.7)) or "25, 29, 39" in r["card"] or r["est"] > 0: ruins.append((pagina, mid, r))
+        ok(not ruins, f"PAINEL FINANCEIRO (PJ e PF) e PAINEL DE INVESTIMENTOS acompanham os {len(todos)} modos (fundo, texto e cartões) {ruins[:3]}")
+        pg.evaluate("localStorage.setItem('ui_modo', JSON.stringify('dark'))"); pg.goto(BASE + "config.html"); pg.wait_for_timeout(900)
         ok(pg.evaluate("document.documentElement.hasAttribute('data-estilo')") is False and pg.evaluate("document.documentElement.hasAttribute('data-modo')") is False, "voltar ao DARK tira o estilo vidro")
         ok(pg.locator(".cfg-modo .cfg-mini").count() == len(ids) and pg.locator('[data-modo-id="natal"] .selo').inner_text() == "ANIMADO" and pg.locator('[data-modo-id="clean"] .selo').count() == 0, "cada modo tem a miniatura com as suas cores; os animados têm o selo")
         pg.fill("#cfgChamo", "Marcos"); pg.wait_for_timeout(150)

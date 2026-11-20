@@ -429,6 +429,9 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
      Regra larga tipo ".wrap a{color}" pinta botões que são links (texto sumiu no botão principal). Animar background-position só no eixo X
      (keyframe com o Y explícito) — a linha de luz do topo subia para o meio do título. Efeito em tela = um canvas só, poucas partículas, parado
      com a aba escondida e com "reduzir movimento"; borda de luz por conic-gradient + @property (sem suporte, vira borda parada — aceitável).
+122. Página SEM o menu (painéis: header + .hero + .card com cor escrita no próprio arquivo) não acompanha o modo só pelas variáveis: fundo de cartão
+     em rgba/hex fixo fica escuro no modo claro. Regras do modo para essas páginas ficam num bloco só do modos.css (PAINÉIS) e o teste percorre
+     TODOS os modos em cada painel (teste_modos.py). Gráfico em canvas lê a cor por window.__cv("--var", padrão), nunca cor escrita.
 
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
@@ -1387,6 +1390,11 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   Modo de vidro em outra cor = UMA linha no modos.js: vidro(id, NOME, frase, fundo, destaque, 2ª cor). MINHA MARCA ganhou "Estilo: vidro com luz".
   teste_modos.py +3 checagens (0 falhas); ambientes, layout, lancamentos, agenda 0 falhas; varredura só as fotos do Supabase; vigia ✅.
   NÃO testado em iPhone/Android reais. modos.js v2, modos.css v2, config.js v2, sw v149.
+- 20/11/2026 14:00 · Claude (dono: "os painéis financeiros parecem não acompanhar os modelos; confira e corrija em todos os modos"): PAINEL DE INVESTIMENTOS e
+  PAINEL FINANCEIRO (PJ e PF) são páginas sem o menu, com header/.hero/.card de cor escrita no próprio arquivo — só as variáveis mudavam. Agora
+  cabeçalho, cartão de abertura, cartões, tabelas, abas, botões e campos seguem o modo (claros, escuros, vidro e neon); investimentos entrou em
+  CLARO_OK; gráficos leem a cor da página (window.__cv em modos.js). teste_modos.py confere os 3 painéis nos 22 modos (0 falhas). modos.js v3,
+  modos.css v3, sw v150. PENTE FINO 122.
 
 ## Pendências (dono)
 - [ ] (20/11) MODOS: dono testar no PC e no celular (engrenagem → APARÊNCIA), dizer quais modos ficam, o que ajustar em cada um e mandar a logo/manual
