@@ -288,6 +288,12 @@ if pjs:
 if os.path.exists("assets/personagens-prontos.js") and re.search(r"fetch\(|XMLHttpRequest|localStorage|indexedDB", ler("assets/personagens-prontos.js")): problemas.append("assets/personagens-prontos.js: só lista os prontos (não busca nem grava nada)")
 if os.path.exists("assets/bw-personagens.js") and re.search(r"fetch\(|XMLHttpRequest|supabase", ler("assets/bw-personagens.js")): problemas.append("assets/bw-personagens.js: a biblioteca de personagens não fala com a internet")
 if os.path.exists("assets/video-editor.js") and re.search(r"fetch\(|XMLHttpRequest|supabase\.|BWSync\.(?!cliente)|\.upload\(|https?://", ler("assets/video-editor.js")): problemas.append("assets/video-editor.js: o editor de vídeo não envia nada (sem fetch, upload, conta nem endereço de fora)")
+# ESTÚDIO DE MOTION (20/11): o motor só desenha (nada de rede); o editor só fala com a IA Brightway (bw-ia) e nunca grava na conta
+if os.path.exists("assets/motion-motor.js") and re.search(r"fetch\(|XMLHttpRequest|supabase\.|BWSync|localStorage|indexedDB|\.upload\(", ler("assets/motion-motor.js")): problemas.append("assets/motion-motor.js: o motor de motion só desenha (sem rede, conta nem armazenamento)")
+if os.path.exists("assets/motion.js"):
+    _mo = ler("assets/motion.js")
+    if re.search(r"XMLHttpRequest|supabase\.from|\.upload\(|antesDeSalvar|BWSync\.(?!cliente)", _mo) or len(re.findall(r"fetch\(", _mo)) != 1 or "functions/v1/bw-ia\"" not in _mo:
+        problemas.append("assets/motion.js: o Estúdio de motion só chama a bw-ia (efeito por frase); nada vai para a conta")
 crjs = ler("assets/criador.js") if os.path.exists("assets/criador.js") else ""
 if crjs:
     urls = {u for u in re.findall(r"https://[^\"'\s)]+", crjs) if "supabase.co" in u}

@@ -365,6 +365,11 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
      (body transparente + tudo com data-fundo some; classe html.bw-recorte para trocar sombra larga por contorno — sombra larga vira mancha no
      chroma key). O render confere se a animação usa a cor do fundo (lente azul do Bê some no fundo azul) e sugere outra. Teste de verdade =
      recortar com o chromakey do ffmpeg e conferir o pixel do fundo e do cartão (motor/teste-recorte.mjs), não só "o arquivo saiu".
+109. Do site para o PC (app BW) vão só DADOS: o Estúdio de motion baixa `nome.<fundo>.bwmotion.json` e o app monta o HTML com a cópia LOCAL do motor
+     (motor/motion-motor.js, IGUAL ao assets/motion-motor.js — teste-app confere); nunca rodar HTML baixado no Chromium com acesso a arquivos.
+     Motor de motion = cada quadro só de t (montar + seek), textos sempre por textContent (marcação no texto vira texto). Teste com mouse:
+     elemento fora da tela não recebe clique (scroll_into_view antes) e ◆ por cima da barra pega o toque (escolher barra sem ◆). Inserir trecho
+     por texto num arquivo: contar antes quantas vezes o texto aparece (o bloco entrou duas vezes no teste-app).
 102. PROMPT IA (promptia.html + assets/promptia.js): biblioteca em public.bw_trends (leitura pública, gravação só is_bw_admin, RLS —
      docs/sql/2026-11-19-prompt-ia.sql) + imagens no bucket público "trends" (só ADM envia); a análise manda a imagem para a bw-ia
      (campo "imagem", modelo com VISÃO da Groq) SÓ depois de confirm(), cópia ≤ 768 px JPEG, nada guardado; o promptia.js nunca grava na
@@ -1212,7 +1217,24 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   desenha, selo, comentário digitando, legenda em etiquetas), animação em cima e rosto livre embaixo. Skill ANIMAÇÃO POR CÓDIGO 1.1 (BW SKILL
   mostra VERSÃO NOVA) + tutorial explicando o Chroma key do CapCut. motor/teste-recorte.mjs (10 checagens, recorte real com chromakey) e
   teste-app 0 falhas. PENTE FINO 108.
+- 20/11/2026 01:10 · Claude (dono, com 4 vídeos de referência: "ecossistema em que as pessoas escolhem os itens da tela e os motions, mudam a direção
+  com keyframes ou usam o motion automático; biblioteca de itens com o efeito escolhido ou criar o próprio com ajuda" — escolheu plataforma + app BW,
+  tudo junto): ESTÚDIO DE MOTION (motion.html + assets/motion.js + assets/motion-motor.js) em Marketing (menu, galerias, Ferramentas e Início).
+  BIBLIOTECA de 14 itens (título/texto com *destaque*, etiqueta, número contando, selo, cartão, janela de chat com comando digitando, gráfico de
+  linha, notificação/DM, foto, antes e depois com régua, lupa, emoji, forma, piso 3D de luzes); 16 efeitos de ENTRADA/SAÍDA (incl. palavra por
+  palavra e máquina de escrever), 7 movimentos DURANTE; KEYFRAMES de posição/tamanho/giro/opacidade (◆ por valor, ◆ GRAVAR MOVIMENTO arrastando,
+  curva por keyframe, arrastar ◆ na linha do tempo); LINHA DO TEMPO com barras (arrastar/aparar); ✨ MOTION AUTOMÁTICO (dinâmico/suave/impacto);
+  ✨ CRIAR EFEITO COM AJUDA (frase → bw-ia → chaves; sem conta, criador do aparelho) ou do movimento do item → ★ MEUS EFEITOS (ui_motion_efeitos);
+  4 MODELOS (vitrine de prompts, cartão com gráfico, título de impacto, em branco); desfazer/refazer; projetos no IndexedDB bw_motion. EXPORTAR:
+  no aparelho (BWReelsCelular) com fundo normal/verde/azul/magenta; no app BW (.bwmotion.json → motor local → animar.mjs) também transparente .mov;
+  HTML da animação para a skill. Studio: modelos/animacoes/vitrine-prompts.html (reels "5 códigos" com piso 3D) e app BW 1.6 (cartão ESTÚDIO DE
+  MOTION, render .bwmotion.json, .mov em MEUS VÍDEOS, site-offline.zip refeito), skill ANIMAÇÃO POR CÓDIGO 1.2. Testes: docs/testes/teste_motion.py
+  (≈45 checagens × 1280/390: MP4 feito no aparelho com fundo verde conferido no pixel, HTML renderizado pelo motor do PC com magenta) e teste-app
+  (+8: magenta, .mov com alfa, texto com <img> não executa, projeto inválido recusado, motor igual ao do site) 0 falhas; varredura 54 páginas
+  (só as fotos do Supabase, sem rede aqui); vigia ✅ (motion.js só chama a bw-ia; motor sem rede). Manual 47 → 48 p. layout.js v59, sw v142.
+  NÃO testado: a IA real criando efeito (logado), iPhone/Android reais, o app BW no Windows. PENTE FINO 109.
 ## Pendências (dono)
+- [ ] (20/11) ESTÚDIO DE MOTION: dono abrir no ar (Marketing → Estúdio de motion), montar algo, testar ✨ CRIAR EFEITO logado e GERAR NESTE APARELHO no celular; no PC, atualizar o BW para 1.6 e testar GERAR NO APP BW com fundo transparente.
 - [ ] (20/11) RECORTE: dono atualizar para 1.5.2, tocar ATUALIZAR na skill ANIMAÇÃO POR CÓDIGO e testar o .mp4 verde no CapCut do celular (Chroma key) em cima de uma filmagem dele.
 - [ ] (19/11) BW SKILL: dono atualizar o BW para a 1.5 (aviso no app), instalar o EDITOR DE VÍDEO pela BW SKILL apontando as pastas dele e dizer se ficou claro; validar a skill no Codex/Gemini quando quiser abrir para eles.
 - [ ] (19/11) INSTALADOR 1.4: GERADO e publicado em 19/11 22:25 (com a preparação automática); dono instalar; a partir dela as atualizações chegam sozinhas. Antes: dono abrir Vídeos\\bw-reels-studio\\instalador\\BW-Setup.exe, avançar até o fim e abrir o ícone BW; dizer se instalou e abriu. Decidir sobre a licença comercial do Inno Setup.

@@ -1,0 +1,5 @@
+[
+ {"titulo":"Estúdio de motion","texto":"Monte animações escolhendo itens (títulos neon, cartões, chat, gráfico, foto, antes e depois, lupa, número contando…) e o efeito de cada um, ou desenhe o caminho com keyframes. Tem motion automático e um ajudante que cria o efeito a partir de uma frase.","abrir":"motion"},
+ {"titulo":"Vídeo para recortar direto do app","texto":"No Estúdio de motion, GERAR NO APP BW faz o vídeo neste computador com fundo verde, azul ou magenta (chroma key) ou transparente (.mov) e abre quando fica pronto."},
+ {"titulo":"Skill ANIMAÇÃO POR CÓDIGO 1.2","texto":"A skill agora sabe partir do HTML exportado pelo Estúdio de motion. Abra BW SKILL e toque em ATUALIZAR.","abrir":"skills"}
+]

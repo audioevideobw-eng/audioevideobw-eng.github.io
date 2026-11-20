@@ -1,0 +1,509 @@
+/* ESTÚDIO DE MOTION — editor (20/11/2026, Claude).
+   Biblioteca de itens → palco (arrastar) → propriedades (conteúdo, posição com KEYFRAMES, efeito de entrada/saída/durante)
+   → linha do tempo (barras e keyframes) → exportar (no aparelho pelo BWReelsCelular, ou no app BW do PC com chroma key / transparente).
+   Projetos e efeitos próprios ficam NESTE aparelho (IndexedDB bw_motion + ui_motion_efeitos). Única saída para a internet: a IA
+   Brightway (bw-ia) para criar um efeito a partir de uma frase — só a frase vai, nada do projeto. */
+(function () {
+  "use strict";
+  var M = window.BWMotion, $ = function (id) { return document.getElementById(id); };
+  var FN_IA = "https://zdtnetplvdonogmdvarx.supabase.co/functions/v1/bw-ia", PUB = "sb_publishable_qJ2mIx1hcn_ZH75-yxJiDA_OI-EHyIU";
+  var NO_APP = !!(window.BW_APP && window.bwNode);
+  var P = null, MONT = null, T = 0, SEL = null, KSEL = null, TOCANDO = false, GRAVAR = false, ZOOM = 1, SC = 0.3, HIST = [], FUT = [], SALVAR_T = 0, HIST_T = 0;
+  var CORES_GRUPO = { Textos: "#7C5CFF", Interface: "#2E9BFF", Imagens: "#FF8A3D", Enfeites: "#22C58B" };
+  var GRAD = ["linear-gradient(135deg,#7C5CFF,#C04CFF)", "linear-gradient(135deg,#2E9BFF,#22D3EE)", "linear-gradient(135deg,#FF8A3D,#FF4D6D)", "linear-gradient(135deg,#22C58B,#B6FF3B)",
+    "linear-gradient(135deg,#F43F5E,#FB923C)", "linear-gradient(135deg,#0EA5E9,#6366F1)", "linear-gradient(135deg,#EAB308,#F97316)"];
+  var ROT = { texto: "Texto", estilo: "Estilo", fonte: "Fonte", tamanho: "Tamanho", cor: "Cor", destaque: "Cor do *destaque*", larg: "Largura", alt: "Altura", alinhar: "Alinhar",
+    titulo: "Título", nome: "Nome", comando: "Comando digitado", src: "Imagem", src2: "Imagem depois", raio: "Cantos", borda: "Borda", legenda: "Legenda", zoom: "Zoom",
+    de: "Começa em", ate: "Termina em", prefixo: "Antes do número", sufixo: "Depois do número", casas: "Casas decimais", pontos: "Valores (vírgula)", icone: "Ícone", emoji: "Emoji",
+    forma: "Forma", contorno: "Só contorno", espessura: "Espessura", velocidade: "Velocidade" };
+  var OPCOES = { estilo: [["neon", "Neon"], ["branco", "Simples"], ["etiqueta", "Etiqueta"], ["contorno", "Contorno"], ["sombra", "Com sombra"]],
+    fonte: [["titulo", "Título (condensada)"], ["texto", "Moderna"], ["mono", "Código"], ["mao", "Escrita à mão"], ["serif", "Elegante"]],
+    alinhar: [["center", "Centro"], ["left", "Esquerda"], ["right", "Direita"]], forma: [["circulo", "Círculo"], ["ret", "Retângulo"], ["linha", "Linha"], ["seta", "Seta"]] };
+  var FAIXAS = { tamanho: [20, 400, 2], larg: [100, 2000, 10], alt: [100, 2000, 10], raio: [0, 200, 2], zoom: [1.2, 5, 0.1], casas: [0, 3, 1], espessura: [2, 60, 1], velocidade: [0, 4, 0.1] };
+
+  function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+  function fmt(n, c) { return Number(n).toLocaleString("pt-BR", { minimumFractionDigits: c === undefined ? 1 : c, maximumFractionDigits: c === undefined ? 1 : c }); }
+  function aviso(txt, erro) { var a = $("moAviso"); a.textContent = txt; a.className = "mo-aviso" + (erro ? " erro" : ""); a.hidden = false; clearTimeout(aviso.t); aviso.t = setTimeout(function () { a.hidden = true; }, 5000); }
+  function item(id) { return P.itens.filter(function (i) { return i.id === id; })[0] || null; }
+
+  /* ---------- guardar (IndexedDB, só neste aparelho) ---------- */
+  var DB = null;
+  function db() { if (DB) return DB; DB = new Promise(function (ok, erro) { var r = indexedDB.open("bw_motion", 1); r.onupgradeneeded = function () { r.result.createObjectStore("projetos", { keyPath: "id" }); }; r.onsuccess = function () { ok(r.result); }; r.onerror = function () { erro(r.error); }; }); return DB; }
+  async function dbOp(modo, f) { var d = await db(); return new Promise(function (ok, erro) { var tx = d.transaction("projetos", modo), st = tx.objectStore("projetos"), r = f(st); tx.oncomplete = function () { ok(r && r.result); }; tx.onerror = function () { erro(tx.error); }; }); }
+  function salvarJa() { if (!P) return; P.atualizado = Date.now(); dbOp("readwrite", function (s) { return s.put({ id: P.id, nome: P.nome, atualizado: P.atualizado, projeto: P }); }).catch(function () {});
+    try { localStorage.setItem("ui_motion_ultimo", P.id); } catch (e) {} }
+  function mudou(opt) {
+    opt = opt || {};
+    clearTimeout(SALVAR_T); SALVAR_T = setTimeout(function () { salvarJa(); desenharProjetos(); }, 700);
+    clearTimeout(HIST_T); HIST_T = setTimeout(function () { var s = JSON.stringify(P); if (HIST[HIST.length - 1] !== s) { HIST.push(s); if (HIST.length > 40) HIST.shift(); FUT = []; } botoesHist(); }, 350);
+    if (opt.remontar !== false) remontar(); else ver(T);
+    if (opt.painel) desenharPainel();
+    desenharTimeline();
+  }
+  function botoesHist() { $("moDesfazer").disabled = HIST.length < 2; $("moRefazer").disabled = !FUT.length; }
+  function desfazer() { if (HIST.length < 2) return; FUT.push(HIST.pop()); P = JSON.parse(HIST[HIST.length - 1]); depoisDeTrocar(); }
+  function refazer() { if (!FUT.length) return; var s = FUT.pop(); HIST.push(s); P = JSON.parse(s); depoisDeTrocar(); }
+  function depoisDeTrocar() { if (SEL && !item(SEL)) SEL = null; KSEL = null; remontar(); desenharTudo(); clearTimeout(SALVAR_T); SALVAR_T = setTimeout(salvarJa, 500); botoesHist(); }
+
+  /* ---------- efeitos próprios (biblioteca do aparelho) ---------- */
+  function meusGlobais() { try { return JSON.parse(localStorage.getItem("ui_motion_efeitos") || "[]") || []; } catch (e) { return []; } }
+  function guardarGlobal(ef) { var l = meusGlobais().filter(function (e) { return e.id !== ef.id; }); l.unshift(ef); try { localStorage.setItem("ui_motion_efeitos", JSON.stringify(l.slice(0, 60))); } catch (e) {} }
+  function todosMeus() { var v = {}, out = []; (P.meusEfeitos || []).concat(meusGlobais()).forEach(function (e) { if (!v[e.id]) { v[e.id] = 1; out.push(e); } }); return out; }
+  function garantirNoProjeto(id) { // efeito próprio usado no projeto vai junto dentro dele (o render no PC não conhece a biblioteca do aparelho)
+    if (!/^m:/.test(id)) return; var eid = id.slice(2); if ((P.meusEfeitos || []).some(function (e) { return e.id === eid; })) return;
+    var g = meusGlobais().filter(function (e) { return e.id === eid; })[0]; if (g) (P.meusEfeitos = P.meusEfeitos || []).push(M.clone(g));
+  }
+
+  /* ---------- palco ---------- */
+  function medir() {
+    var cel = innerWidth <= 1100, larg = $("moTela").parentNode.clientWidth - 4, alt = cel ? innerHeight * 0.36 : Math.max(300, innerHeight - 420); // no PC a linha do tempo fica à vista
+    SC = Math.max(0.05, Math.min(larg / P.w, alt / P.h));
+    $("moTela").style.width = Math.round(P.w * SC) + "px"; $("moTela").style.height = Math.round(P.h * SC) + "px";
+    $("moCena").style.transform = "scale(" + SC + ")"; $("moCena").style.width = P.w + "px"; $("moCena").style.height = P.h + "px";
+    document.documentElement.style.scrollPaddingTop = cel ? Math.round(P.h * SC + 70) + "px" : "";
+  }
+  function remontar() { MONT = M.montar($("moCena"), P, {}); medir(); ver(T); }
+  function ver(t) {
+    T = Math.max(0, Math.min(P.dur, t)); if (MONT) MONT.seek(T);
+    $("moTempo").textContent = fmt(T) + " / " + fmt(P.dur) + " s";
+    var ag = $("moAgulha"); if (ag) ag.style.left = (T * pxs()) + "px";
+    moldura(); if (SEL && !TOCANDO) atualizarKbs();
+  }
+  function moldura() {
+    var s = $("moSelecao"), c = SEL && MONT && MONT.caixas.filter(function (x) { return x.it.id === SEL; })[0];
+    if (!c || c.b.style.display === "none") { s.hidden = true; return; }
+    var r = c.b.getBoundingClientRect(), base = $("moTela").getBoundingClientRect();
+    s.hidden = false; s.style.left = (r.left - base.left - 4) + "px"; s.style.top = (r.top - base.top - 4) + "px"; s.style.width = (r.width + 8) + "px"; s.style.height = (r.height + 8) + "px";
+  }
+  function tocar() {
+    if (TOCANDO) { TOCANDO = false; $("moTocar").textContent = "▶ TOCAR"; ver(T); return; }
+    TOCANDO = true; $("moTocar").textContent = "❚❚ PAUSAR"; if (T >= P.dur - 0.05) T = 0;
+    var t0 = performance.now() - T * 1000;
+    (function passo(agora) { if (!TOCANDO) return; var t = (agora - t0) / 1000; if (t >= P.dur) { t0 = agora; t = 0; } ver(t); requestAnimationFrame(passo); })(performance.now());
+  }
+
+  // arrastar na tela: posição fixa, ou keyframe quando GRAVAR está ligado (ou o item já tem keyframes)
+  function valorEm(it, prop, t) { var base = { x: it.x, y: it.y, escala: it.escala, giro: it.giro, opac: it.opac === undefined ? 1 : it.opac }[prop]; return M.valorKeys((it.keys || {})[prop], t, +base); }
+  function porKey(it, prop, t, v) {
+    it.keys = it.keys || {}; var l = it.keys[prop] = it.keys[prop] || [];
+    if (!l.length && t > it.ini + 0.05) l.push({ t: +it.ini.toFixed(3), v: valorEm(it, prop, it.ini), e: "suave" });
+    var k = l.filter(function (q) { return Math.abs(q.t - t) < 0.04; })[0];
+    if (k) k.v = v; else l.push({ t: +t.toFixed(3), v: v, e: "suave" });
+    l.sort(function (a, b) { return a.t - b.t; });
+  }
+  function definir(it, prop, v) {
+    var tem = it.keys && it.keys[prop] && it.keys[prop].length;
+    if (GRAVAR || tem) porKey(it, prop, T, v);
+    else { if (prop === "x") it.x = v; else if (prop === "y") it.y = v; else if (prop === "escala") it.escala = v; else if (prop === "giro") it.giro = v; else it.opac = v; }
+  }
+  function ligarPalco() {
+    var tela = $("moTela"), arr = null;
+    tela.addEventListener("pointerdown", function (e) {
+      var alvo = e.target.closest("[data-item]"), id = alvo && alvo.getAttribute("data-item");
+      if (!id) { selecionar(null); return; }
+      if (TOCANDO) tocar();
+      selecionar(id, true); var it = item(id); if (!it) return;
+      arr = { id: id, px: e.clientX, py: e.clientY, x0: valorEm(it, "x", T), y0: valorEm(it, "y", T), mexeu: false };
+      try { tela.setPointerCapture(e.pointerId); } catch (x) {}
+      e.preventDefault();
+    });
+    tela.addEventListener("pointermove", function (e) {
+      if (!arr) return; var it = item(arr.id); if (!it) return;
+      var dx = (e.clientX - arr.px) / SC, dy = (e.clientY - arr.py) / SC; if (!arr.mexeu && Math.abs(dx) + Math.abs(dy) < 4 / SC) return;
+      arr.mexeu = true; definir(it, "x", Math.round(arr.x0 + dx)); definir(it, "y", Math.round(arr.y0 + dy)); ver(T);
+    });
+    function soltar() { if (arr && arr.mexeu) { mudou({ remontar: false, painel: true }); } arr = null; }
+    tela.addEventListener("pointerup", soltar); tela.addEventListener("pointercancel", soltar);
+  }
+
+  /* ---------- biblioteca, fundo, modelos ---------- */
+  function desenharLib() {
+    var g = {}; Object.keys(M.ITENS).forEach(function (k) { var d = M.ITENS[k]; (g[d.grupo] = g[d.grupo] || []).push(k); });
+    var h = "", n = 0;
+    Object.keys(g).forEach(function (gr) {
+      h += '<div class="mo-g" style="margin:0 0 8px"><div style="font:800 10px Inter,sans-serif;letter-spacing:.12em;color:' + CORES_GRUPO[gr] + ';margin:6px 0">' + esc(gr.toUpperCase()) + '</div><div class="mo-lib">';
+      g[gr].forEach(function (k) { var d = M.ITENS[k]; h += '<button type="button" data-add="' + k + '" style="background:' + GRAD[n++ % GRAD.length] + '" title="' + esc(d.nome) + '"><b>' + esc(d.icone) + '</b>' + esc(d.nome.toUpperCase()) + "</button>"; });
+      h += "</div></div>";
+    });
+    $("moLib").innerHTML = h;
+  }
+  function adicionar(tipo) {
+    var it = M.novoItem(tipo, P, T >= P.dur - 0.5 ? 0 : T);
+    if (M.ITENS[tipo].fundo) P.itens.unshift(it); else P.itens.push(it);
+    if (/foto|antesdepois|lupa/.test(tipo)) it.escala = P.h > P.w ? 1 : 0.8;
+    SEL = it.id; KSEL = null; mudou({ painel: true });
+    aviso("＋ " + M.ITENS[tipo].nome + " entrou em " + fmt(it.ini) + " s com o efeito “" + nomeEfeito(it.entrada.efeito) + "”.");
+    if (/foto|antesdepois|lupa/.test(tipo)) escolherImagem(it.id, "src");
+    if (innerWidth <= 1100) abaCel("item");
+  }
+  function desenharFundo() {
+    var f = P.fundo, h = '<label class="um">Tipo<select data-fundo="tipo">' + Object.keys(M.FUNDOS).map(function (k) { return '<option value="' + k + '"' + (f.tipo === k ? " selected" : "") + ">" + esc(M.FUNDOS[k]) + "</option>"; }).join("") + "</select></label>";
+    if (/escuro|cor|degrade|grade/.test(f.tipo)) h += '<label class="um">Cor 1<input type="color" data-fundo="cor1" value="' + esc(f.cor1 || "#0B1A0B") + '"></label>';
+    if (/escuro|degrade/.test(f.tipo)) h += '<label class="um">Cor 2<input type="color" data-fundo="cor2" value="' + esc(f.cor2 || "#060806") + '"></label>';
+    $("moFundo").innerHTML = h;
+  }
+  var MODELOS = {
+    vitrine: { nome: "🟩 VITRINE DE PROMPTS (neon + chat)", f: function (P) {
+      P.fundo = { tipo: "escuro", cor1: "#17300f", cor2: "#060806" }; P.dur = 7;
+      var piso = M.novoItem("piso", P, 0); piso.y = P.h * 0.82;
+      var chip = M.novoItem("chip", P, 0.1); chip.y = P.h * 0.13;
+      var tit = M.novoItem("texto", P, 0.25); tit.y = P.h * 0.21; tit.props.texto = "DETALHES\n*NÍTIDOS*"; tit.props.tamanho = 140;
+      var chat = M.novoItem("chat", P, 0.7); chat.y = P.h * 0.52; chat.props.comando = "/upscale"; chat.loop = { efeito: "flutuar", forca: 0.4 };
+      var dm = M.novoItem("notificacao", P, 4.6); dm.y = P.h * 0.82; dm.escala = 0.95;
+      return [piso, chip, tit, chat, dm]; } },
+    cartao: { nome: "📈 CARTÃO COM GRÁFICO (papel)", f: function (P) {
+      P.fundo = { tipo: "papel" }; P.dur = 6;
+      var g = M.novoItem("grafico", P, 0.1); g.y = P.h * 0.3;
+      var s = M.novoItem("selo", P, 1.8); s.x = P.w * 0.72; s.y = P.h * 0.17;
+      var t = M.novoItem("texto", P, 0.4); t.y = P.h * 0.55; t.props.estilo = "etiqueta"; t.props.fonte = "mono"; t.props.tamanho = 64; t.props.texto = "A PARTE QUE *DERRUBA* O INTERESSE"; t.props.destaque = "#FFB547"; t.props.larg = 900;
+      return [g, s, t]; } },
+    impacto: { nome: "🔥 TÍTULO DE IMPACTO + NÚMERO", f: function (P) {
+      P.fundo = { tipo: "degrade", cor1: "#1b0f3a", cor2: "#06080d" }; P.dur = 5;
+      var e = M.novoItem("emoji", P, 0.1); e.y = P.h * 0.25;
+      var t = M.novoItem("texto", P, 0.5); t.y = P.h * 0.42; t.props.texto = "MAIS DE"; t.props.estilo = "branco"; t.entrada = { efeito: "pulo", dur: 0.5 };
+      var c = M.novoItem("contador", P, 0.9); c.y = P.h * 0.55; c.props.sufixo = " eventos"; c.props.tamanho = 150; c.props.cor = "#FFB547";
+      return [e, t, c]; } },
+    branco: { nome: "◻ EM BRANCO", f: function (P) { P.fundo = { tipo: "escuro", cor1: "#0B1A0B", cor2: "#060806" }; return []; } }
+  };
+  function desenharModelos() { $("moModelos").innerHTML = Object.keys(MODELOS).map(function (k) { return '<button type="button" data-modelo="' + k + '">' + esc(MODELOS[k].nome) + "</button>"; }).join(""); }
+  function usarModelo(k) {
+    if (P.itens.length && !confirm("Começar um projeto NOVO com este modelo? O atual continua salvo em MEUS PROJETOS.")) return;
+    var fmtAt = P.formato; P = M.novoProjeto(fmtAt); P.id = M.uid(); P.nome = MODELOS[k].nome.replace(/^[^A-ZÀ-Ú]+/, "").slice(0, 30);
+    P.itens = MODELOS[k].f(P); T = 0; SEL = null; HIST = []; FUT = []; depoisDeTrocar(); mudou();
+    aviso("Modelo pronto: troque os textos tocando nos itens, mude os efeitos ou toque em ▶ TOCAR.");
+  }
+
+  /* ---------- projetos ---------- */
+  async function desenharProjetos() {
+    var l = []; try { l = await dbOp("readonly", function (s) { return s.getAll(); }); } catch (e) {}
+    l = (l || []).sort(function (a, b) { return b.atualizado - a.atualizado; });
+    $("moProjetos").innerHTML = '<div class="mo-linha" style="margin:0 0 6px"><button class="mo-bt mini" type="button" data-proj-novo="1">＋ NOVO PROJETO</button></div>' + (l.length ? l.map(function (p) {
+      return '<div class="mo-cab" style="margin:4px 0"><strong title="' + esc(p.nome) + '">' + (p.id === P.id ? "▶ " : "") + esc(p.nome || "Sem nome") + '</strong><button class="mo-bt mini" type="button" data-proj-abrir="' + esc(p.id) + '">ABRIR</button><button class="mo-bt mini perigo" type="button" data-proj-apagar="' + esc(p.id) + '" aria-label="Apagar projeto">✕</button></div>';
+    }).join("") : '<div class="mo-vazio">Nenhum projeto salvo ainda.</div>');
+  }
+  async function abrirProjeto(id) {
+    var r = null; try { r = await dbOp("readonly", function (s) { return s.get(id); }); } catch (e) {}
+    if (!r || !r.projeto) return aviso("Não achei esse projeto.", true);
+    salvarJa(); P = r.projeto; T = 0; SEL = null; HIST = [JSON.stringify(P)]; FUT = []; depoisDeTrocar();
+  }
+  function novoProjeto() { salvarJa(); P = M.novoProjeto(P ? P.formato : "9:16"); P.id = M.uid(); T = 0; SEL = null; HIST = [JSON.stringify(P)]; FUT = []; depoisDeTrocar(); salvarJa(); desenharProjetos(); }
+
+  /* ---------- painel do item ---------- */
+  function nomeEfeito(id) { if (/^m:/.test(id)) { var e = todosMeus().filter(function (x) { return "m:" + x.id === id; })[0]; return e ? "★ " + e.nome : "efeito próprio"; } return (M.EFEITOS[id] || M.LOOPS[id] || { nome: id }).nome; }
+  function campo(it, k) {
+    var v = it.props[k], rot = ROT[k] || k, id = 'data-prop="' + k + '"';
+    if (k === "src" || k === "src2") return '<label class="um">' + rot + '<span class="mo-linha" style="margin:0"><button class="mo-bt mini" type="button" data-img="' + k + '">' + (M.imgOk(v) ? "TROCAR IMAGEM" : "ESCOLHER IMAGEM") + "</button>" + (M.imgOk(v) ? '<button class="mo-bt mini perigo" type="button" data-img-tirar="' + k + '">TIRAR</button>' : "") + "</span></label>";
+    if (OPCOES[k]) return '<label class="um">' + rot + "<select " + id + ">" + OPCOES[k].map(function (o) { return '<option value="' + o[0] + '"' + (v === o[0] ? " selected" : "") + ">" + esc(o[1]) + "</option>"; }).join("") + "</select></label>";
+    if (typeof v === "boolean") return '<label class="um">' + rot + '<input type="checkbox" ' + id + (v ? " checked" : "") + "></label>";
+    if (/^(cor|destaque|borda)$/.test(k)) return '<label class="um">' + rot + '<input type="color" ' + id + ' value="' + esc(/^#[0-9a-f]{6}$/i.test(v) ? v : "#ffffff") + '"></label>';
+    if (FAIXAS[k]) { var f = FAIXAS[k]; return "<label>" + rot + '<input type="range" ' + id + ' min="' + f[0] + '" max="' + f[1] + '" step="' + f[2] + '" value="' + esc(v) + '"><output>' + esc(v) + "</output></label>"; }
+    if (typeof v === "number") return '<label class="um">' + rot + '<input type="number" ' + id + ' value="' + esc(v) + '"></label>';
+    if (k === "texto") return '<label class="um">' + rot + "<textarea " + id + ' maxlength="300">' + esc(v) + "</textarea></label>" + (it.tipo === "texto" ? '<p class="mo-dica">*palavra* fica na cor de destaque. Enter quebra a linha.</p>' : "");
+    return '<label class="um">' + rot + '<input type="text" ' + id + ' maxlength="120" value="' + esc(v) + '"></label>';
+  }
+  function chips(lista, atual, attr, extra) {
+    return '<div class="mo-chips">' + lista.map(function (o) { return '<button type="button" ' + attr + '="' + esc(o[0]) + '"' + (o[2] ? ' class="meu' + (atual === o[0] ? " on" : "") + '"' : (atual === o[0] ? ' class="on"' : "")) + ">" + esc(o[1]) + "</button>"; }).join("") + (extra || "") + "</div>";
+  }
+  function listaEfeitos(it) {
+    var txt = it.tipo === "texto", l = Object.keys(M.EFEITOS).filter(function (k) { return txt || !M.EFEITOS[k].soTexto; }).map(function (k) { return [k, M.EFEITOS[k].nome]; });
+    return l.concat(todosMeus().map(function (e) { return ["m:" + e.id, "★ " + e.nome, true]; }));
+  }
+  var PROPS_POS = [["x", "Horizontal", -1000, 3000, 1], ["y", "Vertical", -1000, 3000, 1], ["escala", "Tamanho", 0.05, 4, 0.01], ["giro", "Giro", -720, 720, 1], ["opac", "Opacidade", 0, 1, 0.01]];
+  function desenharPainel() {
+    var it = SEL && item(SEL), p = $("moPainel");
+    $("moSemItem").hidden = !!it; if (!it) { p.innerHTML = ""; return; }
+    var d = M.ITENS[it.tipo], h = '<div class="mo-cab"><strong>' + esc(d.icone + " " + d.nome) + '</strong><button class="mo-bt mini" type="button" data-acao="frente" title="Trazer para a frente">▲</button><button class="mo-bt mini" type="button" data-acao="tras" title="Mandar para trás">▼</button><button class="mo-bt mini" type="button" data-acao="dup" title="Duplicar">⧉</button><button class="mo-bt mini perigo" type="button" data-acao="apagar" aria-label="Apagar item">✕</button></div>';
+    if (KSEL && KSEL.id === it.id) {
+      var curva = keysEm(it, KSEL.t)[0]; curva = curva ? curva.k.e : "suave";
+      h += '<div class="mo-g" style="border:1px solid rgba(255,77,109,.45);border-radius:12px;padding:8px"><h4 style="border:0;margin:0 0 4px">◆ KEYFRAME EM ' + fmt(KSEL.t, 2) + ' s</h4><label class="um">Curva até aqui<select data-kcurva="1">' +
+        Object.keys(M.NOMES_EASE).map(function (e) { return '<option value="' + e + '"' + (e === curva ? " selected" : "") + ">" + esc(M.NOMES_EASE[e]) + "</option>"; }).join("") + '</select></label><div class="mo-linha"><button class="mo-bt mini perigo" type="button" data-acao="kapagar">✕ APAGAR ESTE KEYFRAME</button><button class="mo-bt mini" type="button" data-acao="kfechar">OK</button></div></div>';
+    }
+    h += '<div class="mo-g"><h4 data-seta="mo_conteudo">CONTEÚDO</h4><div>' + Object.keys(it.props).map(function (k) { return campo(it, k); }).join("") + "</div></div>";
+    h += '<div class="mo-g"><h4 data-seta="mo_pos">POSIÇÃO E KEYFRAMES</h4><div>' + PROPS_POS.map(function (q) {
+      var v = valorEm(it, q[0], T); return '<label class="k">' + q[1] + '<input type="range" data-pos="' + q[0] + '" min="' + q[2] + '" max="' + q[3] + '" step="' + q[4] + '" value="' + v + '"><output>' + (q[4] < 1 ? fmt(v, 2) : Math.round(v)) + '</output><button class="mo-kb" type="button" data-kb="' + q[0] + '" title="Keyframe aqui">◆</button></label>';
+    }).join("") + '<p class="mo-dica">◆ marca o valor NESTE tempo. Ande com a agulha, mude o valor e marque de novo: o item se move entre os keyframes. Com ◆ GRAVAR MOVIMENTO ligado, arrastar na tela já marca.</p><div class="mo-linha"><button class="mo-bt mini" type="button" data-acao="klimpar">LIMPAR KEYFRAMES</button><button class="mo-bt mini" type="button" data-acao="centro">CENTRALIZAR</button></div></div></div>';
+    h += '<div class="mo-g"><h4 data-seta="mo_entrada">ENTRADA</h4><div>' + chips(listaEfeitos(it), it.entrada.efeito, "data-ent") +
+      '<label>Duração<input type="range" data-ent-dur="1" min="0.1" max="3" step="0.05" value="' + it.entrada.dur + '"><output>' + fmt(it.entrada.dur, 2) + ' s</output></label><div class="mo-linha"><button class="mo-bt mini" type="button" data-acao="verent">▶ VER A ENTRADA</button><button class="mo-bt mini ia" type="button" data-acao="criaref">✨ CRIAR MEU EFEITO</button></div></div></div>';
+    h += '<div class="mo-g"><h4 data-seta="mo_saida" data-seta-padrao="fechada">SAÍDA</h4><div>' + chips(listaEfeitos(it).filter(function (o) { return o[0] !== "palavras" && o[0] !== "maquina"; }), it.saida.efeito, "data-sai") +
+      '<label>Duração<input type="range" data-sai-dur="1" min="0.1" max="2" step="0.05" value="' + it.saida.dur + '"><output>' + fmt(it.saida.dur, 2) + ' s</output></label><label class="um">Sair no fim do vídeo<input type="checkbox" data-sai-fim="1"' + (it.saida.noFim ? " checked" : "") + '></label></div></div>';
+    h += '<div class="mo-g"><h4 data-seta="mo_loop" data-seta-padrao="fechada">DURANTE (MOVIMENTO CONTÍNUO)</h4><div>' + chips(Object.keys(M.LOOPS).map(function (k) { return [k, M.LOOPS[k].nome]; }), it.loop.efeito, "data-loop") +
+      '<label>Força<input type="range" data-loop-forca="1" min="0.1" max="3" step="0.05" value="' + (it.loop.forca === undefined ? 1 : it.loop.forca) + '"><output>' + fmt(it.loop.forca === undefined ? 1 : it.loop.forca, 2) + "</output></label></div></div>";
+    h += '<div class="mo-g"><h4 data-seta="mo_tempo" data-seta-padrao="fechada">TEMPO</h4><div><label class="um">Aparece em (s)<input type="number" data-tempo="ini" min="0" step="0.1" value="' + it.ini + '"></label><label class="um">Some em (s)<input type="number" data-tempo="fim" min="0.1" step="0.1" value="' + it.fim + '"></label></div></div>';
+    p.innerHTML = h; atualizarKbs();
+  }
+  function keysEm(it, t) { var out = []; Object.keys(it.keys || {}).forEach(function (pr) { (it.keys[pr] || []).forEach(function (k) { if (Math.abs(k.t - t) < 0.02) out.push({ pr: pr, k: k }); }); }); return out; }
+  function atualizarKbs() {
+    var it = SEL && item(SEL); if (!it) return;
+    document.querySelectorAll("[data-kb]").forEach(function (b) { var pr = b.getAttribute("data-kb"), tem = ((it.keys || {})[pr] || []).some(function (k) { return Math.abs(k.t - T) < 0.04; }); b.classList.toggle("tem", tem); });
+    document.querySelectorAll("[data-pos]").forEach(function (r) { if (document.activeElement === r) return; var pr = r.getAttribute("data-pos"), v = valorEm(it, pr, T); r.value = v; var o = r.nextElementSibling; if (o) o.textContent = +r.step < 1 ? fmt(v, 2) : Math.round(v); });
+  }
+  function selecionar(id, deTela) {
+    if (SEL !== id) KSEL = null; SEL = id; moldura(); desenharPainel(); desenharTimeline();
+    if (id && deTela && innerWidth <= 1100) abaCel("item");
+  }
+  function ligarPainel() {
+    var p = $("moDir");
+    p.addEventListener("input", function (e) {
+      var it = SEL && item(SEL), el = e.target; if (!it) return;
+      if (el.matches("[data-prop]")) { var k = el.getAttribute("data-prop"), v = el.type === "checkbox" ? el.checked : el.type === "range" || el.type === "number" || typeof it.props[k] === "number" ? Number(el.value) : el.value;
+        it.props[k] = v; if (el.type === "range" && el.nextElementSibling) el.nextElementSibling.textContent = v; mudou(); return; }
+      if (el.matches("[data-pos]")) { var pr = el.getAttribute("data-pos"); definir(it, pr, Number(el.value)); if (el.nextElementSibling) el.nextElementSibling.textContent = +el.step < 1 ? fmt(el.value, 2) : Math.round(el.value); mudou({ remontar: false }); return; }
+      if (el.matches("[data-ent-dur]")) { it.entrada.dur = Number(el.value); el.nextElementSibling.textContent = fmt(el.value, 2) + " s"; mudou({ remontar: false }); return; }
+      if (el.matches("[data-sai-dur]")) { it.saida.dur = Number(el.value); el.nextElementSibling.textContent = fmt(el.value, 2) + " s"; mudou({ remontar: false }); return; }
+      if (el.matches("[data-loop-forca]")) { it.loop.forca = Number(el.value); el.nextElementSibling.textContent = fmt(el.value, 2); mudou({ remontar: false }); return; }
+    });
+    p.addEventListener("change", function (e) {
+      var it = SEL && item(SEL), el = e.target; if (!it) return;
+      if (el.matches("[data-sai-fim]")) { it.saida.noFim = el.checked; mudou({ remontar: false }); }
+      if (el.matches("[data-tempo]")) { var a = el.getAttribute("data-tempo"), v = Math.max(0, Math.min(P.dur, Number(el.value) || 0));
+        if (a === "ini") moverItem(it, v - it.ini, false); else it.fim = Math.max(it.ini + 0.2, v); mudou({ remontar: false, painel: true }); }
+      if (el.matches("[data-kcurva]") && KSEL) { keysEm(it, KSEL.t).forEach(function (q) { q.k.e = el.value; }); mudou({ remontar: false }); }
+    });
+    p.addEventListener("click", function (e) {
+      var it = SEL && item(SEL), b = e.target.closest("button"); if (!it || !b) return;
+      if (b.hasAttribute("data-ent")) { it.entrada.efeito = b.getAttribute("data-ent"); garantirNoProjeto(it.entrada.efeito); mudou({ remontar: true, painel: true }); verEntrada(it); return; }
+      if (b.hasAttribute("data-sai")) { it.saida.efeito = b.getAttribute("data-sai"); garantirNoProjeto(it.saida.efeito); mudou({ painel: true }); return; }
+      if (b.hasAttribute("data-loop")) { it.loop.efeito = b.getAttribute("data-loop"); mudou({ remontar: false, painel: true }); return; }
+      if (b.hasAttribute("data-kb")) { var pr = b.getAttribute("data-kb"); porKey(it, pr, T, valorEm(it, pr, T)); KSEL = { id: it.id, t: +T.toFixed(3) }; mudou({ remontar: false, painel: true }); return; }
+      if (b.hasAttribute("data-img")) { escolherImagem(it.id, b.getAttribute("data-img")); return; }
+      if (b.hasAttribute("data-img-tirar")) { it.props[b.getAttribute("data-img-tirar")] = ""; mudou({ painel: true }); return; }
+      var a = b.getAttribute("data-acao"), i = P.itens.indexOf(it);
+      if (a === "frente" && i < P.itens.length - 1) { P.itens.splice(i, 1); P.itens.splice(i + 1, 0, it); mudou(); }
+      else if (a === "tras" && i > 0) { P.itens.splice(i, 1); P.itens.splice(i - 1, 0, it); mudou(); }
+      else if (a === "dup") { var c = M.clone(it); c.id = M.uid(); c.x += 40; c.y += 40; P.itens.splice(i + 1, 0, c); SEL = c.id; mudou({ painel: true }); }
+      else if (a === "apagar") { if (!confirm("Apagar este item?")) return; P.itens.splice(i, 1); SEL = null; KSEL = null; mudou({ painel: true }); }
+      else if (a === "klimpar") { if (!confirm("Tirar todos os keyframes deste item? Ele fica parado na posição atual.")) return; ["x", "y", "escala", "giro", "opac"].forEach(function (q) { var v = valorEm(it, q, T); if (q === "x") it.x = v; else if (q === "y") it.y = v; else if (q === "escala") it.escala = v; else if (q === "giro") it.giro = v; else it.opac = v; }); it.keys = {}; KSEL = null; mudou({ remontar: false, painel: true }); }
+      else if (a === "centro") { definir(it, "x", P.w / 2); definir(it, "y", P.h / 2); mudou({ remontar: false, painel: true }); }
+      else if (a === "kapagar" && KSEL) { Object.keys(it.keys || {}).forEach(function (pr) { it.keys[pr] = it.keys[pr].filter(function (k) { return Math.abs(k.t - KSEL.t) >= 0.02; }); if (!it.keys[pr].length) delete it.keys[pr]; }); KSEL = null; mudou({ remontar: false, painel: true }); }
+      else if (a === "kfechar") { KSEL = null; desenharPainel(); desenharTimeline(); }
+      else if (a === "verent") verEntrada(it);
+      else if (a === "criaref") abrirEfeito();
+    });
+  }
+  function verEntrada(it) { if (TOCANDO) tocar(); var t0 = performance.now(), ini = it.ini, fim = Math.min(P.dur, it.ini + Math.max(1.2, it.entrada.dur + 0.6));
+    (function passo(a) { var t = ini + (a - t0) / 1000; ver(Math.min(t, fim)); if (t < fim) requestAnimationFrame(passo); })(t0); }
+  function moverItem(it, d, prender) {
+    if (prender !== false) d = Math.max(-it.ini, Math.min(P.dur - it.fim, d));
+    it.ini = +(it.ini + d).toFixed(3); it.fim = +(it.fim + d).toFixed(3);
+    Object.keys(it.keys || {}).forEach(function (pr) { it.keys[pr].forEach(function (k) { k.t = +(k.t + d).toFixed(3); }); });
+  }
+
+  /* ---------- imagens (ficam dentro do projeto, só no aparelho) ---------- */
+  var ALVO_IMG = null;
+  function escolherImagem(id, campo) { ALVO_IMG = { id: id, campo: campo }; $("moArqImg").value = ""; $("moArqImg").click(); }
+  function reduzir(arq) {
+    return new Promise(function (ok, erro) {
+      var leitor = new FileReader();
+      leitor.onload = function () { var im = new Image(); im.onload = function () {
+        var max = 1400, k = Math.min(1, max / Math.max(im.width, im.height)), c = document.createElement("canvas"); c.width = Math.round(im.width * k); c.height = Math.round(im.height * k);
+        c.getContext("2d").drawImage(im, 0, 0, c.width, c.height); var png = /png|webp|gif/.test(arq.type);
+        ok(c.toDataURL(png ? "image/png" : "image/jpeg", 0.88)); }; im.onerror = function () { erro(new Error("não abriu a imagem")); }; im.src = leitor.result; };
+      leitor.onerror = function () { erro(leitor.error); }; leitor.readAsDataURL(arq);
+    });
+  }
+
+  /* ---------- linha do tempo ---------- */
+  function pxs() { var larg = Math.max(200, $("moPistas").clientWidth - 10); return (larg / P.dur) * ZOOM; }
+  function desenharTimeline() {
+    var px = pxs(), W = Math.ceil(P.dur * px) + 10, passo = P.dur * ZOOM > 30 ? 5 : P.dur * ZOOM > 12 ? 2 : 1, reg = "";
+    for (var s = 0; s <= P.dur + 0.001; s += passo) reg += '<i style="left:' + (s * px) + 'px">' + s + "s</i>";
+    var ordem = P.itens.slice().reverse(), rot = "<div>CAMADAS</div>", pis = '<div class="mo-regua" id="moRegua" style="width:' + W + 'px">' + reg + "</div>";
+    ordem.forEach(function (it) {
+      var d = M.ITENS[it.tipo] || { icone: "?", grupo: "Enfeites", nome: it.tipo }, cor = CORES_GRUPO[d.grupo] || "#888";
+      var nome = it.tipo === "texto" || it.tipo === "chip" || it.tipo === "selo" ? String(it.props.texto || "").replace(/[*\n]/g, " ").slice(0, 22) : d.nome;
+      rot += '<div data-sel="' + it.id + '"' + (it.id === SEL ? ' class="on"' : "") + ' title="' + esc(nome) + '"><i>' + esc(d.icone) + "</i>" + esc(nome) + "</div>";
+      var l = it.ini * px, w = Math.max(10, (it.fim - it.ini) * px), en = Math.min(w, (it.entrada.dur || 0) * px), sa = (it.fim < P.dur - 0.01 || it.saida.noFim) ? Math.min(w, (it.saida.dur || 0) * px) : 0;
+      var kts = {}; Object.keys(it.keys || {}).forEach(function (pr) { (it.keys[pr] || []).forEach(function (k) { kts[k.t.toFixed(2)] = k.t; }); });
+      pis += '<div class="mo-pista" style="width:' + W + 'px"><div class="mo-barra' + (it.id === SEL ? " on" : "") + '" data-barra="' + it.id + '" style="--c:' + cor + ";left:" + l + "px;width:" + w + 'px"><span class="en" style="width:' + en + 'px"></span><span class="sa" style="width:' + sa + 'px"></span><span class="al e" data-al="e"></span><span class="al d" data-al="d"></span></div>' +
+        Object.keys(kts).map(function (k) { var t = kts[k]; return '<span class="mo-kf' + (KSEL && KSEL.id === it.id && Math.abs(KSEL.t - t) < 0.02 ? " on" : "") + '" data-kf="' + it.id + '" data-t="' + t + '" style="left:' + (t * px) + 'px" title="Keyframe em ' + fmt(t, 2) + ' s"></span>'; }).join("") + "</div>";
+    });
+    if (!P.itens.length) pis += '<div class="mo-vazio">Toque num item da BIBLIOTECA para começar, ou abra um MODELO PRONTO.</div>';
+    $("moRot").innerHTML = rot; $("moPistas").innerHTML = pis + '<div class="mo-agulha" id="moAgulha" style="left:' + (T * px) + 'px"></div>';
+  }
+  function ligarTimeline() {
+    var pis = $("moPistas"), arr = null;
+    $("moRot").addEventListener("click", function (e) { var d = e.target.closest("[data-sel]"); if (d) selecionar(d.getAttribute("data-sel"), true); });
+    pis.addEventListener("pointerdown", function (e) {
+      var px = pxs(), base = pis.getBoundingClientRect().left;
+      var kf = e.target.closest("[data-kf]");
+      if (kf) { var id = kf.getAttribute("data-kf"), t = Number(kf.getAttribute("data-t")); SEL = id; KSEL = { id: id, t: t }; ver(t); desenharPainel(); desenharTimeline();
+        arr = { tipo: "kf", id: id, t0: t, x: e.clientX, mexeu: false }; if (innerWidth <= 1100) abaCel("item"); e.preventDefault(); return; }
+      var b = e.target.closest("[data-barra]");
+      if (b) { var it = item(b.getAttribute("data-barra")); if (!it) return; if (SEL !== it.id) selecionar(it.id, false);
+        arr = { tipo: e.target.getAttribute("data-al") || "mover", id: it.id, x: e.clientX, ini: it.ini, fim: it.fim, mexeu: false, keys: JSON.stringify(it.keys || {}) };
+        try { pis.setPointerCapture(e.pointerId); } catch (x) {} e.preventDefault(); return; }
+      if (e.target.closest("#moRegua") || e.target === pis) { if (TOCANDO) tocar(); ver((e.clientX - base + pis.scrollLeft) / px); arr = { tipo: "agulha" }; try { pis.setPointerCapture(e.pointerId); } catch (x) {} }
+    });
+    pis.addEventListener("pointermove", function (e) {
+      if (!arr) return; var px = pxs(), it = arr.id && item(arr.id);
+      if (arr.tipo === "agulha") { ver((e.clientX - pis.getBoundingClientRect().left + pis.scrollLeft) / px); return; }
+      var d = (e.clientX - arr.x) / px; if (!arr.mexeu && Math.abs(e.clientX - arr.x) < 4) return; arr.mexeu = true; if (!it) return;
+      if (arr.tipo === "kf") { var nt = +Math.max(it.ini, Math.min(it.fim, arr.t0 + d)).toFixed(3), atual = arr.tAtual === undefined ? arr.t0 : arr.tAtual;
+        keysEm(it, atual).forEach(function (q) { q.k.t = nt; }); Object.keys(it.keys || {}).forEach(function (pr) { it.keys[pr].sort(function (a, c) { return a.t - c.t; }); });
+        arr.tAtual = nt; KSEL = { id: it.id, t: nt }; ver(nt); desenharTimeline(); return; }
+      if (arr.tipo === "mover") { it.keys = JSON.parse(arr.keys); it.ini = arr.ini; it.fim = arr.fim; moverItem(it, d); }
+      else if (arr.tipo === "e") it.ini = +Math.max(0, Math.min(it.fim - 0.2, arr.ini + d)).toFixed(3);
+      else if (arr.tipo === "d") it.fim = +Math.min(P.dur, Math.max(it.ini + 0.2, arr.fim + d)).toFixed(3);
+      ver(T); desenharTimeline();
+    });
+    function soltar() { if (arr && arr.mexeu) mudou({ remontar: false, painel: true }); arr = null; }
+    pis.addEventListener("pointerup", soltar); pis.addEventListener("pointercancel", soltar);
+  }
+
+  /* ---------- motion automático ---------- */
+  function motionAuto() {
+    if (!P.itens.length) return aviso("Ponha itens na tela primeiro (BIBLIOTECA ou MODELOS PRONTOS).", true);
+    var est = ["dinamico", "suave", "impacto"], i = (est.indexOf(P.autoEstilo) + 1) % 3; P.autoEstilo = est[i];
+    M.auto(P, est[i]); mudou({ painel: true }); ver(0); if (!TOCANDO) tocar();
+    aviso("✨ Motion automático: estilo " + ["DINÂMICO", "SUAVE", "IMPACTO"][i] + ". Toque de novo para ver o próximo estilo; depois ajuste item por item.");
+  }
+
+  /* ---------- criar efeito com ajuda ---------- */
+  var EF_NOVO = null;
+  function abrirEfeito() { $("moFolhaEfeito").hidden = false; $("moEfRes").innerHTML = ""; EF_NOVO = null;
+    $("moEfEx").innerHTML = ["cai de cima quicando", "entra girando e crescendo", "desliza da esquerda devagar", "explode do centro", "vem de longe com desfoque", "vira como uma carta"].map(function (x) { return '<button type="button" data-ex="' + esc(x) + '">' + esc(x) + "</button>"; }).join("");
+    setTimeout(function () { $("moEfTexto").focus(); }, 50); }
+  async function sessao() { try { var c = window.BWSync && BWSync.cliente && BWSync.cliente(); var s = c ? await c.auth.getSession() : null; return s && s.data && s.data.session || null; } catch (e) { return null; } }
+  function extrairJSON(t) { var m = String(t || "").match(/\{[\s\S]*\}/); if (!m) return null; try { return JSON.parse(m[0]); } catch (e) { return null; } }
+  function neutro(ef) { var N = { dx: 0, dy: 0, s: 1, r: 0, o: 1, b: 0, rx: 0, ry: 0 };
+    Object.keys(ef.chaves).forEach(function (k) { var l = ef.chaves[k], u = l[l.length - 1]; if (u[0] < 1) l.push([1, N[k], "sai"]); else u[1] = N[k]; }); return ef; }
+  async function criarEfeito() {
+    var frase = $("moEfTexto").value.trim(); if (!frase) return aviso("Escreva como o item deve entrar.", true);
+    var ef = null, motivo = "", s = await sessao();
+    $("moEfRes").innerHTML = '<p class="mo-dica">Criando…</p>';
+    if (s) {
+      try {
+        var r = await fetch(FN_IA, { method: "POST", headers: { "Content-Type": "application/json", "Authorization": "Bearer " + s.access_token, "apikey": PUB },
+          body: JSON.stringify({ sistema: 'Você cria efeitos de ENTRADA de animação para um app de vídeos (tela de 1080x1920). A pessoa descreve em português. Responda SÓ com JSON neste formato: {"nome":"nome curto em português","chaves":{"dy":[[0,-700,"linear"],[0.7,0,"quique"],[1,0,"linear"]],"r":[[0,-180,"linear"],[1,0,"sai"]],"o":[[0,0,"linear"],[0.2,1,"sai"]]}}. O tempo vai de 0 (começo) a 1 (item parado no lugar). Propriedades possíveis: dx e dy (deslocamento em pixels; dy positivo = para baixo, dx positivo = para a direita), s (tamanho, 1 = normal), r (giro em graus), o (opacidade de 0 a 1), b (desfoque em pixels), rx e ry (giro 3D em graus). Curvas possíveis (a do ponto de chegada): linear, suave, entra, sai, pulo, elastico, quique, degrau. Em 1 todas as propriedades usadas precisam estar no normal (dx 0, dy 0, s 1, r 0, o 1, b 0, rx 0, ry 0). Use só as propriedades que o pedido precisa, no máximo 6 pontos por propriedade.', pedido: frase, max: 500 }) });
+        var j = await r.json().catch(function () { return {}; });
+        if (r.ok) { ef = M.limparEfeito(extrairJSON(j.texto)); if (!ef) motivo = "a IA respondeu fora do formato"; }
+        else motivo = r.status === 401 ? "entre de novo na sua conta" : r.status === 429 ? "o limite de hoje da IA acabou" : "a IA Brightway está fora do ar agora";
+      } catch (e) { motivo = "sem internet"; }
+    } else motivo = "sem conta, usei o criador do aparelho";
+    if (!ef) ef = M.limparEfeito(M.efeitoPorTexto(frase));
+    ef = neutro(ef); ef.id = M.uid(); if (!ef.nome || ef.nome === "Meu efeito") ef.nome = frase.slice(0, 40);
+    mostrarEfeito(ef, motivo);
+  }
+  function efeitoDoItem() {
+    var it = SEL && item(SEL); if (!it || !it.keys || !Object.keys(it.keys).length) return aviso("Escolha um item que tenha keyframes (◆) para virar efeito.", true);
+    var t0 = Infinity, t1 = -Infinity; Object.keys(it.keys).forEach(function (pr) { it.keys[pr].forEach(function (k) { t0 = Math.min(t0, k.t); t1 = Math.max(t1, k.t); }); });
+    if (!(t1 > t0)) return aviso("Precisa de pelo menos 2 keyframes em tempos diferentes.", true);
+    var map = { x: "dx", y: "dy", escala: "s", giro: "r", opac: "o" }, ch = {};
+    Object.keys(it.keys).forEach(function (pr) { var l = it.keys[pr], fim = l[l.length - 1].v;
+      ch[map[pr]] = l.map(function (k) { var v = pr === "x" || pr === "y" || pr === "giro" ? k.v - fim : pr === "escala" ? (fim ? k.v / fim : 1) : (fim ? k.v / fim : 1); return [(k.t - t0) / (t1 - t0), v, k.e]; }); });
+    var ef = M.limparEfeito({ nome: "Movimento de " + (M.ITENS[it.tipo] || {}).nome, chaves: ch }); if (!ef) return aviso("Não consegui transformar esse movimento.", true);
+    ef = neutro(ef); ef.id = M.uid(); ef.dur = +(t1 - t0).toFixed(2); mostrarEfeito(ef, "");
+  }
+  function mostrarEfeito(ef, motivo) {
+    EF_NOVO = ef;
+    $("moEfRes").innerHTML = '<div class="mo-g" style="border:1px solid rgba(192,76,255,.5);border-radius:12px;padding:10px;margin-top:10px"><strong>★ ' + esc(ef.nome) + "</strong>" +
+      '<p class="mo-dica">' + Object.keys(ef.chaves).map(function (k) { return { dx: "lado", dy: "altura", s: "tamanho", r: "giro", o: "aparecer", b: "desfoque", rx: "3D (X)", ry: "3D (Y)" }[k]; }).join(" · ") + (motivo ? " — " + esc(motivo) : "") + "</p>" +
+      '<div class="mo-linha"><button class="mo-bt mini" type="button" id="moEfTestar">▶ TESTAR NO ITEM</button><button class="mo-bt mini ia" type="button" id="moEfSalvar">★ SALVAR EM MEUS EFEITOS</button></div></div>';
+    $("moEfTestar").onclick = function () { var it = SEL && item(SEL) || P.itens[P.itens.length - 1]; if (!it) return aviso("Ponha um item na tela para testar.", true);
+      P.meusEfeitos = (P.meusEfeitos || []).filter(function (e) { return e.id !== ef.id; }).concat([M.clone(ef)]); it.entrada = { efeito: "m:" + ef.id, dur: ef.dur || Math.max(0.8, it.entrada.dur) }; SEL = it.id; mudou({ painel: true }); verEntrada(it); };
+    $("moEfSalvar").onclick = function () { guardarGlobal(M.clone(ef)); aviso("★ “" + ef.nome + "” salvo em MEUS EFEITOS: aparece na ENTRADA e na SAÍDA de qualquer item, em qualquer projeto."); desenharPainel(); };
+  }
+
+  /* ---------- exportar ---------- */
+  var EXP = { parar: false, url: "", arquivo: null };
+  function nomeArq() { return (P.nome || "motion").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9]+/g, "-").replace(/^-|-$/g, "").toLowerCase() || "motion"; }
+  function baixar(blob, nome) { var a = document.createElement("a"), u = URL.createObjectURL(blob); a.href = u; a.download = nome; document.body.appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(u); }, 4000); }
+  function urlMotor() { return new URL("assets/motion-motor.js?v=" + M.VERSAO, location.href).href; }
+  function dicaExp() {
+    var f = $("moExpFundo").value, d = { "": "Vídeo com o fundo do projeto.", verde: "Fundo verde liso: no CapCut, Sobrepor → Remover fundo → Chroma key → toque no verde. Se a animação usa verde, escolha azul ou magenta.",
+      azul: "Fundo azul liso para chroma key (use quando a animação tem verde).", magenta: "Fundo magenta liso: quase nada usa essa cor, ótimo para animações verdes e azuis.",
+      alfa: "Transparente de verdade (.mov ProRes 4444) para Premiere, DaVinci e CapCut no PC — só o app BW do computador faz esse." }[f];
+    $("moExpDica").textContent = d; $("moExpAqui").disabled = f === "alfa";
+    $("moExpPC").textContent = NO_APP ? "💻 GERAR NO PC (app BW)" : "💻 GERAR NO APP BW (PC)";
+  }
+  async function gerarAqui() {
+    if (!window.BWReelsCelular || !(await BWReelsCelular.suporta())) return aviso("Este navegador não grava vídeo sozinho. Use o app BW no computador, ou o Chrome/Safari atualizado.", true);
+    var rec = $("moExpFundo").value; EXP.parar = false; $("moExpProg").hidden = false; $("moExpPronto").hidden = true;
+    try {
+      var res = await BWReelsCelular.gerar({ html: M.html(P, { src: urlMotor(), recorte: rec }), largura: P.w, altura: P.h, fps: P.fps || 30, duracao: P.dur, som: null, alturaSaida: Number($("moExpQual").value),
+        cancelar: function () { return EXP.parar; }, aoProgredir: function (p) { $("moExpBarra").value = p.pct; $("moExpTxt").textContent = p.etapa + "… " + p.pct + "%"; } });
+      if (EXP.url) URL.revokeObjectURL(EXP.url);
+      var nome = nomeArq() + (rec ? "-" + rec : "") + ".mp4";
+      EXP.arquivo = new File([res.blob], nome, { type: "video/mp4" }); EXP.url = URL.createObjectURL(res.blob);
+      $("moExpVideo").src = EXP.url; $("moExpBaixar").href = EXP.url; $("moExpBaixar").download = nome; $("moExpPronto").hidden = false;
+      $("moExpTxt").textContent = "✓ Vídeo pronto (" + res.largura + "×" + res.altura + ", " + res.quadros + " quadros, sem som — ponha a trilha no editor de vídeo ou no CapCut).";
+    } catch (e) { $("moExpTxt").textContent = /cancelado/.test(e.message) ? "Cancelado." : "Não deu certo: " + (e.message || e); }
+  }
+  function gerarPC() {
+    var rec = $("moExpFundo").value || "normal", nome = nomeArq() + "." + rec + ".bwmotion.json";
+    baixar(new Blob([JSON.stringify(P)], { type: "application/json" }), nome);
+    if (NO_APP) aviso("💻 Pedido enviado ao app BW: o vídeo é feito no computador e abre sozinho quando ficar pronto.");
+    else aviso("Este botão faz o vídeo pelo app BW do computador: abra esta página DENTRO do app BW e toque de novo. O arquivo baixado (" + nome + ") é o seu projeto — dá para abrir aqui em ⇪ ABRIR PROJETO.");
+  }
+
+  /* ---------- abas do celular ---------- */
+  function abaCel(a) { $("moGrade").setAttribute("data-aba", a); [].forEach.call($("moAbasCel").children, function (b) { b.classList.toggle("on", b.getAttribute("data-aba") === a); }); }
+
+  function desenharTudo() {
+    $("moNome").value = P.nome || ""; $("moFmt").value = P.formato || "9:16"; $("moDur").value = String(P.dur);
+    desenharFundo(); desenharPainel(); desenharTimeline(); desenharProjetos(); medir(); ver(T);
+  }
+
+  /* ---------- início ---------- */
+  async function iniciar() {
+    var d = ""; [3, 4, 5, 6, 7, 8, 10, 12, 15, 20, 25, 30, 45, 60].forEach(function (s) { d += '<option value="' + s + '">' + s + " s</option>"; }); $("moDur").innerHTML = d;
+    desenharLib(); desenharModelos();
+    var ult = null; try { ult = localStorage.getItem("ui_motion_ultimo"); } catch (e) {}
+    var r = null; if (ult) { try { r = await dbOp("readonly", function (s) { return s.get(ult); }); } catch (e) {} }
+    if (r && r.projeto) P = r.projeto; else { P = M.novoProjeto("9:16"); P.id = M.uid(); P.nome = "Vitrine de prompts"; P.itens = MODELOS.vitrine.f(P); }
+    HIST = [JSON.stringify(P)]; remontar(); desenharTudo(); botoesHist();
+    if (window.BWDobras) BWDobras.aplicar(document);
+
+    $("moLib").addEventListener("click", function (e) { var b = e.target.closest("[data-add]"); if (b) adicionar(b.getAttribute("data-add")); });
+    $("moModelos").addEventListener("click", function (e) { var b = e.target.closest("[data-modelo]"); if (b) usarModelo(b.getAttribute("data-modelo")); });
+    $("moFundo").addEventListener("input", function (e) { var k = e.target.getAttribute("data-fundo"); if (!k) return; P.fundo[k] = e.target.value; if (k === "tipo") desenharFundo(); mudou(); });
+    $("moProjetos").addEventListener("click", function (e) {
+      var b = e.target.closest("button"); if (!b) return;
+      if (b.hasAttribute("data-proj-novo")) novoProjeto();
+      else if (b.hasAttribute("data-proj-abrir")) abrirProjeto(b.getAttribute("data-proj-abrir"));
+      else if (b.hasAttribute("data-proj-apagar")) { var id = b.getAttribute("data-proj-apagar"); if (!confirm("Apagar este projeto do aparelho? Não dá para desfazer.")) return;
+        dbOp("readwrite", function (s) { return s.delete(id); }).then(function () { if (id === P.id) novoProjeto(); else desenharProjetos(); }); }
+    });
+    $("moNome").addEventListener("input", function () { P.nome = this.value.slice(0, 40); mudou({ remontar: false }); });
+    $("moFmt").addEventListener("change", function () { var f = M.FORMATOS[this.value], kx = f[0] / P.w, ky = f[1] / P.h; P.formato = this.value;
+      P.itens.forEach(function (it) { it.x *= kx; it.y *= ky; ["x", "y"].forEach(function (pr) { ((it.keys || {})[pr] || []).forEach(function (k) { k.v *= pr === "x" ? kx : ky; }); }); });
+      P.w = f[0]; P.h = f[1]; mudou(); });
+    $("moDur").addEventListener("change", function () { var n = Number(this.value), ant = P.dur; P.dur = n; P.itens.forEach(function (it) { if (it.fim >= ant - 0.01 || it.fim > n) it.fim = n; if (it.ini >= n) it.ini = Math.max(0, n - 1); }); mudou({ painel: true }); });
+    $("moTocar").onclick = tocar; $("moInicio").onclick = function () { ver(0); };
+    $("moGravar").onclick = function () { GRAVAR = !GRAVAR; this.classList.toggle("on", GRAVAR); aviso(GRAVAR ? "◆ GRAVANDO: mova a agulha e arraste o item na tela — cada arraste cria um keyframe." : "Gravação de movimento desligada."); };
+    $("moDesfazer").onclick = desfazer; $("moRefazer").onclick = refazer;
+    $("moAuto").onclick = motionAuto;
+    $("moZoomMais").onclick = function () { ZOOM = Math.min(8, ZOOM * 1.5); desenharTimeline(); }; $("moZoomMenos").onclick = function () { ZOOM = Math.max(1, ZOOM / 1.5); desenharTimeline(); };
+    $("moCriarEfeito").onclick = abrirEfeito; $("moEfFechar").onclick = function () { $("moFolhaEfeito").hidden = true; };
+    $("moEfGerar").onclick = criarEfeito; $("moEfDoItem").onclick = efeitoDoItem;
+    $("moEfEx").addEventListener("click", function (e) { var b = e.target.closest("[data-ex]"); if (b) { $("moEfTexto").value = b.getAttribute("data-ex"); criarEfeito(); } });
+    $("moExportar").onclick = function () { if (TOCANDO) tocar(); $("moFolhaExp").hidden = false; $("moExpProg").hidden = true; dicaExp(); };
+    $("moExpFundo").onchange = dicaExp; $("moExpFechar").onclick = function () { EXP.parar = true; $("moFolhaExp").hidden = true; };
+    $("moExpAqui").onclick = gerarAqui; $("moExpCancelar").onclick = function () { EXP.parar = true; }; $("moExpPC").onclick = gerarPC;
+    $("moExpHtml").onclick = function () { baixar(new Blob([M.html(P, { src: urlMotor() })], { type: "text/html" }), nomeArq() + ".html"); aviso("HTML baixado: na skill ANIMAÇÃO POR CÓDIGO, rode o motor com --chroma ou --alfa nele."); };
+    $("moExpJson").onclick = function () { baixar(new Blob([JSON.stringify(P)], { type: "application/json" }), nomeArq() + ".bwmotion.json"); };
+    $("moExpAbrir").onclick = function () { $("moArqProj").value = ""; $("moArqProj").click(); };
+    $("moExpCompart").onclick = async function () { if (!EXP.arquivo) return; try { if (navigator.canShare && navigator.canShare({ files: [EXP.arquivo] })) await navigator.share({ files: [EXP.arquivo], title: P.nome }); else $("moExpBaixar").click(); } catch (e) {} };
+    $("moArqProj").addEventListener("change", function () { var f = this.files[0]; if (!f) return; f.text().then(function (t) {
+      var o = null; try { o = JSON.parse(t); } catch (e) {} if (!o || !Array.isArray(o.itens) || !o.w || !o.h) return aviso("Esse arquivo não é um projeto do Estúdio de motion.", true);
+      o.itens = o.itens.filter(function (i) { return i && M.ITENS[i.tipo]; }); o.id = M.uid(); o.nome = (o.nome || "Projeto") + " (aberto)"; salvarJa(); P = o; T = 0; SEL = null; HIST = [JSON.stringify(P)]; depoisDeTrocar(); salvarJa(); aviso("Projeto aberto."); }); });
+    $("moArqImg").addEventListener("change", async function () {
+      var f = this.files[0], a = ALVO_IMG; if (!f || !a) return; var it = item(a.id); if (!it) return;
+      try { it.props[a.campo] = await reduzir(f); if (it.tipo === "foto") { var im = new Image(); im.src = it.props[a.campo]; await im.decode().catch(function () {}); if (im.width && im.height) it.props.alt = Math.round(it.props.larg * im.height / im.width); } mudou({ painel: true }); }
+      catch (e) { aviso("Não consegui abrir essa imagem.", true); }
+    });
+    $("moAbasCel").addEventListener("click", function (e) { var b = e.target.closest("[data-aba]"); if (b) abaCel(b.getAttribute("data-aba")); });
+    ligarPalco(); ligarPainel(); ligarTimeline();
+    addEventListener("resize", function () { medir(); desenharTimeline(); ver(T); });
+    addEventListener("keydown", function (e) {
+      if (e.key === "Escape") { $("moFolhaEfeito").hidden = true; $("moFolhaExp").hidden = true; return; }
+      if (/INPUT|TEXTAREA|SELECT/.test((document.activeElement || {}).tagName || "")) return;
+      if (e.key === " ") { e.preventDefault(); tocar(); }
+      else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z") { e.preventDefault(); if (e.shiftKey) refazer(); else desfazer(); }
+      else if ((e.key === "Delete" || e.key === "Backspace") && SEL) { var it = item(SEL); if (it && confirm("Apagar este item?")) { P.itens.splice(P.itens.indexOf(it), 1); SEL = null; mudou({ painel: true }); } }
+    });
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { remontar(); });
+    window.BWMotionEditor = { projeto: function () { return P; }, ver: ver, selecionar: selecionar, tempo: function () { return T; } }; // para os testes
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", iniciar); else iniciar();
+})();

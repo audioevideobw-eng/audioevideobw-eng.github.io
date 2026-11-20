@@ -327,3 +327,11 @@ Tamanho > 0 e sem erro = o pdfmake montou o arquivo. Localmente (T1) confira o `
 - Sombra grande e desfoque semitransparente viram mancha esverdeada no recorte: no modo recorte use contorno fino (`html.bw-recorte .card{…}`).
 - Conferir: recortar de verdade (`chromakey=0x00B140:0.13:0.06,despill=type=green` sobre cor escura) e medir o pixel do fundo (deve sumir) e do
   cartão (deve continuar branco). Colisão de cor: matiz a menos de 28° da cor do fundo em pixels opacos de 4 quadros (> 0,5% = aviso).
+
+
+## Estúdio de motion (20/11/2026)
+- Motor (assets/motion-motor.js): `montar(palco, projeto, {recorte})` cria um div por item uma vez; `seek(t)` só muda transform/opacity/filter
+  (e as partes vivas: contador, chat digitando, gráfico, régua, lupa, piso). Valor = keyframes (curva do ponto de chegada) ∘ entrada (p 0→1) ∘
+  saída (mesmo efeito invertido) ∘ loop. Efeito próprio = {chaves:{dx,dy,s,r,o,b,rx,ry:[[p,v,curva]]}}; em p=1 tudo neutro (o editor força).
+- Mesma saída em 3 lugares: prévia (montar no editor), aparelho (BWMotion.html → BWReelsCelular.gerar) e PC (o app monta o HTML com o motor local).
+- Teste de exportar no aparelho: buscar o blob do link de baixar com fetch dentro da página → base64 → ffprobe + pixel do canto (fundo de recorte).

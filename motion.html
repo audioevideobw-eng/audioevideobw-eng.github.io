@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Estúdio de motion — Brightway</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#06080D">
+<link rel="icon" type="image/png" href="icons/favicon-64.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Brightway">
+<link rel="stylesheet" href="assets/brightway.css?v=29">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Caveat:wght@700&family=Inter:wght@500;700;900&family=JetBrains+Mono:wght@500;800&family=Playfair+Display:ital,wght@0,800;1,800&display=swap">
+<style>
+.wrap{max-width:1560px;margin:0 auto;padding:0 14px 110px}
+.mo-topo{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.mo-topo h1{margin:0 auto 0 0;font:800 17px Montserrat,Inter,sans-serif;letter-spacing:.04em;color:#F5F1EA}
+.mo-bt{min-height:42px;padding:0 13px;border-radius:12px;border:1px solid rgba(245,241,234,.16);background:rgba(255,255,255,.05);color:#F5F1EA;font:800 11.5px Inter,sans-serif;letter-spacing:.06em;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap;touch-action:manipulation;text-decoration:none}
+.mo-bt:disabled{opacity:.35;cursor:default}
+.mo-bt.pri{background:linear-gradient(135deg,#B6FF3B,#5BE37D);border-color:transparent;color:#0a120a}
+.mo-bt.ia{background:linear-gradient(135deg,#7C5CFF,#C04CFF);border-color:transparent;color:#fff}
+.mo-bt.on{background:#FF4D6D;border-color:#FF4D6D;color:#fff}
+.mo-bt.perigo{color:#ff9a9d;border-color:rgba(242,104,107,.4)}
+.mo-bt.mini{min-height:34px;padding:0 9px;font-size:10.5px;border-radius:10px}
+.mo-sel,.mo-in{min-height:42px;border-radius:12px;border:1px solid rgba(245,241,234,.16);background:#12151c;color:#F5F1EA;font:700 16px Inter,sans-serif;padding:0 10px;box-sizing:border-box;min-width:0}
+.mo-in.nome{width:170px}
+.mo-grade{display:grid;grid-template-columns:250px minmax(0,1fr) 330px;gap:12px;align-items:start}
+.mo-cx{min-width:0;border-radius:20px;background:#12151c;border:1px solid rgba(245,241,234,.08);padding:12px}
+.mo-cx h3{margin:0 0 8px;font:800 11px Inter,sans-serif;letter-spacing:.14em;color:#B9C0CC}
+.mo-lado{max-height:calc(100vh - 360px);min-height:300px;overflow:auto;overscroll-behavior:contain}
+.mo-g{margin-bottom:10px}
+.mo-g > h4{margin:0 0 6px;font:800 10.5px Inter,sans-serif;letter-spacing:.12em;color:#F5F1EA;padding:6px 0;border-bottom:1px solid rgba(245,241,234,.07)}
+.mo-lib{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+.mo-lib button{min-width:0;min-height:74px;border-radius:14px;border:0;color:#fff;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:6px;font:800 10px/1.15 Inter,sans-serif;letter-spacing:.04em;text-align:center;position:relative;overflow:hidden;touch-action:manipulation}
+.mo-lib button b{font-size:22px;line-height:1;font-weight:900}
+.mo-lib button::after{content:"";position:absolute;inset:0;background:linear-gradient(120deg,transparent 35%,rgba(255,255,255,.22) 50%,transparent 65%);transform:translateX(-120%);transition:transform .5s}
+.mo-lib button:hover::after{transform:translateX(120%)}
+.mo-mod{display:grid;grid-template-columns:minmax(0,1fr);gap:7px}
+.mo-mod button{min-height:46px;border-radius:12px;border:1px solid rgba(245,241,234,.14);background:#0B0E14;color:#F5F1EA;font:800 11px Inter,sans-serif;letter-spacing:.05em;cursor:pointer;text-align:left;padding:0 12px}
+.mo-palco{display:flex;flex-direction:column;align-items:center;gap:8px;min-width:0}
+.mo-tela{position:relative;overflow:hidden;border-radius:14px;background:repeating-conic-gradient(#1b1f27 0% 25%,#14171e 0% 50%) 0 0/24px 24px;box-shadow:0 14px 40px rgba(0,0,0,.5);touch-action:none;user-select:none;-webkit-user-select:none}
+.mo-cena{position:absolute;left:0;top:0;transform-origin:0 0}
+.mo-selecao{position:absolute;border:2px dashed #B6FF3B;border-radius:6px;pointer-events:none;box-shadow:0 0 0 1px rgba(0,0,0,.4)}
+.mo-selecao[hidden]{display:none}
+.mo-play{display:flex;align-items:center;gap:7px;flex-wrap:wrap;justify-content:center}
+.mo-tempo{font:700 12.5px Inter,sans-serif;color:#F5F1EA;font-variant-numeric:tabular-nums;min-width:92px;text-align:center}
+.mo-prop label{display:grid;grid-template-columns:84px minmax(0,1fr) 46px;gap:6px;align-items:center;margin:5px 0;font:600 11.5px Inter,sans-serif;color:#B9C0CC;text-transform:none;letter-spacing:0}
+.mo-prop label.um{grid-template-columns:84px minmax(0,1fr)}
+.mo-prop label.k{grid-template-columns:84px minmax(0,1fr) 46px 34px}
+.mo-prop input[type=range]{width:100%;min-width:0;accent-color:#B6FF3B}
+.mo-prop output{text-align:right;color:#F5F1EA;font-variant-numeric:tabular-nums;font-size:11px}
+.mo-prop textarea,.mo-prop input[type=text],.mo-prop input[type=number],.mo-prop select{width:100%;box-sizing:border-box;min-width:0;padding:8px;border-radius:10px;border:1px solid rgba(245,241,234,.16);background:#0B0E14;color:#F5F1EA;font:500 16px Inter,sans-serif}
+.mo-prop textarea{min-height:64px;resize:vertical}
+.mo-prop input[type=color]{width:46px;height:36px;border:0;background:transparent;padding:0}
+.mo-kb{width:34px;height:34px;border-radius:9px;border:1px solid rgba(182,255,59,.35);background:transparent;color:#B6FF3B;font-size:14px;cursor:pointer;padding:0}
+.mo-kb.tem{background:#B6FF3B;color:#0a120a}
+.mo-chips{display:flex;flex-wrap:wrap;gap:5px;margin:4px 0 6px}
+.mo-chips button{min-height:34px;padding:0 10px;border-radius:999px;border:1px solid rgba(245,241,234,.16);background:transparent;color:#cfd5de;font:700 11px Inter,sans-serif;cursor:pointer;touch-action:manipulation}
+.mo-chips button.on{background:#B6FF3B;border-color:#B6FF3B;color:#0a120a}
+.mo-chips button.meu{border-color:rgba(192,76,255,.6);color:#e3c6ff}
+.mo-chips button.meu.on{background:#C04CFF;color:#fff}
+.mo-vazio{font:500 12.5px/1.45 Inter,sans-serif;color:#8d95a3;padding:8px 2px}
+.mo-cab{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+.mo-cab strong{font:800 13px Inter,sans-serif;color:#F5F1EA;margin-right:auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mo-dica{font:500 11.5px/1.4 Inter,sans-serif;color:#8d95a3;margin:4px 0 0}
+/* linha do tempo */
+.mo-tl{margin-top:12px;border-radius:20px;background:#12151c;border:1px solid rgba(245,241,234,.08);padding:10px}
+.mo-tl-barra{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+.mo-tl-barra .titulo{font:800 11px Inter,sans-serif;letter-spacing:.14em;color:#B9C0CC;margin-right:auto}
+.mo-tl-corpo{display:grid;grid-template-columns:130px minmax(0,1fr);max-height:230px;overflow:auto;overscroll-behavior:contain}
+.mo-rot div{height:38px;margin-bottom:4px;display:flex;align-items:center;gap:6px;font:700 11px Inter,sans-serif;color:#d7dce4;padding:0 6px;border-radius:8px;cursor:pointer;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.mo-rot div:first-child{height:22px;color:#8d95a3;cursor:default;font-size:10px}
+.mo-rot div.on{background:rgba(182,255,59,.12);color:#fff}
+.mo-rot i{font-style:normal;width:22px;text-align:center;flex:none}
+.mo-pistas{position:relative;min-width:0;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain}
+.mo-regua{height:22px;margin-bottom:4px;position:relative;cursor:pointer;border-bottom:1px solid rgba(245,241,234,.1);font:600 9.5px Inter,sans-serif;color:#8d95a3;touch-action:none}
+.mo-regua i{position:absolute;top:3px;font-style:normal;padding-left:3px;border-left:1px solid rgba(245,241,234,.25);height:15px}
+.mo-pista{height:38px;margin-bottom:4px;position:relative;border-radius:8px;background:rgba(255,255,255,.03)}
+.mo-barra{position:absolute;top:4px;height:30px;box-sizing:border-box;border-radius:9px;border:2px solid transparent;background:var(--c);cursor:grab;touch-action:none;overflow:hidden}
+.mo-barra.on{border-color:#fff;box-shadow:0 0 0 2px rgba(255,255,255,.2)}
+.mo-barra .en,.mo-barra .sa{position:absolute;top:0;bottom:0;background:rgba(255,255,255,.22);pointer-events:none}
+.mo-barra .en{left:0}.mo-barra .sa{right:0}
+.mo-barra .al{position:absolute;top:0;bottom:0;width:12px;cursor:ew-resize;background:rgba(0,0,0,.25);touch-action:none}
+.mo-barra .al.e{left:0}.mo-barra .al.d{right:0}
+.mo-kf{position:absolute;top:11px;width:14px;height:14px;margin-left:-7px;transform:rotate(45deg);background:#fff;border:2px solid #0a120a;border-radius:2px;cursor:pointer;z-index:2;touch-action:none}
+.mo-kf.on{background:#FF4D6D}
+.mo-agulha{position:absolute;top:0;bottom:0;width:2px;background:#FF8A3D;pointer-events:none;z-index:3}
+.mo-agulha::before{content:"";position:absolute;left:-6px;top:0;width:14px;height:12px;border-radius:3px 3px 8px 8px;background:#FF8A3D}
+.mo-aviso{margin-top:8px;padding:9px 12px;border-radius:12px;font:600 12.5px/1.4 Inter,sans-serif;background:rgba(62,207,142,.12);border:1px solid rgba(62,207,142,.4);color:#9af0c4}
+.mo-aviso.erro{background:rgba(242,104,107,.12);border-color:rgba(242,104,107,.45);color:#ffb3b5}
+.mo-aviso[hidden]{display:none}
+.mo-nota{margin:8px 0 0;font:500 11.5px/1.4 Inter,sans-serif;color:#8d95a3}
+/* folhas */
+.mo-folha{position:fixed;inset:0;z-index:9000;background:rgba(6,8,13,.86);display:flex;align-items:center;justify-content:center;padding:14px}
+.mo-folha[hidden]{display:none}
+.mo-folha .jan{width:min(560px,100%);max-height:92vh;overflow:auto;border-radius:20px;background:#12151c;border:1px solid rgba(245,241,234,.12);padding:16px;color:#F5F1EA;font:500 13px/1.45 Inter,sans-serif}
+.mo-folha h2{margin:0 0 10px;font:800 15px Inter,sans-serif;letter-spacing:.06em}
+.mo-folha textarea{width:100%;box-sizing:border-box;min-height:80px;padding:10px;border-radius:12px;border:1px solid rgba(245,241,234,.16);background:#0B0E14;color:#F5F1EA;font:500 16px Inter,sans-serif}
+.mo-folha progress{width:100%;height:10px;accent-color:#B6FF3B}
+.mo-folha video{max-width:min(280px,70vw);max-height:44vh;border-radius:12px;background:#000;display:block;margin:8px auto}
+.mo-linha{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}.mo-linha .mo-bt{flex:1 1 auto}
+.mo-abas-cel{display:none}
+@media (max-width:1100px){
+  .mo-grade{grid-template-columns:minmax(0,1fr)}
+  .mo-palco{order:-1;position:sticky;top:0;z-index:5;background:#0b0d12;padding:6px 0;border-radius:0 0 14px 14px}
+  .mo-lado{max-height:none}
+  .mo-abas-cel{display:flex;gap:6px;margin:4px 0 8px}
+  .mo-abas-cel button{flex:1;min-height:40px;border-radius:12px;border:1px solid rgba(245,241,234,.16);background:transparent;color:#B9C0CC;font:800 11px Inter,sans-serif;letter-spacing:.06em}
+  .mo-abas-cel button.on{background:#B6FF3B;color:#0a120a;border-color:#B6FF3B}
+  .mo-grade[data-aba="lib"] #moDir,.mo-grade[data-aba="item"] #moEsq{display:none}
+  .mo-lib{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .mo-tl-corpo{grid-template-columns:92px minmax(0,1fr)}
+  .mo-in.nome{width:120px}
+  .mo-play .mo-bt{min-height:36px;padding:0 10px}
+  .mo-play{gap:5px}
+}
+</style>
+</head>
+<body>
+<header><div class="hd"><button id="btnVoltar" type="button">‹</button><div id="userBox"></div></div></header>
+<div class="wrap">
+  <div class="mo-topo">
+    <h1>ESTÚDIO DE MOTION</h1>
+    <input class="mo-in nome" id="moNome" type="text" aria-label="Nome do projeto" maxlength="40">
+    <select class="mo-sel" id="moFmt" aria-label="Formato"><option value="9:16">9:16 Reels</option><option value="16:9">16:9 YouTube</option><option value="1:1">1:1 Quadrado</option><option value="4:5">4:5 Feed</option></select>
+    <select class="mo-sel" id="moDur" aria-label="Duração"></select>
+    <button class="mo-bt" id="moDesfazer" type="button" title="Desfazer">↶</button>
+    <button class="mo-bt" id="moRefazer" type="button" title="Refazer">↷</button>
+    <button class="mo-bt ia" id="moAuto" type="button">✨ MOTION AUTOMÁTICO</button>
+    <button class="mo-bt pri" id="moExportar" type="button">⬇ EXPORTAR</button>
+  </div>
+  <div class="mo-abas-cel" id="moAbasCel"><button type="button" data-aba="lib" class="on">＋ BIBLIOTECA</button><button type="button" data-aba="item">✎ ITEM SELECIONADO</button></div>
+  <div class="mo-grade" id="moGrade" data-aba="lib">
+    <aside class="mo-cx mo-lado" id="moEsq">
+      <div class="mo-g"><h4 data-seta="mo_lib">BIBLIOTECA DE ITENS</h4><div id="moLib"></div><p class="mo-dica">Toque num item: ele entra no tempo da agulha, no meio da tela, já com um efeito. Arraste na tela para posicionar.</p></div>
+      <div class="mo-g"><h4 data-seta="mo_fundo">FUNDO</h4><div class="mo-prop" id="moFundo"></div></div>
+      <div class="mo-g"><h4 data-seta="mo_modelos">MODELOS PRONTOS</h4><div class="mo-mod" id="moModelos"></div></div>
+      <div class="mo-g"><h4 data-seta="mo_proj" data-seta-padrao="fechada">MEUS PROJETOS</h4><div id="moProjetos"></div></div>
+    </aside>
+    <section class="mo-palco">
+      <div class="mo-tela" id="moTela"><div class="mo-cena" id="moCena"></div><div class="mo-selecao" id="moSelecao" hidden></div></div>
+      <div class="mo-play">
+        <button class="mo-bt mini" id="moInicio" type="button" title="Voltar ao início">⏮</button>
+        <button class="mo-bt" id="moTocar" type="button">▶ TOCAR</button>
+        <span class="mo-tempo" id="moTempo">0,0 / 8,0 s</span>
+        <button class="mo-bt mini" id="moGravar" type="button" title="Arrastar na tela cria keyframes">◆ GRAVAR MOVIMENTO</button>
+      </div>
+    </section>
+    <aside class="mo-cx mo-lado mo-prop" id="moDir"><div class="mo-vazio" id="moSemItem">Toque num item da tela ou da linha do tempo para mudar o conteúdo, a posição, os keyframes e os efeitos.</div><div id="moPainel"></div></aside>
+  </div>
+  <div class="mo-tl">
+    <div class="mo-tl-barra"><span class="titulo">LINHA DO TEMPO</span>
+      <button class="mo-bt mini" id="moZoomMenos" type="button" aria-label="Diminuir o zoom da linha do tempo">−</button><button class="mo-bt mini" id="moZoomMais" type="button" aria-label="Aumentar o zoom da linha do tempo">＋</button>
+      <button class="mo-bt mini ia" id="moCriarEfeito" type="button">✨ CRIAR EFEITO COM AJUDA</button></div>
+    <div class="mo-tl-corpo"><div class="mo-rot" id="moRot"></div><div class="mo-pistas" id="moPistas"></div></div>
+    <p class="mo-nota">◆ = keyframe: toque para ir até ele e mudar a curva; arraste para mudar o tempo. Arraste a barra para mudar quando o item aparece; as pontas mudam o início e o fim.</p>
+  </div>
+  <div class="mo-aviso" id="moAviso" hidden aria-live="polite"></div>
+  <p class="mo-nota">Os projetos ficam neste aparelho. O vídeo é feito no próprio aparelho, ou no app BW do computador (fundo transparente e chroma key).</p>
+</div>
+
+<div class="mo-folha" id="moFolhaEfeito" hidden><div class="jan">
+  <h2>✨ CRIAR EFEITO COM AJUDA</h2>
+  <p>Diga como o item deve ENTRAR na tela. Ex.: “cai de cima quicando duas vezes”, “entra girando e crescendo”, “desliza da esquerda devagar com desfoque”.</p>
+  <textarea id="moEfTexto" maxlength="300" aria-label="Como o item entra"></textarea>
+  <div class="mo-chips" id="moEfEx"></div>
+  <div class="mo-linha"><button class="mo-bt ia" id="moEfGerar" type="button">✨ CRIAR O EFEITO</button><button class="mo-bt" id="moEfDoItem" type="button">◆ USAR O MOVIMENTO DO ITEM</button></div>
+  <div id="moEfRes"></div>
+  <div class="mo-linha"><button class="mo-bt" id="moEfFechar" type="button">FECHAR</button></div>
+</div></div>
+
+<div class="mo-folha" id="moFolhaExp" hidden><div class="jan">
+  <h2>⬇ EXPORTAR</h2>
+  <div class="mo-prop">
+    <label class="um">Fundo<select id="moExpFundo"><option value="">Normal (o fundo do projeto)</option><option value="verde">Verde — chroma key</option><option value="azul">Azul — chroma key</option><option value="magenta">Magenta — chroma key</option><option value="alfa">Transparente (.mov, só no app BW do PC)</option></select></label>
+    <label class="um">Qualidade<select id="moExpQual"><option value="1280">Rápida (720p)</option><option value="1920">Alta (1080p)</option></select></label>
+  </div>
+  <p class="mo-dica" id="moExpDica"></p>
+  <div class="mo-linha"><button class="mo-bt pri" id="moExpAqui" type="button">🎬 GERAR NESTE APARELHO</button><button class="mo-bt" id="moExpPC" type="button">💻 GERAR NO APP BW (PC)</button></div>
+  <div class="mo-linha"><button class="mo-bt mini" id="moExpHtml" type="button">⬇ HTML DA ANIMAÇÃO (para a skill)</button><button class="mo-bt mini" id="moExpJson" type="button">⬇ PROJETO (.json)</button><button class="mo-bt mini" id="moExpAbrir" type="button">⇪ ABRIR PROJETO</button></div>
+  <div id="moExpProg" hidden><p id="moExpTxt">Preparando…</p><progress id="moExpBarra" max="100" value="0"></progress><div class="mo-linha"><button class="mo-bt" id="moExpCancelar" type="button">CANCELAR</button></div></div>
+  <div id="moExpPronto" hidden><video id="moExpVideo" controls playsinline></video><div class="mo-linha"><a class="mo-bt pri" id="moExpBaixar" download="motion.mp4">⬇ SALVAR VÍDEO</a><button class="mo-bt" id="moExpCompart" type="button">COMPARTILHAR</button></div></div>
+  <div class="mo-linha"><button class="mo-bt" id="moExpFechar" type="button">FECHAR</button></div>
+</div></div>
+
+<input type="file" id="moArqImg" accept="image/*" hidden>
+<input type="file" id="moArqProj" accept=".json,application/json" hidden>
+<script src="assets/layout.js?v=59"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="assets/bw-sync.js"></script>
+<script src="assets/motion-motor.js?v=1"></script>
+<script src="assets/reels-celular.js?v=3"></script>
+<script src="assets/motion.js?v=1"></script>
+</body>
+</html>
