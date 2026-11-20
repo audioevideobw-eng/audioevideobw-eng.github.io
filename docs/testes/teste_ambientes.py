@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Teste dos dois ECOSSISTEMAS (20/11/2026, decisão do dono): MINHA EMPRESA (PJ) e MINHA CASA (PF) NÃO se misturam.
-Confere, em 1280 e 390 px: Início só com as duas portas; página de cada ambiente (números, botões LANÇAMENTOS e PAINEL, agenda própria,
+Confere, em 1280 e 390 px: Início com o robô e as 4 telas (tocar traz para a frente; tocar de novo entra); página de cada ambiente (números, botões LANÇAMENTOS e PAINEL, agenda própria,
 cor própria); LANÇAMENTOS com abas PJ | PF (lista, novo, alterar e números só do ambiente; nada cruza); PAINEL PJ | PF; download do .exe.
 A prova de independência: lançar num ambiente NÃO muda nenhuma chave do outro (comparação do texto guardado, antes e depois).
 Uso (na raiz): python3 docs/testes/teste_ambientes.py"""
@@ -52,19 +52,26 @@ with sync_playwright() as p:
         pg = ctx.new_page(); erros = []; pg.on("pageerror", lambda e: erros.append(str(e))); pg.on("dialog", lambda d: d.accept())
         pg.goto(BASE + "termos.html"); pg.evaluate("s => { localStorage.clear(); for (const k in s) localStorage.setItem('bw_' + k + '_v1', JSON.stringify(s[k])); }", SEMENTE)
 
-        # ---------- INÍCIO: só as duas portas ----------
+        # ---------- INÍCIO: robô no centro e as 4 telas ----------
         pg.goto(BASE + "index.html"); pg.wait_for_timeout(1200)
-        ok(pg.locator(".amb-porta").count() == 2 and pg.locator('.amb-porta[href="negocio.html"]').count() == 1 and pg.locator('.amb-porta[href="casa.html"]').count() == 1, "Início: duas portas — MINHA EMPRESA e MINHA CASA")
-        ok("MINHA EMPRESA" in pg.inner_text('.amb-porta[href="negocio.html"]') and "MINHA CASA" in pg.inner_text('.amb-porta[href="casa.html"]'), "as portas têm os nomes pedidos")
+        hr = pg.eval_on_selector_all(".hub-tela", "ts => ts.map(t => t.getAttribute('href') + '|' + t.querySelector('b').textContent)")
+        ok(sorted(hr) == sorted(["negocio.html|MEU NEGÓCIO", "casa.html|GESTÃO DE CASA", "marketing.html|MARKETING", "ferramentas.html|FERRAMENTAS"]), f"Início: o robô e as 4 telas do desenho {hr}")
+        ok(pg.evaluate("(() => { const r = document.getElementById('hubRobo'); return r.complete && r.naturalWidth > 100; })()") and pg.locator("#hubEntrar").is_hidden(), "o robô novo aparece no centro; parado, nenhuma tela está escolhida")
         ok(pg.locator("#bwAgenda").count() == 0 and pg.locator("[data-dobra]").count() == 0, "a agenda e as seções saíram do Início (estão dentro de cada ambiente)")
-        c1 = pg.evaluate("getComputedStyle(document.querySelector('.amb-porta[href=\"negocio.html\"] .entrar')).backgroundImage"); c2 = pg.evaluate("getComputedStyle(document.querySelector('.amb-porta[href=\"casa.html\"] .entrar')).backgroundImage")
-        ok("76, 141, 255" in c1 and "47, 208, 138" in c2, "cada porta tem a sua cor (empresa azul, casa verde)")
-        ok("1.000,00" in pg.inner_text("#kNeg") and pg.evaluate("typeof window.BWAgendaItens") == "function", "Início mostra o caixa da empresa e mantém o cálculo da agenda para o Tio Cláudio")
+        ok(pg.evaluate("typeof window.BWAgendaItens") == "function", "Início mantém o cálculo da agenda para o Tio Cláudio")
+        pos = lambda sel: pg.evaluate("s => { const r = document.querySelector(s).getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2, r.width]; }", sel)
+        neg = '.hub-tela[href="negocio.html"]'; a0 = pos(neg)
+        pg.click(neg, force=True, position={"x": 22, "y": 12}); pg.wait_for_timeout(1500); a1 = pos(neg); rb = pos("#hubRobo")   # parada, a tela de trás fica meio coberta pela da frente: toca no canto que aparece
+        ok(pg.url.endswith("index.html") and pg.evaluate("BWPortal.foco()") == 0 and abs(a1[0] - rb[0]) < 12 and a1[2] > a0[2] * 1.2 and "na-frente" in pg.get_attribute(neg, "class"), "tocar numa tela traz a tela para a frente do robô e ela cresce (ainda não entra)")
+        ok(pg.locator("#hubEntrar").is_visible() and "MEU NEGÓCIO" in pg.inner_text("#hubEntrar") and pg.get_attribute("#hubEntrar", "href") == "negocio.html" and "MEU NEGÓCIO" in pg.inner_text("#hubNome"), "aparece o nome da tela e o botão ENTRAR")
+        pg.click("#hubProx"); pg.wait_for_timeout(1300); f1 = pg.evaluate("BWPortal.foco()"); pg.keyboard.press("ArrowLeft"); pg.wait_for_timeout(1300)
+        ok(f1 != 0 and pg.evaluate("BWPortal.foco()") == 0, "as setas (botão e teclado) passam as telas para o lado")
+        ok(pg.evaluate("!!document.querySelector('#bwAgente img.bwg-robo') && document.querySelector('#bwAgente img.bwg-robo').naturalWidth > 0"), "o botão do Tio Cláudio usa o robô novo")
         ok(pg.evaluate(SEM) <= 0, "Início sem estouro")
-        pg.click('.amb-porta[href="negocio.html"]'); pg.wait_for_timeout(1500)
+        pg.click(neg, force=True); pg.wait_for_timeout(1700)
 
         # ---------- MINHA EMPRESA ----------
-        ok(pg.url.endswith("negocio.html") and pg.evaluate("document.documentElement.dataset.amb") == "pj" and pg.evaluate(COR) == "#4C8DFF", "clicar na porta entra em MINHA EMPRESA (ambiente pj, azul)")
+        ok(pg.url.endswith("negocio.html") and pg.evaluate("document.documentElement.dataset.amb") == "pj" and pg.evaluate(COR) == "#4C8DFF", "tocar de novo na tela da frente entra em MINHA EMPRESA (ambiente pj, azul)")
         ok(pg.locator("#ambKpis .amb-kpi").count() == 5 and "1.000,00" in pg.inner_text("#ambKpis .amb-kpi >> nth=0") and "3.000" not in pg.inner_text("#ambKpis"), "números da empresa: entradas R$ 1.000,00 (o salário da casa não entra)")
         ok(pg.locator('.amb-principal[href="lancamentos.html?a=pj"]').inner_text().strip() == "LANÇAMENTOS PJ" and pg.locator('.amb-principal[href="financeiro-painel.html?a=pj"]').inner_text().strip() == "PAINEL FINANCEIRO", "botões LANÇAMENTOS PJ e PAINEL FINANCEIRO")
         ag = pg.inner_text("#bwAgenda")

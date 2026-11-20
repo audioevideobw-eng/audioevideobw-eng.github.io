@@ -13,7 +13,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Brightway">
-<link rel="stylesheet" href="assets/brightway.css?v=30">
+<link rel="stylesheet" href="assets/brightway.css?v=31">
 <style>
 :root{
   /* Identidade Brightway — paleta oficial */
@@ -281,25 +281,31 @@ footer b{color:var(--gold)}
     <h1 class="bw-home-frase" id="bwSauda">Boa noite. Seu <span>caminho</span> de hoje.</h1>
     <div class="bw-home-data" id="bwHoje"></div>
   </div>
-  <!-- 20/11 (decisão do dono): o Início tem só as duas portas. Cada uma leva a um ecossistema com dados, agenda, cor e ferramentas próprios:
-       MINHA EMPRESA (PJ, azul) e MINHA CASA (PF, verde). Os dados de um nunca aparecem no outro. -->
-  <p class="bw-home-escolha">Por onde você quer entrar? Empresa e casa ficam <b>separadas</b>: cada uma com os seus lançamentos, painel e agenda.</p>
-  <nav class="amb-portal" id="ambPortal" aria-label="Escolha o ambiente">
-    <a class="amb-porta" data-amb-cor="pj" href="negocio.html" title="Entrar no ambiente da empresa (pessoa jurídica)">
-      <span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M3 12h18"/></svg></span>
-      <span class="selo">PJ · PESSOA JURÍDICA</span>
-      <span class="nome">MINHA <b>EMPRESA</b></span>
-      <div class="nums"><div><small>Caixa do negócio</small><b id="kNeg">—</b></div><div><small>Próximos eventos</small><b id="kEv">—</b></div></div>
-      <span class="entrar">ENTRAR NA EMPRESA →</span>
-    </a>
-    <a class="amb-porta" data-amb-cor="pf" href="casa.html" title="Entrar no ambiente da casa (pessoa física)">
-      <span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M9 21v-6h6v6"/></svg></span>
-      <span class="selo">PF · PESSOA FÍSICA</span>
-      <span class="nome">MINHA <b>CASA</b></span>
-      <div class="nums"><div><small>Saldo da casa no mês</small><b id="kCasa">—</b></div><div><small>Contas em aberto</small><b id="kContas">—</b></div></div>
-      <span class="entrar">ENTRAR NA CASA →</span>
-    </a>
-  </nav>
+  <!-- 20/11 (desenho e vídeo de referência do dono): o robô no centro e as quatro TELAS girando em volta dele. Cada tela leva a um ecossistema:
+       MEU NEGÓCIO → negocio.html (MINHA EMPRESA, PJ) · GESTÃO DE CASA → casa.html (MINHA CASA, PF) · MARKETING · FERRAMENTAS. Motor: assets/portal.js -->
+  <section class="hub" id="ambPortal" aria-label="Escolha por onde entrar">
+    <div class="hub-palco" id="hubPalco">
+      <div class="hub-chao" aria-hidden="true"><svg viewBox="0 0 800 300"><defs><radialGradient id="hubLuz" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#3b8cff" stop-opacity=".55"/><stop offset="1" stop-color="#3b8cff" stop-opacity="0"/></radialGradient></defs>
+        <ellipse cx="400" cy="150" rx="210" ry="62" fill="url(#hubLuz)"/>
+        <g fill="none" stroke="#4aa8ff"><ellipse cx="400" cy="150" rx="120" ry="34" stroke-width="2.5" opacity=".9"/><ellipse cx="400" cy="150" rx="200" ry="58" stroke-width="1.6" opacity=".7" stroke-dasharray="3 7"/>
+          <ellipse cx="400" cy="150" rx="280" ry="82" stroke-width="2" opacity=".55"/><ellipse cx="400" cy="150" rx="370" ry="110" stroke-width="1.4" opacity=".4" stroke-dasharray="60 18"/>
+          <path d="M0 150h800M400 20v270M120 40l560 220M680 40 120 260" stroke-width="1" opacity=".16"/></g>
+        <g fill="#7fd6ff"><circle cx="120" cy="150" r="4"/><circle cx="680" cy="150" r="4"/><circle cx="262" cy="222" r="3.5"/><circle cx="560" cy="80" r="3"/><circle cx="400" cy="260" r="4"/></g></svg></div>
+      <button type="button" class="hub-seta" id="hubAnt" aria-label="Tela anterior">‹</button>
+      <button type="button" class="hub-seta" id="hubProx" aria-label="Próxima tela">›</button>
+      <img class="hub-robo" id="hubRobo" src="icons/robo-bw.webp" alt="Robô da Brightway" width="520" height="696" draggable="false">
+      <a class="hub-tela" data-cor="roxo" data-ang="225" data-nome="MEU NEGÓCIO" data-sub="Minha empresa (PJ): lançamentos, painel, eventos, equipe, orçamentos e CRM" href="negocio.html"><b>MEU NEGÓCIO</b>
+        <svg viewBox="0 0 200 110" aria-hidden="true"><path d="M8 100V62h30v38M4 62l6-16h26l6 16M17 100V80h12v20"/><path d="M60 102V20M60 102h84"/><rect class="ch" x="70" y="76" width="13" height="26" rx="2"/><rect class="ch" x="89" y="62" width="13" height="40" rx="2"/><rect class="ch" x="108" y="50" width="13" height="52" rx="2"/><rect class="ch" x="127" y="36" width="13" height="66" rx="2"/><path d="M66 64l22-20 16 10 34-34M124 18h16v16"/><rect x="158" y="24" width="36" height="26" rx="5"/><path d="M168 24v-6h16v6M158 36h36"/><path d="M158 100V84M170 100V72M182 100V78M194 100V64"/></svg></a>
+      <a class="hub-tela" data-cor="ciano" data-ang="135" data-nome="GESTÃO DE CASA" data-sub="Minha casa (PF): lançamentos, painel, contas a pagar, reserva e investimentos" href="casa.html"><b>GESTÃO DE CASA</b>
+        <svg viewBox="0 0 200 110" aria-hidden="true"><path d="M6 26a26 26 0 0 1 36 0M12 34a17 17 0 0 1 24 0M19 42a8 8 0 0 1 10 0"/><circle class="ch" cx="24" cy="50" r="3.5"/><path d="M8 72h30M8 86h30M8 100h30"/><circle class="ch" cx="18" cy="72" r="4"/><circle class="ch" cx="30" cy="86" r="4"/><circle class="ch" cx="16" cy="100" r="4"/><path d="M58 60l44-38 44 38M68 54v48h68V54M92 102V76h20v26M126 30v-10h10v20"/><path d="M168 18a11 11 0 0 1 6 20v6h-12v-6a11 11 0 0 1 6-20zM163 50h10"/><path d="M158 68h6v6h-6zM172 71h22M158 82h6v6h-6zM172 85h22M158 96h6v6h-6zM172 99h16"/></svg></a>
+      <a class="hub-tela" data-cor="rosa" data-ang="315" data-nome="MARKETING" data-sub="Reels, vídeos, fotos, artes com IA, personagens, prompts e legendas" href="marketing.html"><b>MARKETING</b>
+        <svg viewBox="0 0 200 110" aria-hidden="true"><rect x="4" y="10" width="24" height="20" rx="5"/><path d="M12 24v-7l4-4v5h5l-1 6zM10 30l-3 6 8-6"/><rect x="2" y="46" width="22" height="18" rx="5"/><path class="ch" d="M13 60s-6-4-6-8a3 3 0 0 1 6-1 3 3 0 0 1 6 1c0 4-6 8-6 8z"/><path d="M40 56v18h14l34 20V36L54 56zM54 74l6 24h12l-6-20M98 54a12 12 0 0 1 0 22M108 44a26 26 0 0 1 0 42"/><circle cx="160" cy="34" r="24"/><circle cx="160" cy="34" r="14"/><circle class="ch" cx="160" cy="34" r="5"/><path d="M160 34l28-22M182 8l8 2-2 8"/><path d="M132 104V72M132 104h60"/><rect class="ch" x="140" y="90" width="9" height="14" rx="2"/><rect class="ch" x="154" y="84" width="9" height="20" rx="2"/><rect class="ch" x="168" y="78" width="9" height="26" rx="2"/><path d="M138 82l16-8 12 4 20-12"/></svg></a>
+      <a class="hub-tela" data-cor="verde" data-ang="45" data-nome="FERRAMENTAS" data-sub="PDF, leitor de contas, calculadoras, conversores e os seus dados" href="ferramentas.html"><b>FERRAMENTAS</b>
+        <svg viewBox="0 0 200 110" aria-hidden="true"><circle cx="30" cy="34" r="9"/><path d="M30 12v8M30 48v8M8 34h8M44 34h8M14 18l6 6M40 44l6 6M46 18l-6 6M20 44l-6 6"/><path d="M12 100a22 22 0 0 1 44 0M34 100l12-16"/><circle class="ch" cx="34" cy="100" r="4"/><path d="M80 96 132 34a14 14 0 0 0-18-18l10 10-8 8-10-10a14 14 0 0 0 18 18"/><path d="M128 96 84 44l-8-18 6-4 12 14 44 52zM132 82l8 8-10 8-8-8z"/><path d="M158 20h36M158 36h36M158 52h36"/><circle class="ch" cx="170" cy="20" r="4.5"/><circle class="ch" cx="184" cy="36" r="4.5"/><circle class="ch" cx="166" cy="52" r="4.5"/><rect x="158" y="76" width="36" height="26" rx="5"/><path d="M168 76v-6h16v6M158 88h36"/></svg></a>
+    </div>
+    <div class="hub-barra"><div class="hub-txt" aria-live="polite"><b id="hubNome">POR ONDE VOCÊ QUER ENTRAR?</b><small id="hubSub">Toque numa tela ou passe para o lado</small></div></div>
+    <a class="hub-entrar" id="hubEntrar" href="negocio.html" hidden>ENTRAR →</a>
+  </section>
 
   <div style="display:flex;align-items:center;gap:14px;margin-top:28px;flex-wrap:wrap">
     <img src="icons/brightway-logo.png" alt="Brightway" style="height:17px">
@@ -311,10 +317,11 @@ footer b{color:var(--gold)}
 </div>
 
 </div>
-<script src="assets/layout.js?v=61"></script>
+<script src="assets/layout.js?v=62"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="assets/bw-sync.js"></script>
 <script src="assets/agenda.js?v=1"></script>
+<script src="assets/portal.js?v=1"></script>
 <script src="https://cdn.jsdelivr.net/npm/pdfmake@0.2.20/build/pdfmake.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>

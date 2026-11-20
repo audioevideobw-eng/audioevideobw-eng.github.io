@@ -335,7 +335,15 @@ if "function montarCasa" not in _pn or 'id="fpAbas"' not in _pn or "if (PF) {" n
 if "if (amb && ambDe(t) !== amb) return;" not in _ag or 'if (PF) ler("casa_contas")' not in _ag or 'if (PJ) ler("neg_eventos")' not in _ag:
     problemas.append("assets/agenda.js: a agenda não separa empresa e casa")
 if 'id="ambPortal"' not in _ix or 'id="bwAgenda"' in _ix or "MOD['modules/agenda']" in _ix:
-    problemas.append("index.html: o Início deve ter só as duas portas (MINHA EMPRESA / MINHA CASA); a agenda fica em cada ambiente")
+    problemas.append("index.html: o Início é o robô com as telas dos ecossistemas; a agenda fica em cada ambiente")
+if _ix.count('class="hub-tela"') != 4 or "assets/portal.js" not in _ix or not all(('href="%s"' % h) in _ix for h in ("negocio.html", "casa.html", "marketing.html", "ferramentas.html")):
+    problemas.append("index.html: faltam as 4 telas do Início (MEU NEGÓCIO, GESTÃO DE CASA, MARKETING, FERRAMENTAS) ou o assets/portal.js")
+_pt = _arq("assets/portal.js")
+if re.search(r"\b(fetch|XMLHttpRequest|localStorage|BWSync|supabase)\b", _pt):
+    problemas.append("assets/portal.js: a página principal não lê nem grava dados (só gira as telas e abre o ecossistema)")
+for _img in ("icons/robo-bw.webp", "icons/robo-bw-128.png"):
+    if not os.path.exists(_img) or open(_img, "rb").read(4) not in (b"RIFF", b"\x89PNG"):
+        problemas.append(f"{_img}: a imagem do robô sumiu ou não é binária")
 for _p, _a in (("negocio.html", "pj"), ("casa.html", "pf")):
     _t = todos.get(_p, "")
     if '<html lang="pt-BR" data-amb="%s">' % _a not in _t or 'id="bwAgenda" data-amb="%s"' % _a not in _t or 'href="lancamentos.html?a=%s"' % _a not in _t \

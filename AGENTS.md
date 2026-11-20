@@ -411,6 +411,12 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
      gráfico some (o PAINEL FINANCEIRO parava com "Chart is not defined"). inner_text no teste vem com o text-transform da tela (MAIÚSCULAS):
      comparar em minúsculas.
 
+119. Recortar desenho com fundo PRETO e brilho (robô): alfa = o maior entre a SILHUETA cheia (pixels claros → fechar → preencher buracos, para o
+     visor escuro não ficar vazado) e o BRILHO (clareza do pixel); no halo, dividir a cor pela clareza para tirar o preto. Conferir sobre um fundo
+     colorido. Imagem grande em WEBP (85 KB contra 447 KB em PNG), sempre binária. Padding/gap em % num item posicionado contam pela largura
+     do PAI, não do item (as telas do Início ficaram com 84 px de respiro) → usar clamp() em px/vw. Elemento que não para de se mexer (roda que
+     "respira") nunca fica estável para o Playwright: clicar com force e, se outro item cobre o centro, num canto visível (position).
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -1326,8 +1332,26 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   vigia ✅ (item 7.8c novo). NÃO feito: sino de AVISOS continua juntando casa e empresa; cópia sem internet do app BW (PC) só ganha as páginas
   novas no próximo pacote do app; NÃO testado na conta real do dono nem em iPhone/Android reais. brightway.css v30, layout.js v61,
   lancamentos.js v7, agenda.js v1, ambiente.js v1, sw v146. PENTE FINO 116–118.
+- 20/11/2026 11:40 · Claude (dono, com um vídeo e duas imagens de referência: "a página principal será esta e levará para dentro dos ecossistemas; sistema de
+  telas como os de personagens e prompts, idêntico à animação, só retirando os efeitos; troque o Tio Cláudio pelo novo visual do robô"):
+  PÁGINA PRINCIPAL NOVA (index.html + assets/portal.js): o robô no centro, flutuando, sobre o piso de anéis, e 4 TELAS de vidro girando em volta —
+  MEU NEGÓCIO (roxo → negocio.html), GESTÃO DE CASA (ciano → casa.html), MARKETING (rosa → marketing.html), FERRAMENTAS (verde-água →
+  ferramentas.html), com os desenhos de cada uma em linha. Parada, a roda fica como no desenho (duas atrás/em cima, duas na frente/embaixo) e
+  respira de leve; tocar numa tela, passar o dedo para o lado, as setas ou o teclado trazem a tela para a FRENTE do robô, maior, com o nome e o
+  botão ENTRAR; tocar de novo aproxima a tela e abre o ecossistema. Sem partículas, rastros nem túnel (pedido). Movimento reduzido do sistema
+  = sem animação. Saíram do Início as duas portas da manhã (os nomes do desenho mandam: MEU NEGÓCIO / GESTÃO DE CASA levam a MINHA EMPRESA /
+  MINHA CASA). TIO CLÁUDIO: botão flutuante e cabeçalho com o robô novo (icons/robo-bw-128.png, recortado do desenho do dono; botão azul no
+  lugar do dourado); o nome continua. Imagem grande: icons/robo-bw.webp. teste_ambientes.py (67 checagens × 1280/390), layout, agenda,
+  agente_leitor, crm, lancamentos, concluir, evento_dias 0 falhas; varredura só as fotos do Supabase; vigia ✅ (confere as 4 telas, as imagens
+  e que o portal.js não lê nem grava dados). NÃO feito: os braços do robô não se mexem (é uma imagem só; o vídeo de referência é gerado por IA);
+  MANUAL DO USUÁRIO ainda com as telas antigas (Início, Lançamentos, Painel, Gestão de casa) — refazer as páginas; cópia sem internet do app BW
+  só no próximo pacote. NÃO testado em iPhone/Android reais nem na conta do dono. brightway.css v31, layout.js v62, bw-agente v22, portal.js v1, sw v147. PENTE FINO 119.
 
 ## Pendências (dono)
+- [ ] (20/11) AMBIENTES: dono conferir na conta dele se cada lançamento antigo caiu no lugar certo (LANÇAMENTOS PJ × PF) e se as tarefas antigas da
+      agenda foram para a agenda certa (Pessoal/Casa/Saúde = casa; o resto = empresa). Decidir: INVESTIMENTOS fica em MINHA CASA? o sino de AVISOS
+      deve separar empresa e casa? Claude: refazer as páginas do MANUAL (Início, Lançamentos, Painel PJ/PF, Minha empresa, Minha casa) e gerar
+      o pacote novo do app BW (PC) com as páginas novas na cópia sem internet.
 - [ ] (20/11) FERRAMENTAS/ATALHOS e TELA FIXA: dono testar no PC (V, C, H, Z, T, Delete, botão direito) e no celular (segurar o dedo; prévia presa no topo) nos 4 editores; dizer se quer a tela fixa também no BW Reels Pro/Criador (já têm prévia presa) com o mesmo jeito.
 - [ ] (20/11) TELAS: dono testar o arrastar no PC e no celular e gerar um vídeo 1450×2000 para o telão.
 - [ ] (20/11) TELAS EM MOVIMENTO: dono abrir no ar com fotos e takes REAIS do celular + uma música, MONTAR SOZINHO e GERAR VÍDEO (no PC e no celular); dizer se os vídeos do iPhone abriram e quanto tempo levou.

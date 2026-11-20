@@ -552,9 +552,12 @@
   function parar() { try { if (rec) rec.stop(); } catch (e) { } try { if (gravador && gravador.state === "recording") gravador.stop(); } catch (e) { } }
 
   /* ================= tela ================= */
-  var ROBO = '<svg viewBox="0 0 48 48" aria-hidden="true"><path class="ant" d="M24 4v5"/><circle class="ant" cx="24" cy="3.6" r="2.2"/><rect x="12" y="9" width="24" height="18" rx="7"/><rect class="vis" x="15.5" y="13" width="17" height="8.5" rx="4.2"/><circle class="olho" cx="20" cy="17.2" r="1.9"/><circle class="olho" cx="28" cy="17.2" r="1.9"/><path d="M9 17h3M36 17h3"/><path d="M19 27v3h10v-3"/><path d="M13 44v-6a8 8 0 0 1 8-8h6a8 8 0 0 1 8 8v6"/><path class="peito" d="M21 37h6"/></svg>';
+  /* 20/11 (dono): o Tio Cláudio ganhou o visual novo do robô (icons/robo-bw-128.png, o mesmo da página principal) */
+  var ROBO = '<img class="bwg-robo" src="icons/robo-bw-128.png" alt="" width="46" height="46" decoding="async">';
   var CSS = ".bwg-fab{position:fixed;right:16px;bottom:24px;z-index:70;width:60px;height:60px;border-radius:50%;border:0;padding:0;cursor:pointer;touch-action:manipulation;" +
-    "background:radial-gradient(circle at 30% 25%,#FFE3A1,#E8C26A 45%,#B98A1E);box-shadow:0 10px 26px rgba(0,0,0,.45),0 0 0 1px rgba(255,255,255,.25) inset;display:flex;align-items:center;justify-content:center;transition:transform .15s}" +
+    "background:radial-gradient(circle at 50% 35%,#16305e,#081226 70%);box-shadow:0 10px 26px rgba(0,0,0,.5),0 0 0 1.5px rgba(96,165,255,.75) inset,0 0 22px rgba(56,132,255,.6);display:flex;align-items:center;justify-content:center;transition:transform .15s;overflow:visible}" +
+    ".bwg-robo{display:block;width:46px;height:46px;object-fit:contain;pointer-events:none}.bwg-cab .bwg-robo{width:32px;height:32px;flex:none}" +
+    ".bwg-fab.ouvindo{box-shadow:0 10px 26px rgba(0,0,0,.5),0 0 0 2px #5FE0A0 inset,0 0 26px rgba(95,224,160,.8)}" +
     ".bwg-fab:active{transform:scale(.94)}.bwg-fab svg{width:36px;height:36px;fill:none;stroke:#1a1306;stroke-width:2.3;stroke-linecap:round;stroke-linejoin:round}.bwg-fab svg .vis{fill:#1a1306}.bwg-fab svg .olho{fill:#7CF3FF;stroke:none}" +
     ".bwg-fab.ouvindo{animation:bwgPulso 1.2s ease-in-out infinite}.bwg-fab.ouvindo svg .olho{fill:#5FE0A0}@keyframes bwgPulso{0%,100%{box-shadow:0 0 0 0 rgba(232,194,106,.55),0 10px 26px rgba(0,0,0,.45)}50%{box-shadow:0 0 0 14px rgba(232,194,106,0),0 10px 26px rgba(0,0,0,.45)}}" +
     "html.ed-aberto .bwg-fab,html.bw-menu-aberto .bwg-fab{display:none}" +
@@ -603,7 +606,7 @@
   var EXEMPLOS = ["Como está meu dia?", "Lance 30 reais de lanche", "Me lembra de ligar pro cliente amanhã às 10", "Conta de luz de 250 que vence dia 20", "O que eu tenho amanhã?", "Conta uma piada"];
   function desenhar() {
     var semVoz = !SR && !(navigator.mediaDevices && window.MediaRecorder);
-    painel.innerHTML = '<div class="bwg-cab">' + ROBO.replace("<svg ", '<svg width="26" height="26" style="fill:none;stroke:#E8C26A;stroke-width:2.3;stroke-linecap:round" ') + '<b>TIO CLÁUDIO</b><button type="button" class="aj" data-g="ajustes" aria-label="Ajustes do agente" title="Ajustes">⚙</button><button type="button" class="x" data-g="fechar" aria-label="Fechar">✕</button></div>' +
+    painel.innerHTML = '<div class="bwg-cab">' + ROBO.replace('width="46" height="46"', 'width="32" height="32"') + '<b>TIO CLÁUDIO</b><button type="button" class="aj" data-g="ajustes" aria-label="Ajustes do agente" title="Ajustes">⚙</button><button type="button" class="x" data-g="fechar" aria-label="Fechar">✕</button></div>' +
       '<div class="bwg-st" aria-live="polite"></div><div class="bwg-fala" aria-live="polite"></div><div id="bwgAc"></div>' +
       '<div class="bwg-escr"><input id="bwgTxt" type="text" autocomplete="off" placeholder="' + (semVoz ? "Escreva o que quer lançar…" : "…ou escreva aqui") + '" aria-label="Escreva o pedido"><button type="button" class="bwg-b pri" data-g="enviar">➤</button>' + (semVoz ? "" : '<button type="button" class="bwg-b" data-g="ouvir" aria-label="Falar de novo" title="Falar">🎙</button>') + "</div>" +
       '<div class="bwg-ex">' + EXEMPLOS.map(function (e) { return '<button type="button" data-g="ex">' + esc(e) + "</button>"; }).join("") + "</div>" +

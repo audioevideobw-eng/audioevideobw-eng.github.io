@@ -42,8 +42,8 @@ with sync_playwright() as p:
             pg.click('[data-aba="mais"]'); pg.wait_for_timeout(200); ok(pg.is_visible("#bwMenu"), "aba Mais continua abrindo"); pg.keyboard.press("Escape"); pg.wait_for_timeout(200)
             ok(not pg.is_visible("#bwMenu"), "Esc fecha")
         pg.goto(B + "index.html"); pg.wait_for_timeout(800)
-        # 20/11 (dono): o Início tem só as duas portas; as seções com seta estão na página de cada ambiente
-        ok(pg.locator(".amb-porta").count() == 2 and pg.locator(".bw-dobra").count() == 0 and pg.locator("#kNeg").count() == 1 and pg.locator("#kCasa").count() == 1, "Início: duas portas (MINHA EMPRESA e MINHA CASA) com os números de cada uma")
+        # 20/11 (dono): o Início tem o robô com as 4 telas; as seções com seta estão na página de cada ambiente
+        ok(pg.locator(".hub-tela").count() == 4 and pg.locator("#hubRobo").count() == 1 and pg.locator(".bw-dobra").count() == 0, "Início: o robô e as 4 telas (MEU NEGÓCIO, GESTÃO DE CASA, MARKETING, FERRAMENTAS)")
         pg.goto(B + "negocio.html"); pg.wait_for_timeout(900)
         ok(pg.locator(".amb-sec [data-seta]").count() == 4, f"MINHA EMPRESA: 4 seções com seta: {pg.locator('.amb-sec [data-seta]').count()}")
         ok(pg.is_visible('.amb-sec a[href="captacao.html"]') and not pg.is_visible('.amb-sec a[href="dados.html"]'), "CRM começa aberto; FERRAMENTAS DA EMPRESA começa fechada")
