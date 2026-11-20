@@ -1,19 +1,14 @@
 {
- "versao": "1.9.3",
+ "versao": "1.9.4",
  "data": "20/11/2026",
  "pacote": "downloads/BW-Reels-Studio.zip",
- "sha256": "c7d5f896a0362eede6ff0f4e8597e90d11d99fdafdf3985dce72c725274aef8a",
- "bytes": 8582753,
+ "sha256": "4f8f50fe6c6f5ba9e40bb0fd94e62fe6fc930f2f6e2ed596466b4a1625385b71",
+ "bytes": 8594367,
  "novidades": [
   {
-   "titulo": "ESTÚDIO 3D: modelo, logo, maquete de palco e IA 3D",
-   "texto": "Quatro modos num lugar só: abrir GLB/OBJ/STL e gerar o vídeo do giro; a sua logo em relevo dourado com fundo transparente ou verde; a maquete do palco com painéis de LED de 0,5 m, medidas reais e a RESOLUÇÃO EM PIXELS do telão (com planta em PDF); e o pedido pronto para a IA de 3D. Tudo no aparelho, sem biblioteca de fora e sem internet.",
+   "titulo": "ESTÚDIO 3D: O QUE VOU FAZER?",
+   "texto": "O Estúdio 3D agora começa perguntando o que você quer fazer — logo da empresa, maquete de palco e LED, uma peça ou produto, avatar da equipe para animar, peças de jogo ou trabalho pesado. Ele lê a placa de vídeo deste computador e responde o que dá para fazer aqui mesmo, o que precisa de IA e de que tamanho de placa, e o que só sai na nuvem — com o caminho passo a passo, o gerador que roda na sua placa e o que você entrega ao cliente. A leitura da placa é do próprio navegador: não sai nada do aparelho.",
    "abrir": "estudio3d"
-  },
-  {
-   "titulo": "O tamanho do telão vai direto para a arte",
-   "texto": "Na maquete, um botão abre o Estúdio de motion ou as Telas em movimento já no tamanho exato do painel (ex.: 1280 × 640 px) — a arte nasce sem sobrar nem faltar pixel.",
-   "abrir": "motion"
   }
  ]
 }

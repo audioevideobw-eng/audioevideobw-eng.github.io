@@ -452,6 +452,12 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
 127. Plano colado na frente de uma grade de faces (a arte em cima dos módulos de LED) entra na ordem pela profundidade do canto MAIS PERTO,
      nunca pela média — com a média, metade dos módulos fica na frente da arte.
 
+128. Recurso que depende da MÁQUINA do usuário (placa de vídeo): ler pelo WebGL (WEBGL_debug_renderer_info) dá o NOME, nunca a VRAM —
+     a memória sai de uma tabela de modelos e o usuário CONFIRMA num seletor (ui_3d_maquina), que passa a mandar; a leitura fica no módulo
+     (BW3DPlano.maquina), nunca uma cópia na tela, senão recarregar volta ao valor estimado. Veredito honesto: os geradores 3D abertos rodam
+     em CUDA, então placa AMD/Intel/Apple com 24 GB NÃO "aguenta" — cai em nuvem; número de VRAM de modelo de IA leva a data da conferência
+     (auto: teste_3d_plano.py, vigia 7.8e).
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -1467,8 +1473,24 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   vigia ✅. App BW 1.9.3 (cartão ESTÚDIO 3D, destino, cópia sem internet refeita com o site de hoje, tutorial e novidades publicados) e manual
   52 → 53 p. BW-Setup.exe continua o 1.9.1 (depende do PC do dono; quem já tem o app atualiza sozinho). NÃO testado: iPhone/Android reais e
   modelos 3D grandes de verdade (os do teste são pequenos). layout.js v64, sw v154. PENTE FINO 124–127.
+- 20/11/2026 19:30 · Claude (dono: "FAÇA UM SISTEMA EM QUE OS PROJETOS SERÃO INICIADOS DE ACORDO COM A PLACA DE VÍDEO DO USUÁRIO… o sistema
+  identifica o projeto e, com as config da placa, diz o que ele pode ou não conseguir"): PLANO DO PROJETO (assets/bw3d-plano.js), agora o
+  PRIMEIRO modo do ESTÚDIO 3D ("🎯 O QUE VOU FAZER?") e a tela em que quem chega cai. Lê a placa de vídeo pelo próprio navegador
+  (WEBGL_debug_renderer_info + tabela de modelos → VRAM estimada; o usuário confirma no seletor, guardado em ui_3d_maquina), a RAM, os
+  núcleos e se é celular. Seis tipos de trabalho, com o exemplo do dono: LOGO 3D DO NEGÓCIO e PALCO/LED (sem IA, rodam em qualquer aparelho),
+  PEÇA OU PRODUTO, AVATAR PARA ANIMAR (IA + esqueleto no Mixamo), PEÇAS PARA JOGO (2D sem placa; 3D abaixo de 30 mil polígonos) e TRABALHO
+  PESADO. Para cada um: veredito DÁ AQUI / PARTE AQUI / NA NUVEM, o motivo, o caminho numerado, quais geradores abertos rodam na placa
+  (TRELLIS.2 24 GB MIT · Hunyuan3D 2.1 10 GB forma / 29 GB completo · TripoSR 6 GB MIT — conferido em 20/11), o que se entrega e o atalho
+  que abre a ferramenta certa. Honesto: os geradores pedem CUDA, então placa AMD/Intel/Apple vai para a nuvem mesmo com muita memória.
+  Nada sai do aparelho (vigia). Novo docs/testes/teste_3d_plano.py (≈18 checagens × 1280/390, vereditos simulados em 0/8/12/24 GB, 0 falhas);
+  teste_3d, teste_3d_foto, teste_telas e teste_motion 0 falhas; vigia ✅. App BW 1.9.4 (cartão do Estúdio 3D, cópia sem internet com o
+  arquivo novo, novidades publicadas) e manual 53 → 54 p. (página "O que a sua máquina consegue fazer"). BW-Setup.exe continua o 1.9.1 —
+  quem já tem o app atualiza sozinho. NÃO testado: placa de verdade (aqui o navegador do teste não tem GPU) nem iPhone/Android reais. sw v157.
 
 ## Pendências (dono)
+- [ ] (20/11) PLANO DO PROJETO: dono abrir Marketing → Estúdio 3D no PC e conferir se a placa que aparece em A SUA MÁQUINA é a dele e se a
+      memória de vídeo está certa (se não, escolher no seletor) — e dizer qual é a placa, para eu acertar a tabela. Depois tocar em
+      AVATAR MEU E DA EQUIPE e dizer se o veredito e o caminho fazem sentido para o que ele quer vender.
 - [ ] (20/11) ESTÚDIO 3D: dono abrir em Marketing → Estúdio 3D no PC e no celular; testar com um modelo 3D de verdade (GLB), com a logo da BW
       (LOGO 3D → fundo transparente → PNG) e montar a maquete de um evento real (painéis, pitch) → conferir se a RESOLUÇÃO EM PIXELS bate com
       a do fornecedor do telão, gerar a PLANTA EM PDF e um vídeo do giro. Dizer o que falta (mais itens de palco? medidas em pés? treliça por metro?).

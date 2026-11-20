@@ -26,7 +26,7 @@ PLANO = [("base", 1), ("base", 2), ("base", 3), ("base", 4), ("base", 5),
          "05b2-leitor-e-agente.html",   # 16/11: substitui a página antiga "Comprovantes pela foto" (base 10)
          ("base", 12),
          "06a-painel-financeiro.html", "06b-orcamento.html"] + [("base", n) for n in range(14, 24)] + \
-        ["09a-crm.html", "09b-funil.html", "09b2-pedido.html", "09c-indicadores.html", "09d-fotos.html", "09d2-fotos-marca.html", "09d3-criador.html", "09d4-reels.html", "09d5-reels-modelos.html", "09d6-reels-personagens-som.html", "09d7-reels-graficos.html", "09d8-reels-quadro.html", "09d9-personagens.html", "09d10-video.html", "09d12-motion.html", "09d13-telas.html", "09d15-estudio-3d.html", "09d14-atalhos.html", "09d11-promptia.html"] + [("base", n) for n in range(24, 29)]
+        ["09a-crm.html", "09b-funil.html", "09b2-pedido.html", "09c-indicadores.html", "09d-fotos.html", "09d2-fotos-marca.html", "09d3-criador.html", "09d4-reels.html", "09d5-reels-modelos.html", "09d6-reels-personagens-som.html", "09d7-reels-graficos.html", "09d8-reels-quadro.html", "09d9-personagens.html", "09d10-video.html", "09d12-motion.html", "09d13-telas.html", "09d15-estudio-3d.html", "09d16-plano-3d.html", "09d14-atalhos.html", "09d11-promptia.html"] + [("base", n) for n in range(24, 29)]
 
 MODELO = """<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><link rel="stylesheet" href="../estilo.css"></head>
 <body><div class="pagina">{corpo}<div class="rodape"><span>BRIGHTWAY · Guia do usuário</span><span>{n}</span></div></div></body></html>"""
