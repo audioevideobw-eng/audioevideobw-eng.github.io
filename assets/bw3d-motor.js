@@ -11,7 +11,10 @@
 
   /* ---------- contas ---------- */
   function hexRGB(c) {
-    c = String(c == null ? "#888888" : c).trim().replace("#", "");
+    c = String(c == null ? "#888888" : c).trim();
+    var m = c.match(/^rgba?\(([\d.]+)[,\s]+([\d.]+)[,\s]+([\d.]+)/i);
+    if (m) return [Math.round(+m[1]), Math.round(+m[2]), Math.round(+m[3])];
+    c = c.replace("#", "");
     if (c.length === 3) c = c[0] + c[0] + c[1] + c[1] + c[2] + c[2];
     var n = parseInt(c, 16); if (isNaN(n)) n = 0x888888;
     return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
@@ -459,6 +462,7 @@
       ctx.closePath(); ctx.fillStyle = p.cor; ctx.fill();
       if (p.led) { ctx.strokeStyle = "rgba(0,0,0,.55)"; ctx.lineWidth = 1; ctx.stroke(); }
       else if (p.obj.arestas) { ctx.strokeStyle = "rgba(0,0,0," + p.obj.arestas + ")"; ctx.lineWidth = 1; ctx.stroke(); }
+      else if (p.obj.selar) { ctx.strokeStyle = p.cor; ctx.lineWidth = 1; ctx.stroke(); }   /* malha densa: fecha a costura entre as faces */
     }
     medidas(ctx, cena, cam, w, h);
   }
@@ -482,4 +486,164 @@
     ctx.restore();
   }
   B.desenhar = desenhar; B.logo3d = logo3d; B.pintar = pintar; B.blit = blit; B.limparCache = function () { CACHE = {}; };
+})();
+
+/* ---------- parte 3: exportar a malha (GLB e OBJ para o Blender) ---------- */
+(function () {
+  "use strict";
+  var B = window.BW3D;
+  function tri(f) {   /* quad/ngon → triângulos */
+    var i = f.i, t = [], k;
+    for (k = 2; k < i.length; k++) t.push([i[0], i[k - 1], i[k]]);
+    return t;
+  }
+  /* malha no mundo (aplica pos/rot/escala) e já triangulada */
+  function assada(objs) {
+    var V = [], F = [], VC = [];
+    (Array.isArray(objs) ? objs : [objs]).forEach(function (o) {
+      if (!o || o.tipo !== "malha" || !o.verts) return;
+      var mv = B.paraMundo(o), base = V.length, i;
+      for (i = 0; i < o.verts.length; i++) V.push(mv(o.verts[i]));
+      if (o.vcor) for (i = 0; i < o.verts.length; i++) VC.push(o.vcor[i]);
+      o.faces.forEach(function (f) {
+        tri(f).forEach(function (t) { F.push({ i: [t[0] + base, t[1] + base, t[2] + base], cor: f.cor || o.cor || "#b9c0cc" }); });
+      });
+    });
+    return { verts: V, faces: F, vcor: VC.length === V.length ? VC : null };
+  }
+  function normaisLisas(m) {
+    var n = m.verts.map(function () { return [0, 0, 0]; }), i;
+    for (i = 0; i < m.faces.length; i++) {
+      var ix = m.faces[i].i, a = m.verts[ix[0]], b = m.verts[ix[1]], c = m.verts[ix[2]];
+      var u = B.cruz(B.sub(b, a), B.sub(c, a)), k;
+      for (k = 0; k < 3; k++) { n[ix[k]][0] += u[0]; n[ix[k]][1] += u[1]; n[ix[k]][2] += u[2]; }
+    }
+    return n.map(function (v) { return B.unit(v); });
+  }
+  function srgbLin(c) { c = c / 255; return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); }
+
+  /* ---------- GLB (um arquivo só; arraste no Blender) ---------- */
+  function paraGLB(objs, nome) {
+    var m = assada(objs);
+    if (!m.faces.length) throw new Error("não há malha para exportar neste modo");
+    var temVC = !!m.vcor, pos, nor, cor, idx = null, i, k;
+    if (temVC) {                       /* vértices com cor própria: malha indexada e leve */
+      var nn = normaisLisas(m);
+      pos = new Float32Array(m.verts.length * 3); nor = new Float32Array(m.verts.length * 3); cor = new Float32Array(m.verts.length * 4);
+      for (i = 0; i < m.verts.length; i++) {
+        pos[i * 3] = m.verts[i][0]; pos[i * 3 + 1] = m.verts[i][1]; pos[i * 3 + 2] = m.verts[i][2];
+        nor[i * 3] = nn[i][0]; nor[i * 3 + 1] = nn[i][1]; nor[i * 3 + 2] = nn[i][2];
+        var rgb = B.hexRGB(m.vcor[i]);
+        cor[i * 4] = srgbLin(rgb[0]); cor[i * 4 + 1] = srgbLin(rgb[1]); cor[i * 4 + 2] = srgbLin(rgb[2]); cor[i * 4 + 3] = 1;
+      }
+      idx = new Uint32Array(m.faces.length * 3);
+      for (i = 0; i < m.faces.length; i++) { idx[i * 3] = m.faces[i].i[0]; idx[i * 3 + 1] = m.faces[i].i[1]; idx[i * 3 + 2] = m.faces[i].i[2]; }
+    } else {                           /* cor por face: triângulos soltos (sombreado chapado) */
+      var n3 = m.faces.length * 3;
+      pos = new Float32Array(n3 * 3); nor = new Float32Array(n3 * 3); cor = new Float32Array(n3 * 4);
+      for (i = 0; i < m.faces.length; i++) {
+        var ix = m.faces[i].i, a = m.verts[ix[0]], b = m.verts[ix[1]], c = m.verts[ix[2]];
+        var nv = B.unit(B.cruz(B.sub(b, a), B.sub(c, a))), rgb2 = B.hexRGB(m.faces[i].cor);
+        [a, b, c].forEach(function (p, j) {
+          var o3 = (i * 3 + j) * 3, o4 = (i * 3 + j) * 4;
+          pos[o3] = p[0]; pos[o3 + 1] = p[1]; pos[o3 + 2] = p[2];
+          nor[o3] = nv[0]; nor[o3 + 1] = nv[1]; nor[o3 + 2] = nv[2];
+          cor[o4] = srgbLin(rgb2[0]); cor[o4 + 1] = srgbLin(rgb2[1]); cor[o4 + 2] = srgbLin(rgb2[2]); cor[o4 + 3] = 1;
+        });
+      }
+    }
+    var mi = [1e9, 1e9, 1e9], ma = [-1e9, -1e9, -1e9];
+    for (i = 0; i < pos.length; i += 3) for (k = 0; k < 3; k++) { if (pos[i + k] < mi[k]) mi[k] = pos[i + k]; if (pos[i + k] > ma[k]) ma[k] = pos[i + k]; }
+    var partes = [pos, nor, cor].concat(idx ? [idx] : []), vistas = [], desl = 0, total = 0;
+    partes.forEach(function (p) { var b = p.byteLength; vistas.push({ byteOffset: desl, byteLength: b }); desl += b + ((4 - b % 4) % 4); });
+    total = desl;
+    var cont = pos.length / 3;
+    var js = { asset: { version: "2.0", generator: "Brightway Estudio 3D" }, scene: 0, scenes: [{ nodes: [0] }],
+      nodes: [{ mesh: 0, name: (nome || "modelo") }],
+      meshes: [{ name: (nome || "modelo"), primitives: [{ attributes: { POSITION: 0, NORMAL: 1, COLOR_0: 2 }, material: 0, mode: 4 }] }],
+      materials: [{ name: "BW", doubleSided: true, pbrMetallicRoughness: { baseColorFactor: [1, 1, 1, 1], metallicFactor: 0.05, roughnessFactor: 0.75 } }],
+      accessors: [
+        { bufferView: 0, componentType: 5126, count: cont, type: "VEC3", min: mi, max: ma },
+        { bufferView: 1, componentType: 5126, count: cont, type: "VEC3" },
+        { bufferView: 2, componentType: 5126, count: cont, type: "VEC4" }],
+      bufferViews: [
+        { buffer: 0, byteOffset: vistas[0].byteOffset, byteLength: vistas[0].byteLength, target: 34962 },
+        { buffer: 0, byteOffset: vistas[1].byteOffset, byteLength: vistas[1].byteLength, target: 34962 },
+        { buffer: 0, byteOffset: vistas[2].byteOffset, byteLength: vistas[2].byteLength, target: 34962 }],
+      buffers: [{ byteLength: total }] };
+    if (idx) {
+      js.meshes[0].primitives[0].indices = 3;
+      js.accessors.push({ bufferView: 3, componentType: 5125, count: idx.length, type: "SCALAR" });
+      js.bufferViews.push({ buffer: 0, byteOffset: vistas[3].byteOffset, byteLength: vistas[3].byteLength, target: 34963 });
+    }
+    var txt = new TextEncoder().encode(JSON.stringify(js)), jlen = txt.length + ((4 - txt.length % 4) % 4);
+    var tam = 12 + 8 + jlen + 8 + total, buf = new ArrayBuffer(tam), dv = new DataView(buf), u8 = new Uint8Array(buf);
+    dv.setUint32(0, 0x46546C67, true); dv.setUint32(4, 2, true); dv.setUint32(8, tam, true);
+    dv.setUint32(12, jlen, true); dv.setUint32(16, 0x4E4F534A, true);
+    u8.set(txt, 20); for (i = 20 + txt.length; i < 20 + jlen; i++) u8[i] = 0x20;
+    var p0 = 20 + jlen; dv.setUint32(p0, total, true); dv.setUint32(p0 + 4, 0x004E4942, true);
+    partes.forEach(function (p, j) { u8.set(new Uint8Array(p.buffer, p.byteOffset, p.byteLength), p0 + 8 + vistas[j].byteOffset); });
+    return buf;
+  }
+
+  /* ---------- OBJ + MTL ---------- */
+  function paraOBJ(objs, nome) {
+    var m = assada(objs); if (!m.faces.length) throw new Error("não há malha para exportar neste modo");
+    nome = (nome || "modelo").replace(/[^a-zA-Z0-9-]+/g, "-").toLowerCase() || "modelo";
+    var cores = {}, lista = [];
+    m.faces.forEach(function (f) { if (!(f.cor in cores)) { cores[f.cor] = "cor" + lista.length; lista.push(f.cor); } });
+    var usaMtl = lista.length <= 64 && !m.vcor, obj = ["# Brightway — Estúdio 3D", "# metros, Y para cima"], i;
+    if (usaMtl) obj.push("mtllib " + nome + ".mtl");
+    obj.push("o " + nome);
+    for (i = 0; i < m.verts.length; i++) {
+      var v = m.verts[i], l = "v " + v[0].toFixed(5) + " " + v[1].toFixed(5) + " " + v[2].toFixed(5);
+      if (m.vcor) { var c = B.hexRGB(m.vcor[i]); l += " " + (c[0] / 255).toFixed(4) + " " + (c[1] / 255).toFixed(4) + " " + (c[2] / 255).toFixed(4); }
+      obj.push(l);
+    }
+    var nn = normaisLisas(m);
+    for (i = 0; i < nn.length; i++) obj.push("vn " + nn[i][0].toFixed(4) + " " + nn[i][1].toFixed(4) + " " + nn[i][2].toFixed(4));
+    var atual = "";
+    m.faces.forEach(function (f) {
+      if (usaMtl && cores[f.cor] !== atual) { atual = cores[f.cor]; obj.push("usemtl " + atual); }
+      obj.push("f " + f.i.map(function (x) { return (x + 1) + "//" + (x + 1); }).join(" "));
+    });
+    var mtl = ["# Brightway — Estúdio 3D"];
+    if (usaMtl) lista.forEach(function (c) {
+      var r = B.hexRGB(c);
+      mtl.push("newmtl " + cores[c], "Kd " + (r[0] / 255).toFixed(4) + " " + (r[1] / 255).toFixed(4) + " " + (r[2] / 255).toFixed(4), "Ka 0 0 0", "Ks 0.08 0.08 0.08", "Ns 24", "d 1", "illum 2", "");
+    });
+    return { obj: obj.join("\n") + "\n", mtl: usaMtl ? mtl.join("\n") + "\n" : null, nome: nome, vertices: m.verts.length, triangulos: m.faces.length };
+  }
+
+  /* ---------- .zip simples (sem compressão) para OBJ+MTL juntos ---------- */
+  var TAB = null;
+  function crc32(u8) {
+    if (!TAB) { TAB = new Int32Array(256); for (var n = 0; n < 256; n++) { var c = n; for (var k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; TAB[n] = c; } }
+    var c2 = -1; for (var i = 0; i < u8.length; i++) c2 = (c2 >>> 8) ^ TAB[(c2 ^ u8[i]) & 255];
+    return (c2 ^ -1) >>> 0;
+  }
+  function zip(arqs) {
+    var partes = [], central = [], desl = 0, enc = new TextEncoder();
+    arqs.forEach(function (a) {
+      var nome = enc.encode(a.nome), dados = typeof a.dados === "string" ? enc.encode(a.dados) : new Uint8Array(a.dados);
+      var crc = crc32(dados), loc = new Uint8Array(30 + nome.length), dv = new DataView(loc.buffer);
+      dv.setUint32(0, 0x04034b50, true); dv.setUint16(4, 20, true); dv.setUint16(6, 0, true); dv.setUint16(8, 0, true);
+      dv.setUint16(10, 0, true); dv.setUint16(12, 0x21, true);
+      dv.setUint32(14, crc, true); dv.setUint32(18, dados.length, true); dv.setUint32(22, dados.length, true);
+      dv.setUint16(26, nome.length, true); dv.setUint16(28, 0, true); loc.set(nome, 30);
+      partes.push(loc, dados);
+      var ce = new Uint8Array(46 + nome.length), dc = new DataView(ce.buffer);
+      dc.setUint32(0, 0x02014b50, true); dc.setUint16(4, 20, true); dc.setUint16(6, 20, true);
+      dc.setUint16(10, 0, true); dc.setUint16(12, 0, true); dc.setUint16(14, 0x21, true);
+      dc.setUint32(16, crc, true); dc.setUint32(20, dados.length, true); dc.setUint32(24, dados.length, true);
+      dc.setUint16(28, nome.length, true); dc.setUint32(42, desl, true); ce.set(nome, 46);
+      central.push(ce); desl += loc.length + dados.length;
+    });
+    var tamC = central.reduce(function (s, c) { return s + c.length; }, 0);
+    var fim = new Uint8Array(22), df = new DataView(fim.buffer);
+    df.setUint32(0, 0x06054b50, true); df.setUint16(8, arqs.length, true); df.setUint16(10, arqs.length, true);
+    df.setUint32(12, tamC, true); df.setUint32(16, desl, true);
+    return new Blob(partes.concat(central, [fim]), { type: "application/zip" });
+  }
+  B.paraGLB = paraGLB; B.paraOBJ = paraOBJ; B.zip = zip; B.assada = assada; B.normaisLisas = normaisLisas;
 })();

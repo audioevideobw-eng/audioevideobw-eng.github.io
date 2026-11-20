@@ -78,7 +78,7 @@ with sync_playwright() as p:
             pg.wait_for_timeout(120)
         pg.goto(BASE + "3d.html"); pg.wait_for_function("window.BW3DEditor && BW3DEditor.projeto()", timeout=15000); pg.wait_for_timeout(500)
         ok(pg.evaluate(SEM) <= 0, "abre sem estouro")
-        ok(pg.locator("#d3Modos .d3-modo").count() == 4, "os 4 modos aparecem (modelo, logo, palco, IA)")
+        ok(pg.locator("#d3Modos .d3-modo").count() == 5, "os 5 modos aparecem (modelo, logo, palco, foto, IA)")
         ok(pg.evaluate("[...document.querySelectorAll('button')].filter(b => b.offsetParent && !(b.textContent.trim() || b.getAttribute('aria-label') || b.title)).length") == 0, "todo botão tem nome")
         ok(pg.evaluate("document.querySelector('#d3Cv').width > 200"), "a prévia 3D tem tamanho")
         parar(); r = pg.evaluate(PIX)

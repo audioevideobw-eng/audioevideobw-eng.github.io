@@ -25,7 +25,7 @@
 .d3-bt.on{background:rgba(182,255,59,.16);border-color:rgba(182,255,59,.5);color:#EAF7D2}
 .d3-in,.d3-sel{min-height:42px;border-radius:12px;border:1px solid rgba(245,241,234,.16);background:#12151c;color:#F5F1EA;font:700 16px Inter,sans-serif;padding:0 10px;box-sizing:border-box;min-width:0;width:100%}
 .d3-in.nome{width:190px;flex:0 0 auto}
-.d3-modos{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:10px}
+.d3-modos{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin-bottom:10px}
 .d3-modo{min-width:0;min-height:74px;border-radius:16px;border:1px solid rgba(245,241,234,.12);background:linear-gradient(150deg,rgba(124,92,255,.14),rgba(255,255,255,.04));color:#F5F1EA;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:8px 6px;font:800 11px Inter,sans-serif;letter-spacing:.05em;text-align:center;line-height:1.25;touch-action:manipulation}
 .d3-modo .ic{font-size:21px;line-height:1}
 .d3-modo.on{background:linear-gradient(150deg,#7C5CFF,#C04CFF);border-color:transparent;box-shadow:0 10px 24px rgba(124,92,255,.3)}
@@ -94,6 +94,7 @@
     <button class="d3-modo" data-m="modelo" type="button"><span class="ic">🧊</span>MODELO 3D</button>
     <button class="d3-modo" data-m="logo" type="button"><span class="ic">✨</span>LOGO 3D</button>
     <button class="d3-modo" data-m="palco" type="button"><span class="ic">🎪</span>MAQUETE DE PALCO E LED</button>
+    <button class="d3-modo" data-m="foto" type="button"><span class="ic">🧍</span>FOTO → 3D · MEUS PLANOS</button>
     <button class="d3-modo" data-m="ia" type="button"><span class="ic">🤖</span>IA 3D · FOTO → OBJETO</button>
   </div>
   <p class="d3-nota" id="d3Nota">Tudo roda no seu aparelho: nenhum modelo, foto ou logo sai daqui.</p>
@@ -132,9 +133,10 @@
 <script src="assets/layout.js?v=64"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="assets/bw-sync.js"></script>
-<script src="assets/bw3d-motor.js?v=1"></script>
+<script src="assets/bw3d-motor.js?v=2"></script>
 <script src="assets/reels-celular.js?v=5"></script>
 <script src="assets/bw-ferramentas.js?v=1"></script>
-<script src="assets/bw3d.js?v=1"></script>
+<script src="assets/bw3d-foto.js?v=1"></script>
+<script src="assets/bw3d.js?v=2"></script>
 </body>
 </html>

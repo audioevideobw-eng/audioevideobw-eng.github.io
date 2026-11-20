@@ -11,7 +11,7 @@
   var ACAB = { dourado: ["Dourado", "#C9A227"], prata: ["Prata", "#C8CDD6"], cromado: ["Cromado", "#E6EDF7"], cobre: ["Cobre", "#B76E3A"], cor: ["Cor sólida", "#B6FF3B"], imagem: ["A própria arte", "#FFFFFF"] };
   var PITCHES = [[2.604, "P2.6"], [2.976, "P3.0"], [3.906, "P3.9"], [4.81, "P4.8"], [5.952, "P6.0"], [10, "P10"]];
   var LUZES = { estudio: [-0.6, 0.7, -0.42], frontal: [0, 0.25, -1], lateral: [-1, 0.35, -0.2], palco: [0.3, 0.9, -0.6] };
-  var P = null, ARQ = {}, CV = null, CX = null, DPR = 1, TOCA = false, T0 = 0, TEMPO = 0, FIXA = null, DB = null, EXP = { parar: false, url: "", arquivo: null }, DICA = null;
+  var P = null, ARQ = {}, MALHA3D = null, CV = null, CX = null, DPR = 1, TOCA = false, T0 = 0, TEMPO = 0, FIXA = null, DB = null, EXP = { parar: false, url: "", arquivo: null }, DICA = null;
 
   function uid(p) { return (p || "o") + Math.random().toString(36).slice(2, 8); }
   function num(v, d) { v = parseFloat(String(v).replace(",", ".")); return isFinite(v) ? v : d; }
@@ -55,6 +55,7 @@
       palco: { larg: 8, prof: 4, alt: 0.8, mostrarPalco: true, cols: 10, rows: 5, modulo: 0.5, moduloA: 0.5, pitch: 3.906, ledChao: 0.8,
         trelica: true, torres: true, pessoas: 4, cameras: 1, medidas: true, conteudoId: "" },
       ia: { pedido: "", estilo: "produto", ia: "tripo" },
+      foto: { frenteId: "", ladoId: "", costasId: "", alturaM: 1.75, res: 128, espessura: 1, suave: 3, nome: "Avatar" },
       exportar: { formato: "9:16", w: 1080, h: 1920, dur: 8, qual: 1280 } };
   }
   function limpar(o) {   /* garante campos novos em projeto antigo */
@@ -75,7 +76,10 @@
   }
   function montar(t, w, h) {
     var objs = [], med = [], mat = MATS[P.modelo.material] || MATS.plastico, modo = P.modo;
-    if (modo === "modelo" || modo === "ia") {
+    if (modo === "foto") {
+      if (MALHA3D) objs.push(MALHA3D);
+      else objs.push(B.caixa({ tam: [0.6, 1.7, 0.35], cor: "#2a3346", mat: MATS.fosco, nome: "Mande os seus planos em PNG" }));
+    } else if (modo === "modelo" || modo === "ia") {
       var a = ARQ[P.modelo.arqId];
       if (a && a.verts) objs.push(B.malha(a.verts, a.faces, { cor: P.modelo.cor, mat: mat, rot: [0, P.modelo.rotY, 0], arestas: P.modelo.arestas, nome: a.nome || "Modelo" }));
       else if (P.modelo.pronto === "cilindro") objs.push(B.cilindro({ diam: 1.1, altura: 1.6, cor: P.modelo.cor, mat: mat, nome: "Cilindro" }));
@@ -194,7 +198,8 @@
   }
   /* para os testes e para o app BW: ler o projeto e a ficha do telão sem mexer em nada */
   window.BW3DEditor = { projeto: function () { return P; }, montar: montar, ficha: fichaLED, ver: ver, arquivos: function () { return ARQ; },
-    modo: function (m) { trocarModo(m); }, tamanho: tamanhoExp, png: salvarPNG, folha: folhaExportar };
+    modo: function (m) { trocarModo(m); }, tamanho: tamanhoExp, png: salvarPNG, folha: folhaExportar,
+    montarFoto: montarFoto, malha: function () { return MALHA3D; }, malhas: malhasDaCena, exportar3D: exportar3D };
 
   /* ---------- painel (muda com o modo) ---------- */
   function op(lista, val) { return lista.map(function (o) { return '<option value="' + esc(o[0]) + '"' + (String(o[0]) === String(val) ? " selected" : "") + ">" + esc(o[1]) + "</option>"; }).join(""); }
@@ -238,6 +243,21 @@
       h += '<div class="d3-l2">' + campo("Pessoas de escala", numero("palco.pessoas", 0, 14, 1)) + campo("Câmeras", numero("palco.cameras", 0, 4, 1)) + "</div>";
       h += '<div class="d3-chips" style="margin-bottom:8px">' + chip("palco.mostrarPalco", "PALCO") + chip("palco.trelica", "TRELIÇA EM CIMA") + chip("palco.torres", "TORRES") + chip("palco.medidas", "MEDIDAS") + "</div>";
       h += '<div class="d3-fx"><button class="d3-bt mini" id="d3Conteudo" type="button">🖼 PÔR UMA ARTE NO PAINEL</button>' + (P.palco.conteudoId ? '<button class="d3-bt mini perigo" id="d3SemConteudo" type="button">✕ TIRAR A ARTE</button>' : "") + "</div></div>";
+    } else if (m === "foto") {
+      var nf = ["frente", "lado", "costas"].map(function (k) { var a = ARQ[P.foto[k + "Id"]]; return a ? a.nome : ""; });
+      h += '<p class="d3-nota" style="margin:0 0 8px">PNG com fundo transparente. Só a <b>FRENTE</b> já faz; com o <b>LADO</b> o corpo fica certo de verdade; as <b>COSTAS</b> dão a cor de trás.</p>';
+      h += '<div class="d3-fx" style="margin-bottom:8px">' +
+        '<button class="d3-bt pri" id="d3Fr" type="button">👤 FRENTE' + (nf[0] ? " ✓" : "") + "</button>" +
+        '<button class="d3-bt" id="d3La" type="button">↔ LADO' + (nf[1] ? " ✓" : "") + "</button>" +
+        '<button class="d3-bt" id="d3Co" type="button">🔄 COSTAS' + (nf[2] ? " ✓" : "") + "</button></div>";
+      if (nf[0]) h += '<p class="d3-nota" style="margin:0 0 8px">' + nf.filter(Boolean).map(esc).join(" · ") + "</p>";
+      h += '<div class="d3-l2">' + campo("Altura de verdade (m)", numero("foto.alturaM", 0.05, 30, 0.05)) + campo("Detalhe", sel("foto.res", [[96, "Rápido"], [128, "Bom"], [160, "Alto"], [192, "Máximo (demora)"]])) + "</div>";
+      if (!nf[1]) h += campo("Profundidade (sem a foto de lado)", faixa("foto.espessura", 0.3, 2, 0.1));
+      h += campo("Suavizar", faixa("foto.suave", 0, 8, 1));
+      h += '<div class="d3-fx" style="margin-bottom:8px"><button class="d3-bt ia" id="d3Montar" type="button">✨ MONTAR O 3D</button>' +
+        (MALHA3D ? '<button class="d3-bt mini perigo" id="d3Limpar" type="button">✕ LIMPAR</button>' : "") + "</div>";
+      if (MALHA3D && MALHA3D.info) h += '<div class="d3-ficha">Malha pronta: <b>' + MALHA3D.info.faces.toLocaleString("pt-BR") + " polígonos</b> · " +
+        MALHA3D.info.vertices.toLocaleString("pt-BR") + " vértices<br>vistas usadas: " + MALHA3D.info.vistas.join(" + ") + " · " + (MALHA3D.info.ms / 1000).toFixed(1) + " s</div>";
     } else {
       h += campo("O que você quer em 3D?", '<textarea class="d3-in" data-k="ia.pedido" rows="3" style="height:auto;padding:8px;font-size:16px" placeholder="ex.: um troféu de acrílico com a base preta, para o palco do evento">' + esc(P.ia.pedido) + "</textarea>");
       h += '<div class="d3-l2">' + campo("Para que serve", sel("ia.estilo", [["produto", "Produto / objeto"], ["personagem", "Personagem"], ["cenario", "Cenário / ambiente"], ["evento", "Item de evento (palco, totem)"], ["logo", "Logo em volume"]])) + campo("Qual IA", sel("ia.ia", [["tripo", "Tripo 3D"], ["meshy", "Meshy"], ["rodin", "Rodin (Hyper3D)"], ["hunyuan", "Hunyuan3D"]])) + "</div>";
@@ -264,6 +284,13 @@
     h += '<div class="d3-fx" style="margin-bottom:8px"><button class="d3-bt pri" id="d3Exportar" type="button">🎬 GERAR VÍDEO NESTE APARELHO</button></div>';
     h += '<div class="d3-fx" style="margin-bottom:8px"><button class="d3-bt" id="d3Png" type="button">🖼 SALVAR PNG</button>' +
       (m === "palco" ? '<button class="d3-bt" id="d3Pdf" type="button">📄 PLANTA EM PDF</button>' : "") + "</div>";
+    if (m !== "logo") {
+      h += '<h4 data-seta="d3exp3d" style="margin-top:12px">LEVAR PARA O BLENDER (3D)</h4><div>';
+      h += '<div class="d3-fx" style="margin-bottom:6px"><button class="d3-bt pri" id="d3Glb" type="button">⬇ GLB (um arquivo só)</button>' +
+        '<button class="d3-bt" id="d3Obj" type="button">⬇ OBJ + MTL (.zip)</button></div>';
+      h += '<p class="d3-nota" style="margin:0">No Blender: <b>Arquivo → Importar → glTF 2.0 (.glb)</b> — já vem em metros, de pé e com as cores. O OBJ serve para qualquer outro programa (Cinema 4D, 3ds Max, Maya, impressão 3D).</p>';
+      h += "</div>";
+    }
     h += '<p class="d3-nota" style="margin:0">O vídeo é gerado no próprio aparelho, sem enviar nada. Fundo verde, azul ou magenta = recorte no CapCut (Chroma key); fundo transparente = PNG com recorte.</p>';
     h += "</div></div>";
     $("d3Painel").innerHTML = h;
@@ -305,6 +332,13 @@
       (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(function () { aviso("Pedido copiado — cole na IA."); }, function () { $("d3PromptTxt").select(); aviso("Toque e segure para copiar o texto.", true); });
     };
     if ($("d3AbrirIA")) $("d3AbrirIA").href = { tripo: "https://www.tripo3d.ai/", meshy: "https://www.meshy.ai/", rodin: "https://hyper3d.ai/", hunyuan: "https://3d.hunyuan.tencent.com/" }[P.ia.ia] || "https://www.tripo3d.ai/";
+    if ($("d3Fr")) $("d3Fr").onclick = function () { $("d3Img").setAttribute("data-alvo", "frente"); $("d3Img").click(); };
+    if ($("d3La")) $("d3La").onclick = function () { $("d3Img").setAttribute("data-alvo", "lado"); $("d3Img").click(); };
+    if ($("d3Co")) $("d3Co").onclick = function () { $("d3Img").setAttribute("data-alvo", "costas"); $("d3Img").click(); };
+    if ($("d3Montar")) $("d3Montar").onclick = montarFoto;
+    if ($("d3Limpar")) $("d3Limpar").onclick = function () { MALHA3D = null; painel(); P.cam.auto = true; ver(); };
+    if ($("d3Glb")) $("d3Glb").onclick = function () { exportar3D("glb"); };
+    if ($("d3Obj")) $("d3Obj").onclick = function () { exportar3D("obj"); };
     if ($("d3Exportar")) $("d3Exportar").onclick = folhaExportar;
     if ($("d3Png")) $("d3Png").onclick = salvarPNG;
     if ($("d3Pdf")) $("d3Pdf").onclick = planta;
@@ -339,13 +373,15 @@
   }
   function imgDe(url) { return new Promise(function (ok, erro) { var i = new Image(); i.onload = function () { ok(i); }; i.onerror = function () { erro(new Error("imagem não abriu")); }; i.src = url; }); }
   async function abrirImagem(file, alvo) {
-    if (!alvo) alvo = P.modo === "palco" ? "conteudo" : "logo";   /* na maquete a imagem é a arte do painel */
+    if (!alvo) alvo = P.modo === "palco" ? "conteudo" : P.modo === "foto" ? "frente" : "logo";   /* maquete = arte do painel; foto = plano da frente */
     try {
       var url = await new Promise(function (ok, erro) { var r = new FileReader(); r.onload = function () { ok(r.result); }; r.onerror = function () { erro(new Error("não deu para ler")); }; r.readAsDataURL(file); });
       var im = await imgDe(url), id = uid("im");
       ARQ[id] = { id: id, nome: file.name, img: im, url: url };
       guardarArq(id, file.name, url, alvo === "conteudo" ? "conteudo" : "logo");
-      if (alvo === "conteudo") P.palco.conteudoId = id; else { P.logo.imgId = id; P.logo.nome = file.name; }
+      if (alvo === "conteudo") P.palco.conteudoId = id;
+      else if (alvo === "frente" || alvo === "lado" || alvo === "costas") { P.foto[alvo + "Id"] = id; MALHA3D = null; }
+      else { P.logo.imgId = id; P.logo.nome = file.name; }
       P.cam.auto = true; painel(); ver(); guardar(); aviso("✓ " + file.name);
     } catch (e) { aviso("Não deu para abrir a imagem: " + (e.message || e), true); }
   }
@@ -366,6 +402,51 @@
       };
       q.onerror = function () { aviso("Não deu para ler a sua marca.", true); };
     };
+  }
+
+  /* ---------- FOTO → 3D (escava pelas silhuetas, aqui no aparelho) ---------- */
+  function montarFoto() {
+    var f = ARQ[P.foto.frenteId];
+    if (!f || !f.img) return aviso("Escolha pelo menos a imagem de FRENTE (PNG com fundo transparente).", true);
+    if (!window.BW3DFoto) return aviso("Faltou carregar o montador 3D — recarregue a página.", true);
+    aviso("Escavando pelas silhuetas… pode levar alguns segundos.");
+    var bt = $("d3Montar"); if (bt) bt.disabled = true;
+    setTimeout(function () {
+      try {
+        MALHA3D = BW3DFoto.gerar({ frente: f.img, lado: (ARQ[P.foto.ladoId] || {}).img, costas: (ARQ[P.foto.costasId] || {}).img },
+          { res: +P.foto.res, alturaM: +P.foto.alturaM, espessura: +P.foto.espessura, suave: +P.foto.suave, nome: P.nome || "Foto 3D" });
+        P.cam.auto = true; P.cam.zoom = 1; painel(); ver(0); guardar();
+        aviso("✓ 3D pronto: " + MALHA3D.info.faces.toLocaleString("pt-BR") + " polígonos em " + (MALHA3D.info.ms / 1000).toFixed(1) + " s.");
+      } catch (e) { aviso("Não deu para montar: " + (e.message || e), true); var b2 = $("d3Montar"); if (b2) b2.disabled = false; }
+    }, 70);
+  }
+
+  /* ---------- levar para o Blender: GLB e OBJ ---------- */
+  function limpoNome() { return ((P.nome || "bw-3d") + "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9]+/g, "-").replace(/^-|-$/g, "").toLowerCase() || "bw-3d"; }
+  function baixar(blob, nome) {
+    var u = URL.createObjectURL(blob), a = document.createElement("a");
+    a.href = u; a.download = nome; a.click(); setTimeout(function () { URL.revokeObjectURL(u); }, 8000);
+    try { var fl = new File([blob], nome, { type: blob.type });
+      if (navigator.share && navigator.canShare && navigator.canShare({ files: [fl] })) setTimeout(function () { navigator.share({ files: [fl], title: nome }).catch(function () {}); }, 400);
+    } catch (e) {}
+  }
+  function malhasDaCena() { return montar(0, 1000, 1000).cena.objs.filter(function (o) { return o.tipo === "malha" && o.verts && o.verts.length; }); }
+  function exportar3D(tipo) {
+    try {
+      var objs = malhasDaCena();
+      if (!objs.length) return aviso("Este modo ainda não tem malha 3D para exportar.", true);
+      var nome = limpoNome();
+      if (tipo === "glb") {
+        var buf = B.paraGLB(objs, nome);
+        baixar(new Blob([buf], { type: "model/gltf-binary" }), nome + ".glb");
+        aviso("✓ " + nome + ".glb salvo (" + (buf.byteLength / 1048576).toFixed(1) + " MB). No Blender: Arquivo → Importar → glTF 2.0.");
+      } else {
+        var r = B.paraOBJ(objs, nome), arqs = [{ nome: r.nome + ".obj", dados: r.obj }];
+        if (r.mtl) arqs.push({ nome: r.nome + ".mtl", dados: r.mtl });
+        baixar(B.zip(arqs), r.nome + "-obj.zip");
+        aviso("✓ OBJ + MTL em .zip · " + r.triangulos.toLocaleString("pt-BR") + " triângulos.");
+      }
+    } catch (e) { aviso("Não deu para exportar: " + (e.message || e), true); }
   }
 
   /* ---------- exportar: vídeo, PNG e planta ---------- */
@@ -516,6 +597,7 @@
     modelo: "Abra um modelo 3D (GLB, OBJ ou STL), gire, ilumine e gere o vídeo do giro — tudo no aparelho.",
     logo: "A sua logo em PNG vira relevo 3D com dourado, prata ou cromado. Fundo transparente = PNG com recorte; fundo verde = chroma key.",
     palco: "Monte o palco com medida real: painéis de LED de 0,5 m, treliça, pessoas de escala — e veja a RESOLUÇÃO EM PIXELS do telão para já criar a arte do tamanho certo.",
+    foto: "Os seus planos em PNG com fundo transparente (frente, lado e costas) viram uma MALHA 3D de verdade aqui no aparelho — sem IA, sem crédito — e saem em GLB ou OBJ para o Blender.",
     ia: "Pedido pronto para a IA de 3D (Tripo, Meshy, Rodin, Hunyuan): você gera lá, traz o arquivo para cá e anima aqui. O site não chama nenhuma IA de 3D."
   };
   function trocarModo(m, primeira) {
@@ -527,6 +609,7 @@
       if (m === "logo") { P.cam.pitch = 0.1; P.cam.yaw = 0.5; P.chao.mostrar = false; }
       if (m === "palco") { P.cam.pitch = 0.26; P.cam.yaw = 0.55; P.chao.mostrar = true; P.giro.seg = Math.max(P.giro.seg, 10); }
       if (m === "modelo" || m === "ia") { P.cam.pitch = 0.3; P.chao.mostrar = true; }
+      if (m === "foto") { P.cam.pitch = 0.18; P.cam.yaw = 0.5; P.chao.mostrar = true; P.giro.seg = Math.max(P.giro.seg, 8); }
     }
     painel(); medir(); ver(primeira ? 0 : 0); guardar();
   }
