@@ -1,0 +1,186 @@
+/* FERRAMENTAS NO ESTILO ADOBE (20/11/2026, Claude) — comum aos editores (vídeo, fotos, motion, telas).
+   BWFerr.barra({ el, ferramentas:[{id, tecla, nome, icone, dica}], atual, aoTrocar, espacoMao })
+     → barra de ferramentas com atalho de UMA tecla (V seleção, C lâmina, H mão, Z zoom, T texto, B pincel, E borracha, I conta-gotas…),
+       o cursor muda (html[data-bwf="c"] + classe .bwf-alvo na área de trabalho) e, com espacoMao, segurar ESPAÇO vira a mão (Photoshop).
+   BWFerr.atalhos({ "ctrl+z": fn, "shift+ctrl+z": fn, "delete": fn, ... }) → teclas com Ctrl/Shift/Alt (ignora quando se digita num campo).
+   BWFerr.menu(x, y, itens) → menu de opções (botão direito / segurar o dedo): [{rot, tecla, fn, perigo, off, sub:[...]}, "-"].
+   BWFerr.contexto(raiz, seletor, montar(el, ev) → itens) → abre o menu no botão direito e ao segurar o dedo ~0,5 s sem mexer.
+   BWFerr.ajuda(titulo, linhas) → tecla ? mostra a lista de atalhos.
+   Nada aqui usa rede nem a conta. */
+(function () {
+  "use strict";
+  if (window.BWFerr) return;
+  var digitando = function (e) { var t = e && e.target; if (!t) return false; var n = (t.tagName || "").toLowerCase();
+    return t.isContentEditable || n === "textarea" || n === "select" || (n === "input" && !/^(range|checkbox|radio|button|color|file)$/i.test(t.type || "")); };
+  // cursores desenhados (lâmina, conta-gotas, pincel) — o ponto quente fica na ponta
+  var svg = function (s, x, y, alt) { return "url(\"data:image/svg+xml," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">' + s + "</svg>") + "\") " + x + " " + y + ", " + alt; };
+  var CURSOR = {
+    c: svg('<path d="M3 21 L13 11 L17 15 L7 25Z" fill="#fff" stroke="#000" stroke-width="1.4"/><path d="M13 11 L20 4 L22 6 L15 13Z" fill="#B6FF3B" stroke="#000" stroke-width="1.4"/><path d="M3 21 L7 17" stroke="#000"/>', 3, 21, "crosshair"),
+    i: svg('<path d="M3 21 L4 17 L14 7 L17 10 L7 20Z" fill="#fff" stroke="#000" stroke-width="1.4"/><path d="M14 7 L17 4 Q19 2 21 4 Q22 6 20 7 L17 10Z" fill="#000"/>', 3, 21, "crosshair"),
+    b: svg('<circle cx="12" cy="12" r="9" fill="none" stroke="#fff" stroke-width="2"/><circle cx="12" cy="12" r="9" fill="none" stroke="#000" stroke-width="1"/><circle cx="12" cy="12" r="1.2" fill="#fff"/>', 12, 12, "crosshair"),
+    e: svg('<circle cx="12" cy="12" r="9" fill="rgba(255,90,90,.18)" stroke="#fff" stroke-width="2"/><circle cx="12" cy="12" r="9" fill="none" stroke="#c00" stroke-width="1"/>', 12, 12, "crosshair"),
+    v: "default", a: "default", h: "grab", hpress: "grabbing", z: "zoom-in", zalt: "zoom-out", t: "text", m: "crosshair", p: "crosshair", r: "ew-resize"
+  };
+  var css = document.createElement("style");
+  css.textContent =
+    ".bwf-barra{display:flex;gap:4px;flex-wrap:wrap;align-items:center}" +
+    ".bwf-bt{position:relative;width:40px;height:40px;border-radius:11px;border:1px solid rgba(245,241,234,.14);background:rgba(255,255,255,.04);color:#F5F1EA;font:800 16px Inter,sans-serif;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;padding:0;touch-action:manipulation}" +
+    ".bwf-bt:hover{border-color:rgba(182,255,59,.55)}" +
+    ".bwf-bt.on{background:#B6FF3B;border-color:#B6FF3B;color:#0a120a;box-shadow:0 0 14px rgba(182,255,59,.45)}" +
+    ".bwf-bt b{position:absolute;right:2px;bottom:1px;font:800 8.5px Inter,sans-serif;opacity:.75}" +
+    ".bwf-bt.ajuda{width:auto;padding:0 10px;font-size:12px}" +
+    ".bwf-nome{font:800 10.5px Inter,sans-serif;letter-spacing:.08em;color:#B9C0CC;margin-left:4px;white-space:nowrap}" +
+    "html[data-bwf] .bwf-alvo,html[data-bwf] .bwf-alvo *{cursor:var(--bwf-cursor)!important}" +
+    ".bwf-menu{position:fixed;z-index:9800;min-width:210px;max-width:min(300px,92vw);max-height:min(70vh,520px);overflow:auto;padding:6px;border-radius:14px;background:#1a1e27;border:1px solid rgba(245,241,234,.14);box-shadow:0 18px 50px rgba(0,0,0,.6);font:600 13px Inter,sans-serif;color:#F5F1EA}" +
+    ".bwf-menu button{display:flex;width:100%;align-items:center;gap:10px;min-height:36px;padding:0 10px;border:0;border-radius:9px;background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer}" +
+    ".bwf-menu button:hover,.bwf-menu button:focus{background:rgba(124,92,255,.28);outline:none}" +
+    ".bwf-menu button[disabled]{opacity:.35;cursor:default;background:transparent}" +
+    ".bwf-menu button.perigo{color:#ff9a9d}" +
+    ".bwf-menu button kbd{margin-left:auto;font:700 10.5px Inter,sans-serif;color:#8d95a3;background:none;border:0}" +
+    ".bwf-menu hr{border:0;border-top:1px solid rgba(245,241,234,.1);margin:4px 2px}" +
+    ".bwf-menu .tit{font:800 10px Inter,sans-serif;letter-spacing:.12em;color:#8d95a3;padding:6px 10px 2px}" +
+    ".bwf-ajuda{position:fixed;inset:0;z-index:9850;background:rgba(6,8,13,.86);display:flex;align-items:center;justify-content:center;padding:14px}" +
+    ".bwf-ajuda .jan{width:min(560px,100%);max-height:90vh;overflow:auto;border-radius:20px;background:#12151c;border:1px solid rgba(245,241,234,.12);padding:16px;color:#F5F1EA;font:500 13px/1.45 Inter,sans-serif}" +
+    ".bwf-ajuda h2{margin:0 0 10px;font:800 15px Inter,sans-serif;letter-spacing:.06em}" +
+    ".bwf-ajuda table{width:100%;border-collapse:collapse}.bwf-ajuda td{padding:5px 4px;border-bottom:1px solid rgba(245,241,234,.07)}" +
+    ".bwf-ajuda td:first-child{width:130px}.bwf-ajuda kbd{display:inline-block;min-width:20px;padding:2px 6px;border-radius:6px;background:#0B0E14;border:1px solid rgba(245,241,234,.2);font:800 11px Inter,sans-serif;text-align:center}" +
+    ".bwf-ajuda .sec td{font:800 10.5px Inter,sans-serif;letter-spacing:.12em;color:#B6FF3B;padding-top:12px}" +
+    "@media (max-width:700px){.bwf-bt{width:38px;height:38px}.bwf-nome{display:none}}";
+  (document.head || document.documentElement).appendChild(css);
+
+  /* ---------- barra de ferramentas ---------- */
+  var BARRA = null;
+  function cursorDe(id, alt, preso) { return (id === "h" && preso) ? CURSOR.hpress : (id === "z" && alt) ? CURSOR.zalt : CURSOR[id] || "default"; }
+  function aplicarCursor() { if (!BARRA) return; var id = BARRA.temp || BARRA.atual, h = document.documentElement;
+    h.setAttribute("data-bwf", id); h.style.setProperty("--bwf-cursor", cursorDe(id, BARRA.alt, BARRA.preso)); }
+  function barra(o) {
+    BARRA = { o: o, atual: o.atual || (o.ferramentas[0] || {}).id, temp: null, alt: false, preso: false };
+    var el = o.el; el.classList.add("bwf-barra"); el.setAttribute("role", "toolbar"); el.setAttribute("aria-label", "Ferramentas");
+    el.innerHTML = o.ferramentas.map(function (f) { return '<button type="button" class="bwf-bt" data-bwf-id="' + f.id + '" title="' + f.nome + " (" + f.tecla + ")" + (f.dica ? " — " + f.dica : "") + '" aria-label="' + f.nome + " (tecla " + f.tecla + ')">' + f.icone + "<b>" + f.tecla + "</b></button>"; }).join("") +
+      (o.semAjuda ? "" : '<button type="button" class="bwf-bt ajuda" data-bwf-ajuda="1" title="Atalhos do teclado (?)" aria-label="Atalhos do teclado">?</button>') + '<span class="bwf-nome" aria-live="polite"></span>';
+    el.addEventListener("click", function (e) { var b = e.target.closest("[data-bwf-id]"); if (b) trocar(b.getAttribute("data-bwf-id")); else if (e.target.closest("[data-bwf-ajuda]")) mostrarAjuda(); });
+    (o.alvos || []).forEach(function (a) { if (a) a.classList.add("bwf-alvo"); });
+    trocar(BARRA.atual, true);
+    return { atual: function () { return BARRA.temp || BARRA.atual; }, trocar: trocar, alvo: function (a) { a.classList.add("bwf-alvo"); } };
+  }
+  function trocar(id, silencio) {
+    if (!BARRA || !BARRA.o.ferramentas.some(function (f) { return f.id === id; })) return;
+    BARRA.atual = id; BARRA.temp = null;
+    [].forEach.call(BARRA.o.el.querySelectorAll("[data-bwf-id]"), function (b) { var on = b.getAttribute("data-bwf-id") === id; b.classList.toggle("on", on); b.setAttribute("aria-pressed", on); });
+    var f = BARRA.o.ferramentas.filter(function (x) { return x.id === id; })[0], n = BARRA.o.el.querySelector(".bwf-nome"); if (n && f) n.textContent = f.nome.toUpperCase() + (f.dica ? " · " + f.dica : "");
+    aplicarCursor(); if (BARRA.o.aoTrocar && !silencio) BARRA.o.aoTrocar(id); else if (BARRA.o.aoTrocar && silencio) BARRA.o.aoTrocar(id, true);
+  }
+  function teclaFerr(e) {
+    if (!BARRA || e.ctrlKey || e.metaKey || digitando(e) || abertoMenu || document.querySelector(".bwf-ajuda")) return false;
+    var k = (e.key || "").toLowerCase(), f = BARRA.o.ferramentas.filter(function (x) { return x.tecla.toLowerCase() === k && !e.shiftKey; })[0];
+    if (f) { trocar(f.id); return true; } return false;
+  }
+
+  /* ---------- atalhos ---------- */
+  var MAPAS = [];
+  function norma(e) { var p = []; if (e.ctrlKey || e.metaKey) p.push("ctrl"); if (e.shiftKey) p.push("shift"); if (e.altKey) p.push("alt");
+    var k = (e.key || "").toLowerCase(); if (k === " ") k = "espaco"; if (k === "backspace") k = "delete"; if (k === "del") k = "delete"; if (k === "+") k = "="; if (k === "?" ) k = "/"; p.push(k); return p.join("+"); }
+  function atalhos(mapa) { var m = {}; Object.keys(mapa).forEach(function (k) { k.split(",").forEach(function (x) { var ps = x.trim().toLowerCase().split("+"), tec = ps.pop(), mods = ["ctrl", "shift", "alt"].filter(function (z) { return ps.indexOf(z) >= 0; }); m[mods.concat([tec]).join("+")] = mapa[k]; }); }); MAPAS.push(m); return m; }
+  document.addEventListener("keydown", function (e) {
+    if (abertoMenu) { if (e.key === "Escape") { fecharMenu(); e.preventDefault(); e.stopImmediatePropagation(); } return; }
+    if (e.key === "Escape" && document.querySelector(".bwf-ajuda")) { document.querySelector(".bwf-ajuda").remove(); e.preventDefault(); e.stopImmediatePropagation(); return; }
+    if (BARRA && e.key === "Alt") { BARRA.alt = true; aplicarCursor(); }
+    if (BARRA && BARRA.o.espacoMao && e.key === " " && !digitando(e) && !BARRA.temp && BARRA.o.ferramentas.some(function (f) { return f.id === "h"; })) { e.preventDefault(); BARRA.temp = "h"; aplicarCursor(); return; }
+    if (BARRA && BARRA.o.espacoMao && e.key === " " && BARRA.temp) { e.preventDefault(); return; }
+    if (digitando(e) && !(e.ctrlKey || e.metaKey)) return;
+    var n = norma(e);
+    for (var i = MAPAS.length - 1; i >= 0; i--) { var fn = MAPAS[i][n]; if (fn && !(digitando(e) && !/^ctrl\+(s|m|e)$/.test(n))) { var r = fn(e); if (r !== false) { e.preventDefault(); return; } } }
+    if (n === "shift+/" || n === "/") { if (!digitando(e)) { mostrarAjuda(); e.preventDefault(); } return; }
+    if (teclaFerr(e)) e.preventDefault();
+  });
+  document.addEventListener("keyup", function (e) { if (!BARRA) return; if (e.key === "Alt") { BARRA.alt = false; aplicarCursor(); } if (e.key === " " && BARRA.temp === "h") { BARRA.temp = null; aplicarCursor(); } });
+  addEventListener("blur", function () { if (BARRA) { BARRA.alt = false; BARRA.temp = null; aplicarCursor(); } });
+  function preso(v) { if (BARRA) { BARRA.preso = v; aplicarCursor(); } }
+
+  /* ---------- menu de opções ---------- */
+  var abertoMenu = null;
+  function fecharMenu() { if (abertoMenu) { abertoMenu.remove(); abertoMenu = null; } }
+  function menu(x, y, itens, titulo, porToque) {
+    fecharMenu(); var m = document.createElement("div"); m.className = "bwf-menu"; m.setAttribute("role", "menu");
+    var acoes = [];
+    m.innerHTML = (titulo ? '<div class="tit">' + titulo + "</div>" : "") + itens.map(function (it) { if (it === "-") return "<hr>"; if (it.tit) return '<div class="tit">' + it.tit + "</div>"; acoes.push(it);
+      return '<button type="button" role="menuitem" data-i="' + (acoes.length - 1) + '"' + (it.off ? " disabled" : "") + (it.perigo ? ' class="perigo"' : "") + ">" + (it.icone ? '<span aria-hidden="true">' + it.icone + "</span>" : "") + "<span>" + it.rot + "</span>" + (it.sub ? "<kbd>▸</kbd>" : it.tecla ? "<kbd>" + it.tecla + "</kbd>" : "") + "</button>"; }).join("");
+    document.body.appendChild(m); abertoMenu = m; m._t0 = Date.now(); m._t = porToque ? Date.now() : 0;
+    var r = m.getBoundingClientRect(); m.style.left = Math.max(6, Math.min(x, innerWidth - r.width - 6)) + "px"; m.style.top = Math.max(6, Math.min(y, innerHeight - r.height - 6)) + "px";
+    m.addEventListener("click", function (e) { var b = e.target.closest("button[data-i]"); if (!b || b.disabled || Date.now() - m._t < 450) return;   /* o dedo que abriu o menu, ao sair, não escolhe nada */ var it = acoes[+b.getAttribute("data-i")];
+      if (it.sub) { var rb = b.getBoundingClientRect(); menu(rb.right - 8, rb.top, it.sub, it.rot); return; } fecharMenu(); it.fn && it.fn(); });
+    m.addEventListener("keydown", function (e) { var bs = [].slice.call(m.querySelectorAll("button:not([disabled])")), i = bs.indexOf(document.activeElement);
+      if (e.key === "ArrowDown") { (bs[i + 1] || bs[0]).focus(); e.preventDefault(); } else if (e.key === "ArrowUp") { (bs[i - 1] || bs[bs.length - 1]).focus(); e.preventDefault(); } });
+    var b0 = m.querySelector("button:not([disabled])"); if (b0) setTimeout(function () { try { b0.focus({ preventScroll: true }); } catch (e) {} }, 0);
+    return m;
+  }
+  document.addEventListener("pointerdown", function (e) { if (abertoMenu && !abertoMenu.contains(e.target)) fecharMenu(); }, true);
+  addEventListener("resize", fecharMenu); document.addEventListener("scroll", function (e) { if (abertoMenu && !abertoMenu.contains(e.target) && Date.now() - (abertoMenu._t || abertoMenu._t0) > 350) fecharMenu(); }, true);
+  // botão direito e "segurar o dedo" (sem mexer) abrem o menu do item
+  function contexto(raiz, seletor, montar) {
+    var seg = null;
+    raiz.addEventListener("contextmenu", function (e) { var el = e.target.closest(seletor); if (!el || !raiz.contains(el)) return; e.preventDefault(); var its = montar(el, e); if (its && (its.itens || its).length) menu(e.clientX, e.clientY, its.itens || its, its.titulo); });
+    raiz.addEventListener("pointerdown", function (e) { if (e.pointerType === "mouse") return; var el = e.target.closest(seletor); if (!el) return;
+      var x = e.clientX, y = e.clientY; seg = { x: x, y: y, t: setTimeout(function () { seg = null; var its = montar(el, e); if (its && (its.itens || its).length) { menu(x, y, its.itens || its, its.titulo, true); BWFerr._acabouSegurar = Date.now(); } }, 520) }; });
+    var parar = function (e) { if (seg && (!e || e.type !== "pointermove" || Math.hypot(e.clientX - seg.x, e.clientY - seg.y) > 10)) { clearTimeout(seg.t); seg = null; } };
+    raiz.addEventListener("pointermove", parar); raiz.addEventListener("pointerup", function () { parar(); }); raiz.addEventListener("pointercancel", function () { parar(); });
+    // o "clique" que vem depois de segurar não pode disparar a ação normal do item
+    raiz.addEventListener("click", function (e) { if (Date.now() - (BWFerr._acabouSegurar || 0) < 600) { e.stopPropagation(); e.preventDefault(); } }, true);
+  }
+
+  /* ---------- ajuda (tecla ?) ---------- */
+  var AJUDA = null;
+  function ajuda(titulo, linhas) { AJUDA = { titulo: titulo, linhas: linhas }; }
+  function mostrarAjuda() {
+    if (!AJUDA || document.querySelector(".bwf-ajuda")) return; fecharMenu();
+    var d = document.createElement("div"); d.className = "bwf-ajuda"; d.setAttribute("role", "dialog"); d.setAttribute("aria-label", "Atalhos do teclado");
+    var ferr = BARRA ? BARRA.o.ferramentas.map(function (f) { return [f.tecla, f.nome + (f.dica ? " — " + f.dica : "")]; }) : [];
+    var lin = (ferr.length ? [["#", "FERRAMENTAS"]].concat(ferr) : []).concat(AJUDA.linhas);
+    d.innerHTML = '<div class="jan"><h2>⌨ ' + AJUDA.titulo + '</h2><table>' + lin.map(function (l) { return l[0] === "#" ? '<tr class="sec"><td colspan="2">' + l[1] + "</td></tr>" :
+      "<tr><td>" + l[0].split(" / ").map(function (k) { return k.split("+").map(function (x) { return "<kbd>" + x + "</kbd>"; }).join("+"); }).join(" ou ") + "</td><td>" + l[1] + "</td></tr>"; }).join("") +
+      '</table><p style="margin:12px 0 0;color:#8d95a3;font-size:12px">No celular: toque nas ferramentas da barra; segure o dedo num item para abrir as opções.</p><div style="margin-top:12px;text-align:right"><button type="button" class="bwf-bt ajuda" data-fechar="1" style="width:auto">FECHAR</button></div></div>';
+    d.addEventListener("click", function (e) { if (e.target === d || e.target.closest("[data-fechar]")) d.remove(); });
+    document.body.appendChild(d);
+  }
+
+  /* ---------- TELA FIXA (regra do dono, 20/11): a mídia que está sendo editada fica SEMPRE à vista; os painéis e menus é que rolam ----------
+     PC: o editor ocupa a altura da janela (nada da página rola) — painéis dos lados e a linha do tempo rolam por dentro.
+     Celular: a prévia fica presa no topo da página inteira (não só da grade) e tudo o mais passa por baixo dela. */
+  function telaFixa(o) {
+    var wrap = o.wrap, grade = o.grade, palco = o.palco, mq = window.matchMedia("(max-width:1100px)"), irmaos = [].slice.call(wrap.children), ig = irmaos.indexOf(grade);
+    grade.classList.add("bwf-grade"); palco.classList.add("bwf-palco"); (o.rola || []).forEach(function (e) { if (e) e.classList.add("bwf-rola"); }); (o.some || []).forEach(function (e) { if (e) e.classList.add("bwf-some"); }); if (o.aviso) o.aviso.setAttribute("data-bwf-aviso", "1");
+    function aplicar() {
+      var cel = mq.matches; wrap.classList.toggle("bwf-fixo", !cel); wrap.classList.toggle("bwf-cel", cel);
+      irmaos.forEach(function (e, i) { e.style.order = cel ? (i < ig ? 0 : i === ig ? "" : 3) : ""; });
+      [].forEach.call(grade.children, function (e) { e.style.order = cel ? (e === palco ? 1 : 2) : ""; });
+      if (cel) { wrap.style.height = ""; }
+      else { var topo = wrap.getBoundingClientRect().top + (window.scrollY || 0); wrap.style.height = Math.max(520, innerHeight - topo - 6) + "px"; }
+      if (o.aoMedir) o.aoMedir(cel);
+      if (cel) document.documentElement.style.scrollPaddingTop = (palco.offsetHeight + 12) + "px"; else document.documentElement.style.scrollPaddingTop = "";
+    }
+    addEventListener("resize", aplicar); if (mq.addEventListener) mq.addEventListener("change", aplicar); aplicar(); setTimeout(aplicar, 400);
+    return { aplicar: aplicar, altura: function () { return palco.clientHeight; }, fixo: function () { return wrap.classList.contains("bwf-fixo"); } };
+  }
+  var css2 = document.createElement("style");
+  css2.textContent =
+    ".bwf-fixo{display:flex!important;flex-direction:column;overflow:hidden;box-sizing:border-box;padding-bottom:6px!important}" +
+    ".bwf-fixo>*{flex:none}" +
+    ".bwf-fixo>.bwf-grade{flex:1 1 0;min-height:0;align-items:stretch!important}" +
+    ".bwf-fixo>.bwf-grade>*{min-height:0!important;max-height:100%!important;overflow:auto;overscroll-behavior:contain}" +
+    ".bwf-fixo>.bwf-grade>.bwf-palco{overflow:hidden;justify-content:center}" +
+    ".bwf-fixo>.bwf-rola{flex:0 1 auto;max-height:36vh;min-height:96px;overflow:auto;overscroll-behavior:contain}" +
+    ".bwf-fixo>.bwf-some{display:none!important}" +
+    ".bwf-fixo>:first-child h1{display:none}" +
+    ".bwf-fixo>[data-bwf-aviso]{position:fixed!important;left:50%;bottom:14px;transform:translateX(-50%);z-index:60;max-width:min(760px,70vw);margin:0!important;box-shadow:0 10px 30px rgba(0,0,0,.6);background-color:#12251b!important}" +
+    ".bwf-fixo>[data-bwf-aviso].erro{background-color:#2a1416!important}" +
+    "@media (max-width:1700px){.bwf-fixo .bwf-nome{display:none}}" +
+    ".bwf-fixo ::-webkit-scrollbar{width:9px;height:9px}.bwf-fixo ::-webkit-scrollbar-thumb{background:rgba(182,255,59,.35);border-radius:6px}.bwf-fixo ::-webkit-scrollbar-track{background:rgba(255,255,255,.04)}" +
+    ".bwf-cel{display:flex!important;flex-direction:column}" +
+    ".bwf-cel>.bwf-grade{display:contents!important}" +
+    ".bwf-cel .bwf-palco{position:sticky!important;top:0;z-index:6}";
+  (document.head || document.documentElement).appendChild(css2);
+
+  window.BWFerr = { barra: barra, trocar: trocar, atalhos: atalhos, menu: menu, fecharMenu: fecharMenu, contexto: contexto, ajuda: ajuda, telaFixa: telaFixa, mostrarAjuda: mostrarAjuda, preso: preso, digitando: digitando,
+    atual: function () { return BARRA ? (BARRA.temp || BARRA.atual) : "v"; }, alt: function () { return !!(BARRA && BARRA.alt); },
+    ICONES: { v: "➤", c: "✂", h: "✋", z: "🔍", t: "T", b: "🖌", e: "⌫", i: "💧", m: "⬚", r: "⟳", p: "✒" } };
+})();

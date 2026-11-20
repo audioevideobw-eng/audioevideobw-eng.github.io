@@ -73,12 +73,15 @@
       if (c.layout === "janela" && i === 0) { cobrir(ctx, m, pn, c.mov, q); ctx.fillStyle = "rgba(0,0,0,.45)"; ctx.fillRect(0, 0, W, H); }
       else cobrir(ctx, m, pn, i % 2 && c.mov === "esq" ? "dir" : c.mov, q);
       ctx.restore();
-      if (c.layout === "janela" && i === 1 && P.contorno) { ctx.save(); ctx.globalAlpha = e; ctx.strokeStyle = P.contorno; ctx.lineWidth = Math.max(3, W * 0.006); poli(ctx, pn.pts); ctx.stroke(); ctx.restore(); }
+      if (c.layout === "janela" && i === 1 && corLinha(P, 1)) { ctx.save(); ctx.globalAlpha = e; ctx.strokeStyle = corLinha(P, 1); ctx.lineWidth = Math.max(3, W * 0.006); poli(ctx, pn.pts); ctx.stroke(); ctx.restore(); }
     });
   }
 
   /* ---------- TRANSIÇÕES: p de 0 a 1; A = cena que sai, B = cena que entra ---------- */
   // "carregar": a forma leva a imagem nova junto (translada/gira com ela) — é o que faz parecer que a filmagem está DENTRO da peça
+  // 20/11: cor e transparência das linhas das transições (P.contorno = "#rrggbb" ou "" sem linha; P.contornoOp = 0–100)
+  function corLinha(P, k) { var c = P.contorno; if (!c) return null; var op = (P.contornoOp == null ? 100 : +P.contornoOp) / 100 * (k == null ? 1 : k); if (op <= 0.01) return null;
+    var m = /^#?([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(c); if (!m) return c; return "rgba(" + parseInt(m[1], 16) + "," + parseInt(m[2], 16) + "," + parseInt(m[3], 16) + "," + op.toFixed(3) + ")"; }
   function peca(ctx, pts, tf, B, borda, W) {
     ctx.save(); tf(ctx); poli(ctx, pts); ctx.save(); ctx.clip(); B(); ctx.restore();
     if (borda) { ctx.globalAlpha = 0.75; ctx.strokeStyle = borda; ctx.lineWidth = Math.max(1, W * 0.0022); ctx.stroke(); }
@@ -196,11 +199,11 @@
   function desenhar(ctx, P, t, W, H, fonte) {
     ctx.save(); ctx.fillStyle = P.fundo || "#000"; ctx.fillRect(0, 0, W, H);
     if (!P.cenas.length) { ctx.restore(); return; }
-    var at = ativas(P, t), atual = at[at.length - 1], c = P.cenas[atual.i];
+    t = Math.max(0, +t || 0); var at = ativas(P, t), atual = at[at.length - 1]; if (!atual) { ctx.restore(); return; } var c = P.cenas[atual.i];
     var B = function () { cena(ctx, P, c, atual.lt, W, H, fonte); };
     if (at.length > 1 && atual.p !== null) {
       var ant = at[0], ca = P.cenas[ant.i], A = function () { cena(ctx, P, ca, ant.lt, W, H, fonte); };
-      var tr = TRANS[c.trans] || TRANS.corte; tr.f(ctx, cl(atual.p), W, H, A, B, sorte(hash(c.id || atual.i)), P.contorno || null);
+      var tr = TRANS[c.trans] || TRANS.corte; tr.f(ctx, cl(atual.p), W, H, A, B, sorte(hash(c.id || atual.i)), corLinha(P, 1 - Math.pow(cl(atual.p), 5)));   /* a linha some no fim da transição */
     } else B();
     ctx.restore();
   }
@@ -220,5 +223,5 @@
     P.cenas = cenas; return P;
   }
 
-  window.BWTelas = { LAYOUTS: LAYOUTS, MOVS: MOVS, TRANS: TRANS, PACOTES: PACOTES, desenhar: desenhar, inicios: inicios, duracao: duracao, ativas: ativas, videosEm: videosEm, montar: montar, paineis: paineis };
+  window.BWTelas = { LAYOUTS: LAYOUTS, MOVS: MOVS, TRANS: TRANS, PACOTES: PACOTES, desenhar: desenhar, inicios: inicios, duracao: duracao, ativas: ativas, videosEm: videosEm, montar: montar, paineis: paineis, corLinha: corLinha };
 })();

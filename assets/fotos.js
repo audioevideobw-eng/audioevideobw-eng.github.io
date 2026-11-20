@@ -917,6 +917,9 @@
   function dentro(p, b) { return b && p.x >= b.x && p.x <= b.x + b.w && p.y >= b.y && p.y <= b.y + b.h; }
   cv.addEventListener("pointerdown", function (ev) {
     var f = FOTOS[ATUAL]; if (!f || !LAY) return;
+    if (ev.button === 2) return;
+    if (window.BWFerr && BWFerr.atual() === "i") { contaGotas(ev); return; }
+    if (window.BWFerr && BWFerr.atual() === "z" && ABA === "foto") { f.zoom = Math.round(lim((f.zoom || 100) * (ev.altKey ? 1 / 1.25 : 1.25), 100, 400)); sincSlider("zoom", f.zoom); agendar(true); gravarHist(); return; }
     cv.setPointerCapture(ev.pointerId); ptrs[ev.pointerId] = { x: ev.clientX, y: ev.clientY };
     var p = noCanvas(ev), ids = Object.keys(ptrs);
     clearTimeout(tSegura); segura0 = { x: ev.clientX, y: ev.clientY };
@@ -1613,8 +1616,56 @@
   $("edSalvar").onclick = function () { if (ABA !== "salvar") irAba("salvar"); else exportar("uma"); };
   $("abrirEd").onclick = abrirEditor;
   $("abrirMarca").onclick = abrirMarca;
+  /* ---------- FERRAMENTAS E ATALHOS NO ESTILO PHOTOSHOP (20/11) ---------- */
+  // CONTA-GOTAS (I): pega a cor do ponto tocado; vai para o texto/forma escolhido e para a área de transferência
+  function contaGotas(ev) { var p = noCanvas(ev), d; try { d = cv.getContext("2d").getImageData(Math.round(p.x), Math.round(p.y), 1, 1).data; } catch (e) { return toast("Não consegui ler a cor aqui."); }
+    var hex = "#" + [d[0], d[1], d[2]].map(function (v) { return ("0" + v.toString(16)).slice(-2); }).join("").toUpperCase(), onde = "";
+    var t = TXT ? G.textos.filter(function (x) { return x.id === TXT; })[0] : null, a = adsSel();
+    if (ABA === "texto" && t) { ACOES.tcor(hex); onde = " — aplicada no texto"; } else if (a && a.forma) { a.cor = hex; onde = " — aplicada na forma"; }
+    try { if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(hex).catch(function () {}); } catch (e) {}
+    COR_PEGA = hex; painel(); agendar(); toast("💧 Cor " + hex + onde + " (copiada)"); }
+  var COR_PEGA = "";
+  function ligarFerramentasFotos() {
+    if (!window.BWFerr || !$("edFerr")) return; var I = BWFerr.ICONES, aberto = function () { return !$("ed").hidden && !!fotoAtual(); };
+    var pintar = function (modo) { irAba("camadas"); if (!CAM) CAM = "foto"; if (mascAlvo()) PINTA = { alvo: CAM, modo: modo, r: (PINTA && PINTA.r) || 6 }; painel(); agendar(); };
+    BWFerr.barra({ el: $("edFerr"), alvos: [$("palco")], atual: "v", espacoMao: false, semAjuda: false, ferramentas: [
+      { id: "v", tecla: "V", nome: "Mover", icone: I.v, dica: "arrasta textos, adesivos, imagens e a logo (aba CAMADAS)" },
+      { id: "c", tecla: "C", nome: "Corte", icone: "⛶", dica: "formato, enquadramento, girar e endireitar (aba CORTE)" },
+      { id: "h", tecla: "H", nome: "Mão", icone: I.h, dica: "arrasta a foto dentro do corte" },
+      { id: "z", tecla: "Z", nome: "Zoom", icone: I.z, dica: "clique aproxima a foto no corte, Alt + clique afasta" },
+      { id: "t", tecla: "T", nome: "Texto", icone: I.t, dica: "abre os textos (aba TEXTO)" },
+      { id: "b", tecla: "B", nome: "Pincel", icone: I.b, dica: "pinta a máscara: ESCONDE o que você pintar" },
+      { id: "e", tecla: "E", nome: "Borracha", icone: I.e, dica: "pinta a máscara: TRAZ DE VOLTA" },
+      { id: "i", tecla: "I", nome: "Conta-gotas", icone: I.i, dica: "clique na foto para pegar a cor" }],
+      aoTrocar: function (id, silencio) { if (silencio || !aberto()) return;
+        if (id === "v") irAba("camadas"); else if (id === "c" || id === "h" || id === "z") irAba("foto"); else if (id === "t") irAba("texto"); else if (id === "b") pintar("apaga"); else if (id === "e") pintar("volta");
+        if (id !== "b" && id !== "e" && PINTA) { PINTA = null; painel(); agendar(); } } });
+    var so = function (fn) { return function () { if (!aberto()) return false; return fn(); }; };
+    var empurra = function (dx, dy) { return so(function () { var a = adsSel(); if (!a) return false; a.cx = Math.max(0, Math.min(1, a.cx + dx)); a.cy = Math.max(0, Math.min(1, a.cy + dy)); agendar(); gravarHist(); }); };
+    BWFerr.atalhos({
+      "ctrl+z": so(desfazer), "ctrl+shift+z, ctrl+y": so(refazer),
+      "delete": so(function () { if (ADS && adsSel()) { ACOES.aDel(); agendar(); toast("Camada apagada (Ctrl+Z desfaz)"); return; } if (ABA === "texto" && TXT) { ACOES.apagaTxt(); agendar(); toast("Texto apagado (Ctrl+Z desfaz)"); return; } return false; }),
+      "ctrl+j, ctrl+d": so(function () { if (!adsSel()) return false; ACOES.aDup(); agendar(); toast("Camada duplicada"); }),
+      "ctrl+]": so(function () { if (!adsSel()) return false; ACOES.aFrente(); agendar(); }),
+      "ctrl+s": so(function () { irAba("salvar"); }), "ctrl+o": function () { if ($("ed").hidden) { $("arquivos").click(); return; } ACOES.maisFotos(); },
+      "[": so(function () { if (!PINTA) return false; PINTA.r = Math.max(1, PINTA.r - 1); painel(); toast("Pincel " + PINTA.r); }), "]": so(function () { if (!PINTA) return false; PINTA.r = Math.min(40, PINTA.r + 1); painel(); toast("Pincel " + PINTA.r); }),
+      "x": so(function () { if (!PINTA) return false; PINTA.modo = PINTA.modo === "apaga" ? "volta" : "apaga"; BWFerr.trocar(PINTA.modo === "apaga" ? "b" : "e"); }),
+      "arrowleft": empurra(-0.005, 0), "arrowright": empurra(0.005, 0), "arrowup": empurra(0, -0.005), "arrowdown": empurra(0, 0.005),
+      "shift+arrowleft": empurra(-0.03, 0), "shift+arrowright": empurra(0.03, 0), "shift+arrowup": empurra(0, -0.03), "shift+arrowdown": empurra(0, 0.03),
+      "\\": so(function () { $("edComparar").click(); })
+    });
+    BWFerr.ajuda("ATALHOS DO EDITOR DE FOTOS", [["#", "EDITAR"], ["Ctrl+Z", "desfazer"], ["Ctrl+Shift+Z / Ctrl+Y", "refazer"], ["Delete", "apagar a camada ou o texto escolhido"], ["Ctrl+J", "duplicar a camada"], ["Ctrl+]", "trazer a camada para a frente"], ["← ↑ ↓ →", "mover a camada (com Shift, mais)"],
+      ["#", "MÁSCARA (PINCEL / BORRACHA)"], ["[ / ]", "pincel menor / maior"], ["X", "trocar entre esconder e trazer de volta"], ["#", "ARQUIVO E VISTA"], ["\\", "antes e depois"], ["Ctrl+O", "abrir mais fotos"], ["Ctrl+S", "salvar"], ["Esc", "fechar"], ["Botão direito", "opções da foto ou da camada"], ["?", "esta lista"]]);
+    BWFerr.contexto($("palco"), "canvas", function () { if (!aberto()) return []; var a = adsSel(), its = [];
+      if (a) its.push({ tit: "CAMADA" }, { icone: "⧉", rot: "Duplicar camada", tecla: "Ctrl+J", fn: function () { ACOES.aDup(); agendar(); } }, { icone: "⬆", rot: "Trazer para a frente", tecla: "Ctrl+]", fn: function () { ACOES.aFrente(); agendar(); } }, { icone: "⇋", rot: "Espelhar", fn: function () { ACOES.aEsp(); agendar(); } }, { icone: "🗑", rot: "Apagar camada", tecla: "Delete", perigo: true, fn: function () { ACOES.aDel(); agendar(); } }, "-");
+      its.push({ tit: "FOTO" }, { icone: "⇄", rot: "Substituir, duplicar ou excluir a foto…", fn: function () { opcoesFoto(ATUAL); } }, { icone: "◐", rot: "Antes e depois", tecla: "\\", fn: function () { $("edComparar").click(); } },
+        { icone: "↶", rot: "Desfazer", tecla: "Ctrl+Z", fn: desfazer }, { icone: "↷", rot: "Refazer", tecla: "Ctrl+Shift+Z", fn: refazer }, { icone: "⬇", rot: "Salvar…", tecla: "Ctrl+S", fn: function () { irAba("salvar"); } });
+      return its; });
+  }
+  ligarFerramentasFotos();
   document.addEventListener("keydown", function (ev) {
     if ($("ed").hidden) return; var tag = (ev.target.tagName || "").toLowerCase(); if (tag === "input" || tag === "textarea") return;
+    if (window.BWFerr && $("edFerr")) { if (ev.key === "Escape" && !document.querySelector(".bwf-menu,.bwf-ajuda")) { if (!$("mk").hidden) fecharMarca(); else fecharEditor(false); } return; }
     if ((ev.ctrlKey || ev.metaKey) && ev.key.toLowerCase() === "z") { ev.preventDefault(); if (ev.shiftKey) refazer(); else desfazer(); }
     else if ((ev.ctrlKey || ev.metaKey) && ev.key.toLowerCase() === "y") { ev.preventDefault(); refazer(); }
     else if (ev.key === "Escape") { if (!$("mk").hidden) fecharMarca(); else fecharEditor(false); }

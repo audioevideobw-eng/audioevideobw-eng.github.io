@@ -4,7 +4,7 @@
 mídias voltam ao recarregar, GERAR VÍDEO de verdade (MP4 conferido com ffprobe: vídeo H.264 + som, duração, e a COR de cada cena no quadro
 certo — prova de que a mídia certa está na tela certa) e nada sai do aparelho. 1280 e 390 px.
 Uso (na raiz): python3 docs/testes/teste_telas.py   (arquivos de teste em /tmp/teste_telas — o script cria se faltar)"""
-import base64, http.server, os, socketserver, subprocess, threading, tempfile
+import base64, re, http.server, os, socketserver, subprocess, threading, tempfile
 from playwright.sync_api import sync_playwright
 RAIZ = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")); PORTA = 8861; TMP = "/tmp/teste_telas"
 if not os.path.exists(f"{TMP}/musica.wav"):
@@ -165,6 +165,56 @@ with sync_playwright() as p:
         ok(pg.evaluate(f"{P}.cenas[2].trans") == "persiana", "tocar num efeito aplica na cena escolhida")
         ok(pg.locator(".tl-fantasma").count() == 0 and not pg.evaluate("document.documentElement.classList.contains('tl-arrastando')"), "nada fica preso na tela depois de soltar")
         ok(pg.evaluate(SEM) <= 0, "sem estouro com a faixa de efeitos")
+        # FERRAMENTAS, ATALHOS E MENUS (20/11)
+        ok(pg.locator("#tlFerr .bwf-bt").count() == 4, "barra de ferramentas: V, C, H + ? (atalhos)")
+        def ferr(k):
+            if cel: pg.click(f'#tlFerr [data-bwf-id="{k}"]')
+            else: pg.evaluate("document.activeElement && document.activeElement.blur()"); pg.keyboard.press(k)
+            pg.wait_for_timeout(120)
+        ferr("c"); n0 = pg.evaluate(f"{P}.cenas.length"); d0 = pg.evaluate(f"{P}.cenas[0].dur")
+        cc = pg.locator("#tlFila .tl-cena >> nth=0"); cc.evaluate("e => e.scrollIntoView({block:'center', inline:'center'})"); pg.wait_for_timeout(150); bc = cc.locator("canvas").bounding_box()
+        if cel: pg.touchscreen.tap(bc["x"] + bc["width"] * 0.5, bc["y"] + bc["height"] / 2)
+        else: pg.mouse.click(bc["x"] + bc["width"] * 0.5, bc["y"] + bc["height"] / 2)
+        pg.wait_for_timeout(250)
+        ok(pg.evaluate(f"{P}.cenas.length") == n0 + 1 and abs(pg.evaluate(f"{P}.cenas[0].dur + {P}.cenas[1].dur") - d0) < 0.06, f"LÂMINA (C): clicar na cena corta em duas ({n0} → {pg.evaluate(f'{P}.cenas.length')})")
+        ferr("v")
+        if not cel:
+            pg.locator("#tlFila .tl-cena >> nth=1").click(); pg.wait_for_timeout(150); pg.evaluate("document.activeElement && document.activeElement.blur()")
+            pg.keyboard.press("Delete"); pg.wait_for_timeout(200); ok(pg.evaluate(f"{P}.cenas.length") == n0, "Delete apaga a cena escolhida")
+            pg.keyboard.press("Control+z"); pg.wait_for_timeout(300); ok(pg.evaluate(f"{P}.cenas.length") == n0 + 1, "Ctrl+Z traz de volta")
+            pg.keyboard.press("Control+d"); pg.wait_for_timeout(200); ok(pg.evaluate(f"{P}.cenas.length") == n0 + 2, "Ctrl+D duplica a cena")
+        # menu da cena
+        cc = pg.locator("#tlFila .tl-cena >> nth=1"); cc.evaluate("e => e.scrollIntoView({block:'center', inline:'center'})"); pg.wait_for_timeout(150); bc = cc.bounding_box(); mx, my = bc["x"] + bc["width"] / 2, bc["y"] + bc["height"] / 2
+        if cel:
+            cdp.send("Input.dispatchTouchEvent", {"type": "touchStart", "touchPoints": [{"x": mx, "y": my}]}); pg.wait_for_timeout(450); cdp.send("Input.dispatchTouchEvent", {"type": "touchEnd", "touchPoints": []})
+        else: pg.mouse.click(mx, my, button="right")
+        pg.wait_for_timeout(300)
+        ok(pg.locator(".bwf-menu").count() == 1 and "Duplicar" in pg.inner_text(".bwf-menu") and "Divisão da tela" in pg.inner_text(".bwf-menu"), "menu da cena (" + ("segurar e soltar" if cel else "botão direito") + "): duplicar, cortar, estilo, transição, divisão, movimento, apagar")
+        pg.wait_for_timeout(500); pg.locator(".bwf-menu button", has_text=re.compile(r"^🎥")).click(); pg.wait_for_timeout(150)
+        mv0 = pg.evaluate(f"{P}.cenas[1].mov"); alvo = "sobe" if mv0 != "sobe" else "zoom"
+        pg.locator(".bwf-menu button", has_text=pg.evaluate(f"BWTelas.MOVS['{alvo}']")).first.click(); pg.wait_for_timeout(200)
+        ok(pg.evaluate(f"{P}.cenas[1].mov") == alvo, f"Movimento escolhido pelo menu ({mv0} → {alvo})")
+        aba("mid"); mm = pg.locator("#tlMidias .tl-mid >> nth=0"); mm.evaluate("e => e.scrollIntoView({block:'center'})"); pg.wait_for_timeout(150); bm = mm.bounding_box(); mx, my = bm["x"] + bm["width"] / 2, bm["y"] + bm["height"] / 3
+        if cel:
+            cdp.send("Input.dispatchTouchEvent", {"type": "touchStart", "touchPoints": [{"x": mx, "y": my}]}); pg.wait_for_timeout(450); cdp.send("Input.dispatchTouchEvent", {"type": "touchEnd", "touchPoints": []})
+        else: pg.mouse.click(mx, my, button="right")
+        pg.wait_for_timeout(300)
+        ok(pg.locator(".bwf-menu").count() == 1 and "Substituir o arquivo" in pg.inner_text(".bwf-menu"), "menu da mídia: nova cena, usar na cena, substituir o arquivo, tirar")
+        pg.keyboard.press("Escape"); pg.wait_for_timeout(150); ok(pg.locator(".bwf-menu").count() == 0, "Esc fecha o menu")
+        # LINHAS DAS TRANSIÇÕES: cor, SEM LINHA e transparência (20/11) + TELA FIXA
+        ok(pg.locator("#tlLinhas [data-linha]").count() == 8, "LINHAS: sem linha + 7 cores prontas (+ cor livre e transparência)")
+        pg.locator('#tlLinhas [data-linha="#FFFFFF"]').scroll_into_view_if_needed(); pg.click('#tlLinhas [data-linha="#FFFFFF"]'); pg.wait_for_timeout(150)
+        ok(pg.evaluate(f"{P}.contorno") == "#FFFFFF" and pg.evaluate(f"BWTelas.corLinha({P}, 1)") == "rgba(255,255,255,1.000)", "escolher BRANCO muda a cor da linha")
+        pg.evaluate("(()=>{const e=document.getElementById('tlLinhaOp');e.value=60;e.dispatchEvent(new Event('input',{bubbles:true}))})()"); pg.wait_for_timeout(150)
+        ok(pg.evaluate(f"BWTelas.corLinha({P}, 1)") == "rgba(255,255,255,0.400)", "transparência 60% → linha com 40% de força")
+        pg.click('#tlLinhas [data-linha=""]'); pg.wait_for_timeout(150)
+        ok(pg.evaluate(f"{P}.contorno") == "" and pg.evaluate(f"BWTelas.corLinha({P}, 1)") is None, "SEM LINHA: a transição sai limpa")
+        pg.click('#tlLinhas [data-linha="#B6FF3B"]'); pg.wait_for_timeout(100)
+        if not cel:
+            ok(pg.evaluate("document.documentElement.scrollHeight - innerHeight") <= 420 and pg.evaluate("(()=>{const r=document.getElementById('tlCv').getBoundingClientRect();return r.top>=0&&r.bottom<=innerHeight})()"), "TELA FIXA (PC): a prévia fica sempre na tela; painéis e sequência rolam por dentro")
+        else:
+            pg.evaluate("scrollTo(0, document.documentElement.scrollHeight)"); pg.wait_for_timeout(350)
+            ok(pg.evaluate("(()=>{const r=document.getElementById('tlCv').getBoundingClientRect();return r.top>=-2&&r.bottom<=innerHeight})()"), "TELA FIXA (celular): no fim da página a prévia continua presa no topo")
         # TAMANHO PERSONALIZADO / 4K (20/11)
         pg.select_option("#tlFmt", "livre"); pg.wait_for_timeout(150)
         ok(pg.is_visible("#tlLargura"), "Personalizado mostra largura × altura")

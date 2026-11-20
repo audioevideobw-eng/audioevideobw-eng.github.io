@@ -35,7 +35,7 @@
   }
   function miniatura(fonte, w, h) { var c = document.createElement("canvas"), k = Math.min(1, 360 / Math.max(w, h)); c.width = Math.max(1, Math.round(w * k)); c.height = Math.max(1, Math.round(h * k)); c.getContext("2d").drawImage(fonte, 0, 0, c.width, c.height); return c.toDataURL("image/jpeg", 0.8); }
   async function importar(arquivos) {
-    var n = 0, ruins = [];
+    var n = 0, ruins = [], novos = [];
     for (var i = 0; i < arquivos.length; i++) {
       var f = arquivos[i], tipo = /^video\//.test(f.type) || /\.(mp4|mov|m4v|webm)$/i.test(f.name) ? "video" : /^image\//.test(f.type) ? "foto" : null;
       if (!tipo) { ruins.push(f.name); continue; }
@@ -52,11 +52,12 @@
         }
       } catch (e) { ruins.push(f.name + (tipo === "video" ? " (este navegador não abre esse formato de vídeo)" : "")); continue; }
       await op("midias", "readwrite", function (s) { return s.put(reg); });
-      MID[reg.id] = await abrirMidia(reg); ORDEM.push(reg.id); n++;
+      MID[reg.id] = await abrirMidia(reg); ORDEM.push(reg.id); novos.push(reg.id); n++;
     }
     P.ordem = ORDEM.slice(); mudou(); desenharMidias();
     if (n) aviso("＋ " + n + " arquivo(s). Toque em ✨ MONTAR SOZINHO para montar o vídeo com eles.");
     if (ruins.length) aviso("Não abriu: " + ruins.join(", ") + ". No iPhone, vídeo em HEVC abre melhor no Safari; no Windows, use MP4.", true);
+    return novos;
   }
   function desenharMidias() {
     $("tlMidias").innerHTML = ORDEM.map(function (id, i) { var m = MID[id]; if (!m) return "";
@@ -86,8 +87,9 @@
   }
 
   /* ---------- prévia ---------- */
+  var FIXA = null;
   function medir() {
-    var cv = $("tlCv"), cel = innerWidth <= 1100, larg = cv.parentNode.clientWidth - 4, alt = cel ? innerHeight * 0.36 : Math.max(300, innerHeight - 360);
+    var cv = $("tlCv"), cel = innerWidth <= 1100, pal = cv.parentNode, larg = pal.clientWidth - 4, alt = cel ? innerHeight * 0.36 : FIXA && FIXA.fixo() ? Math.max(160, pal.clientHeight - 62) : Math.max(300, innerHeight - 360);
     var k = Math.min(larg / P.w, alt / P.h); PREVIA.esc = Math.min(0.5, k * (window.devicePixelRatio || 1));
     cv.width = Math.round(P.w * PREVIA.esc); cv.height = Math.round(P.h * PREVIA.esc); cv.style.width = Math.round(P.w * k) + "px"; cv.style.height = Math.round(P.h * k) + "px";
     document.documentElement.style.scrollPaddingTop = cel ? Math.round(P.h * k + 70) + "px" : "";
@@ -102,7 +104,7 @@
     TOCANDO = true; $("tlTocar").textContent = "❚❚ PAUSAR"; if (TEMPO >= d - 0.05) TEMPO = 0;
     var t0 = performance.now() - TEMPO * 1000;
     if (SOM && SOM.el) { SOM.el.currentTime = (+P.musica.inicio || 0) + TEMPO; SOM.el.volume = +P.musica.volume; SOM.el.play().catch(function () {}); }
-    (function passo(agora) { if (!TOCANDO) return; var t = (agora - t0) / 1000; if (t >= d) { t0 = agora; t = 0; if (SOM && SOM.el) SOM.el.currentTime = +P.musica.inicio || 0; }
+    (function passo(agora) { if (!TOCANDO) return; var t = Math.max(0, (agora - t0) / 1000); if (t >= d) { t0 = agora; t = 0; if (SOM && SOM.el) SOM.el.currentTime = +P.musica.inicio || 0; }
       TEMPO = t; videosTocando(t); desenharAgora(); relogio(); requestAnimationFrame(passo); })(performance.now());
   }
 
@@ -132,8 +134,17 @@
   function desenharVisual() {
     $("tlVisual").innerHTML = '<label class="um">Cor do fundo<input type="color" id="tlFundo" value="' + esc(P.fundo || "#000000") + '"></label>' +
       '<label>Espaço entre telas<input type="range" id="tlGap" min="0" max="40" step="1" value="' + (+P.gap) + '"><output>' + (+P.gap) + "</output></label>" +
-      '<label class="um">Contorno neon<input type="checkbox" id="tlContornoLiga"' + (P.contorno ? " checked" : "") + '></label>' +
-      (P.contorno ? '<label class="um">Cor do contorno<input type="color" id="tlContorno" value="' + esc(P.contorno) + '"></label>' : "");
+      '<p class="tl-dica">A cor e a transparência das LINHAS das transições ficam na faixa EFEITOS DE TELA, embaixo da sequência.</p>';
+    desenharLinhas();
+  }
+  // LINHAS DAS TRANSIÇÕES: cor pronta, cor livre, SEM LINHA e transparência (pedido do dono, 20/11)
+  var CORES_LINHA = [["#B6FF3B", "Verde neon"], ["#FFFFFF", "Branco"], ["#000000", "Preto"], ["#FFD166", "Dourado"], ["#FF4D8D", "Rosa"], ["#3FC1FF", "Azul"], ["#FF7A1A", "Laranja"]];
+  function desenharLinhas() {
+    var b = $("tlLinhas"); if (!b) return; var c = (P.contorno || "").toUpperCase(), op = P.contornoOp == null ? 100 : +P.contornoOp;
+    b.innerHTML = '<span class="titulo">LINHAS</span><button type="button" class="tl-cor sem' + (!c ? " on" : "") + '" data-linha="" title="Sem linha" aria-label="Sem linha">∅</button>' +
+      CORES_LINHA.map(function (k) { return '<button type="button" class="tl-cor' + (c === k[0] ? " on" : "") + '" data-linha="' + k[0] + '" style="background:' + k[0] + '" title="' + k[1] + '" aria-label="Linha ' + k[1] + '"></button>'; }).join("") +
+      '<label class="tl-cor livre" title="Outra cor"><input type="color" id="tlLinhaCor" value="' + esc(P.contorno || "#B6FF3B") + '" aria-label="Outra cor de linha">🎨</label>' +
+      '<label class="tl-linha-op">Transparência<input type="range" id="tlLinhaOp" min="0" max="100" step="5" value="' + (100 - op) + '"' + (!c ? " disabled" : "") + ' aria-label="Transparência da linha"><output>' + (100 - op) + '%</output></label>';
   }
 
   /* ---------- cena selecionada ---------- */
@@ -166,7 +177,7 @@
       if (!A_IMG) { A_IMG = quadro("#151a24", "#05070a"); B_IMG = quadro("#3BFF6A", "#0d8a33"); }
       var p = ((agora / 1000) % 1.8) / 1.3; p = Math.min(1, p);
       TODAS.forEach(function (m) { if (!m.cv.isConnected) return; var x = m.cv.getContext("2d"), W = m.cv.width, H = m.cv.height;
-        var Pm = { fundo: "#000", contorno: P.contorno ? "#B6FF3B" : null, cenas: [{ id: "a", layout: "cheia", midias: ["a"], dur: 1, mov: "nenhum" }, { id: "b" + m.k, layout: "cheia", midias: ["b"], dur: 1, mov: "nenhum", trans: m.k, transDur: 1 }] };
+        var Pm = { fundo: "#000", contorno: P.contorno || "", contornoOp: P.contornoOp, cenas: [{ id: "a", layout: "cheia", midias: ["a"], dur: 1, mov: "nenhum" }, { id: "b" + m.k, layout: "cheia", midias: ["b"], dur: 1, mov: "nenhum", trans: m.k, transDur: 1 }] };
         T.desenhar(x, Pm, 1 + p * 0.999, W, H, function (id) { return id === "a" ? { el: A_IMG, w: 90, h: 140 } : { el: B_IMG, w: 90, h: 140 }; }); });
     }
     requestAnimationFrame(animarMinis);
@@ -181,7 +192,7 @@
     if (!P.cenas.length) h = '<div class="tl-vazio tl-soltaqui">Arraste fotos e vídeos para cá — ou toque em ✨ MONTAR SOZINHO.</div>';
     $("tlFila").innerHTML = h;
     [].forEach.call($("tlFila").querySelectorAll("canvas[data-cmini]"), function (cv) { var i = +cv.getAttribute("data-cmini"), c = P.cenas[i];
-      var Pm = { fundo: P.fundo, gap: P.gap, contorno: P.contorno, cenas: [Object.assign({}, c, { trans: "corte" })] }; T.desenhar(cv.getContext("2d"), Pm, c.dur * 0.6, cv.width, cv.height, fonteMini); });
+      var Pm = { fundo: P.fundo, gap: P.gap, contorno: P.contorno, contornoOp: P.contornoOp, cenas: [Object.assign({}, c, { trans: "corte" })] }; T.desenhar(cv.getContext("2d"), Pm, c.dur * 0.6, cv.width, cv.height, fonteMini); });
   }
 
 
@@ -271,8 +282,11 @@
   // enquanto o dedo/mouse fica perto da borda, a página (e a sequência) rolam sozinhas
   function rolarBorda() {
     if (!ARR || !ARR.ativo) return; var x = ARR.x, y = ARR.y, mexeu = false, fila = $("tlFila"), fr = fila.getBoundingClientRect();
-    if (y > fr.top - 20 && y < fr.bottom + 20) { var sl = fila.scrollLeft; if (x < fr.left + 40) fila.scrollLeft -= 10; else if (x > fr.right - 40) fila.scrollLeft += 10; mexeu = sl !== fila.scrollLeft; }
+    var naBorda = y > fr.top - 20 && y < fr.bottom + 20 && (x < fr.left + 36 || x > fr.right - 36);   /* só rola de lado se ficar um instante na borda (passar por ela não conta) */
+    if (!naBorda) ARR.bordaT = 0; else if (!ARR.bordaT) ARR.bordaT = performance.now();
+    if (naBorda && performance.now() - ARR.bordaT > 350) { var sl = fila.scrollLeft; if (x < fr.left + 36) fila.scrollLeft -= 10; else fila.scrollLeft += 10; mexeu = sl !== fila.scrollLeft; }
     var sy = scrollY; if (y < 44) scrollBy(0, -14); else if (y > innerHeight - 44) scrollBy(0, 14); if (sy !== scrollY) mexeu = true;
+    var cx2 = document.querySelector(".bwf-fixo > .tl-seq"); if (cx2) { var cr = cx2.getBoundingClientRect(), st = cx2.scrollTop; if (y > cr.top && y < cr.top + 30) cx2.scrollTop -= 10; else if (y < cr.bottom && y > cr.bottom - 30) cx2.scrollTop += 10; if (st !== cx2.scrollTop) mexeu = true; }
     if (mexeu) { var a = alvoEm(x, y); ARR.alvo = a; marcarAlvo(a); }
     ARR.rolar = requestAnimationFrame(rolarBorda);
   }
@@ -280,26 +294,93 @@
   function terminar(ok) {
     if (!ARR) return; var a = ARR; clearTimeout(a.timer);
     if (a.rolar) cancelAnimationFrame(a.rolar);
-    if (a.ativo) { a.g.remove(); a.origem.classList.remove("tl-pego"); document.documentElement.classList.remove("tl-arrastando"); marcarAlvo(null); a.solto = Date.now(); if (ok) soltar(a.alvo); }
+    var parado = a.ativo && Math.hypot(a.x - a.x0, a.y - a.y0) < 10;
+    if (a.ativo) { a.g.remove(); a.origem.classList.remove("tl-pego"); document.documentElement.classList.remove("tl-arrastando"); marcarAlvo(null); a.solto = Date.now(); if (ok && !parado) soltar(a.alvo); }
+    if (ok && parado && a.toque) { var its = menuDe(a.origem); if (its) { ULTIMO_ARR = Date.now(); ARR = null; if (window.BWFerr) BWFerr.menu(a.x, a.y, its.itens, its.titulo, true); return; } }
     ULTIMO_ARR = a.ativo ? Date.now() : 0; ARR = null;
   }
   var ULTIMO_ARR = 0;
+  /* ---------- FERRAMENTAS, ATALHOS E MENUS (estilo Adobe, 20/11) ---------- */
+  var MAO = null, MSEL = "", COPIA_C = null;
+  // LÂMINA (C) na cena: divide a cena em duas no ponto tocado (o take continua de onde parou)
+  function cortarCena(i, fr) { var c = P.cenas[i]; if (!c) return; fr = Math.max(0.15, Math.min(0.85, fr)); var d1 = Math.round(c.dur * fr * 20) / 20, d2 = Math.round((c.dur - d1) * 20) / 20; if (d1 < 0.3 || d2 < 0.3) return aviso("Cena curta demais para cortar.", true);
+    var n = JSON.parse(JSON.stringify(c)); n.id = uid(); n.dur = d2; n.trans = "corte"; n.desde = (c.desde || []).map(function (x) { return +(x || 0) + d1; }); c.dur = d1; P.cenas.splice(i + 1, 0, n); SEL = i + 1; mudou({ painel: true }); aviso("✂ Cena " + (i + 1) + " cortada em duas (" + fmt(d1) + " s + " + fmt(d2) + " s)."); }
+  function apagarCena(i, perguntar) { if (!P.cenas[i]) return; if (perguntar && !confirm("Apagar esta cena?")) return; P.cenas.splice(i, 1); if (i === 0 && P.cenas[0]) P.cenas[0].trans = "corte"; SEL = Math.min(i, P.cenas.length - 1); mudou({ painel: true }); aviso("🗑 Cena apagada (Ctrl+Z desfaz)."); }
+  function duplicarCena(i) { var c = P.cenas[i]; if (!c) return; var cp = JSON.parse(JSON.stringify(c)); cp.id = uid(); P.cenas.splice(i + 1, 0, cp); SEL = i + 1; mudou({ painel: true }); aviso("⧉ Cena duplicada."); }
+  function moverCena(i, d) { var j = i + d; if (!P.cenas[i] || j < 0 || j >= P.cenas.length) return; P.cenas.splice(j, 0, P.cenas.splice(i, 1)[0]); if (P.cenas[0].trans !== "corte") { P.cenas[0].trans = "corte"; } SEL = j; mudou({ painel: true }); }
+  function substituirMidia(idVelho) { var inp = $("tlArqTroca"); inp.onchange = async function () { var f = (inp.files || [])[0]; inp.value = ""; if (!f) return; var ids = await importar([f]); if (!ids || !ids.length) return;
+      var novo = ids[0], n = 0; P.cenas.forEach(function (c) { c.midias = (c.midias || []).map(function (x) { if (x === idVelho) { n++; return novo; } return x; }); });
+      ORDEM = ORDEM.filter(function (x) { return x !== novo; }); ORDEM.splice(ORDEM.indexOf(idVelho) + 1, 0, novo); P.ordem = ORDEM.slice(); desenharMidias(); mudou({ painel: true }); aviso("⇄ Arquivo trocado em " + n + " tela(s). O antigo continua na lista (✕ tira)."); };
+    inp.click(); }
+  // opções de cada coisa (botão direito no PC, segurar e soltar sem mexer no celular)
+  function menuDe(el) {
+    if (!el) return null; var v = (el.getAttribute("data-arr") || "").split(":"), tipo = v[0], k = v.slice(1).join(":");
+    if (tipo === "c") { var i = +k, c = P.cenas[i]; if (!c) return null; if (SEL !== i) { SEL = i; desenharPainel(); desenharFila(); }
+      return { titulo: "CENA " + (i + 1), itens: [
+        { icone: "⧉", rot: "Duplicar", tecla: "Ctrl+D", fn: function () { duplicarCena(i); } },
+        { icone: "✂", rot: "Cortar na metade", tecla: "C", fn: function () { cortarCena(i, 0.5); } },
+        { icone: "⎘", rot: "Copiar o estilo (divisão, transição, movimento)", tecla: "Ctrl+C", fn: function () { COPIA_C = { layout: c.layout, trans: c.trans, transDur: c.transDur, mov: c.mov }; aviso("Estilo copiado. Ctrl+V cola na cena escolhida."); } },
+        { icone: "📋", rot: "Colar o estilo", tecla: "Ctrl+V", off: !COPIA_C, fn: function () { colarEstilo(i); } },
+        { icone: "◧", rot: "Transição", off: i === 0, sub: Object.keys(T.TRANS).map(function (t) { return { rot: T.TRANS[t].nome + (c.trans === t ? "  ✓" : ""), fn: function () { aplicarEfx("t", t, i); } }; }) },
+        { icone: "▦", rot: "Divisão da tela", sub: Object.keys(T.LAYOUTS).map(function (l) { return { rot: T.LAYOUTS[l].nome + (c.layout === l ? "  ✓" : ""), fn: function () { aplicarEfx("l", l, i); } }; }) },
+        { icone: "🎥", rot: "Movimento", sub: Object.keys(T.MOVS).map(function (m) { return { rot: T.MOVS[m] + (c.mov === m ? "  ✓" : ""), fn: function () { c.mov = m; mudou({ painel: true }); } }; }) },
+        { icone: "◀", rot: "Mover para antes", off: i === 0, fn: function () { moverCena(i, -1); } }, { icone: "▶", rot: "Mover para depois", off: i >= P.cenas.length - 1, fn: function () { moverCena(i, 1); } },
+        "-", { icone: "🗑", rot: "Apagar cena", tecla: "Delete", perigo: true, fn: function () { apagarCena(i, false); } }] }; }
+    if (tipo === "m") { var m = MID[k]; if (!m) return null; MSEL = k;
+      return { titulo: (m.nome || "MÍDIA").slice(0, 28).toUpperCase(), itens: [
+        { icone: "＋", rot: "Nova cena com ela (no fim)", fn: function () { novaCenaCom(k, P.cenas.length); } },
+        { icone: "⇄", rot: "Usar na cena escolhida", off: !P.cenas[SEL], fn: function () { midiaNaCena(k, SEL, 0.5, 0.5); } },
+        { icone: "⟳", rot: "Substituir o arquivo…", fn: function () { substituirMidia(k); } },
+        "-", { icone: "🗑", rot: "Tirar do projeto", perigo: true, fn: function () { tirarMidia(k); } }] }; }
+    if (tipo === "t" || tipo === "l") { var nome = tipo === "t" ? T.TRANS[k].nome : T.LAYOUTS[k].nome;
+      return { titulo: nome.toUpperCase(), itens: [{ icone: "✓", rot: "Aplicar na cena escolhida", off: !P.cenas[SEL], fn: function () { aplicarEfx(tipo, k, SEL); } },
+        { icone: "✱", rot: "Aplicar em todas as cenas", fn: function () { P.cenas.forEach(function (c, j) { if (tipo === "t") { if (j) c.trans = k; } else aplicarEfx("l", k, j); }); mudou({ painel: true }); aviso("“" + nome + "” em todas as cenas."); } }] }; }
+    return null;
+  }
+  function colarEstilo(i) { var c = P.cenas[i]; if (!c || !COPIA_C) return; c.layout = COPIA_C.layout; c.mov = COPIA_C.mov; if (i) { c.trans = COPIA_C.trans; c.transDur = COPIA_C.transDur; } aplicarEfx("l", c.layout, i); aviso("Estilo colado na cena " + (i + 1) + "."); }
+  function ligarFerramentas() {
+    if (!window.BWFerr) return; var I = BWFerr.ICONES;
+    BWFerr.barra({ el: $("tlFerr"), alvos: [$("tlFila"), $("tlEfx"), $("tlMidias")], atual: "v", ferramentas: [
+      { id: "v", tecla: "V", nome: "Seleção", icone: I.v, dica: "escolhe e arrasta mídias, cenas e efeitos" },
+      { id: "c", tecla: "C", nome: "Lâmina", icone: I.c, dica: "clique numa cena para cortá-la em duas ali" },
+      { id: "h", tecla: "H", nome: "Mão", icone: I.h, dica: "arrasta a sequência e a faixa de efeitos" }] });
+    BWFerr.atalhos({
+      "espaco, k": function () { tocar(); }, "delete": function () { if (MSEL && document.querySelector('.tl-mid.tl-msel')) { tirarMidia(MSEL); return; } if (SEL < 0 || !P.cenas[SEL]) return false; apagarCena(SEL, false); },
+      "ctrl+d": function () { if (!P.cenas[SEL]) return false; duplicarCena(SEL); }, "ctrl+k": function () { var c = P.cenas[SEL]; if (!c) return false; var ini = T.inicios(P)[SEL] || 0; cortarCena(SEL, (TEMPO - ini) / c.dur); },
+      "ctrl+c": function () { var c = P.cenas[SEL]; if (!c) return false; COPIA_C = { layout: c.layout, trans: c.trans, transDur: c.transDur, mov: c.mov }; aviso("Estilo da cena copiado."); }, "ctrl+v": function () { if (!COPIA_C || !P.cenas[SEL]) return false; colarEstilo(SEL); },
+      "ctrl+z": function () { $("tlDesfazer").click(); }, "ctrl+shift+z, ctrl+y": function () { $("tlRefazer").click(); },
+      "arrowleft": function () { if (SEL > 0) selecionar(SEL - 1); }, "arrowright": function () { if (SEL < P.cenas.length - 1) selecionar(SEL + 1); },
+      "alt+arrowleft": function () { moverCena(SEL, -1); }, "alt+arrowright": function () { moverCena(SEL, 1); },
+      "home": function () { ver(0); }, "ctrl+s": function () { salvarJa(); aviso("✓ Salvo neste aparelho."); }, "ctrl+m, ctrl+e": function () { $("tlExportar").click(); }, "ctrl+i": function () { $("tlArq").click(); },
+      "escape": function () { MSEL = ""; [].forEach.call(document.querySelectorAll(".tl-msel"), function (x) { x.classList.remove("tl-msel"); }); return false; }
+    });
+    BWFerr.ajuda("ATALHOS DAS TELAS EM MOVIMENTO", [["#", "TOCAR E ESCOLHER"], ["Espaço / K", "tocar / pausar"], ["← / →", "cena anterior / próxima"], ["Alt+← / Alt+→", "mover a cena"], ["Home", "voltar ao começo"],
+      ["#", "EDITAR"], ["Ctrl+K", "cortar a cena na agulha"], ["Ctrl+D", "duplicar a cena"], ["Delete", "apagar a cena escolhida (ou a mídia marcada)"], ["Ctrl+C / Ctrl+V", "copiar / colar o estilo da cena"], ["Ctrl+Z", "desfazer"], ["Ctrl+Shift+Z / Ctrl+Y", "refazer"],
+      ["Botão direito", "opções da cena, da mídia ou do efeito (celular: segure e solte sem arrastar)"], ["#", "ARQUIVO"], ["Ctrl+I", "pôr fotos e vídeos"], ["Ctrl+S", "salvar"], ["Ctrl+M", "gerar o vídeo"], ["?", "esta lista"]]);
+    // botão direito (no celular o "segurar e soltar" é tratado pelo arrastar)
+    document.addEventListener("contextmenu", function (e) { var el = e.target.closest("[data-arr]"); if (!el) return; e.preventDefault(); var its = menuDe(el); if (its) BWFerr.menu(e.clientX, e.clientY, its.itens, its.titulo); });
+    // marcar a mídia (para o Delete) com um clique
+    $("tlMidias").addEventListener("click", function (e) { var m = e.target.closest(".tl-mid[data-arr]"); if (!m || e.target.closest("button")) return; [].forEach.call(document.querySelectorAll(".tl-msel"), function (x) { x.classList.remove("tl-msel"); }); m.classList.add("tl-msel"); MSEL = m.getAttribute("data-arr").slice(2); });
+  }
   function ligarArrastar() {
     document.addEventListener("pointerdown", function (e) {
-      if (e.button > 0) return; var o = e.target.closest("[data-arr]"); if (!o || e.target.closest("button.x,.mv button")) return;
+      if (e.button > 0) return; var F = window.BWFerr ? BWFerr.atual() : "v";
+      if (F === "h" && e.target.closest("#tlFila,#tlEfx")) { var lst = e.target.closest("#tlFila,#tlEfx"); MAO = { el: lst, x0: e.clientX, sl: lst.scrollLeft }; BWFerr.preso(true); e.preventDefault(); return; }
+      if (F === "c") { var cn = e.target.closest(".tl-cena[data-cena]"); if (cn) { var cvb = cn.querySelector("canvas").getBoundingClientRect(); cortarCena(+cn.getAttribute("data-cena"), (e.clientX - cvb.left) / cvb.width); e.preventDefault(); return; } }
+      var o = e.target.closest("[data-arr]"); if (!o || e.target.closest("button.x,.mv button")) return;
       var v = o.getAttribute("data-arr").split(":"), toque = e.pointerType !== "mouse";
       ARR = { tipo: v[0], k: v.slice(1).join(":"), origem: o, x: e.clientX, y: e.clientY, x0: e.clientX, y0: e.clientY, toque: toque, ativo: false, id: e.pointerId };
       if (toque) ARR.timer = setTimeout(function () { if (ARR && !ARR.ativo) comecar(); }, 220);
       else e.preventDefault();
     });
-    document.addEventListener("pointermove", function (e) { if (!ARR || e.pointerId !== ARR.id) return; ARR.x = e.clientX; ARR.y = e.clientY;
+    document.addEventListener("pointermove", function (e) { if (MAO) { MAO.el.scrollLeft = MAO.sl - (e.clientX - MAO.x0); return; } if (!ARR || e.pointerId !== ARR.id) return; ARR.x = e.clientX; ARR.y = e.clientY;
       var d = Math.hypot(e.clientX - ARR.x0, e.clientY - ARR.y0);
       if (!ARR.ativo) { if (ARR.toque) { if (d > 10) { clearTimeout(ARR.timer); ARR = null; } return; } if (d > 5) comecar(); else return; }
       mover(e.clientX, e.clientY); });
-    document.addEventListener("pointerup", function (e) { if (ARR && e.pointerId === ARR.id) terminar(true); });
+    document.addEventListener("pointerup", function (e) { if (MAO) { MAO = null; BWFerr.preso(false); return; } if (ARR && e.pointerId === ARR.id) terminar(true); });
     document.addEventListener("pointercancel", function (e) { if (ARR && e.pointerId === ARR.id) { if (ARR.ativo) terminar(false); else { clearTimeout(ARR.timer); ARR = null; } } });
     document.addEventListener("touchmove", function (e) { if (ARR && ARR.ativo) e.preventDefault(); }, { passive: false });
-    document.addEventListener("contextmenu", function (e) { if (ARR || e.target.closest("[data-arr]")) e.preventDefault(); });
+    document.addEventListener("contextmenu", function (e) { if (ARR) e.preventDefault(); });
     document.addEventListener("click", function (e) { if (Date.now() - ULTIMO_ARR < 350) { e.stopPropagation(); e.preventDefault(); } }, true);
     document.addEventListener("keydown", function (e) { if (e.key === "Escape" && ARR) terminar(false); });
     // tocar num efeito = aplicar na cena escolhida
@@ -395,7 +476,8 @@
     for (var i = 0; i < regs.length; i++) if (regs[i].tipo !== "musica") MID[regs[i].id] = await abrirMidia(regs[i]);
     var ult = null; try { ult = localStorage.getItem("ui_telas_ultimo"); } catch (e) {}
     var r = ult ? await op("projetos", "readonly", function (s) { return s.get(ult); }).catch(function () { return null; }) : null;
-    desenharEfx(); ligarArrastar();
+    desenharEfx(); ligarArrastar(); ligarFerramentas();
+    if (window.BWFerr) FIXA = BWFerr.telaFixa({ wrap: document.querySelector(".wrap"), grade: $("tlGrade"), palco: document.querySelector(".tl-palco"), rola: [document.querySelector(".tl-seq")], some: [document.querySelector(".wrap > .tl-nota")], aviso: $("tlAviso"), aoMedir: function () { if (P) { medir(); if (!TOCANDO) ver(TEMPO); } } });
     if (r && r.projeto) await abrirProjeto(r); else { P = novoProjeto("9:16"); ORDEM = Object.keys(MID); P.ordem = ORDEM.slice(); HIST = [JSON.stringify(P)]; desenharTudo(); }
     ORDEM = ORDEM.concat(Object.keys(MID).filter(function (id) { return ORDEM.indexOf(id) < 0; }));
     desenharMidias(); botoesHist(); if (window.BWDobras) BWDobras.aplicar(document); requestAnimationFrame(animarMinis);
@@ -426,7 +508,10 @@
       if (BATIDA) aviso("♫ Batida encontrada: " + Math.round(60 / BATIDA) + " BPM. ✨ MONTAR SOZINHO corta as cenas nela."); });
     $("tlVisual").addEventListener("input", function (e) { var el = e.target;
       if (el.id === "tlFundo") P.fundo = el.value; if (el.id === "tlGap") { P.gap = Number(el.value); el.nextElementSibling.textContent = el.value; }
-      if (el.id === "tlContornoLiga") { P.contorno = el.checked ? "#B6FF3B" : ""; desenharVisual(); } if (el.id === "tlContorno") P.contorno = el.value; mudou(); });
+      mudou(); });
+    $("tlLinhas").addEventListener("click", function (e) { var b = e.target.closest("[data-linha]"); if (!b) return; P.contorno = b.getAttribute("data-linha"); desenharLinhas(); mudou(); aviso(P.contorno ? "Linhas das transições nesta cor." : "Transições SEM linha."); });
+    $("tlLinhas").addEventListener("input", function (e) { var el = e.target; if (el.id === "tlLinhaCor") { P.contorno = el.value; } if (el.id === "tlLinhaOp") { P.contornoOp = 100 - Number(el.value); el.nextElementSibling.textContent = el.value + "%"; } mudou(); });
+    $("tlLinhas").addEventListener("change", function (e) { if (e.target.id === "tlLinhaCor") desenharLinhas(); });
     $("tlProjetos").addEventListener("click", async function (e) { var b = e.target.closest("button"); if (!b) return;
       if (b.hasAttribute("data-pnovo")) { salvarJa(); var w0 = P.w, h0 = P.h; P = novoProjeto(P.formato); if (P.formato === "livre") { P.w = w0; P.h = h0; } P.ordem = ORDEM.slice(); SEL = -1; TEMPO = 0; HIST = [JSON.stringify(P)]; FUT = []; trocou(); }
       if (b.hasAttribute("data-pabrir")) { var r2 = await op("projetos", "readonly", function (s) { return s.get(b.getAttribute("data-pabrir")); }); if (r2) abrirProjeto(r2); }
@@ -472,7 +557,7 @@
     $("tlCompart").onclick = async function () { if (!EXP.arquivo) return; try { if (navigator.canShare && navigator.canShare({ files: [EXP.arquivo] })) await navigator.share({ files: [EXP.arquivo], title: P.nome }); else $("tlBaixar").click(); } catch (e) {} };
     $("tlAbasCel").addEventListener("click", function (e) { var b = e.target.closest("[data-aba]"); if (b) abaCel(b.getAttribute("data-aba")); });
     addEventListener("resize", function () { medir(); if (!TOCANDO) ver(TEMPO); });
-    addEventListener("keydown", function (e) { if (e.key === "Escape") { $("tlFolha").hidden = true; return; } if (/INPUT|TEXTAREA|SELECT/.test((document.activeElement || {}).tagName || "")) return; if (e.key === " ") { e.preventDefault(); tocar(); } });
+    addEventListener("keydown", function (e) { if (e.key === "Escape") { $("tlFolha").hidden = true; return; } if (/INPUT|TEXTAREA|SELECT/.test((document.activeElement || {}).tagName || "")) return; if (e.key === " " && !window.BWFerr) { e.preventDefault(); tocar(); } });
     window.BWTelasEditor = { projeto: function () { return P; }, midias: function () { return MID; }, ordem: function () { return ORDEM; }, ver: ver, tempo: function () { return TEMPO; }, batida: function () { return BATIDA; } }; // testes
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", iniciar); else iniciar();

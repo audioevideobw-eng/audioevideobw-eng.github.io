@@ -383,6 +383,19 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
      rolagem) e então touchmove com preventDefault (listener passive:false); rolagem na borda num laço de requestAnimationFrame (dedo PARADO
      na borda não gera pointermove); alvo por elementFromPoint com o fantasma em pointer-events:none; clique logo depois do soltar é engolido.
      Teste: mouse do Playwright e toque pelo CDP (Input.dispatchTouchEvent). Tamanho livre de vídeo: o nível do H.264 sobe com a área do quadro.
+112. TELA FIXA (regra do dono, 20/11): em toda tela de edição a mídia editada fica SEMPRE à vista e os painéis/menus é que rolam —
+     BWFerr.telaFixa (PC: editor na altura da janela, cada painel com rolagem própria; celular: prévia sticky como filha direta do contêiner
+     alto — sticky dentro de uma grade solta quando a grade acaba). Editor novo = chamar telaFixa e medir a prévia pela altura do palco.
+113. Ferramentas/atalhos comuns (assets/bw-ferramentas.js): tecla sozinha troca de ferramenta, nunca quando se digita num campo; atalho com
+     Ctrl não rouba o Ctrl+Z do campo de texto; mensagem de aviso que troca a classe inteira (el.className = …) apaga classes postas por
+     outro módulo → marcar com atributo data-*. Menu aberto por TOQUE ignora o clique dos primeiros 450 ms (o dedo que abriu não escolhe);
+     Esc que fecha menu/ajuda usa stopImmediatePropagation (senão fechava também o editor).
+114. Desfazer com histórico que espera (debounce): o desfazer grava ANTES o passo pendente (Telas em 20/11, Motion de novo no mesmo dia —
+     toda cópia desse padrão precisa do mesmo conserto). Laço de requestAnimationFrame: o 1º carimbo pode vir MENOR que performance.now() →
+     tempo negativo; o motor aceita t < 0 sem quebrar.
+115. Efeito de cor em canvas que precisa valer no iPhone: modos de mistura (saturation, color, soft-light, overlay, multiply) numa camada
+     fora da tela + destination-in com a própria mídia; desfoque por reduzir/ampliar. Transição entre clipes = o que sai fica no último
+     quadro e o que entra é desenhado por cima com recorte/posição/opacidade; teste confere o PIXEL no meio da transição.
 
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
@@ -1262,7 +1275,27 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   e Personalizado (240–4096 px) no Telas e no Estúdio de motion (itens acompanham); GERAR VÍDEO oferece Rápida/Alta/Tamanho real e marca o
   que o aparelho não aguenta. reels-celular.js v5: nível do H.264 escolhido pelo tamanho (4.0 não passava de ~2 MP; 1450×2000 sai em 5.0).
   teste_telas.py (+18: arrastes por mouse e por toque, MP4 1450×2000 conferido no ffprobe) e teste_motion (+4) 0 falhas. sw v144. PENTE FINO 111.
+- 20/11/2026 04:10 · Claude (dono: "ferramentas como na Adobe — C vira a lâmina, V a seleção… Delete apaga, clicar abre opções de duplicar,
+  substituir; pesquise a Adobe e o CapCut: transições, efeitos" + "escolher a cor da linha das transições ou transparência" + "REGRA: em toda
+  tela de edição a mídia fica FIXA e as ferramentas rolam"): novo assets/bw-ferramentas.js (comum; vigia: sem rede/conta) com BARRA DE
+  FERRAMENTAS de uma tecla (cursor muda), ATALHOS, MENU DE OPÇÕES (botão direito / segurar o dedo), lista de atalhos (?) e TELA FIXA.
+  EDITOR DE VÍDEO: V seleção (arrasta o clipe na prévia), C lâmina (linha verde mostra o corte; Shift = todas as camadas), H mão, Z zoom,
+  T texto no ponto tocado; Espaço/K/L/J, ←/→ quadro, Delete, Shift+Delete (fecha o espaço), Ctrl+K, Ctrl+C/V, Ctrl+Shift+D, Ctrl+D
+  (dissolver), Ctrl+Z/Y (o editor não tinha desfazer), =/−/\, Ctrl+S/M/I; menu do clipe e da mídia (cortar, duplicar, SUBSTITUIR MÍDIA,
+  velocidade, congelar, transição, efeito, camada, apagar). Novo no vídeo: 11 TRANSIÇÕES entre clipes (o clipe que sai fica no último quadro),
+  12 EFEITOS por modos de mistura do canvas (valem no iPhone), VELOCIDADE 0,25–3×, ❄ CONGELAR QUADRO, 4K e tamanho Personalizado.
+  ESTÚDIO DE MOTION: V/C/H/Z/T, setas movem o item, Ctrl+D/K/C/V, Ctrl+]/[, Delete sem pergunta, menu do item. TELAS: V/C/H, Delete,
+  Ctrl+D/K, copiar/colar estilo, menu da cena/mídia/efeito (no celular: segurar e soltar sem arrastar), SUBSTITUIR O ARQUIVO; LINHAS das
+  transições (7 cores, cor livre, ∅ sem linha, transparência; a linha some no fim da transição). FOTOS (só no PC; no celular ficam as abas):
+  V/C/H/Z/T, B pincel e E borracha da máscara, [ ] tamanho, X troca, I conta-gotas, Ctrl+J, Delete, menu na foto.
+  TELA FIXA: no PC o editor ocupa a altura da janela (painéis, sequência e linha do tempo rolam por dentro; Telas com sequência e efeitos lado
+  a lado); no celular a prévia fica presa no topo da PÁGINA inteira (antes soltava ao chegar na linha do tempo). Bugs achados: desfazer do
+  Motion perdia o último passo (espera de 350 ms); Telas tocando podia dar erro com tempo negativo no 1º quadro; menu aberto por toque
+  escolhia o 1º item ao soltar o dedo; Esc do menu fechava também o editor de fotos. Testes: teste_video (+23), teste_telas (+17),
+  teste_motion (+9), teste_fotos (+16) 0 falhas; teste-app 0; vigia ✅. App BW 1.8 publicado. Manual 49 → 50 p. sw v145. PENTE FINO 112–115.
+  NÃO testado: iPhone/Android reais, vídeos de câmera (MP4/HEVC), exportação em 4K de verdade no editor de vídeo (gravação em tempo real).
 ## Pendências (dono)
+- [ ] (20/11) FERRAMENTAS/ATALHOS e TELA FIXA: dono testar no PC (V, C, H, Z, T, Delete, botão direito) e no celular (segurar o dedo; prévia presa no topo) nos 4 editores; dizer se quer a tela fixa também no BW Reels Pro/Criador (já têm prévia presa) com o mesmo jeito.
 - [ ] (20/11) TELAS: dono testar o arrastar no PC e no celular e gerar um vídeo 1450×2000 para o telão.
 - [ ] (20/11) TELAS EM MOVIMENTO: dono abrir no ar com fotos e takes REAIS do celular + uma música, MONTAR SOZINHO e GERAR VÍDEO (no PC e no celular); dizer se os vídeos do iPhone abriram e quanto tempo levou.
 - [ ] (20/11) ESTÚDIO DE MOTION: dono abrir no ar (Marketing → Estúdio de motion), montar algo, testar ✨ CRIAR EFEITO logado e GERAR NESTE APARELHO no celular; no PC, atualizar o BW para 1.6 e testar GERAR NO APP BW com fundo transparente.

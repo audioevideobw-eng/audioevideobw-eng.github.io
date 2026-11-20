@@ -51,7 +51,8 @@
     desenharTimeline();
   }
   function botoesHist() { $("moDesfazer").disabled = HIST.length < 2; $("moRefazer").disabled = !FUT.length; }
-  function desfazer() { if (HIST.length < 2) return; FUT.push(HIST.pop()); P = JSON.parse(HIST[HIST.length - 1]); depoisDeTrocar(); }
+  function desfazer() { clearTimeout(HIST_T); var s0 = JSON.stringify(P); if (HIST[HIST.length - 1] !== s0) { HIST.push(s0); FUT = []; }   /* grava antes o passo que ainda estava esperando */
+    if (HIST.length < 2) return; FUT.push(HIST.pop()); P = JSON.parse(HIST[HIST.length - 1]); depoisDeTrocar(); }
   function refazer() { if (!FUT.length) return; var s = FUT.pop(); HIST.push(s); P = JSON.parse(s); depoisDeTrocar(); }
   function depoisDeTrocar() { if (SEL && !item(SEL)) SEL = null; KSEL = null; remontar(); desenharTudo(); clearTimeout(SALVAR_T); SALVAR_T = setTimeout(salvarJa, 500); botoesHist(); }
 
@@ -65,8 +66,9 @@
   }
 
   /* ---------- palco ---------- */
+  var FIXA = null;
   function medir() {
-    var cel = innerWidth <= 1100, larg = $("moTela").parentNode.clientWidth - 4, alt = cel ? innerHeight * 0.36 : Math.max(300, innerHeight - 420); // no PC a linha do tempo fica à vista
+    var cel = innerWidth <= 1100, pal = $("moTela").parentNode, larg = pal.clientWidth - 4, alt = cel ? innerHeight * 0.36 : FIXA && FIXA.fixo() ? Math.max(160, pal.clientHeight - 62) : Math.max(300, innerHeight - 420); // no PC a linha do tempo fica à vista
     SC = Math.max(0.05, Math.min(larg / P.w, alt / P.h));
     $("moTela").style.width = Math.round(P.w * SC) + "px"; $("moTela").style.height = Math.round(P.h * SC) + "px";
     $("moCena").style.transform = "scale(" + SC + ")"; $("moCena").style.width = P.w + "px"; $("moCena").style.height = P.h + "px";
@@ -109,6 +111,10 @@
   function ligarPalco() {
     var tela = $("moTela"), arr = null;
     tela.addEventListener("pointerdown", function (e) {
+      if (e.button === 2) return; var F = window.BWFerr ? BWFerr.atual() : "v";
+      if (F === "t") { var r0 = tela.getBoundingClientRect(), nt = M.novoItem("texto", P, T >= P.dur - 0.5 ? 0 : T); nt.x = Math.round((e.clientX - r0.left) / SC); nt.y = Math.round((e.clientY - r0.top) / SC); P.itens.push(nt); SEL = nt.id; KSEL = null; mudou({ painel: true }); BWFerr.trocar("v"); aviso("T Texto criado onde você tocou — escreva em ITEM."); if (innerWidth <= 1100) abaCel("item"); e.preventDefault(); return; }
+      if (F === "z") { ZOOM = e.altKey ? Math.max(1, ZOOM / 1.5) : Math.min(8, ZOOM * 1.5); desenharTimeline(); return; }
+      if (F === "h" || F === "c") return;
       var alvo = e.target.closest("[data-item]"), id = alvo && alvo.getAttribute("data-item");
       if (!id) { selecionar(null); return; }
       if (TOCANDO) tocar();
@@ -330,10 +336,62 @@
     if (!P.itens.length) pis += '<div class="mo-vazio">Toque num item da BIBLIOTECA para começar, ou abra um MODELO PRONTO.</div>';
     $("moRot").innerHTML = rot; $("moPistas").innerHTML = pis + '<div class="mo-agulha" id="moAgulha" style="left:' + (T * px) + 'px"></div>';
   }
+  /* ---------- FERRAMENTAS, ATALHOS E MENUS (estilo Adobe, 20/11) ---------- */
+  var COPIA_I = null;
+  // LÂMINA (C): corta o item em dois no tempo t (a 2ª parte entra sem efeito e a 1ª sai sem efeito — continua igual na tela)
+  function cortarItem(id, t) { var it = item(id); if (!it) return; t = +(+t).toFixed(2); if (t <= it.ini + 0.1 || t >= it.fim - 0.1) return aviso("Ponha o corte no meio da barra do item.", true);
+    var b = M.clone(it); b.id = M.uid(); b.ini = t; b.entrada = { efeito: "nenhum", dur: 0 }; var fimA = it.fim; it.fim = t; it.saida = { efeito: "nenhum", dur: 0, noFim: false };
+    ["x", "y", "escala", "giro", "opac"].forEach(function (pr) { var ks = (it.keys || {})[pr]; if (!ks) return; var v = valorEm(it, pr, t); it.keys[pr] = ks.filter(function (k) { return k.t < t; }).concat([{ t: t, v: v, e: "linear" }]); b.keys[pr] = [{ t: t, v: v, e: "linear" }].concat(ks.filter(function (k) { return k.t > t; })); });
+    b.fim = fimA; P.itens.splice(P.itens.indexOf(it) + 1, 0, b); SEL = b.id; KSEL = null; mudou({ painel: true }); aviso("✂ Item cortado em " + fmt(t, 2) + " s."); }
+  function duplicarItem(id) { var it = item(id); if (!it) return; var c = M.clone(it); c.id = M.uid(); c.x += 40; c.y += 40; ["x", "y"].forEach(function (pr) { ((c.keys || {})[pr] || []).forEach(function (k) { k.v += 40; }); }); P.itens.splice(P.itens.indexOf(it) + 1, 0, c); SEL = c.id; KSEL = null; mudou({ painel: true }); aviso("⧉ Item duplicado."); }
+  function apagarItem(id) { var it = item(id); if (!it) return; P.itens.splice(P.itens.indexOf(it), 1); SEL = null; KSEL = null; mudou({ painel: true }); aviso("🗑 Item apagado (Ctrl+Z desfaz)."); }
+  function ordemItem(id, d) { var it = item(id), i = P.itens.indexOf(it), j = d === 9 ? P.itens.length - 1 : d === -9 ? 0 : i + d; if (!it || j < 0 || j >= P.itens.length || j === i) return; P.itens.splice(i, 1); P.itens.splice(j, 0, it); mudou({ painel: true }); aviso(d > 0 ? "Item para a frente." : "Item para trás."); }
+  function empurrar(dx, dy) { var it = SEL && item(SEL); if (!it) return false; definir(it, "x", Math.round(valorEm(it, "x", T) + dx)); definir(it, "y", Math.round(valorEm(it, "y", T) + dy)); ver(T); mudou({ remontar: false, painel: true }); }
+  function menuItem(id) { var it = item(id); if (!it) return null; if (SEL !== id) selecionar(id, false); var d = M.ITENS[it.tipo] || {};
+    return { titulo: (it.nome || d.nome || "ITEM").toUpperCase(), itens: [
+      { icone: "⧉", rot: "Duplicar", tecla: "Ctrl+D", fn: function () { duplicarItem(id); } }, { icone: "✂", rot: "Cortar na agulha", tecla: "Ctrl+K", off: !(T > it.ini + 0.1 && T < it.fim - 0.1), fn: function () { cortarItem(id, T); } },
+      { icone: "⎘", rot: "Copiar", tecla: "Ctrl+C", fn: function () { COPIA_I = M.clone(it); aviso("Item copiado. Ctrl+V cola na agulha."); } }, { icone: "📋", rot: "Colar", tecla: "Ctrl+V", off: !COPIA_I, fn: colarItem },
+      { icone: "✨", rot: "Efeito de entrada", sub: Object.keys(M.EFEITOS).map(function (k) { return { rot: nomeEfeito(k) + (it.entrada.efeito === k ? "  ✓" : ""), fn: function () { it.entrada.efeito = k; if (!it.entrada.dur) it.entrada.dur = 0.6; mudou({ painel: true }); ver(it.ini); tocar(); } }; }) },
+      { icone: "⬆", rot: "Trazer para a frente", tecla: "Ctrl+]", fn: function () { ordemItem(id, 9); } }, { icone: "⬇", rot: "Mandar para trás", tecla: "Ctrl+[", fn: function () { ordemItem(id, -9); } },
+      { icone: "◆", rot: "Keyframe de posição aqui", fn: function () { porKey(it, "x", T, valorEm(it, "x", T)); porKey(it, "y", T, valorEm(it, "y", T)); KSEL = { id: it.id, t: +T.toFixed(3) }; mudou({ remontar: false, painel: true }); } },
+      "-", { icone: "🗑", rot: "Apagar", tecla: "Delete", perigo: true, fn: function () { apagarItem(id); } }] }; }
+  function colarItem() { if (!COPIA_I) return false; var c = M.clone(COPIA_I), d = c.fim - c.ini, dt = Math.min(T, Math.max(0, P.dur - 0.5)) - c.ini; c.id = M.uid(); c.ini += dt; c.fim = Math.min(P.dur, c.ini + d); Object.keys(c.keys || {}).forEach(function (pr) { c.keys[pr].forEach(function (k) { k.t = +(k.t + dt).toFixed(3); }); }); c.x += 30; c.y += 30; P.itens.push(c); SEL = c.id; KSEL = null; mudou({ painel: true }); aviso("Item colado na agulha."); }
+  function ligarFerramentas() {
+    if (!window.BWFerr) return; var I = BWFerr.ICONES;
+    BWFerr.barra({ el: $("moFerr"), alvos: [$("moTela"), $("moPistas")], atual: "v", ferramentas: [
+      { id: "v", tecla: "V", nome: "Seleção", icone: I.v, dica: "escolhe e arrasta os itens na tela e as barras no tempo" },
+      { id: "c", tecla: "C", nome: "Lâmina", icone: I.c, dica: "clique na barra do item para cortar ali" },
+      { id: "h", tecla: "H", nome: "Mão", icone: I.h, dica: "arrasta a linha do tempo" },
+      { id: "z", tecla: "Z", nome: "Zoom", icone: I.z, dica: "clique aproxima a linha do tempo, Alt + clique afasta" },
+      { id: "t", tecla: "T", nome: "Texto", icone: I.t, dica: "clique na tela para criar um texto ali" }] });
+    BWFerr.atalhos({
+      "espaco, k": function () { tocar(); }, "home": function () { ver(0); }, "end": function () { ver(P.dur); },
+      "delete": function () { if (KSEL && SEL) { var b = document.querySelector('#moPainel [data-acao="kapagar"]'); if (b) { b.click(); return; } } if (!SEL) return false; apagarItem(SEL); },
+      "ctrl+d": function () { if (!SEL) return false; duplicarItem(SEL); }, "ctrl+k": function () { if (!SEL) return false; cortarItem(SEL, T); },
+      "ctrl+c": function () { var it = SEL && item(SEL); if (!it) return false; COPIA_I = M.clone(it); aviso("Item copiado."); }, "ctrl+v": colarItem,
+      "ctrl+z": desfazer, "ctrl+shift+z, ctrl+y": refazer, "ctrl+]": function () { if (!SEL) return false; ordemItem(SEL, 1); }, "ctrl+[": function () { if (!SEL) return false; ordemItem(SEL, -1); },
+      "arrowleft": function () { return empurrar(-1, 0); }, "arrowright": function () { return empurrar(1, 0); }, "arrowup": function () { return empurrar(0, -1); }, "arrowdown": function () { return empurrar(0, 1); },
+      "shift+arrowleft": function () { return empurrar(-10, 0); }, "shift+arrowright": function () { return empurrar(10, 0); }, "shift+arrowup": function () { return empurrar(0, -10); }, "shift+arrowdown": function () { return empurrar(0, 10); },
+      "=, shift+=": function () { $("moZoomMais").click(); }, "-": function () { $("moZoomMenos").click(); },
+      "ctrl+s": function () { salvarJa(); aviso("✓ Salvo neste aparelho."); }, "ctrl+m, ctrl+e": function () { $("moExportar").click(); },
+      "escape": function () { if (!$("moFolhaEfeito").hidden || !$("moFolhaExp").hidden) { $("moFolhaEfeito").hidden = true; $("moFolhaExp").hidden = true; return; } if (!SEL) return false; selecionar(null); }
+    });
+    BWFerr.ajuda("ATALHOS DO ESTÚDIO DE MOTION", [["#", "TOCAR"], ["Espaço / K", "tocar / pausar"], ["Home / End", "início / fim"],
+      ["#", "ITEM ESCOLHIDO"], ["← ↑ ↓ →", "mover 1 px (com Shift, 10 px)"], ["Ctrl+D", "duplicar"], ["Ctrl+K", "cortar na agulha"], ["Ctrl+C / Ctrl+V", "copiar / colar na agulha"], ["Ctrl+] / Ctrl+[", "para a frente / para trás"], ["Delete", "apagar o item (ou o keyframe aberto)"],
+      ["Botão direito", "opções do item (celular: segure o dedo)"], ["#", "GERAL"], ["Ctrl+Z", "desfazer"], ["Ctrl+Shift+Z / Ctrl+Y", "refazer"], ["= / -", "zoom da linha do tempo"], ["Ctrl+S", "salvar"], ["Ctrl+M", "exportar"], ["?", "esta lista"]]);
+    BWFerr.contexto($("moTela"), "[data-item]", function (el) { return menuItem(el.getAttribute("data-item")); });
+    BWFerr.contexto($("moPistas"), "[data-barra]", function (el) { return menuItem(el.getAttribute("data-barra")); });
+    BWFerr.contexto($("moRot"), "[data-sel]", function (el) { return menuItem(el.getAttribute("data-sel")); });
+    FIXA = BWFerr.telaFixa({ wrap: document.querySelector(".wrap"), grade: $("moGrade"), palco: document.querySelector(".mo-palco"), rola: [document.querySelector(".mo-tl")], some: [document.querySelector(".wrap > .mo-nota")], aviso: $("moAviso"), aoMedir: function () { if (P) { medir(); desenharTimeline(); ver(T); } } });
+  }
   function ligarTimeline() {
     var pis = $("moPistas"), arr = null;
     $("moRot").addEventListener("click", function (e) { var d = e.target.closest("[data-sel]"); if (d) selecionar(d.getAttribute("data-sel"), true); });
     pis.addEventListener("pointerdown", function (e) {
+      if (e.button === 2) return; var F = window.BWFerr ? BWFerr.atual() : "v";
+      if (F === "h") { arr = { tipo: "mao", x: e.clientX, sl: pis.scrollLeft }; BWFerr.preso(true); try { pis.setPointerCapture(e.pointerId); } catch (x) {} e.preventDefault(); return; }
+      if (F === "z") { var t0 = (e.clientX - pis.getBoundingClientRect().left + pis.scrollLeft) / pxs(), xx = e.clientX - pis.getBoundingClientRect().left; ZOOM = e.altKey ? Math.max(1, ZOOM / 1.5) : Math.min(8, ZOOM * 1.5); desenharTimeline(); pis.scrollLeft = Math.max(0, t0 * pxs() - xx); e.preventDefault(); return; }
+      if (F === "c") { var bc = e.target.closest("[data-barra]"); if (bc) { cortarItem(bc.getAttribute("data-barra"), (e.clientX - pis.getBoundingClientRect().left + pis.scrollLeft) / pxs()); e.preventDefault(); } return; }
       var px = pxs(), base = pis.getBoundingClientRect().left;
       var kf = e.target.closest("[data-kf]");
       if (kf) { var id = kf.getAttribute("data-kf"), t = Number(kf.getAttribute("data-t")); SEL = id; KSEL = { id: id, t: t }; ver(t); desenharPainel(); desenharTimeline();
@@ -346,6 +404,7 @@
     });
     pis.addEventListener("pointermove", function (e) {
       if (!arr) return; var px = pxs(), it = arr.id && item(arr.id);
+      if (arr.tipo === "mao") { pis.scrollLeft = arr.sl - (e.clientX - arr.x); return; }
       if (arr.tipo === "agulha") { ver((e.clientX - pis.getBoundingClientRect().left + pis.scrollLeft) / px); return; }
       var d = (e.clientX - arr.x) / px; if (!arr.mexeu && Math.abs(e.clientX - arr.x) < 4) return; arr.mexeu = true; if (!it) return;
       if (arr.tipo === "kf") { var nt = +Math.max(it.ini, Math.min(it.fim, arr.t0 + d)).toFixed(3), atual = arr.tAtual === undefined ? arr.t0 : arr.tAtual;
@@ -506,10 +565,11 @@
       catch (e) { aviso("Não consegui abrir essa imagem.", true); }
     });
     $("moAbasCel").addEventListener("click", function (e) { var b = e.target.closest("[data-aba]"); if (b) abaCel(b.getAttribute("data-aba")); });
-    ligarPalco(); ligarPainel(); ligarTimeline();
+    ligarPalco(); ligarPainel(); ligarTimeline(); ligarFerramentas();
     addEventListener("resize", function () { medir(); desenharTimeline(); ver(T); });
     addEventListener("keydown", function (e) {
-      if (e.key === "Escape") { $("moFolhaEfeito").hidden = true; $("moFolhaExp").hidden = true; return; }
+      if (window.BWFerr) return;
+      if (e.key === "Escape") { $("moFolhaEfeito").hidden = true; $("moFolhaExp").hidden = true; return; }   /* os atalhos agora vêm do bw-ferramentas.js */
       if (/INPUT|TEXTAREA|SELECT/.test((document.activeElement || {}).tagName || "")) return;
       if (e.key === " ") { e.preventDefault(); tocar(); }
       else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z") { e.preventDefault(); if (e.shiftKey) refazer(); else desfazer(); }

@@ -98,6 +98,75 @@ with sync_playwright() as p:
         # recarregar: projeto e biblioteca voltam
         n_cl = pg.evaluate("__video.P().clips.length"); pg.reload(); pg.wait_for_function("window.__veProntoOk === true", timeout=15000)
         ok(pg.evaluate("__video.P().clips.length") == n_cl and pg.evaluate("Object.keys(__video.MID).length") >= 4, "recarregar: a linha do tempo e a biblioteca voltam (guardadas no aparelho)")
+        # FERRAMENTAS E ATALHOS NO ESTILO ADOBE/CAPCUT (20/11)
+        cel = largura < 500
+        ok(pg.locator("#veFerr .bwf-bt").count() == 6, "barra de ferramentas: V, C, H, Z, T + ? (atalhos)")
+        def ferr(k):
+            if cel: pg.click(f'#veFerr [data-bwf-id="{k.lower()}"]')
+            else: pg.keyboard.press(k)
+            pg.wait_for_timeout(120)
+        pg.evaluate("document.activeElement && document.activeElement.blur()")
+        ferr("c"); ok(pg.evaluate("BWFerr.atual()") == "c" and pg.evaluate("document.documentElement.getAttribute('data-bwf')") == "c", "tecla C (ou botão) = LÂMINA, o cursor muda")
+        v1 = pg.evaluate("__video.P().clips.filter(c => c.tipo === 'video').sort((a,b)=>a.ini-b.ini)[0]"); el = pg.locator(f'[data-clip="{v1["id"]}"]')
+        el.scroll_into_view_if_needed(); bx = el.bounding_box(); nv = pg.evaluate("__video.P().clips.filter(c => c.tipo === 'video').length")
+        pps = pg.evaluate("__video.pps()"); xr = bx["x"] + 0.75 * pps
+        if cel: pg.touchscreen.tap(xr, bx["y"] + bx["height"] / 2)
+        else: pg.mouse.click(xr, bx["y"] + bx["height"] / 2)
+        pg.wait_for_timeout(250)
+        cort = pg.evaluate("__video.P().clips.filter(c => c.tipo === 'video').sort((a,b)=>a.ini-b.ini).map(c => [c.ini, c.dur])")
+        ok(len(cort) == nv + 1 and abs(cort[1][0] - 0.75) < 0.06, f"LÂMINA: clicar no clipe corta exatamente ali ({cort})")
+        ferr("v")
+        if not cel:
+            n1 = pg.evaluate("__video.P().clips.length"); pg.keyboard.press("Delete"); pg.wait_for_timeout(200)
+            ok(pg.evaluate("__video.P().clips.length") == n1 - 1, "Delete apaga o clipe escolhido")
+            pg.keyboard.press("Control+z"); pg.wait_for_timeout(250)
+            ok(pg.evaluate("__video.P().clips.length") == n1, "Ctrl+Z desfaz")
+            pg.evaluate("__video.irPara(0.3); __video.sel(null)"); n2 = pg.evaluate("__video.P().clips.length"); pg.evaluate("document.activeElement && document.activeElement.blur()"); pg.keyboard.press("Control+k"); pg.wait_for_timeout(250)
+            ok(pg.evaluate("__video.P().clips.length") > n2, "Ctrl+K corta tudo o que está na agulha")
+            w0 = pg.evaluate("__video.pps()"); pg.keyboard.press("="); pg.wait_for_timeout(150)
+            ok(pg.evaluate("__video.pps()") > w0, "= aproxima a linha do tempo")
+            pg.keyboard.press("Shift+/"); pg.wait_for_timeout(200); ok(pg.locator(".bwf-ajuda").count() == 1 and "Lâmina" in pg.inner_text(".bwf-ajuda"), "? mostra a lista de atalhos")
+            pg.keyboard.press("Escape"); pg.wait_for_timeout(150); ok(pg.locator(".bwf-ajuda").count() == 0, "Esc fecha a lista")
+        # menu do clipe: botão direito (PC) / segurar o dedo (celular)
+        vc = pg.evaluate("__video.P().clips.filter(c => c.tipo === 'video').sort((a,b)=>a.ini-b.ini)[0]"); el = pg.locator(f'[data-clip="{vc["id"]}"]'); el.scroll_into_view_if_needed(); bx = el.bounding_box()
+        mx, my = bx["x"] + min(bx["width"] / 2, 20), bx["y"] + bx["height"] / 2
+        if cel:
+            cdp = ctx.new_cdp_session(pg); cdp.send("Input.dispatchTouchEvent", {"type": "touchStart", "touchPoints": [{"x": mx, "y": my}]}); pg.wait_for_timeout(700); cdp.send("Input.dispatchTouchEvent", {"type": "touchEnd", "touchPoints": []})
+        else: pg.mouse.click(mx, my, button="right")
+        pg.wait_for_timeout(250)
+        ok(pg.locator(".bwf-menu").count() == 1 and "Duplicar" in pg.inner_text(".bwf-menu") and "Substituir" in pg.inner_text(".bwf-menu"), "menu do clipe (" + ("segurar o dedo" if cel else "botão direito") + "): cortar, duplicar, copiar, substituir, velocidade…")
+        pg.locator(".bwf-menu button", has_text="Velocidade").click(); pg.wait_for_timeout(150); d0 = vc["dur"]
+        pg.locator(".bwf-menu button", has_text="2×").first.click(); pg.wait_for_timeout(250)
+        vc2 = pg.evaluate(f"__video.P().clips.find(c => c.id === '{vc['id']}')")
+        ok(vc2["vel"] == 2 and abs(vc2["dur"] - d0 / 2) < 0.06, f"VELOCIDADE 2× pelo menu: o clipe fica com metade do tempo ({d0} → {vc2['dur']})")
+        # transição e efeito conferidos no pixel: vermelho → azul com CORTINA
+        if not os.path.exists(f"{TMP}/azul.png"):
+            from PIL import Image; Image.new("RGB", (600, 900), (30, 60, 230)).save(f"{TMP}/azul.png")
+        pg.set_input_files("#veArq", [f"{TMP}/azul.png"]); pg.wait_for_function("Object.values(__video.MID).some(m => m.nome === 'azul.png')", timeout=10000)
+        pg.evaluate("""(()=>{const M=Object.values(__video.MID),r=M.find(m=>m.nome==='foto.png'),a=M.find(m=>m.nome==='azul.png'),P=__video.P();
+          P.clips=[{id:'r1',trilha:'v1',tipo:'imagem',mid:r.id,ini:0,dur:2,corte:0,vel:1,vol:100,op:100,esc:100,x:0,y:0,fin:0,fout:0,encaixe:'cobrir'},
+                   {id:'a1',trilha:'v1',tipo:'imagem',mid:a.id,ini:2,dur:2,corte:0,vel:1,vol:100,op:100,esc:100,x:0,y:0,fin:0,fout:0,encaixe:'cobrir',trans:{tipo:'cortina',dur:1}}]; __video.sel('a1'); __video.irPara(2.5)})()""")
+        pg.wait_for_timeout(300)
+        px = lambda x, y: pg.evaluate(f"(()=>{{const c=document.getElementById('veCv'),d=c.getContext('2d').getImageData(c.width*{x},c.height*{y},1,1).data;return [d[0],d[1],d[2]]}})()")
+        e_, d_ = px(0.2, 0.5), px(0.8, 0.5)
+        ok(e_[0] > 180 and e_[2] < 90 and d_[2] > 180 and d_[0] < 90, f"TRANSIÇÃO Cortina no meio: esquerda ainda vermelha {e_}, direita já azul {d_}")
+        ok(pg.locator('[data-clip="a1"] .tr').count() == 1, "a transição aparece marcada no começo do clipe")
+        pg.evaluate("__video.P().clips[0].efeito='pb'; __video.P().clips[0].efInt=100; __video.sel('r1'); __video.irPara(1)"); pg.wait_for_timeout(250)
+        g = px(0.5, 0.5); ok(max(g) - min(g) < 12, f"EFEITO Preto e branco: a foto vermelha fica cinza {g}")
+        pg.evaluate("__video.P().clips[0].efeito='quente'; __video.sel('r1')"); pg.wait_for_timeout(200)
+        ok(pg.locator('#vePropCorpo [data-efeito]').count() == len(pg.evaluate("Object.keys(__video.EFEITOS)")) + 1 and pg.locator('#vePropCorpo [data-trans]').count() == len(pg.evaluate("Object.keys(__video.TRANS)")) + 1, "AJUSTES: lista de transições e de efeitos")
+        # T na prévia cria texto onde tocou
+        ferr("t"); pg.locator("#veCv").scroll_into_view_if_needed(); cb = pg.locator("#veCv").bounding_box(); nt = pg.evaluate("__video.P().clips.filter(c => c.tipo === 'texto').length")
+        if cel: pg.touchscreen.tap(cb["x"] + cb["width"] * 0.25, cb["y"] + cb["height"] * 0.8)
+        else: pg.mouse.click(cb["x"] + cb["width"] * 0.25, cb["y"] + cb["height"] * 0.8)
+        pg.wait_for_timeout(200); tx = pg.evaluate("__video.P().clips.filter(c => c.tipo === 'texto').slice(-1)[0]")
+        ok(pg.evaluate("__video.P().clips.filter(c => c.tipo === 'texto').length") == nt + 1 and tx["x"] < -15 and tx["y"] > 20, f"TEXTO (T): tocar na prévia cria o texto naquele ponto (x {tx['x']}, y {tx['y']})")
+        ok(pg.evaluate("BWFerr.atual()") == "v", "depois de criar o texto volta para a SELEÇÃO")
+        # formato personalizado
+        pg.select_option("#veFmt", "livre"); pg.fill("#veLargura", "1450"); pg.fill("#veAltura", "2000"); pg.locator("#veAltura").dispatch_event("change"); pg.wait_for_timeout(200)
+        ok(pg.evaluate("[document.getElementById('veCv').width, document.getElementById('veCv').height]") == [1450, 2000], "formato Personalizado: tela de 1450×2000 (telão)")
+        pg.select_option("#veFmt", "9:16"); pg.wait_for_timeout(150)
+        ok(pg.evaluate(SEM) <= 0, "sem estouro com a barra de ferramentas")
         ok(not FORA, f"nada saiu para a internet {FORA[:2]}")
         ok(not erros, f"nenhum erro de JS {erros}")
         ctx.close()

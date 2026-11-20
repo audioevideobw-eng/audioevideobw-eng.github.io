@@ -292,6 +292,10 @@ if os.path.exists("assets/video-editor.js") and re.search(r"fetch\(|XMLHttpReque
 for _f in ("assets/telas-motor.js", "assets/telas.js"):
     if os.path.exists(_f) and re.search(r"fetch\(|XMLHttpRequest|supabase\.|BWSync\.(?!cliente)|\.upload\(|https?://", ler(_f)): problemas.append(_f + ": Telas em movimento não envia nada (sem fetch, upload, conta nem endereço de fora)")
 # ESTÚDIO DE MOTION (20/11): o motor só desenha (nada de rede); o editor só fala com a IA Brightway (bw-ia) e nunca grava na conta
+# 20/11: ferramentas/atalhos comuns dos editores — só interface; nada de rede, conta ou armazenamento
+if os.path.exists("assets/bw-ferramentas.js") and re.search(r"fetch\(|XMLHttpRequest|supabase\.|BWSync|localStorage|indexedDB|\.upload\(", ler("assets/bw-ferramentas.js")): problemas.append("assets/bw-ferramentas.js: as ferramentas dos editores não podem usar rede, conta nem armazenamento")
+for _p in ("video.html", "telas.html", "motion.html", "fotos.html"):
+    if os.path.exists(_p) and "assets/bw-ferramentas.js" not in ler(_p): problemas.append(_p + ": editor sem as ferramentas/atalhos comuns (assets/bw-ferramentas.js) e sem a TELA FIXA")
 if os.path.exists("assets/motion-motor.js") and re.search(r"fetch\(|XMLHttpRequest|supabase\.|BWSync|localStorage|indexedDB|\.upload\(", ler("assets/motion-motor.js")): problemas.append("assets/motion-motor.js: o motor de motion só desenha (sem rede, conta nem armazenamento)")
 if os.path.exists("assets/motion.js"):
     _mo = ler("assets/motion.js")

@@ -344,3 +344,16 @@ Tamanho > 0 e sem erro = o pdfmake montou o arquivo. Localmente (T1) confira o `
 - Batida: energia RMS em blocos de 10 ms → diferença positiva (início de nota) → autocorrelação entre 60/180 e 60/70 s; cenas = 1, 2 ou 4 batidas.
 - Exportar com filmagem: BWReelsCelular.gerar({desenhar: async (t, ctx, w, h) => { await videosNoTempo(t); BWTelas.desenhar(ctx, P, t, w, h, fonte) }}).
 - Teste: imagens de cor lisa por cena → pixel do MP4 no meio de cada cena e no meio da transição (duas cores); WebM no Chromium de teste.
+
+
+## Ferramentas no estilo Adobe + tela fixa (20/11/2026)
+- `assets/bw-ferramentas.js`: `BWFerr.barra({el, alvos, ferramentas:[{id,tecla,nome,icone,dica}], aoTrocar})`, `BWFerr.atalhos({"ctrl+k": fn, "delete": fn})`
+  (a função devolve `false` quando não fez nada, para a tecla seguir), `BWFerr.contexto(raiz, seletor, el => ({titulo, itens}))`,
+  `BWFerr.menu(x, y, itens, titulo, porToque)`, `BWFerr.ajuda(titulo, linhas)`, `BWFerr.telaFixa({wrap, grade, palco, rola, some, aviso, aoMedir})`.
+- Num editor novo: (1) carregar o arquivo antes do JS do editor; (2) no pointerdown da área de trabalho, olhar `BWFerr.atual()` antes de tudo
+  (h = arrastar a rolagem, z = zoom no ponto, c = cortar no ponto, t = criar texto no ponto); (3) tirar o keydown antigo do editor.
+- Onde já existe arrastar por "segurar o dedo" (Telas), o menu do celular é "segurar e SOLTAR sem mexer" tratado pelo próprio arrastar.
+- Teste: teclas com `pg.keyboard.press` depois de `document.activeElement.blur()`; botão direito = `pg.mouse.click(x, y, button="right")`;
+  segurar o dedo = CDP `Input.dispatchTouchEvent` touchStart → esperar → touchEnd; item de menu por texto exato/regex (um rótulo continha o outro).
+- Tela fixa no PC: conferir com a tela do dono (1534×816) que a prévia não fica minúscula — título da página some, aviso vira toast, nome da
+  ferramenta some abaixo de 1700 px; painel de baixo com no máximo 36vh.

@@ -1,18 +1,32 @@
 {
- "versao": "1.7",
+ "versao": "1.8",
  "data": "20/11/2026",
  "pacote": "downloads/BW-Reels-Studio.zip",
- "sha256": "c499d5e07566aefe6796ad113916907dd5decdef2b54804c345c7efb81401a1d",
- "bytes": 8379115,
+ "sha256": "7d481265a12d42f9ade87c7d840ac04a4edec1430ac4c560cfbcbaede1bf0ccd",
+ "bytes": 8410661,
  "novidades": [
   {
-   "titulo": "Telas em movimento",
-   "texto": "Suas fotos e takes entram dentro de divisões de tela e de transições geométricas (tiras, cacos, mosaico, cata-vento, painéis 3D, X, túnel…). ✨ MONTAR SOZINHO corta na batida da música. No computador o vídeo sai bem mais rápido.",
+   "titulo": "Ferramentas e atalhos como na Adobe",
+   "texto": "Editor de vídeo, Estúdio de motion, Telas em movimento e Editor de fotos ganharam barra de ferramentas: V seleção, C lâmina (clique e corta ali), H mão, Z zoom, T texto, B pincel, E borracha, I conta-gotas. Delete apaga, Ctrl+K corta na agulha, Ctrl+Z desfaz e a tecla ? mostra todos os atalhos. Botão direito abre as opções (duplicar, substituir mídia, velocidade…).",
+   "abrir": "video"
+  },
+  {
+   "titulo": "Editor de vídeo: transições, efeitos e velocidade",
+   "texto": "11 transições entre clipes, 12 efeitos (preto e branco, vintage, VHS, grão…), velocidade de 0,25× a 3× e congelar quadro.",
+   "abrir": "video"
+  },
+  {
+   "titulo": "Telas em movimento: arrastar e soltar",
+   "texto": "Arraste fotos e takes para a sequência e as transições/divisões para cima das cenas. Escolha a cor das linhas das transições, sem linha ou com transparência.",
    "abrir": "telas"
   },
   {
-   "titulo": "Gerar vídeo com filmagem no aparelho",
-   "texto": "O gerador de vídeo do app agora também desenha quadro a quadro com os seus takes (antes era só para animações sem filmagem)."
+   "titulo": "Tamanho personalizado e 4K",
+   "texto": "Telas, Motion e Editor de vídeo aceitam 4K e tamanho em pixels (ex.: telão de LED 1450 × 2000)."
+  },
+  {
+   "titulo": "A tela fica parada",
+   "texto": "Nos editores, a mídia que você está editando fica sempre à vista; os painéis e a linha do tempo é que rolam."
   }
  ]
 }

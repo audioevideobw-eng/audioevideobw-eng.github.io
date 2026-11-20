@@ -93,6 +93,26 @@ html.tl-arrastando,html.tl-arrastando *{cursor:grabbing!important}
 .tl-livre{display:inline-flex;align-items:center;gap:4px;color:#B9C0CC;font:700 12px Inter,sans-serif}
 .tl-livre[hidden]{display:none}
 .tl-livre input{width:78px;font-size:16px}
+.tl-msel{outline:3px solid #B6FF3B;outline-offset:1px}
+#tlFerr{margin-right:6px}
+.tl-linhas{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:6px 0 2px}
+.tl-linhas .titulo{font:800 11px Inter,sans-serif;letter-spacing:.14em;color:#B9C0CC;margin-right:2px}
+.tl-cor{width:30px;height:30px;border-radius:50%;border:2px solid rgba(245,241,234,.25);padding:0;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;color:#F5F1EA;font:800 14px Inter,sans-serif;background:transparent;position:relative;overflow:hidden}
+.tl-cor.on{border-color:#fff;box-shadow:0 0 0 3px rgba(182,255,59,.6)}
+.tl-cor.livre input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.tl-linha-op{display:inline-flex;align-items:center;gap:6px;font:700 11px Inter,sans-serif;color:#B9C0CC;text-transform:none;letter-spacing:0;margin:0 0 0 6px}
+.tl-linha-op input{width:110px;accent-color:#B6FF3B}
+.tl-linha-op output{min-width:34px;color:#F5F1EA}
+.tl-seq-a{min-width:0}
+/* no computador (tela fixa): sequência à esquerda e efeitos à direita, os dois à vista para arrastar de um para o outro */
+.bwf-fixo .tl-seq{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(0,1fr);gap:14px;margin-top:10px}
+.bwf-fixo .tl-efx{margin-top:0;border-top:0;padding-top:0;border-left:1px solid rgba(245,241,234,.08);padding-left:12px;min-width:0}
+.bwf-fixo>.tl-seq{overflow:hidden!important}
+.bwf-fixo .tl-efx{display:flex;flex-direction:column;max-height:calc(36vh - 24px);min-height:0}
+.bwf-fixo .tl-efx>*{flex:none}
+.bwf-fixo .tl-efx-lista{flex:1 1 0;min-height:0;flex-wrap:wrap;overflow-x:hidden;overflow-y:auto;align-content:flex-start}
+.bwf-fixo .tl-efx .tl-dica{display:none}
+.bwf-fixo .tl-topo{margin-bottom:6px}
 .tl-aviso{margin-top:8px;padding:9px 12px;border-radius:12px;font:600 12.5px/1.4 Inter,sans-serif;background:rgba(62,207,142,.12);border:1px solid rgba(62,207,142,.4);color:#9af0c4}
 .tl-aviso.erro{background:rgba(242,104,107,.12);border-color:rgba(242,104,107,.45);color:#ffb3b5}
 .tl-aviso[hidden]{display:none}
@@ -154,12 +174,15 @@ html.tl-arrastando,html.tl-arrastando *{cursor:grabbing!important}
     <aside class="tl-cx tl-lado tl-prop" id="tlDir"><div class="tl-vazio" id="tlSemCena">Coloque fotos e vídeos e toque em ✨ MONTAR SOZINHO — ou toque numa cena da SEQUÊNCIA para escolher a divisão da tela, as mídias e a transição.</div><div id="tlPainel"></div></aside>
   </div>
   <div class="tl-seq">
-    <div class="tl-seq-barra"><span class="titulo">SEQUÊNCIA</span>
+    <div class="tl-seq-a">
+    <div class="tl-seq-barra"><div id="tlFerr"></div><span class="titulo">SEQUÊNCIA</span>
       <button class="tl-bt mini" id="tlNovaCena" type="button">＋ CENA</button><button class="tl-bt mini" id="tlDesfazer" type="button" aria-label="Desfazer">↶</button><button class="tl-bt mini" id="tlRefazer" type="button" aria-label="Refazer">↷</button></div>
     <div class="tl-filabox"><div class="tl-fila" id="tlFila"></div><i class="tl-insere" id="tlInsere" hidden></i></div>
+    </div>
     <div class="tl-efx">
       <div class="tl-seq-barra"><span class="titulo">EFEITOS DE TELA</span><button class="tl-bt mini on" type="button" data-efxaba="trans">TRANSIÇÕES</button><button class="tl-bt mini" type="button" data-efxaba="div">DIVISÕES</button></div>
       <div class="tl-efx-lista" id="tlEfx"></div>
+      <div class="tl-linhas" id="tlLinhas" role="group" aria-label="Linhas das transições"></div>
       <p class="tl-dica">Arraste uma foto/vídeo para a SEQUÊNCIA (cria cena) ou para cima de uma cena (troca a mídia daquela tela). Arraste um efeito para cima da cena ou da etiqueta entre duas cenas. No celular: segure um instante e arraste. Tocar no efeito aplica na cena escolhida.</p>
     </div>
   </div>
@@ -179,11 +202,13 @@ html.tl-arrastando,html.tl-arrastando *{cursor:grabbing!important}
 
 <input type="file" id="tlArq" accept="image/*,video/*" multiple hidden>
 <input type="file" id="tlArqSom" accept="audio/*" hidden>
+<input type="file" id="tlArqTroca" accept="image/*,video/*" hidden>
 <script src="assets/layout.js?v=60"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="assets/bw-sync.js"></script>
-<script src="assets/telas-motor.js?v=1"></script>
+<script src="assets/telas-motor.js?v=2"></script>
 <script src="assets/reels-celular.js?v=5"></script>
-<script src="assets/telas.js?v=2"></script>
+<script src="assets/bw-ferramentas.js?v=1"></script>
+<script src="assets/telas.js?v=3"></script>
 </body>
 </html>
