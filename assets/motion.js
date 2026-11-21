@@ -382,7 +382,7 @@
     BWFerr.contexto($("moTela"), "[data-item]", function (el) { return menuItem(el.getAttribute("data-item")); });
     BWFerr.contexto($("moPistas"), "[data-barra]", function (el) { return menuItem(el.getAttribute("data-barra")); });
     BWFerr.contexto($("moRot"), "[data-sel]", function (el) { return menuItem(el.getAttribute("data-sel")); });
-    FIXA = BWFerr.telaFixa({ wrap: document.querySelector(".wrap"), grade: $("moGrade"), palco: document.querySelector(".mo-palco"), rola: [document.querySelector(".mo-tl")], some: [document.querySelector(".wrap > .mo-nota")], aviso: $("moAviso"), aoMedir: function () { if (P) { medir(); desenharTimeline(); ver(T); } } });
+    FIXA = BWFerr.telaFixa({ wrap: document.querySelector(".wrap"), grade: $("moGrade"), palco: document.querySelector(".mo-palco"), rola: [document.querySelector(".mo-tl")], painelLer: function () { return JSON.parse(localStorage.getItem("ui_motion_paineis") || "{}"); }, painelGravar: function (S) { localStorage.setItem("ui_motion_paineis", JSON.stringify(S)); }, some: [document.querySelector(".wrap > .mo-nota")], aviso: $("moAviso"), aoMedir: function () { if (P) { medir(); desenharTimeline(); ver(T); } } });
   }
   function ligarTimeline() {
     var pis = $("moPistas"), arr = null;

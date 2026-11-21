@@ -160,11 +160,84 @@
       [].forEach.call(grade.children, function (e) { e.style.order = cel ? (e === palco ? 1 : 2) : ""; });
       if (cel) { wrap.style.height = ""; }
       else { var topo = wrap.getBoundingClientRect().top + (window.scrollY || 0); wrap.style.height = Math.max(520, innerHeight - topo - 6) + "px"; }
+      if (PN) PN.aplicar(cel);
       if (o.aoMedir) o.aoMedir(cel);
       if (cel) document.documentElement.style.scrollPaddingTop = (palco.offsetHeight + 12) + "px"; else document.documentElement.style.scrollPaddingTop = "";
     }
+    var PN = o.paineis === false ? null : paineis(o, wrap, grade, palco, function () { aplicar(); });
     addEventListener("resize", aplicar); if (mq.addEventListener) mq.addEventListener("change", aplicar); aplicar(); setTimeout(aplicar, 400);
     return { aplicar: aplicar, altura: function () { return palco.clientHeight; }, fixo: function () { return wrap.classList.contains("bwf-fixo"); } };
+  }
+  /* ---------- PAINÉIS LIVRES (dono, 21/11: "tudo deve se esticar e omitir, descolar e mover livre") ----------
+     Todo painel de um editor com TELA FIXA (colunas ao lado da prévia + linha do tempo) ganha no PC uma barrinha ⠿ NOME com:
+     ⇱ descolar (vira janela solta: arrasta pela barrinha, estica pelo canto, ⇲ ou dois toques encaixa) e ✕ esconder (não ocupa lugar;
+     volta pelo botão ＋ NOME lá em cima). A beirada da prévia arrasta a largura do painel vizinho; a barrinha da linha do tempo
+     encaixada arrasta a altura. Quem lembra é o editor, só neste aparelho (ui_<editor>_paineis). No celular nada disso aparece. */
+  function paineis(o, wrap, grade, palco, refazer) {
+    var lista = o.soltos || [].filter.call(grade.children, function (e) { return e !== palco; }).concat((o.rola || []).filter(Boolean));
+    if (!lista.length) return null;
+    var S = {}, ORIG = null, CEL = true;
+    /* este arquivo não guarda nada: quem lembra é o editor (o.painelLer / o.painelGravar → preferência ui_* só do aparelho) */
+    try { S = (o.painelLer && o.painelLer()) || {}; } catch (e) { S = {}; } if (!S || typeof S !== "object") S = {};
+    function lembrar() { try { if (o.painelGravar) o.painelGravar(S); } catch (e) {} }
+    function lim(v, a, b) { return Math.max(a, Math.min(b, v)); }
+    function est(it) { return S[it.id] || (S[it.id] = {}); }
+    function bt(txt, tipo, rot) { var b = document.createElement("button"); b.type = "button"; b.textContent = txt; b.setAttribute("data-bwf-p", tipo); b.title = rot; b.setAttribute("aria-label", rot); return b; }
+    var itens = lista.map(function (el, i) {
+      var naGrade = el.parentNode === grade, h = el.querySelector("h3,h2"), nome = el.getAttribute("data-bwf-nome") || (naGrade && h ? h.textContent.trim() : "") || (naGrade ? "PAINEL" : (o.nomeRola || "LINHA DO TEMPO"));
+      var pg = document.createElement("div"), sp = document.createElement("span"); pg.className = "bwf-pega" + (!naGrade && !o.alturaPropria ? " alt" : ""); sp.textContent = "⠿ " + nome; pg.appendChild(sp);
+      pg.appendChild(bt("⇱", "solta", "Descolar " + nome + ": vira uma janela solta, que você arrasta e estica (de novo = encaixa)")); pg.appendChild(bt("✕", "some", "Esconder " + nome));
+      if (!naGrade && !o.alturaPropria) pg.title = "Arraste para cima ou para baixo para esticar";
+      el.insertBefore(pg, el.firstChild); el.classList.add("bwf-painel");
+      var it = {el: el, id: el.id || ("p" + i), nome: nome, naGrade: naGrade, pega: pg, solto: false};
+      pg.addEventListener("click", function (e) { var b = e.target.closest("[data-bwf-p]"); if (!b) return; var st = est(it);
+        if (b.getAttribute("data-bwf-p") === "some") st.o = 1;
+        else if (st.s) delete st.s; else { var r = el.getBoundingClientRect(); st.s = {x: Math.round(lim(r.left + (r.left > innerWidth / 2 ? -24 : 24), 0, innerWidth - 240)), y: Math.round(lim(r.top - (naGrade ? -24 : 60), 0, innerHeight - 160)), w: Math.round(lim(r.width, 260, innerWidth * 0.7)), h: Math.round(lim(r.height, 160, innerHeight * 0.7))}; }
+        lembrar(); refazer(); });
+      var mv = null;
+      pg.addEventListener("pointerdown", function (e) { if (e.target.closest("button") || CEL) return; var st = est(it);
+        if (st.s) mv = {t: "m", x: e.clientX, y: e.clientY, x0: st.s.x, y0: st.s.y};
+        else if (!naGrade && !o.alturaPropria) mv = {t: "h", y: e.clientY, h0: el.getBoundingClientRect().height};
+        else return; try { pg.setPointerCapture(e.pointerId); } catch (x) {} e.preventDefault(); });
+      pg.addEventListener("pointermove", function (e) { if (!mv) return; var st = est(it);
+        if (mv.t === "m") { st.s.x = Math.round(lim(mv.x0 + e.clientX - mv.x, 0, innerWidth - 80)); st.s.y = Math.round(lim(mv.y0 + e.clientY - mv.y, 0, innerHeight - 40)); el.style.left = st.s.x + "px"; el.style.top = st.s.y + "px"; }
+        else { st.h = Math.round(lim(mv.h0 - (e.clientY - mv.y), 70, innerHeight * 0.7)); refazer(); } });
+      var fim = function () { if (!mv) return; mv = null; lembrar(); }; pg.addEventListener("pointerup", fim); pg.addEventListener("pointercancel", fim);
+      pg.addEventListener("dblclick", function (e) { if (e.target.closest("button")) return; var st = est(it); if (st.s) delete st.s; else if (st.h) delete st.h; else return; lembrar(); refazer(); });
+      if (window.ResizeObserver) new ResizeObserver(function () { var st = S[it.id]; if (!it.solto || !st || !st.s) return; var r = el.getBoundingClientRect(); if (!r.width) return; if (Math.abs(r.width - st.s.w) > 2 || Math.abs(r.height - st.s.h) > 2) { st.s.w = Math.round(r.width); st.s.h = Math.round(r.height); lembrar(); if (o.aoMedir) o.aoMedir(false); } }).observe(el);
+      return it; });
+    var daGrade = itens.filter(function (it) { return it.naGrade; }), volta = document.createElement("div"); volta.className = "bwf-volta";
+    volta.addEventListener("click", function (e) { var b = e.target.closest("[data-bwf-id]"); if (!b) return; var st = S[b.getAttribute("data-bwf-id")]; if (st) delete st.o; lembrar(); refazer(); });
+    function porEl(e) { for (var i = 0; i < itens.length; i++) if (itens[i].el === e) return itens[i]; return null; }
+    /* beiradas da prévia: arrastar muda a largura do painel vizinho (até o fim = esconde); dois toques = largura padrão */
+    var puxa = {};
+    if (daGrade.length) { if (getComputedStyle(palco).position === "static") palco.classList.add("bwf-rel");
+      ["e", "d"].forEach(function (lado) { var p = document.createElement("i"), a = null; p.className = "bwf-puxa " + lado; p.title = "Arraste para alargar ou estreitar o painel ao lado (até o fim = esconde)"; palco.appendChild(p); puxa[lado] = p;
+        function vizinho() { var f = [].slice.call(grade.children), i = f.indexOf(palco), passo = lado === "e" ? -1 : 1; for (i += passo; i >= 0 && i < f.length; i += passo) { var it = porEl(f[i]); if (it && !(S[it.id] || {}).s) return it; } return null; }
+        p._viz = vizinho;
+        p.addEventListener("pointerdown", function (e) { var it = vizinho(); if (!it) return; var st = est(it); a = {it: it, x: e.clientX, w: st.o ? 0 : it.el.getBoundingClientRect().width}; p.classList.add("on"); try { p.setPointerCapture(e.pointerId); } catch (x) {} e.preventDefault(); });
+        p.addEventListener("pointermove", function (e) { if (!a) return; var st = est(a.it), w = Math.round(a.w + (e.clientX - a.x) * (lado === "e" ? 1 : -1)); if (w < 130) st.o = 1; else { delete st.o; st.w = Math.min(w, Math.round(grade.clientWidth * 0.45)); } refazer(); });
+        var fim = function () { if (!a) return; a = null; p.classList.remove("on"); lembrar(); }; p.addEventListener("pointerup", fim); p.addEventListener("pointercancel", fim);
+        p.addEventListener("dblclick", function () { var it = vizinho(); if (!it) return; var st = est(it); delete st.w; delete st.o; lembrar(); refazer(); }); }); }
+    if (window.ResizeObserver && o.aoMedir) { var ult = 0, rq = 0; new ResizeObserver(function () { var h = palco.clientHeight * 10000 + palco.clientWidth; if (h === ult || CEL) return; ult = h; cancelAnimationFrame(rq); rq = requestAnimationFrame(function () { o.aoMedir(false); }); }).observe(palco); }
+    function aplicar(cel) {
+      CEL = cel; var escondidos = [];
+      itens.forEach(function (it) { var st = S[it.id] || {}, oc = !cel && !!st.o, so = !cel && !oc && !!st.s, el = it.el;
+        el.classList.toggle("bwf-oculto", oc); el.classList.toggle("bwf-solto", so); if (oc) escondidos.push(it);
+        if (so) { el.style.width = lim(st.s.w || 320, 220, innerWidth - 16) + "px"; el.style.height = lim(st.s.h || 380, 120, innerHeight - 16) + "px"; el.style.maxHeight = ""; el.style.left = lim(st.s.x, 0, Math.max(0, innerWidth - 80)) + "px"; el.style.top = lim(st.s.y, 0, Math.max(0, innerHeight - 40)) + "px"; }
+        else { if (it.solto) el.style.width = el.style.left = el.style.top = el.style.height = el.style.maxHeight = "";
+          if (!it.naGrade && !o.alturaPropria) { var hh = !cel && st.h ? st.h + "px" : ""; el.style.height = hh; el.style.maxHeight = hh; } }
+        it.solto = so; var b = it.pega.querySelector('[data-bwf-p="solta"]'); if (b) b.textContent = so ? "⇲" : "⇱"; });
+      if (daGrade.length) {
+        if (cel) grade.style.gridTemplateColumns = "";
+        else { if (!ORIG) { grade.style.gridTemplateColumns = ""; var t = getComputedStyle(grade).gridTemplateColumns.split(" "); if (t.length === grade.children.length && t.every(function (x) { return /px$/.test(x); })) ORIG = t.map(parseFloat); }
+          if (ORIG) { var cols = []; [].forEach.call(grade.children, function (e, i) { if (e === palco) { cols.push("minmax(0,1fr)"); return; } var it = porEl(e), st = it ? S[it.id] || {} : {}; if (st.o || st.s) return; cols.push(Math.round(st.w || ORIG[i]) + "px"); }); grade.style.gridTemplateColumns = cols.join(" "); } }
+        ["e", "d"].forEach(function (l) { if (puxa[l]) puxa[l].style.display = cel || !puxa[l]._viz() ? "none" : ""; }); }
+      volta.textContent = ""; escondidos.forEach(function (it) { var b = document.createElement("button"); b.type = "button"; b.textContent = "＋ " + it.nome; b.setAttribute("data-bwf-id", it.id); b.title = "Mostrar " + it.nome; volta.appendChild(b); });
+      var barra = document.querySelector(".bw-foco-barra"), naBarra = !!(barra && barra.getClientRects().length);
+      if (naBarra) { if (volta.parentNode !== barra) barra.insertBefore(volta, barra.lastElementChild); } else if (volta.parentNode !== document.body) document.body.appendChild(volta);
+      volta.classList.toggle("fora", !naBarra); volta.style.display = escondidos.length ? "" : "none"; }
+    return { aplicar: aplicar, estado: function () { return JSON.parse(JSON.stringify(S)); } };
   }
   var css2 = document.createElement("style");
   css2.textContent =
@@ -180,6 +253,20 @@
     ".bwf-fixo>[data-bwf-aviso].erro{background-color:#2a1416!important}" +
     "@media (max-width:1700px){.bwf-fixo .bwf-nome{display:none}}" +
     ".bwf-fixo ::-webkit-scrollbar{width:9px;height:9px}.bwf-fixo ::-webkit-scrollbar-thumb{background:rgba(182,255,59,.35);border-radius:6px}.bwf-fixo ::-webkit-scrollbar-track{background:rgba(255,255,255,.04)}" +
+    ".bwf-pega,.bwf-puxa{display:none}" +
+    ".bwf-fixo .bwf-pega{display:flex;align-items:center;gap:4px;grid-column:1/-1;flex:none;height:22px;margin:0 0 4px;font:800 9.5px Inter,sans-serif;letter-spacing:.12em;color:#8d95a3;text-transform:uppercase;user-select:none;-webkit-user-select:none}" +
+    ".bwf-pega span{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}" +
+    ".bwf-pega button,.bwf-volta button{height:20px;min-width:24px;border-radius:6px;border:1px solid rgba(245,241,234,.14);background:transparent;color:#B9C0CC;font:700 11px Inter,sans-serif;cursor:pointer;padding:0 5px;line-height:1}" +
+    ".bwf-pega button:hover,.bwf-volta button:hover{border-color:#7C5CFF;color:#fff}" +
+    ".bwf-fixo .bwf-pega.alt{cursor:ns-resize;touch-action:none}" +
+    ".bwf-fixo .bwf-oculto{display:none!important}" +
+    ".bwf-fixo .bwf-solto,.bwf-fixo>.bwf-grade>.bwf-solto,.bwf-fixo>.bwf-rola.bwf-solto{position:fixed!important;z-index:80;resize:both;overflow:auto!important;max-height:none!important;min-width:220px;min-height:120px;box-sizing:border-box;margin:0!important;border-radius:16px;border:1px solid #7C5CFF;background:#0f1218;box-shadow:0 22px 60px rgba(0,0,0,.7);padding:12px}" +
+    ".bwf-fixo .bwf-solto>.bwf-pega{cursor:grab;touch-action:none;position:sticky;top:-12px;z-index:5;background:#0f1218;height:26px;margin:-8px 0 6px}.bwf-fixo .bwf-solto>.bwf-pega span{color:#c9bcff}" +
+    ".bwf-fixo .bwf-rel{position:relative}" +
+    ".bwf-fixo .bwf-puxa{display:block;position:absolute;top:0;bottom:0;width:10px;cursor:ew-resize;z-index:4;touch-action:none}.bwf-fixo .bwf-puxa.e{left:0}.bwf-fixo .bwf-puxa.d{right:0}" +
+    ".bwf-fixo .bwf-puxa::after{content:'';position:absolute;top:50%;left:3px;width:4px;height:56px;margin-top:-28px;border-radius:3px;background:rgba(245,241,234,.2)}.bwf-fixo .bwf-puxa:hover::after,.bwf-fixo .bwf-puxa.on::after{background:#7C5CFF}" +
+    ".bwf-volta{display:flex;gap:6px;align-items:center}.bwf-volta button{height:22px;font-size:10px;letter-spacing:.08em;padding:0 8px;color:#c9bcff;border-color:rgba(124,92,255,.5)}" +
+    ".bwf-volta.fora{position:fixed;top:8px;right:70px;z-index:70}" +
     ".bwf-cel{display:flex!important;flex-direction:column}" +
     ".bwf-cel>.bwf-grade{display:contents!important}" +
     ".bwf-cel .bwf-palco{position:sticky!important;top:0;z-index:6}";

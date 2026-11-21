@@ -50,7 +50,7 @@
 .ve-prop input[type=color]{width:44px;height:34px;border:0;background:transparent;padding:0}
 /* linha do tempo */
 .ve-tl{margin-top:12px;border-radius:20px;background:#12151c;border:1px solid rgba(245,241,234,.08);padding:10px 0 10px 10px}
-.ve-tl-barra{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding-right:10px;margin-bottom:8px}
+.ve-grp{display:contents}.ve-bt.ic b{font-weight:inherit}.ve-tl-barra{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding-right:10px;margin-bottom:8px}
 .ve-tl-corpo{display:grid;grid-template-columns:92px minmax(0,1fr)}
 .ve-rot{display:flex;flex-direction:column}
 .ve-rot div{height:52px;margin-bottom:6px;display:flex;align-items:center;font:800 9.5px Inter,sans-serif;letter-spacing:.1em;color:var(--c);border-left:3px solid var(--c);padding-left:8px}
@@ -140,6 +140,9 @@
   .wrap.bwf-fixo .ve-ferr{grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:6px}
   .wrap.bwf-fixo .ve-ferr a{padding:8px 4px;font-size:9px;gap:4px}.wrap.bwf-fixo .ve-ferr a i{font-size:16px}
   .wrap.bwf-fixo #veCriar .ve-nota{display:none}
+  .wrap.bwf-fixo .ve-bt.ic{min-width:34px;padding:0 9px;height:34px}.wrap.bwf-fixo .ve-bt.ic b{display:none}
+  .wrap.bwf-fixo .ve-grp{display:inline-flex;gap:4px;padding:0 8px;border-left:1px solid rgba(245,241,234,.1)}
+  .wrap.bwf-fixo .ve-tl-barra{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
   #veCriarBt{display:none}.wrap.bwf-fixo #veCriarBt{display:inline-flex}
   .wrap.bwf-fixo #veCriar{display:none;order:2}.wrap.bwf-fixo .ve-esq.criar #veCriar{display:block}
   .wrap.bwf-fixo #veCriar h3{pointer-events:none}.wrap.bwf-fixo #veCriar h3::after{display:none}
@@ -183,7 +186,9 @@
   <div class="ve-tl" id="veTl">
     <div class="ve-tl-barra">
       <div id="veFerr"></div>
-      <button class="ve-bt" id="veCortar" type="button">✂ DIVIDIR</button><button class="ve-bt" id="veDuplicar" type="button">⧉ DUPLICAR</button><button class="ve-bt perigo" id="veApagar" type="button">🗑 APAGAR</button>
+      <span class="ve-grp"><button class="ve-bt ic" id="veDesf" type="button" title="Desfazer (Ctrl+Z)" aria-label="Desfazer">↶</button><button class="ve-bt ic" id="veRef" type="button" title="Refazer (Ctrl+Shift+Z)" aria-label="Refazer">↷</button></span>
+      <span class="ve-grp"><button class="ve-bt ic" id="veCortar" type="button" title="DIVIDIR na agulha (Ctrl+K)" aria-label="Dividir na agulha">✂<b> DIVIDIR</b></button><button class="ve-bt ic" id="veApIni" type="button" title="Cortar o COMEÇO do take até a agulha e puxar o resto (Q)" aria-label="Cortar o começo até a agulha">⇤]</button><button class="ve-bt ic" id="veApFim" type="button" title="Cortar o FIM do take na agulha (W)" aria-label="Cortar o fim na agulha">[⇥</button></span>
+      <span class="ve-grp"><button class="ve-bt ic" id="veDuplicar" type="button" title="DUPLICAR (Ctrl+Shift+D)" aria-label="Duplicar">⧉<b> DUPLICAR</b></button><button class="ve-bt ic perigo" id="veApagar" type="button" title="APAGAR (Delete)" aria-label="Apagar">🗑<b> APAGAR</b></button></span>
       <span style="flex:1"></span><button class="ve-bt" id="veTlMin" type="button" aria-pressed="false" title="Esconde ou mostra as camadas da linha do tempo">▾ LINHA DO TEMPO</button><button class="ve-bt" id="veTodas" type="button" aria-pressed="false" title="Mostra também as camadas vazias">☰ CAMADAS</button><button class="ve-bt" id="veZoomMenos" type="button" aria-label="Afastar a linha do tempo">−</button><button class="ve-bt" id="veZoomMais" type="button" aria-label="Aproximar a linha do tempo">＋</button>
     </div>
     <div class="ve-tl-corpo"><div class="ve-rot" id="veRot"></div><div class="ve-rolo" id="veRolo"><div class="ve-faixas" id="veFaixas"></div></div></div>

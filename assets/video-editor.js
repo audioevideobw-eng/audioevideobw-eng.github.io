@@ -159,6 +159,24 @@
   var COPIA = null;
   function copiar() { var c = sel(); if (!c) return false; COPIA = JSON.parse(JSON.stringify(c)); aviso("Copiado. Ctrl+V cola na agulha."); }
   function colar() { if (!COPIA) { aviso("Nada copiado ainda (Ctrl+C num clipe).", true); return; } var d = JSON.parse(JSON.stringify(COPIA)); d.id = uid(); d.ini = Math.round(T * 20) / 20; P.clips.push(d); SEL = d.id; tudo(); aviso("Colado na agulha."); }
+  /* COPIAR E COLAR AJUSTES (atributos) de um take em outro: cada grupo só entra onde faz sentido (som em quem tem som, imagem em quem tem imagem) */
+  var ATRIB = null, AT_VIS = ["op", "esc", "x", "y", "encaixe", "efeito", "efInt", "ck", "ckCor", "ckModo", "ckNivel", "ckInt", "ckSuave", "ckLimpa", "ckSombra"], AT_TXT = ["fonte", "tam", "cor", "fundo", "op"], AT_SOM = ["vol"], AT_TEMPO = ["fin", "fout"];
+  function temSom(c) { return c.tipo === "video" || c.tipo === "audio"; }
+  function temImg(c) { return c.tipo === "video" || c.tipo === "imagem"; }
+  function copiarAtrib() { var c = sel(); if (!c) return false; ATRIB = JSON.parse(JSON.stringify(c)); aviso("Ajustes copiados. Escolha outro take e use COLAR AJUSTES (Ctrl+Shift+V)."); }
+  function colarAtrib() { var c = sel(); if (!c) return false; if (!ATRIB) { aviso("Nenhum ajuste copiado ainda (botão direito no take › Copiar ajustes).", true); return; }
+    var ks = AT_TEMPO.slice(), o = ATRIB, oq = [];
+    if (temImg(c) && temImg(o)) { ks = ks.concat(AT_VIS); oq.push("imagem"); } if (c.tipo === "texto" && o.tipo === "texto") { ks = ks.concat(AT_TXT); oq.push("texto"); } if (temSom(c) && temSom(o)) { ks = ks.concat(AT_SOM); oq.push("som"); }
+    ks.forEach(function (k) { if (o[k] === undefined) delete c[k]; else c[k] = JSON.parse(JSON.stringify(o[k])); }); oq.push("entrada/saída suave");
+    tudo(); aviso("Ajustes colados: " + oq.join(", ") + "."); }
+  function ligarDesligar() { var c = sel(); if (!c) return false; c.off = c.off ? 0 : 1; tudo(); aviso(c.off ? "Take desativado: fica na linha do tempo, mas não aparece nem toca." : "Take ativado de novo."); }
+  /* APARAR ATÉ A AGULHA (Q = tira o começo, W = tira o fim), como no Premiere/CapCut; fechar = puxa o resto para cá */
+  function aparar(lado) { var c = sel(), alvos = c ? [c] : P.clips.filter(function (x) { return T > x.ini + 0.05 && T < x.ini + x.dur - 0.05; }), n = 0;
+    alvos.forEach(function (x) { var ini0 = x.ini, d = dividirEm(x, T); if (!d) return; n++; var fora = lado === "ini" ? x : d, fica = lado === "ini" ? d : x;
+      if (lado === "ini") { fica.fin = x.fin || 0; fica.trans = x.trans || null; fica.ini = ini0; var corte = Math.round((T - ini0) * 100) / 100; P.clips.forEach(function (y) { if (y !== fica && y !== fora && y.trilha === fica.trilha && y.ini >= T - 0.01) y.ini = Math.max(0, Math.round((y.ini - corte) * 100) / 100); }); }
+      soltarEl(fora.id); P.clips = P.clips.filter(function (y) { return y !== fora; }); if (SEL === fora.id || !SEL) SEL = fica.id; });
+    if (!n) { aviso("Ponha a agulha no meio de um take para aparar.", true); return; } if (lado === "ini") irPara(alvos[0].ini); tudo(); aviso(lado === "ini" ? "⇤ Começo cortado até a agulha (o resto veio junto)." : "⇥ Fim cortado na agulha."); }
+  function abrirSom() { var c = sel(); if (!c) return; if (window.__veVista && __veVista.mostrar) __veVista.mostrar("dir"); var h = document.querySelector('#vePropCorpo [data-seta="ve-som"]'); if (h) { var corpo = h.nextElementSibling; if (corpo && !corpo.offsetParent) h.click(); h.scrollIntoView({block: "nearest"}); } }
   function maxDur(c) { var m = MID[c.mid]; return c.tipo === "video" || c.tipo === "audio" ? Math.max(0.2, ((m ? m.dur : c.dur) - (c.corte || 0)) / vel(c)) : 600; }
   function mudarVel(c, v) { var a = vel(c); c.vel = v; c.dur = Math.round(Math.min(c.dur * a / v, maxDur(c)) * 100) / 100; tudo(); aviso("Velocidade " + String(v).replace(".", ",") + "×" + (v < 1 ? " (câmera lenta)" : v > 1 ? " (acelerado)" : "") + "."); }
   // CONGELAR QUADRO (CapCut): a imagem do quadro da agulha vira um clipe parado de 2 s e o resto do clipe vem depois
@@ -183,7 +201,7 @@
   function ligarSom(o) { if (!ACTX || o.g || !o.e || o.semSom) return; try { var s = ACTX.createMediaElementSource(o.e); o.g = ACTX.createGain(); s.connect(o.g); o.g.connect(MESTRE); } catch (e) { o.semSom = true; } }
   function elDe(c) { var o = EL[c.id]; if (o) return o; var m = MID[c.mid]; if (!m) return null; var e = document.createElement(c.tipo === "video" ? "video" : "audio"); e.preload = "auto"; e.playsInline = true; e.crossOrigin = "anonymous"; e.src = m.url; e.addEventListener("seeked", function () { if (!TOCANDO) desenhar(); }); e.addEventListener("loadeddata", function () { if (!TOCANDO) desenhar(); }); o = EL[c.id] = {e: e, g: null}; ligarSom(o); return o; }
   function soltarEl(id) { var o = EL[id]; if (!o) return; try { o.e.pause(); o.e.removeAttribute("src"); o.e.load(); } catch (e) {} delete EL[id]; }
-  function fade(c, t) { var a = 1, r = t - c.ini, f = c.ini + c.dur - t; if (c.fin > 0 && r < c.fin) a = Math.min(a, r / c.fin); if (c.fout > 0 && f < c.fout) a = Math.min(a, f / c.fout); return lim(a, 0, 1); }
+  function fade(c, t) { if (c.off) return 0; var a = 1, r = t - c.ini, f = c.ini + c.dur - t; if (c.fin > 0 && r < c.fin) a = Math.min(a, r / c.fin); if (c.fout > 0 && f < c.fout) a = Math.min(a, f / c.fout); return lim(a, 0, 1); }
   function sincronizar(c, t, ativo) {
     var o = elDe(c); if (!o) return null; var e = o.e;
     if (!ativo) { if (!e.paused) e.pause(); return o; }
@@ -305,7 +323,7 @@
     for (var s = 0; s <= fim; s += passoR) h += '<i style="left:' + (s * PPS) + 'px">' + (s >= 60 ? Math.floor(s / 60) + ":" + (s % 60 < 10 ? "0" : "") + s % 60 : s + "s") + '</i>';
     h += "</div>";
     TRILHAS.forEach(function (tr) { h += '<div class="ve-faixa' + (vaziaTr(tr[0]) ? " vazia" : "") + '" data-trilha="' + tr[0] + '" style="width:' + larg + 'px">' + P.clips.filter(function (c) { return c.trilha === tr[0]; }).map(function (c) { var m = MID[c.mid], nome = c.tipo === "texto" ? String(c.txt || "Texto").split("\n")[0] : m ? m.nome : "arquivo que falta", mini = m && (m.tipo === "imagem" ? m.url : m.capa);
-        return '<div class="ve-clip' + (c.id === SEL ? " on" : "") + '" data-clip="' + c.id + '" style="--c:' + tr[2] + ';left:' + (c.ini * PPS) + 'px;width:' + Math.max(18, c.dur * PPS) + 'px" title="' + esc(nome) + '"><i class="al e" data-al="e"></i>' + (mini ? '<img alt="" src="' + mini + '">' : "") + '<span>' + (c.tipo === "texto" ? "T · " : c.tipo === "audio" ? "♪ " : "") + esc(nome) + '</span>' + (vel(c) !== 1 ? '<b class="bd">' + String(vel(c)).replace(".", ",") + '×</b>' : "") + (c.efeito ? '<b class="bd">✦</b>' : "") + '<i class="al d" data-al="d"></i>' + (transDe(c) && anteriorDe(c) ? '<i class="tr" title="Transição: ' + esc(TRANS[c.trans.tipo]) + '" style="width:' + Math.max(10, transDe(c) * PPS) + 'px"></i>' : "") + '</div>'; }).join("") + "</div>"; });
+        return '<div class="ve-clip' + (c.id === SEL ? " on" : "") + '" data-clip="' + c.id + '" style="--c:' + tr[2] + (c.off ? ";opacity:.35;filter:grayscale(1)" : "") + ';left:' + (c.ini * PPS) + 'px;width:' + Math.max(18, c.dur * PPS) + 'px" title="' + esc(nome) + '"><i class="al e" data-al="e"></i>' + (mini ? '<img alt="" src="' + mini + '">' : "") + '<span>' + (c.tipo === "texto" ? "T · " : c.tipo === "audio" ? "♪ " : "") + esc(nome) + '</span>' + (vel(c) !== 1 ? '<b class="bd">' + String(vel(c)).replace(".", ",") + '×</b>' : "") + (c.efeito ? '<b class="bd">✦</b>' : "") + '<i class="al d" data-al="d"></i>' + (transDe(c) && anteriorDe(c) ? '<i class="tr" title="Transição: ' + esc(TRANS[c.trans.tipo]) + '" style="width:' + Math.max(10, transDe(c) * PPS) + 'px"></i>' : "") + '</div>'; }).join("") + "</div>"; });
     h += '<div class="ve-agulha" id="veAgulha" style="left:' + (T * PPS) + 'px"></div><i class="ve-lamina" id="veLamina" hidden></i>';
     $("veFaixas").innerHTML = h; $("veFaixas").style.width = larg + "px";
     $("veRot").innerHTML = "<div>TEMPO</div>" + TRILHAS.map(function (tr) { return '<div' + (vaziaTr(tr[0]) ? ' class="vazia"' : "") + ' style="--c:' + tr[2] + '">' + tr[1] + "</div>"; }).join("");
@@ -376,7 +394,7 @@
   $("veLib").addEventListener("keydown", function (e) { if ((e.key === "Enter" || e.key === " ") && e.target.matches(".ve-item")) { e.preventDefault(); e.target.click(); } });
   $("vePlay").onclick = function () { if (TOCANDO) parar(); else tocar(); };
   $("veInicio").onclick = function () { irPara(0); $("veRolo").scrollLeft = 0; };
-  $("veCortar").onclick = dividir; $("veDuplicar").onclick = duplicar; $("veApagar").onclick = apagar;
+  $("veDesf").onclick = desfazer; $("veRef").onclick = refazer; $("veApIni").onclick = function () { aparar("ini"); }; $("veApFim").onclick = function () { aparar("fim"); }; $("veCortar").onclick = dividir; $("veDuplicar").onclick = duplicar; $("veApagar").onclick = apagar;
   $("veZoomMais").onclick = function () { PPS = Math.min(200, Math.round(PPS * 1.4)); desenharTL(); }; $("veZoomMenos").onclick = function () { PPS = Math.max(12, Math.round(PPS / 1.4)); desenharTL(); };
   $("veFmt").onchange = function () { P.fmt = this.value; if (P.fmt === "livre" && !P.w) { P.w = cv.width; P.h = cv.height; } formato(); guardar(); };
   ["veLargura", "veAltura"].forEach(function (id) { $(id).onchange = function () { if (P.fmt !== "livre") return; var par = function (v) { v = Math.round(Number(v) || 0); return lim(v - v % 2, 240, 4096); }; P.w = par($("veLargura").value); P.h = par($("veAltura").value); formato(); guardar(); aviso("Tamanho " + P.w + " × " + P.h + " px."); }; });
@@ -466,14 +484,15 @@
       "arrowleft": function () { irPara(T - passoQ); }, "arrowright": function () { irPara(T + passoQ); }, "shift+arrowleft": function () { irPara(T - 1); }, "shift+arrowright": function () { irPara(T + 1); },
       "home": function () { irPara(0); $("veRolo").scrollLeft = 0; }, "end": function () { irPara(total()); },
       "delete": function () { if (!SEL) return false; apagar(false); }, "shift+delete": function () { if (!SEL) return false; apagar(true); },
-      "ctrl+k": dividir, "ctrl+z": desfazer, "ctrl+shift+z, ctrl+y": refazer, "ctrl+c": function () { return copiar(); }, "ctrl+v": colar,
+      "ctrl+k": dividir, "ctrl+z": desfazer, "ctrl+shift+z, ctrl+y": refazer, "ctrl+c": function () { return copiar(); }, "ctrl+v": colar, "ctrl+shift+c": function () { return copiarAtrib(); }, "ctrl+shift+v": function () { return colarAtrib(); },
+      "q": function () { aparar("ini"); }, "w": function () { aparar("fim"); }, "shift+e": function () { return ligarDesligar(); },
       "ctrl+shift+/, ctrl+shift+d": duplicar, "ctrl+d": function () { var c = sel(); if (!c || c.tipo === "audio" || c.tipo === "texto") return false; c.trans = {tipo: "dissolver", dur: 0.6}; tudo(); aviso("Ctrl+D: transição Dissolver no início do clipe" + (anteriorDe(c) ? "." : " (encoste-o no fim de outro clipe).")); },
       "=, shift+=, ctrl+=": function () { zoomEm(1.4); }, "-, ctrl+-": function () { zoomEm(1 / 1.4); }, "\\": encaixarTudo,
       "ctrl+s": function () { guardar(); aviso("✓ Salvo neste aparelho (o editor também salva sozinho)."); }, "ctrl+m, ctrl+e": exportar, "ctrl+i": function () { $("veArq").click(); },
       "escape": function () { if (!SEL) return false; SEL = null; desenharTL(); desenharProp(); }
     });
     BWFerr.ajuda("ATALHOS DO EDITOR DE VÍDEO", [["#", "TOCAR E NAVEGAR"], ["Espaço / K", "tocar / pausar"], ["L", "tocar"], ["J", "voltar 1 s"], ["← / →", "um quadro para trás / frente"], ["Shift+← / Shift+→", "1 segundo"], ["Home / End", "início / fim"],
-      ["#", "EDITAR"], ["Ctrl+K", "cortar na agulha (o clipe escolhido, ou tudo o que está na agulha)"], ["Delete", "apagar o clipe"], ["Shift+Delete", "apagar e fechar o espaço"], ["Ctrl+C / Ctrl+V", "copiar / colar na agulha"],
+      ["#", "EDITAR"], ["Ctrl+K", "cortar na agulha (o clipe escolhido, ou tudo o que está na agulha)"], ["Delete", "apagar o clipe"], ["Shift+Delete", "apagar e fechar o espaço"], ["Ctrl+C / Ctrl+V", "copiar / colar na agulha"], ["Ctrl+Shift+C / Ctrl+Shift+V", "copiar os AJUSTES de um take / colar em outro"], ["Q / W", "cortar o começo / o fim do take até a agulha"], ["Shift+E", "desativar / ativar o take"],
       ["Ctrl+Shift+D", "duplicar"], ["Ctrl+D", "transição Dissolver no clipe"], ["Ctrl+Z", "desfazer"], ["Ctrl+Shift+Z / Ctrl+Y", "refazer"], ["Botão direito", "opções do clipe (no celular: segure o dedo)"],
       ["#", "LINHA DO TEMPO E ARQUIVO"], ["= / -", "aproximar / afastar"], ["\\", "caber o vídeo inteiro"], ["Ctrl+roda do mouse", "zoom onde está o mouse"], ["Ctrl+I", "importar mídia"], ["Ctrl+S", "salvar"], ["Ctrl+M", "exportar o vídeo"], ["?", "esta lista"]]);
     // MENU DO CLIPE (botão direito / segurar o dedo)
@@ -482,6 +501,15 @@
       var vis = c.tipo !== "audio" && c.tipo !== "texto", itens = [
         {icone: "✂", rot: "Cortar na agulha", tecla: "Ctrl+K", off: !(T > c.ini + 0.05 && T < c.ini + c.dur - 0.05), fn: dividir},
         {icone: "⧉", rot: "Duplicar", tecla: "Ctrl+Shift+D", fn: duplicar}, {icone: "⎘", rot: "Copiar", tecla: "Ctrl+C", fn: copiar}, {icone: "📋", rot: "Colar na agulha", tecla: "Ctrl+V", off: !COPIA, fn: colar}];
+      itens.push({icone: "⇤", rot: "Cortar o começo até a agulha", tecla: "Q", off: !(T > c.ini + 0.05 && T < c.ini + c.dur - 0.05), fn: function () { aparar("ini"); }}, {icone: "⇥", rot: "Cortar o fim na agulha", tecla: "W", off: !(T > c.ini + 0.05 && T < c.ini + c.dur - 0.05), fn: function () { aparar("fim"); }},
+        "-", {icone: "🎚", rot: "Copiar ajustes", tecla: "Ctrl+Shift+C", fn: copiarAtrib}, {icone: "🖌", rot: "Colar ajustes", tecla: "Ctrl+Shift+V", off: !ATRIB || ATRIB.id === c.id, fn: colarAtrib},
+        {icone: c.off ? "👁" : "🚫", rot: c.off ? "Ativar o take" : "Desativar o take", tecla: "Shift+E", fn: ligarDesligar});
+      if (temSom(c)) { var vv = c.vol == null ? 100 : c.vol; itens.push({icone: "🔊", rot: "Som do take", sub: [
+        {rot: vv === 0 ? "Devolver o som (100%)" : "Silenciar", fn: function () { c.vol = vv === 0 ? 100 : 0; tudo(); }},
+        {rot: "Volume 50%" + (vv === 50 ? "  ✓" : ""), fn: function () { c.vol = 50; tudo(); }}, {rot: "Volume 100%" + (vv === 100 ? "  ✓" : ""), fn: function () { c.vol = 100; tudo(); }}, {rot: "Volume 150%" + (vv === 150 ? "  ✓" : ""), fn: function () { c.vol = 150; tudo(); }},
+        {rot: "Entrada suave 0,5 s" + (c.fin >= 0.5 ? "  ✓" : ""), fn: function () { c.fin = c.fin >= 0.5 ? 0 : 0.5; tudo(); }}, {rot: "Saída suave 0,5 s" + (c.fout >= 0.5 ? "  ✓" : ""), fn: function () { c.fout = c.fout >= 0.5 ? 0 : 0.5; tudo(); }},
+        {rot: "Abrir os ajustes de som…", fn: abrirSom}]}); }
+      itens.push("-");
       if (c.tipo !== "texto") itens.push({icone: "⇄", rot: "Substituir mídia…", fn: function () { substituir(c); }});
       if (c.tipo === "video" || c.tipo === "audio") itens.push({icone: "⏩", rot: "Velocidade (" + String(vel(c)).replace(".", ",") + "×)", sub: VELS.map(function (v) { return {rot: String(v).replace(".", ",") + "×" + (v === vel(c) ? "  ✓" : ""), fn: function () { mudarVel(c, v); }}; })});
       if (c.tipo === "video") itens.push({icone: "❄", rot: "Congelar quadro na agulha", fn: congelar});
@@ -505,7 +533,7 @@
     el.innerHTML = u ? '<a href="login.html" class="bw-logado" title="Conta: ' + esc(u.email) + '"><i></i>LOGADO</a>' : '<a href="login.html" class="bw-btn bw-btn--vidro" style="min-height:34px;padding:0 14px;font-size:12px">LOGIN</a>'; })();
 
   /* celular: a prévia fica presa no topo — a página reserva a altura dela (e a das abas de baixo) ao rolar até um botão (regras 52 e 71) */
-  if (window.BWFerr) BWFerr.telaFixa({wrap: document.querySelector(".wrap"), grade: document.querySelector(".ve-grade"), palco: document.querySelector(".ve-palco"), rola: [document.querySelector(".ve-tl")], some: [document.querySelector(".wrap > .ve-nota")],
+  if (window.BWFerr) BWFerr.telaFixa({wrap: document.querySelector(".wrap"), grade: document.querySelector(".ve-grade"), palco: document.querySelector(".ve-palco"), rola: [document.querySelector(".ve-tl")], soltos: [document.querySelector(".ve-tl")], painelLer: function () { return JSON.parse(localStorage.getItem("ui_ve_paineis") || "{}"); }, painelGravar: function (S) { localStorage.setItem("ui_ve_paineis", JSON.stringify(S)); }, alturaPropria: true, some: [document.querySelector(".wrap > .ve-nota")],
     aviso: $("veAviso"), aoMedir: function (cel) { var pal = document.querySelector(".ve-palco"); cv.style.maxHeight = cel ? "" : Math.max(140, pal.clientHeight - 84) + "px"; }});
   /* ---------- 21/11 — layout: painéis que recolhem, tela grande, divisa arrastável, camadas só com conteúdo ---------- */
   (function () {
@@ -575,7 +603,7 @@
     function soltar() { if (!arr) return; arr = null; div.classList.remove("on"); lembrar(); }
     div.addEventListener("pointerup", soltar); div.addEventListener("pointercancel", soltar);
     div.addEventListener("dblclick", function () { V.tl = 0; lembrar(); aplicar(); });
-    window.__veVista = {estado: function () { return {esq: V.esq, dir: V.dir, tl: V.tl, todas: V.todas, grande: grande, we: V.we, wd: V.wd, min: V.min, solto: JSON.parse(JSON.stringify(V.solto))}; }, aoSelecionar: function () { if (!V.dir && !grande) { V.dir = true; aplicar(); } }};
+    window.__veVista = {mostrar: function (k) { if (!V[k]) { V[k] = true; lembrar(); aplicar(); } }, estado: function () { return {esq: V.esq, dir: V.dir, tl: V.tl, todas: V.todas, grande: grande, we: V.we, wd: V.wd, min: V.min, solto: JSON.parse(JSON.stringify(V.solto))}; }, aoSelecionar: function () { if (!V.dir && !grande) { V.dir = true; aplicar(); } }};
     aplicar();
   })();
   function reservar() { var m = window.matchMedia("(max-width:1100px)").matches, h = document.documentElement.style; h.scrollPaddingTop = m ? (document.querySelector(".ve-palco").offsetHeight + 10) + "px" : ""; h.scrollPaddingBottom = m ? "90px" : ""; }

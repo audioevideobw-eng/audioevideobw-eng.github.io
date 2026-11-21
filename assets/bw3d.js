@@ -326,7 +326,7 @@
     }
     h += '<p class="d3-nota" style="margin:0">O vídeo é gerado no próprio aparelho, sem enviar nada. Fundo verde, azul ou magenta = recorte no CapCut (Chroma key); fundo transparente = PNG com recorte.</p>';
     h += "</div></div>";
-    $("d3Painel").innerHTML = h;
+    var pc = $("d3PainelCorpo"); if (!pc) { pc = document.createElement("div"); pc.id = "d3PainelCorpo"; $("d3Painel").appendChild(pc); } pc.innerHTML = h; /* corpo próprio: a barrinha ⠿ do painel (bw-ferramentas) mora no d3Painel e não pode ser apagada */
     ligarPainel();
     if (window.BWDobras) BWDobras.aplicar($("d3Painel"));
   }
@@ -834,7 +834,7 @@
     try { await recarregar(); } catch (e) {}
     trocarModo(P.modo, true);
     if (window.BWFerr) FIXA = BWFerr.telaFixa({ wrap: document.querySelector(".wrap"), grade: $("d3Grade"), palco: document.querySelector(".d3-palco"),
-      rola: [], some: [$("d3Nota")], aviso: $("d3Aviso"), aoMedir: function () { medir(); ver(TEMPO); } });
+      rola: [], some: [$("d3Nota")], painelLer: function () { return JSON.parse(localStorage.getItem("ui_3d_paineis") || "{}"); }, painelGravar: function (S) { localStorage.setItem("ui_3d_paineis", JSON.stringify(S)); }, aviso: $("d3Aviso"), aoMedir: function () { medir(); ver(TEMPO); } });
     [].forEach.call($("d3Modos").children, function (b) { b.onclick = function () { trocarModo(b.getAttribute("data-m")); }; });
     [].forEach.call($("d3AbasCel").children, function (b) { b.onclick = function () { aba(b.getAttribute("data-aba")); }; });
     $("d3Nome").addEventListener("input", function () { P.nome = this.value; guardarTarde(); });

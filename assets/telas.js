@@ -480,7 +480,7 @@
     try { var pq = new URLSearchParams(location.search).get("p"); if (pq) ult = pq; } catch (e) {}
     var r = ult ? await op("projetos", "readonly", function (s) { return s.get(ult); }).catch(function () { return null; }) : null;
     desenharEfx(); ligarArrastar(); ligarFerramentas();
-    if (window.BWFerr) FIXA = BWFerr.telaFixa({ wrap: document.querySelector(".wrap"), grade: $("tlGrade"), palco: document.querySelector(".tl-palco"), rola: [document.querySelector(".tl-seq")], some: [document.querySelector(".wrap > .tl-nota")], aviso: $("tlAviso"), aoMedir: function () { if (P) { medir(); if (!TOCANDO) ver(TEMPO); } } });
+    if (window.BWFerr) FIXA = BWFerr.telaFixa({ wrap: document.querySelector(".wrap"), grade: $("tlGrade"), palco: document.querySelector(".tl-palco"), rola: [document.querySelector(".tl-seq")], nomeRola: "SEQUÊNCIA E EFEITOS", painelLer: function () { return JSON.parse(localStorage.getItem("ui_telas_paineis") || "{}"); }, painelGravar: function (S) { localStorage.setItem("ui_telas_paineis", JSON.stringify(S)); }, some: [document.querySelector(".wrap > .tl-nota")], aviso: $("tlAviso"), aoMedir: function () { if (P) { medir(); if (!TOCANDO) ver(TEMPO); } } });
     if (r && r.projeto) await abrirProjeto(r); else { P = novoProjeto("9:16"); ORDEM = Object.keys(MID); P.ordem = ORDEM.slice(); HIST = [JSON.stringify(P)]; desenharTudo(); }
     /* 20/11: tamanho vindo do ESTÚDIO 3D (resolução do telão): telas.html?w=896&h=512 */
     try { var uq = new URLSearchParams(location.search), uw = parseInt(uq.get("w"), 10), uh = parseInt(uq.get("h"), 10);
