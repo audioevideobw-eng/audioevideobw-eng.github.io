@@ -445,6 +445,7 @@
       if (EXP.url) URL.revokeObjectURL(EXP.url);
       var nome = (P.nome || "telas").normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-zA-Z0-9]+/g, "-").replace(/^-|-$/g, "").toLowerCase() || "telas";
       EXP.arquivo = new File([res.blob], nome + ".mp4", { type: "video/mp4" }); EXP.url = URL.createObjectURL(res.blob);
+      if (window.BWCriacoes) BWCriacoes.aoLado("tlBaixar", { ferramenta: "telas", arquivo: function () { return EXP.arquivo; }, nome: function () { return P.nome; }, projeto: function () { return P.id; }, tipo: "video" });
       $("tlVideo").src = EXP.url; $("tlBaixar").href = EXP.url; $("tlBaixar").download = nome + ".mp4"; $("tlPronto").hidden = false;
       $("tlProgTxt").textContent = "✓ Vídeo pronto (" + res.largura + "×" + res.altura + ", " + fmt(d) + " s" + (som ? res.comSom ? ", com a música" : ", sem som — este aparelho não gravou o áudio" : ", sem música") + ").";
     } catch (e) { $("tlProgTxt").textContent = /cancelado/.test(e.message) ? "Cancelado." : "Não deu certo: " + (e.message || e); }
@@ -475,6 +476,8 @@
     var regs = []; try { regs = await op("midias", "readonly", function (s) { return s.getAll(); }); } catch (e) {}
     for (var i = 0; i < regs.length; i++) if (regs[i].tipo !== "musica") MID[regs[i].id] = await abrirMidia(regs[i]);
     var ult = null; try { ult = localStorage.getItem("ui_telas_ultimo"); } catch (e) {}
+    /* 20/11 — vindo da LINHA DO TEMPO (?p=ID): abre o projeto daquela criação */
+    try { var pq = new URLSearchParams(location.search).get("p"); if (pq) ult = pq; } catch (e) {}
     var r = ult ? await op("projetos", "readonly", function (s) { return s.get(ult); }).catch(function () { return null; }) : null;
     desenharEfx(); ligarArrastar(); ligarFerramentas();
     if (window.BWFerr) FIXA = BWFerr.telaFixa({ wrap: document.querySelector(".wrap"), grade: $("tlGrade"), palco: document.querySelector(".tl-palco"), rola: [document.querySelector(".tl-seq")], some: [document.querySelector(".wrap > .tl-nota")], aviso: $("tlAviso"), aoMedir: function () { if (P) { medir(); if (!TOCANDO) ver(TEMPO); } } });

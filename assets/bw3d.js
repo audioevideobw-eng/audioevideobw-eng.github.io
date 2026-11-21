@@ -479,7 +479,9 @@
     if ($("d3Glb")) $("d3Glb").onclick = function () { exportar3D("glb"); };
     if ($("d3Obj")) $("d3Obj").onclick = function () { exportar3D("obj"); };
     if ($("d3Exportar")) $("d3Exportar").onclick = folhaExportar;
-    if ($("d3Png")) $("d3Png").onclick = salvarPNG;
+    if ($("d3Png")) { $("d3Png").onclick = salvarPNG;
+      if (window.BWCriacoes) BWCriacoes.aoLado("d3Png", { ferramenta: "d3", tipo: "imagem", nome: function () { return P.nome; }, projeto: function () { return P.id; },
+        arquivo: function () { var t = tamanhoExp(), lado = Math.min(2400, Math.max(t[0], 1200)); return new Promise(function (ok) { renderPara(lado, Math.round(lado * t[1] / t[0]), TEMPO).toBlob(function (bl) { ok(bl); }, "image/png"); }); } }); }
     if ($("d3Pdf")) $("d3Pdf").onclick = planta;
   }
   function mudou(k) {
@@ -671,6 +673,7 @@
       var nome = (P.nome || "bw-3d").normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-zA-Z0-9]+/g, "-").replace(/^-|-$/g, "").toLowerCase() || "bw-3d";
       EXP.arquivo = new File([res.blob], nome + ".mp4", { type: "video/mp4" }); EXP.url = URL.createObjectURL(res.blob);
       $("d3Video").src = EXP.url; $("d3Baixar").href = EXP.url; $("d3Baixar").download = nome + ".mp4"; $("d3Pronto").hidden = false;
+      if (window.BWCriacoes) BWCriacoes.aoLado("d3Baixar", { ferramenta: "d3", arquivo: function () { return EXP.arquivo; }, nome: function () { return P.nome; }, projeto: function () { return P.id; }, tipo: "video" });
       $("d3ProgTxt").textContent = "✓ Vídeo pronto (" + res.largura + "×" + res.altura + ", " + dur + " s).";
       $("d3Compart").onclick = function () {
         if (navigator.share && navigator.canShare && navigator.canShare({ files: [EXP.arquivo] })) navigator.share({ files: [EXP.arquivo], title: P.nome || "Vídeo 3D" }).catch(function () {});
@@ -822,6 +825,8 @@
     var salvo = null; try { salvo = JSON.parse(localStorage.getItem("ui_3d_atual") || "null"); } catch (e) {}
     P = salvo && salvo.v ? limpar(salvo) : novo("plano");
     var u = new URLSearchParams(location.search);
+    /* 20/11 — vindo da LINHA DO TEMPO (?p=ID): volta o projeto daquela criação */
+    if (u.get("p") && u.get("p") !== P.id) { try { var pr = await por("projetos", "get", u.get("p")); if (pr && pr.v) P = limpar(pr); } catch (e) {} }
     if (u.get("modo") && NOTAS[u.get("modo")]) P.modo = u.get("modo");
     if (u.get("w") && u.get("h")) { P.exportar.formato = "livre"; P.exportar.w = num(u.get("w"), 1080); P.exportar.h = num(u.get("h"), 1920); }
     $("d3Nome").value = P.nome || "";

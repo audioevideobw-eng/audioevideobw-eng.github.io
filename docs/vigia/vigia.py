@@ -386,6 +386,27 @@ if re.search(r"fetch\(|XMLHttpRequest|\.upload\(|\.from\(", _cj):
     problemas.append("assets/config.js: a imagem da marca é lida no aparelho — a página não envia nem grava nada na conta")
 if 'href="config.html"' not in lay or not os.path.exists("assets/modos.css") or 'id="cfgModos"' not in todos.get("config.html", ""):
     problemas.append("CONFIGURAÇÕES: falta a engrenagem no layout.js, o assets/modos.css ou a lista de modos em config.html")
+# 7.8f AMBIENTE ÚNICO (20/11/2026): a LINHA DO TEMPO é o centro; a biblioteca de criações nunca sai do aparelho
+_bc = _arq("assets/bw-criacoes.js")
+if re.search(r"fetch\(|XMLHttpRequest|supabase|BWSync|\.upload\(|\.from\(", _bc):
+    problemas.append("assets/bw-criacoes.js: as criações ficam no aparelho (IndexedDB bw_criacoes) — nada de rede, upload nem conta")
+if re.search(r"(get|set)Item\(\s*[\"']bw_", _bc):
+    problemas.append("assets/bw-criacoes.js: só preferências locais (ui_*) — não mexe nos dados da conta")
+_FERR_CRIA = {"motion.html": "motion", "telas.html": "telas", "3d.html": "d3", "fotos.html": "fotos", "criador.html": "criador", "reels.html": "reels", "video.html": "video"}
+for _pg in _FERR_CRIA:
+    if "assets/bw-criacoes.js" not in todos.get(_pg, ""):
+        problemas.append(f"{_pg}: sem assets/bw-criacoes.js (a criação não chega na linha do tempo)")
+_ve = _arq("assets/video-editor.js")
+if 'id="veCriarLista"' not in todos.get("video.html", "") or "desenharFerramentas" not in _ve or "trazerCriacao" not in _ve:
+    problemas.append("EDITOR DE VÍDEO: falta a caixa CRIAR PARA A LINHA DO TEMPO (veCriarLista) ou a entrada das criações")
+if "data-editar" not in _ve or "editarNaOrigem" not in _ve:
+    problemas.append("EDITOR DE VÍDEO: toda criação precisa do ✎ que reabre a ferramenta de origem e troca no lugar")
+for _a, _id in (("assets/motion.js", "moExpBaixar"), ("assets/telas.js", "tlBaixar"), ("assets/bw3d.js", "d3Baixar"), ("assets/criador.js", "btnPng"), ("assets/reels.js", "aquiBaixar")):
+    if "BWCriacoes.aoLado(\"" + _id + "\"" not in _arq(_a):
+        problemas.append(f"{_a}: sem o botão ➜ MANDAR PARA A LINHA DO TEMPO ao lado de #{_id}")
+if 'data-k="linha"' not in _arq("assets/fotos.js"):
+    problemas.append("assets/fotos.js: sem o ➜ LINHA DO TEMPO na aba SALVAR")
+
 # 7.9 páginas com o visual novo (menu lateral) — exceto as de propósito
 SEM_MENU = {"login.html", "cadastro.html", "pedido.html", "baixar.html", "privacidade.html", "termos.html", "financeiro-painel.html", "investimentos-painel.html", "app.html", "financeiro.html", "fluxo.html", "custos.html"}
 for p, t in todos.items():

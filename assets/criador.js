@@ -622,6 +622,8 @@
   $("btnTextosIA").onclick = textosIA;
   $("btnLegenda").onclick = legenda;
   $("btnPng").onclick = function () { png(false); };
+  /* 20/11 — AMBIENTE ÚNICO: a arte vai para a LINHA DO TEMPO do editor de vídeo */
+  if (window.BWCriacoes) BWCriacoes.aoLado("btnPng", { ferramenta: "criador", tipo: "imagem", arquivo: function () { return png(true); }, nome: function () { return (E.campos && (E.campos.titulo || E.campos.nome)) || "Arte"; } });
   $("btnPdf").onclick = function () { pdf(false); };
   $("btnShare").onclick = function () { compartilhar([E.formato]); };
   $("btnPacote").onclick = function () { compartilhar(["story", "post", "quadrado"]); };

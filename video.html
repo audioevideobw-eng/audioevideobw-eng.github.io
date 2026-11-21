@@ -92,6 +92,14 @@
   .ve-tl-corpo{grid-template-columns:58px minmax(0,1fr)}
   .ve-rot div{font-size:8px;padding-left:5px;letter-spacing:.04em}
 }
+  /* 20/11 — AMBIENTE ÚNICO: atalhos das ferramentas de criação e selo de origem na biblioteca */
+  .ve-ferr{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:8px}
+  .ve-ferr a{display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 8px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:linear-gradient(160deg,rgba(255,255,255,.07),rgba(255,255,255,.02));color:inherit;text-decoration:none;font:600 10.5px/1.25 Inter,system-ui,sans-serif;letter-spacing:.04em;text-transform:uppercase;text-align:center;transition:transform .12s,border-color .12s}
+  .ve-ferr a:hover,.ve-ferr a:focus-visible{transform:translateY(-2px);border-color:var(--cf,#4C8DFF)}
+  .ve-ferr a i{font-size:20px;font-style:normal;line-height:1;color:var(--cf,#4C8DFF)}
+  .ve-item .selo{position:absolute;left:4px;top:4px;padding:1px 5px;border-radius:6px;background:rgba(3,6,16,.72);font:600 9px/1.5 Inter,system-ui,sans-serif;letter-spacing:.04em;color:var(--cf,#9fb4ff);pointer-events:none}
+  .ve-item .ed{position:absolute;right:4px;bottom:4px;width:22px;height:22px;display:flex;align-items:center;justify-content:center;border-radius:7px;border:1px solid rgba(255,255,255,.18);background:rgba(3,6,16,.76);color:inherit;font-size:11px;cursor:pointer}
+  .ve-item .ed:hover{border-color:#4C8DFF}
 </style>
 <script src="assets/modos.js?v=5"></script>
 </head>
@@ -106,6 +114,11 @@
     <button class="ve-bt pri" id="veExportar" type="button">⬇ EXPORTAR VÍDEO</button>
   </div>
   <div class="ve-grade">
+    <div class="ve-cx" id="veCriar">
+      <h3 data-seta="ve-criar">CRIAR PARA A LINHA DO TEMPO</h3>
+      <div class="ve-ferr" id="veCriarLista"></div>
+      <p class="ve-nota">Abre a ferramenta numa aba, você cria e manda para cá — a criação entra na linha do tempo sem baixar arquivo nenhum.</p>
+    </div>
     <div class="ve-cx" id="veMidia">
       <h3 data-seta="ve-midia">MÍDIA</h3>
       <div class="ve-abas" id="veAbas" role="group" aria-label="Tipo de mídia"></div>
@@ -140,6 +153,7 @@
 <script src="assets/bw-sync.js"></script>
 <script src="assets/bw-personagens.js?v=3"></script>
 <script src="assets/bw-ferramentas.js?v=1"></script>
-<script src="assets/video-editor.js?v=3"></script>
+<script src="assets/bw-criacoes.js?v=1"></script>
+<script src="assets/video-editor.js?v=4"></script>
 </body>
 </html>

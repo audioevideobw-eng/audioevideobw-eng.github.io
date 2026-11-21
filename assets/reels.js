@@ -804,6 +804,7 @@
         '<video id="aquiVideo" src="' + AQUI.url + '" controls playsinline style="width:100%;max-height:46vh;border-radius:12px;background:#000"></video>' +
         '<div class="rl-acoes" style="margin-top:8px"><a class="rl-bt pri" id="aquiBaixar" href="' + AQUI.url + '" download="' + esc(nome) + '.mp4" style="text-decoration:none;text-align:center">⬇ SALVAR VÍDEO</a>' + (podeEnviar ? '<button class="rl-bt" id="aquiEnviar" type="button">COMPARTILHAR</button>' : '') + '</div>');
       if (podeEnviar) $("aquiEnviar").onclick = function () { navigator.share({files: [AQUI.arquivo], title: P.nome || "Reel"}).catch(function () {}); };
+      if (window.BWCriacoes) BWCriacoes.aoLado("aquiBaixar", { ferramenta: "reels", tipo: "video", arquivo: function () { return AQUI.arquivo; }, nome: function () { return P.nome; }, projeto: function () { return P.id; } });
     } catch (e) {
       estadoAqui('<div class="rl-aviso' + (e.message === "cancelado" ? '">Cancelado.' : ' erro">Não deu para gerar aqui: ' + esc(e.message || String(e)) + '. Você pode tentar a qualidade Rápida ou usar RENDERIZAR NO PC.') + '</div>');
     }
@@ -1316,7 +1317,9 @@
   (async function iniciar() {
     try { $("chkZonas").checked = localStorage.getItem("ui_reels_zonas") === "1"; $("chkZonas").onchange(); } catch (e) { }
     var p = null;
-    try { var ult = localStorage.getItem("ui_reels_ultimo"); if (ult) p = await dbGet("projetos", ult); } catch (e) { }
+    try { var ult = localStorage.getItem("ui_reels_ultimo");
+      try { var pq = new URLSearchParams(location.search).get("p"); if (pq) ult = pq; } catch (e2) { }   /* 20/11 — vindo da LINHA DO TEMPO */
+      if (ult) p = await dbGet("projetos", ult); } catch (e) { }
     await carregarLib();
     await abrir(p || novoProjeto());
     puxarDaConta().catch(function () { });

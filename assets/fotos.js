@@ -1145,7 +1145,7 @@
       h += '<div class="c-tit">TAMANHO</div>' + chips("sTam", TAMANHOS, S.tam) + '<div class="c-tit">ARQUIVO</div>' + chips("sFmt", [["jpg", "JPG (menor)"], ["png", "PNG (transparência)"]], S.fmt);
       if (S.fmt === "jpg") h += sl("sQual", "Qualidade", 50, 100, S.qual);
       h += '<div class="c-tit">CARROSSEL (FOTO PANORÂMICA EM PARTES)</div>' + chips("car", [["0", "DESLIGADO"], ["2", "2 PARTES"], ["3", "3 PARTES"]], String(G.car.n)) + (G.car.n ? chips("carParte", [["4:5", "CADA PARTE 4:5"], ["1:1", "CADA PARTE 1:1"]], G.car.parte) : "");
-      h += '<div class="c-linha" style="margin-top:12px"><button type="button" class="chip on" data-k="baixarUma">⇩ BAIXAR ESTA</button><button type="button" class="chip on" data-k="baixarTodas">⇩ TODAS (ZIP · ' + FOTOS.length + ')</button><button type="button" class="chip" data-k="compartilhar">COMPARTILHAR</button><button type="button" class="chip ok" data-k="pacote">PACOTE REDES (FEED + STORY + QUADRADO)</button></div>';
+      h += '<div class="c-linha" style="margin-top:12px"><button type="button" class="chip on" data-k="baixarUma">⇩ BAIXAR ESTA</button><button type="button" class="chip on" data-k="baixarTodas">⇩ TODAS (ZIP · ' + FOTOS.length + ')</button><button type="button" class="chip" data-k="compartilhar">COMPARTILHAR</button><button type="button" class="chip ok" data-k="linha" title="Guarda esta foto no aparelho e põe na linha do tempo do EDITOR DE VÍDEO">➜ LINHA DO TEMPO</button><button type="button" class="chip ok" data-k="pacote">PACOTE REDES (FEED + STORY + QUADRADO)</button></div>';
       h += '<p class="c-nota" id="prog" role="status"></p>';
       h += '<div class="c-tit">MEUS PADRÕES</div><div class="c-rolar">' + KIT.padroes.map(function (p) { return '<button type="button" class="chip" data-k="padrao" data-v="' + p.id + '">' + esc(p.nome) + "</button>"; }).join("") + '<button type="button" class="chip ok" data-k="salvarPadrao">+ GUARDAR ESTE PADRÃO</button><button type="button" class="chip perigo" data-k="zerarTudo">↺ TUDO DO ZERO</button></div>';
       h += '<p class="c-nota">Padrão = formato, ajustes, filtro, textos, logo e borda juntos. Fica em ★ MINHA MARCA.</p>';
@@ -1285,7 +1285,7 @@
     sTam: function (v) { G.saida.tam = v; }, sFmt: function (v) { G.saida.fmt = v; painel(); }, sQual: function (v) { G.saida.qual = +v; },
     car: function (v) { G.car.n = +v; FOTOS.forEach(function (f) { f.cx = f.cy = 0; }); painel(); },
     carParte: function (v) { G.car.parte = v; },
-    baixarUma: function () { exportar("uma"); }, baixarTodas: function () { exportar("zip"); }, compartilhar: function () { exportar("share"); }, pacote: function () { exportar("pacote"); },
+    baixarUma: function () { exportar("uma"); }, linha: function () { exportar("linha"); }, baixarTodas: function () { exportar("zip"); }, compartilhar: function () { exportar("share"); }, pacote: function () { exportar("pacote"); },
     padrao: function (v) { var p = KIT.padroes.filter(function (x) { return x.id === v; })[0]; if (!p) return; var S = G.saida, ev = G.vars; G = normalizar(p.g); G.saida = S; G.vars = ev; TXT = null; G.textos.forEach(function (t) { carregarFonte(t.fonte); }); painel(); toast("✓ Padrão “" + p.nome + "” aplicado"); },
     salvarPadrao: async function () { var n = prompt("Nome do padrão:", "Padrão " + (KIT.padroes.length + 1)); if (!n) return; var g = clone(G); delete g.saida; delete g.vars; KIT.padroes = KIT.padroes.filter(function (p) { return p.nome !== n; }); KIT.padroes.push({ id: uid("pd"), nome: n.slice(0, 40), g: g }); await gravarKit(); painel(); toast("✓ Padrão guardado em MINHA MARCA"); }
   };
@@ -1470,7 +1470,7 @@
   function mb(n) { return (n / 1048576).toFixed(1).replace(".", ",") + " MB"; }
   async function exportar(modo) {
     if (exportando || !FOTOS.length) return; exportando = true; avisoQualidade = false; await fontesProntas();
-    var arqs = [], idx = modo === "uma" ? [ATUAL] : FOTOS.map(function (_, i) { return i; });
+    var arqs = [], idx = (modo === "uma" || modo === "linha") ? [ATUAL] : FOTOS.map(function (_, i) { return i; });
     try {
       if (modo === "pacote") {
         var salvo = { f: G.formato, car: clone(G.car) }; G.car.n = 0;
@@ -1483,7 +1483,11 @@
       } else {
         for (var j = 0; j < idx.length; j++) { prog("Gerando " + (j + 1) + " de " + idx.length + "…"); await new Promise(function (r) { setTimeout(r, 20); }); arqs = arqs.concat(await gerar(idx[j])); }
       }
-      if (modo === "share") {
+      if (modo === "linha") {   /* 20/11 — AMBIENTE ÚNICO: a foto vai para a linha do tempo do editor de vídeo */
+        if (!window.BWCriacoes) prog("A linha do tempo não está disponível nesta página.");
+        else if (!arqs.length) prog("Não deu para gerar a foto.");
+        else { await BWCriacoes.mandar({ ferramenta: "fotos", tipo: "imagem", arquivo: arqs[0].blob, nome: (arqs[0].nome || "foto").replace(/\.[a-z0-9]+$/i, "") }); prog("✓ Na linha do tempo (" + mb(arqs[0].blob.size) + ")"); }
+      } else if (modo === "share") {
         var files = arqs.map(function (a) { return new File([a.blob], a.nome, { type: a.blob.type }); });
         if (!navigator.canShare || !navigator.canShare({ files: files })) prog("Este navegador não compartilha " + files.length + " arquivo(s) de uma vez — use BAIXAR.");
         else { try { await navigator.share({ files: files, title: G.vars.evento || "Fotos" }); prog("✓ Enviado para o menu de compartilhar"); } catch (e) { prog(e && e.name === "AbortError" ? "Compartilhamento cancelado." : "Não deu para compartilhar — tente menos fotos ou use BAIXAR."); } }

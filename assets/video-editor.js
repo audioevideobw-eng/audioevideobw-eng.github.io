@@ -59,7 +59,56 @@
     try { var lista = await new Promise(function (ok) { var r = indexedDB.open("bw_reels"); r.onsuccess = function () { var d = r.result; if (!d.objectStoreNames.contains("midias")) { d.close(); return ok([]); } var q = d.transaction("midias").objectStore("midias").getAll(); q.onsuccess = function () { d.close(); ok(q.result || []); }; q.onerror = function () { d.close(); ok([]); }; }; r.onerror = function () { ok([]); }; });
       for (var i = 0; i < lista.length; i++) { var x = lista[i]; if (!x.blob || !(x.tipo === "imagem" || x.tipo === "video")) continue; var id = "cr-" + x.id; if (MID[id]) continue; var m = await porMidia(x.blob, x.projeto === "__quadro" ? "Quadro · " + (x.nome || "cena") : (x.nome || "Reels"), x.tipo === "video" ? "video" : "imagem", id); m.criacao = true; n++; } } catch (e) {}
     try { var ps = window.BWPersonagens ? await BWPersonagens.listar() : []; for (var k = 0; k < ps.length; k++) { var p = ps[k], idp = "pe-" + p.id; if (!p.blob || MID[idp]) continue; var mp = await porMidia(p.blob, "Personagem · " + (p.nome || ""), "imagem", idp); mp.criacao = true; n++; } } catch (e) {}
-    ABA = "tudo"; desenharLib(); aviso(n ? n + " criação(ões) trazida(s) do Quadro de História, do BW Reels e dos Personagens." : "Não achei criações novas neste aparelho. O que você gerou no Flux, Higgsfield ou Gemini entra pelo ＋ IMPORTAR.", !n);
+    try { var bl = window.BWCriacoes ? await BWCriacoes.listar() : []; for (var b = 0; b < bl.length; b++) { if (await trazerCriacao(bl[b].id, false)) n++; } } catch (e) {}
+    ABA = "tudo"; desenharLib(); aviso(n ? n + " criação(ões) trazida(s) das ferramentas deste aparelho." : "Não achei criações novas neste aparelho. Crie em CRIAR PARA A LINHA DO TEMPO, ou traga de fora pelo ＋ IMPORTAR.", !n);
+  }
+
+  /* ---------- AMBIENTE ÚNICO (20/11): a linha do tempo é o centro; as ferramentas criam para ela ----------
+     Cada criação guardada em assets/bw-criacoes.js entra aqui como a mídia "bc-<id da criação>". Quando a pessoa
+     reabre a criação na ferramenta de origem (✎) e manda de volta, o blob é trocado NO LUGAR: os clipes continuam
+     onde estavam, com os mesmos cortes, efeitos e volume. */
+  async function trazerCriacao(id, porNaLinha) {
+    if (!window.BWCriacoes) return null;
+    var c = null; try { c = await BWCriacoes.pegar(id); } catch (e) {}
+    if (!c || !c.blob || !(c.tipo === "imagem" || c.tipo === "video")) return null;
+    var mid = "bc-" + c.id, antes = MID[mid], nova = !antes || antes.crCriado !== c.criado;
+    if (!nova && !porNaLinha) return null;
+    if (antes && antes.url) try { URL.revokeObjectURL(antes.url); } catch (e) {}
+    var m = await porMidia(c.blob, c.nome, c.tipo, mid, c.tipo === "imagem" ? 0 : c.dur);
+    m.criacao = true; m.crCriado = c.criado; m.cr = { id: c.id, ferramenta: c.ferramenta, projeto: c.projeto };
+    await tx("midias", "readwrite", function (s) { return s.put({ id: mid, nome: m.nome, tipo: m.tipo, blob: c.blob, dur: m.dur, cr: m.cr, crCriado: c.criado }); });
+    var usados = P.clips.filter(function (x) { return x.mid === mid; });
+    usados.forEach(function (x) {   /* a nova versão pode ser mais curta: encurta o clipe em vez de mostrar quadro vazio */
+      if (m.tipo === "imagem") return;
+      x.corte = Math.max(0, Math.min(x.corte || 0, Math.max(0, m.dur - 0.2)));
+      x.dur = Math.max(0.2, Math.min(x.dur, (m.dur - x.corte) / (x.vel || 1)));
+    });
+    if (porNaLinha && !usados.length) addClip(m);
+    else if (usados.length) { guardar(); tudo(true); }
+    desenharLib();   /* sem isto a criação entrava na linha do tempo mas não aparecia na biblioteca */
+    return { m: m, trocou: usados.length > 0, nome: c.nome };
+  }
+  function editarNaOrigem(mid) {
+    var m = MID[mid]; if (!m || !m.cr || !window.BWCriacoes) return;
+    var f = BWCriacoes.FERR[m.cr.ferramenta]; if (!f) return aviso("Essa criação não tem ferramenta de origem — troque pelo ⋯ SUBSTITUIR MÍDIA.", true);
+    guardar();
+    location.href = BWCriacoes.url(m.cr.ferramenta, m.cr.projeto, { voltar: "video", criacao: m.cr.id });
+  }
+  function desenharFerramentas() {
+    if (!window.BWCriacoes) return;
+    var ordem = ["motion", "telas", "d3", "fotos", "criador", "reels", "quadro"];
+    $("veCriarLista").innerHTML = ordem.map(function (k) {
+      var f = BWCriacoes.FERR[k];
+      return '<a href="' + BWCriacoes.url(k, "", { voltar: "video" }) + '" style="--cf:' + f.cor + '"><i aria-hidden="true">' + f.icone + "</i>" + esc(f.curto) + "</a>";
+    }).join("");
+  }
+  async function chegouCriacao() {   /* video.html?criacao=ID — acabou de ser mandada por uma ferramenta */
+    var id = ""; try { id = new URLSearchParams(location.search).get("criacao") || ""; } catch (e) {}
+    if (!id) { try { id = localStorage.getItem("ui_criacao_nova") || ""; } catch (e) {} if (!id) return; }
+    try { localStorage.removeItem("ui_criacao_nova"); } catch (e) {}
+    var r = await trazerCriacao(id, true);
+    if (r) aviso(r.trocou ? "✓ " + r.nome + " trocada no lugar — os cortes e os efeitos continuaram." : "✓ " + r.nome + " entrou na linha do tempo.");
+    if (location.search.indexOf("criacao=") > -1) try { history.replaceState(null, "", location.pathname); } catch (e) {}
   }
 
   /* ---------- efeitos sonoros e trilhas (sintetizados aqui, sem arquivo de terceiros) ---------- */
@@ -246,7 +295,8 @@
     $("veAbas").innerHTML = abas.map(function (a) { return '<button type="button" data-aba="' + a[0] + '" class="' + (ABA === a[0] ? "on" : "") + '" aria-pressed="' + (ABA === a[0]) + '">' + a[1] + '</button>'; }).join("");
     var l = Object.keys(MID).map(function (k) { return MID[k]; }).filter(function (m) { return ABA === "tudo" || m.tipo === ABA; });
     $("veLib").innerHTML = l.length ? l.map(function (m) { var mini = m.tipo === "imagem" ? '<img alt="" src="' + m.url + '">' : m.capa ? '<img alt="" src="' + m.capa + '">' : '<span class="mini" aria-hidden="true">' + (m.tipo === "audio" ? "🎵" : "🎬") + '</span>';
-      return '<div class="ve-item" role="button" tabindex="0" data-mid="' + esc(m.id) + '" aria-label="Pôr ' + esc(m.nome) + ' na linha do tempo">' + mini + '<span>' + esc(m.nome) + '</span><button type="button" class="x" data-del="' + esc(m.id) + '" aria-label="Tirar ' + esc(m.nome) + ' da biblioteca">✕</button></div>'; }).join("")
+      var f = m.cr && window.BWCriacoes ? BWCriacoes.FERR[m.cr.ferramenta] : null;
+      return '<div class="ve-item" role="button" tabindex="0" data-mid="' + esc(m.id) + '" aria-label="Pôr ' + esc(m.nome) + ' na linha do tempo"' + (f ? ' style="--cf:' + f.cor + '"' : "") + '>' + mini + (f ? '<b class="selo">' + f.icone + " " + esc(f.curto) + "</b>" : "") + '<span>' + esc(m.nome) + '</span>' + (f ? '<button type="button" class="ed" data-editar="' + esc(m.id) + '" title="Abrir no ' + esc(f.nome) + ' e trocar aqui" aria-label="Editar no ' + esc(f.nome) + '">✎</button>' : "") + '<button type="button" class="x" data-del="' + esc(m.id) + '" aria-label="Tirar ' + esc(m.nome) + ' da biblioteca">✕</button></div>'; }).join("")
       : '<p class="ve-nota" style="grid-column:1/-1;margin:0">Nada aqui ainda. Toque em ＋ IMPORTAR ou em ✨ MINHAS CRIAÇÕES.</p>';
   }
   function desenharTL() {
@@ -309,6 +359,7 @@
   $("veLib").addEventListener("click", async function (e) {
     var d = e.target.closest("[data-del]"); if (d) { e.stopPropagation(); var id = d.dataset.del; if (P.clips.some(function (c) { return c.mid === id; }) && !confirm("Este arquivo está na linha do tempo. Tirar da biblioteca apaga os clipes dele. Continuar?")) return; P.clips.filter(function (c) { return c.mid === id; }).forEach(function (c) { soltarEl(c.id); }); P.clips = P.clips.filter(function (c) { return c.mid !== id; }); if (MID[id]) URL.revokeObjectURL(MID[id].url); delete MID[id]; await tx("midias", "readwrite", function (s) { return s.delete(id); }); desenharLib(); tudo(); return; }
     var s = e.target.closest("[data-som]"); if (s) { var ms = await porSom(+s.dataset.som); addClip(ms); aviso(SONS[+s.dataset.som][1] + " na linha do tempo (" + (ms.som === "sfx" ? "EFEITOS, na posição da agulha" : "TRILHA") + ")."); return; }
+    var ed = e.target.closest("[data-editar]"); if (ed) { e.stopPropagation(); editarNaOrigem(ed.dataset.editar); return; }
     var m = e.target.closest("[data-mid]"); if (m && MID[m.dataset.mid]) addClip(MID[m.dataset.mid]);
   });
   $("veLib").addEventListener("keydown", function (e) { if ((e.key === "Enter" || e.key === " ") && e.target.matches(".ve-item")) { e.preventDefault(); e.target.click(); } });
@@ -436,11 +487,12 @@
   /* ---------- começo: volta o que estava aberto ---------- */
   (async function () {
     var ms = (await tx("midias", "readonly", function (s) { return s.getAll(); })) || [];
-    for (var i = 0; i < ms.length; i++) { try { await porMidia(ms[i].blob, ms[i].nome, ms[i].tipo, ms[i].id, ms[i].dur); } catch (e) {} }
+    for (var i = 0; i < ms.length; i++) { try { var mm = await porMidia(ms[i].blob, ms[i].nome, ms[i].tipo, ms[i].id, ms[i].dur); if (ms[i].cr) { mm.cr = ms[i].cr; mm.crCriado = ms[i].crCriado; mm.criacao = true; } } catch (e) {} }
     var st = await tx("estado", "readonly", function (s) { return s.get("atual"); });
     if (st && st.p && Array.isArray(st.p.clips)) { P = st.p; for (var k = 0; k < P.clips.length; k++) { var c = P.clips[k]; if (c.mid && !MID[c.mid] && c.mid.indexOf("som-") === 0) { var ix = SONS.map(function (s) { return "som-" + s[1].toLowerCase().replace(/\s+/g, "-"); }).indexOf(c.mid); if (ix >= 0) await porSom(ix); } } P.clips = P.clips.filter(function (c) { return c.tipo === "texto" || MID[c.mid]; }); }
-    formato(); desenharLib(); desenharTL(); desenharProp(); desenhar(); window.__veProntoOk = true;
+    formato(); desenharFerramentas(); desenharLib(); desenharTL(); desenharProp(); desenhar(); window.__veProntoOk = true;
+    await chegouCriacao();
   })();
-  window.__video = {P: function () { return P; }, MID: MID, importar: importar, addClip: addClip, addTexto: addTexto, porSom: porSom, irPara: irPara, tocar: tocar, parar: parar, total: total, sel: function (id) { SEL = id; tudo(); }, exportar: exportar, tipoGravacao: tipoGravacao, T: function () { return T; }, tocando: function () { return TOCANDO; }, desenhar: desenhar, dividir: dividir, sintetizar: sintetizar, congelar: congelar, mudarVel: mudarVel, desfazer: desfazer, refazer: refazer, pps: function () { return PPS; }, TRANS: TRANS, EFEITOS: EFEITOS};
+  window.__video = {P: function () { return P; }, MID: MID, trazerCriacao: trazerCriacao, editarNaOrigem: editarNaOrigem, importar: importar, addClip: addClip, addTexto: addTexto, porSom: porSom, irPara: irPara, tocar: tocar, parar: parar, total: total, sel: function (id) { SEL = id; tudo(); }, exportar: exportar, tipoGravacao: tipoGravacao, T: function () { return T; }, tocando: function () { return TOCANDO; }, desenhar: desenhar, dividir: dividir, sintetizar: sintetizar, congelar: congelar, mudarVel: mudarVel, desfazer: desfazer, refazer: refazer, pps: function () { return PPS; }, TRANS: TRANS, EFEITOS: EFEITOS};
   if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(function () { });
 })();

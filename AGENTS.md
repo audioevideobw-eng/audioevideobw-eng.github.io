@@ -512,6 +512,17 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
 138. ETAPA QUE FALHA MOSTRA O MOTIVO NA CARA: faixa em cima do log com a etapa que parou, o erro e o conserto conhecido, mais COPIAR O LOG.
      Erro no fim de uma caixa rolável é erro escondido — e `log.scrollTop = scrollHeight` antes de acrescentar a linha do erro nem rola até ele.
 
+139. AMBIENTE ÚNICO (decisão do dono, 20/11): a LINHA DO TEMPO é o centro e as ferramentas criam para ela. Toda criação passa pela
+     biblioteca ÚNICA (assets/bw-criacoes.js, IndexedDB bw_criacoes, nada sai do aparelho) e entra no editor de vídeo como a mídia
+     "bc-<id da criação>", levando consigo a ferramenta de origem e o id do projeto: o ✎ reabre lá (?p=&voltar=video&criacao=) e o que
+     voltar TROCA NO LUGAR — mesmo clipe, mesmos cortes, efeitos e volume (só encurta se o arquivo novo for mais curto). Botão novo numa
+     ferramenta = `BWCriacoes.aoLado("<id do botão de baixar>", {…})`: nasce ao lado do que já existe, copiando a classe dele, sem mexer no
+     HTML da página; a barra "⟵ linha do tempo" também se injeta sozinha (auto: vigia 7.8f, docs/testes/teste_criacoes.py).
+140. Função que ENTREGA algo para uma lista tem de redesenhar a lista: trazerCriacao punha o clipe na linha do tempo mas não chamava
+     desenharLib(), e a criação "não aparecia" na biblioteca (tudo() redesenha a linha do tempo e a prévia, não a biblioteca). Faixa
+     injetada em página com menu NUNCA entra na `.bw-shell` (é flex: vira uma coluna ao lado do menu e estoura a tela) — vai no `.wrap`.
+     Teste que muda o projeto por JS e recarrega a página espera o guardar() (400 ms) antes do reload, senão lê o estado velho.
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -1615,7 +1626,44 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   git clone, requirements, `pip install -e .` e os 7,6 GB do modelo. teste-gerador3d.mjs +5 checagens (0 falhas), teste-app 0, vigia ✅.
   PENTE FINO 137–138.
 
+- 20/11/2026 23:52 · Claude (dono mandou o log: ainda `Missing key(s) … main_image_encoder.model.encoder.layer.39…`; decisão dele: "AMANHÃ RESOLVEMOS. SÓ DEIXE REGISTRADO"):
+  o conserto do VAE (1.9.8) FUNCIONOU — o download passou de 4 para 11 arquivos e o pipeline chegou a carregar
+  (`Loading model from …\hunyuan3d-dit-v2-mini\model.fp16.safetensors`). O que falta agora é OUTRA coisa: a biblioteca
+  **transformers 5.x**. Na versão 5 a atenção do DINOv2 foi reestruturada (q_proj/k_proj/v_proj) e o checkpoint do Hunyuan3D
+  guarda os nomes antigos (attention.attention.query/key/value) → o `main_image_encoder` do conditioner não casa e o
+  load_state_dict quebra. O repo do Tencent não fixa a versão, então o `pip install -e .` trouxe a 5.x. CONSERTO A FAZER
+  (amanhã, com o dono): fixar `transformers<5` (e `tokenizers` compatível) na etapa dos requisitos do motor/gerador3d.mjs,
+  refazer SÓ a etapa de requisitos + o teste de prova (o modelo de 7,6 GB já está no disco e não baixa de novo); plano B se
+  ainda faltar chave: carregar o conditioner do `.ckpt` em vez do safetensors (o fallback já está no gerar.py mas o erro do
+  transformers acontece ANTES, na montagem do modelo). Aprendido: versão de biblioteca de terceiros que o repo não fixa é
+  armadilha — fixar no nosso venv, não confiar no `requirements.txt` do projeto.
+
+- 21/11/2026 00:40 · Claude (dono: "TEM UM MONTE DE FERRAMENTAS DE MOTION, CRIAÇÕES 3D, LOGO, TELAS. SERIA POSSÍVEL UM AMBIENTE EM QUE PODEMOS TER
+  TUDO ISSO NA MESMA FERRAMENTA E CADA CRIAÇÃO VOCE LEVA PARA A TIME LINE DE EDIÇÃO DE VÍDEO?" → escolheu TIMELINE NO CENTRO e TODAS AS
+  FERRAMENTAS DE UMA VEZ): AMBIENTE ÚNICO. (1) Nova biblioteca `assets/bw-criacoes.js` (IndexedDB bw_criacoes): guarda a criação com capa
+  feita no aparelho, a ferramenta de origem e o id do projeto; nada sai do aparelho (vigia 7.8f). (2) Botão ➜ MANDAR PARA A LINHA DO TEMPO
+  ao lado de salvar no ESTÚDIO DE MOTION, TELAS EM MOVIMENTO, ESTÚDIO 3D (vídeo e PNG), CRIADOR IA, BW REELS PRO e ➜ LINHA DO TEMPO na aba
+  SALVAR do EDITOR DE FOTOS — o botão é criado pelo próprio bw-criacoes.js ao lado do que já existia. (3) EDITOR DE VÍDEO virou o centro:
+  caixa CRIAR PARA A LINHA DO TEMPO com os 7 atalhos (motion, telas, 3D, fotos, criador IA, reels, quadro), biblioteca mostrando de qual
+  ferramenta cada criação veio e ✎ EDITAR que reabre o projeto na ferramenta de origem; o que volta TROCA NO LUGAR (clipe, cortes, efeitos e
+  volume preservados). (4) As ferramentas abrem o projeto certo por ?p=ID e mostram sozinhas a barra "⟵ LINHA DO TEMPO". Bugs achados pelo
+  teste: a criação entrava na linha do tempo mas não aparecia na biblioteca (faltava desenharLib); a barra de volta, injetada na .bw-shell
+  (flex), virava coluna ao lado do menu e estourava a tela em 1280 px; o id "veFerr" que eu ia usar já era a barra de ferramentas do editor
+  (regra 96 de novo) → veCriarLista. Teste novo docs/testes/teste_criacoes.py (24 checagens × 1280/390: guardar, entrar na linha do tempo,
+  trocar no lugar sem perder efeito/volume, ✎ abrindo a ferramenta certa, barra de volta, nada para fora) 0 falhas; video, motion, telas, 3d,
+  fotos e criador 0 falhas; vigia ✅. App BW 1.9.9 (cópia sem internet refeita com o site de hoje, novidades publicadas) e manual atualizado.
+  NÃO testado: iPhone/Android reais e a conta do dono. BW-Setup.exe continua o 1.9.1 no site — quem já tem o app atualiza sozinho.
+  bw-criacoes.js v1, video-editor.js v4, motion.js v5, telas.js v5, bw3d.js v10, fotos.js v15, criador.js v6, reels.js v17, sw v164. PENTE FINO 139-140.
+
 ## Pendências (dono)
+- [ ] (21/11) AMBIENTE ÚNICO: dono abrir o EDITOR DE VÍDEO (Marketing → Editor de vídeo), tocar num atalho da caixa CRIAR, fazer uma peça
+      (ex.: um motion curto ou uma logo 3D), mandar para a linha do tempo, juntar com uma filmagem dele e exportar. Depois tocar no ✎ de uma
+      criação, mudar algo na ferramenta e ver se trocou no lugar sem desfazer a edição. Dizer se falta alguma ferramenta nessa caixa.
+- [ ] (20/11, AMANHÃ) GERADOR 3D — última etapa: o teste de prova para em `Missing key(s) … main_image_encoder…` por causa do
+      **transformers 5.x** (a 5 renomeou a atenção do DINOv2; o checkpoint do Hunyuan3D usa os nomes antigos). Claude: fixar
+      `transformers<5` na etapa de requisitos e mandar refazer requisitos + teste (NÃO baixa o modelo de novo). Dono: só tocar em
+      ↻ TENTAR DE NOVO depois da atualização do app. O resto da instalação está confirmado funcionando no PC dele (venv, torch
+      cu124 cp312, clone, pip install -e ., 7,6 GB do modelo, VAE).
 - [ ] (20/11) GERADOR 3D NO MEU PC — É O TESTE REAL: dono atualizar o BW (aviso de 1.9.6), abrir o cartão GERADOR 3D NO MEU PC, conferir a
       ficha da máquina, aceitar a licença e tocar em INSTALAR. Demora (baixa ~6 GB) e ele retoma se parar. No fim, tocar em GERAR UMA PEÇA DE
       PROVA e mandar o resultado (ou o erro e o log) — aqui não há placa NVIDIA, então os comandos só foram testados simulados. Se faltar Python

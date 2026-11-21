@@ -485,6 +485,8 @@
     $("moExpDica").textContent = d; $("moExpAqui").disabled = f === "alfa";
     $("moExpPC").textContent = NO_APP ? "💻 GERAR NO PC (app BW)" : "💻 GERAR NO APP BW (PC)";
   }
+  /* 20/11 — AMBIENTE ÚNICO: a criação vai para a LINHA DO TEMPO do editor de vídeo (assets/bw-criacoes.js) */
+  function paraLinha() { if (window.BWCriacoes) BWCriacoes.aoLado("moExpBaixar", { ferramenta: "motion", arquivo: function () { return EXP.arquivo; }, nome: function () { return P.nome; }, projeto: function () { return P.id; }, tipo: "video" }); }
   async function gerarAqui() {
     if (!window.BWReelsCelular || !(await BWReelsCelular.suporta())) return aviso("Este navegador não grava vídeo sozinho. Use o app BW no computador, ou o Chrome/Safari atualizado.", true);
     var rec = $("moExpFundo").value; EXP.parar = false; $("moExpProg").hidden = false; $("moExpPronto").hidden = true;
@@ -495,6 +497,7 @@
       var nome = nomeArq() + (rec ? "-" + rec : "") + ".mp4";
       EXP.arquivo = new File([res.blob], nome, { type: "video/mp4" }); EXP.url = URL.createObjectURL(res.blob);
       $("moExpVideo").src = EXP.url; $("moExpBaixar").href = EXP.url; $("moExpBaixar").download = nome; $("moExpPronto").hidden = false;
+      paraLinha();
       $("moExpTxt").textContent = "✓ Vídeo pronto (" + res.largura + "×" + res.altura + ", " + res.quadros + " quadros, sem som — ponha a trilha no editor de vídeo ou no CapCut).";
     } catch (e) { $("moExpTxt").textContent = /cancelado/.test(e.message) ? "Cancelado." : "Não deu certo: " + (e.message || e); }
   }
@@ -518,6 +521,8 @@
     var d = ""; [3, 4, 5, 6, 7, 8, 10, 12, 15, 20, 25, 30, 45, 60].forEach(function (s) { d += '<option value="' + s + '">' + s + " s</option>"; }); $("moDur").innerHTML = d;
     desenharLib(); desenharModelos();
     var ult = null; try { ult = localStorage.getItem("ui_motion_ultimo"); } catch (e) {}
+    /* 20/11 — vindo da LINHA DO TEMPO (?p=ID): abre o projeto daquela criação */
+    try { var pq = new URLSearchParams(location.search).get("p"); if (pq) ult = pq; } catch (e) {}
     var r = null; if (ult) { try { r = await dbOp("readonly", function (s) { return s.get(ult); }); } catch (e) {} }
     if (r && r.projeto) P = r.projeto; else { P = M.novoProjeto("9:16"); P.id = M.uid(); P.nome = "Vitrine de prompts"; P.itens = MODELOS.vitrine.f(P); }
     /* 20/11: tamanho vindo do ESTÚDIO 3D (resolução do telão): motion.html?w=896&h=512 */
