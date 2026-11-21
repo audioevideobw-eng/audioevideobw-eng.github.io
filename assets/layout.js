@@ -166,6 +166,25 @@
   /* CORREÇÃO 1 (dono): o conteúdo entra DENTRO do shell antes de inserir */
   shell.appendChild(conteudo);
   body.insertBefore(shell, body.firstChild);
+  /* 21/11 (dono): MODO FOCO — nas ferramentas de edição e criação somem o menu lateral, o topo e as abas de baixo;
+     fica só uma setinha discreta de voltar (e ☰ para trazer os menus de volta nesta visita). Página nova de edição = entrar na lista. */
+  var FOCO = ["video", "motion", "telas", "3d", "fotos", "criador", "reels", "personagens"];
+  if (FOCO.indexOf(PAGINA) >= 0) {
+    document.documentElement.classList.add("bw-foco");
+    var stF = document.createElement("style");
+    stF.textContent = "html.bw-foco .bw-menu:not(.bw-menu-aberto),html.bw-foco .bw-topo,html.bw-foco .bw-abas{display:none!important}" +
+      "html.bw-foco .bw-pagina{max-width:none;padding:6px 14px 10px}" +
+      ".bw-foco-barra{display:none}html.bw-foco .bw-foco-barra{display:flex;align-items:center;gap:8px;height:30px;padding:4px 10px 0;font:700 11px Inter,sans-serif;letter-spacing:.12em;color:#8d95a3;text-transform:uppercase}" +
+      ".bw-foco-barra button{width:30px;height:28px;border-radius:9px;border:1px solid rgba(245,241,234,.14);background:transparent;color:#cfd5de;font:800 15px Inter,sans-serif;cursor:pointer;padding:0;line-height:1}" +
+      ".bw-foco-barra button:hover{border-color:rgba(245,241,234,.4);color:#fff}" +
+      "@media(max-width:899px){html.bw-foco .bw-pagina{padding:4px 10px 24px}}";
+    document.head.appendChild(stF);
+    var bf = document.createElement("div"); bf.className = "bw-foco-barra";
+    bf.innerHTML = '<button type="button" id="bwFocoVoltar" title="Voltar" aria-label="Voltar">‹</button><span>' + (TITULOS[PAGINA] || PAGINA) + '</span><span style="flex:1"></span><button type="button" id="bwFocoMenu" title="Mostrar os menus" aria-label="Mostrar os menus">☰</button>';
+    conteudo.insertBefore(bf, conteudo.firstChild);
+    bf.querySelector("#bwFocoVoltar").onclick = function () { if (history.length > 1 && document.referrer && document.referrer.indexOf(location.host) >= 0) history.back(); else location.href = "marketing.html"; };
+    bf.querySelector("#bwFocoMenu").onclick = function () { document.documentElement.classList.remove("bw-foco"); window.dispatchEvent(new Event("resize")); };
+  }
   /* CORREÇÃO 2 (dono): MOVE os originais para os slots (sem duplicar ids) */
   ["menuSync", "userBox", "btnVoltar"].forEach(function(id){
     var slot = shell.querySelector('[data-slot="' + id + '"]');

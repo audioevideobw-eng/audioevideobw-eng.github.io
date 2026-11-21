@@ -47,7 +47,12 @@ with sync_playwright() as p:
         pg.goto(BASE + "video.html"); pg.wait_for_function("window.__veProntoOk === true", timeout=20000)
         atalhos = pg.locator("#veCriarLista a")
         ok(atalhos.count() == 7, f"7 ferramentas na caixa CRIAR (achei {atalhos.count()})")
-        ok(pg.locator("#veCriar").is_visible() and atalhos.first.is_visible(), "a caixa CRIAR e os atalhos aparecem na tela (não só existem)")
+        # 21/11: a caixa fica GUARDADA (não ocupa lugar) — no PC abre pelo botão ✦ CRIAR da mídia; no celular pela seta do título
+        ok(not atalhos.first.is_visible(), "a caixa CRIAR começa guardada (não ocupa lugar)")
+        if pg.locator("#veCriarBt").is_visible(): pg.click("#veCriarBt")
+        else: pg.locator("#veCriar [data-seta]").click()
+        pg.wait_for_timeout(300)
+        ok(pg.locator("#veCriar").is_visible() and atalhos.first.is_visible(), "aberta, a caixa CRIAR e os atalhos aparecem na tela (não só existem)")
         hrefs = pg.eval_on_selector_all("#veCriarLista a", "a => a.map(x => x.getAttribute('href'))")
         ok(all("voltar=video" in h for h in hrefs), "todo atalho leva voltar=video (a criação sabe para onde voltar)")
         ok(any("motion.html" in h for h in hrefs) and any("3d.html" in h for h in hrefs) and any("fotos.html" in h for h in hrefs)

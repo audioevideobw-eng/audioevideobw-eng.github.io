@@ -509,12 +509,17 @@
     aviso: $("veAviso"), aoMedir: function (cel) { var pal = document.querySelector(".ve-palco"); cv.style.maxHeight = cel ? "" : Math.max(140, pal.clientHeight - 84) + "px"; }});
   /* ---------- 21/11 — layout: painéis que recolhem, tela grande, divisa arrastável, camadas só com conteúdo ---------- */
   (function () {
-    var grade = $("veGrade"), wrap = document.querySelector(".wrap"), tl = $("veTl"), div = $("veDiv"), V = {esq: true, dir: true, tl: 0, todas: false}, grande = false;
-    try { var g0 = JSON.parse(localStorage.getItem("ui_ve_vista") || "null"); if (g0) { V.esq = g0.esq !== false; V.dir = g0.dir !== false; V.tl = +g0.tl || 0; V.todas = !!g0.todas; } } catch (e) {}
+    var grade = $("veGrade"), wrap = document.querySelector(".wrap"), tl = $("veTl"), div = $("veDiv"), V = {esq: true, dir: true, tl: 0, todas: false, we: 0, wd: 0, min: false, solto: {}}, grande = false, PAINEL = {esq: "veEsq", dir: "veProp"};
+    try { var g0 = JSON.parse(localStorage.getItem("ui_ve_vista") || "null"); if (g0) { V.esq = g0.esq !== false; V.dir = g0.dir !== false; V.tl = +g0.tl || 0; V.todas = !!g0.todas; V.we = +g0.we || 0; V.wd = +g0.wd || 0; V.min = !!g0.min; V.solto = g0.solto && typeof g0.solto === "object" ? g0.solto : {}; } } catch (e) {}
     function lembrar() { try { localStorage.setItem("ui_ve_vista", JSON.stringify(V)); } catch (e) {} }
     function aplicar() {
-      var e = V.esq && !grande, d = V.dir && !grande; grade.classList.toggle("sem-esq", !e); grade.classList.toggle("sem-dir", !d); wrap.classList.toggle("ve-grande", grande); tl.classList.toggle("todas", V.todas);
-      wrap.style.setProperty("--ve-tl-h", V.tl ? V.tl + "px" : "auto"); wrap.style.setProperty("--ve-tl-max", V.tl ? "70vh" : "36vh");
+      var e = V.esq && !grande, d = V.dir && !grande; grade.classList.toggle("sem-esq", !e || !!V.solto.esq); grade.classList.toggle("sem-dir", !d || !!V.solto.dir);
+      ["esq", "dir"].forEach(function (k) { var el = $(PAINEL[k]), so = V.solto[k], ver = k === "esq" ? e : d; el.classList.toggle("ve-solto", !!so); el.classList.toggle("ve-oculto", !!so && !ver);
+        if (so) { var w = lim(so.w || 320, 200, innerWidth - 20), hh = lim(so.h || 420, 150, innerHeight - 20); el.style.width = w + "px"; el.style.height = hh + "px"; el.style.left = lim(so.x, 0, Math.max(0, innerWidth - 80)) + "px"; el.style.top = lim(so.y, 0, Math.max(0, innerHeight - 40)) + "px"; }
+        else { el.style.width = el.style.height = el.style.left = el.style.top = ""; }
+        var bs = el.querySelector("[data-solta]"); if (bs) bs.textContent = so ? "⇲" : "⇱"; }); wrap.classList.toggle("ve-grande", grande); tl.classList.toggle("todas", V.todas);
+      wrap.style.setProperty("--ve-tl-h", V.tl ? V.tl + "px" : "auto"); if (V.we) wrap.style.setProperty("--ve-esq", V.we + "px"); else wrap.style.removeProperty("--ve-esq"); if (V.wd) wrap.style.setProperty("--ve-dir", V.wd + "px"); else wrap.style.removeProperty("--ve-dir");
+      tl.classList.toggle("min", V.min && !grande); $("veTlMin").setAttribute("aria-pressed", V.min); $("veTlMin").textContent = (V.min ? "▸" : "▾") + " LINHA DO TEMPO"; wrap.style.setProperty("--ve-tl-max", V.tl ? "70vh" : "36vh");
       $("veTogEsq").setAttribute("aria-pressed", e); $("veTogDir").setAttribute("aria-pressed", d); $("veCheia").setAttribute("aria-pressed", grande); $("veTodas").setAttribute("aria-pressed", V.todas); $("veTodas").classList.toggle("on", V.todas);
       window.dispatchEvent(new Event("resize")); desenhar();
     }
@@ -522,6 +527,47 @@
     $("veTogDir").addEventListener("click", function () { if (grande) { grande = false; V.dir = true; } else V.dir = !V.dir; lembrar(); aplicar(); });
     $("veCheia").addEventListener("click", function () { grande = !grande; aplicar(); if (grande) aviso("TELA GRANDE — toque em ⛶ ou aperte Esc para voltar."); });
     $("veTodas").addEventListener("click", function () { V.todas = !V.todas; lembrar(); aplicar(); });
+    /* DESCOLAR: o painel vira uma janela solta — arrasta pela barrinha ⠿, estica pelo canto, ⇲ encaixa de novo */
+    grade.addEventListener("click", function (e) { var b = e.target.closest("[data-solta],[data-some]"); if (!b) return; var k = b.dataset.solta || b.dataset.some;
+      if (b.dataset.some) { V[k] = false; lembrar(); aplicar(); return; }
+      if (V.solto[k]) delete V.solto[k]; else { var r = $(PAINEL[k]).getBoundingClientRect(); V.solto[k] = {x: Math.round(r.left + (k === "esq" ? 24 : -24)), y: Math.round(r.top + 24), w: Math.round(Math.max(260, r.width)), h: Math.round(Math.min(r.height, innerHeight * 0.7))}; }
+      lembrar(); aplicar(); });
+    var mv = null;
+    grade.addEventListener("pointerdown", function (e) { var pg = e.target.closest(".ve-pega"); if (!pg || e.target.closest("button")) return; var k = pg.dataset.pega; if (!V.solto[k]) return; mv = {k: k, x: e.clientX, y: e.clientY, x0: V.solto[k].x, y0: V.solto[k].y}; try { pg.setPointerCapture(e.pointerId); } catch (x) {} e.preventDefault(); });
+    grade.addEventListener("pointermove", function (e) { if (!mv) return; var so = V.solto[mv.k], el = $(PAINEL[mv.k]); so.x = Math.round(lim(mv.x0 + e.clientX - mv.x, 0, innerWidth - 80)); so.y = Math.round(lim(mv.y0 + e.clientY - mv.y, 0, innerHeight - 40)); el.style.left = so.x + "px"; el.style.top = so.y + "px"; });
+    var fimMv = function () { if (!mv) return; mv = null; lembrar(); }; grade.addEventListener("pointerup", fimMv); grade.addEventListener("pointercancel", fimMv);
+    grade.addEventListener("dblclick", function (e) { var pg = e.target.closest(".ve-pega"); if (!pg || e.target.closest("button")) return; var k = pg.dataset.pega; if (V.solto[k]) { delete V.solto[k]; lembrar(); aplicar(); } });
+    /* a prévia acompanha o palco: camada nova na linha do tempo, coluna arrastada, painel escondido — tudo muda a altura dele */
+    if (window.ResizeObserver) { var palcoEl = document.querySelector(".ve-palco"); new ResizeObserver(function () { if (wrap.classList.contains("bwf-fixo") && !wrap.classList.contains("bwf-cel")) cv.style.maxHeight = Math.max(140, palcoEl.clientHeight - 84) + "px"; }).observe(palcoEl); }
+    if (window.ResizeObserver) { var ro = new ResizeObserver(function (l) { l.forEach(function (x) { var k = x.target.id === "veEsq" ? "esq" : "dir", so = V.solto[k]; if (!so || !x.target.getClientRects().length) return; var r = x.target.getBoundingClientRect(); if (Math.abs(r.width - so.w) > 2 || Math.abs(r.height - so.h) > 2) { so.w = Math.round(r.width); so.h = Math.round(r.height); lembrar(); } }); }); ro.observe($("veEsq")); ro.observe($("veProp")); }
+    /* CRIAR: no PC a caixa não ocupa lugar — abre pelo botão ✦ CRIAR da MÍDIA e fecha de novo */
+    $("veCriarBt").addEventListener("click", function () { var ab = $("veEsq").classList.toggle("criar"); this.setAttribute("aria-expanded", ab); this.classList.toggle("on", ab); if (ab) { var c = $("veCriar"), d0 = c.querySelector("[data-seta]"); if (d0 && c.querySelector(".ve-ferr") && !c.querySelector(".ve-ferr").offsetParent) d0.click(); c.scrollIntoView({block: "nearest"}); } });
+    $("veTlMin").addEventListener("click", function () { V.min = !V.min; lembrar(); aplicar(); });
+    /* largura das colunas: arrastar a beirada da prévia; puxar até o fim esconde o painel */
+    [["vePuxaE", "esq", "we", "veEsq", 1], ["vePuxaD", "dir", "wd", "veProp", -1]].forEach(function (q) {
+      var p = $(q[0]), a2 = null;
+      p.addEventListener("pointerdown", function (e) { var alvo = $(q[3]); a2 = {x: e.clientX, w: V[q[1]] ? alvo.getBoundingClientRect().width : 0}; if (!V[q[1]]) { V[q[1]] = true; V[q[2]] = 140; } p.classList.add("on"); try { p.setPointerCapture(e.pointerId); } catch (x) {} e.preventDefault(); });
+      p.addEventListener("pointermove", function (e) { if (!a2) return; var w = Math.round(a2.w + (e.clientX - a2.x) * q[4]); if (w < 130) { V[q[1]] = false; } else { V[q[1]] = true; V[q[2]] = Math.min(w, Math.round(grade.clientWidth * 0.45)); } aplicar(); });
+      var fim = function () { if (!a2) return; a2 = null; p.classList.remove("on"); lembrar(); };
+      p.addEventListener("pointerup", fim); p.addEventListener("pointercancel", fim);
+      p.addEventListener("dblclick", function () { V[q[2]] = 0; V[q[1]] = true; lembrar(); aplicar(); });
+    });
+    /* PRÉVIA EM OUTRA TELA: janela só com a prévia (a mesma imagem, ao vivo) para arrastar ao segundo monitor e pôr em tela cheia */
+    var JAN = null;
+    $("veSegunda").addEventListener("click", function () {
+      if (JAN && !JAN.closed) { JAN.close(); JAN = null; $("veSegunda").setAttribute("aria-pressed", "false"); return; }
+      if (!cv.captureStream) { aviso("Este navegador não abre a prévia em outra janela.", true); return; }
+      JAN = window.open("", "bwPrevia", "popup=1,width=960,height=600"); if (!JAN) { aviso("O navegador bloqueou a janela — libere pop-ups para este site e toque de novo.", true); return; }
+      var d = JAN.document; d.title = "Prévia — Brightway"; d.body.style.cssText = "margin:0;background:#000;height:100vh;display:flex;align-items:center;justify-content:center;overflow:hidden";
+      var v = d.createElement("video"); v.muted = true; v.autoplay = true; v.playsInline = true; v.style.cssText = "max-width:100vw;max-height:100vh;width:100%;height:100%;object-fit:contain"; d.body.appendChild(v);
+      var b2 = d.createElement("button"); b2.textContent = "⛶ TELA CHEIA (ou duplo clique)"; b2.style.cssText = "position:fixed;left:50%;bottom:18px;transform:translateX(-50%);padding:10px 16px;border-radius:12px;border:1px solid #555;background:#12151c;color:#fff;font:700 13px sans-serif;cursor:pointer"; d.body.appendChild(b2);
+      var cheia = function () { var el = d.documentElement; if (d.fullscreenElement) d.exitFullscreen(); else if (el.requestFullscreen) el.requestFullscreen().catch(function () {}); };
+      b2.onclick = cheia; v.ondblclick = cheia; d.addEventListener("fullscreenchange", function () { b2.style.display = d.fullscreenElement ? "none" : ""; });
+      try { v.srcObject = cv.captureStream(30); v.play().catch(function () {}); } catch (e) { aviso("Não consegui mandar a prévia para a outra janela.", true); }
+      $("veSegunda").setAttribute("aria-pressed", "true"); desenhar(); aviso("🖥 Prévia aberta em outra janela — arraste para o segundo monitor e toque em TELA CHEIA lá.");
+      var vigia = setInterval(function () { if (!JAN || JAN.closed) { clearInterval(vigia); JAN = null; $("veSegunda").setAttribute("aria-pressed", "false"); } }, 800);
+    });
+    window.addEventListener("pagehide", function () { if (JAN && !JAN.closed) JAN.close(); });
     document.addEventListener("keydown", function (e) { if (e.key === "Escape" && grande && !document.querySelector(".bwf-menu,.bwf-ajuda")) { grande = false; aplicar(); } });
     var arr = null;
     div.addEventListener("pointerdown", function (e) { arr = {y: e.clientY, h: tl.getBoundingClientRect().height}; div.classList.add("on"); try { div.setPointerCapture(e.pointerId); } catch (x) {} e.preventDefault(); });
@@ -529,7 +575,7 @@
     function soltar() { if (!arr) return; arr = null; div.classList.remove("on"); lembrar(); }
     div.addEventListener("pointerup", soltar); div.addEventListener("pointercancel", soltar);
     div.addEventListener("dblclick", function () { V.tl = 0; lembrar(); aplicar(); });
-    window.__veVista = {estado: function () { return {esq: V.esq, dir: V.dir, tl: V.tl, todas: V.todas, grande: grande}; }, aoSelecionar: function () { if (!V.dir && !grande) { V.dir = true; aplicar(); } }};
+    window.__veVista = {estado: function () { return {esq: V.esq, dir: V.dir, tl: V.tl, todas: V.todas, grande: grande, we: V.we, wd: V.wd, min: V.min, solto: JSON.parse(JSON.stringify(V.solto))}; }, aoSelecionar: function () { if (!V.dir && !grande) { V.dir = true; aplicar(); } }};
     aplicar();
   })();
   function reservar() { var m = window.matchMedia("(max-width:1100px)").matches, h = document.documentElement.style; h.scrollPaddingTop = m ? (document.querySelector(".ve-palco").offsetHeight + 10) + "px" : ""; h.scrollPaddingBottom = m ? "90px" : ""; }

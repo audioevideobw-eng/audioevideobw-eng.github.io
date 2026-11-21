@@ -105,13 +105,21 @@
   .ve-vista{display:none}.ve-div{display:none}
   .ve-tl:not(.todas) .ve-faixa.vazia,.ve-tl:not(.todas) .ve-rot div.vazia{display:none}
   .bwf-cel .ve-esq>*{order:2}
-  .wrap.bwf-fixo .ve-grade{grid-template-columns:clamp(200px,24%,300px) minmax(0,1fr) clamp(220px,26%,320px)}
-  .wrap.bwf-fixo .ve-grade.sem-esq{grid-template-columns:minmax(0,1fr) clamp(220px,26%,320px)}
-  .wrap.bwf-fixo .ve-grade.sem-dir{grid-template-columns:clamp(200px,24%,300px) minmax(0,1fr)}
+  .wrap.bwf-fixo .ve-grade{grid-template-columns:var(--ve-esq,clamp(200px,24%,300px)) minmax(0,1fr) var(--ve-dir,clamp(220px,26%,320px))}
+  .wrap.bwf-fixo .ve-grade.sem-esq{grid-template-columns:minmax(0,1fr) var(--ve-dir,clamp(220px,26%,320px))}
+  .wrap.bwf-fixo .ve-grade.sem-dir{grid-template-columns:var(--ve-esq,clamp(200px,24%,300px)) minmax(0,1fr)}
   .wrap.bwf-fixo .ve-grade.sem-esq.sem-dir{grid-template-columns:minmax(0,1fr)}
   .wrap.bwf-fixo .ve-esq{display:flex;flex-direction:column;gap:12px;min-width:0}
   .wrap.bwf-fixo .ve-esq>.ve-cx{flex:none}
-  .wrap.bwf-fixo .ve-grade.sem-esq .ve-esq,.wrap.bwf-fixo .ve-grade.sem-dir .ve-prop{display:none}
+  .wrap.bwf-fixo .ve-grade.sem-esq .ve-esq:not(.ve-solto),.wrap.bwf-fixo .ve-grade.sem-dir .ve-prop:not(.ve-solto),.wrap.bwf-fixo .ve-oculto{display:none!important}
+  .ve-pega{display:none}
+  .wrap.bwf-fixo .ve-pega{display:flex;align-items:center;gap:4px;flex:none;height:22px;margin:-4px 0 2px;font:800 9.5px Inter,sans-serif;letter-spacing:.12em;color:#8d95a3;position:sticky;top:-12px;z-index:2;background:inherit}
+  .wrap.bwf-fixo .ve-pega span{flex:1;white-space:nowrap;overflow:hidden}
+  .wrap.bwf-fixo .ve-pega button{width:24px;height:20px;border-radius:6px;border:1px solid rgba(245,241,234,.14);background:transparent;color:#B9C0CC;font:700 11px Inter,sans-serif;cursor:pointer;padding:0;line-height:1}
+  .wrap.bwf-fixo .ve-pega button:hover{border-color:#7C5CFF;color:#fff}
+  .wrap.bwf-fixo .ve-grade>.ve-solto{position:fixed!important;z-index:80;resize:both;overflow:auto!important;max-height:none!important;min-width:200px;min-height:150px;box-sizing:border-box;border-radius:16px;border:1px solid #7C5CFF;background:#0f1218;box-shadow:0 22px 60px rgba(0,0,0,.7);padding:12px}
+  .wrap.bwf-fixo .ve-solto .ve-pega{cursor:grab;top:-12px;background:#0f1218;margin:-8px 0 6px;height:26px;touch-action:none}
+  .wrap.bwf-fixo .ve-solto .ve-pega span{color:#c9bcff}
   .wrap.bwf-fixo .ve-lib{max-height:none}
   .wrap.bwf-fixo .ve-vista{display:inline-flex;gap:4px;margin-left:10px}
   .wrap.bwf-fixo .ve-vista .ve-bt{min-width:40px;padding:0 8px}
@@ -121,6 +129,20 @@
   .wrap.bwf-fixo .ve-div:hover::after,.wrap.bwf-fixo .ve-div.on::after{background:#7C5CFF}
   .wrap.bwf-fixo>.ve-tl{flex:0 0 auto;height:var(--ve-tl-h,auto);max-height:var(--ve-tl-max,36vh)}
   .wrap.bwf-fixo.ve-grande>.ve-tl{height:96px;max-height:96px}
+  .ve-tl.min .ve-tl-corpo{display:none}.wrap.bwf-fixo>.ve-tl.min{height:auto;min-height:0}
+  #veTlMin,#veSegunda{display:none}.wrap.bwf-fixo #veTlMin,.wrap.bwf-fixo #veSegunda{display:inline-flex}
+  .ve-puxa{display:none}
+  .wrap.bwf-fixo .ve-palco{position:relative}
+  .wrap.bwf-fixo .ve-puxa{display:block;position:absolute;top:0;bottom:0;width:10px;cursor:ew-resize;z-index:3;touch-action:none}
+  .wrap.bwf-fixo .ve-puxa.e{left:0}.wrap.bwf-fixo .ve-puxa.d{right:0}
+  .wrap.bwf-fixo .ve-puxa::after{content:"";position:absolute;top:50%;left:3px;width:4px;height:56px;margin-top:-28px;border-radius:3px;background:rgba(245,241,234,.2)}
+  .wrap.bwf-fixo .ve-puxa:hover::after,.wrap.bwf-fixo .ve-puxa.on::after{background:#7C5CFF}
+  .wrap.bwf-fixo .ve-ferr{grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:6px}
+  .wrap.bwf-fixo .ve-ferr a{padding:8px 4px;font-size:9px;gap:4px}.wrap.bwf-fixo .ve-ferr a i{font-size:16px}
+  .wrap.bwf-fixo #veCriar .ve-nota{display:none}
+  #veCriarBt{display:none}.wrap.bwf-fixo #veCriarBt{display:inline-flex}
+  .wrap.bwf-fixo #veCriar{display:none;order:2}.wrap.bwf-fixo .ve-esq.criar #veCriar{display:block}
+  .wrap.bwf-fixo #veCriar h3{pointer-events:none}.wrap.bwf-fixo #veCriar h3::after{display:none}
 </style>
 <script src="assets/modos.js?v=5"></script>
 </head>
@@ -136,8 +158,9 @@
   </div>
   <div class="ve-grade" id="veGrade">
     <div class="ve-esq" id="veEsq">
+    <div class="ve-pega" data-pega="esq"><span>⠿ MÍDIA</span><button type="button" data-solta="esq" title="Descolar: vira uma janela solta, que você arrasta e estica (de novo = encaixa)" aria-label="Descolar ou encaixar a mídia">⇱</button><button type="button" data-some="esq" title="Esconder a mídia" aria-label="Esconder a mídia">✕</button></div>
     <div class="ve-cx" id="veCriar">
-      <h3 data-seta="ve-criar">CRIAR PARA A LINHA DO TEMPO</h3>
+      <h3 data-seta="ve-criar2" data-seta-padrao="fechada">CRIAR PARA A LINHA DO TEMPO</h3>
       <div class="ve-ferr" id="veCriarLista"></div>
       <p class="ve-nota">Abre a ferramenta numa aba, você cria e manda para cá — a criação entra na linha do tempo sem baixar arquivo nenhum.</p>
     </div>
@@ -145,23 +168,23 @@
       <h3 data-seta="ve-midia">MÍDIA</h3>
       <div class="ve-abas" id="veAbas" role="group" aria-label="Tipo de mídia"></div>
       <div class="ve-lib" id="veLib"></div>
-      <div class="ve-linha"><button class="ve-bt on" id="veImportar" type="button">＋ IMPORTAR</button><button class="ve-bt" id="veCriacoes" type="button">✨ MINHAS CRIAÇÕES</button></div>
+      <div class="ve-linha"><button class="ve-bt" id="veCriarBt" type="button" aria-expanded="false" aria-controls="veCriar" title="Abre os atalhos das ferramentas de criação (motion, telas, 3D, fotos…)">✦ CRIAR</button><button class="ve-bt on" id="veImportar" type="button">＋ IMPORTAR</button><button class="ve-bt" id="veCriacoes" type="button">✨ MINHAS CRIAÇÕES</button></div>
       <div class="ve-linha"><button class="ve-bt" id="veTexto" type="button">T TEXTO</button><button class="ve-bt" id="veSons" type="button">🔊 EFEITOS E TRILHAS</button></div>
       <p class="ve-nota">Toque num item para colocar na linha do tempo. Aceita vídeos, imagens e áudios — inclusive o que você criou no Flux, Higgsfield, Gemini ou aqui no Quadro de História.</p>
     </div>
     </div>
     <div class="ve-cx ve-palco">
-      <div class="ve-tela"><canvas id="veCv" width="720" height="1280" aria-label="Prévia do vídeo"></canvas></div>
-      <div class="ve-play"><button class="ve-bt" id="veInicio" type="button" aria-label="Voltar ao começo">⏮</button><button class="ve-bt pri" id="vePlay" type="button" aria-label="Tocar ou pausar">▶ TOCAR</button><span class="ve-tempo" id="veTempo">0:00,0 / 0:00,0</span><span class="ve-vista"><button class="ve-bt" id="veTogEsq" type="button" aria-pressed="true" aria-label="Mostrar ou esconder a mídia" title="Mostrar ou esconder a MÍDIA">◧</button><button class="ve-bt" id="veTogDir" type="button" aria-pressed="true" aria-label="Mostrar ou esconder os ajustes" title="Mostrar ou esconder os AJUSTES">◨</button><button class="ve-bt" id="veCheia" type="button" aria-pressed="false" aria-label="Tela grande" title="TELA GRANDE: esconde os painéis e deixa a prévia com a tela toda (Esc volta)">⛶</button></span></div>
+      <i class="ve-puxa e" id="vePuxaE" title="Arraste para alargar ou estreitar a MÍDIA (até o fim = esconde)"></i><i class="ve-puxa d" id="vePuxaD" title="Arraste para alargar ou estreitar os AJUSTES (até o fim = esconde)"></i><div class="ve-tela"><canvas id="veCv" width="720" height="1280" aria-label="Prévia do vídeo"></canvas></div>
+      <div class="ve-play"><button class="ve-bt" id="veInicio" type="button" aria-label="Voltar ao começo">⏮</button><button class="ve-bt pri" id="vePlay" type="button" aria-label="Tocar ou pausar">▶ TOCAR</button><span class="ve-tempo" id="veTempo">0:00,0 / 0:00,0</span><span class="ve-vista"><button class="ve-bt" id="veTogEsq" type="button" aria-pressed="true" aria-label="Mostrar ou esconder a mídia" title="Mostrar ou esconder a MÍDIA">◧</button><button class="ve-bt" id="veTogDir" type="button" aria-pressed="true" aria-label="Mostrar ou esconder os ajustes" title="Mostrar ou esconder os AJUSTES">◨</button><button class="ve-bt" id="veCheia" type="button" aria-pressed="false" aria-label="Tela grande" title="TELA GRANDE: esconde os painéis e deixa a prévia com a tela toda (Esc volta)">⛶</button><button class="ve-bt" id="veSegunda" type="button" aria-pressed="false" aria-label="Prévia em outra tela" title="PRÉVIA EM OUTRA TELA: abre a prévia numa janela para pôr no segundo monitor">🖥</button></span></div>
     </div>
-    <div class="ve-cx ve-prop" id="veProp"><h3 data-seta="ve-ajustes">AJUSTES</h3><div id="vePropCorpo"></div></div>
+    <div class="ve-cx ve-prop" id="veProp"><div class="ve-pega" data-pega="dir"><span>⠿ AJUSTES</span><button type="button" data-solta="dir" title="Descolar: vira uma janela solta, que você arrasta e estica (de novo = encaixa)" aria-label="Descolar ou encaixar os ajustes">⇱</button><button type="button" data-some="dir" title="Esconder os ajustes" aria-label="Esconder os ajustes">✕</button></div><h3 data-seta="ve-ajustes">AJUSTES</h3><div id="vePropCorpo"></div></div>
   </div>
   <div class="ve-div" id="veDiv" role="separator" aria-orientation="horizontal" aria-label="Arraste para dar mais espaço à prévia ou à linha do tempo" title="Arraste: mais prévia ou mais linha do tempo (dois toques volta ao padrão)"></div>
   <div class="ve-tl" id="veTl">
     <div class="ve-tl-barra">
       <div id="veFerr"></div>
       <button class="ve-bt" id="veCortar" type="button">✂ DIVIDIR</button><button class="ve-bt" id="veDuplicar" type="button">⧉ DUPLICAR</button><button class="ve-bt perigo" id="veApagar" type="button">🗑 APAGAR</button>
-      <span style="flex:1"></span><button class="ve-bt" id="veTodas" type="button" aria-pressed="false" title="Mostra também as camadas vazias">☰ CAMADAS</button><button class="ve-bt" id="veZoomMenos" type="button" aria-label="Afastar a linha do tempo">−</button><button class="ve-bt" id="veZoomMais" type="button" aria-label="Aproximar a linha do tempo">＋</button>
+      <span style="flex:1"></span><button class="ve-bt" id="veTlMin" type="button" aria-pressed="false" title="Esconde ou mostra as camadas da linha do tempo">▾ LINHA DO TEMPO</button><button class="ve-bt" id="veTodas" type="button" aria-pressed="false" title="Mostra também as camadas vazias">☰ CAMADAS</button><button class="ve-bt" id="veZoomMenos" type="button" aria-label="Afastar a linha do tempo">−</button><button class="ve-bt" id="veZoomMais" type="button" aria-label="Aproximar a linha do tempo">＋</button>
     </div>
     <div class="ve-tl-corpo"><div class="ve-rot" id="veRot"></div><div class="ve-rolo" id="veRolo"><div class="ve-faixas" id="veFaixas"></div></div></div>
   </div>
