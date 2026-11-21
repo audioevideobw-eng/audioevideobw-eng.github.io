@@ -463,6 +463,14 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
      quando vier integrada (ou vazia), avisar que em notebook é normal e pedir MARCA + memória da placa de verdade (ui_3d_maquina
      guarda as duas); nunca cravar "esta máquina não tem placa". O número certo só vem do app BW (nvidia-smi/wmic no PC) (auto: teste_3d_plano.py).
 
+130. IA PESADA NO PC DO USUÁRIO (app BW, motor/gerador3d.mjs): instalar é um CAMINHO de etapas gravadas em disco (estado.json), que
+     RETOMA de onde parou e mostra o log real de cada comando — nunca um botão só que trava sem explicar. Tudo em ~/.bw-reels/3d (regra 104:
+     a atualização do app não toca lá); nomes de repositório, modelo, subpasta e requisitos lidos na página oficial NO DIA (20/11: repo
+     Tencent-Hunyuan/Hunyuan3D-2, modelo tencent/Hunyuan3D-2mini subpasta hunyuan3d-dit-v2-mini, mínimo 6 GB VRAM / 16 GB RAM / 20 GB disco,
+     licença tencent-hunyuan-community que o autor NÃO libera na União Europeia — mostrar e pedir aceite ANTES de baixar). O julgamento da
+     máquina é o MESMO no real e no simulado (uma função julgar()), senão o teste passa com aviso que o usuário nunca vê. Teste com os
+     comandos SIMULADOS (BW3D_SIMULADO=1) conferindo o ROTEIRO gerado (modelo certo, cuda, sem rede) — o teste de verdade é no PC com placa.
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -1515,11 +1523,23 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   usuário não escolhe nada e o resumo diz "Placa (lida pelo app BW)". Fora do app continua a leitura do navegador + os dois seletores.
   teste_3d_plano.py +3 checagens (ponte simulada com a placa do dono) e teste-app +1 (0 falhas); vigia ✅. App BW 1.9.5 (pacote, cópia sem
   internet e novidades publicadas) e manual atualizado. BW-Setup.exe continua o 1.9.1 — quem já tem o app atualiza sozinho. sw v160.
+- 20/11/2026 21:55 · Claude (dono: "FAÇA" — a decisão aberta era instalar o gerador 3D no PC): GERADOR 3D NO MEU PC (app BW 1.9.6,
+  motor/gerador3d.mjs + app/gerador3d.html). Cartão novo na tela do app e botão no PLANO DO PROJETO do Estúdio 3D (só dentro do app).
+  A tela mostra A SUA MÁQUINA (placa, VRAM, CUDA, RAM, disco, Python, Git) com o que falta em vermelho e os avisos em âmbar, a LICENÇA do
+  modelo (Tencent Hunyuan Community — o autor não libera o uso na União Europeia) com aceite obrigatório, e instala em 9 ETAPAS com barra,
+  lista e log de verdade: pastas → venv → PyTorch CUDA → código (git clone Tencent-Hunyuan/Hunyuan3D-2) → requirements → pip install -e . →
+  modelo tencent/Hunyuan3D-2mini (subpasta hunyuan3d-dit-v2-mini) → gerar.py → teste de prova. Retoma de onde parou, REMOVER apaga tudo.
+  Depois disso: foto → malha GLB na placa do usuário, sem internet, sem pagar por peça (só a FORMA; textura pede 16 GB ou nuvem). Tudo em
+  ~/.bw-reels/3d; a ponte só deixa a plataforma pedir estado/gerar (instalar e remover só das telas do app) e abrirPasta recusa qualquer
+  caminho fora do gerador. Novo motor/teste-gerador3d.mjs (18 checagens com comandos SIMULADOS: etapas em ordem, retomada, roteiro apontando
+  para o modelo certo e sem rede, erro claro, remoção) 0 falhas; teste-app +4 e teste_3d_plano +3 (0 falhas); vigia ✅. Manual atualizado.
+  NÃO testado de verdade: só roda em Windows/Linux com placa NVIDIA — o primeiro INSTALAR no PC do dono é o teste real. sw v161.
 
 ## Pendências (dono)
-- [x] (20/11) PLANO DO PROJETO: veredito da RTX 3050 6 GB conferido pelo dono ("está correto"). No navegador ele escolhe NVIDIA + 6 GB uma
-      vez; no app BW (1.9.5) a placa é lida pelo próprio PC. DECISÃO ABERTA do dono: construir o INSTALAR O GERADOR 3D no app BW (baixa e
-      instala o Hunyuan3D 2 mini no PC dele, ~5 GB; só Windows com NVIDIA, não dá para testar daqui) — é o que tira a dependência de IA paga.
+- [ ] (20/11) GERADOR 3D NO MEU PC — É O TESTE REAL: dono atualizar o BW (aviso de 1.9.6), abrir o cartão GERADOR 3D NO MEU PC, conferir a
+      ficha da máquina, aceitar a licença e tocar em INSTALAR. Demora (baixa ~6 GB) e ele retoma se parar. No fim, tocar em GERAR UMA PEÇA DE
+      PROVA e mandar o resultado (ou o erro e o log) — aqui não há placa NVIDIA, então os comandos só foram testados simulados. Se faltar Python
+      ou Git, a própria tela diz onde baixar.
 - [ ] (20/11) ESTÚDIO 3D: dono abrir em Marketing → Estúdio 3D no PC e no celular; testar com um modelo 3D de verdade (GLB), com a logo da BW
       (LOGO 3D → fundo transparente → PNG) e montar a maquete de um evento real (painéis, pitch) → conferir se a RESOLUÇÃO EM PIXELS bate com
       a do fornecedor do telão, gerar a PLANTA EM PDF e um vídeo do giro. Dizer o que falta (mais itens de palco? medidas em pés? treliça por metro?).

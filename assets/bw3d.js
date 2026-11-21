@@ -350,11 +350,35 @@
             return '<a href="' + b.url + '" target="_blank" rel="noopener" style="color:#7CC4FF">' + esc2(b.nome) + "</a> — " + esc2(b.nota);
           }).join("<br>") + '<br><span style="opacity:.85">' + esc2(BW3DPlano.REGRA_LICENCA) + "</span>";
         }
-        h += '<div class="d3-fx" style="margin-top:10px">' + atalhoDoProjeto(r2.projeto) + "</div></div>";
+        h += '<div class="d3-fx" style="margin-top:10px">' + atalhoDoProjeto(r2.projeto) + "</div>";
+        if (r2.projeto.ia && (window.bwNode || window.BWNode)) h += '<div id="d3G3d" style="margin-top:10px"></div>';
+        h += "</div>";
       }
     }
     h += '<p class="d3-nota" style="margin:10px 0 0">' + esc2(BW3DPlano.FONTES) + " Nada disso sai do aparelho: a leitura da placa é do próprio navegador.</p>";
     return h;
+  }
+  /* Dentro do app BW: a IA de 3D pode estar instalada NO PRÓPRIO PC (nada sai do aparelho). */
+  function gerador3dNoPC() {
+    var cx = $("d3G3d"), p = window.bwNode || window.BWNode;
+    if (!cx || typeof p !== "function") return;
+    p("g3dEstado").then(function (r) {
+      if (!cx || !r || !r.ok || !r.valor) return;
+      var e = r.valor;
+      if (e.instalado) {
+        cx.innerHTML = '<div style="border-left:3px solid #B6FF3B;background:rgba(182,255,59,.08);padding:8px 10px;border-radius:0 8px 8px 0">' +
+          "<b>✓ A IA DE 3D ESTÁ INSTALADA NESTE PC</b><br>" + esc(e.modelo) +
+          " — gera a malha a partir de uma foto, sem internet e sem pagar por peça.</div>" +
+          '<div class="d3-fx" style="margin-top:8px"><button class="d3-bt" type="button" id="d3G3dAbrir">⚙ GERADOR 3D DO PC</button></div>';
+      } else {
+        cx.innerHTML = '<div style="border-left:3px solid #4CC9FF;background:rgba(76,201,255,.08);padding:8px 10px;border-radius:0 8px 8px 0">' +
+          "<b>DÁ PARA INSTALAR A IA DE 3D NESTE COMPUTADOR</b><br>Hunyuan3D 2 mini: foto → malha, roda na sua placa, " +
+          "sem mandar nada para fora e sem pagar por peça." + (e.feitas ? " Instalação começada: " + e.feitas + " de " + e.total + " etapas." : "") + "</div>" +
+          '<div class="d3-fx" style="margin-top:8px"><button class="d3-bt pri" type="button" id="d3G3dAbrir">⬇ INSTALAR O GERADOR 3D NO MEU PC</button></div>';
+      }
+      var b = $("d3G3dAbrir");
+      if (b) b.onclick = function () { p("g3dAbrir").catch(function () { aviso("Abra pelo ícone BW."); }); };
+    }).catch(function () {});
   }
   function atalhoDoProjeto(pj) {
     var b = '<button class="d3-bt pri" type="button" data-ir="';
@@ -403,6 +427,7 @@
     pn.querySelectorAll("[data-pj]").forEach(function (b) { b.onclick = function () { P.plano.projeto = b.getAttribute("data-pj"); painel(); guardarTarde();
       var el = pn.querySelector(".d3-ficha[style*='margin-top']"); if (el && el.scrollIntoView) el.scrollIntoView({ behavior: "smooth", block: "nearest" }); }; });
     pn.querySelectorAll("[data-ir]").forEach(function (b) { b.onclick = function () { trocarModo(b.getAttribute("data-ir")); }; });
+    if ($("d3G3d")) gerador3dNoPC();
     function guardarMaquina(msg) {
       MAQ.placa.doUsuario = true; MAQ.placa.conhecida = true; MAQ.placa.talvezOutra = false;
       MAQ.placa.integrada = MAQ.placa.marca === "nenhuma";

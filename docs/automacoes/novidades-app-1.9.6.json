@@ -1,0 +1,12 @@
+[
+ {
+  "titulo": "GERADOR 3D NO MEU PC",
+  "texto": "Agora o BW instala no seu computador a IA que transforma FOTO em MALHA 3D (Hunyuan3D 2 mini, do Tencent). A instalação é passo a passo, com o que a sua máquina tem, a licença do modelo e um teste de prova no fim. Depois disso você gera peças 3D sem internet, sem mandar foto para fora e sem pagar por peça — a partir de 6 GB de placa NVIDIA. Sai a FORMA (a malha); textura pede placa de 16 GB ou nuvem.",
+  "abrir": "gerador3d"
+ },
+ {
+  "titulo": "O Estúdio 3D já enxerga o gerador",
+  "texto": "Em O QUE VOU FAZER?, dentro do app, o plano mostra se a IA de 3D está instalada neste PC e leva direto para a instalação quando não está.",
+  "abrir": "estudio3d"
+ }
+]

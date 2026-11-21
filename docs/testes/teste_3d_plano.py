@@ -73,6 +73,19 @@ with sync_playwright() as p:
         t6 = pg.inner_text("#d3Painel")
         ok("mini" in t6.lower(), "RTX de 6 GB: oferece o modelo pequeno do Hunyuan3D (só a forma)")
         ok(pg.evaluate("JSON.parse(localStorage.getItem('ui_3d_maquina')||'{}').marca") == "nvidia", "guarda a marca informada")
+        # dentro do app BW aparece o GERADOR 3D do próprio PC
+        pg.evaluate("""() => { window.bwNode = async (acao) => acao === 'g3dEstado'
+          ? { ok: true, valor: { instalado: false, feitas: 0, total: 9, modelo: '', raiz: '/x/.bw-reels/3d', licenca: { url: 'https://huggingface.co/tencent/x', nome: 'Tencent', resumo: 'x' }, etapas: {}, log: [] } }
+          : acao === 'maquina' ? { ok: true, valor: { nome: 'NVIDIA GeForce RTX 3050 6GB Laptop GPU', vram: 6, marca: 'nvidia', ram: 16, nucleos: 12, via: 'app' } }
+          : { ok: true, valor: true }; }""")
+        pg.click('#d3Modos [data-m="plano"]'); pg.wait_for_timeout(300)
+        if largura < 500: pg.click('#d3AbasCel [data-aba="objeto"]'); pg.wait_for_timeout(150)
+        pg.click('[data-pj="avatar"]'); pg.wait_for_timeout(700)
+        t_g3 = pg.inner_text("#d3Painel")
+        ok("INSTALAR O GERADOR 3D" in t_g3.upper(), "no app BW, oferece instalar a IA de 3D no próprio PC")
+        ok(pg.locator("#d3G3dAbrir").count() == 1, "o botão do gerador 3D aparece")
+        pg.click('[data-pj="logo"]'); pg.wait_for_timeout(500)
+        ok(pg.locator("#d3G3d").count() == 0, "projeto que não usa IA (logo) não mostra o gerador")
         # dentro do app BW, o PC responde com a placa de verdade
         pg.evaluate("""() => { localStorage.removeItem('ui_3d_maquina');
           window.bwNode = async (acao) => acao === 'maquina'

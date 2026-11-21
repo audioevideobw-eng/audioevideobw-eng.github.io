@@ -1,18 +1,18 @@
 {
- "versao": "1.9.5",
+ "versao": "1.9.6",
  "data": "20/11/2026",
  "pacote": "downloads/BW-Reels-Studio.zip",
- "sha256": "bed894e8c31b16bf726cec7d178fa27be93cd0d0be97d22ffb1754c0e8de035f",
- "bytes": 8596861,
+ "sha256": "aa57c0f51a75f579a077c3ed0ae5fab0431fd42aaf03b5c7c7a7fc8abb7d4119",
+ "bytes": 8609135,
  "novidades": [
   {
-   "titulo": "O BW agora sabe a sua placa de vídeo",
-   "texto": "No Estúdio 3D, a tela O QUE VOU FAZER? pergunta ao próprio computador qual é a placa de vídeo e quanta memória ela tem — o navegador sozinho só enxerga o vídeo integrado do notebook e errava o plano. Dentro do app você não precisa escolher nada: o veredito de cada tipo de trabalho já sai certo. Só leitura do nome e da memória; nada é enviado para lugar nenhum.",
-   "abrir": "estudio3d"
+   "titulo": "GERADOR 3D NO MEU PC",
+   "texto": "Agora o BW instala no seu computador a IA que transforma FOTO em MALHA 3D (Hunyuan3D 2 mini, do Tencent). A instalação é passo a passo, com o que a sua máquina tem, a licença do modelo e um teste de prova no fim. Depois disso você gera peças 3D sem internet, sem mandar foto para fora e sem pagar por peça — a partir de 6 GB de placa NVIDIA. Sai a FORMA (a malha); textura pede placa de 16 GB ou nuvem.",
+   "abrir": "gerador3d"
   },
   {
-   "titulo": "Modelos prontos e grátis no plano do projeto",
-   "texto": "Todo projeto que pedia IA agora começa por um atalho: partir de um modelo pronto e grátis (Pixabay 3D, Mixamo para o esqueleto) e trabalhar em cima dele. A regra da licença vem junto: o modelo entra no SEU trabalho; o que não pode é revender o arquivo como ele veio.",
+   "titulo": "O Estúdio 3D já enxerga o gerador",
+   "texto": "Em O QUE VOU FAZER?, dentro do app, o plano mostra se a IA de 3D está instalada neste PC e leva direto para a instalação quando não está.",
    "abrir": "estudio3d"
   }
  ]
