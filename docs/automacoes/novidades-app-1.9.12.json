@@ -1,0 +1,6 @@
+[
+ {"titulo":"Editor de vídeo: tela limpa e painéis livres","texto":"Nas ferramentas de edição somem o menu e o topo (fica só a setinha de voltar). Cada painel esconde (✕), descola e vira janela solta (⇱) e estica pela beirada da prévia. Vale também no motion, nas Telas, no Estúdio 3D e no Editor de fotos.","abrir":"video"},
+ {"titulo":"Chroma key em níveis","texto":"Ligue o chroma e o app acha o fundo sozinho e indica um nível de 1 a 5: cada nível tira mais fundo, suaviza a borda e guarda mais sombra. No modo manual você ajusta intensidade, borda, limpeza e sombra olhando a prévia.","abrir":"video"},
+ {"titulo":"Cor e som de cada take","texto":"Cor: exposição, contraste, realces, sombras, temperatura, saturação, nitidez, vinheta e mais, com pontos de partida, predefinições suas e aplicar em todos. Som: volume em dB, normalizar, reduzir ruído, realçar voz, extrair áudio e forma de onda.","abrir":"video"},
+ {"titulo":"Botão direito no take e prévia no 2º monitor","texto":"Copie os ajustes de um take e cole em outro, corte até a agulha (Q/W), desative um take (Shift+E). O botão 🖥 manda a prévia para uma janela que você põe em tela cheia no segundo monitor.","abrir":"video"}
+]

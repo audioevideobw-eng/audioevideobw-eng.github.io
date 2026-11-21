@@ -533,6 +533,29 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
      mentir: o regex de rede tinha a palavra solta `resolve` e anunciou um erro de versão como "a internet caiu" → regra própria para
      ImportError e padrões de rede específicos (ConnectionError, Max retries, Failed to resolve), com teste que prova a separação.
 
+**Aprendidos em 21/11 (EDITOR DE VÍDEO estilo CapCut: chroma, cor, som, painéis livres, modo foco)**
+142. MODO FOCO (decisão do dono, 21/11): página de EDIÇÃO ou CRIAÇÃO não mostra menu lateral, topo nem abas de baixo — só a setinha ‹ de voltar
+     e um ☰ discreto (layout.js, lista FOCO). Editor novo = entrar na lista FOCO e conferir com is_visible que o topo sumiu.
+143. TUDO SE OMITE, ESTICA, DESCOLA E MOVE (dono, 21/11): editor com TELA FIXA ganha os PAINÉIS LIVRES do bw-ferramentas.js (barrinha ⠿ com
+     ⇱ descolar e ✕ esconder; ＋ NOME traz de volta; a beirada da prévia estica a largura; a barrinha de baixo estica a altura). Esconder =
+     NÃO ocupar lugar (o espaço vai para a prévia). bw-ferramentas.js não guarda nada: o editor passa painelLer/painelGravar (ui_<editor>_paineis).
+     Painel redesenhado com innerHTML apaga a barrinha → o editor desenha num CORPO próprio dentro do painel (o 3D apagava a ⠿ ao trocar de modo).
+     Mudou a altura/largura do palco por outro motivo (camada nova na linha do tempo, painel escondido) → ResizeObserver no palco refaz a medida
+     da prévia (os botões de TOCAR ficavam cortados embaixo).
+144. Painel posto em display:none é invisível para offsetParent, e o mesmo vale para position:fixed (offsetParent = null mesmo VISÍVEL):
+     para saber se um elemento está na tela use getClientRects().length (a janela solta "sumia" para o ResizeObserver e para o teste).
+145. COR POR TAKE (assets/bw-cor.js): a MESMA conta no WebGL e no plano B em 2D (celular sem WebGL); o teste compara os dois pixel a pixel
+     (diferença ≤ 6/255). getImageData devolve cor SEM pré-multiplicar — não dividir pelo alfa de novo. Ordem: chroma → cor → efeito.
+     O texto já usa c.cor (cor da letra): ajuste de cor do take mora em c.grade. Predefinições = preferência do aparelho (ui_ve_cor_predef).
+146. TRATAMENTO DE ÁUDIO: cada take passa por corta-grave → corta-agudo → presença → compressor → volume → MESTRE (o mesmo MESTRE que vai
+     para a gravação), então prévia e arquivo exportado têm o MESMO som. Prova = medir o ARQUIVO exportado com ffmpeg (lowpass/highpass +
+     volumedetect): zumbido 50 Hz caiu, tom subiu com o NORMALIZAR e o pico não passou de 0 dBFS. Medir som (normalizar, forma de onda)
+     decodifica o arquivo inteiro no aparelho: só até 200 MB (arquivo maior = aviso, nunca travar o celular).
+147. Teste com prompt() (nome da predefinição): o Playwright aceita o prompt VAZIO se não passar o texto → `d.accept(d.default_value)`.
+148. CHROMA não tem um padrão que sirva para todo projeto (dono, 21/11: luz, distância do fundo, roupa e pele mudam tudo): AUTOMÁTICO por
+     NÍVEIS (cada nível sobe intensidade, suavidade da borda, limpeza e sombra juntos, e o app indica o nível pela variação do fundo nas
+     bordas) + MANUAL com as 4 barras. Calibrar os níveis com filmagem REAL de verde, não só com fundo sintético.
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -1685,7 +1708,26 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   teste-gerador3d.mjs +6 checagens, inclusive uma que PEGA o regex da tela e prova que ele não classifica o erro de versão como internet
   (0 falhas); teste-app 0 falhas, vigia ✅. Pacote, novidades e cópia sem internet publicados. PENTE FINO 141 atualizada.
 
+- 21/11/2026 · Claude (dono, analisando o CapCut instalado no PC dele e navegando nele como referência — nada do CapCut foi copiado: "faça como
+  sugeriu", "faça tudo"): EDITOR DE VÍDEO no padrão de um editor profissional. (1) CHROMA KEY (assets/bw-chroma.js, WebGL + plano B 2D):
+  liga e acha a cor do fundo sozinho pelas bordas; AUTOMÁTICO em 5 NÍVEIS (cada nível sobe intensidade, suavidade da borda, limpeza e sombra
+  juntos; o app indica o nível pela variação do fundo) e MANUAL (intensidade, suavizar borda, limpar borda, sombra), 🎯 ESCOLHER NA TELA.
+  (2) COR POR TAKE (assets/bw-cor.js): exposição, contraste, realces, sombras, brancos, pretos, brilho, temperatura, matiz, saturação, vibração,
+  nitidez, desbotar e vinheta; 8 pontos de partida; ★ predefinições do aparelho; ⇉ APLICAR EM TODOS; dois toques zera a barra.
+  (3) SOM: volume em dB, mudo, 🔊 NORMALIZAR (−16 dBFS sem passar de −1 dBFS), REDUZIR RUÍDO (leve/médio/forte), REALÇAR VOZ, 🎵 EXTRAIR ÁUDIO e
+  FORMA DE ONDA nos takes. (4) MENU DO TAKE (botão direito / segurar): copiar e colar AJUSTES (Ctrl+Shift+C/V — só o que serve no outro take),
+  cortar o começo/fim até a agulha (Q/W), desativar o take (Shift+E), cor, som. (5) Barra de corte compacta (desfazer, refazer, dividir, aparar,
+  duplicar, apagar). (6) LAYOUT: prévia no centro (o layout antigo punha a prévia numa coluna de 290 px), camadas só com conteúdo, ✦ CRIAR
+  guardado num botão, ▾ LINHA DO TEMPO recolhe, ⛶ tela grande, 🖥 PRÉVIA EM OUTRA TELA (janela para o 2º monitor). (7) MODO FOCO nas 8
+  ferramentas de criação (sem menu nem topo, só ‹) e PAINÉIS LIVRES (esconder, esticar, descolar e mover) no vídeo, motion, telas, 3D e fotos.
+  Testes novos: teste_chroma (40), teste_cor (66), teste_som (≈46), teste_video_layout (99), teste_paineis (43), teste_fotos_paineis (13) — 0 falhas;
+  a bateria inteira rodada. NÃO testado: filmagem real de verde (calibrar os níveis), dois monitores de verdade, iPhone/Android reais.
+  layout.js v65, bw-ferramentas v2, video-editor v6, fotos v16, motion v6, telas v6, bw3d v11, bw-chroma v1, bw-cor v1, sw v165. PENTE FINO 142–148.
+
 ## Pendências (dono)
+- [ ] (21/11) EDITOR DE VÍDEO NOVO: dono abrir no PC e no celular; testar o CHROMA com uma filmagem REAL de fundo verde (dizer em que nível
+      ficou bom, para calibrar os níveis), a COR (um look + ajuste fino + APLICAR EM TODOS), o SOM (normalizar e reduzir ruído numa fala real),
+      o botão direito no take, esconder/descolar os painéis e a 🖥 PRÉVIA EM OUTRA TELA no segundo monitor.
 - [ ] (21/11) AMBIENTE ÚNICO: dono abrir o EDITOR DE VÍDEO (Marketing → Editor de vídeo), tocar num atalho da caixa CRIAR, fazer uma peça
       (ex.: um motion curto ou uma logo 3D), mandar para a linha do tempo, juntar com uma filmagem dele e exportar. Depois tocar no ✎ de uma
       criação, mudar algo na ferramenta e ver se trocou no lugar sem desfazer a edição. Dizer se falta alguma ferramenta nessa caixa.

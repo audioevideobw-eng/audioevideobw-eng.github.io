@@ -380,3 +380,19 @@ Tamanho > 0 e sem erro = o pdfmake montou o arquivo. Localmente (T1) confira o `
    computer use no Explorador (modo clique): Vídeos → bw-reels-studio → dois cliques em "5 - GERAR INSTALADOR EXE"; ~60 s depois o
    instalador\BW-Setup.exe muda de data (device_list_dir); device_stage_files traz o arquivo; `strings -el` mostra a versão.
 6. Tutorial em PDF: markdown → HTML → Chromium (page.pdf A4).
+
+## Editor de vídeo estilo CapCut (21/11/2026)
+- **Estudar um app de referência sem copiar:** ler a pasta instalada (DLLs, pastas de efeitos, modelos) para entender a ARQUITETURA, navegar
+  nele por computer use para ver o COMPORTAMENTO (painel que muda com a seleção, camadas que nascem com o conteúdo, níveis de chroma) e
+  escrever tudo de novo do nosso jeito. Nada de arquivo, ícone ou texto deles no site.
+- **Efeito de imagem que precisa valer no celular:** shader WebGL + plano B em 2D com a MESMA conta (getImageData já vem sem pré-multiplicar);
+  o teste desenha uma imagem de faixas, roda os dois e compara pixel a pixel (`BWCor._2d`, `BWChroma._2d`). Medir na prévia com
+  `getImageData` num ponto de cada faixa; ponto em fração da tela (fx, fy), nunca em pixel.
+- **Provar o tratamento de som:** sinal de teste no ffmpeg (`aevalsrc=0.03*sin(2*PI*50*t)+0.03*sin(2*PI*1000*t)`) → exportar duas vezes
+  (cru e tratado) → `ffmpeg -af lowpass=f=120,volumedetect` (zumbido) e `highpass=f=500,volumedetect` (tom) → comparar a diferença tom−zumbido
+  e o `max_volume`. O que o WebAudio faz na prévia sai igual no arquivo porque a gravação lê o mesmo nó MESTRE.
+- **Painéis livres num editor novo:** passar o editor para `BWFerr.telaFixa({…, painelLer, painelGravar})` (opcional: `soltos`, `nomeRola`,
+  `alturaPropria`); dar `data-bwf-nome` a cada painel; nunca apagar o painel inteiro com innerHTML (desenhar num corpo dentro dele).
+  Teste: docs/testes/teste_paineis.py (esconder, ＋, descolar, arrastar, recarregar, encaixar, esticar pela beirada, altura de baixo, celular).
+- **Janela para o 2º monitor:** `window.open` + `<video>` com `canvas.captureStream(30)` e botão de tela cheia na própria janela; o Playwright
+  pega a janela com `ctx.expect_page()` e confere `video.srcObject.getVideoTracks().length`.
