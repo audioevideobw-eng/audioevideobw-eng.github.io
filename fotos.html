@@ -78,6 +78,28 @@ html.ed-safari .ed-top{padding-top:calc(max(8px,env(safe-area-inset-top)) + 30px
   .ed-faixa:empty{display:none}
   .ed-faixa .flt{width:84px}
 }
+/* 21/11 — PAINÉIS LIVRES no computador (dono: "tudo deve se esticar e omitir, descolar e mover livre"):
+   ⠿ barrinha do painel com ⇱ descolar e ✕ esconder; a beirada da foto estica a largura; ▾ recolhe os filtros. No celular nada muda. */
+.ed-pega,.ed-puxa,.ed-volta,.ed-faixa-bt{display:none}
+@media (min-width:900px){
+  .ed-painel{position:relative;grid-template-rows:auto auto minmax(0,1fr);width:var(--ed-larg,412px)}
+  .ed-abas{grid-row:2/4}.ed-fotos{grid-row:2}.ed-ctrl{grid-row:3}
+  .ed-pega{display:flex;grid-column:1/-1;grid-row:1;align-items:center;gap:4px;height:26px;padding:0 8px;border-bottom:1px solid rgba(245,241,234,.06);font:800 9.5px var(--bw-font-texto);letter-spacing:.12em;color:#8d95a3;user-select:none;-webkit-user-select:none}
+  .ed-pega span{flex:1;white-space:nowrap;overflow:hidden}
+  .ed-pega button,.ed-volta button,.ed-faixa-bt{height:20px;min-width:24px;border-radius:6px;border:1px solid rgba(245,241,234,.14);background:transparent;color:#B9C0CC;font:700 11px var(--bw-font-texto);cursor:pointer;padding:0 6px;line-height:1}
+  .ed-pega button:hover,.ed-volta button:hover,.ed-faixa-bt:hover{border-color:var(--bw-ambar);color:#fff}
+  .ed-painel.solto{position:fixed;z-index:95;resize:both;overflow:hidden;min-width:300px;min-height:260px;border:1px solid var(--bw-ambar);border-radius:16px;box-shadow:0 22px 60px rgba(0,0,0,.75)}
+  .ed-painel.solto .ed-pega{cursor:grab;touch-action:none;color:#ffd79a}
+  .ed.sem-painel .ed-painel{display:none}
+  .ed-puxa{display:block;position:absolute;left:0;top:0;bottom:0;width:10px;cursor:ew-resize;z-index:3;touch-action:none}
+  .ed-puxa::after{content:"";position:absolute;top:50%;left:3px;width:4px;height:56px;margin-top:-28px;border-radius:3px;background:rgba(245,241,234,.2)}
+  .ed-puxa:hover::after,.ed-puxa.on::after{background:var(--bw-ambar)}
+  .ed.sem-painel .ed-puxa,.ed.painel-solto .ed-puxa{display:none}
+  .ed-volta{display:flex;position:absolute;left:12px;top:10px;z-index:4;gap:6px}.ed-volta[hidden]{display:none}
+  .ed-volta button{height:24px;font-size:10px;letter-spacing:.08em;color:#ffd79a;border-color:rgba(255,181,71,.5);background:rgba(6,8,13,.8)}
+  .ed-faixa-bt{display:inline-flex;align-items:center;flex:none;align-self:center}
+  .ed-faixa.recolhida{padding:4px 14px}.ed-faixa.recolhida>:not(.ed-faixa-bt){display:none}
+}
 /* controles no estilo da referência: trilho fino, botão redondo claro, valor à direita */
 .sl input[type=range]{-webkit-appearance:none;appearance:none;background:transparent}
 .sl input[type=range]::-webkit-slider-runnable-track{height:3px;border-radius:3px;background:rgba(245,241,234,.22)}

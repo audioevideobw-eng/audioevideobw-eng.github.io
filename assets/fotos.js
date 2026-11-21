@@ -1703,5 +1703,46 @@
     lay: function () { return LAY; }, opcoesFoto: opcoesFoto, adsSel: function () { return adsSel(); }, comparar: function (v, modo) { COMPARAR = !!v; if (modo) MODO_COMP = modo; botoesComp(); agendar(); },
     addImagemCamada: addImagemCamada, dobrarTudo: dobrarTudo, itens: function () { return itensDe(fotoAtual()).map(function (x) { return x.k; }); }, mascaraCanvas: mascaraCanvas, cam: function () { return { CAM: CAM, PINTA: PINTA, SEGURA: SEGURA, modo: MODO_COMP }; }, previa: previa
   };
+  /* 21/11 — PAINÉIS LIVRES no computador: esconder (✕ / ＋ PAINEL), descolar (⇱ janela solta, arrasta pela ⠿ e estica pelo canto, ⇲ ou
+     dois toques encaixa), esticar (beirada da foto) e recolher os filtros (▾). Preferência só deste aparelho (ui_fotos_paineis). */
+  (function paineisLivres() {
+    var ed = $("ed"), pn = ed && ed.querySelector(".ed-painel"), palco = $("palco"), faixa = $("faixa"), centro = ed && ed.querySelector(".ed-centro"); if (!pn || !palco || !centro) return;
+    var S = {}; try { S = JSON.parse(localStorage.getItem("ui_fotos_paineis") || "{}") || {}; } catch (e) { S = {}; }
+    function lembrar() { try { localStorage.setItem("ui_fotos_paineis", JSON.stringify(S)); } catch (e) {} }
+    function pc() { return window.matchMedia("(min-width:900px)").matches; }
+    var pega = document.createElement("div"); pega.className = "ed-pega"; pega.innerHTML = '<span>⠿ FERRAMENTAS</span><button type="button" data-ep="solta" title="Descolar: vira uma janela solta que você arrasta e estica" aria-label="Descolar o painel">⇱</button><button type="button" data-ep="some" title="Esconder o painel (a foto fica com a tela toda)" aria-label="Esconder o painel">✕</button>';
+    pn.insertBefore(pega, pn.firstChild);
+    var puxa = document.createElement("i"); puxa.className = "ed-puxa"; puxa.title = "Arraste para alargar ou estreitar o painel (até o fim = esconde)"; centro.style.position = "relative"; centro.appendChild(puxa);
+    var volta = document.createElement("div"); volta.className = "ed-volta"; volta.hidden = true; volta.innerHTML = '<button type="button" title="Mostrar o painel de ferramentas">＋ FERRAMENTAS</button>'; centro.appendChild(volta);
+    var fbt = null; if (faixa) { fbt = document.createElement("button"); fbt.type = "button"; fbt.className = "ed-faixa-bt"; fbt.title = "Recolher ou mostrar os filtros"; }
+    function aplicar() {
+      var p = pc(); ed.classList.toggle("sem-painel", p && !!S.oculto); ed.classList.toggle("painel-solto", p && !!S.solto && !S.oculto); pn.classList.toggle("solto", p && !!S.solto && !S.oculto);
+      if (p && S.solto && !S.oculto) { var so = S.solto; pn.style.left = lim(so.x, 0, innerWidth - 80) + "px"; pn.style.top = lim(so.y, 0, innerHeight - 40) + "px"; pn.style.width = lim(so.w || 412, 300, innerWidth - 16) + "px"; pn.style.height = lim(so.h || 520, 260, innerHeight - 16) + "px"; }
+      else { pn.style.left = pn.style.top = pn.style.height = ""; pn.style.width = ""; }
+      if (p && S.larg && !S.solto) ed.style.setProperty("--ed-larg", S.larg + "px"); else ed.style.removeProperty("--ed-larg");
+      volta.hidden = !(p && S.oculto); pega.querySelector('[data-ep="solta"]').textContent = S.solto ? "⇲" : "⇱";
+      if (faixa && fbt) { if ((fbt.parentNode !== faixa || faixa.firstChild !== fbt) && [].some.call(faixa.children, function (x) { return x !== fbt; })) faixa.insertBefore(fbt, faixa.firstChild); faixa.classList.toggle("recolhida", p && !!S.semFiltros); fbt.textContent = S.semFiltros ? "▸ FILTROS" : "▾"; }
+      window.dispatchEvent(new Event("resize")); }
+    pega.addEventListener("click", function (e) { var b = e.target.closest("[data-ep]"); if (!b) return;
+      if (b.dataset.ep === "some") S.oculto = 1; else if (S.solto) delete S.solto; else { var r = pn.getBoundingClientRect(); S.solto = {x: Math.round(r.left + 30), y: Math.round(r.top + 40), w: Math.round(r.width), h: Math.round(Math.min(r.height, innerHeight * 0.75))}; }
+      lembrar(); aplicar(); });
+    pega.addEventListener("dblclick", function (e) { if (e.target.closest("button") || !S.solto) return; delete S.solto; lembrar(); aplicar(); });
+    volta.addEventListener("click", function () { delete S.oculto; lembrar(); aplicar(); });
+    if (fbt) fbt.addEventListener("click", function () { S.semFiltros = S.semFiltros ? 0 : 1; lembrar(); aplicar(); });
+    if (fbt && window.MutationObserver) new MutationObserver(function () { if (faixa.firstChild !== fbt && faixa.children.length) faixa.insertBefore(fbt, faixa.firstChild); }).observe(faixa, {childList: true});
+    var mv = null;
+    pega.addEventListener("pointerdown", function (e) { if (e.target.closest("button") || !S.solto || !pc()) return; mv = {x: e.clientX, y: e.clientY, x0: S.solto.x, y0: S.solto.y}; try { pega.setPointerCapture(e.pointerId); } catch (x) {} e.preventDefault(); });
+    pega.addEventListener("pointermove", function (e) { if (!mv) return; S.solto.x = Math.round(lim(mv.x0 + e.clientX - mv.x, 0, innerWidth - 80)); S.solto.y = Math.round(lim(mv.y0 + e.clientY - mv.y, 0, innerHeight - 40)); pn.style.left = S.solto.x + "px"; pn.style.top = S.solto.y + "px"; });
+    var fim = function () { if (!mv) return; mv = null; lembrar(); }; pega.addEventListener("pointerup", fim); pega.addEventListener("pointercancel", fim);
+    if (window.ResizeObserver) new ResizeObserver(function () { if (!S.solto || !pn.classList.contains("solto")) return; var r = pn.getBoundingClientRect(); if (Math.abs(r.width - S.solto.w) > 2 || Math.abs(r.height - S.solto.h) > 2) { S.solto.w = Math.round(r.width); S.solto.h = Math.round(r.height); lembrar(); window.dispatchEvent(new Event("resize")); } }).observe(pn);
+    var ar = null;
+    puxa.addEventListener("pointerdown", function (e) { ar = {x: e.clientX, w: pn.getBoundingClientRect().width}; puxa.classList.add("on"); try { puxa.setPointerCapture(e.pointerId); } catch (x) {} e.preventDefault(); });
+    puxa.addEventListener("pointermove", function (e) { if (!ar) return; var w = Math.round(ar.w + (e.clientX - ar.x)); if (w < 260) { S.oculto = 1; delete S.larg; ar = null; puxa.classList.remove("on"); lembrar(); aplicar(); return; } S.larg = Math.min(w, Math.round(innerWidth * 0.5)); ed.style.setProperty("--ed-larg", S.larg + "px"); window.dispatchEvent(new Event("resize")); });
+    var fimA = function () { if (!ar) return; ar = null; puxa.classList.remove("on"); lembrar(); }; puxa.addEventListener("pointerup", fimA); puxa.addEventListener("pointercancel", fimA);
+    puxa.addEventListener("dblclick", function () { delete S.larg; lembrar(); aplicar(); });
+    window.addEventListener("resize", function () { var p = pc(); if (p !== aplicar._p) { aplicar._p = p; aplicar(); } });
+    aplicar._p = pc(); aplicar();
+    window.__fotosPaineis = {estado: function () { return JSON.parse(JSON.stringify(S)); }};
+  })();
   if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(function () { });
 })();
