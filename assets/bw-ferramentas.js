@@ -119,11 +119,16 @@
   // botão direito e "segurar o dedo" (sem mexer) abrem o menu do item
   function contexto(raiz, seletor, montar) {
     var seg = null;
-    raiz.addEventListener("contextmenu", function (e) { var el = e.target.closest(seletor); if (!el || !raiz.contains(el)) return; e.preventDefault(); var its = montar(el, e); if (its && (its.itens || its).length) menu(e.clientX, e.clientY, its.itens || its, its.titulo); });
+    raiz.addEventListener("contextmenu", function (e) { var el = e.target.closest(seletor); if (!el || !raiz.contains(el)) return; e.preventDefault();
+      // 21/11: no toque, o navegador também dispara "contextmenu" ao segurar (~0,5 s), quase junto com o nosso relógio de 520 ms — os dois abriam o menu e o dedo ao soltar escolhia um item. Agora quem chegar primeiro abre (como toque) e o outro é ignorado.
+      if (Date.now() - (BWFerr._acabouSegurar || 0) < 900) return; var porToque = !!seg || (e.pointerType && e.pointerType !== "mouse"); if (seg) { clearTimeout(seg.t); seg = null; }
+      var its = montar(el, e); if (its && (its.itens || its).length) { menu(e.clientX, e.clientY, its.itens || its, its.titulo, porToque); if (porToque) BWFerr._acabouSegurar = Date.now(); } });
     raiz.addEventListener("pointerdown", function (e) { if (e.pointerType === "mouse") return; var el = e.target.closest(seletor); if (!el) return;
       var x = e.clientX, y = e.clientY; seg = { x: x, y: y, t: setTimeout(function () { seg = null; var its = montar(el, e); if (its && (its.itens || its).length) { menu(x, y, its.itens || its, its.titulo, true); BWFerr._acabouSegurar = Date.now(); } }, 520) }; });
     var parar = function (e) { if (seg && (!e || e.type !== "pointermove" || Math.hypot(e.clientX - seg.x, e.clientY - seg.y) > 10)) { clearTimeout(seg.t); seg = null; } };
     raiz.addEventListener("pointermove", parar); raiz.addEventListener("pointerup", function () { parar(); }); raiz.addEventListener("pointercancel", function () { parar(); });
+    // 21/11: o dedo pode soltar FORA da raiz ou sobre um item que foi redesenhado no meio do toque (o pointerup não chega aqui) — sem isto o menu abria sozinho meio segundo depois de um toque simples
+    window.addEventListener("pointerup", function () { parar(); }, true); window.addEventListener("pointercancel", function () { parar(); }, true); window.addEventListener("touchend", function () { parar(); }, true);
     // o "clique" que vem depois de segurar não pode disparar a ação normal do item
     raiz.addEventListener("click", function (e) { if (Date.now() - (BWFerr._acabouSegurar || 0) < 600) { e.stopPropagation(); e.preventDefault(); } }, true);
   }

@@ -128,7 +128,7 @@ with sync_playwright() as p:
             pg.keyboard.press("Shift+/"); pg.wait_for_timeout(200); ok(pg.locator(".bwf-ajuda").count() == 1 and "Lâmina" in pg.inner_text(".bwf-ajuda"), "? mostra a lista de atalhos")
             pg.keyboard.press("Escape"); pg.wait_for_timeout(150); ok(pg.locator(".bwf-ajuda").count() == 0, "Esc fecha a lista")
         # menu do clipe: botão direito (PC) / segurar o dedo (celular)
-        vc = pg.evaluate("__video.P().clips.filter(c => c.tipo === 'video').sort((a,b)=>a.ini-b.ini)[0]"); el = pg.locator(f'[data-clip="{vc["id"]}"]'); el.scroll_into_view_if_needed(); bx = el.bounding_box()
+        vc = pg.evaluate("__video.P().clips.filter(c => c.tipo === 'video').sort((a,b)=>a.ini-b.ini)[0]"); el = pg.locator(f'[data-clip="{vc["id"]}"]'); el.evaluate("e => e.scrollIntoView({block: 'center'})"); pg.wait_for_timeout(150); bx = el.bounding_box()   # no meio da tela: com as camadas vazias escondidas a linha do tempo é mais baixa e o clipe parava atrás das abas de baixo
         mx, my = bx["x"] + min(bx["width"] / 2, 20), bx["y"] + bx["height"] / 2
         if cel:
             cdp = ctx.new_cdp_session(pg); cdp.send("Input.dispatchTouchEvent", {"type": "touchStart", "touchPoints": [{"x": mx, "y": my}]}); pg.wait_for_timeout(700); cdp.send("Input.dispatchTouchEvent", {"type": "touchEnd", "touchPoints": []})

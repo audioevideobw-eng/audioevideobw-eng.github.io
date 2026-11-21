@@ -304,15 +304,19 @@
     var fim = Math.max(total() + 8, 20), larg = Math.ceil(fim * PPS), passoR = PPS >= 90 ? 1 : PPS >= 40 ? 2 : 5, h = '<div class="ve-regua" id="veRegua" style="width:' + larg + 'px">';
     for (var s = 0; s <= fim; s += passoR) h += '<i style="left:' + (s * PPS) + 'px">' + (s >= 60 ? Math.floor(s / 60) + ":" + (s % 60 < 10 ? "0" : "") + s % 60 : s + "s") + '</i>';
     h += "</div>";
-    TRILHAS.forEach(function (tr) { h += '<div class="ve-faixa" data-trilha="' + tr[0] + '" style="width:' + larg + 'px">' + P.clips.filter(function (c) { return c.trilha === tr[0]; }).map(function (c) { var m = MID[c.mid], nome = c.tipo === "texto" ? String(c.txt || "Texto").split("\n")[0] : m ? m.nome : "arquivo que falta", mini = m && (m.tipo === "imagem" ? m.url : m.capa);
+    TRILHAS.forEach(function (tr) { h += '<div class="ve-faixa' + (vaziaTr(tr[0]) ? " vazia" : "") + '" data-trilha="' + tr[0] + '" style="width:' + larg + 'px">' + P.clips.filter(function (c) { return c.trilha === tr[0]; }).map(function (c) { var m = MID[c.mid], nome = c.tipo === "texto" ? String(c.txt || "Texto").split("\n")[0] : m ? m.nome : "arquivo que falta", mini = m && (m.tipo === "imagem" ? m.url : m.capa);
         return '<div class="ve-clip' + (c.id === SEL ? " on" : "") + '" data-clip="' + c.id + '" style="--c:' + tr[2] + ';left:' + (c.ini * PPS) + 'px;width:' + Math.max(18, c.dur * PPS) + 'px" title="' + esc(nome) + '"><i class="al e" data-al="e"></i>' + (mini ? '<img alt="" src="' + mini + '">' : "") + '<span>' + (c.tipo === "texto" ? "T · " : c.tipo === "audio" ? "♪ " : "") + esc(nome) + '</span>' + (vel(c) !== 1 ? '<b class="bd">' + String(vel(c)).replace(".", ",") + '×</b>' : "") + (c.efeito ? '<b class="bd">✦</b>' : "") + '<i class="al d" data-al="d"></i>' + (transDe(c) && anteriorDe(c) ? '<i class="tr" title="Transição: ' + esc(TRANS[c.trans.tipo]) + '" style="width:' + Math.max(10, transDe(c) * PPS) + 'px"></i>' : "") + '</div>'; }).join("") + "</div>"; });
     h += '<div class="ve-agulha" id="veAgulha" style="left:' + (T * PPS) + 'px"></div><i class="ve-lamina" id="veLamina" hidden></i>';
     $("veFaixas").innerHTML = h; $("veFaixas").style.width = larg + "px";
-    $("veRot").innerHTML = "<div>TEMPO</div>" + TRILHAS.map(function (tr) { return '<div style="--c:' + tr[2] + '">' + tr[1] + "</div>"; }).join("");
+    $("veRot").innerHTML = "<div>TEMPO</div>" + TRILHAS.map(function (tr) { return '<div' + (vaziaTr(tr[0]) ? ' class="vazia"' : "") + ' style="--c:' + tr[2] + '">' + tr[1] + "</div>"; }).join("");
   }
+  function vaziaTr(id) { return id !== "v1" && !P.clips.some(function (c) { return c.trilha === id; }); }
   function faixaR(k, rot, min, max, v, suf, passo) { return '<label><span>' + rot + '</span><input type="range" data-p="' + k + '" min="' + min + '" max="' + max + '" step="' + (passo || 1) + '" value="' + v + '"><output>' + v + (suf || "") + '</output></label>'; }
+  var ULT_SEL = null;
   function desenharProp() {
-    var c = sel(), b = $("vePropCorpo"); if (!c) { b.innerHTML = '<p class="ve-nota" style="margin:0">Toque num clipe da linha do tempo para ajustar tamanho, posição, volume, entrada e saída suaves — ou o texto.</p>'; return; }
+    var c = sel(), b = $("vePropCorpo"); if (!c) { var nC = P.clips.length, f0 = FMT[P.fmt] || [P.w || cv.width, P.h || cv.height];
+      b.innerHTML = '<div class="ve-g"><h4>O PROJETO</h4><p class="ve-nota" style="margin:0 0 4px">Tamanho: <b>' + cv.width + " × " + cv.height + ' px</b><br>Duração: <b>' + fmtT(total()) + '</b><br>Clipes: <b>' + nC + '</b></p></div><p class="ve-nota" style="margin:0">Toque num clipe da linha do tempo: este painel mostra os ajustes daquele tipo de clipe (vídeo e foto, som ou texto).</p>'; return; }
+    if (c.id !== ULT_SEL) { ULT_SEL = c.id; if (window.__veVista) window.__veVista.aoSelecionar(); }
     var visual = c.tipo !== "audio", g = function (k, t, corpo, fechada) { return corpo ? '<div class="ve-g"><h4 data-seta="ve-' + k + '"' + (fechada ? ' data-seta-padrao="fechada"' : "") + '>' + t + '</h4><div>' + corpo + '</div></div>' : ""; }, h = "";
     if (c.tipo === "texto") h += g("texto", "TEXTO", '<label class="um"><span>Texto</span><textarea data-p="txt" rows="3" maxlength="200" aria-label="Texto do clipe">' + esc(c.txt) + '</textarea></label><label class="um"><span>Fonte</span><select data-p="fonte" aria-label="Fonte">' + FONTES.map(function (f) { return '<option' + (f === c.fonte ? " selected" : "") + '>' + f + '</option>'; }).join("") + '</select></label>' + faixaR("tam", "Tamanho", 2, 20, c.tam, "%", 0.5) +
       '<label class="um"><span>Cor</span><input type="color" data-p="cor" value="' + esc(c.cor || "#ffffff") + '" aria-label="Cor do texto"></label><label class="um"><span>Fundo</span><select data-p="fundo" aria-label="Fundo do texto"><option value=""' + (!c.fundo ? " selected" : "") + '>Sem fundo (sombra)</option><option value="#000000"' + (c.fundo === "#000000" ? " selected" : "") + '>Caixa preta</option><option value="#ffffff"' + (c.fundo === "#ffffff" ? " selected" : "") + '>Caixa branca</option><option value="#7C5CFF"' + (c.fundo === "#7C5CFF" ? " selected" : "") + '>Caixa roxa</option><option value="#FFB547"' + (c.fundo === "#FFB547" ? " selected" : "") + '>Caixa âmbar</option></select></label>');
@@ -503,6 +507,31 @@
   /* celular: a prévia fica presa no topo — a página reserva a altura dela (e a das abas de baixo) ao rolar até um botão (regras 52 e 71) */
   if (window.BWFerr) BWFerr.telaFixa({wrap: document.querySelector(".wrap"), grade: document.querySelector(".ve-grade"), palco: document.querySelector(".ve-palco"), rola: [document.querySelector(".ve-tl")], some: [document.querySelector(".wrap > .ve-nota")],
     aviso: $("veAviso"), aoMedir: function (cel) { var pal = document.querySelector(".ve-palco"); cv.style.maxHeight = cel ? "" : Math.max(140, pal.clientHeight - 84) + "px"; }});
+  /* ---------- 21/11 — layout: painéis que recolhem, tela grande, divisa arrastável, camadas só com conteúdo ---------- */
+  (function () {
+    var grade = $("veGrade"), wrap = document.querySelector(".wrap"), tl = $("veTl"), div = $("veDiv"), V = {esq: true, dir: true, tl: 0, todas: false}, grande = false;
+    try { var g0 = JSON.parse(localStorage.getItem("ui_ve_vista") || "null"); if (g0) { V.esq = g0.esq !== false; V.dir = g0.dir !== false; V.tl = +g0.tl || 0; V.todas = !!g0.todas; } } catch (e) {}
+    function lembrar() { try { localStorage.setItem("ui_ve_vista", JSON.stringify(V)); } catch (e) {} }
+    function aplicar() {
+      var e = V.esq && !grande, d = V.dir && !grande; grade.classList.toggle("sem-esq", !e); grade.classList.toggle("sem-dir", !d); wrap.classList.toggle("ve-grande", grande); tl.classList.toggle("todas", V.todas);
+      wrap.style.setProperty("--ve-tl-h", V.tl ? V.tl + "px" : "auto"); wrap.style.setProperty("--ve-tl-max", V.tl ? "70vh" : "36vh");
+      $("veTogEsq").setAttribute("aria-pressed", e); $("veTogDir").setAttribute("aria-pressed", d); $("veCheia").setAttribute("aria-pressed", grande); $("veTodas").setAttribute("aria-pressed", V.todas); $("veTodas").classList.toggle("on", V.todas);
+      window.dispatchEvent(new Event("resize")); desenhar();
+    }
+    $("veTogEsq").addEventListener("click", function () { if (grande) { grande = false; V.esq = true; } else V.esq = !V.esq; lembrar(); aplicar(); });
+    $("veTogDir").addEventListener("click", function () { if (grande) { grande = false; V.dir = true; } else V.dir = !V.dir; lembrar(); aplicar(); });
+    $("veCheia").addEventListener("click", function () { grande = !grande; aplicar(); if (grande) aviso("TELA GRANDE — toque em ⛶ ou aperte Esc para voltar."); });
+    $("veTodas").addEventListener("click", function () { V.todas = !V.todas; lembrar(); aplicar(); });
+    document.addEventListener("keydown", function (e) { if (e.key === "Escape" && grande && !document.querySelector(".bwf-menu,.bwf-ajuda")) { grande = false; aplicar(); } });
+    var arr = null;
+    div.addEventListener("pointerdown", function (e) { arr = {y: e.clientY, h: tl.getBoundingClientRect().height}; div.classList.add("on"); try { div.setPointerCapture(e.pointerId); } catch (x) {} e.preventDefault(); });
+    div.addEventListener("pointermove", function (e) { if (!arr) return; V.tl = Math.round(lim(arr.h + (arr.y - e.clientY), 96, innerHeight * 0.7)); aplicar(); });
+    function soltar() { if (!arr) return; arr = null; div.classList.remove("on"); lembrar(); }
+    div.addEventListener("pointerup", soltar); div.addEventListener("pointercancel", soltar);
+    div.addEventListener("dblclick", function () { V.tl = 0; lembrar(); aplicar(); });
+    window.__veVista = {estado: function () { return {esq: V.esq, dir: V.dir, tl: V.tl, todas: V.todas, grande: grande}; }, aoSelecionar: function () { if (!V.dir && !grande) { V.dir = true; aplicar(); } }};
+    aplicar();
+  })();
   function reservar() { var m = window.matchMedia("(max-width:1100px)").matches, h = document.documentElement.style; h.scrollPaddingTop = m ? (document.querySelector(".ve-palco").offsetHeight + 10) + "px" : ""; h.scrollPaddingBottom = m ? "90px" : ""; }
   window.addEventListener("resize", reservar); reservar();
   /* ---------- começo: volta o que estava aberto ---------- */
