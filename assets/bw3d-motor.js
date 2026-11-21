@@ -350,6 +350,18 @@
     }
     ctx.restore();
   }
+  /* escurece uma imagem mantendo o desenho dela (a face de trás de um letreiro pega menos luz).
+     Canvas próprio e cacheado, como pintar/metal — nunca o TMP, que é usado para montar a cena. */
+  function sombrear(img, f) {
+    var k = "s" + (img.__id || (img.__id = "i" + Math.random().toString(36).slice(2))) + f.toFixed(2);
+    if (CACHE[k]) return CACHE[k];
+    var c = document.createElement("canvas");
+    c.width = img.width || img.naturalWidth; c.height = img.height || img.naturalHeight;
+    var x = c.getContext("2d"); x.drawImage(img, 0, 0, c.width, c.height);
+    x.globalCompositeOperation = "source-atop";
+    x.fillStyle = "rgba(0,0,0," + (1 - f).toFixed(3) + ")"; x.fillRect(0, 0, c.width, c.height);
+    CACHE[k] = c; if (Object.keys(CACHE).length > 60) CACHE = {}; return c;
+  }
   /* logo em relevo: silhueta "esfregada" na direção da espessura (sem fatia por fatia) */
   function logo3d(ctx, o, cam, w, h) {
     var img = o.img; if (!img || !(img.width || img.naturalWidth)) return;
@@ -392,12 +404,17 @@
       function esc(p) { return [mx + ((p[0] - x0) - mx) * k, my + ((p[1] - y0) - my) * k]; }
       blit(tx, pintar(img, t2(1.5)), esc(N[0]), esc(N[1]), esc(N[3]));
     }
-    var frente;
-    if (perto && o.acabamento === "imagem") frente = img;
-    else if (!perto) frente = pintar(img, t2(0.5));
-    else if (o.acabamento === "cor") frente = pintar(img, o.cor || "#C9A227");
-    else frente = metal(img, o.cor || "#C9A227", (cam.yaw || 0) + (o.rot ? o.rot[1] : 0));
-    blit(tx, frente, [N[0][0] - x0, N[0][1] - y0], [N[1][0] - x0, N[1][1] - y0], [N[3][0] - x0, N[3][1] - y0]);
+    /* a face virada para a câmera. De trás, com doisLados (padrão), a arte aparece de novo —
+       espelhada no espaço do objeto, o que a deixa LEGÍVEL na tela, como um letreiro impresso
+       dos dois lados; sem doisLados, a traseira é lisa na cor do material (relevo de parede). */
+    var frente, atras = !perto, dois = o.doisLados !== false;
+    if (atras && !dois) frente = pintar(img, t2(0.5));
+    else if (o.acabamento === "imagem") frente = atras ? sombrear(img, 0.68) : img;
+    else if (o.acabamento === "cor") frente = pintar(img, atras ? t2(0.72) : (o.cor || "#C9A227"));
+    else frente = metal(img, o.cor || "#C9A227", (cam.yaw || 0) + (o.rot ? o.rot[1] : 0) + (atras ? Math.PI : 0));
+    var c1 = N[0], c2 = N[1], c3 = N[3];
+    if (atras && dois) { c1 = N[1]; c2 = N[0]; c3 = N[2]; }         // espelha: logo legível de trás
+    blit(tx, frente, [c1[0] - x0, c1[1] - y0], [c2[0] - x0, c2[1] - y0], [c3[0] - x0, c3[1] - y0]);
     ctx.drawImage(TMP, 0, 0, cw, ch, x0, y0, cw, ch);
   }
 

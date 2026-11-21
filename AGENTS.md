@@ -492,6 +492,17 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
      Pasta com arquivo baixado dentro da pasta do Studio entra no BW-Setup.exe pelo robocopy /E: o GERAR-INSTALADOR.bat ignora
      "IA ARQUIVOS EXE", downloads-externos e qualquer *.exe/*.msi solto.
 
+134. RELEVO 3D (logo) tem DOIS LADOS: a face virada para a câmera quando se olha por trás não pode sair chapada — com `doisLados`
+     (padrão) a arte volta, ESPELHADA no espaço do objeto (cantos 1,0,2 em vez de 0,1,3), o que a deixa LEGÍVEL na tela, como letreiro
+     impresso dos dois lados; desligado, traseira lisa na cor do material (relevo de parede). Imagem derivada (sombrear/pintar/metal) usa
+     canvas PRÓPRIO cacheado, nunca o TMP, que está montando a cena.
+135. MOVIMENTO DE CÂMERA no vídeo não é só "girar 360°" (numa logo, metade do vídeo é a traseira): tabela MOVIMENTOS com `laco` —
+     quem fecha em loop (vai e volta, giro, parado) anda por `t % seg`, quem é de UMA VEZ SÓ (chegando, revelar, meia volta) anda por
+     `min(1, t/seg)`, senão o ÚLTIMO quadro do vídeo salta de volta para o primeiro (`8 % 8 === 0`). Cada movimento traz na tela para que
+     serve. Teste mede a câmera em t=0, no meio e no fim (auto: teste_3d.py).
+136. Contar "quantos tons tem na tela" NUNCA pelas N cores mais comuns de uma amostragem (regra 126): varrer TODOS os pixels e usar um
+     conjunto. O medidor de 4 cores a cada 97 px dizia "4 tons" tanto para o relevo quanto para a face chapada.
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -1575,6 +1586,16 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   Python da MICROSOFT STORE. Agora o cartão mostra o LINK DIRETO do arquivo exato (python-3.12.10-amd64.exe, conferido na página oficial
   hoje) ao lado do botão automático, e o app RECUSA a versão da Store pelo caminho real do interpretador, dizendo como desinstalar.
   teste-gerador3d.mjs +6 checagens. PENTE FINO 132b.
+- 20/11/2026 23:30 · Claude (dono, testando o Estúdio 3D no site: "fiz uma LOGO 3D e a parte traseira não fazia, ficava liso" + "o vídeo
+  gerado fica só girando; como utilizar da maneira correta?"): os dois eram limitação do código. (1) LOGO — chip **ARTE DOS DOIS LADOS**
+  (ligado por padrão): de trás a arte volta, espelhada no espaço do objeto para sair LEGÍVEL, um tom mais escura (letreiro de dois lados);
+  desligado, traseira lisa como antes. Novo `sombrear()` com canvas próprio cacheado. (2) VÍDEO — o giro de 360° virou **MOVIMENTO**:
+  VAI E VOLTA (±35°, recomendado para logo, fecha em loop), CHEGANDO, REVELAR, MEIA VOLTA, GIRO COMPLETO e PARADO, com entrada e saída
+  suaves; seletor no painel CENA e na folha GERAR VÍDEO, cada um com uma linha dizendo para que serve e o aviso de que girar uma logo
+  mostra a traseira metade do tempo. Bug achado pelo teste: nos movimentos de uma vez só o ÚLTIMO quadro voltava ao primeiro (`t % seg`
+  zera quando t = seg) → campo `laco`. Outro: o medidor de pixel do teste usava as "4 cores mais comuns" e não distinguia relevo de face
+  chapada (regra 126 de novo) → medidor que varre a tela inteira. teste_3d.py +9 checagens × 1280/390 (0 falhas); 3d_plano, 3d_foto,
+  motion, telas 0 falhas; vigia ✅. bw3d-motor v4, bw3d.js v9, sw v163. PENTE FINO 134–136.
 
 ## Pendências (dono)
 - [ ] (20/11) GERADOR 3D NO MEU PC — É O TESTE REAL: dono atualizar o BW (aviso de 1.9.6), abrir o cartão GERADOR 3D NO MEU PC, conferir a

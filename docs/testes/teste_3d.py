@@ -117,6 +117,39 @@ with sync_playwright() as p:
         verde = [c for c in r["cores"] if int(c[0].split(",")[1]) > int(c[0].split(",")[0]) + 1]
         ok(len(verde) > 0, f"troca o acabamento para cor sólida ({r['cores'][:3]})")
 
+        # ---------- a TRASEIRA da logo (20/11: "ficava lisa") ----------
+        TONS = """(() => { const c=document.getElementById('d3Cv'), x=c.getContext('2d'),
+          d=x.getImageData(0,0,c.width,c.height).data; const s=new Set(); let n=0;
+          for (let i=0;i<d.length;i+=4) if (d[i+3]>10) { n++; s.add((d[i]>>3)+','+(d[i+1]>>3)+','+(d[i+2]>>3)); }
+          return { pintados:n, tons:s.size }; })()"""
+        pg.evaluate("(()=>{const P=BW3DEditor.projeto();P.logo.acabamento='dourado';P.logo.doisLados=true;"
+                    "P.cam.yaw=Math.PI;P.giro.liga=false;BW3DEditor.ver(0);})()"); pg.wait_for_timeout(400)
+        atras_dois = pg.evaluate(TONS)
+        pg.evaluate("(()=>{const P=BW3DEditor.projeto();P.logo.doisLados=false;BW3DEditor.ver(0);})()"); pg.wait_for_timeout(400)
+        atras_liso = pg.evaluate(TONS)
+        ok(atras_dois["pintados"] > 500, f"de trás a logo continua desenhada na tela ({atras_dois['pintados']} px)")
+        ok(atras_dois["tons"] > atras_liso["tons"] + 3,
+           f"ARTE DOS DOIS LADOS dá relevo atrás ({atras_dois['tons']} tons) e desligado fica liso ({atras_liso['tons']})")
+        pg.evaluate("(()=>{const P=BW3DEditor.projeto();P.logo.doisLados=true;P.cam.yaw=0.9;BW3DEditor.ver(0);})()")
+
+        # ---------- MOVIMENTOS do vídeo ----------
+        def cam_em(mov, t):
+            return pg.evaluate("([m,t])=>{const P=BW3DEditor.projeto();P.giro.liga=(m!=='parado');P.giro.mov=m;P.giro.seg=8;"
+                               "const c=BW3DEditor.montar(t,1080,1920).cam;return [c.yaw,c.pitch,c.dist];}", [mov, t])
+        a0, a1 = cam_em("vaivem", 0), cam_em("vaivem", 8)
+        ok(abs(a0[0] - a1[0]) < 0.01, "VAI E VOLTA fecha o loop: termina onde começou")
+        meio = cam_em("vaivem", 2)
+        ok(abs(meio[0] - a0[0]) > 0.3, "VAI E VOLTA se mexe de verdade no meio do caminho")
+        g0, gm = cam_em("giro", 0), cam_em("giro", 4)
+        ok(abs(abs(gm[0] - g0[0]) - 3.1416) < 0.05, "GIRO COMPLETO está na metade da volta na metade do tempo")
+        p0, pm = cam_em("parado", 0), cam_em("parado", 4)
+        ok(p0 == pm, "PARADO não mexe a câmera")
+        c0, c1 = cam_em("chegando", 0), cam_em("chegando", 8)
+        ok(c0[2] > c1[2] * 1.3, f"CHEGANDO começa longe e termina perto ({c0[2]:.1f} → {c1[2]:.1f})")
+        r0, r1 = cam_em("revelar", 0), cam_em("revelar", 8)
+        ok(r0[1] > r1[1] + 0.3, "REVELAR começa de cima e desce")
+        pg.evaluate("(()=>{const P=BW3DEditor.projeto();P.giro.mov='giro';BW3DEditor.ver(0);})()")
+
         # ---------- MAQUETE DE PALCO E LED ----------
         pg.click('#d3Modos [data-m="palco"]'); pg.wait_for_timeout(350); aba("objeto")
         pg.fill('[data-k="palco.cols"]', "7"); pg.dispatch_event('[data-k="palco.cols"]', "input")

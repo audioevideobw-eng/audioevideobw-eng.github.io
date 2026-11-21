@@ -49,9 +49,9 @@
     return { v: 1, id: uid("p3"), nome: "Meu 3D", modo: modo || "plano", atualizado: Date.now(),
       fundo: { tipo: "estudio", cor: "#0B0E14" }, chao: { mostrar: true, tam: 10, passo: 1 },
       luz: { preset: "estudio", amb: 0.26 }, cam: { yaw: 0.6, pitch: 0.34, dist: 6, alvo: [0, 0.8, 0], fov: 0.62, auto: true },
-      giro: { liga: true, seg: 8 },
+      giro: { liga: true, seg: 8, mov: "giro" },
       modelo: { arqId: "", nome: "", pronto: "cubo", cor: "#9AA8C7", material: "plastico", alturaM: 1.6, rotY: 0, arestas: 0 },
-      logo: { imgId: "", nome: "", espessura: 0.1, bisel: 1, acabamento: "dourado", cor: "#C9A227", larguraM: 1.8, altura: 1.1 },
+      logo: { imgId: "", nome: "", espessura: 0.1, bisel: 1, acabamento: "dourado", cor: "#C9A227", larguraM: 1.8, altura: 1.1, doisLados: true },
       palco: { larg: 8, prof: 4, alt: 0.8, mostrarPalco: true, cols: 10, rows: 5, modulo: 0.5, moduloA: 0.5, pitch: 3.906, ledChao: 0.8,
         trelica: true, torres: true, pessoas: 4, cameras: 1, medidas: true, conteudoId: "" },
       ia: { pedido: "", estilo: "produto", ia: "tripo" },
@@ -92,7 +92,8 @@
     } else if (modo === "logo") {
       var im = ARQ[P.logo.imgId] && ARQ[P.logo.imgId].img;
       if (im) objs.push({ tipo: "logo", img: im, larguraM: P.logo.larguraM, espessura: P.logo.espessura, bisel: P.logo.bisel,
-        acabamento: P.logo.acabamento, cor: P.logo.cor, pos: [0, P.logo.altura, 0], rot: [0, 0, 0], sombra: false });
+        acabamento: P.logo.acabamento, cor: P.logo.cor, doisLados: P.logo.doisLados !== false,
+        pos: [0, P.logo.altura, 0], rot: [0, 0, 0], sombra: false });
       else objs.push(B.caixa({ tam: [1.6, 0.9, P.logo.espessura], cor: P.logo.cor, mat: MATS.metal, pos: [0, P.logo.altura - 0.45, 0], centrado: false, nome: "Escolha a sua logo" }));
     } else if (modo === "palco") {
       var p = P.palco, f = fichaLED(), zTras = p.prof / 2, cx = 0;
@@ -115,9 +116,30 @@
     }
     var cena = { fundo: { tipo: P.fundo.tipo, cor: P.fundo.cor }, chao: { mostrar: P.chao.mostrar, tam: P.chao.tam, passo: P.chao.passo },
       luz: { dir: LUZES[P.luz.preset] || LUZES.estudio, amb: P.luz.amb }, objs: objs, medidas: med };
-    var cam = { yaw: P.cam.yaw + (P.giro.liga ? 2 * Math.PI * t / Math.max(0.5, P.giro.seg) : 0), pitch: P.cam.pitch, dist: P.cam.dist, alvo: P.cam.alvo.slice(), fov: P.cam.fov };
+    var mv = passeio(t);
+    var cam = { yaw: P.cam.yaw + (mv.yaw || 0), pitch: P.cam.pitch + (mv.pitch || 0), dist: P.cam.dist, alvo: P.cam.alvo.slice(), fov: P.cam.fov };
     if (P.cam.auto) { var e = enquadrar(objs, w, h, cam); cam.dist = e.dist; cam.alvo = e.alvo; }
+    if (mv.dist) cam.dist *= 1 + mv.dist;                            // afasta sem perder o enquadramento
     return { cena: cena, cam: cam };
+  }
+  /* MOVIMENTOS DO VÍDEO (20/11): girar 360° é o pior para uma logo — metade do tempo se vê a traseira.
+     Cada um recebe u (0 a 1 da duração) e devolve o quanto somar à câmera parada. */
+  function sua(u) { return u * u * (3 - 2 * u); }                    // entrada e saída suaves
+  var MOVIMENTOS = {
+    vaivem: { nome: "VAI E VOLTA (recomendado p/ logo)", laco: true, ritmo: function (u) { return { yaw: Math.sin(2 * Math.PI * u) * 0.62 }; } },
+    chegando: { nome: "CHEGANDO (de longe para perto)", ritmo: function (u) { var k = sua(u); return { yaw: (1 - k) * -0.5, dist: (1 - k) * 0.85 }; } },
+    revelar: { nome: "REVELAR (desce de cima)", ritmo: function (u) { var k = sua(u); return { pitch: (1 - k) * 0.75, dist: (1 - k) * 0.35 }; } },
+    meia: { nome: "MEIA VOLTA", ritmo: function (u) { return { yaw: (sua(u) - 0.5) * Math.PI }; } },
+    giro: { nome: "GIRO COMPLETO (360°)", laco: true, ritmo: function (u) { return { yaw: 2 * Math.PI * u }; } },
+    parado: { nome: "PARADO (sem movimento)", laco: true, ritmo: function () { return {}; } }
+  };
+  /* movimento que fecha em loop volta ao começo no fim (t % seg); o de uma vez só PARA no fim —
+     com o módulo, o último quadro do vídeo saltava de volta para o primeiro */
+  function passeio(t) {
+    if (!P.giro.liga) return {};
+    var seg = Math.max(0.5, P.giro.seg), m = MOVIMENTOS[P.giro.mov] || MOVIMENTOS.giro;
+    var u = m.laco ? (t % seg) / seg : Math.min(1, Math.max(0, t) / seg);
+    return m.ritmo(u) || {};
   }
   /* põe tudo na tela qualquer que seja o formato (telão, 9:16, 4K) */
   function caixaDe(objs) {
@@ -240,6 +262,8 @@
       h += campo("Acabamento", sel("logo.acabamento", Object.keys(ACAB).map(function (k) { return [k, ACAB[k][0]]; })));
       h += campo("Cor do metal / da cor sólida", cor("logo.cor"));
       h += '<div class="d3-l2">' + campo("Espessura (m)", faixa("logo.espessura", 0.01, 0.5, 0.01)) + campo("Bisel", faixa("logo.bisel", 0, 3, 0.25)) + "</div>";
+      h += '<div class="d3-chips" style="margin:2px 0 8px">' + chip("logo.doisLados", "ARTE DOS DOIS LADOS") + "</div>";
+      h += '<p class="d3-nota" style="margin:0 0 8px">Ligado, a logo aparece legível também por trás (letreiro de dois lados). Desligado, a traseira fica lisa na cor do material, como um relevo de parede.</p>';
       h += '<div class="d3-l2">' + campo("Largura (m)", numero("logo.larguraM", 0.2, 12, 0.1)) + campo("Altura do chão (m)", numero("logo.altura", 0, 8, 0.1)) + "</div>";
     } else if (m === "palco") {
       h += '<div class="d3-l3">' + campo("Colunas", numero("palco.cols", 1, 60, 1)) + campo("Linhas", numero("palco.rows", 1, 30, 1)) + campo("Pitch", sel("palco.pitch", PITCHES.map(function (p) { return [p[0], p[1]]; }))) + "</div>";
@@ -280,7 +304,8 @@
     h += '<div class="d3-g" data-aba="cena"><h4 data-seta="d3cena">CENA E CÂMERA</h4><div>';
     h += campo("Fundo", sel("fundo.tipo", Object.keys(B.FUNDOS).map(function (k) { return [k, B.FUNDOS[k]]; })));
     if (P.fundo.tipo === "cor") h += campo("Cor do fundo", cor("fundo.cor"));
-    h += '<div class="d3-chips" style="margin-bottom:8px">' + chip("chao.mostrar", "CHÃO COM GRADE") + chip("giro.liga", "GIRAR SOZINHO") + "</div>";
+    h += '<div class="d3-chips" style="margin-bottom:8px">' + chip("chao.mostrar", "CHÃO COM GRADE") + chip("giro.liga", "COM MOVIMENTO") + "</div>";
+    if (P.giro.liga) h += campo("Movimento", sel("giro.mov", Object.keys(MOVIMENTOS).map(function (k) { return [k, MOVIMENTOS[k].nome]; })));
     h += campo("Luz", sel("luz.preset", [["estudio", "Estúdio (3/4)"], ["frontal", "Frontal"], ["lateral", "Lateral forte"], ["palco", "De cima (palco)"]]));
     h += campo("Luz de preenchimento", faixa("luz.amb", 0.08, 0.7, 0.01));
     h += campo("Segundos por volta", numero("giro.seg", 2, 60, 1));
@@ -580,6 +605,8 @@
     h += campo("Formato", '<select class="d3-sel" id="d3Fmt">' + op(lista, e.formato) + "</select>");
     h += '<div class="d3-l2" id="d3Livre"' + (e.formato === "livre" ? "" : " hidden") + ">" + campo("Largura (px)", '<input type="number" class="d3-in" id="d3W" value="' + e.w + '" min="80" max="4096">') + campo("Altura (px)", '<input type="number" class="d3-in" id="d3H" value="' + e.h + '" min="80" max="4096">') + "</div>";
     h += '<div class="d3-l2">' + campo("Duração (s)", '<input type="number" class="d3-in" id="d3Dur" value="' + (e.dur || P.giro.seg) + '" min="2" max="60">') + campo("Qualidade", '<select class="d3-sel" id="d3Qual"></select>') + "</div>";
+    h += campo("Movimento", '<select class="d3-sel" id="d3Mov">' + op(Object.keys(MOVIMENTOS).map(function (k) { return [k, MOVIMENTOS[k].nome]; }), P.giro.mov || "giro") + "</select>");
+    h += '<p class="d3-nota" id="d3MovNota" style="margin:4px 0 0"></p>';
     h += campo("Fundo do vídeo", '<select class="d3-sel" id="d3ExpFundo">' + op([["", "O fundo do projeto"], ["verde", "Verde (chroma key)"], ["azul", "Azul (chroma key)"], ["magenta", "Magenta (chroma key)"]], P.fundo.tipo === "nenhum" ? "verde" : "") + "</select>");
     h += '<p class="d3-nota" id="d3ExpNota" style="margin:4px 0 0"></p>';
     h += '<div class="d3-fx" style="margin-top:10px"><button class="d3-bt pri" id="d3Gerar" type="button">🎬 GERAR O VÍDEO</button><button class="d3-bt" id="d3Parar" type="button" hidden>PARAR</button></div>';
@@ -607,6 +634,20 @@
       }
     }
     nota(); quals();
+    function dicaMov() {
+      var m = $("d3Mov").value, d = {
+        vaivem: "O balanço mostra o relevo e as duas faces sem nunca ficar de costas. Emenda sozinho em loop.",
+        chegando: "Boa para abrir um vídeo: a peça vem de longe e para. Não emenda em loop (é de uma vez só).",
+        revelar: "A câmera desce de cima até a altura do olho. Boa para maquete de palco.",
+        meia: "Meia volta, de um lado ao outro, com entrada e saída suaves.",
+        giro: "Volta inteira. Numa LOGO, metade do vídeo é a traseira — prefira VAI E VOLTA, ou ligue ARTE DOS DOIS LADOS.",
+        parado: "Sem movimento: serve para tirar um quadro parado ou deixar a peça firme sobre a sua filmagem."
+      }[m] || "";
+      if (m === "giro" && P.modo === "logo" && P.logo.doisLados === false) d += " ⚠ a traseira está lisa (ARTE DOS DOIS LADOS desligado).";
+      $("d3MovNota").textContent = d;
+    }
+    dicaMov();
+    $("d3Mov").onchange = function () { P.giro.mov = this.value; P.giro.liga = this.value !== "parado"; dicaMov(); guardarTarde(); };
     $("d3Fmt").onchange = function () { P.exportar.formato = this.value; $("d3Livre").hidden = this.value !== "livre"; nota(); quals(); guardarTarde(); };
     $("d3W").onchange = $("d3H").onchange = function () { P.exportar.w = num($("d3W").value, 1080); P.exportar.h = num($("d3H").value, 1920); nota(); quals(); guardarTarde(); };
     $("d3Dur").onchange = function () { P.exportar.dur = num(this.value, 8); guardarTarde(); };
