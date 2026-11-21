@@ -74,7 +74,7 @@ with sync_playwright() as p:
         pg.mouse.move(bb["x"] + 6, bb["y"] + 20); pg.mouse.down(); pg.mouse.move(bb["x"] + 6 - 30, bb["y"] + 20, steps=4); pg.mouse.up(); pg.wait_for_timeout(200)
         ok(abs(pg.evaluate(f"__video.P().clips.find(c => c.id === '{ida}').dur") - 1.5) < 0.11, "puxar a alça da direita apara o clipe (2 s → 1,5 s)")
         pg.evaluate(f"__video.sel('{ida}')"); pg.wait_for_timeout(100)
-        pg.evaluate("(()=>{const e=document.querySelector('#vePropCorpo [data-p=vol]');e.value=50;e.dispatchEvent(new Event('input',{bubbles:true}))})()")
+        pg.evaluate("(()=>{const e=document.querySelector('#vePropCorpo [data-p=volDb]');e.value=-6;e.dispatchEvent(new Event('input',{bubbles:true}))})()")
         ok(pg.evaluate(f"__video.P().clips.find(c => c.id === '{ida}').vol") == 50 and pg.locator('#vePropCorpo [data-p="fin"]').count() == 1, "AJUSTES do clipe: volume, entra/sai suave")
         ok(pg.evaluate(SEM) <= 0 and not erros, f"sem estouro e sem erro de JS {erros}")
         # exportar de verdade: encurta para ~3 s (tira a imagem), toca e grava

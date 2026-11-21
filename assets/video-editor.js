@@ -160,7 +160,7 @@
   function copiar() { var c = sel(); if (!c) return false; COPIA = JSON.parse(JSON.stringify(c)); aviso("Copiado. Ctrl+V cola na agulha."); }
   function colar() { if (!COPIA) { aviso("Nada copiado ainda (Ctrl+C num clipe).", true); return; } var d = JSON.parse(JSON.stringify(COPIA)); d.id = uid(); d.ini = Math.round(T * 20) / 20; P.clips.push(d); SEL = d.id; tudo(); aviso("Colado na agulha."); }
   /* COPIAR E COLAR AJUSTES (atributos) de um take em outro: cada grupo só entra onde faz sentido (som em quem tem som, imagem em quem tem imagem) */
-  var ATRIB = null, AT_VIS = ["op", "esc", "x", "y", "encaixe", "efeito", "efInt", "ck", "ckCor", "ckModo", "ckNivel", "ckInt", "ckSuave", "ckLimpa", "ckSombra"], AT_TXT = ["fonte", "tam", "cor", "fundo", "op"], AT_SOM = ["vol"], AT_TEMPO = ["fin", "fout"];
+  var ATRIB = null, AT_VIS = ["grade", "op", "esc", "x", "y", "encaixe", "efeito", "efInt", "ck", "ckCor", "ckModo", "ckNivel", "ckInt", "ckSuave", "ckLimpa", "ckSombra"], AT_TXT = ["fonte", "tam", "cor", "fundo", "op"], AT_SOM = ["vol", "normG", "ruido", "voz"], AT_TEMPO = ["fin", "fout"];
   function temSom(c) { return c.tipo === "video" || c.tipo === "audio"; }
   function temImg(c) { return c.tipo === "video" || c.tipo === "imagem"; }
   function copiarAtrib() { var c = sel(); if (!c) return false; ATRIB = JSON.parse(JSON.stringify(c)); aviso("Ajustes copiados. Escolha outro take e use COLAR AJUSTES (Ctrl+Shift+V)."); }
@@ -176,7 +176,8 @@
       if (lado === "ini") { fica.fin = x.fin || 0; fica.trans = x.trans || null; fica.ini = ini0; var corte = Math.round((T - ini0) * 100) / 100; P.clips.forEach(function (y) { if (y !== fica && y !== fora && y.trilha === fica.trilha && y.ini >= T - 0.01) y.ini = Math.max(0, Math.round((y.ini - corte) * 100) / 100); }); }
       soltarEl(fora.id); P.clips = P.clips.filter(function (y) { return y !== fora; }); if (SEL === fora.id || !SEL) SEL = fica.id; });
     if (!n) { aviso("Ponha a agulha no meio de um take para aparar.", true); return; } if (lado === "ini") irPara(alvos[0].ini); tudo(); aviso(lado === "ini" ? "⇤ Começo cortado até a agulha (o resto veio junto)." : "⇥ Fim cortado na agulha."); }
-  function abrirSom() { var c = sel(); if (!c) return; if (window.__veVista && __veVista.mostrar) __veVista.mostrar("dir"); var h = document.querySelector('#vePropCorpo [data-seta="ve-som"]'); if (h) { var corpo = h.nextElementSibling; if (corpo && !corpo.offsetParent) h.click(); h.scrollIntoView({block: "nearest"}); } }
+  function abrirSom() { abrirGrupo("ve-som"); }
+  function abrirGrupo(chave) { var c = sel(); if (!c) return; if (window.__veVista && __veVista.mostrar) __veVista.mostrar("dir"); var h = document.querySelector('#vePropCorpo [data-seta="' + chave + '"]'); if (h) { var corpo = h.nextElementSibling; if (corpo && !corpo.offsetParent) h.click(); h.scrollIntoView({block: "nearest"}); } }
   function maxDur(c) { var m = MID[c.mid]; return c.tipo === "video" || c.tipo === "audio" ? Math.max(0.2, ((m ? m.dur : c.dur) - (c.corte || 0)) / vel(c)) : 600; }
   function mudarVel(c, v) { var a = vel(c); c.vel = v; c.dur = Math.round(Math.min(c.dur * a / v, maxDur(c)) * 100) / 100; tudo(); aviso("Velocidade " + String(v).replace(".", ",") + "×" + (v < 1 ? " (câmera lenta)" : v > 1 ? " (acelerado)" : "") + "."); }
   // CONGELAR QUADRO (CapCut): a imagem do quadro da agulha vira um clipe parado de 2 s e o resto do clipe vem depois
@@ -198,15 +199,52 @@
   /* ---------- prévia ---------- */
   var ACTX = null, MESTRE = null, DEST = null;
   function audioCtx() { if (ACTX) return ACTX; var C = window.AudioContext || window.webkitAudioContext; if (!C) return null; ACTX = new C(); MESTRE = ACTX.createGain(); MESTRE.connect(ACTX.destination); DEST = ACTX.createMediaStreamDestination(); MESTRE.connect(DEST); Object.keys(EL).forEach(function (k) { ligarSom(EL[k]); }); return ACTX; }
-  function ligarSom(o) { if (!ACTX || o.g || !o.e || o.semSom) return; try { var s = ACTX.createMediaElementSource(o.e); o.g = ACTX.createGain(); s.connect(o.g); o.g.connect(MESTRE); } catch (e) { o.semSom = true; } }
+  /* cada take com som passa por: corta-grave (zumbido) → corta-agudo (chiado) → presença da voz → compressor → volume → mestre.
+     Desligado, cada filtro fica neutro. A exportação grava o MESMO som (MESTRE → DEST), então o que se ouve é o que sai. */
+  function ligarSom(o) { if (!ACTX || o.g || !o.e || o.semSom) return; try { var s = ACTX.createMediaElementSource(o.e);
+      o.hp = ACTX.createBiquadFilter(); o.hp.type = "highpass"; o.hp.frequency.value = 10; o.lp = ACTX.createBiquadFilter(); o.lp.type = "lowpass"; o.lp.frequency.value = 20000;
+      o.pk = ACTX.createBiquadFilter(); o.pk.type = "peaking"; o.pk.frequency.value = 3000; o.pk.Q.value = 0.9; o.pk.gain.value = 0;
+      o.cp = ACTX.createDynamicsCompressor(); o.cp.threshold.value = 0; o.cp.ratio.value = 1; o.cp.attack.value = 0.005; o.cp.release.value = 0.2; o.cp.knee.value = 6;
+      o.g = ACTX.createGain(); s.connect(o.hp); o.hp.connect(o.lp); o.lp.connect(o.pk); o.pk.connect(o.cp); o.cp.connect(o.g); o.g.connect(MESTRE); o.fx = ""; } catch (e) { o.semSom = true; } }
+  var RUIDO = {0: [10, 20000], 1: [80, 14000], 2: [120, 10000], 3: [170, 7000]};
+  function filtrosSom(o, c) { var chave = (c.ruido || 0) + "|" + (c.voz ? 1 : 0); if (!o.hp || o.fx === chave) return; o.fx = chave; var r = RUIDO[c.ruido || 0] || RUIDO[0], t = ACTX.currentTime;
+    o.hp.frequency.setTargetAtTime(r[0], t, 0.02); o.lp.frequency.setTargetAtTime(r[1], t, 0.02); o.pk.gain.setTargetAtTime(c.voz ? 4 : 0, t, 0.02);
+    o.cp.threshold.setTargetAtTime(c.voz ? -24 : 0, t, 0.02); o.cp.ratio.setTargetAtTime(c.voz ? 3 : 1, t, 0.02); }
+  var ONDA = {}, ONDA_MAX = 200 * 1048576;
+  function analisar(m) { if (!m || !m.blob || (m.tipo !== "audio" && m.tipo !== "video")) return Promise.resolve(null); if (ONDA[m.id]) return ONDA[m.id];
+    if (m.blob.size > ONDA_MAX) { ONDA[m.id] = Promise.resolve(null); return ONDA[m.id]; }
+    ONDA[m.id] = m.blob.arrayBuffer().then(function (ab) { var C = window.OfflineAudioContext || window.webkitOfflineAudioContext; if (!C) return null; var oc = new C(1, 1, 44100);
+      return new Promise(function (ok) { var feito = false, fim = function (b) { if (!feito) { feito = true; ok(b || null); } }; try { var pr = oc.decodeAudioData(ab, fim, function () { fim(null); }); if (pr && pr.then) pr.then(fim, function () { fim(null); }); } catch (e) { fim(null); } }); })
+      .then(function (buf) { if (!buf || !buf.length) return null; var n = buf.numberOfChannels, L = buf.length, sr = buf.sampleRate, canais = []; for (var k = 0; k < n; k++) canais.push(buf.getChannelData(k));
+        var por = Math.max(1, Math.floor(sr / 100)), N = Math.ceil(L / por), pico = new Float32Array(N), rms = new Float32Array(N);
+        for (var i = 0; i < N; i++) { var a = i * por, b = Math.min(L, a + por), mx = 0, sq = 0; for (var j = a; j < b; j++) { var v = 0; for (var q = 0; q < n; q++) v += canais[q][j]; v /= n; var av = v < 0 ? -v : v; if (av > mx) mx = av; sq += v * v; } pico[i] = mx; rms[i] = Math.sqrt(sq / Math.max(1, b - a)); }
+        var res = {pico: pico, rms: rms, passo: por / sr, dur: L / sr}; res.img = imagemOnda(res); return res; }, function () { return null; });
+    return ONDA[m.id]; }
+  function imagemOnda(o) { try { var W = Math.min(4000, Math.max(200, Math.round(o.dur * 40))), H = 40, k = document.createElement("canvas"); k.width = W; k.height = H; var x = k.getContext("2d"); x.fillStyle = "rgba(255,255,255,.55)";
+      var por = o.pico.length / W; for (var i = 0; i < W; i++) { var a = Math.floor(i * por), b = Math.max(a + 1, Math.floor((i + 1) * por)), mx = 0; for (var j = a; j < b && j < o.pico.length; j++) if (o.pico[j] > mx) mx = o.pico[j]; var h = Math.max(1, Math.min(1, mx) * (H - 2)); x.fillRect(i, (H - h) / 2, 1, h); }
+      return k.toDataURL("image/png"); } catch (e) { return ""; } }
+  /* NORMALIZAR: leva o trecho usado do take a um volume médio padrão (≈ −16 dBFS RMS) sem deixar o pico passar de −1 dBFS */
+  function normalizar(c) { var m = MID[c.mid]; if (!m) return; aviso("Medindo o som do take…");
+    analisar(m).then(function (o) { if (!o) { aviso("Não consegui ler o som deste arquivo" + (m.blob && m.blob.size > ONDA_MAX ? " (arquivo muito grande para medir no aparelho)" : "") + ".", true); return; }
+      var a = Math.floor((c.corte || 0) / o.passo), b = Math.min(o.rms.length, Math.ceil(((c.corte || 0) + c.dur * vel(c)) / o.passo)), sq = 0, n = 0, pk = 0;
+      for (var i = a; i < b; i++) { if (o.rms[i] > 0.003) { sq += o.rms[i] * o.rms[i]; n++; } if (o.pico[i] > pk) pk = o.pico[i]; }
+      if (!n || pk < 1e-4) { aviso("Este trecho está em silêncio — nada para normalizar.", true); return; }
+      var rms = Math.sqrt(sq / n), alvo = Math.pow(10, -16 / 20), gg = alvo / rms, teto = Math.pow(10, -1 / 20) / pk; gg = lim(Math.min(gg, teto), 0.1, 8);
+      c.normG = Math.round(gg * 1000) / 1000; tudo(); aviso("🔊 Normalizado: " + (gg >= 1 ? "+" : "") + (20 * Math.log10(gg)).toFixed(1).replace(".", ",") + " dB neste take" + (gg === teto ? " (limitado para não estourar)" : "") + "."); }); }
+  function dbDe(c) { var v = c.vol == null ? 100 : c.vol; return v <= 0 ? -40 : Math.round(20 * Math.log10(v / 100) * 2) / 2; }
+  /* EXTRAIR ÁUDIO: o som do vídeo vira um take próprio na camada TRILHA (mesmo trecho) e o vídeo fica mudo */
+  function extrairAudio(c) { if (!c || c.tipo !== "video") return; var trilha = P.clips.some(function (x) { return x.trilha === "a1" && x.ini < c.ini + c.dur - 0.01 && x.ini + x.dur > c.ini + 0.01; }) ? "a2" : "a1";
+    var a = {id: uid(), trilha: trilha, tipo: "audio", mid: c.mid, ini: c.ini, dur: c.dur, corte: c.corte || 0, vel: vel(c), vol: c.vol == null ? 100 : c.vol, fin: c.fin || 0, fout: c.fout || 0, ruido: c.ruido || 0, voz: c.voz || 0, normG: c.normG};
+    c.vol = 0; P.clips.push(a); SEL = a.id; tudo(); aviso("🎵 Áudio extraído para a camada " + (trilha === "a1" ? "TRILHA" : "EFEITOS") + " — o vídeo ficou mudo."); }
+  function ganhoTake(c) { return (c.vol == null ? 100 : c.vol) / 100 * (+c.normG > 0 ? +c.normG : 1); }
   function elDe(c) { var o = EL[c.id]; if (o) return o; var m = MID[c.mid]; if (!m) return null; var e = document.createElement(c.tipo === "video" ? "video" : "audio"); e.preload = "auto"; e.playsInline = true; e.crossOrigin = "anonymous"; e.src = m.url; e.addEventListener("seeked", function () { if (!TOCANDO) desenhar(); }); e.addEventListener("loadeddata", function () { if (!TOCANDO) desenhar(); }); o = EL[c.id] = {e: e, g: null}; ligarSom(o); return o; }
   function soltarEl(id) { var o = EL[id]; if (!o) return; try { o.e.pause(); o.e.removeAttribute("src"); o.e.load(); } catch (e) {} delete EL[id]; }
   function fade(c, t) { if (c.off) return 0; var a = 1, r = t - c.ini, f = c.ini + c.dur - t; if (c.fin > 0 && r < c.fin) a = Math.min(a, r / c.fin); if (c.fout > 0 && f < c.fout) a = Math.min(a, f / c.fout); return lim(a, 0, 1); }
   function sincronizar(c, t, ativo) {
     var o = elDe(c); if (!o) return null; var e = o.e;
     if (!ativo) { if (!e.paused) e.pause(); return o; }
-    var alvo = (c.corte || 0) + (t - c.ini) * vel(c), v = lim((c.vol == null ? 100 : c.vol) / 100 * fade(c, t), 0, 2);
-    if (o.g) { o.g.gain.value = v; e.volume = 1; } else e.volume = Math.min(1, v);
+    var alvo = (c.corte || 0) + (t - c.ini) * vel(c), v = lim(ganhoTake(c) * fade(c, t), 0, 4);
+    if (o.g) { o.g.gain.value = v; e.volume = 1; filtrosSom(o, c); } else e.volume = Math.min(1, v);
     if (Math.abs(e.playbackRate - vel(c)) > 0.001) { try { e.playbackRate = vel(c); e.preservesPitch = true; } catch (x) {} }
     if (TOCANDO) { if (e.paused) { try { e.currentTime = alvo; } catch (x) {} var pr = e.play(); if (pr && pr.catch) pr.catch(function () {}); } else if (Math.abs(e.currentTime - alvo) > 0.35 * vel(c)) { try { e.currentTime = alvo; } catch (x) {} } }
     else { if (!e.paused) e.pause(); if (Math.abs(e.currentTime - alvo) > 0.04) { try { e.currentTime = alvo; } catch (x) {} } }
@@ -243,6 +281,7 @@
   // mod (transições): a = opacidade extra, dx/dy (fração da tela), k = escala, r = giro, recorte(ctx, W, H)
   function desenharMidia(fonte, fw, fh, c, t, mod) {
     if (!fw || !fh) return; mod = mod || {}; if (c.ck && !SEM_CK && window.BWChroma) { var semFundo = BWChroma.aplicar(fonte, fw, fh, c); if (semFundo) fonte = semFundo; }   /* chroma key: o fundo some antes de tudo */
+    if (c.grade && !SEM_CK && window.BWCor && BWCor.ativo(c.grade)) { var comCor = BWCor.aplicar(fonte, fw, fh, c.grade); if (comCor) fonte = comCor; }   /* cor do take (BWCor), depois do recorte */
     var W = cv.width, H = cv.height, s = (c.encaixe === "caber" ? Math.min : Math.max)(W / fw, H / fh) * (c.esc || 100) / 100, w = fw * s, h = fh * s;
     var a = (c.op == null ? 100 : c.op) / 100 * fade(c, t) * (mod.a == null ? 1 : mod.a); if (a <= 0.001) return;
     var x = (W - w) / 2 + (c.x || 0) / 100 * W, y = (H - h) / 2 + (c.y || 0) / 100 * H;
@@ -323,11 +362,16 @@
     for (var s = 0; s <= fim; s += passoR) h += '<i style="left:' + (s * PPS) + 'px">' + (s >= 60 ? Math.floor(s / 60) + ":" + (s % 60 < 10 ? "0" : "") + s % 60 : s + "s") + '</i>';
     h += "</div>";
     TRILHAS.forEach(function (tr) { h += '<div class="ve-faixa' + (vaziaTr(tr[0]) ? " vazia" : "") + '" data-trilha="' + tr[0] + '" style="width:' + larg + 'px">' + P.clips.filter(function (c) { return c.trilha === tr[0]; }).map(function (c) { var m = MID[c.mid], nome = c.tipo === "texto" ? String(c.txt || "Texto").split("\n")[0] : m ? m.nome : "arquivo que falta", mini = m && (m.tipo === "imagem" ? m.url : m.capa);
-        return '<div class="ve-clip' + (c.id === SEL ? " on" : "") + '" data-clip="' + c.id + '" style="--c:' + tr[2] + (c.off ? ";opacity:.35;filter:grayscale(1)" : "") + ';left:' + (c.ini * PPS) + 'px;width:' + Math.max(18, c.dur * PPS) + 'px" title="' + esc(nome) + '"><i class="al e" data-al="e"></i>' + (mini ? '<img alt="" src="' + mini + '">' : "") + '<span>' + (c.tipo === "texto" ? "T · " : c.tipo === "audio" ? "♪ " : "") + esc(nome) + '</span>' + (vel(c) !== 1 ? '<b class="bd">' + String(vel(c)).replace(".", ",") + '×</b>' : "") + (c.efeito ? '<b class="bd">✦</b>' : "") + '<i class="al d" data-al="d"></i>' + (transDe(c) && anteriorDe(c) ? '<i class="tr" title="Transição: ' + esc(TRANS[c.trans.tipo]) + '" style="width:' + Math.max(10, transDe(c) * PPS) + 'px"></i>' : "") + '</div>'; }).join("") + "</div>"; });
+        return '<div class="ve-clip' + (c.id === SEL ? " on" : "") + '" data-clip="' + c.id + '" style="--c:' + tr[2] + (c.off ? ";opacity:.35;filter:grayscale(1)" : "") + ';left:' + (c.ini * PPS) + 'px;width:' + Math.max(18, c.dur * PPS) + 'px" title="' + esc(nome) + '"><i class="al e" data-al="e"></i>' + (mini ? '<img alt="" src="' + mini + '">' : "") + '<span>' + (c.tipo === "texto" ? "T · " : c.tipo === "audio" ? "♪ " : "") + esc(nome) + '</span>' + (vel(c) !== 1 ? '<b class="bd">' + String(vel(c)).replace(".", ",") + '×</b>' : "") + (c.efeito ? '<b class="bd">✦</b>' : "") + (c.grade && window.BWCor && BWCor.ativo(c.grade) ? '<b class="bd" title="Cor ajustada">🎨</b>' : "") + ondaHtml(c, m) + '<i class="al d" data-al="d"></i>' + (transDe(c) && anteriorDe(c) ? '<i class="tr" title="Transição: ' + esc(TRANS[c.trans.tipo]) + '" style="width:' + Math.max(10, transDe(c) * PPS) + 'px"></i>' : "") + '</div>'; }).join("") + "</div>"; });
     h += '<div class="ve-agulha" id="veAgulha" style="left:' + (T * PPS) + 'px"></div><i class="ve-lamina" id="veLamina" hidden></i>';
     $("veFaixas").innerHTML = h; $("veFaixas").style.width = larg + "px";
     $("veRot").innerHTML = "<div>TEMPO</div>" + TRILHAS.map(function (tr) { return '<div' + (vaziaTr(tr[0]) ? ' class="vazia"' : "") + ' style="--c:' + tr[2] + '">' + tr[1] + "</div>"; }).join("");
   }
+  function ondaHtml(c, m) { if (!m || (c.tipo !== "audio" && c.tipo !== "video")) return "";
+    var o = ONDA[m.id]; if (!o) { analisar(m).then(function (r) { if (r && r.img) desenharTL(); }); return ""; }
+    if (!o._r) { o.then(function (r) { o._r = r || {}; }); return ""; } var r = o._r; if (!r.img) return "";
+    var larg = r.dur / vel(c) * PPS, desl = (c.corte || 0) / vel(c) * PPS, gv = lim(ganhoTake(c), 0, 4);
+    return '<i class="onda' + (c.tipo === "video" ? " v" : "") + '" style="background-image:url(' + r.img + ');background-size:' + larg.toFixed(1) + 'px 100%;background-position:' + (-desl).toFixed(1) + 'px 0;transform:scaleY(' + Math.max(0.15, Math.min(1.6, gv)).toFixed(2) + ')"></i>'; }
   function vaziaTr(id) { return id !== "v1" && !P.clips.some(function (c) { return c.trilha === id; }); }
   function faixaR(k, rot, min, max, v, suf, passo) { return '<label><span>' + rot + '</span><input type="range" data-p="' + k + '" min="' + min + '" max="' + max + '" step="' + (passo || 1) + '" value="' + v + '"><output>' + v + (suf || "") + '</output></label>'; }
   var ULT_SEL = null;
@@ -340,11 +384,21 @@
       '<label class="um"><span>Cor</span><input type="color" data-p="cor" value="' + esc(c.cor || "#ffffff") + '" aria-label="Cor do texto"></label><label class="um"><span>Fundo</span><select data-p="fundo" aria-label="Fundo do texto"><option value=""' + (!c.fundo ? " selected" : "") + '>Sem fundo (sombra)</option><option value="#000000"' + (c.fundo === "#000000" ? " selected" : "") + '>Caixa preta</option><option value="#ffffff"' + (c.fundo === "#ffffff" ? " selected" : "") + '>Caixa branca</option><option value="#7C5CFF"' + (c.fundo === "#7C5CFF" ? " selected" : "") + '>Caixa roxa</option><option value="#FFB547"' + (c.fundo === "#FFB547" ? " selected" : "") + '>Caixa âmbar</option></select></label>');
     if (visual) h += g("pos", "TAMANHO E POSIÇÃO", (c.tipo !== "texto" ? '<label class="um"><span>Encaixe</span><select data-p="encaixe" aria-label="Encaixe na tela"><option value="cobrir"' + (c.encaixe !== "caber" ? " selected" : "") + '>Encher a tela</option><option value="caber"' + (c.encaixe === "caber" ? " selected" : "") + '>Mostrar inteiro</option></select></label>' + faixaR("esc", "Tamanho", 10, 300, c.esc, "%") : "") +
       faixaR("x", "Posição ↔", -60, 60, c.x || 0, "%") + faixaR("y", "Posição ↕", -60, 60, c.y || 0, "%") + faixaR("op", "Opacidade", 0, 100, c.op == null ? 100 : c.op, "%"));
-    if (c.tipo === "video" || c.tipo === "audio") h += g("som", "SOM", faixaR("vol", "Volume", 0, 150, c.vol == null ? 100 : c.vol, "%"));
+    if (c.tipo === "video" || c.tipo === "audio") h += g("som", "SOM", '<label><span>Volume</span><input type="range" data-p="volDb" min="-40" max="12" step="0.5" value="' + dbDe(c) + '" aria-label="Volume em dB"><output>' + (dbDe(c) <= -40 ? "mudo" : String(dbDe(c)).replace(".", ",") + " dB") + '</output></label>' +
+      '<div class="ve-linha" style="flex-wrap:wrap"><button class="ve-bt" type="button" data-acao="mudo">' + (c.vol === 0 ? "🔈 DEVOLVER O SOM" : "🔇 MUDO") + '</button><button class="ve-bt' + (c.normG ? " on" : "") + '" type="button" data-acao="normalizar" title="Deixa o volume deste take no padrão, sem estourar">🔊 NORMALIZAR' + (c.normG ? " ✓" : "") + '</button>' + (c.normG ? '<button class="ve-bt" type="button" data-acao="desnormalizar">✕</button>' : "") + (c.tipo === "video" ? '<button class="ve-bt" type="button" data-acao="extrair">🎵 EXTRAIR ÁUDIO</button>' : "") + '</div>' +
+      '<p class="ve-sub">REDUZIR RUÍDO (zumbido e chiado)</p><div class="ve-chips">' + ["Desligado", "Leve", "Médio", "Forte"].map(function (n, i) { return '<button type="button" data-ruido="' + i + '"' + ((c.ruido || 0) === i ? ' class="on"' : "") + '>' + n + '</button>'; }).join("") + '</div>' +
+      '<p class="ve-sub">REALÇAR VOZ (mais presença e volume por igual)</p><div class="ve-chips"><button type="button" data-voz="0"' + (!c.voz ? ' class="on"' : "") + '>Desligado</button><button type="button" data-voz="1"' + (c.voz ? ' class="on"' : "") + '>Ligado</button></div>' +
+      '<p class="ve-nota" style="margin:6px 0 0">Entrada e saída suave do som ficam em TEMPO E CAMADA. Tudo é feito neste aparelho; o que você ouve é o que sai no vídeo.</p>');
     if (c.tipo === "video" || c.tipo === "audio") h += g("vel", "VELOCIDADE", '<div class="ve-chips">' + VELS.map(function (v) { return '<button type="button" data-vel="' + v + '"' + (vel(c) === v ? ' class="on"' : "") + '>' + String(v).replace(".", ",") + '×</button>'; }).join("") + '</div>' + (c.tipo === "video" ? '<div class="ve-linha"><button class="ve-bt" type="button" data-acao="congelar">❄ CONGELAR QUADRO</button></div>' : ""), true);
     if (visual && c.tipo !== "texto") { var tt = c.trans && c.trans.tipo || "";
       h += g("trans", "TRANSIÇÃO DE ENTRADA", (anteriorDe(c) ? "" : '<p class="ve-nota" style="margin:0 0 6px">Encoste este clipe no fim de outro (mesma camada) para a transição aparecer.</p>') + '<div class="ve-chips">' + '<button type="button" data-trans=""' + (!tt ? ' class="on"' : "") + '>Corte seco</button>' + Object.keys(TRANS).map(function (k) { return '<button type="button" data-trans="' + k + '"' + (tt === k ? ' class="on"' : "") + '>' + TRANS[k] + '</button>'; }).join("") + '</div>' + (tt ? faixaR("transDur", "Duração", 0.2, 2, (c.trans.dur || 0.6), " s", 0.1) : ""), true);
       h += g("efeito", "EFEITO", '<div class="ve-chips"><button type="button" data-efeito=""' + (!c.efeito ? ' class="on"' : "") + '>Nenhum</button>' + Object.keys(EFEITOS).map(function (k) { return '<button type="button" data-efeito="' + k + '"' + (c.efeito === k ? ' class="on"' : "") + '>' + EFEITOS[k] + '</button>'; }).join("") + '</div>' + (c.efeito ? faixaR("efInt", "Intensidade", 0, 100, c.efInt == null ? 85 : c.efInt, "%") : ""), true); }
+    if (visual && c.tipo !== "texto" && window.BWCor) { var gd = c.grade || {}, grupoAnt = "", pre = predefCor();
+      h += g("cor", "COR (AJUSTE)", '<p class="ve-sub">PONTO DE PARTIDA</p><div class="ve-chips"><button type="button" data-look=""' + (!BWCor.ativo(gd) ? ' class="on"' : "") + '>Original</button>' + Object.keys(BWCor.LOOKS).map(function (k) { return '<button type="button" data-look="' + k + '"' + (c.look === k && BWCor.ativo(gd) ? ' class="on"' : "") + '>' + BWCor.LOOKS[k].nome + '</button>'; }).join("") +
+        pre.map(function (p, i) { return '<button type="button" class="pre' + (c.look === "p" + i && BWCor.ativo(gd) ? " on" : "") + '" data-predef="' + i + '" title="Predefinição sua">★ ' + esc(p.nome) + '<i data-predel="' + i + '" title="Apagar esta predefinição" aria-label="Apagar a predefinição ' + esc(p.nome) + '">✕</i></button>'; }).join("") + '</div>' +
+        BWCor.CAMPOS.map(function (f) { var t = (f[0] !== grupoAnt ? '<p class="ve-sub">' + f[0] + '</p>' : ""); grupoAnt = f[0]; return t + faixaR("g:" + f[1], f[2], -100, 100, Math.round(+gd[f[1]] || 0), ""); }).join("") +
+        '<div class="ve-linha" style="flex-wrap:wrap"><button class="ve-bt" type="button" data-acao="corZerar">↺ ZERAR</button><button class="ve-bt" type="button" data-acao="corTodos" title="Põe esta mesma cor em todos os takes de vídeo e foto">⇉ APLICAR EM TODOS</button><button class="ve-bt" type="button" data-acao="corSalvar">★ SALVAR PREDEFINIÇÃO</button></div>' +
+        '<p class="ve-nota" style="margin:6px 0 0">Dois toques numa barra volta ela a zero. Tudo é feito neste aparelho' + (BWCor.motor() === "2d" ? " (modo econômico: este navegador não tem WebGL, a prévia pode ficar mais lenta)" : "") + '.</p>', true); }
     if (visual && c.tipo !== "texto") h += g("chroma", "CHROMA KEY (TIRAR FUNDO VERDE)", '<div class="ve-chips"><button type="button" data-ck="0"' + (!c.ck ? ' class="on"' : "") + '>Desligado</button><button type="button" data-ck="1"' + (c.ck ? ' class="on"' : "") + '>Ligado</button></div>' +
       (c.ck ? '<div class="ve-chips"><button type="button" data-ckmodo="auto"' + (c.ckModo !== "manual" ? ' class="on"' : "") + '>⚡ Automático</button><button type="button" data-ckmodo="manual"' + (c.ckModo === "manual" ? ' class="on"' : "") + '>🎚 Manual</button></div>' +
         '<label class="um"><span>Cor do fundo</span><input type="color" data-p="ckCor" value="' + esc(c.ckCor || "#00d000") + '" aria-label="Cor do fundo a tirar"></label><div class="ve-linha"><button class="ve-bt" type="button" data-acao="ckPegar">🎯 ESCOLHER NA TELA</button><button class="ve-bt" type="button" data-acao="ckAuto">✦ ACHAR SOZINHO</button></div>' +
@@ -402,7 +456,9 @@
   $("veExportar").onclick = exportar; $("veCancelar").onclick = function () { if (GRAV) GRAV.cancelar(); };
   $("veFecharSaida").onclick = function () { $("veSaida").hidden = true; try { $("veVideoPronto").pause(); } catch (e) {} };
   $("veCompartilhar").onclick = async function () { var s = $("veSaida"), f = new File([s._blob], s._nome, {type: s._blob.type}); try { if (navigator.canShare && navigator.canShare({files: [f]})) await navigator.share({files: [f]}); else $("veBaixar").click(); } catch (e) {} };
-  $("vePropCorpo").addEventListener("input", function (e) { var el = e.target, k = el.dataset.p, c = sel(); if (!k || !c) return; var v = el.type === "range" ? +el.value : el.value;
+  $("vePropCorpo").addEventListener("input", function (e) { var el = e.target, k = el.dataset.p, c = sel(); if (!k || !c) return;
+    if (k === "volDb") { var db = +el.value; c.vol = db <= -40 ? 0 : Math.round(100 * Math.pow(10, db / 20)); var oo = el.nextElementSibling; if (oo) oo.textContent = db <= -40 ? "mudo" : String(db).replace(".", ",") + " dB"; desenharTL(); desenhar(); guardar(); marcarHist(); return; }
+    if (k.indexOf("g:") === 0) { c.grade = c.grade || {}; c.grade[k.slice(2)] = +el.value; c.look = ""; var o0 = el.nextElementSibling; if (o0) o0.textContent = el.value; desenhar(); guardar(); marcarHist(); return; } var v = el.type === "range" ? +el.value : el.value;
     if (k === "dur") v = lim(v, 0.2, maxDur(c)); if (k === "transDur") { if (c.trans) c.trans.dur = v; } else c[k] = v; if (el.type === "range") { var o = el.nextElementSibling; if (o) o.textContent = String(v).replace(".", ",") + (o.textContent.replace(/^[\d.,\-]+/, "")); }
     if (k === "trilha" || k === "dur" || k === "txt" || k === "transDur") desenharTL(); desenhar(); guardar(); marcarHist(); });
   $("vePropCorpo").addEventListener("click", function (e) { var b = e.target.closest("button"), c = sel(); if (!b || !c) return;
@@ -414,7 +470,23 @@
     else if (b.hasAttribute("data-cknivel")) { porNivel(c, +b.dataset.cknivel); tudo(); aviso("Nível " + c.ckNivel + " de 5."); }
     else if (b.dataset.acao === "ckAuto") { var ach = corDoFundo(c); if (ach) { c.ckCor = ach; if (c.ckModo !== "manual") porNivel(c, nivelDoFundo(c)); tudo(); aviso("Fundo encontrado: " + ach + (c.ckModo !== "manual" ? " — nível " + c.ckNivel + " indicado para esta imagem." : ".")); } else aviso("Não achei um fundo verde ou azul nas bordas — use ESCOLHER NA TELA.", true); }
     else if (b.dataset.acao === "ckPegar") { PEGAR_CK = true; cv.style.cursor = "crosshair"; aviso("🎯 Toque no FUNDO do vídeo, na prévia, para escolher a cor."); }
-    else if (b.dataset.acao === "congelar") congelar(); });
+    else if (b.dataset.acao === "congelar") congelar();
+    else if (e.target.closest("[data-predel]")) { var ip = +e.target.closest("[data-predel]").dataset.predel, lp = predefCor(); if (lp[ip] && confirm("Apagar a predefinição “" + lp[ip].nome + "”?")) { lp.splice(ip, 1); predefCor(lp); desenharProp(); aviso("Predefinição apagada."); } }
+    else if (b.hasAttribute("data-look")) { var lk = BWCor.LOOKS[b.dataset.look]; c.grade = lk ? JSON.parse(JSON.stringify(lk.g)) : {}; c.look = b.dataset.look; tudo(); aviso(lk ? "Cor “" + lk.nome + "” — ajuste as barras à vontade." : "Cor original."); }
+    else if (b.hasAttribute("data-predef")) { var pr = predefCor()[+b.dataset.predef]; if (pr) { c.grade = JSON.parse(JSON.stringify(pr.g)); c.look = "p" + b.dataset.predef; tudo(); aviso("Predefinição “" + pr.nome + "” aplicada."); } }
+    else if (b.dataset.acao === "corZerar") { delete c.grade; c.look = ""; tudo(); aviso("Cor zerada (original)."); }
+    else if (b.dataset.acao === "corTodos") corEmTodos(c);
+    else if (b.hasAttribute("data-ruido")) { c.ruido = +b.dataset.ruido; tudo(); aviso(c.ruido ? "Redução de ruído " + ["", "leve", "média", "forte"][c.ruido] + " (tira zumbido grave e chiado agudo)." : "Redução de ruído desligada."); }
+    else if (b.hasAttribute("data-voz")) { c.voz = +b.dataset.voz; tudo(); }
+    else if (b.dataset.acao === "mudo") { c.vol = c.vol === 0 ? 100 : 0; tudo(); }
+    else if (b.dataset.acao === "normalizar") normalizar(c);
+    else if (b.dataset.acao === "desnormalizar") { delete c.normG; tudo(); aviso("Normalização tirada."); }
+    else if (b.dataset.acao === "extrair") extrairAudio(c);
+    else if (b.dataset.acao === "corSalvar") { if (!BWCor.ativo(c.grade)) { aviso("Mexa em alguma barra de cor antes de salvar.", true); return; } var lst = predefCor(), nm = (prompt("Nome da predefinição:", "Minha cor " + (lst.length + 1)) || "").trim().slice(0, 28); if (!nm) return; lst.push({nome: nm, g: JSON.parse(JSON.stringify(c.grade))}); predefCor(lst); c.look = "p" + (lst.length - 1); desenharProp(); aviso("★ “" + nm + "” salva neste aparelho: aparece em todo take e em todo projeto."); } });
+  $("vePropCorpo").addEventListener("dblclick", function (e) { var el = e.target.closest('input[type="range"][data-p^="g:"]'), c = sel(); if (!el || !c) return; el.value = 0; el.dispatchEvent(new Event("input", {bubbles: true})); });
+  /* predefinições de cor: preferência só deste aparelho (ui_ve_cor_predef) — servem para todos os projetos */
+  function predefCor(lista) { try { if (lista) { localStorage.setItem("ui_ve_cor_predef", JSON.stringify(lista.slice(0, 24))); return lista; } var l = JSON.parse(localStorage.getItem("ui_ve_cor_predef") || "[]"); return Array.isArray(l) ? l.filter(function (x) { return x && x.nome && x.g; }) : []; } catch (er) { return lista || []; } }
+  function corEmTodos(c) { var n = 0; P.clips.forEach(function (x) { if (x !== c && (x.tipo === "video" || x.tipo === "imagem")) { if (c.grade) x.grade = JSON.parse(JSON.stringify(c.grade)); else delete x.grade; x.look = c.look || ""; n++; } }); tudo(); aviso(n ? "⇉ Mesma cor em mais " + n + " take" + (n > 1 ? "s" : "") + "." : "Não há outros takes de vídeo ou foto.", !n); }
   function porNivel(c, n) { n = lim(Math.round(n) || 3, 1, 5); var v = window.BWChroma && BWChroma.NIVEIS[n]; c.ckNivel = n; if (v) { c.ckInt = v.ckInt; c.ckSuave = v.ckSuave; c.ckLimpa = v.ckLimpa; c.ckSombra = v.ckSombra; } }
   function nivelDoFundo(c) { var f = fonteDe(c, lim(T, c.ini, c.ini + c.dur - 0.02), true); return f && window.BWChroma && c.ckCor ? BWChroma.nivelPara(f.el, f.w, f.h, c.ckCor) : 3; }
   function corDoFundo(c) { var f = fonteDe(c, lim(T, c.ini, c.ini + c.dur - 0.02), true); return f && window.BWChroma ? BWChroma.detectar(f.el, f.w, f.h) : null; }
@@ -504,11 +576,14 @@
       itens.push({icone: "⇤", rot: "Cortar o começo até a agulha", tecla: "Q", off: !(T > c.ini + 0.05 && T < c.ini + c.dur - 0.05), fn: function () { aparar("ini"); }}, {icone: "⇥", rot: "Cortar o fim na agulha", tecla: "W", off: !(T > c.ini + 0.05 && T < c.ini + c.dur - 0.05), fn: function () { aparar("fim"); }},
         "-", {icone: "🎚", rot: "Copiar ajustes", tecla: "Ctrl+Shift+C", fn: copiarAtrib}, {icone: "🖌", rot: "Colar ajustes", tecla: "Ctrl+Shift+V", off: !ATRIB || ATRIB.id === c.id, fn: colarAtrib},
         {icone: c.off ? "👁" : "🚫", rot: c.off ? "Ativar o take" : "Desativar o take", tecla: "Shift+E", fn: ligarDesligar});
+      if (temImg(c) && window.BWCor) itens.push({icone: "🎨", rot: "Cor", sub: [{rot: "Original" + (!BWCor.ativo(c.grade) ? "  ✓" : ""), fn: function () { delete c.grade; c.look = ""; tudo(); }}].concat(Object.keys(BWCor.LOOKS).map(function (k) { return {rot: BWCor.LOOKS[k].nome + (c.look === k && BWCor.ativo(c.grade) ? "  ✓" : ""), fn: function () { c.grade = JSON.parse(JSON.stringify(BWCor.LOOKS[k].g)); c.look = k; tudo(); }}; }))
+        .concat([{rot: "⇉ Aplicar esta cor em todos os takes", off: !BWCor.ativo(c.grade), fn: function () { corEmTodos(c); }}, {rot: "Abrir os ajustes de cor…", fn: function () { abrirGrupo("ve-cor"); }}])});
       if (temSom(c)) { var vv = c.vol == null ? 100 : c.vol; itens.push({icone: "🔊", rot: "Som do take", sub: [
         {rot: vv === 0 ? "Devolver o som (100%)" : "Silenciar", fn: function () { c.vol = vv === 0 ? 100 : 0; tudo(); }},
         {rot: "Volume 50%" + (vv === 50 ? "  ✓" : ""), fn: function () { c.vol = 50; tudo(); }}, {rot: "Volume 100%" + (vv === 100 ? "  ✓" : ""), fn: function () { c.vol = 100; tudo(); }}, {rot: "Volume 150%" + (vv === 150 ? "  ✓" : ""), fn: function () { c.vol = 150; tudo(); }},
         {rot: "Entrada suave 0,5 s" + (c.fin >= 0.5 ? "  ✓" : ""), fn: function () { c.fin = c.fin >= 0.5 ? 0 : 0.5; tudo(); }}, {rot: "Saída suave 0,5 s" + (c.fout >= 0.5 ? "  ✓" : ""), fn: function () { c.fout = c.fout >= 0.5 ? 0 : 0.5; tudo(); }},
-        {rot: "Abrir os ajustes de som…", fn: abrirSom}]}); }
+        {rot: "🔊 Normalizar volume" + (c.normG ? "  ✓" : ""), fn: function () { normalizar(c); }}, {rot: "Reduzir ruído" + (c.ruido ? "  ✓" : ""), fn: function () { c.ruido = c.ruido ? 0 : 2; tudo(); }}, {rot: "Realçar voz" + (c.voz ? "  ✓" : ""), fn: function () { c.voz = c.voz ? 0 : 1; tudo(); }}]
+        .concat(c.tipo === "video" ? [{rot: "🎵 Extrair áudio", fn: function () { extrairAudio(c); }}] : []).concat([{rot: "Abrir os ajustes de som…", fn: abrirSom}])}); }
       itens.push("-");
       if (c.tipo !== "texto") itens.push({icone: "⇄", rot: "Substituir mídia…", fn: function () { substituir(c); }});
       if (c.tipo === "video" || c.tipo === "audio") itens.push({icone: "⏩", rot: "Velocidade (" + String(vel(c)).replace(".", ",") + "×)", sub: VELS.map(function (v) { return {rot: String(v).replace(".", ",") + "×" + (v === vel(c) ? "  ✓" : ""), fn: function () { mudarVel(c, v); }}; })});
