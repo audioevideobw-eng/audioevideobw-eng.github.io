@@ -1,0 +1,4 @@
+[
+ {"titulo":"GERADOR 3D: as duas bibliotecas na versão certa","texto":"Fixar só o transformers não bastava: rebaixar ele rebaixa outra peça e o diffusers novo deixava de abrir (ImportError resolve_revision). Agora o BW instala transformers 4.46.3 e diffusers 0.31.0 juntos, num comando só, que é a combinação que o modelo da Tencent pede. Abra GERADOR 3D NO MEU PC e toque em ↻ TENTAR DE NOVO — poucos minutos, sem baixar o modelo de novo.","abrir":"gerador3d"},
+ {"titulo":"O aviso de erro não mente mais","texto":"Um erro de versão de biblioteca estava sendo anunciado como \"a internet caiu\" (a palavra resolve_revision caía na regra de rede). Agora cada tipo de erro mostra o conserto certo."}
+]

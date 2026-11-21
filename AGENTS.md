@@ -527,7 +527,11 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
      modelo não carregou (a 5 renomeou a atenção do DINOv2; o checkpoint guarda attention.attention.query/key/value) — 8 etapas passavam e
      só o teste final quebrava. Toda receita que instala código de terceiros tem uma lista PINOS (pacote + motivo + data) aplicada DEPOIS do
      `pip install -e .` (que também sobe versão), e a etapa onde os pinos moram entra na lista do que o TENTAR DE NOVO refaz (auto:
-     teste-gerador3d.mjs confere que o pino roda e que roda depois do -e .).
+     teste-gerador3d.mjs confere que o pino roda e que roda depois do -e .). FIXAR UM PACOTE SÓ NÃO BASTA: rebaixar o transformers rebaixa o
+     huggingface_hub e o diffusers novo para de importar (ImportError resolve_revision) — o grupo que depende um do outro vai NUM comando só
+     (`transformers==4.46.3 diffusers==0.31.0`, a receita do Hunyuan3D), para o pip resolver o conjunto. E o DIAGNÓSTICO na tela não pode
+     mentir: o regex de rede tinha a palavra solta `resolve` e anunciou um erro de versão como "a internet caiu" → regra própria para
+     ImportError e padrões de rede específicos (ConnectionError, Max retries, Failed to resolve), com teste que prova a separação.
 
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
@@ -1671,12 +1675,22 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   roda DEPOIS do -e .), teste-app 0 falhas, vigia ✅. Pacote e novidades publicados (aviso de atualização para quem está na 1.9.9); cópia sem
   internet refeita. NÃO testado de verdade: só roda em Windows com placa NVIDIA — o ↻ TENTAR DE NOVO no PC do dono é o teste. PENTE FINO 141.
 
+- 21/11/2026 18:15 · Claude (dono tocou em TENTAR DE NOVO e o teste parou em `ImportError: cannot import name 'resolve_revision' from
+  'huggingface_hub'`, com a faixa dizendo "a internet caiu"): APP BW 1.9.11. Dois erros meus. (1) Fixar só o transformers não basta:
+  rebaixá-lo rebaixa o huggingface_hub, e o diffusers novo (que pede hub ≥ 1.23) deixa de importar — é o tropeço documentado para o
+  Hunyuan3D, cuja receita é `transformers==4.46.3 diffusers==0.31.0`. PINOS agora é um GRUPO instalado NUM comando só (o pip resolve o
+  conjunto), ainda no fim da etapa `pacote`. (2) A faixa vermelha anunciava erro de versão como falha de internet: o regex de rede tinha a
+  palavra solta `resolve`, que casou com `resolve_revision`. Agora há regra própria para ImportError/cannot import name (diz que é versão e
+  manda tocar em ↻ TENTAR DE NOVO) e a regra de rede só casa padrão de rede de verdade (ConnectionError, Max retries, Failed to resolve…).
+  teste-gerador3d.mjs +6 checagens, inclusive uma que PEGA o regex da tela e prova que ele não classifica o erro de versão como internet
+  (0 falhas); teste-app 0 falhas, vigia ✅. Pacote, novidades e cópia sem internet publicados. PENTE FINO 141 atualizada.
+
 ## Pendências (dono)
 - [ ] (21/11) AMBIENTE ÚNICO: dono abrir o EDITOR DE VÍDEO (Marketing → Editor de vídeo), tocar num atalho da caixa CRIAR, fazer uma peça
       (ex.: um motion curto ou uma logo 3D), mandar para a linha do tempo, juntar com uma filmagem dele e exportar. Depois tocar no ✎ de uma
       criação, mudar algo na ferramenta e ver se trocou no lugar sem desfazer a edição. Dizer se falta alguma ferramenta nessa caixa.
-- [ ] (21/11) GERADOR 3D — FALTA SÓ ISSO: dono abrir o BW, tocar em ATUALIZAR (1.9.10), abrir GERADOR 3D NO MEU PC e tocar em
-      ↻ TENTAR DE NOVO. O conserto do transformers<5 já está no app; ele refaz pacote + modelo + roteiro + teste (minutos, sem rebaixar os
+- [ ] (21/11) GERADOR 3D — FALTA SÓ ISSO: dono abrir o BW, tocar em ATUALIZAR (1.9.11), abrir GERADOR 3D NO MEU PC e tocar em
+      ↻ TENTAR DE NOVO. O conserto (transformers 4.46.3 + diffusers 0.31.0 juntos) já está no app; ele refaz pacote + modelo + roteiro + teste (minutos, sem rebaixar os
       7,6 GB). Depois tocar em 🧊 GERAR UMA PEÇA DE PROVA e mandar o resultado (ou o erro + ⧉ COPIAR O LOG). Aqui não há placa NVIDIA, então
       os comandos só foram testados simulados.
 - [ ] (20/11) GERADOR 3D NO MEU PC — É O TESTE REAL: dono atualizar o BW (aviso de 1.9.6), abrir o cartão GERADOR 3D NO MEU PC, conferir a

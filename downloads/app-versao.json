@@ -1,18 +1,18 @@
 {
- "versao": "1.9.10",
+ "versao": "1.9.11",
  "data": "21/11/2026",
  "pacote": "downloads/BW-Reels-Studio.zip",
- "sha256": "ce0ec51cd79160086aaace1a8fc1c61a70f0180dc291ffd38805c790f06a15ca",
- "bytes": 40275666,
+ "sha256": "b63ba9b8e8ada9f482134700f4916a6af4de851d0818d4ec2b2febcef6feb327",
+ "bytes": 40276355,
  "novidades": [
   {
-   "titulo": "GERADOR 3D: a última etapa consertada",
-   "texto": "O teste de prova parava com um erro de nome de peça do modelo (Missing key / main_image_encoder). Não era a sua placa nem a memória: era a versão da biblioteca transformers, que mudou na versão 5 enquanto o modelo da Tencent usa os nomes antigos. Agora o BW fixa a versão certa sozinho. Abra GERADOR 3D NO MEU PC e toque em ↻ TENTAR DE NOVO: ele refaz só essa parte, em poucos minutos, e NÃO baixa de novo os 7,6 GB do modelo.",
+   "titulo": "GERADOR 3D: as duas bibliotecas na versão certa",
+   "texto": "Fixar só o transformers não bastava: rebaixar ele rebaixa outra peça e o diffusers novo deixava de abrir (ImportError resolve_revision). Agora o BW instala transformers 4.46.3 e diffusers 0.31.0 juntos, num comando só, que é a combinação que o modelo da Tencent pede. Abra GERADOR 3D NO MEU PC e toque em ↻ TENTAR DE NOVO — poucos minutos, sem baixar o modelo de novo.",
    "abrir": "gerador3d"
   },
   {
-   "titulo": "Erro na instalação agora diz o que fazer",
-   "texto": "Quando uma etapa para, a faixa vermelha acima do log mostra o motivo e o conserto conhecido — inclusive para esse erro de versão — com o botão de copiar o log."
+   "titulo": "O aviso de erro não mente mais",
+   "texto": "Um erro de versão de biblioteca estava sendo anunciado como \"a internet caiu\" (a palavra resolve_revision caía na regra de rede). Agora cada tipo de erro mostra o conserto certo."
   }
  ]
 }
