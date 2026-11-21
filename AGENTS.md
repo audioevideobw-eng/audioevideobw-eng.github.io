@@ -476,6 +476,17 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
      (ui_dobras), o modo abria com o painel VAZIO — o teste passava porque media só se o elemento EXISTIA. Teste de conteúdo principal
      usa is_visible(), e ainda com a seta do outro modo FECHADA de propósito antes de recarregar (auto: teste_3d_plano.py).
 
+132. PROGRAMA DE FORA QUE O NOSSO INSTALADOR PRECISA (Python, Git, FFmpeg): (a) a tela diz O QUE falta, (b) tem botão que instala sozinho
+     pelo `winget` do Windows, e (c) o app ACHA o programa mesmo fora do PATH (procura em %LOCALAPPDATA%\Programs e Program Files, e usa o
+     caminho inteiro) — a caixinha "Add python.exe to PATH" passa batido quase sempre. (d) VERSÃO TEM FAIXA, não só mínimo: o dono instalou
+     o Python 3.15 e a receita ia quebrar na etapa do PyTorch (no Windows ainda não há roda de torch+torchvision com CUDA para ele) — faixa
+     num lugar só (PY_FAIXA 3.10–3.13, indicado 3.12), a escolha pega a MAIS NOVA DENTRO da faixa (`py -3.13`, `py -3.12`…) e versão fora
+     da faixa é recusada ANTES de baixar, dizendo que a nova pode ficar junto (ninguém precisa desinstalar). Conferir a faixa na página
+     oficial do dia, nunca de memória (auto: teste-gerador3d.mjs, teste-app.mjs).
+133. NÃO hospedar instalador de terceiros (python.exe, git.exe) no nosso site: envelhece, pesa e a licença é deles — instalar pelo winget.
+     Pasta com arquivo baixado dentro da pasta do Studio entra no BW-Setup.exe pelo robocopy /E: o GERAR-INSTALADOR.bat ignora
+     "IA ARQUIVOS EXE", downloads-externos e qualquer *.exe/*.msi solto.
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -1544,12 +1555,24 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   título "O MODELO") — como ele já tinha fechado essa seta usando o MODELO 3D, o modo abria aparentemente vazio. Agora, no modo plano, a
   caixa não tem seta (não fecha) e o título é "O QUE VOU FAZER?". teste_3d_plano.py +3 checagens com is_visible() e com a seta fechada de
   propósito antes de recarregar (0 falhas). sw v162. PENTE FINO 131.
+- 20/11/2026 23:05 · Claude (dono abriu o GERADOR 3D NO MEU PC e a tela acusou "Python: não achei / Git: não achei"; depois instalou e caiu no
+  Python 3.15): app BW 1.9.7. (1) Cartão **FALTA INSTALAR NO WINDOWS** na tela do gerador, com **⬇ INSTALAR O QUE FALTA** → `winget install`
+  do Python e do Git (ações g3dBasicos/g3dInstalarBasicos, só das telas do app; fora do Windows ou sem winget, mostra os sites). (2) O app
+  acha o Python mesmo FORA do PATH (%LOCALAPPDATA%\Programs\Python, Program Files, C:\, py.exe do Windows) e o Git em Program Files\Git —
+  usa o caminho inteiro no venv e no clone. (3) FAIXA de versão (PY_FAIXA 3.10–3.13, indicado 3.12): o 3.15 que o dono instalou é recusado
+  ANTES de baixar, com o motivo (no Windows não há torch+torchvision com CUDA para ele — conferido nas notas do PyTorch 2.13/2.15 em 20/11)
+  e dizendo que o 3.12 pode ficar junto; havendo várias, escolhe a mais nova dentro da faixa. (4) GERAR-INSTALADOR.bat ignora
+  "IA ARQUIVOS EXE"/downloads-externos e *.exe/*.msi — o dono guardou os dois instaladores dentro da pasta do Studio e eles entrariam no
+  BW-Setup.exe (+100 MB). Decidido: não hospedar Python/Git no site (versão velha, peso, licença de terceiros). teste-gerador3d.mjs +13 e
+  teste-app.mjs +8 checagens (0 falhas; a tela é conferida com is_visible, regra 131); vigia ✅. Manual 54 p. (página do plano 3D).
+  BW-Setup.exe continua o 1.9.2 — quem já tem o app atualiza sozinho. PENTE FINO 132–133.
 
 ## Pendências (dono)
 - [ ] (20/11) GERADOR 3D NO MEU PC — É O TESTE REAL: dono atualizar o BW (aviso de 1.9.6), abrir o cartão GERADOR 3D NO MEU PC, conferir a
       ficha da máquina, aceitar a licença e tocar em INSTALAR. Demora (baixa ~6 GB) e ele retoma se parar. No fim, tocar em GERAR UMA PEÇA DE
       PROVA e mandar o resultado (ou o erro e o log) — aqui não há placa NVIDIA, então os comandos só foram testados simulados. Se faltar Python
-      ou Git, a própria tela diz onde baixar.
+      ou Git, a própria tela diz onde baixar — e a partir da 1.9.7 há o botão ⬇ INSTALAR O QUE FALTA. ATENÇÃO: Python 3.12 (o 3.15 é
+      recusado: no Windows ainda não há torch+torchvision com CUDA para ele).
 - [ ] (20/11) ESTÚDIO 3D: dono abrir em Marketing → Estúdio 3D no PC e no celular; testar com um modelo 3D de verdade (GLB), com a logo da BW
       (LOGO 3D → fundo transparente → PNG) e montar a maquete de um evento real (painéis, pitch) → conferir se a RESOLUÇÃO EM PIXELS bate com
       a do fornecedor do telão, gerar a PLANTA EM PDF e um vídeo do giro. Dizer o que falta (mais itens de palco? medidas em pés? treliça por metro?).

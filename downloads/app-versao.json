@@ -1,19 +1,19 @@
 {
- "versao": "1.9.6",
+ "versao": "1.9.7",
  "data": "20/11/2026",
  "pacote": "downloads/BW-Reels-Studio.zip",
- "sha256": "aa57c0f51a75f579a077c3ed0ae5fab0431fd42aaf03b5c7c7a7fc8abb7d4119",
- "bytes": 8609135,
+ "sha256": "c9111120a470b6b8a2318dd11ab3fbc7ffdf25c6937aee47d7deecfa5548815f",
+ "bytes": 8612770,
  "novidades": [
   {
-   "titulo": "GERADOR 3D NO MEU PC",
-   "texto": "Agora o BW instala no seu computador a IA que transforma FOTO em MALHA 3D (Hunyuan3D 2 mini, do Tencent). A instalação é passo a passo, com o que a sua máquina tem, a licença do modelo e um teste de prova no fim. Depois disso você gera peças 3D sem internet, sem mandar foto para fora e sem pagar por peça — a partir de 6 GB de placa NVIDIA. Sai a FORMA (a malha); textura pede placa de 16 GB ou nuvem.",
+   "titulo": "O BW instala o Python e o Git para você",
+   "texto": "O GERADOR 3D precisa de dois programas gratuitos do Windows. Quando faltar algum, aparece o cartão FALTA INSTALAR com um botão que baixa e instala os dois sozinho, pelo instalador do próprio Windows. E o BW agora acha o Python mesmo quando a caixinha \"Add python.exe to PATH\" passa batido na hora de instalar.",
    "abrir": "gerador3d"
   },
   {
-   "titulo": "O Estúdio 3D já enxerga o gerador",
-   "texto": "Em O QUE VOU FAZER?, dentro do app, o plano mostra se a IA de 3D está instalada neste PC e leva direto para a instalação quando não está.",
-   "abrir": "estudio3d"
+   "titulo": "Escolhe a versão certa do Python",
+   "texto": "Python recém-lançado (3.14, 3.15) ainda não tem o PyTorch com placa NVIDIA no Windows, e a instalação do gerador quebrava no meio sem explicar. Agora o BW avisa antes, indica o Python 3.12 e, se você tiver mais de uma versão no PC, usa a que funciona — sem precisar desinstalar nada.",
+   "abrir": "gerador3d"
   }
  ]
 }

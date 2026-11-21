@@ -1,0 +1,12 @@
+[
+ {
+  "titulo": "O BW instala o Python e o Git para você",
+  "texto": "O GERADOR 3D precisa de dois programas gratuitos do Windows. Quando faltar algum, aparece o cartão FALTA INSTALAR com um botão que baixa e instala os dois sozinho, pelo instalador do próprio Windows. E o BW agora acha o Python mesmo quando a caixinha \"Add python.exe to PATH\" passa batido na hora de instalar.",
+  "abrir": "gerador3d"
+ },
+ {
+  "titulo": "Escolhe a versão certa do Python",
+  "texto": "Python recém-lançado (3.14, 3.15) ainda não tem o PyTorch com placa NVIDIA no Windows, e a instalação do gerador quebrava no meio sem explicar. Agora o BW avisa antes, indica o Python 3.12 e, se você tiver mais de uma versão no PC, usa a que funciona — sem precisar desinstalar nada.",
+  "abrir": "gerador3d"
+ }
+]
