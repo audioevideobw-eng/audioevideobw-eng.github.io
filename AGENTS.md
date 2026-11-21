@@ -483,6 +483,11 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
      num lugar só (PY_FAIXA 3.10–3.13, indicado 3.12), a escolha pega a MAIS NOVA DENTRO da faixa (`py -3.13`, `py -3.12`…) e versão fora
      da faixa é recusada ANTES de baixar, dizendo que a nova pode ficar junto (ninguém precisa desinstalar). Conferir a faixa na página
      oficial do dia, nunca de memória (auto: teste-gerador3d.mjs, teste-app.mjs).
+132b. LINK DE DOWNLOAD de programa de fora é o ARQUIVO exato, nunca a página geral: a página do python.org baixa sempre a versão
+     MAIS NOVA (que não serve) e a busca do Windows cai na MICROSOFT STORE — o dono caiu nas duas em 20/11. A versão da Store mora em
+     WindowsApps (pasta protegida): o venv nasce mas `pip install -e .` falha, então o app a RECUSA pelo caminho real do interpretador
+     (`sys.executable` casando WindowsApps|PythonSoftwareFoundation.Python) e manda desinstalar. Todo achado de interpretador guarda o
+     caminho real e usa ELE, não o apelido do PATH (auto: teste-gerador3d.mjs).
 133. NÃO hospedar instalador de terceiros (python.exe, git.exe) no nosso site: envelhece, pesa e a licença é deles — instalar pelo winget.
      Pasta com arquivo baixado dentro da pasta do Studio entra no BW-Setup.exe pelo robocopy /E: o GERAR-INSTALADOR.bat ignora
      "IA ARQUIVOS EXE", downloads-externos e qualquer *.exe/*.msi solto.
@@ -1566,6 +1571,10 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   BW-Setup.exe (+100 MB). Decidido: não hospedar Python/Git no site (versão velha, peso, licença de terceiros). teste-gerador3d.mjs +13 e
   teste-app.mjs +8 checagens (0 falhas; a tela é conferida com is_visible, regra 131); vigia ✅. Manual 54 p. (página do plano 3D).
   BW-Setup.exe continua o 1.9.2 — quem já tem o app atualiza sozinho. PENTE FINO 132–133.
+  23:10 (mesma versão, pacote refeito): o dono não achou o arquivo certo no python.org (a página baixa a versão nova) e instalou o
+  Python da MICROSOFT STORE. Agora o cartão mostra o LINK DIRETO do arquivo exato (python-3.12.10-amd64.exe, conferido na página oficial
+  hoje) ao lado do botão automático, e o app RECUSA a versão da Store pelo caminho real do interpretador, dizendo como desinstalar.
+  teste-gerador3d.mjs +6 checagens. PENTE FINO 132b.
 
 ## Pendências (dono)
 - [ ] (20/11) GERADOR 3D NO MEU PC — É O TESTE REAL: dono atualizar o BW (aviso de 1.9.6), abrir o cartão GERADOR 3D NO MEU PC, conferir a
