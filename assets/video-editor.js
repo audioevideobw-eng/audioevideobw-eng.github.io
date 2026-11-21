@@ -195,7 +195,7 @@
     return o;
   }
   /* camada de efeito (fora da tela): a mídia é desenhada aqui, recebe o efeito por modos de mistura e volta por cima com a intensidade escolhida */
-  var EF = null, EF2 = null, GRAO = null;
+  var EF = null, EF2 = null, GRAO = null, SEM_CK = false, PEGAR_CK = false;
   function tela2(k, W, H) { if (!k) k = document.createElement("canvas"); if (k.width !== W || k.height !== H) { k.width = W; k.height = H; } return k; }
   function comEfeito(fonte, x, y, w, h, c, t) {
     var W = cv.width, H = cv.height; EF = tela2(EF, W, H); var o = EF.getContext("2d"); o.setTransform(1, 0, 0, 1, 0, 0); o.globalAlpha = 1; o.globalCompositeOperation = "source-over"; o.clearRect(0, 0, W, H); o.drawImage(fonte, x, y, w, h);
@@ -224,7 +224,8 @@
   }
   // mod (transições): a = opacidade extra, dx/dy (fração da tela), k = escala, r = giro, recorte(ctx, W, H)
   function desenharMidia(fonte, fw, fh, c, t, mod) {
-    if (!fw || !fh) return; mod = mod || {}; var W = cv.width, H = cv.height, s = (c.encaixe === "caber" ? Math.min : Math.max)(W / fw, H / fh) * (c.esc || 100) / 100, w = fw * s, h = fh * s;
+    if (!fw || !fh) return; mod = mod || {}; if (c.ck && !SEM_CK && window.BWChroma) { var semFundo = BWChroma.aplicar(fonte, fw, fh, c); if (semFundo) fonte = semFundo; }   /* chroma key: o fundo some antes de tudo */
+    var W = cv.width, H = cv.height, s = (c.encaixe === "caber" ? Math.min : Math.max)(W / fw, H / fh) * (c.esc || 100) / 100, w = fw * s, h = fh * s;
     var a = (c.op == null ? 100 : c.op) / 100 * fade(c, t) * (mod.a == null ? 1 : mod.a); if (a <= 0.001) return;
     var x = (W - w) / 2 + (c.x || 0) / 100 * W, y = (H - h) / 2 + (c.y || 0) / 100 * H;
     cx.save(); if (mod.recorte) { cx.beginPath(); mod.recorte(cx, W, H); cx.clip(); }
@@ -322,6 +323,10 @@
     if (visual && c.tipo !== "texto") { var tt = c.trans && c.trans.tipo || "";
       h += g("trans", "TRANSIÇÃO DE ENTRADA", (anteriorDe(c) ? "" : '<p class="ve-nota" style="margin:0 0 6px">Encoste este clipe no fim de outro (mesma camada) para a transição aparecer.</p>') + '<div class="ve-chips">' + '<button type="button" data-trans=""' + (!tt ? ' class="on"' : "") + '>Corte seco</button>' + Object.keys(TRANS).map(function (k) { return '<button type="button" data-trans="' + k + '"' + (tt === k ? ' class="on"' : "") + '>' + TRANS[k] + '</button>'; }).join("") + '</div>' + (tt ? faixaR("transDur", "Duração", 0.2, 2, (c.trans.dur || 0.6), " s", 0.1) : ""), true);
       h += g("efeito", "EFEITO", '<div class="ve-chips"><button type="button" data-efeito=""' + (!c.efeito ? ' class="on"' : "") + '>Nenhum</button>' + Object.keys(EFEITOS).map(function (k) { return '<button type="button" data-efeito="' + k + '"' + (c.efeito === k ? ' class="on"' : "") + '>' + EFEITOS[k] + '</button>'; }).join("") + '</div>' + (c.efeito ? faixaR("efInt", "Intensidade", 0, 100, c.efInt == null ? 85 : c.efInt, "%") : ""), true); }
+    if (visual && c.tipo !== "texto") h += g("chroma", "CHROMA KEY (TIRAR FUNDO VERDE)", '<div class="ve-chips"><button type="button" data-ck="0"' + (!c.ck ? ' class="on"' : "") + '>Desligado</button><button type="button" data-ck="1"' + (c.ck ? ' class="on"' : "") + '>Ligado</button></div>' +
+      (c.ck ? '<label class="um"><span>Cor do fundo</span><input type="color" data-p="ckCor" value="' + esc(c.ckCor || "#00d000") + '" aria-label="Cor do fundo a tirar"></label><div class="ve-linha"><button class="ve-bt" type="button" data-acao="ckPegar">🎯 ESCOLHER NA TELA</button><button class="ve-bt" type="button" data-acao="ckAuto">✦ ACHAR SOZINHO</button></div>' +
+        faixaR("ckInt", "Intensidade", 0, 100, c.ckInt == null ? 35 : c.ckInt, "%") + faixaR("ckSuave", "Suavizar borda", 0, 100, c.ckSuave == null ? 20 : c.ckSuave, "%") + faixaR("ckLimpa", "Limpar borda", 0, 100, c.ckLimpa == null ? 60 : c.ckLimpa, "%") + faixaR("ckSombra", "Sombra", 0, 100, c.ckSombra || 0, "%") +
+        '<p class="ve-nota" style="margin:6px 0 0">Ponha este clipe na camada SOBREPOSIÇÃO e o fundo novo na camada VÍDEO, no mesmo trecho. Tudo é feito neste aparelho.</p>' : '<p class="ve-nota" style="margin:0">Para vídeo ou foto gravados com fundo verde ou azul liso.</p>'), true);
     h += g("tempo", "TEMPO E CAMADA", faixaR("fin", "Entra suave", 0, 3, c.fin || 0, " s", 0.1) + faixaR("fout", "Sai suave", 0, 3, c.fout || 0, " s", 0.1) + faixaR("dur", "Duração", 0.2, Math.min(120, Math.round(maxDur(c) * 10) / 10), Math.round(c.dur * 10) / 10, " s", 0.1) +
       (visual ? '<label class="um"><span>Camada</span><select data-p="trilha" aria-label="Camada do clipe">' + (c.tipo === "texto" ? '<option value="tx" selected>Texto</option>' : '<option value="v1"' + (c.trilha === "v1" ? " selected" : "") + '>Vídeo (embaixo)</option><option value="v2"' + (c.trilha === "v2" ? " selected" : "") + '>Sobreposição (em cima)</option>') + '</select></label>' : ""), c.tipo === "texto");
     b.innerHTML = h;
@@ -380,7 +385,16 @@
     if (b.hasAttribute("data-vel")) mudarVel(c, +b.dataset.vel);
     else if (b.hasAttribute("data-trans")) { var k = b.dataset.trans; c.trans = k ? {tipo: k, dur: (c.trans && c.trans.dur) || 0.6} : null; tudo(); if (k) { verTransicao(c); aviso("Transição “" + TRANS[k] + "”" + (anteriorDe(c) ? "." : " — encoste o clipe no fim de outro para ela aparecer.")); } }
     else if (b.hasAttribute("data-efeito")) { c.efeito = b.dataset.efeito || ""; if (c.efeito && c.efInt == null) c.efInt = 85; tudo(); }
+    else if (b.hasAttribute("data-ck")) { c.ck = b.dataset.ck === "1"; if (c.ck && !c.ckCor) c.ckCor = corDoFundo(c) || "#00d000"; tudo(); if (c.ck) aviso("Chroma key ligado — fundo " + c.ckCor + ". Ajuste a INTENSIDADE até o fundo sumir."); }
+    else if (b.dataset.acao === "ckAuto") { var ach = corDoFundo(c); if (ach) { c.ckCor = ach; tudo(); aviso("Fundo encontrado: " + ach + "."); } else aviso("Não achei um fundo verde ou azul nas bordas — use ESCOLHER NA TELA.", true); }
+    else if (b.dataset.acao === "ckPegar") { PEGAR_CK = true; cv.style.cursor = "crosshair"; aviso("🎯 Toque no FUNDO do vídeo, na prévia, para escolher a cor."); }
     else if (b.dataset.acao === "congelar") congelar(); });
+  function corDoFundo(c) { var f = fonteDe(c, lim(T, c.ini, c.ini + c.dur - 0.02), true); return f && window.BWChroma ? BWChroma.detectar(f.el, f.w, f.h) : null; }
+  function pegarCor(fx, fy) { var c = sel(); PEGAR_CK = false; cv.style.cursor = ""; if (!c) return;
+    SEM_CK = true; desenhar(); var x = lim(Math.round(fx * cv.width) - 2, 0, cv.width - 5), y = lim(Math.round(fy * cv.height) - 2, 0, cv.height - 5), d = null; try { d = cx.getImageData(x, y, 5, 5).data; } catch (e) {} SEM_CK = false;
+    if (!d) { desenhar(); aviso("Não consegui ler a cor aqui — use a caixinha de cor.", true); return; }
+    var r = 0, g = 0, b = 0, n = d.length / 4; for (var i = 0; i < d.length; i += 4) { r += d[i]; g += d[i + 1]; b += d[i + 2]; }
+    c.ckCor = "#" + [r / n, g / n, b / n].map(function (v) { v = Math.round(v).toString(16); return v.length < 2 ? "0" + v : v; }).join(""); c.ck = true; tudo(); aviso("Cor escolhida: " + c.ckCor + ". Ajuste a INTENSIDADE até o fundo sumir."); }
   /* arrastar na linha do tempo: mover, aparar pelas alças, agulha na régua */
   var arr = null;
   function zoomEm(fator, clientX) { var ro = $("veRolo"), r = ro.getBoundingClientRect(), x = clientX == null ? ro.clientWidth / 2 : clientX - r.left, tt = (ro.scrollLeft + x) / PPS;
@@ -419,6 +433,7 @@
   $("veRolo").addEventListener("wheel", function (e) { if (e.ctrlKey || e.altKey) { e.preventDefault(); zoomEm(e.deltaY < 0 ? 1.25 : 0.8, e.clientX); } }, {passive: false});
   // PRÉVIA: V arrasta o clipe escolhido (ou o de cima) direto na tela; T cria um texto onde tocou; Z aproxima a linha do tempo
   cv.addEventListener("pointerdown", function (e) { var F = window.BWFerr ? BWFerr.atual() : "v", cr = cv.getBoundingClientRect(), fx = (e.clientX - cr.left) / cr.width, fy = (e.clientY - cr.top) / cr.height;
+    if (PEGAR_CK) { e.preventDefault(); pegarCor(fx, fy); return; }
     if (F === "t") { addTexto({x: Math.round((fx - 0.5) * 100), y: Math.round((fy - 0.5) * 100)}); BWFerr.trocar("v"); aviso("T Texto criado onde você tocou — escreva em AJUSTES."); return; }
     if (F !== "v") return;
     var ativos = P.clips.filter(function (c) { return c.tipo !== "audio" && T >= c.ini && T < c.ini + c.dur; }), ordem = {tx: 3, v2: 2, v1: 1};
