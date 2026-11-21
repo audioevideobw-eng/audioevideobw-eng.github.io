@@ -1,18 +1,18 @@
 {
- "versao": "1.9.7",
+ "versao": "1.9.8",
  "data": "20/11/2026",
  "pacote": "downloads/BW-Reels-Studio.zip",
- "sha256": "7490286dc02d2ebc8cb56cd132e2320faf483c7bad5f21e5a5b7e3f5ec4aa50a",
- "bytes": 8616242,
+ "sha256": "9ac62921cea4eba3bfd161433f1d33178afa64b4b09346b6293b1f38142fb28b",
+ "bytes": 8617045,
  "novidades": [
   {
-   "titulo": "O BW instala o Python e o Git para você",
-   "texto": "O GERADOR 3D precisa de dois programas gratuitos do Windows. Quando faltar algum, aparece o cartão FALTA INSTALAR com um botão que baixa e instala os dois sozinho, pelo instalador do próprio Windows. E o BW agora acha o Python mesmo quando a caixinha \"Add python.exe to PATH\" passa batido na hora de instalar.",
+   "titulo": "GERADOR 3D: o modelo agora vem inteiro",
+   "texto": "O teste de prova falhava com \"faltam chaves do modelo\": o download trazia só a pasta do DiT e deixava de fora o VAE, que é a parte que vira a malha. Agora as duas pastas vêm, e se o arquivo safetensors vier sem o encoder o programa usa o .ckpt sozinho. Quem já instalou é só tocar em TENTAR DE NOVO — ele baixa apenas o que falta, sem repetir os 7 GB.",
    "abrir": "gerador3d"
   },
   {
-   "titulo": "Escolhe a versão certa do Python",
-   "texto": "Python recém-lançado (3.14, 3.15) ainda não tem o PyTorch com placa NVIDIA no Windows, e a instalação do gerador quebrava no meio sem explicar. Agora o BW avisa antes, indica o Python 3.12 e, se você tiver mais de uma versão no PC, usa a que funciona — sem precisar desinstalar nada.",
+   "titulo": "Quando uma etapa falha, você vê o motivo",
+   "texto": "O erro ficava escondido no fim de uma caixa rolável. Agora aparece uma faixa vermelha em cima do log dizendo em qual etapa parou, qual foi o erro e o que fazer (memória da placa, pacote faltando, internet, disco, driver), com um botão COPIAR O LOG.",
    "abrir": "gerador3d"
   }
  ]

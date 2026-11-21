@@ -503,6 +503,15 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
 136. Contar "quantos tons tem na tela" NUNCA pelas N cores mais comuns de uma amostragem (regra 126): varrer TODOS os pixels e usar um
      conjunto. O medidor de 4 cores a cada 97 px dizia "4 tons" tanto para o relevo quanto para a face chapada.
 
+137. MODELO DE IA BAIXADO DO HUGGING FACE: `allow_patterns` do snapshot_download é uma ARMADILHA — o pipeline carrega mais pastas do que a
+     do checkpoint principal. No Hunyuan3D-2mini o repo tem 6 pastas e eu pedi só `hunyuan3d-dit-v2-mini/*`: a instalação ia até o fim e só
+     quebrava no teste de prova, com "Missing key(s) … main_image_encoder…" (faltava o VAE). Conferir a ÁRVORE do repo na página oficial antes
+     de restringir, trazer o config.yaml de cada pasta, e no carregamento ter plano B entre `safetensors` e `.ckpt`. Etapa cara que já passou
+     não é refeita, mas a BARATA que o teste final depende (baixar modelo, escrever roteiro) é refeita quando o teste falha — o download é
+     incremental, então não repete o que já está no disco (auto: teste-gerador3d.mjs).
+138. ETAPA QUE FALHA MOSTRA O MOTIVO NA CARA: faixa em cima do log com a etapa que parou, o erro e o conserto conhecido, mais COPIAR O LOG.
+     Erro no fim de uma caixa rolável é erro escondido — e `log.scrollTop = scrollHeight` antes de acrescentar a linha do erro nem rola até ele.
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -1596,6 +1605,15 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   zera quando t = seg) → campo `laco`. Outro: o medidor de pixel do teste usava as "4 cores mais comuns" e não distinguia relevo de face
   chapada (regra 126 de novo) → medidor que varre a tela inteira. teste_3d.py +9 checagens × 1280/390 (0 falhas); 3d_plano, 3d_foto,
   motion, telas 0 falhas; vigia ✅. bw3d-motor v4, bw3d.js v9, sw v163. PENTE FINO 134–136.
+- 20/11/2026 23:45 · Claude (dono instalou de verdade: 8 das 9 etapas passaram em ~20 min e a última, o teste de prova, falhou):
+  app BW **1.9.8**. O log mostrou "Missing key(s) … main_image_encoder.model.encoder.layer.39…" — não era placa nem memória: o
+  `snapshot_download` trazia só `hunyuan3d-dit-v2-mini/*` e o repo tem SEIS pastas; faltou o **VAE** (`hunyuan3d-vae-v2-mini`), que é o que
+  vira a malha. Correções: (1) o download traz DiT + VAE + os config.yaml; (2) o gerar.py tenta `use_safetensors=True` e, num erro de
+  state_dict, repete com o `.ckpt`; (3) teste de prova que falha faz o ↻ TENTAR DE NOVO refazer modelo e roteiro (download incremental, não
+  repete os 7,6 GB já baixados); (4) a tela do instalador mostra o motivo da falha em faixa vermelha acima do log, com o conserto conhecido e
+  ⧉ COPIAR O LOG. Confirmado no PC do dono que o resto funciona: venv, PyTorch cu124 **cp312** (a faixa de versão do Python estava certa),
+  git clone, requirements, `pip install -e .` e os 7,6 GB do modelo. teste-gerador3d.mjs +5 checagens (0 falhas), teste-app 0, vigia ✅.
+  PENTE FINO 137–138.
 
 ## Pendências (dono)
 - [ ] (20/11) GERADOR 3D NO MEU PC — É O TESTE REAL: dono atualizar o BW (aviso de 1.9.6), abrir o cartão GERADOR 3D NO MEU PC, conferir a
