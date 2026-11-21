@@ -217,7 +217,10 @@
   function painel() {
     var h = "", m = P.modo, f = m === "palco" ? fichaLED() : null;
     /* ---- objeto ---- */
-    h += '<div class="d3-g" data-aba="objeto"><h4 data-seta="d3obj">' + (m === "logo" ? "A SUA LOGO" : m === "palco" ? "PALCO E PAINEL DE LED" : m === "ia" ? "PEDIR PARA A IA" : "O MODELO") + "</h4><div>";
+    /* o PLANO nunca fica atrás de uma seta fechada (regra 96: seção fechada escondia o que precisa aparecer) */
+    h += m === "plano"
+      ? '<div class="d3-g" data-aba="objeto"><h4>O QUE VOU FAZER?</h4><div>'
+      : '<div class="d3-g" data-aba="objeto"><h4 data-seta="d3obj">' + (m === "logo" ? "A SUA LOGO" : m === "palco" ? "PALCO E PAINEL DE LED" : m === "ia" ? "PEDIR PARA A IA" : "O MODELO") + "</h4><div>";
     if (m === "plano") {
       h += painelPlano();
     } else if (m === "modelo") {

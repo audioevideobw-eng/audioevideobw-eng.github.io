@@ -471,6 +471,11 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
      máquina é o MESMO no real e no simulado (uma função julgar()), senão o teste passa com aviso que o usuário nunca vê. Teste com os
      comandos SIMULADOS (BW3D_SIMULADO=1) conferindo o ROTEIRO gerado (modelo certo, cuda, sem rede) — o teste de verdade é no PC com placa.
 
+131. Conteúdo que é a TELA PRINCIPAL de um modo não pode nascer dentro de uma seção dobrável compartilhada: o PLANO DO PROJETO era
+     desenhado dentro da 1ª caixa do painel (data-seta="d3obj", título "O MODELO") e, para quem já tinha fechado essa seta em outro modo
+     (ui_dobras), o modo abria com o painel VAZIO — o teste passava porque media só se o elemento EXISTIA. Teste de conteúdo principal
+     usa is_visible(), e ainda com a seta do outro modo FECHADA de propósito antes de recarregar (auto: teste_3d_plano.py).
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -1534,6 +1539,11 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   caminho fora do gerador. Novo motor/teste-gerador3d.mjs (18 checagens com comandos SIMULADOS: etapas em ordem, retomada, roteiro apontando
   para o modelo certo e sem rede, erro claro, remoção) 0 falhas; teste-app +4 e teste_3d_plano +3 (0 falhas); vigia ✅. Manual atualizado.
   NÃO testado de verdade: só roda em Windows/Linux com placa NVIDIA — o primeiro INSTALAR no PC do dono é o teste real. sw v161.
+- 20/11/2026 22:40 · Claude (dono mandou print do Estúdio 3D no navegador: o modo O QUE VOU FAZER? estava escolhido mas o painel mostrava
+  "O MODELO / CENA E CÂMERA / SALVAR E EXPORTAR"): o plano era desenhado DENTRO da primeira caixa dobrável do painel (data-seta="d3obj",
+  título "O MODELO") — como ele já tinha fechado essa seta usando o MODELO 3D, o modo abria aparentemente vazio. Agora, no modo plano, a
+  caixa não tem seta (não fecha) e o título é "O QUE VOU FAZER?". teste_3d_plano.py +3 checagens com is_visible() e com a seta fechada de
+  propósito antes de recarregar (0 falhas). sw v162. PENTE FINO 131.
 
 ## Pendências (dono)
 - [ ] (20/11) GERADOR 3D NO MEU PC — É O TESTE REAL: dono atualizar o BW (aviso de 1.9.6), abrir o cartão GERADOR 3D NO MEU PC, conferir a

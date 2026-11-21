@@ -36,6 +36,13 @@ with sync_playwright() as p:
         ok(pg.evaluate(SEM := "document.documentElement.scrollWidth - document.documentElement.clientWidth") <= 0, "abre sem estouro")
         if largura < 500: pg.click('#d3AbasCel [data-aba="objeto"]'); pg.wait_for_timeout(150)
         ok(pg.locator("[data-pj]").count() == 6, "mostra os 6 tipos de projeto")
+        ok(pg.locator('[data-pj="logo"]').is_visible(), "os tipos de projeto estão VISÍVEIS (não atrás de uma seta fechada)")
+        ok(pg.locator("#d3Painel h4").first.inner_text().strip().upper().startswith("O QUE VOU FAZER"), "o título da seção é O QUE VOU FAZER?, não O MODELO")
+        # mesmo com a seta do MODELO 3D fechada antes, o plano continua aberto
+        pg.evaluate("""() => { const d = JSON.parse(localStorage.getItem('ui_dobras') || '{}'); d.d3obj = 'f'; localStorage.setItem('ui_dobras', JSON.stringify(d)); }""")
+        pg.reload(); pg.wait_for_function("window.BW3DEditor && window.BW3DPlano"); pg.wait_for_timeout(600)
+        if largura < 500: pg.click('#d3AbasCel [data-aba="objeto"]'); pg.wait_for_timeout(150)
+        ok(pg.locator('[data-pj="logo"]').is_visible(), "com a seta de O MODELO fechada, o plano continua à vista")
         ok("Placa" in pg.inner_text("#d3Painel") or "placa" in pg.inner_text("#d3Painel").lower(), "diz qual placa de vídeo leu")
         # vereditos por tamanho de placa
         v0 = pg.evaluate(VER, 0); v8 = pg.evaluate(VER, 8); v12 = pg.evaluate(VER, 12); v24 = pg.evaluate(VER, 24)
