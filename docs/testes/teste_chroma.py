@@ -56,6 +56,19 @@ with sync_playwright() as p:
         fundo, meio = pg.evaluate(PX + "(0.15,0.15)"), pg.evaluate(PX + "(0.5,0.5)")
         ok(perto(fundo, [30, 60, 220]), f"com chroma: onde era verde aparece a foto azul de baixo {fundo}")
         ok(perto(meio, [208, 32, 32], 60), f"o quadrado vermelho continua vermelho {meio}")
+        # AUTOMÁTICO por níveis: abre no automático, com o nível indicado para a imagem; cada nível sobe os 3 ajustes juntos
+        c0 = pg.evaluate("(()=>{const c=__video.P().clips.find(c=>c.tipo==='video');return [c.ckModo,c.ckNivel,c.ckInt,c.ckSuave,c.ckSombra]})()")
+        ok(c0[0] == "auto" and 1 <= c0[1] <= 5 and pg.locator('#vePropCorpo [data-cknivel]').count() == 5 and pg.locator('#vePropCorpo [data-p="ckInt"]').count() == 0, f"abre no AUTOMÁTICO com 5 níveis e sem controles soltos (nível indicado: {c0[1]})")
+        vals = []
+        for n in range(1, 6):
+            pg.locator(f'#vePropCorpo [data-cknivel="{n}"]').click(); pg.wait_for_timeout(150)
+            vals.append(pg.evaluate("(()=>{const c=__video.P().clips.find(c=>c.tipo==='video');return [c.ckInt,c.ckSuave,c.ckSombra,c.ckNivel]})()"))
+        ok(all(vals[i][k] < vals[i + 1][k] or (k == 2 and vals[i][k] <= vals[i + 1][k]) for i in range(4) for k in range(3)) and [v[3] for v in vals] == [1, 2, 3, 4, 5], f"cada nível sobe intensidade, suavidade e sombra juntas {[v[:3] for v in vals]}")
+        ok(perto(pg.evaluate(PX + "(0.15,0.15)"), [30, 60, 220]) and perto(pg.evaluate(PX + "(0.5,0.5)"), [208, 32, 32], 60), "no nível 5 o fundo continua fora e o quadrado continua vermelho")
+        pg.locator('#vePropCorpo [data-cknivel="4"]').click(); pg.wait_for_timeout(150)
+        pg.locator('#vePropCorpo [data-ckmodo="manual"]').click(); pg.wait_for_timeout(250)
+        ok(pg.evaluate("document.querySelector('#vePropCorpo [data-p=\"ckInt\"]').value") == str(vals[3][0]) and pg.locator('#vePropCorpo [data-cknivel]').count() == 0, f"MANUAL abre os controles já nos valores do nível escolhido (intensidade {vals[3][0]})")
+        pg.evaluate("(()=>{for(const [k,v] of [['ckInt',35],['ckSombra',0]]){const e=document.querySelector('#vePropCorpo [data-p=\"'+k+'\"]');e.value=v;e.dispatchEvent(new Event('input',{bubbles:true}))}})()"); pg.wait_for_timeout(300)
         ok(pg.locator('#vePropCorpo [data-p="ckInt"]').count() == 1 and pg.locator('#vePropCorpo [data-p="ckSuave"]').count() == 1 and pg.locator('#vePropCorpo [data-p="ckLimpa"]').count() == 1 and pg.locator('#vePropCorpo [data-p="ckSombra"]').count() == 1, "4 controles: intensidade, suavizar borda, limpar borda, sombra")
         # SOMBRA: a faixa verde-escura some com sombra 0 e fica ESCURA (mais escura que a foto) com sombra 100
         s0 = pg.evaluate(PX + "(0.5,0.70)")

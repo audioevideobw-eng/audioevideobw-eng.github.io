@@ -79,5 +79,20 @@
       var s = sv[3] >= sa[3] ? sv : sa; if (s[3] < 20) return null; return hex(s[0] / s[3], s[1] / s[3], s[2] / s[3]);
     } catch (e) { return null; }
   }
-  window.BWChroma = {aplicar: aplicar, detectar: detectar, motor: function () { return iniciar() ? "webgl" : "2d"; }, _2d: function (f, w, h, o) { var md = medida(w, h); return por2D(f, md[0], md[1], par(o)); }};
+  /* NÍVEIS do modo automático: cada nível sobe JUNTO intensidade, suavidade da borda, limpeza e sombra */
+  var NIVEIS = [null, {ckInt: 20, ckSuave: 10, ckLimpa: 40, ckSombra: 0}, {ckInt: 28, ckSuave: 15, ckLimpa: 50, ckSombra: 5}, {ckInt: 35, ckSuave: 20, ckLimpa: 60, ckSombra: 8}, {ckInt: 45, ckSuave: 28, ckLimpa: 70, ckSombra: 12}, {ckInt: 58, ckSuave: 36, ckLimpa: 80, ckSombra: 16}];
+  /* nível indicado para ESTA imagem: mede o quanto o fundo varia (luz desigual, sombra no pano) nas bordas e escolhe o menor nível que cobre */
+  function nivelPara(fonte, fw, fh, corHex) {
+    try {
+      if (!PEQ) PEQ = document.createElement("canvas"); PEQ.width = PEQ.height = 64; var x = PEQ.getContext("2d", {willReadFrequently: true}); x.drawImage(fonte, 0, 0, 64, 64);
+      var d = x.getImageData(0, 0, 64, 64).data, K = rgb(corHex), kb = -0.168736 * K[0] - 0.331264 * K[1] + 0.5 * K[2], kr = 0.5 * K[0] - 0.418688 * K[1] - 0.081312 * K[2], ds = [];
+      var canal = K[1] >= K[2] ? 1 : 2;
+      for (var y = 0; y < 64; y++) for (var c = 0; c < 64; c++) { if (y > 7 && y < 56 && c > 7 && c < 56) continue; var i = (y * 64 + c) * 4, r = d[i] / 255, g = d[i + 1] / 255, b = d[i + 2] / 255;
+        if ((canal === 1 ? g - Math.max(r, b) : b - Math.max(r, g)) < 0.06) continue;   /* só o que é fundo */
+        var cb = -0.168736 * r - 0.331264 * g + 0.5 * b, cr = 0.5 * r - 0.418688 * g - 0.081312 * b; ds.push(Math.sqrt((cb - kb) * (cb - kb) + (cr - kr) * (cr - kr))); }
+      if (ds.length < 30) return 3; ds.sort(function (p, q) { return p - q; }); var precisa = ds[Math.floor(ds.length * 0.97)] + 0.03;
+      for (var n = 1; n <= 5; n++) if (0.04 + 0.34 * NIVEIS[n].ckInt / 100 >= precisa) return n; return 5;
+    } catch (e) { return 3; }
+  }
+  window.BWChroma = {NIVEIS: NIVEIS, nivelPara: nivelPara, aplicar: aplicar, detectar: detectar, motor: function () { return iniciar() ? "webgl" : "2d"; }, _2d: function (f, w, h, o) { var md = medida(w, h); return por2D(f, md[0], md[1], par(o)); }};
 })();
