@@ -1,23 +1,18 @@
 {
- "versao": "1.9.9",
+ "versao": "1.9.10",
  "data": "21/11/2026",
  "pacote": "downloads/BW-Reels-Studio.zip",
- "sha256": "fe0eb21b0a84d5ec9897c21412b26eb9cb65e59f903eff494c1722afb99edd0d",
- "bytes": 40274178,
+ "sha256": "ce0ec51cd79160086aaace1a8fc1c61a70f0180dc291ffd38805c790f06a15ca",
+ "bytes": 40275666,
  "novidades": [
   {
-   "titulo": "A linha do tempo virou o centro",
-   "texto": "No EDITOR DE VÍDEO apareceu a caixa CRIAR PARA A LINHA DO TEMPO com sete atalhos: Estúdio de motion, Telas em movimento, Estúdio 3D, Editor de fotos, Criador IA, BW Reels Pro e Quadro de História. Você toca, cria e a peça volta direto para a edição.",
-   "abrir": "video.html"
+   "titulo": "GERADOR 3D: a última etapa consertada",
+   "texto": "O teste de prova parava com um erro de nome de peça do modelo (Missing key / main_image_encoder). Não era a sua placa nem a memória: era a versão da biblioteca transformers, que mudou na versão 5 enquanto o modelo da Tencent usa os nomes antigos. Agora o BW fixa a versão certa sozinho. Abra GERADOR 3D NO MEU PC e toque em ↻ TENTAR DE NOVO: ele refaz só essa parte, em poucos minutos, e NÃO baixa de novo os 7,6 GB do modelo.",
+   "abrir": "gerador3d"
   },
   {
-   "titulo": "➜ MANDAR PARA A LINHA DO TEMPO",
-   "texto": "Toda ferramenta de criação ganhou esse botão ao lado de salvar. A criação fica guardada neste computador e entra na edição sem você baixar nem procurar arquivo.",
-   "abrir": "motion.html"
-  },
-  {
-   "titulo": "✎ EDITAR sem perder a edição",
-   "texto": "Na biblioteca do editor cada criação mostra de qual ferramenta veio. O ✎ reabre aquele projeto lá e, quando você manda de volta, a nova versão troca no lugar: os cortes, os efeitos, o volume e a posição continuam como estavam."
+   "titulo": "Erro na instalação agora diz o que fazer",
+   "texto": "Quando uma etapa para, a faixa vermelha acima do log mostra o motivo e o conserto conhecido — inclusive para esse erro de versão — com o botão de copiar o log."
   }
  ]
 }

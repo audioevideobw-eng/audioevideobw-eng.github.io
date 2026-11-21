@@ -523,6 +523,12 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
      injetada em página com menu NUNCA entra na `.bw-shell` (é flex: vira uma coluna ao lado do menu e estoura a tela) — vai no `.wrap`.
      Teste que muda o projeto por JS e recarrega a página espera o guardar() (400 ms) antes do reload, senão lê o estado velho.
 
+141. BIBLIOTECA DE FORA SEM VERSÃO FIXA é armadilha: o requirements.txt do Tencent não fixa nada, o pip trouxe transformers 5.x e o
+     modelo não carregou (a 5 renomeou a atenção do DINOv2; o checkpoint guarda attention.attention.query/key/value) — 8 etapas passavam e
+     só o teste final quebrava. Toda receita que instala código de terceiros tem uma lista PINOS (pacote + motivo + data) aplicada DEPOIS do
+     `pip install -e .` (que também sobe versão), e a etapa onde os pinos moram entra na lista do que o TENTAR DE NOVO refaz (auto:
+     teste-gerador3d.mjs confere que o pino roda e que roda depois do -e .).
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -1655,15 +1661,24 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   NÃO testado: iPhone/Android reais e a conta do dono. BW-Setup.exe continua o 1.9.1 no site — quem já tem o app atualiza sozinho.
   bw-criacoes.js v1, video-editor.js v4, motion.js v5, telas.js v5, bw3d.js v10, fotos.js v15, criador.js v6, reels.js v17, sw v164. PENTE FINO 139-140.
 
+- 21/11/2026 17:50 · Claude (dono: "vamos trabalhar no app?" — a pendência combinada era a última etapa do gerador 3D): APP BW 1.9.10.
+  O teste de prova parava em `Missing key(s) … main_image_encoder…` por causa do **transformers 5.x** (a 5 reestruturou a atenção do DINOv2
+  para q_proj/k_proj/v_proj e o checkpoint do Hunyuan3D guarda os nomes antigos). O repo do Tencent não fixa versão nenhuma, então o pip
+  trouxe a mais nova. Correções em motor/gerador3d.mjs: (1) lista PINOS (hoje `transformers<5`, com o motivo escrito) aplicada no FIM da
+  etapa `pacote`, depois do `pip install -e .`, que também pode subir a versão; (2) o TENTAR DE NOVO depois de um teste falho passa a refazer
+  também o `pacote` (é onde os pinos moram) além de modelo e roteiro — sem rebaixar os 7,6 GB já no disco; (3) a tela do instalador reconhece
+  esse erro na faixa vermelha e diz para tocar em ↻ TENTAR DE NOVO. teste-gerador3d.mjs +7 checagens (0 falhas; confere que o pino roda e que
+  roda DEPOIS do -e .), teste-app 0 falhas, vigia ✅. Pacote e novidades publicados (aviso de atualização para quem está na 1.9.9); cópia sem
+  internet refeita. NÃO testado de verdade: só roda em Windows com placa NVIDIA — o ↻ TENTAR DE NOVO no PC do dono é o teste. PENTE FINO 141.
+
 ## Pendências (dono)
 - [ ] (21/11) AMBIENTE ÚNICO: dono abrir o EDITOR DE VÍDEO (Marketing → Editor de vídeo), tocar num atalho da caixa CRIAR, fazer uma peça
       (ex.: um motion curto ou uma logo 3D), mandar para a linha do tempo, juntar com uma filmagem dele e exportar. Depois tocar no ✎ de uma
       criação, mudar algo na ferramenta e ver se trocou no lugar sem desfazer a edição. Dizer se falta alguma ferramenta nessa caixa.
-- [ ] (20/11, AMANHÃ) GERADOR 3D — última etapa: o teste de prova para em `Missing key(s) … main_image_encoder…` por causa do
-      **transformers 5.x** (a 5 renomeou a atenção do DINOv2; o checkpoint do Hunyuan3D usa os nomes antigos). Claude: fixar
-      `transformers<5` na etapa de requisitos e mandar refazer requisitos + teste (NÃO baixa o modelo de novo). Dono: só tocar em
-      ↻ TENTAR DE NOVO depois da atualização do app. O resto da instalação está confirmado funcionando no PC dele (venv, torch
-      cu124 cp312, clone, pip install -e ., 7,6 GB do modelo, VAE).
+- [ ] (21/11) GERADOR 3D — FALTA SÓ ISSO: dono abrir o BW, tocar em ATUALIZAR (1.9.10), abrir GERADOR 3D NO MEU PC e tocar em
+      ↻ TENTAR DE NOVO. O conserto do transformers<5 já está no app; ele refaz pacote + modelo + roteiro + teste (minutos, sem rebaixar os
+      7,6 GB). Depois tocar em 🧊 GERAR UMA PEÇA DE PROVA e mandar o resultado (ou o erro + ⧉ COPIAR O LOG). Aqui não há placa NVIDIA, então
+      os comandos só foram testados simulados.
 - [ ] (20/11) GERADOR 3D NO MEU PC — É O TESTE REAL: dono atualizar o BW (aviso de 1.9.6), abrir o cartão GERADOR 3D NO MEU PC, conferir a
       ficha da máquina, aceitar a licença e tocar em INSTALAR. Demora (baixa ~6 GB) e ele retoma se parar. No fim, tocar em GERAR UMA PEÇA DE
       PROVA e mandar o resultado (ou o erro e o log) — aqui não há placa NVIDIA, então os comandos só foram testados simulados. Se faltar Python
