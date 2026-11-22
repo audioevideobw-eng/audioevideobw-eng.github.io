@@ -342,6 +342,123 @@
     } }
   };
 
+  /* ===== SUPER-HERÓI E ANIME (22/11): personagens e objetos ORIGINAIS, de gênero — nenhum herói, emblema ou personagem de
+     anime que já exista (regra 123/178). Herói com máscara, capa e um raio próprio; chibis de olhos grandes. ===== */
+  function rrect(x, X, Y, W, H, r) { x.beginPath(); x.moveTo(X + r, Y); x.arcTo(X + W, Y, X + W, Y + H, r); x.arcTo(X + W, Y + H, X, Y + H, r); x.arcTo(X, Y + H, X, Y, r); x.arcTo(X, Y, X + W, Y, r); x.closePath(); }
+  function raioPath(x, s) { x.beginPath(); x.moveTo(3 * s, -11 * s); x.lineTo(-6 * s, 2 * s); x.lineTo(0, 2 * s); x.lineTo(-3 * s, 11 * s); x.lineTo(6 * s, -2 * s); x.lineTo(0, -2 * s); x.closePath(); }
+  function heroi(x, t, roupa, capa, cabelo, menina) {
+    var PELE = "#f2c39b"; x.translate(0, Math.sin(t * 2) * 4);
+    var w = Math.sin(t * 4) * 6;   /* capa ao vento */
+    x.fillStyle = capa; x.beginPath(); x.moveTo(-13, -4); x.quadraticCurveTo(-30 + w, 24, -24 + w, 46); x.lineTo(24 + w * 0.6, 46); x.quadraticCurveTo(30, 24, 13, -4); x.closePath(); x.fill(); borda(x);
+    if (menina) { x.fillStyle = cabelo; x.beginPath(); x.moveTo(14, -34); x.quadraticCurveTo(34 + w * 0.5, -22, 26 + w * 0.6, 4); x.quadraticCurveTo(20, -14, 12, -18); x.fill(); }
+    x.fillStyle = roupa; x.fillRect(-12, 26, 10, 14); x.fillRect(2, 26, 10, 14); x.fillStyle = capa; x.fillRect(-13, 36, 12, 7); x.fillRect(1, 36, 12, 7);
+    rrect(x, -14, -6, 28, 36, 9); x.fillStyle = roupa; x.fill(); borda(x);
+    x.fillStyle = capa; x.fillRect(-14, 18, 28, 4);   /* cinto */
+    circ(x, 0, 6, 8, "#ffd23f"); x.fillStyle = roupa; raioPath(x, 0.55); x.fill();
+    x.save(); x.translate(13, -1); x.rotate(-2 + Math.sin(t * 3) * 0.15); x.fillStyle = roupa; x.fillRect(0, -4, 17, 8); circ(x, 19, 0, 5.5, capa); x.restore();   /* punho para cima */
+    x.save(); x.translate(-13, 0); x.rotate(1.9); x.fillStyle = roupa; x.fillRect(0, -4, 15, 8); circ(x, 16, 0, 5, PELE); x.restore();
+    circB(x, 0, -26, 19, PELE);
+    x.fillStyle = cabelo; x.beginPath(); x.arc(0, -28, 19.5, Math.PI * 1.02, Math.PI * 1.98); x.quadraticCurveTo(10, -36, 4, -34); x.quadraticCurveTo(-2, -38, -8, -33); x.quadraticCurveTo(-14, -36, -19, -29); x.fill();
+    rrect(x, -18, -30, 36, 10, 5); x.fillStyle = capa; x.fill();   /* máscara */
+    var ab = piscar(t, menina ? 1.2 : 0); elip(x, -7, -25, 4.2, 3.4 * Math.max(0.15, ab), "#fff"); elip(x, 7, -25, 4.2, 3.4 * Math.max(0.15, ab), "#fff");
+    if (ab > 0.3) { circ(x, -6, -25, 1.8, "#1b1b2a"); circ(x, 8, -25, 1.8, "#1b1b2a"); }
+    boca(x, 0, -13, 5); if (menina) { boch(x, -11, -16, 3.5); boch(x, 11, -16, 3.5); }
+  }
+  function chibi(x, t, cabelo, roupa, menina) {
+    var PELE = "#ffd9c0", p = Math.abs(Math.sin(t * 3)); x.translate(0, -p * 5);
+    elip(x, 0, 44 + p * 5, 20 - p * 4, 3.5, "rgba(0,0,0,.18)");
+    x.fillStyle = roupa; rrect(x, -15, 8, 30, 30, 10); x.fill(); borda(x);
+    x.fillStyle = "#ffffff"; x.beginPath(); x.moveTo(-6, 8); x.lineTo(0, 16); x.lineTo(6, 8); x.fill();
+    x.save(); x.translate(-14, 14); x.rotate(0.5 + Math.sin(t * 6) * 0.25); x.fillStyle = roupa; rrect(x, -4, 0, 8, 16, 4); x.fill(); circ(x, 0, 17, 4, PELE); x.restore();
+    x.save(); x.translate(14, 14); x.rotate(-0.5 - Math.sin(t * 6) * 0.25); x.fillStyle = roupa; rrect(x, -4, 0, 8, 16, 4); x.fill(); circ(x, 0, 17, 4, PELE); x.restore();
+    if (menina) { x.fillStyle = cabelo; x.beginPath(); x.ellipse(0, -10, 27, 30, 0, Math.PI * 0.05, Math.PI * 0.95); x.fill(); }
+    circB(x, 0, -16, 25, PELE);
+    x.fillStyle = cabelo; x.beginPath(); x.arc(0, -18, 26, Math.PI, 0);
+    for (var i = 0; i <= 6; i++) { var u = i / 6, bx = 26 - u * 52; x.quadraticCurveTo(bx + 4, -8 + (i % 2) * 4, bx, i % 2 ? -12 : -6); }
+    x.fill();
+    if (menina) { x.fillStyle = "#ff4f8b"; x.beginPath(); x.moveTo(14, -40); x.lineTo(26, -48); x.lineTo(26, -34); x.closePath(); x.moveTo(14, -40); x.lineTo(4, -50); x.lineTo(4, -36); x.closePath(); x.fill(); circ(x, 14, -40, 3, "#ff2f6f"); }
+    else { x.save(); x.translate(4, -44); x.rotate(Math.sin(t * 5) * 0.3); x.fillStyle = cabelo; x.beginPath(); x.moveTo(-3, 4); x.quadraticCurveTo(2, -10, 10, -12); x.quadraticCurveTo(4, -4, 4, 4); x.fill(); x.restore(); }
+    var ab = piscar(t, menina ? 0.8 : 0.2);
+    [-10, 10].forEach(function (ex) {
+      if (ab < 0.3) { x.strokeStyle = "#2a1a30"; x.lineWidth = 2.5; x.lineCap = "round"; x.beginPath(); x.arc(ex, -12, 5, 1.15 * Math.PI, 1.85 * Math.PI); x.stroke(); return; }
+      elip(x, ex, -12, 6.5, 8 * ab, "#2a1a30"); elip(x, ex, -10, 5, 5.5 * ab, menina ? "#c2185b" : "#1e6fd9");
+      circ(x, ex + 2, -15 * ab - 0.5, 2.6, "#fff"); circ(x, ex - 2, -8, 1.3, "#fff");
+    });
+    boch(x, -16, -4, 4); boch(x, 16, -4, 4);
+    x.strokeStyle = "#2a1a30"; x.lineWidth = 1.8; x.beginPath(); x.moveTo(-3, -3); x.quadraticCurveTo(0, 0, 3, -3); x.stroke();
+  }
+  var TEMA = {
+    heroi: { nome: "Super-herói", cat: "heroi", f: function (x, t) { heroi(x, t, "#1e5fd9", "#e53935", "#2a1a12", false); } },
+    heroina: { nome: "Super-heroína", cat: "heroi", f: function (x, t) { heroi(x, t, "#7b2ff7", "#ff3d8b", "#5a2a14", true); } },
+    escudo: { nome: "Escudo do herói", cat: "heroi", f: function (x, t) {
+      x.translate(0, Math.sin(t * 2) * 3); var k = Math.cos(t * 1.4); x.scale(Math.max(0.25, Math.abs(k)), 1);
+      x.beginPath(); x.moveTo(0, -40); x.quadraticCurveTo(20, -34, 34, -36); x.quadraticCurveTo(36, 10, 0, 42); x.quadraticCurveTo(-36, 10, -34, -36); x.quadraticCurveTo(-20, -34, 0, -40); x.closePath();
+      var g = x.createLinearGradient(-34, -40, 34, 40); g.addColorStop(0, "#1fd1b8"); g.addColorStop(1, "#0b6e8a"); x.fillStyle = g; x.fill(); x.strokeStyle = "#ffd23f"; x.lineWidth = 4; x.stroke();
+      circ(x, 0, 0, 17, "#ffd23f"); x.fillStyle = "#0b6e8a"; raioPath(x, 1.25); x.fill();
+      brilho(x, -14, -22, 6, Math.max(0, Math.sin(t * 2.5)), "#fff");
+    } },
+    raio: { nome: "Raio de energia", cat: "heroi", f: function (x, t) {
+      var p = 0.5 + 0.5 * Math.sin(t * 6); x.rotate(0.15); x.save(); x.shadowColor = "#ffd23f"; x.shadowBlur = 10 + p * 14;
+      x.fillStyle = "#ffe15a"; raioPath(x, 3.6); x.fill(); x.restore(); x.strokeStyle = "#ff9a1f"; x.lineWidth = 3; raioPath(x, 3.6); x.stroke();
+      for (var i = 0; i < 4; i++) brilho(x, Math.cos(i * 1.7 + t * 2) * 34, Math.sin(i * 1.7 + t * 2) * 34, 5, Math.max(0, Math.sin(t * 4 + i)), "#fff6b0");
+    } },
+    pow: { nome: "Balão POW!", cat: "heroi", f: function (x, t) {
+      var P = ["POW!", "BUM!", "ZAP!", "UAU!"], n = Math.floor(t / 1.2), c = (t % 1.2) / 1.2, s = c < 0.18 ? 0.6 + c / 0.18 * 0.5 : 1.1 - Math.min(0.1, (c - 0.18) * 0.3);
+      x.scale(s, s); x.rotate(-0.12 + Math.sin(n * 2.1) * 0.1);
+      x.beginPath(); for (var i = 0; i < 24; i++) { var a = TAU * i / 24, r = i % 2 ? 30 : 46; x.lineTo(Math.cos(a) * r * 1.15, Math.sin(a) * r * 0.85); } x.closePath();
+      x.fillStyle = "#ffd23f"; x.fill(); x.strokeStyle = "#e53935"; x.lineWidth = 5; x.stroke(); x.strokeStyle = "#1b1b1b"; x.lineWidth = 2; x.stroke();
+      x.font = "400 30px Bangers, Impact, 'Arial Black', sans-serif"; x.textAlign = "center"; x.textBaseline = "middle"; x.lineJoin = "round";
+      x.strokeStyle = "#1b1b1b"; x.lineWidth = 6; x.strokeText(P[n % 4], 0, 2); x.fillStyle = "#e53935"; x.fillText(P[n % 4], 0, 2);
+    } },
+    mascara: { nome: "Máscara de herói", cat: "heroi", f: function (x, t) {
+      x.translate(0, Math.sin(t * 2) * 4); x.rotate(Math.sin(t * 1.3) * 0.12);
+      x.beginPath(); x.moveTo(-44, -4); x.quadraticCurveTo(-40, -22, -16, -18); x.quadraticCurveTo(0, -12, 16, -18); x.quadraticCurveTo(40, -22, 44, -4); x.quadraticCurveTo(40, 16, 18, 14); x.quadraticCurveTo(0, 6, -18, 14); x.quadraticCurveTo(-40, 16, -44, -4); x.closePath();
+      x.fillStyle = "#1b1b2a"; x.fill(); x.strokeStyle = "#e53935"; x.lineWidth = 2.5; x.stroke();
+      [-20, 20].forEach(function (ex) { x.save(); x.translate(ex, -2); x.rotate(ex > 0 ? -0.15 : 0.15); elip(x, 0, 0, 11, 6.5, "#f5f1ea"); x.restore(); });
+      x.strokeStyle = "#1b1b2a"; x.lineWidth = 3; x.beginPath(); x.moveTo(-44, -4); x.quadraticCurveTo(-52, 10 + Math.sin(t * 4) * 4, -48, 24); x.moveTo(44, -4); x.quadraticCurveTo(52, 10 + Math.sin(t * 4 + 1) * 4, 48, 24); x.stroke();
+    } },
+    animemenino: { nome: "Chibi anime (menino)", cat: "anime", f: function (x, t) { chibi(x, t, "#2b2f6b", "#ff7a3c", false); } },
+    animemenina: { nome: "Chibi anime (menina)", cat: "anime", f: function (x, t) { chibi(x, t, "#7a3cc8", "#ff8fb8", true); } },
+    gatosorte: { nome: "Gatinho da sorte", cat: "anime", f: function (x, t) {
+      elip(x, 0, 30, 26, 18, "#fff8ef"); borda(x); circB(x, 0, -8, 24, "#fff8ef");
+      [[-16, 1], [16, -1]].forEach(function (o) { x.fillStyle = "#fff8ef"; x.beginPath(); x.moveTo(o[0] - 8, -26); x.lineTo(o[0] + o[1] * 2, -40); x.lineTo(o[0] + 8, -24); x.fill(); borda(x); x.fillStyle = "#ff9ab8"; x.beginPath(); x.moveTo(o[0] - 4, -27); x.lineTo(o[0] + o[1] * 2, -35); x.lineTo(o[0] + 4, -26); x.fill(); });
+      circ(x, -12, -22, 5, "#ff9a3c"); circ(x, 10, 26, 6, "#2a1a12");
+      var ab = piscar(t, 0.5); x.strokeStyle = "#2a1a12"; x.lineWidth = 2.4; x.lineCap = "round";
+      [-9, 9].forEach(function (ex) { x.beginPath(); if (ab < 0.3) { x.moveTo(ex - 4, -8); x.lineTo(ex + 4, -8); } else x.arc(ex, -6, 4, 1.15 * Math.PI, 1.85 * Math.PI); x.stroke(); });
+      x.beginPath(); x.moveTo(-4, 0); x.quadraticCurveTo(-2, 3, 0, 0); x.quadraticCurveTo(2, 3, 4, 0); x.stroke(); boch(x, -15, -1, 4); boch(x, 15, -1, 4);
+      x.strokeStyle = "rgba(42,26,18,.5)"; x.lineWidth = 1.2; [[-20, -2, -32, -6], [-20, 2, -32, 4], [20, -2, 32, -6], [20, 2, 32, 4]].forEach(function (b) { x.beginPath(); x.moveTo(b[0], b[1]); x.lineTo(b[2], b[3]); x.stroke(); });
+      x.fillStyle = "#e53935"; x.fillRect(-14, 12, 28, 5); circ(x, 0, 21, 5, "#ffd23f");
+      x.save(); x.translate(18, -18); x.rotate(-0.4 + Math.sin(t * 5) * 0.45); elip(x, 0, -8, 8, 12, "#fff8ef"); borda(x); x.restore();   /* patinha acenando */
+    } },
+    lanterna: { nome: "Lanterna de papel", cat: "anime", f: function (x, t) {
+      x.translate(0, -40); x.rotate(Math.sin(t * 1.6) * 0.12); x.translate(0, 40);
+      x.strokeStyle = "#3a2a1a"; x.lineWidth = 2; x.beginPath(); x.moveTo(0, -48); x.lineTo(0, -34); x.stroke();
+      var g = x.createRadialGradient(0, 0, 4, 0, 0, 60); g.addColorStop(0, "rgba(255,170,60," + (0.35 + 0.15 * Math.sin(t * 3)) + ")"); g.addColorStop(1, "rgba(255,120,40,0)"); x.fillStyle = g; x.beginPath(); x.arc(0, 0, 60, 0, TAU); x.fill();
+      elip(x, 0, 0, 28, 32, "#e53935"); borda(x, "rgba(80,10,10,.5)");
+      x.strokeStyle = "rgba(90,10,10,.45)"; x.lineWidth = 1.5; for (var i = -2; i <= 2; i++) { x.beginPath(); x.ellipse(0, 0, Math.abs(i) * 8 + 2, 32, 0, -Math.PI / 2, Math.PI / 2); x.stroke(); }
+      x.fillStyle = "#2a1a12"; x.fillRect(-12, -36, 24, 6); x.fillRect(-12, 30, 24, 6);
+      x.strokeStyle = "#ffd23f"; x.lineWidth = 2; for (var k = -3; k <= 3; k++) { x.beginPath(); x.moveTo(k * 3, 36); x.lineTo(k * 3 + Math.sin(t * 3 + k) * 2, 50); x.stroke(); }
+    } },
+    onigiri: { nome: "Bolinho de arroz", cat: "anime", f: function (x, t) {
+      var p = Math.abs(Math.sin(t * 2.5)); x.translate(0, -p * 4); x.scale(1 + p * 0.03, 1 - p * 0.03);
+      x.beginPath(); x.moveTo(0, -34); x.quadraticCurveTo(8, -34, 32, 12); x.quadraticCurveTo(38, 30, 18, 32); x.lineTo(-18, 32); x.quadraticCurveTo(-38, 30, -32, 12); x.quadraticCurveTo(-8, -34, 0, -34); x.closePath();
+      x.fillStyle = "#fffdf6"; x.fill(); borda(x); x.fillStyle = "#1f3a2a"; rrect(x, -14, 10, 28, 22, 3); x.fill();
+      var ab = piscar(t, 0.3); olho(x, -8, -2, 3, ab); olho(x, 8, -2, 3, ab); boca(x, 0, 6, 4); boch(x, -15, 4, 3.5); boch(x, 15, 4, 3.5);
+    } },
+    galho: { nome: "Galho de cerejeira", cat: "anime", f: function (x, t) {
+      x.rotate(Math.sin(t * 1.2) * 0.05); x.strokeStyle = "#5a3424"; x.lineCap = "round";
+      x.lineWidth = 6; x.beginPath(); x.moveTo(-48, 30); x.quadraticCurveTo(-10, 10, 44, -26); x.stroke();
+      x.lineWidth = 3.5; x.beginPath(); x.moveTo(-10, 12); x.quadraticCurveTo(0, -10, -6, -32); x.moveTo(16, -4); x.quadraticCurveTo(30, 6, 40, 20); x.stroke();
+      [[-34, 18], [-20, 6], [-6, -30], [-2, -14], [10, -6], [26, -16], [40, -26], [38, 18], [28, 8], [-40, 30]].forEach(function (p, i) {
+        var s = 7 + (i % 3) * 1.5, a = 0.75 + 0.25 * Math.sin(t * 2 + i);
+        x.save(); x.translate(p[0], p[1]); x.rotate(i + t * 0.3); x.globalAlpha = a;
+        for (var k = 0; k < 5; k++) { x.rotate(TAU / 5); elip(x, 0, -s * 0.6, s * 0.45, s * 0.62, i % 2 ? "#ffb7cf" : "#ffd1e0"); }
+        x.globalAlpha = 1; circ(x, 0, 0, 2, "#ff6f9a"); x.restore();
+      });
+    } }
+  };
+  Object.keys(TEMA).forEach(function (k) { ITENS[k] = TEMA[k]; });
+
   /* ===== EFEITOS DE TELA ===== */
   function cor(cs, i) { return [cs[2] || "#ffd23f", "#ff6b8a", "#4fc3f7", "#ffd23f", "#ffffff", "#b388ff", "#5ccf7a"][i % 7]; }
   function rolar(v) { return v - Math.floor(v); }
@@ -429,6 +546,42 @@
           x.fillStyle = ["#e53935", "#ffd23f", "#1e88e5", "#5ccf7a", "#ff7ab6", "#ff9a3c"][(j + k * 2) % 6]; x.beginPath(); x.moveTo(a[0], a[1]); x.lineTo(c[0], c[1]); x.lineTo(mx + sw, my + m * 0.06); x.closePath(); x.fill(); }
       }); } }
   };
+
+  /* efeitos de super-herói e anime (22/11) — desenho próprio */
+  var EF_TEMA = {
+    sakura: { nome: "Flores de cerejeira", camada: "frente", f: function (x, W, H, t) {
+      var m = Math.min(W, H); for (var i = 0; i < 30; i++) { var y = (rolar(h(i + 201) + t * (0.035 + h(i) * 0.04)) * 1.1 - 0.05) * H, xx = h(i + 202) * W + Math.sin(t * 1.1 + i) * m * 0.06, s = m * (0.011 + h(i + 203) * 0.01);
+        x.save(); x.translate(xx, y); x.rotate(t * 1.3 + i); x.scale(1, 0.45 + 0.55 * Math.abs(Math.sin(t * 1.8 + i))); x.globalAlpha = 0.9; x.fillStyle = i % 3 ? "#ffb7cf" : "#ffe1ea";
+        x.beginPath(); x.moveTo(0, s); x.quadraticCurveTo(-s * 1.1, 0, -s * 0.35, -s); x.lineTo(0, -s * 0.55); x.lineTo(s * 0.35, -s); x.quadraticCurveTo(s * 1.1, 0, 0, s); x.fill(); x.restore(); } } },
+    meiotom: { nome: "Pontinhos de quadrinho", camada: "fundo", f: function (x, W, H, t, cs) {
+      var m = Math.min(W, H), q = m * 0.035, d = Math.sin(t * 0.8) * q * 0.5; x.fillStyle = "rgba(0,0,0,.22)";
+      for (var yy = -q; yy < H + q; yy += q) for (var xx = -q; xx < W + q; xx += q) { var u = Math.max(Math.abs(xx - W / 2) / W, Math.abs(yy - H / 2) / H) * 2, r = q * 0.42 * Math.max(0, u - 0.35) / 0.65;
+        if (r > 0.4) { x.beginPath(); x.arc(xx + ((yy / q) % 2 ? q / 2 : 0) + d, yy, r, 0, TAU); x.fill(); } } void cs; } },
+    acao: { nome: "Linhas de ação", camada: "fundo", f: function (x, W, H, t) {
+      var m = Math.min(W, H), cx = W / 2, cy = H * 0.45, R = Math.hypot(W, H); x.save(); x.globalAlpha = 0.35;
+      for (var i = 0; i < 48; i++) { var a = TAU * i / 48 + h(i) * 0.05, on = h(i + Math.floor(t * 8) * 3) > 0.35; if (!on) continue; var r0 = m * (0.34 + h(i + 211) * 0.1), w = m * (0.004 + h(i + 212) * 0.01);
+        x.fillStyle = i % 2 ? "#ffffff" : "#1b1b1b"; x.beginPath(); x.moveTo(cx + Math.cos(a - 0.008) * r0, cy + Math.sin(a - 0.008) * r0); x.lineTo(cx + Math.cos(a) * R - Math.sin(a) * w * 4, cy + Math.sin(a) * R + Math.cos(a) * w * 4); x.lineTo(cx + Math.cos(a) * R + Math.sin(a) * w * 4, cy + Math.sin(a) * R - Math.cos(a) * w * 4); x.closePath(); x.fill(); }
+      x.restore(); } },
+    onoma: { nome: "POW! BUM! ZAP!", camada: "frente", f: function (x, W, H, t) {
+      var m = Math.min(W, H), P = ["POW!", "BUM!", "ZAP!", "UAU!", "VUSH!"], L = [[0.16, 0.12], [0.84, 0.2], [0.18, 0.86], [0.82, 0.82]];
+      for (var k = 0; k < 4; k++) { var T = 2.2, c = rolar((t + k * 0.55) / T) * T, n = Math.floor((t + k * 0.55) / T); if (c > 0.9) continue;
+        var s = c < 0.15 ? c / 0.15 : 1, a = c > 0.7 ? 1 - (c - 0.7) / 0.2 : 1, px = L[k][0] * W, py = L[k][1] * H, r = m * 0.09 * s;
+        x.save(); x.globalAlpha = a; x.translate(px, py); x.rotate(-0.25 + h(n * 4 + k) * 0.5);
+        x.beginPath(); for (var i = 0; i < 18; i++) { var an = TAU * i / 18, rr2 = i % 2 ? r * 0.62 : r; x.lineTo(Math.cos(an) * rr2 * 1.2, Math.sin(an) * rr2 * 0.85); } x.closePath();
+        x.fillStyle = ["#ffd23f", "#4fc3f7", "#ff5a8a", "#ffffff"][k]; x.fill(); x.strokeStyle = "#1b1b1b"; x.lineWidth = Math.max(2, m * 0.005); x.stroke();
+        x.font = "400 " + Math.round(r * 0.55) + "px Bangers, Impact, 'Arial Black', sans-serif"; x.textAlign = "center"; x.textBaseline = "middle"; x.lineJoin = "round";
+        x.lineWidth = Math.max(2, r * 0.09); x.strokeText(P[(n + k) % 5], 0, 0); x.fillStyle = "#e53935"; x.fillText(P[(n + k) % 5], 0, 0); x.restore(); } } },
+    linhas: { nome: "Linhas de velocidade", camada: "frente", f: function (x, W, H, t) {
+      var m = Math.min(W, H); x.save(); for (var i = 0; i < 26; i++) { var y = h(i + 221) * H, L = W * (0.15 + h(i + 222) * 0.3), xx = (rolar(h(i + 223) + t * (0.6 + h(i) * 0.8)) * 1.6 - 0.3) * W;
+        if (Math.abs(y - H * 0.5) < H * 0.2) continue; var g = x.createLinearGradient(xx - L, 0, xx, 0); g.addColorStop(0, "rgba(255,255,255,0)"); g.addColorStop(1, "rgba(255,255,255,.75)");
+        x.strokeStyle = g; x.lineWidth = Math.max(1, m * (0.002 + h(i + 224) * 0.004)); x.beginPath(); x.moveTo(xx - L, y); x.lineTo(xx, y); x.stroke(); } x.restore(); } },
+    cometas: { nome: "Estrelas cadentes", camada: "fundo", f: function (x, W, H, t) {
+      var m = Math.min(W, H); for (var k = 0; k < 3; k++) { var T = 3.2, c = rolar((t + k * 1.1) / T) * T, n = Math.floor((t + k * 1.1) / T); if (c > 0.9) continue;
+        var u = c / 0.9, sx = W * (0.3 + 0.7 * h(n * 3 + k)), sy = H * 0.05 * h(n + k), px = sx - u * W * 0.5, py = sy + u * H * 0.35, a = Math.sin(u * Math.PI);
+        var g = x.createLinearGradient(px, py, px + m * 0.25, py - m * 0.17); g.addColorStop(0, "rgba(255,255,255," + a + ")"); g.addColorStop(1, "rgba(255,255,255,0)");
+        x.strokeStyle = g; x.lineWidth = Math.max(1.5, m * 0.004); x.beginPath(); x.moveTo(px, py); x.lineTo(px + m * 0.25, py - m * 0.17); x.stroke(); brilho(x, px, py, m * 0.015, a, "#fff"); } } }
+  };
+  Object.keys(EF_TEMA).forEach(function (k) { EFEITOS[k] = EF_TEMA[k]; });
 
   /* ===== OBJETOS REALISTAS (22/11): fotos de estúdio criadas pela IA criativa da plataforma (objetos inventados, sem marca), fundo
      recortado, na biblioteca oficial (bucket público "trends", pasta obj/). Cada um anima com um movimento próprio e sombra suave. ===== */

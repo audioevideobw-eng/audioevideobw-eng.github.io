@@ -138,7 +138,11 @@
     ["retro80", "Anos 80", "retro synthwave sunset, neon grid, eighties", "neon", ["#12052B", "#3B0B5A", "#FF6EC7"]],
     ["vinho", "Vinho", "elegant wine night, burgundy, warm candlelight", "elegante", ["#1E0710", "#5A0F25", "#E8C26A"]],
     ["luau", "Luau", "beach luau at night, moon over the sea, torches", "manuscrito", ["#06142B", "#0E3B5A", "#FFB547"]],
-    ["cinema", "Cinema", "movie theater, red curtain, spotlights, film", "impacto", ["#140405", "#5A0A10", "#FFD23F"]]
+    ["cinema", "Cinema", "movie theater, red curtain, spotlights, film", "impacto", ["#140405", "#5A0A10", "#FFD23F"]],
+    ["heroi", "Super-herói", "original comic book superhero night city skyline, spotlight in the sky, no logos, no existing characters", "heroi", ["#0A0F2E", "#1E2A6B", "#FFD23F"]],
+    ["quadrinho", "Quadrinho", "pop art comic book burst rays, halftone dots, bold primary colors, no existing characters", "heroi", ["#1B1B1B", "#E53935", "#FFD23F"]],
+    ["anime", "Anime", "anime style dreamy night sky, big moon, cherry blossom branches, pastel pink and purple, no existing characters", "anime", ["#2A1650", "#7A3CC8", "#FFB7CF"]],
+    ["animeneon", "Cidade neon", "anime style neon city at night, rain, glowing signs without text, no existing characters", "anime", ["#07061A", "#1A1050", "#FF2FB9"]]
   ];
   var PALETAS = [["", "Do estilo"], ["marca", "Minha marca"], ["ouro", "Dourado e preto", ["#0b0b0f", "#2a2218", "#E8C26A"], "gold and black"], ["rosa", "Rosa e lilás", ["#ffd1e6", "#c9a7ff", "#FF4F9A"], "pink and lilac"],
     ["azul", "Azul e branco", ["#0b2a5b", "#3f7fd6", "#ffffff"], "blue and white"], ["verde", "Verde", ["#0b3d2e", "#2fa36b", "#d7f5c8"], "green tones"], ["vermelho", "Vermelho", ["#3b0606", "#c62828", "#ffcc80"], "red and warm"],
@@ -155,7 +159,9 @@
     gamer: { nome: "Gamer", s: ["Russo One", 400], d: ["Bungee", 400], b: ["Inter", 700] },
     esporte: { nome: "Esporte", s: ["Bungee", 400], d: ["Russo One", 400], b: ["Inter", 700] },
     rock: { nome: "Rock", s: ["Permanent Marker", 400], d: ["Anton", 400], b: ["Inter", 700] },
-    country: { nome: "Country", s: ["Rye", 400], d: ["Rye", 400], b: ["Inter", 600] }
+    country: { nome: "Country", s: ["Rye", 400], d: ["Rye", 400], b: ["Inter", 600] },
+    heroi: { nome: "Quadrinho", s: ["Bangers", 400], d: ["Bangers", 400], b: ["Inter", 700] },
+    anime: { nome: "Anime", s: ["Mochiy Pop One", 400], d: ["Fredoka", 600], b: ["Inter", 600] }
   };
   var FORMATOS = [["story", "STORY 9:16", 1080, 1920], ["post", "POST 4:5", 1080, 1350], ["quadrado", "QUADRADO", 1080, 1080], ["paisagem", "PAISAGEM 16:9", 1920, 1080],
     ["a5", "A5 IMPRIMIR", 1748, 2480], ["a4", "A4 IMPRIMIR", 2480, 3508], ["cartao", "CARTÃO 9×5", 1063, 591]];
@@ -369,8 +375,59 @@
     x.globalAlpha = 1; fundoNovo(x, W, H, m, cs, r, est); x.globalAlpha = 1; x.globalCompositeOperation = "source-over"; void claro; return c;
   }
   /* 22/11 — nichos adultos (gamer, esporte, música, festas): desenho próprio, sem marca, time, jogo ou artista de verdade */
+
+  /* 22/11 — fundos de SUPER-HERÓI e ANIME (desenho próprio: cidade, quadrinho, céu de sakura, cidade neon sem letreiros) */
+  function predios(x, W, H, m, r, base, cor, janelas) {
+    var px = 0; x.globalAlpha = 1; while (px < W) { var bw = m * (0.06 + r() * 0.08), bh = H * (0.12 + r() * 0.3); x.fillStyle = cor; x.fillRect(px, base - bh, bw + 1, H - base + bh);
+      if (janelas) for (var jy = base - bh + m * 0.02; jy < base - m * 0.02; jy += m * 0.03) for (var jx = px + m * 0.012; jx < px + bw - m * 0.015; jx += m * 0.022) if (r() < 0.45) { x.fillStyle = janelas[Math.floor(r() * janelas.length)]; x.globalAlpha = 0.55 + r() * 0.45; x.fillRect(jx, jy, m * 0.01, m * 0.014); x.globalAlpha = 1; }
+      px += bw; }
+  }
+  function fundoTema(x, W, H, m, cs, r, est) {
+    var i, k;
+    if (est === "heroi") {
+      for (i = 0; i < 120; i++) { x.globalAlpha = 0.3 + r() * 0.7; x.fillStyle = "#fff"; x.beginPath(); x.arc(r() * W, r() * H * 0.55, m * (0.001 + r() * 0.003), 0, 7); x.fill(); }
+      var bx = W * 0.5, by = H, ang = -0.35;   /* holofote com o emblema no céu (raio próprio) */
+      x.save(); x.globalAlpha = 0.22; x.fillStyle = "#fff6c8"; x.beginPath(); x.moveTo(bx - m * 0.02, by); x.lineTo(bx + m * 0.02, by); x.lineTo(W * 0.72 + m * 0.18, H * 0.14); x.lineTo(W * 0.72 - m * 0.18, H * 0.14); x.fill(); x.restore(); void ang;
+      var ex = W * 0.72, ey = H * 0.14, er = m * 0.12, eg = x.createRadialGradient(ex, ey, 0, ex, ey, er * 1.6); eg.addColorStop(0, "rgba(255,246,200,.8)"); eg.addColorStop(0.6, "rgba(255,246,200,.45)"); eg.addColorStop(1, "rgba(255,246,200,0)");
+      x.globalAlpha = 1; x.fillStyle = eg; x.beginPath(); x.ellipse(ex, ey, er * 1.5, er, 0, 0, 7); x.fill();
+      x.fillStyle = cs[0]; x.save(); x.translate(ex, ey); x.scale(er / 12, er / 12); x.beginPath(); x.moveTo(3, -9); x.lineTo(-5, 1.5); x.lineTo(0, 1.5); x.lineTo(-2.5, 9); x.lineTo(5, -1.5); x.lineTo(0, -1.5); x.closePath(); x.globalAlpha = 0.75; x.fill(); x.restore();
+      predios(x, W, H, m, r, H * 0.86, "rgba(8,10,24,.85)", null); predios(x, W, H, m, r, H * 0.95, "#05060f", ["#ffd86f", "#9ad7ff", "#ffffff"]);
+      return true;
+    }
+    if (est === "quadrinho") {
+      var cx = W / 2, cy = H * 0.42, R = Math.hypot(W, H);
+      for (i = 0; i < 36; i++) { var a0 = Math.PI * 2 * i / 36, a1 = Math.PI * 2 * (i + 1) / 36; x.globalAlpha = 1; x.fillStyle = i % 2 ? cs[1] : cs[2]; x.beginPath(); x.moveTo(cx, cy); x.lineTo(cx + Math.cos(a0) * R, cy + Math.sin(a0) * R); x.lineTo(cx + Math.cos(a1) * R, cy + Math.sin(a1) * R); x.fill(); }
+      var q = m * 0.03; x.fillStyle = "rgba(0,0,0,.16)";
+      for (var yy = 0; yy < H + q; yy += q) for (var xx = 0; xx < W + q; xx += q) { var u = Math.hypot(xx - cx, yy - cy) / (Math.max(W, H) * 0.7), rd = q * 0.45 * Math.min(1, Math.max(0, u - 0.25) * 1.6); if (rd > 0.4) { x.beginPath(); x.arc(xx, yy, rd, 0, 7); x.fill(); } }
+      x.globalAlpha = 1; x.strokeStyle = "#111"; x.lineWidth = Math.max(4, m * 0.014); var mg = m * 0.03; x.strokeRect(mg, mg, W - 2 * mg, H - 2 * mg);
+      return true;
+    }
+    if (est === "anime") {
+      var lua = x.createRadialGradient(W * 0.68, H * 0.2, 0, W * 0.68, H * 0.2, m * 0.32); lua.addColorStop(0, "#fffaf0"); lua.addColorStop(0.42, "#ffe9f0"); lua.addColorStop(0.45, "rgba(255,210,230,.35)"); lua.addColorStop(1, "rgba(255,200,230,0)");
+      x.globalAlpha = 1; x.fillStyle = lua; x.fillRect(0, 0, W, H);
+      for (i = 0; i < 60; i++) { x.globalAlpha = 0.3 + r() * 0.6; x.fillStyle = "#fff"; x.beginPath(); x.arc(r() * W, r() * H * 0.6, m * (0.001 + r() * 0.003), 0, 7); x.fill(); }
+      x.globalAlpha = 0.55; x.fillStyle = "#3a1d5a"; x.beginPath(); x.moveTo(0, H); for (i = 0; i <= 8; i++) x.lineTo(W * i / 8, H * (0.8 + Math.sin(i * 1.7) * 0.04)); x.lineTo(W, H); x.fill();
+      [[0, 0, 1], [W, 0, -1]].forEach(function (o) {   /* galhos de cerejeira nos cantos */
+        x.save(); x.translate(o[0], o[1]); x.scale(o[2], 1); x.globalAlpha = 1; x.strokeStyle = "#4a2a22"; x.lineCap = "round"; x.lineWidth = m * 0.016;
+        x.beginPath(); x.moveTo(-m * 0.02, m * 0.05); x.quadraticCurveTo(m * 0.18, m * 0.1, m * 0.34, m * 0.06); x.stroke(); x.lineWidth = m * 0.008; x.beginPath(); x.moveTo(m * 0.16, m * 0.09); x.quadraticCurveTo(m * 0.22, m * 0.18, m * 0.2, m * 0.26); x.stroke();
+        for (k = 0; k < 18; k++) { var fx = m * (0.02 + r() * 0.34), fy = m * (0.02 + r() * 0.24), fr = m * (0.012 + r() * 0.012); x.fillStyle = k % 3 ? "#ffb7cf" : "#ffe1ea"; x.globalAlpha = 0.95; for (var p = 0; p < 5; p++) { var pa = Math.PI * 2 * p / 5; x.beginPath(); x.ellipse(fx + Math.cos(pa) * fr * 0.7, fy + Math.sin(pa) * fr * 0.7, fr * 0.55, fr * 0.4, pa, 0, 7); x.fill(); } }
+        x.restore(); });
+      return true;
+    }
+    if (est === "animeneon") {
+      for (i = 0; i < 40; i++) { x.globalAlpha = 0.25; x.strokeStyle = "#9ad7ff"; x.lineWidth = Math.max(1, m * 0.0015); var rx = r() * W, ry = r() * H; x.beginPath(); x.moveTo(rx, ry); x.lineTo(rx - m * 0.01, ry + m * 0.05); x.stroke(); }
+      predios(x, W, H, m, r, H * 0.8, "#14123a", ["#ff2fb9", "#00f0ff", "#ffd23f"]);
+      for (i = 0; i < 9; i++) { var sx = r() * W, sy = H * (0.35 + r() * 0.35), sw = m * 0.02, sh = m * (0.08 + r() * 0.1), c = ["#ff2fb9", "#00f0ff", "#ffd23f", "#b388ff"][i % 4];
+        x.save(); x.globalAlpha = 0.9; x.shadowColor = c; x.shadowBlur = m * 0.03; x.strokeStyle = c; x.lineWidth = Math.max(1.5, m * 0.004); x.strokeRect(sx, sy, sw, sh); for (k = 1; k < 4; k++) { x.beginPath(); x.moveTo(sx + sw * 0.25, sy + sh * k / 4); x.lineTo(sx + sw * 0.75, sy + sh * k / 4); x.stroke(); } x.restore(); }
+      predios(x, W, H, m, r, H * 0.95, "#070615", ["#ff2fb9", "#00f0ff"]);
+      var ch = x.createLinearGradient(0, H * 0.9, 0, H); ch.addColorStop(0, "rgba(255,47,185,0)"); ch.addColorStop(1, "rgba(255,47,185,.35)"); x.globalAlpha = 1; x.fillStyle = ch; x.fillRect(0, H * 0.9, W, H * 0.1);
+      return true;
+    }
+    return false;
+  }
   function fundoAdulto(x, W, H, m, cs, r, est) {
     var i, k;
+    if (fundoTema(x, W, H, m, cs, r, est)) return true;
     if (est === "gamer") {
       x.globalAlpha = 0.25; x.strokeStyle = cs[2]; x.lineWidth = Math.max(1, m * 0.0015);
       for (i = 0; i <= 14; i++) { var yy = H * 0.62 + Math.pow(i / 14, 2) * H * 0.38; x.beginPath(); x.moveTo(0, yy); x.lineTo(W, yy); x.stroke(); }
@@ -901,7 +958,7 @@
   /* ================= 22/11 — BIBLIOTECA DE CONVITES + CONVITE ANIMADO =================
      Modelos ORIGINAIS (inspirados nas ocasiões mais pedidas, nada copiado de site de terceiros): cada um é só uma
      combinação de modelo + estilo + cores + fontes + animação. Miniaturas desenhadas aqui mesmo, com dados de exemplo. */
-  var BIB_CATS = [["", "Todos"], ["anim", "✨ Animados"], ["gamer", "🎮 Gamer"], ["esporte", "⚽ Esporte"], ["musica", "🎵 Música"], ["adulto", "🍻 Festas adultas"], ["real", "📸 Realistas"], ["aniv", "Aniversário"], ["inf", "Infantil"], ["quinze", "15 anos"], ["amor", "Casamento e amor"], ["bebe", "Bebê e família"], ["empresa", "Formatura e empresa"], ["datas", "Datas e festas"]];
+  var BIB_CATS = [["", "Todos"], ["anim", "✨ Animados"], ["gamer", "🎮 Gamer"], ["esporte", "⚽ Esporte"], ["musica", "🎵 Música"], ["adulto", "🍻 Festas adultas"], ["real", "📸 Realistas"], ["heroi", "🦸 Super-herói"], ["anime", "🌸 Anime"], ["aniv", "Aniversário"], ["inf", "Infantil"], ["quinze", "15 anos"], ["amor", "Casamento e amor"], ["bebe", "Bebê e família"], ["empresa", "Formatura e empresa"], ["datas", "Datas e festas"]];
   function M(id, nome, cat, sub, estilo, paleta, par, an, aj) { return { id: id, nome: nome, cat: cat, sub: sub, estilo: estilo, paleta: paleta || "", par: par || "", anim: an || null, aj: aj || {} }; }
   var MODELOS_CONVITE = [
     M("an-neon", "Neon party", "aniv", "aniversario", "neon", "", "neon", { o: ["luzes"], tx: "zoom" }, { letra: "neon" }),
@@ -1000,7 +1057,19 @@
     M("re-jardim", "Borboletas reais", "inf", "aniversario", "floral", "", "classico", { i: ["r-borboleta", "r-rosas"], o: [], tx: "suave" }),
     M("re-natal", "Natal realista", "datas", "natal", "natal", "", "classico", { i: ["r-bola-natal", "r-presente"], o: ["neve"], tx: "suave" }),
     M("re-halloween", "Halloween realista", "datas", "halloween", "halloween", "", "impacto", { i: ["r-abobora"], o: ["fumaca"], tx: "zoom" }),
-    M("re-fitness", "Fitness realista", "esporte", "aniversario", "fitness", "", "esporte", { i: ["r-haltere"], o: [], tx: "subir" })
+    M("re-fitness", "Fitness realista", "esporte", "aniversario", "fitness", "", "esporte", { i: ["r-haltere"], o: [], tx: "subir" }),
+    M("he-cidade", "Herói na cidade", "heroi", "infantil", "heroi", "", "heroi", { i: ["heroi", "raio"], o: ["estrelas", "cometas"], tx: "zoom" }, { letra: "relevo" }),
+    M("he-heroina", "Super-heroína", "heroi", "infantil", "heroi", "rosa", "heroi", { i: ["heroina"], o: ["luzes", "cometas"], tx: "subir" }, { letra: "relevo" }),
+    M("he-pow", "POW! Quadrinho", "heroi", "aniversario", "quadrinho", "", "heroi", { i: ["pow", "heroi"], o: ["acao"], tx: "zoom" }),
+    M("he-dupla", "Dupla de heróis", "heroi", "infantil", "heroi", "", "heroi", { i: ["heroi", "heroina"], o: ["onoma"], tx: "subir" }),
+    M("he-escudo", "Escudo e raio", "heroi", "aniversario", "heroi", "azul", "heroi", { i: ["escudo", "raio"], o: ["holofotes"], tx: "brilho" }, { letra: "cromo" }),
+    M("he-hq", "Noite dos quadrinhos", "heroi", "festa", "quadrinho", "vermelho", "heroi", { i: ["mascara"], o: ["meiotom", "onoma"], tx: "zoom" }),
+    M("ae-sakura", "Sakura", "anime", "aniversario", "anime", "", "anime", { i: ["animemenina", "galho"], o: ["sakura"], tx: "suave" }),
+    M("ae-chibi", "Chibi fofo", "anime", "infantil", "anime", "pastel", "anime", { i: ["animemenino", "onigiri"], o: ["sakura", "estrelas"], tx: "subir" }),
+    M("ae-neon", "Cidade neon", "anime", "festa", "animeneon", "", "anime", { i: ["lanterna"], o: ["linhas", "luzes"], tx: "zoom" }, { letra: "neon" }),
+    M("ae-gato", "Gatinho da sorte", "anime", "aniversario", "anime", "", "anime", { i: ["gatosorte", "lanterna"], o: ["sakura"], tx: "subir" }),
+    M("ae-turma", "Turma anime", "anime", "infantil", "anime", "", "anime", { i: ["animemenino", "animemenina"], o: ["linhas"], tx: "zoom" }),
+    M("ae-lua", "Noite de lua", "anime", "aniversario", "anime", "rosa", "anime", { i: ["galho"], o: ["sakura", "cometas"], tx: "brilho" })
   ];
   MODELOS_CONVITE.forEach(function (m) { m.real = !!(m.anim && (m.anim.i || []).some(function (id) { return /^r-/.test(id); })); });
   /* imagem realista chegou da internet: refaz a prévia e as miniaturas que usam aquele objeto */
@@ -1012,7 +1081,8 @@
   var CAIXA_ESTILO = { marmore: "nenhum", aquarela: "nenhum", vintage: "nenhum", minimal: "nenhum", bebe: "nenhum", floral: "vidro", infantil: "vidro", safari: "vidro", circo: "vidro", praia: "vidro" };
   var VAGAS = [[0.18, 0.13], [0.82, 0.13], [0.84, 0.36], [0.16, 0.36], [0.5, 0.09], [0.2, 0.92], [0.8, 0.92]];
   var VAGAS_R = [[0.3, 0.27], [0.72, 0.29], [0.5, 0.16]];
-  function itensDe(ids) { var nr = 0, nd = 0; return (ids || []).map(function (id, i) { var real = /^r-/.test(id), v = real ? VAGAS_R[nr++ % 3] : VAGAS[nd++ % VAGAS.length]; return { id: id, x: v[0], y: v[1], s: real ? 0.36 : 0.22, f: i * 0.7, esp: v[0] > 0.6 && /^(ursinho|coelho|gato|cachorro|passarinho|dino|patinho|pomba|leao)$/.test(id) }; }); }
+  var GRANDES = /^(heroi|heroina|animemenino|animemenina|gatosorte)$/;   /* personagens dos temas entram grandes, como os realistas */
+  function itensDe(ids) { var nr = 0, nd = 0; return (ids || []).map(function (id, i) { var real = /^r-/.test(id) || GRANDES.test(id), v = real ? VAGAS_R[nr++ % 3] : VAGAS[nd++ % VAGAS.length]; return { id: id, x: v[0], y: v[1], s: real ? (GRANDES.test(id) ? 0.34 : 0.36) : 0.22, f: i * 0.7, esp: v[0] > 0.6 && /^(ursinho|coelho|gato|cachorro|passarinho|dino|patinho|pomba|leao)$/.test(id) }; }); }
   var BIB_CAT = "", MOD_ON = "", MINIS = {};
   function amostra(t, s) { var d = padrao(t, s); campos(t, s).forEach(function (c) { if (d[c[0]] == null && c[3] && c[2] !== "textarea" && !/rsvp|endereco|traje/.test(c[0])) d[c[0]] = c[3]; }); d.data = "2026-12-12"; d.hora = "19:00"; return d; }
   function estadoModelo(m) {
@@ -1052,7 +1122,7 @@
   /* ----- painel do convite animado ----- */
   var ITEM_ORDEM = ["r-tacas-champanhe", "r-garrafa-champanhe", "r-balao-dourado", "r-baloes", "r-presente", "r-bolo", "r-rosas", "r-aliancas", "r-coracao", "r-estrela", "r-coroa", "r-trofeu",
     "r-bola-futebol", "r-bola-basquete", "r-controle", "r-fone", "r-microfone", "r-violao", "r-vinil", "r-globo-espelhado", "r-chope", "r-vinho", "r-drink", "r-pipoca", "r-claquete",
-    "r-capelo", "r-diploma", "r-ursinho", "r-borboleta", "r-sapatinho", "r-patinho", "r-chapeu-vaqueiro", "r-haltere", "r-oculos-festa", "r-fogos", "r-abobora", "r-bola-natal", "controle", "bolafut", "trofeu", "violao", "microfone", "nota", "vinil", "fone", "caixasom", "chopp", "vinho", "pipoca", "claquete", "haltere", "bolabasq", "carro", "pandeiro", "chapeu", "ursinho", "coelho", "gato", "cachorro", "passarinho", "borboleta", "peixe", "joaninha", "abelha", "dino", "unicornio", "leao", "patinho", "pomba", "foguete", "coracao", "estrela", "balao", "bolo", "tacas", "presente", "coroa", "aliancas", "capelo", "lua", "abobora", "arvore"];
+    "r-capelo", "r-diploma", "r-ursinho", "r-borboleta", "r-sapatinho", "r-patinho", "r-chapeu-vaqueiro", "r-haltere", "r-oculos-festa", "r-fogos", "r-abobora", "r-bola-natal", "controle", "bolafut", "trofeu", "violao", "microfone", "nota", "vinil", "fone", "caixasom", "chopp", "vinho", "pipoca", "claquete", "haltere", "bolabasq", "carro", "pandeiro", "chapeu", "ursinho", "coelho", "gato", "cachorro", "passarinho", "borboleta", "peixe", "joaninha", "abelha", "dino", "unicornio", "leao", "patinho", "pomba", "foguete", "coracao", "estrela", "balao", "bolo", "tacas", "presente", "coroa", "aliancas", "capelo", "lua", "abobora", "arvore", "heroi", "heroina", "escudo", "raio", "pow", "mascara", "animemenino", "animemenina", "gatosorte", "lanterna", "onigiri", "galho"];
   var MINI_IT = {}, MINI_EF = {};
   function desenharAnim() {
     var A = window.BWConviteAnim, card = $("animCard"); if (!card) return; if (!A) { card.hidden = true; return; }

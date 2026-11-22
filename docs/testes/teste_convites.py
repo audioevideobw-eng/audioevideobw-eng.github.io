@@ -50,8 +50,8 @@ with sync_playwright() as p:
         st = pg.evaluate("(()=>{const E=window.__criador.E();return {sub:E.sub,estilo:E.estilo,lig:E.anim.ligado,it:E.anim.itens.map(i=>i.id),ov:E.anim.over}})()")
         ok(st["sub"] == "infantil" and st["estilo"] == "bebe" and st["lig"] and "ursinho" in st["it"] and "estrelas" in st["ov"], f"modelo Ursinho aplicado {st}")
         ok(pg.locator("#animCorpo").is_visible(), "painel do convite animado aberto")
-        ok(pg.locator("#animItens .cr-it").count() == 82, "82 objetos (37 realistas + 45 desenhados)")
-        ok(pg.locator("#animOver .cr-it").count() == 23, "23 efeitos de tela")
+        ok(pg.locator("#animItens .cr-it").count() == 94, "94 objetos (37 realistas + 57 desenhados)")
+        ok(pg.locator("#animOver .cr-it").count() == 29, "29 efeitos de tela")
         # a prévia se mexe
         a1 = pg.evaluate("document.getElementById('cv').toDataURL().length"); pg.wait_for_timeout(450)
         a2 = pg.evaluate("document.getElementById('cv').toDataURL().length")

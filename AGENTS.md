@@ -2049,6 +2049,13 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   são de terceiros. teste_convites/teste_criador 0 falhas, vigia ✅. Manual 62 p. criador.js v10, convite-anim.js v3, sw v186. App BW 1.9.29. PENTE FINO 178.
   Pastas do Drive conferidas (logos animadas Studios Monkey, LETRAS 3D, Café, Anime Ultra Pack, compartilhados): nenhuma traz licença para
   redistribuir (o PDF "Recomendações" só explica download; há personagens de anime e programas .rar) → nada delas entrou, decisão do dono: "só o que não nos comprometa".
+- 22/11/2026 16:55 · Claude (dono: "faltou os de animes e super-heróis"; personagens famosos e os packs de anime/Marvel do Drive NÃO entram — são de
+  terceiros; dono aceitou a versão própria): CONVITES ganharam os temas 🦸 SUPER-HERÓI e 🌸 ANIME — 12 desenhos originais (herói e heroína com máscara,
+  capa e raio próprio, escudo, raio, balão POW!, máscara, chibis menino/menina, gatinho da sorte, lanterna de papel, bolinho de arroz, galho de
+  cerejeira), 6 efeitos (cerejeira, pontinhos de quadrinho, linhas de ação, POW! BUM! ZAP!, linhas de velocidade, estrelas cadentes), 4 fundos
+  (cidade com holofote, quadrinho, céu de sakura, cidade neon sem letreiro), fontes Bangers e Mochiy Pop One, 12 modelos (biblioteca 96 → 108).
+  Personagens dos temas entram grandes como os realistas (GRANDES em itensDe). teste_convites/teste_criador 0 falhas; vigia ✅. criador.js v11,
+  convite-anim.js v4, sw v187.
 ## Pendências (dono)
 - [x] (22/11 17:05) BW-Setup.exe 1.9.29 gerado pelo dono e publicado (8,5 MB, versão conferida dentro do .exe).
 - [ ] (22/11) CONVITES: dono abrir Criador IA → CONVITE no celular e no PC, escolher um modelo da 📚 BIBLIOTECA, ligar ✨ ANIMADO, arrastar um bichinho e GERAR VÍDEO; dizer quais bichinhos/temas faltam. Próximas bibliotecas: posts, flyers, Reels, Motion, Telas ("todas as ferramentas").
