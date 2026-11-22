@@ -473,3 +473,12 @@ Tamanho > 0 e sem erro = o pdfmake montou o arquivo. Localmente (T1) confira o `
 - Ação escolhida → `tudo()` + `gravarHist()` na hora (um passo do desfazer).
 - Transição pela agulha: procurar o take com `anteriorDe(c)` cujo `c.ini` está a ≤ max(0,12 s, 14 px) de T; marcar o ◆ no relógio (`marcarEmenda` só parado).
 - Teste: `pg.mouse.down` + passos + `pg.mouse.up`, ler `#veDicaArr` ANTES do up, conferir que nada mudou, clicar `[data-esc=…]`, desfazer.
+
+## Arquivos do usuário em bucket privado + página pública sem login (22/11)
+- Bucket privado; o dono assina pelo SDK (`createSignedUrl`) — a regra de leitura dele precisa casar (bw_evento_meu).
+- Visitante com link secreto: Edge Function com `SUPABASE_SERVICE_ROLE_KEY` (o próprio Supabase põe na função) confere o token na tabela,
+  lista SÓ a pasta certa e devolve `createSignedUrls` de 1 h. Verify JWT desligado (a chave publishable não é JWT) — quem vale é o token.
+- Criar função nova pelo painel: Edge Functions → Deploy a new function → Via Editor → `monaco.editor.getModels()[0].setValue(texto)` +
+  conferir SHA-256 → nome → Deploy → Settings: desligar "Verify JWT" e Save.
+- Endereços públicos antigos guardados nos dados: não migrar; o leitor (`urlSegura`) reconhece o formato e troca por link temporário.
+- Teste no ar: subir arquivo de TESTE numa pasta registrada, conferir público=400, assinado=200, função com token=200 e token falso=404, e apagar tudo.

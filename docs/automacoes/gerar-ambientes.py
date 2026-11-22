@@ -85,7 +85,7 @@ MOLDE = '''<!DOCTYPE html>
 </div>
 <script src="assets/layout.js?v={v_layout}"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<script src="assets/bw-sync.js"></script>
+<script src="assets/bw-sync.js?v=20261122"></script>
 <script src="assets/agenda.js?v={v_agenda}"></script>
 <script src="assets/ambiente.js?v={v_amb}"></script>
 </body>

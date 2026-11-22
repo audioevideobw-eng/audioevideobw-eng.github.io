@@ -676,6 +676,13 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
      da AGULHA (emendaNaAgulha, ◆ acende amarelo, tolerância 14 px); longe da emenda o toque só avisa — nunca aplica em take errado. Teste de
      arrastar usa take com espaço livre (encostar no vizinho agora não move) (auto: teste_video_arrastar.py, teste_motion_ferramentas.py).
 
+**Aprendidos em 22/11 (fotos dos eventos privadas)**
+173. FOTO DE EVENTO É PRIVADA (22/11): bucket eventos-midia NÃO é público (docs/sql/2026-11-22-fotos-privadas.sql). O dono abre por link
+     temporário (BWSync.urlSegura entende o endereço público antigo dos dois buckets — dado antigo continua valendo como "nome"); o cliente só
+     pela Edge Function bw-galeria (token de bw_galerias → links de 1 h, só a pasta do evento, Verify JWT desligado). Pasta sem registro em
+     bw_eventos não assina nem para o dono (bw_evento_meu): teste registra o evento com BWSync.registrarAgora e apaga a linha no SQL depois.
+     Script comum (bw-sync.js) sempre com ?v= em TODAS as páginas: sem ele o navegador ficou com a versão velha 10 min depois de publicar (auto: vigia 7.7b).
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -1968,6 +1975,13 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   mais sozinha no meio do arraste. TRANSIÇÃO: agulha na emenda → o ◆ acende e tocar numa transição aplica ali (vale no celular, com a agulha fixa no
   meio). ESTÚDIO DE MOTION igual: barra levada a outra camada pergunta (trocar / por cima / por baixo / cancelar). Testes teste_video_arrastar (+18),
   teste_motion_ferramentas (+8) e a bateria do editor 0 falhas; vigia ✅. Manual 59 p. App BW 1.9.26. video-editor v13, motion v11, sw v180. PENTE FINO 172.
+- 22/11/2026 14:30 · Claude (dono: "pode fazer" — item de segurança da lista): FOTOS DOS EVENTOS EM PASTA PRIVADA. Edge Function nova bw-galeria
+  (publicada pelo painel, SHA-256 a795001… igual ao repositório, Verify JWT desligado) + SQL 2026-11-22-fotos-privadas.sql rodado (3/3: bucket
+  privado, dono ainda lê, sem leitura pública). Antes, quem soubesse o número do evento e o nome do arquivo abria a foto sem o link. Galeria do
+  cliente (cadastro.html?g=TOKEN) agora pede os links à função; o dono abre fotos e PDFs por link temporário (BWSync.urlSegura). Teste no ar,
+  logado, com evento e foto de TESTE: endereço público = 400, link do dono = 200, galeria com o token = 1 foto carregada, token falso = 404;
+  tudo de teste apagado (0 eventos de teste, 0 galerias, 0 fotos). Não havia nenhuma foto nem galeria real no bucket — nada quebrou para ninguém.
+  bw-sync.js com ?v=20261122 em todas as páginas; sw v181. PENTE FINO 173.
 ## Pendências (dono)
 - [ ] (22/11) ARRASTAR: dono testar no PC e no celular — encostar um take no outro, cobrir mais da metade e escolher, e aplicar transição com a agulha na emenda.
 - [ ] (22/11) ÁLBUM 3D: dono abrir Marketing → Álbum 3D e efeitos no celular e no PC, pôr fotos de um evento real, trocar de modelos e gerar um vídeo; dizer quais modelos quer a mais (e o BW-Setup.exe 1.9.25: dois cliques em "5 - GERAR INSTALADOR EXE").
@@ -2079,5 +2093,4 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
       conta em PDF, código colado e o TIO CLÁUDIO por voz (conversa, "como está meu dia", "muda para…").
       17/11 00:10: SOM confirmado pelo dono em PC, Android e iPhone (no iPhone só com o silencioso desligado). Voz masculina nos celulares:
       depende da voz do aparelho (iPhone: baixar "Felipe"; Android: voz padrão) ou da voz neural (não feita, aguarda o dono).
-- [ ] Futuro (MAESTRO): galeria do cliente por link secreto (hoje as FOTOS ainda são listáveis por quem souber
-      usar a API; documentos já estão protegidos).
+- [x] (22/11 14:30, Claude) Galeria do cliente: fotos em pasta privada + função bw-galeria (só com o link secreto). Testado no ar.
