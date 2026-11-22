@@ -37,8 +37,10 @@ with sync_playwright() as p:
     for nomeT, vp, url in (("celular 390", (390, 844), "video.html"), ("tablet 820", (820, 1180), "video.html")):
         print(f"\n=== {nomeT} ===")
         ctx = b.new_context(viewport={"width": vp[0], "height": vp[1]}, service_workers="block", has_touch=True, is_mobile=True); ctx.route("**/*", rota)
-        pg = ctx.new_page(); erros = []; pg.on("pageerror", lambda e: erros.append(str(e))); pg.on("dialog", lambda d: d.accept(d.default_value) if d.type == "prompt" else d.accept())
+        pg = ctx.new_page(); erros = []; pg.on("pageerror", lambda e: erros.append(str(e) + " @ " + (e.stack or "")[:300])); pg.on("dialog", lambda d: d.accept(d.default_value) if d.type == "prompt" else d.accept())
         cdp = ctx.new_cdp_session(pg)
+        pg.add_init_script("document.addEventListener('DOMContentLoaded',()=>{const w=document.querySelector('.wrap');window.__cedo=[document.documentElement.classList.contains('app-cedo'), w?getComputedStyle(w).visibility:'']})")
+        pg.add_init_script("window.addEventListener('error',e=>{window.__err=(window.__err||[]).concat([e.filename+':'+e.lineno+':'+e.colno])})")
         def toque(x, y, segurar=0):
             cdp.send("Input.dispatchTouchEvent", {"type": "touchStart", "touchPoints": [{"x": x, "y": y}]}); pg.wait_for_timeout(int(segurar * 1000) or 40)
             cdp.send("Input.dispatchTouchEvent", {"type": "touchEnd", "touchPoints": []}); pg.wait_for_timeout(250)
@@ -49,6 +51,7 @@ with sync_playwright() as p:
         def ferr(rot): return pg.locator("#vaFaixa .va-f", has_text=rot).first
         pg.goto(BASE + url); pg.wait_for_function("window.__veProntoOk === true && !!document.getElementById('veApp')", timeout=15000); pg.wait_for_timeout(500)
         ok(pg.evaluate("document.documentElement.classList.contains('ve-app')") and visivel(pg, "#veApp"), "a tela vira APP (layout novo ligado sozinho)")
+        ok(pg.evaluate("window.__cedo") == [True, "hidden"] and not pg.evaluate("document.documentElement.classList.contains('app-cedo')"), "ao abrir, a tela antiga NÃO aparece antes do app (fica escondida até montar)")
         ok(not visivel(pg, ".bw-foco-barra") and not visivel(pg, ".wrap"), "o layout antigo e a barra de foco somem")
         cv = pg.evaluate("(()=>{const r=document.getElementById('veCv').getBoundingClientRect();return [r.top,r.bottom,r.height]})()")
         ok(cv[2] > vp[1] * 0.4 and cv[0] > 40, f"a PRÉVIA é grande e fica logo abaixo do topo ({cv[2]:.0f} px de altura)")
@@ -58,7 +61,25 @@ with sync_playwright() as p:
         # raiz: ferramentas do projeto, rolando para o lado
         raiz = pg.evaluate("[...document.querySelectorAll('#vaFaixa .va-f span')].map(s=>s.textContent)")
         ok(all(x in raiz for x in ("Mídia", "Áudio", "Texto", "Modelos", "Transições", "Efeitos", "Formato")), f"faixa do projeto: {', '.join(raiz[:7])}…")
-        ok(pg.evaluate("getComputedStyle(document.getElementById('vaFaixa')).overflowX") == "auto", "a faixa de ferramentas rola para o lado")
+        ok(pg.evaluate("document.getElementById('vaFaixa').classList.contains('bwf-firme') && getComputedStyle(document.getElementById('vaFaixa')).overflowX=='hidden'"), "a faixa rola pela rolagem PRÓPRIA (sem o elástico do navegador)")
+        fb = pg.locator("#vaFaixa").bounding_box(); x0 = fb["x"] + fb["width"] * 0.8; y0 = fb["y"] + fb["height"] / 2
+        def arrastar(xa, xb, passos=12):
+            cdp.send("Input.dispatchTouchEvent", {"type": "touchStart", "touchPoints": [{"x": xa, "y": y0}]})
+            for k in range(1, passos + 1): cdp.send("Input.dispatchTouchEvent", {"type": "touchMove", "touchPoints": [{"x": xa + (xb - xa) * k / passos, "y": y0}]}); pg.wait_for_timeout(16)
+            cdp.send("Input.dispatchTouchEvent", {"type": "touchEnd", "touchPoints": []}); pg.wait_for_timeout(700)
+        n0 = pg.evaluate("document.getElementById('vaFaixa').scrollLeft"); arrastar(x0, x0 - 160)
+        n1 = pg.evaluate("document.getElementById('vaFaixa').scrollLeft"); ok(n1 > n0 + 60, f"arrastar o dedo para o lado rola a faixa ({n0:.0f} → {n1:.0f} px)")
+        arrastar(fb["x"] + fb["width"] * 0.9, fb["x"] + 10, 20); arrastar(fb["x"] + fb["width"] * 0.9, fb["x"] + 10, 20)
+        mx = pg.evaluate("(()=>{const f=document.getElementById('vaFaixa');return [f.scrollLeft, f.scrollWidth-f.clientWidth]})()"); fb2 = pg.locator("#vaFaixa").bounding_box()
+        ok(abs(mx[0] - mx[1]) < 2 and abs(fb2["x"] - fb["x"]) < 1 and pg.evaluate("window.scrollX") == 0, f"no fim a faixa PARA (sem elástico) e a tela não anda ({mx[0]:.0f}/{mx[1]:.0f})")
+        ok(pg.locator(".bwf-seta.esq.on").count() == 1 and pg.locator(".bwf-seta.dir.on").count() == 0, "no fim: aparece a setinha ‹ e some a ›")
+        tocar_el(".bwf-seta.esq.on"); pg.wait_for_timeout(500); n2 = pg.evaluate("document.getElementById('vaFaixa').scrollLeft")
+        ok(n2 < mx[0] - 60, f"tocar na setinha ‹ anda para a esquerda ({mx[0]:.0f} → {n2:.0f})")
+        if pg.locator(".bwf-seta.esq.on").count(): tocar_el(".bwf-seta.esq.on", segurar=1.2)
+        n3 = pg.evaluate("document.getElementById('vaFaixa').scrollLeft"); ok(n3 < 2, f"segurar a setinha vai até o começo ({n3:.0f})")
+        ok(pg.locator(".bwf-seta.dir.on").count() == 1 and pg.locator(".bwf-seta.esq.on").count() == 0, "no começo: só a setinha ›")
+        sb = pg.locator(".bwf-seta.dir").bounding_box(); ok(abs(sb["y"] - fb["y"]) < 2 and sb["x"] + sb["width"] <= fb["x"] + fb["width"] + 1, "a setinha fica em cima da faixa, na ponta")
+        ok(pg.evaluate("document.getElementById('veRolo').classList.contains('bwf-firme')"), "a linha do tempo também rola sem elástico")
         # MÍDIA → importar e pôr na linha do tempo
         ferr("Mídia").click(); pg.wait_for_timeout(250); ok(visivel(pg, "#vaSheet") and visivel(pg, "#veLib"), "MÍDIA abre a folha com a biblioteca")
         pg.set_input_files("#veArq", [f"{TMP}/azul.webm", f"{TMP}/verde.webm"]); pg.wait_for_function("Object.keys(__video.MID).length >= 2", timeout=15000); pg.wait_for_timeout(500)
@@ -100,10 +121,17 @@ with sync_playwright() as p:
         ok(pg.evaluate(f"{CL}.length") == n0 + 1, "DIVIDIR corta o take na agulha")
         tocar_el("#vaDesf"); pg.wait_for_timeout(300); ok(pg.evaluate(f"{CL}.length") == n0, "↶ desfaz")
         # segurar o dedo no take → opções
-        tocar_el(f'[data-clip="{c1}"]', segurar=0.9); pg.wait_for_timeout(300)
-        ok(pg.locator(".bwf-menu").count() == 1 and "Duplicar" in pg.inner_text(".bwf-menu"), "SEGURAR o dedo no take abre as opções")
-        pg.keyboard.press("Escape"); pg.wait_for_timeout(150); pg.evaluate("document.querySelectorAll('.bwf-menu').forEach(m=>m.remove())")
-        ferr("Mais").click(); pg.wait_for_timeout(300); ok(pg.locator(".bwf-menu").count() == 1, "⋯ MAIS também abre todas as opções do take")
+        pg.evaluate("__video.sel(null)"); pg.wait_for_timeout(250)
+        ini0 = pg.evaluate(f"{CL}.find(c=>c.id==='{c1}').ini"); bb = pg.locator(f'[data-clip="{c1}"]').bounding_box(); hx = max(bb["x"] + 10, min(bb["x"] + bb["width"] / 2, vp[0] - 80)); hy = bb["y"] + bb["height"] / 2
+        cdp.send("Input.dispatchTouchEvent", {"type": "touchStart", "touchPoints": [{"x": hx, "y": hy}]}); pg.wait_for_timeout(550)
+        for k in range(1, 13): cdp.send("Input.dispatchTouchEvent", {"type": "touchMove", "touchPoints": [{"x": hx + 5 * k, "y": hy}]}); pg.wait_for_timeout(16)
+        cdp.send("Input.dispatchTouchEvent", {"type": "touchEnd", "touchPoints": []}); pg.wait_for_timeout(400)
+        ini1 = pg.evaluate(f"{CL}.find(c=>c.id==='{c1}').ini"); pps = pg.evaluate("__video.pps()")
+        ok(pg.locator(".bwf-menu").count() == 0, "SEGURAR o dedo no take NÃO abre mais o menu (dono, 22/11)")
+        ok((ini1 - ini0) * pps > 30 and pg.evaluate("__video.selAtual()&&__video.selAtual().id") == c1, f"segurar e arrastar PEGA o take e move ({(ini1-ini0)*pps:.0f} px)")
+        tocar_el("#vaDesf"); pg.wait_for_timeout(300); pg.evaluate(f"__video.sel('{c1}')"); pg.wait_for_timeout(250)
+        pg.evaluate("document.querySelectorAll('.bwf-menu').forEach(m=>m.remove())")
+        ferr("Mais").click(); pg.wait_for_timeout(300); ok(pg.locator(".bwf-menu").count() == 1, "⋯ MAIS abre todas as opções do take (é o jeito no celular)")
         pg.evaluate("document.querySelectorAll('.bwf-menu').forEach(m=>m.remove())")
         # voltar → raiz
         tocar_el("#vaFaixa .va-f.volta"); pg.wait_for_timeout(250); ok(pg.evaluate("!__video.selAtual()") and "Mídia" in pg.inner_text("#vaFaixa"), "‹ volta para as ferramentas do projeto")

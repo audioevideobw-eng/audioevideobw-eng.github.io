@@ -798,3 +798,5 @@ html.bw-no-app .hub-palco{height:max(380px,calc(100vh - 400px))}
 .bp-nota{font-size:11.5px;line-height:1.45;color:var(--m-texto3,var(--txt2,#9aa0ab));margin:6px 10px 4px}
 @media (max-width:480px){.bp-pede{margin:12px 0 76px}.bp-caixa{border-radius:18px;padding:10px 8px 6px}.bp-bt{width:34px;height:34px}.bp-modelo{padding:0 8px;font-size:12px}.bp-modelo svg{display:none}.bp-enviar{width:38px;height:38px}}
 @media (max-width:360px){.bp-modelo span{max-width:64px;overflow:hidden;text-overflow:ellipsis}}
+/* 22/11: o menu da caixa do Tio Cláudio vai para o <body> e fica na FRENTE da roda do robô e do botão flutuante */
+.bp-menu.bp-solto{position:fixed;z-index:9900;top:auto}

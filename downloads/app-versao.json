@@ -1,23 +1,23 @@
 {
- "versao": "1.9.23",
+ "versao": "1.9.24",
  "data": "22/11/2026",
  "pacote": "downloads/BW-Reels-Studio.zip",
- "sha256": "e220f62c09cf0a79a45394ce5ea168920b4aaec68d6397caf2ef4cc1e6ee34c7",
- "bytes": 41439813,
+ "sha256": "29807c2c0cf409187f961ce1da9a1e77819ac8e84dfc75e3c91f68be547af1d4",
+ "bytes": 41390223,
  "novidades": [
   {
-   "titulo": "Motion com cara de app",
-   "texto": "No celular e no tablet o Estúdio de motion ficou igual ao editor de vídeo: prévia grande, agulha parada no meio, faixa de ferramentas que muda com o item tocado e folhas de baixo.",
+   "titulo": "Ferramentas firmes",
+   "texto": "No celular, a faixa de ferramentas e a linha do tempo não descolam mais nas pontas, e há setinhas ‹ › para andar pela faixa.",
+   "abrir": "video"
+  },
+  {
+   "titulo": "Segurar e arrastar",
+   "texto": "Segurar o dedo num take ou numa barra pega e já arrasta; as opções ficam no ⋯ Mais.",
    "abrir": "motion"
   },
   {
-   "titulo": "⋯ nas Telas e no 3D",
-   "texto": "Telas em movimento e Estúdio 3D ganharam os ⋯ da prévia: segundo monitor, tela cheia, salvar o quadro em PNG e controle pelo celular.",
-   "abrir": "telas"
-  },
-  {
-   "titulo": "Desfazer com um toque",
-   "texto": "No Motion e nas Telas o ↶ desfaz com um toque só."
+   "titulo": "Abre direto no layout novo",
+   "texto": "O editor abre sem piscar a tela antiga, e o menu da caixa do Tio Cláudio fica na frente de tudo."
   }
  ]
 }

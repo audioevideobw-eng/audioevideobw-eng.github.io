@@ -38,17 +38,26 @@
   function fechar() { menu.hidden = true; aberto = ""; caixa.querySelectorAll(".bp-on").forEach(function (b) { b.classList.remove("bp-on"); }); }
   function abrirMenu(qual, botao, html) {
     if (aberto === qual) return fechar();
-    fechar(); aberto = qual; menu.innerHTML = html; menu.hidden = false; botao.classList.add("bp-on");
-    var r = botao.getBoundingClientRect(), rc = caixa.getBoundingClientRect();
-    menu.style.left = Math.max(0, Math.min(r.left - rc.left, rc.width - menu.offsetWidth)) + "px";
-    /* 22/11 (dono): abre PARA CIMA — para baixo ficava atrás das abas do celular, fora da tela. Só desce se em cima não couber e embaixo couber mais. */
-    var acima = r.top - 12, abaixo = window.innerHeight - r.bottom - 12 - ((document.querySelector(".bw-abas") || {}).offsetHeight || 0);
+    fechar(); aberto = qual; menu.innerHTML = html; botao.classList.add("bp-on"); BOTAO = botao; posMenu();
+  }
+  var BOTAO = null;
+  function posMenu() { var botao = BOTAO; if (!botao) return;
+    /* 22/11 (dono, print do celular): o menu ficava ATRÁS da tela da frente do robô e do Tio Cláudio — a caixa tem z-index baixo e não vence a roda.
+       Agora o menu vai para o <body>, preso na tela (position:fixed) e acima de tudo; abre PARA CIMA quando em cima cabe. */
+    if (menu.parentNode !== document.body) document.body.appendChild(menu);
+    menu.classList.add("bp-solto"); menu.hidden = false;
+    var r = botao.getBoundingClientRect(), rc = caixa.getBoundingClientRect(), W = Math.min(330, rc.width);
+    menu.style.width = W + "px";
+    menu.style.left = Math.max(8, Math.min(r.left, rc.right - W, window.innerWidth - W - 8)) + "px";
+    var abas = (document.querySelector(".bw-abas") || {}).offsetHeight || 0;
+    var acima = r.top - 12, abaixo = window.innerHeight - r.bottom - 12 - abas;
     var cima = acima >= 220 || acima >= abaixo;
     menu.classList.toggle("bp-cima", cima);
-    menu.style.top = cima ? "auto" : ""; menu.style.bottom = cima ? (rc.bottom - r.top + 8) + "px" : "";
+    menu.style.top = cima ? "auto" : (r.bottom + 8) + "px"; menu.style.bottom = cima ? (window.innerHeight - r.top + 8) + "px" : "auto";
     menu.style.maxHeight = Math.max(160, Math.min(420, cima ? acima : abaixo)) + "px";
-    if (!cima) { var m = menu.getBoundingClientRect(); if (m.bottom > window.innerHeight) window.scrollBy({ top: m.bottom - window.innerHeight + 12, behavior: "smooth" }); }
   }
+  window.addEventListener("scroll", function () { if (aberto) posMenu(); }, { passive: true });
+  window.addEventListener("resize", function () { if (aberto) posMenu(); });
   var ir = function (href) { return '<a class="bp-item" role="menuitem" href="' + href[0] + '"><b>' + href[1] + "</b><small>" + href[2] + "</small></a>"; };
   var por = function (t, rotulo) { return '<button type="button" class="bp-item" role="menuitem" data-por="' + esc(t) + '"><b>' + rotulo + "</b><small>" + esc(t.replace(/…/g, "…")) + "</small></button>"; };
   $("bpMais").onclick = function () {
@@ -70,7 +79,7 @@
     if (b.dataset.ja) { fechar(); tx.value = b.dataset.ja; enviar(); return; }
     tx.value = b.dataset.por; fechar(); crescer(); tx.focus(); var i = tx.value.indexOf("…"); if (i >= 0) tx.setSelectionRange(i, i + 1);
   });
-  document.addEventListener("click", function (e) { if (aberto && !caixa.contains(e.target)) fechar(); });
+  document.addEventListener("click", function (e) { if (aberto && !caixa.contains(e.target) && !menu.contains(e.target)) fechar(); });
   document.addEventListener("keydown", function (e) { if (e.key === "Escape" && aberto) { fechar(); e.stopPropagation(); } });
   /* --- varinha --- */
   $("bpVarinha").onclick = function () {

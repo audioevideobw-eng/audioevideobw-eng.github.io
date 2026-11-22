@@ -641,6 +641,25 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
      minmax(0,1fr): no 16:9 a prévia alargava a coluna e a faixa saía da tela. Filtro de seção pega só as seções de cima (:scope > .mo-g) — a
      biblioteca tem .mo-g dentro e sumia. Testes antigos de função a 390 px abrem com ?layout=classico.
 
+**Aprendidos em 22/11 (faixas que "descolam", segurar e arrastar, menu atrás do robô)**
+167. FAIXA QUE "DESCOLA PARA O LADO" no celular (dono, 22/11): é o ELÁSTICO da rolagem nativa do navegador nas pontas (iPhone principalmente) —
+     overscroll-behavior só impede passar para a página, não tira o quique da própria faixa. Faixas e linha do tempo dos apps de edição usam
+     BWFerr.faixaFirme (bw-ferramentas.js): overflow-x hidden + touch-action pan-y, o dedo move o scrollLeft preso entre 0 e o fim, com inércia;
+     clique logo depois de arrastar é engolido; setinhas ‹ › discretas nas pontas (toque anda ~60%, segurar anda direto). Seta que some quando
+     chega na ponta continua pegando o toque por 450 ms (.pressa) — senão o toque CAI no botão de baixo e abre outra ferramenta (achado no teste).
+     Evento touchstart sintético (new Event) não tem touches: conferir antes de ler .length.
+168. NO TOQUE, SEGURAR O DEDO NÃO ABRE MENU (dono, 22/11: "atrapalha o arraste"): BWFerr.contexto só abre com botão direito (contextmenu
+     confiável vindo de mouse); as opções no celular ficam no ⋯ MAIS da faixa (contextmenu por código, isTrusted false). Segurar ~0,3 s PARADO
+     num take/barra não escolhido PEGA e já arrasta (video-editor segurarPegar, motion SEGM); window.__bwSegurando faz a faixaFirme parar de rolar.
+     Item redesenhado no meio do toque perde os eventos: setPointerCapture no contêiner ao pegar. Teste de arrastar: item com espaço para andar.
+169. MENU de caixa dentro de bloco com z-index baixo fica ATRÁS do que vem por cima (roda do robô, botão do Tio Cláudio): o menu vai para o
+     <body>, position:fixed, z-index alto, reposicionado no scroll/resize (bw-pede.js). Fechar no scroll quebrava: o clique do teste rola a
+     página antes. Teste: elementFromPoint em vários pontos do menu = o próprio menu (teste_pede.py).
+170. LAYOUT DE APP QUE "PISCA" O LAYOUT ANTIGO ao abrir (dono, 22/11): a casca só montava depois que o editor carregava. A decisão "é app?"
+     roda num <script> pequeno no <head> (classe html.app-cedo) e o CSS do app esconde a tela antiga (body>* visibility:hidden + ponto girando)
+     até a casca montar; quem não é app tira a classe na hora. Teste: no DOMContentLoaded a .wrap já está hidden (teste_video_app/motion_app).
+     Telas: sem menu ao segurar, cada cena e cada mídia ganharam um ⋯ discreto (data-mais) que abre as opções.
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -1909,6 +1928,14 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   com as opções da cena. 3D: a rodinha continua sendo o zoom da câmera; ⋯ com ângulos, girar, PNG e gerar vídeo. Teste novo
   docs/testes/teste_previa_ferramentas.py (popup, PNG baixado de verdade, celular anda o tempo) 0 falhas; telas, 3d, 3d_plano, 3d_foto 0 falhas.
   APP BW 1.9.23 (cópia sem internet de hoje, tutorial, novidades) publicado. Manual 58 p. telas.js v8, bw3d.js v12, sw v176.
+- 22/11/2026 08:40 · Claude (dono: "a tela descola para o lado ao rolar as ferramentas — ache o porquê; setinhas ‹ ›"; "segurar abre opções e atrapalha
+  o arraste"; "o menu da caixa do Tio Cláudio fica atrás"): causa do descolar = elástico da rolagem nativa nas pontas → faixa de ferramentas e linha do
+  tempo do editor de vídeo e do Motion com rolagem própria presa nas pontas (BWFerr.faixaFirme) + setinhas ‹ › discretas; no toque, segurar não abre
+  mais menu — segurar e arrastar pega o take/barra (opções no ⋯ MAIS); Telas também sem menu ao segurar. Menu da caixa do Tio Cláudio vai para a frente
+  de tudo. Testes video_app, motion_app, pede 0 falhas. brightway.css v35, bw-pede v3, bw-ferramentas v4, video-editor v11, ve-app v3, motion v10,
+  mo-app v2, telas v9, sw v177. PENTE FINO 167–169.
+  08:55 (dono: "ao abrir o editor aparece a tela antiga por um instante"): decisão do layout no <head> + tela antiga escondida até o app montar (vídeo e
+  Motion); Telas com ⋯ em cada cena/mídia. video, telas, video_app, motion_app 0 falhas. ve-app v4, mo-app v3, telas v10, sw v178. PENTE FINO 170.
 ## Pendências (dono)
 - [ ] (22/11) BW-Setup.exe 1.9.23: arquivos novos já copiados para Vídeos\bw-reels-studio; o "5 - GERAR INSTALADOR EXE" não abriu pelo clique remoto
       (2 tentativas, o .exe não mudou). Dono: dois cliques nele e avisar o Claude, que traz o .exe. Quem já tem o app atualiza sozinho para a 1.9.23.

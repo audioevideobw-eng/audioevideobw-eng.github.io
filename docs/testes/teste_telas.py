@@ -189,20 +189,24 @@ with sync_playwright() as p:
         # menu da cena
         cc = pg.locator("#tlFila .tl-cena >> nth=1"); cc.evaluate("e => e.scrollIntoView({block:'center', inline:'center'})"); pg.wait_for_timeout(150); bc = cc.bounding_box(); mx, my = bc["x"] + bc["width"] / 2, bc["y"] + bc["height"] / 2
         if cel:
-            cdp.send("Input.dispatchTouchEvent", {"type": "touchStart", "touchPoints": [{"x": mx, "y": my}]}); pg.wait_for_timeout(450); cdp.send("Input.dispatchTouchEvent", {"type": "touchEnd", "touchPoints": []})
+            cdp.send("Input.dispatchTouchEvent", {"type": "touchStart", "touchPoints": [{"x": mx, "y": my}]}); pg.wait_for_timeout(700); cdp.send("Input.dispatchTouchEvent", {"type": "touchEnd", "touchPoints": []}); pg.wait_for_timeout(300)
+            ok(pg.locator(".bwf-menu").count() == 0, "no toque, segurar a cena NÃO abre menu (dono, 22/11: atrapalhava o arrastar)")
+            cc.evaluate("e => e.dispatchEvent(new MouseEvent('contextmenu', {bubbles: true, cancelable: true, clientX: " + str(mx) + ", clientY: " + str(my) + "}))")
         else: pg.mouse.click(mx, my, button="right")
         pg.wait_for_timeout(300)
-        ok(pg.locator(".bwf-menu").count() == 1 and "Duplicar" in pg.inner_text(".bwf-menu") and "Divisão da tela" in pg.inner_text(".bwf-menu"), "menu da cena (" + ("segurar e soltar" if cel else "botão direito") + "): duplicar, cortar, estilo, transição, divisão, movimento, apagar")
+        ok(pg.locator(".bwf-menu").count() == 1 and "Duplicar" in pg.inner_text(".bwf-menu") and "Divisão da tela" in pg.inner_text(".bwf-menu"), "menu da cena (" + ("pelo código, como o ⋯" if cel else "botão direito") + "): duplicar, cortar, estilo, transição, divisão, movimento, apagar")
         pg.wait_for_timeout(500); pg.locator(".bwf-menu button", has_text=re.compile(r"^🎥")).click(); pg.wait_for_timeout(150)
         mv0 = pg.evaluate(f"{P}.cenas[1].mov"); alvo = "sobe" if mv0 != "sobe" else "zoom"
         pg.locator(".bwf-menu button", has_text=pg.evaluate(f"BWTelas.MOVS['{alvo}']")).first.click(); pg.wait_for_timeout(200)
         ok(pg.evaluate(f"{P}.cenas[1].mov") == alvo, f"Movimento escolhido pelo menu ({mv0} → {alvo})")
         aba("mid"); mm = pg.locator("#tlMidias .tl-mid >> nth=0"); mm.evaluate("e => e.scrollIntoView({block:'center'})"); pg.wait_for_timeout(150); bm = mm.bounding_box(); mx, my = bm["x"] + bm["width"] / 2, bm["y"] + bm["height"] / 3
         if cel:
-            cdp.send("Input.dispatchTouchEvent", {"type": "touchStart", "touchPoints": [{"x": mx, "y": my}]}); pg.wait_for_timeout(450); cdp.send("Input.dispatchTouchEvent", {"type": "touchEnd", "touchPoints": []})
+            cdp.send("Input.dispatchTouchEvent", {"type": "touchStart", "touchPoints": [{"x": mx, "y": my}]}); pg.wait_for_timeout(700); cdp.send("Input.dispatchTouchEvent", {"type": "touchEnd", "touchPoints": []}); pg.wait_for_timeout(300)
+            ok(pg.locator(".bwf-menu").count() == 0, "no toque, segurar a mídia NÃO abre menu")
+            bm2 = mm.locator(".tl-mais").bounding_box(); cdp.send("Input.dispatchTouchEvent", {"type": "touchStart", "touchPoints": [{"x": bm2["x"] + 10, "y": bm2["y"] + 8}]}); pg.wait_for_timeout(40); cdp.send("Input.dispatchTouchEvent", {"type": "touchEnd", "touchPoints": []})
         else: pg.mouse.click(mx, my, button="right")
         pg.wait_for_timeout(300)
-        ok(pg.locator(".bwf-menu").count() == 1 and "Substituir o arquivo" in pg.inner_text(".bwf-menu"), "menu da mídia: nova cena, usar na cena, substituir o arquivo, tirar")
+        ok(pg.locator(".bwf-menu").count() == 1 and "Substituir o arquivo" in pg.inner_text(".bwf-menu"), ("menu da mídia pelo ⋯: " if cel else "menu da mídia: ") + "nova cena, usar na cena, substituir o arquivo, tirar")
         pg.keyboard.press("Escape"); pg.wait_for_timeout(150); ok(pg.locator(".bwf-menu").count() == 0, "Esc fecha o menu")
         # LINHAS DAS TRANSIÇÕES: cor, SEM LINHA e transparência (20/11) + TELA FIXA
         ok(pg.locator("#tlLinhas [data-linha]").count() == 8, "LINHAS: sem linha + 7 cores prontas (+ cor livre e transparência)")

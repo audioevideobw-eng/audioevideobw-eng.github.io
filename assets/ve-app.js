@@ -12,7 +12,7 @@
   var forcar = q.get("layout") || "";   /* ?layout=classico fica só para os testes automáticos das funções */
   var largura = Math.min(innerWidth, screen && screen.width ? screen.width : innerWidth);
   var ligado = forcar === "app" || (forcar !== "classico" && (innerWidth <= 900 || (matchMedia("(pointer:coarse)").matches && innerWidth <= 1180)));
-  if (!ligado) { window.VEApp = {ligado: false}; return; }
+  if (!ligado) { H.classList.remove("app-cedo"); window.VEApp = {ligado: false}; return; }
   H.classList.add("ve-app");
   var MEIO_ANT = innerWidth <= 900;
   addEventListener("resize", function () { clearTimeout(window.__veAppRz); window.__veAppRz = setTimeout(function () { if (forcar === "app") return; if ((innerWidth <= 900) !== MEIO_ANT && !matchMedia("(pointer:coarse)").matches) location.reload(); }, 400); });
@@ -61,6 +61,7 @@
       '<div class="va-sheet" id="vaSheet" hidden role="dialog" aria-modal="false"><div class="va-sheet-cab"><span class="va-alca" aria-hidden="true"></span><b id="vaSheetTit"></b><span class="va-sp"></span>' +
       '<button type="button" class="va-ic" id="vaSheetOk" aria-label="Pronto">' + svg("ok") + '</button></div><div class="va-sheet-corpo" id="vaSheetCorpo"></div></div>';
     document.body.appendChild(APP);
+    setTimeout(function () { requestAnimationFrame(function () { H.classList.remove("app-cedo"); }); }, 0);   /* a casca já está montada: mostra */
     SHEET = $("vaSheet"); CORPO = $("vaSheetCorpo"); TIT = $("vaSheetTit"); FAIXA = $("vaFaixa");
     /* pedaços do editor: a prévia, o tempo, a linha do tempo */
     var tela = document.querySelector(".ve-tela"); if (tela) $("vaTela").appendChild(tela);
@@ -72,6 +73,12 @@
     ligar(); faixa(); medir(); setInterval(espelhar, 250); requestAnimationFrame(seguir);
     try { new MutationObserver(function () { if (!SHEET.hidden && SHEET.dataset.g) filtrarGrupo(SHEET.dataset.g); clearTimeout(MOLHO._t); MOLHO._t = setTimeout(faixa, 30); }).observe($("vePropCorpo"), {childList: true}); } catch (e) {}
     try { new ResizeObserver(medir).observe($("veRolo")); } catch (e) { addEventListener("resize", medir); }
+    /* 22/11 (dono: "a tela descola para o lado"): faixa de ferramentas e linha do tempo com rolagem PRÓPRIA, presa nas pontas (sem o elástico do
+       navegador) + setinhas ‹ › discretas na faixa de ferramentas (toque anda, segurar anda direto) — BWFerr.faixaFirme */
+    if (window.BWFerr && BWFerr.faixaFirme) {
+      BWFerr.faixaFirme(FAIXA, {setas: true, pai: APP, esq: function () { var v = FAIXA.querySelector(".va-f.volta"); return v ? v.offsetWidth + 8 : 0; }});
+      BWFerr.faixaFirme($("veRolo"), {aoRolar: function () { rolando = Date.now(); }, parar: function () { return !!window.__bwSegurando; }, pular: function (t) { return !!(t.closest && t.closest(".ve-clip.on,.al,[data-junta],[data-trp]")); }});
+    }
   }
 
   /* ---------- agulha parada no meio: rolar a linha do tempo = andar no vídeo ---------- */
@@ -169,6 +176,6 @@
   function aviso(t) { var v = V(); if (v && v.aviso) v.aviso(t); }
 
   /* espera o editor ficar pronto */
-  var tent = 0; (function esperar() { if (window.__veProntoOk && window.__video) montar(); else if (tent++ < 200) setTimeout(esperar, 50); })();
+  var tent = 0; (function esperar() { if (window.__veProntoOk && window.__video) montar(); else if (tent++ < 200) setTimeout(esperar, 50); else H.classList.remove("app-cedo"); })();
   window.VEApp = {ligado: true, abrir: function (o) { abrir(o); }, fechar: fechar, faixa: function () { ASS = ""; faixa(); }, aberta: function () { return SHEET && !SHEET.hidden ? SHEET.dataset.o : ""; }};
 })();

@@ -8,7 +8,7 @@
   "use strict";
   var H = document.documentElement, q = new URLSearchParams(location.search), forcar = q.get("layout") || "";
   var ligado = forcar === "app" || (forcar !== "classico" && (innerWidth <= 900 || (matchMedia("(pointer:coarse)").matches && innerWidth <= 1180)));
-  if (!ligado) { window.MOApp = {ligado: false}; return; }
+  if (!ligado) { H.classList.remove("app-cedo"); window.MOApp = {ligado: false}; return; }
   H.classList.add("mo-app");
   var MEIO_ANT = innerWidth <= 900;
   addEventListener("resize", function () { clearTimeout(window.__moAppRz); window.__moAppRz = setTimeout(function () { if (forcar === "app") return; if ((innerWidth <= 900) !== MEIO_ANT && !matchMedia("(pointer:coarse)").matches) location.reload(); }, 400); });
@@ -53,6 +53,7 @@
       '<div class="ma-sheet" id="maSheet" hidden role="dialog" aria-modal="false"><div class="ma-sheet-cab"><span class="ma-alca" aria-hidden="true"></span><b id="maSheetTit"></b><span class="ma-sp"></span>' +
       '<button type="button" class="ma-ic" id="maSheetOk" aria-label="Pronto">' + svg("ok") + '</button></div><div class="ma-sheet-corpo" id="maSheetCorpo"></div></div>';
     document.body.appendChild(APP);
+    setTimeout(function () { requestAnimationFrame(function () { H.classList.remove("app-cedo"); }); }, 0);   /* a casca já está montada: mostra */
     SHEET = $("maSheet"); CORPO = $("maSheetCorpo"); TIT = $("maSheetTit"); FAIXA = $("maFaixa");
     var tela = $("moTela"), op = $("moOpcP"); $("maTela").appendChild(tela); if (op) $("maTela").appendChild(op);
     var corpo = document.querySelector(".mo-tl-corpo"); if (corpo) $("maTl").insertBefore(corpo, $("maTl").firstChild);
@@ -62,6 +63,11 @@
     document.addEventListener("bw-mo-sel", function () { clearTimeout(FAIXA._t); FAIXA._t = setTimeout(faixa, 20); if (!SHEET.hidden && SHEET.dataset.g) filtrar(SHEET.dataset.g); });
     try { new ResizeObserver(function () { var e = E(); if (e) e.medir(); medir(); }).observe($("maTela")); } catch (e) {}
     setTimeout(function () { var e = E(); if (e) e.medir(); }, 60);
+    /* 22/11: faixa e linha do tempo com rolagem própria presa nas pontas (sem o elástico) + setinhas ‹ › — BWFerr.faixaFirme */
+    if (window.BWFerr && BWFerr.faixaFirme) {
+      BWFerr.faixaFirme(FAIXA, {setas: true, pai: APP, esq: function () { var v = FAIXA.querySelector(".ma-f.volta"); return v ? v.offsetWidth + 8 : 0; }});
+      BWFerr.faixaFirme($("moPistas"), {aoRolar: function () { rolando = Date.now(); }, parar: function () { return !!window.__bwSegurando; }, pular: function (t) { return !!(t.closest && t.closest(".mo-barra.on,[data-kf],[data-al]")); }});
+    }
   }
 
   /* ---------- agulha parada no meio: rolar a linha do tempo = andar no vídeo ---------- */
@@ -159,6 +165,6 @@
     box.onclick = function (e) { var b = e.target.closest("[data-v]"); if (!b) return; f.value = b.dataset.v; f.dispatchEvent(new Event("change", {bubbles: true})); box.querySelectorAll(".ma-fmt").forEach(function (x) { x.classList.toggle("on", x === b); }); espelhar(); };
     if (liv) { EMP.push({el: liv, pai: liv.parentNode, prox: liv.nextSibling}); CORPO.appendChild(liv); } }
 
-  var tent = 0; (function esperar() { if (window.BWMotionEditor && window.BWMotionEditor.sel && $("moPistas")) montar(); else if (tent++ < 200) setTimeout(esperar, 50); })();
+  var tent = 0; (function esperar() { if (window.BWMotionEditor && window.BWMotionEditor.sel && $("moPistas")) montar(); else if (tent++ < 200) setTimeout(esperar, 50); else H.classList.remove("app-cedo"); })();
   window.MOApp = {ligado: true, abrir: abrir, fechar: fechar, faixa: faixaJa, aberta: function () { return SHEET && !SHEET.hidden ? SHEET.dataset.o : ""; }};
 })();

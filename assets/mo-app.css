@@ -86,3 +86,9 @@ html.mo-app .mo-folha{z-index:9000}
 /* veio do editor de vídeo: o "⟵ Linha do tempo" vira um selo pequeno em cima da prévia (o texto longo some) */
 .ma #bwcrVolta{position:absolute;top:calc(56px + env(safe-area-inset-top));left:10px;right:auto;z-index:8;padding:0;border:0;background:transparent}
 .ma #bwcrVolta b{display:none}.ma #bwcrVolta a{background:rgba(20,40,80,.85);border-color:rgba(255,255,255,.28)}
+
+/* 22/11: enquanto o app não monta, a tela antiga NÃO aparece (fundo escuro com um ponto girando) */
+html.app-cedo body{background:#0b0c10}
+html.app-cedo body>*{visibility:hidden}
+html.app-cedo body::after{content:"";position:fixed;left:50%;top:50%;width:28px;height:28px;margin:-14px 0 0 -14px;border-radius:50%;border:3px solid rgba(255,255,255,.15);border-top-color:#21D4E4;animation:appCedo .8s linear infinite;visibility:visible}
+@keyframes appCedo{to{transform:rotate(360deg)}}

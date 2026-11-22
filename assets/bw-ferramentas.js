@@ -117,21 +117,16 @@
   document.addEventListener("pointerdown", function (e) { if (abertoMenu && !abertoMenu.contains(e.target)) fecharMenu(); }, true);
   addEventListener("resize", fecharMenu); document.addEventListener("scroll", function (e) { if (abertoMenu && !abertoMenu.contains(e.target) && Date.now() - (abertoMenu._t || abertoMenu._t0) > 350) fecharMenu(); }, true);
   // botão direito e "segurar o dedo" (sem mexer) abrem o menu do item
+  /* 22/11 (dono): no TOQUE, segurar o dedo NÃO abre mais o menu — atrapalhava o "segurar e arrastar". O menu de opções no celular fica no botão
+     ⋯ MAIS da faixa (que chama o contextmenu por código). No PC continua o botão direito. */
+  var TOQUE_T = 0;
+  window.addEventListener("touchstart", function () { TOQUE_T = Date.now(); }, {passive: true, capture: true});
   function contexto(raiz, seletor, montar) {
-    var seg = null;
     raiz.addEventListener("contextmenu", function (e) { var el = e.target.closest(seletor); if (!el || !raiz.contains(el)) return; e.preventDefault();
-      // 21/11: no toque, o navegador também dispara "contextmenu" ao segurar (~0,5 s), quase junto com o nosso relógio de 520 ms — os dois abriam o menu e o dedo ao soltar escolhia um item. Agora quem chegar primeiro abre (como toque) e o outro é ignorado.
-      if (Date.now() - (BWFerr._acabouSegurar || 0) < 900) return; var porToque = !!seg || (e.pointerType && e.pointerType !== "mouse"); if (seg) { clearTimeout(seg.t); seg = null; }
-      var its = montar(el, e); if (its && (its.itens || its).length) { menu(e.clientX, e.clientY, its.itens || its, its.titulo, porToque); if (porToque) BWFerr._acabouSegurar = Date.now(); } });
-    raiz.addEventListener("pointerdown", function (e) { if (e.pointerType === "mouse") return; var el = e.target.closest(seletor); if (!el) return;
-      var x = e.clientX, y = e.clientY; seg = { x: x, y: y, t: setTimeout(function () { seg = null; var its = montar(el, e); if (its && (its.itens || its).length) { menu(x, y, its.itens || its, its.titulo, true); BWFerr._acabouSegurar = Date.now(); } }, 520) }; });
-    var parar = function (e) { if (seg && (!e || e.type !== "pointermove" || Math.hypot(e.clientX - seg.x, e.clientY - seg.y) > 10)) { clearTimeout(seg.t); seg = null; } };
-    raiz.addEventListener("pointermove", parar); raiz.addEventListener("pointerup", function () { parar(); }); raiz.addEventListener("pointercancel", function () { parar(); });
-    // 21/11: o dedo pode soltar FORA da raiz ou sobre um item que foi redesenhado no meio do toque (o pointerup não chega aqui) — sem isto o menu abria sozinho meio segundo depois de um toque simples
-    window.addEventListener("pointerup", function () { parar(); }, true); window.addEventListener("pointercancel", function () { parar(); }, true); window.addEventListener("touchend", function () { parar(); }, true);
-    // o "clique" que vem depois de segurar não pode disparar a ação normal do item
-    raiz.addEventListener("click", function (e) { if (Date.now() - (BWFerr._acabouSegurar || 0) < 600) { e.stopPropagation(); e.preventDefault(); } }, true);
+      if (e.isTrusted && ((e.pointerType && e.pointerType !== "mouse") || Date.now() - TOQUE_T < 1500)) return;   /* veio de segurar o dedo: nada de menu */
+      var its = montar(el, e); if (its && (its.itens || its).length) menu(e.clientX, e.clientY, its.itens || its, its.titulo, false); });
   }
+
 
   /* ---------- ajuda (tecla ?) ---------- */
   var AJUDA = null;
@@ -143,7 +138,7 @@
     var lin = (ferr.length ? [["#", "FERRAMENTAS"]].concat(ferr) : []).concat(AJUDA.linhas);
     d.innerHTML = '<div class="jan"><h2>⌨ ' + AJUDA.titulo + '</h2><table>' + lin.map(function (l) { return l[0] === "#" ? '<tr class="sec"><td colspan="2">' + l[1] + "</td></tr>" :
       "<tr><td>" + l[0].split(" / ").map(function (k) { return k.split("+").map(function (x) { return "<kbd>" + x + "</kbd>"; }).join("+"); }).join(" ou ") + "</td><td>" + l[1] + "</td></tr>"; }).join("") +
-      '</table><p style="margin:12px 0 0;color:#8d95a3;font-size:12px">No celular: toque nas ferramentas da barra; segure o dedo num item para abrir as opções.</p><div style="margin-top:12px;text-align:right"><button type="button" class="bwf-bt ajuda" data-fechar="1" style="width:auto">FECHAR</button></div></div>';
+      '</table><p style="margin:12px 0 0;color:#8d95a3;font-size:12px">No celular: toque nas ferramentas da barra; toque em ⋯ MAIS para abrir as opções.</p><div style="margin-top:12px;text-align:right"><button type="button" class="bwf-bt ajuda" data-fechar="1" style="width:auto">FECHAR</button></div></div>';
     d.addEventListener("click", function (e) { if (e.target === d || e.target.closest("[data-fechar]")) d.remove(); });
     document.body.appendChild(d);
   }
@@ -325,13 +320,59 @@
     bt.onclick = function () { var r = bt.getBoundingClientRect(); menu(Math.max(8, r.right - 250), r.bottom + 6, itens(), "PRÉVIA"); };
     return {zoom: zoomV, vista: function () { return VZ.z; }, segunda: segunda, celular: celular, telaCheia: telaCheia, salvarQuadro: salvarQuadro, menu: function () { bt.click(); }, botao: bt, pos: pos};
   }
+  /* ---------- FAIXA FIRME (22/11, dono: "ao rolar as ferramentas a tela descola para o lado, como o puxar para baixo") ----------
+     Causa: a rolagem NATIVA do navegador tem o "elástico" nas pontas (iPhone principalmente) — overscroll-behavior não tira o quique da
+     própria faixa. Aqui a faixa NÃO rola sozinha (overflow-x hidden, touch-action pan-y): o dedo move o scrollLeft preso entre 0 e o fim,
+     com inércia, sem elástico. setas:true põe ‹ › discretos nas pontas (toque = anda ~60%, segurar = anda direto, como a seta do teclado).
+     o = {setas, pai (onde as setas ficam), pular(alvo) → true deixa o toque para o editor, aoRolar(), esq(): folga à esquerda (botão preso)} */
+  function faixaFirme(el, o) {
+    o = o || {}; if (!el || el.__firme) return el && el.__firme; el.classList.add("bwf-firme");
+    var st = null, vel = 0, anim = 0, moveu = false;
+    function max() { return Math.max(0, el.scrollWidth - el.clientWidth); }
+    function por(x) { var a = el.scrollLeft; el.scrollLeft = Math.max(0, Math.min(max(), x)); if (el.scrollLeft !== a && o.aoRolar) o.aoRolar(); setas(); }
+    el.addEventListener("touchstart", function (e) { cancelAnimationFrame(anim); moveu = false; if (!e.touches || e.touches.length !== 1 || (o.pular && o.pular(e.target))) { st = null; return; }
+      var t = e.touches[0]; st = {x: t.clientX, y: t.clientY, sl: el.scrollLeft, lx: t.clientX, lt: performance.now(), dir: ""}; vel = 0; }, {passive: true});
+    el.addEventListener("touchmove", function (e) { if (o.parar && o.parar()) { if (e.cancelable) e.preventDefault(); st = null; moveu = true; return; }   /* o editor pegou o item (segurar e arrastar): nada de rolar */
+      if (!st || !e.touches || e.touches.length !== 1) { st = null; return; } var t = e.touches[0], dx = t.clientX - st.x, dy = t.clientY - st.y;
+      if (!st.dir) { if (Math.abs(dx) < 6 && Math.abs(dy) < 6) return; st.dir = Math.abs(dx) > Math.abs(dy) ? "x" : "y"; }
+      if (st.dir !== "x") return; if (e.cancelable) e.preventDefault(); moveu = true;
+      var agora = performance.now(), dt = Math.max(1, agora - st.lt); vel = 0.8 * ((t.clientX - st.lx) / dt) + 0.2 * vel; st.lx = t.clientX; st.lt = agora; por(st.sl - dx); }, {passive: false});
+    el.addEventListener("touchend", function () { if (moveu) setTimeout(function () { moveu = false; }, 450); if (!st) return; var d = st.dir, parado = performance.now() - st.lt > 90; st = null; if (d !== "x" || parado) return;
+      var v = -vel * 16; (function inercia() { if (Math.abs(v) < 0.5) return; var a = el.scrollLeft; por(a + v); if (el.scrollLeft === a) return; v *= 0.93; anim = requestAnimationFrame(inercia); })(); });
+    el.addEventListener("touchcancel", function () { st = null; });
+    el.addEventListener("click", function (e) { if (moveu) { moveu = false; e.stopPropagation(); e.preventDefault(); } }, true);
+    el.addEventListener("wheel", function (e) { var d = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : (e.shiftKey ? e.deltaY : 0); if (!d) return; e.preventDefault(); por(el.scrollLeft + d); }, {passive: false});
+    el.addEventListener("scroll", function () { setas(); }, {passive: true});
+    var E = null, D = null;
+    function andar(dir, cont) { cancelAnimationFrame(anim); if (!cont) { var alvo = el.scrollLeft + dir * Math.max(120, el.clientWidth * 0.6), ini = el.scrollLeft, t0 = performance.now();
+        (function passo(t) { var k = Math.min(1, (t - t0) / 260), e2 = 1 - Math.pow(1 - k, 3); por(ini + (alvo - ini) * e2); if (k < 1) anim = requestAnimationFrame(passo); })(t0); return; }
+      (function cont2() { por(el.scrollLeft + dir * 9); anim = requestAnimationFrame(cont2); })(); }
+    function seta(dir) { var b = document.createElement("button"); b.type = "button"; b.className = "bwf-seta " + (dir < 0 ? "esq" : "dir"); b.setAttribute("aria-label", dir < 0 ? "Ferramentas anteriores" : "Mais ferramentas");
+      b.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="' + (dir < 0 ? "M14.5 6l-6 6 6 6" : "M9.5 6l6 6-6 6") + '"/></svg>';
+      var seg = 0, segurou = false;
+      b.addEventListener("pointerdown", function (e) { e.preventDefault(); b.classList.add("pressa"); clearTimeout(b._pr); segurou = false; clearTimeout(seg); seg = setTimeout(function () { segurou = true; andar(dir, true); }, 320); });
+      var solta = function () { clearTimeout(seg); if (segurou) cancelAnimationFrame(anim); clearTimeout(b._pr); b._pr = setTimeout(function () { b.classList.remove("pressa"); }, 450); };   /* a seta some no fim, mas o toque não pode cair no botão de baixo */
+      b.addEventListener("pointerup", solta); b.addEventListener("pointercancel", solta); b.addEventListener("pointerleave", solta);
+      b.addEventListener("click", function (e) { e.preventDefault(); if (!segurou) andar(dir, false); segurou = false; });
+      (o.pai || el.parentNode).appendChild(b); return b; }
+    function setas() { if (!E) return; var r = el.getBoundingClientRect(), p = (o.pai || el.parentNode).getBoundingClientRect(), f = o.esq ? o.esq() : 0, m = max();
+      [E, D].forEach(function (b) { b.style.top = (r.top - p.top) + "px"; b.style.height = r.height + "px"; });
+      E.style.left = (r.left - p.left + f) + "px"; D.style.left = (r.right - p.left - 30) + "px";
+      E.classList.toggle("on", el.scrollLeft > 2); D.classList.toggle("on", el.scrollLeft < m - 2); }
+    if (o.setas) { E = seta(-1); D = seta(1); try { new ResizeObserver(setas).observe(el); new MutationObserver(function () { requestAnimationFrame(setas); }).observe(el, {childList: true}); } catch (x) {} addEventListener("resize", setas); setTimeout(setas, 0); }
+    el.__firme = {por: por, andar: andar, setas: setas}; return el.__firme;
+  }
   var css3 = document.createElement("style"); css3.textContent =
     ".bwf-opcp{position:absolute;z-index:6;width:34px;height:26px;border-radius:999px;border:0;background:rgba(3,6,16,.45);color:#fff;font:900 17px/1 Inter,system-ui,sans-serif;letter-spacing:1px;cursor:pointer;opacity:.6;transition:opacity .2s;touch-action:manipulation}" +
     ".bwf-opcp:hover,.bwf-opcp:focus-visible{opacity:1;background:rgba(3,6,16,.75)}" +
+    ".bwf-firme{overflow-x:hidden!important;overscroll-behavior:none!important;touch-action:pan-y!important;scroll-snap-type:none!important}" +
+    ".bwf-seta{position:absolute;z-index:9;width:30px;padding:0;border:0;display:flex;align-items:center;justify-content:center;color:#fff;cursor:pointer;opacity:0;pointer-events:none;transition:opacity .18s;touch-action:none;-webkit-tap-highlight-color:transparent}" +
+    ".bwf-seta.on{opacity:.9;pointer-events:auto}.bwf-seta.pressa{pointer-events:auto}.bwf-seta svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 1px 2px rgba(0,0,0,.7))}" +
+    ".bwf-seta.esq{background:linear-gradient(90deg,rgba(21,23,29,.96),rgba(21,23,29,0))}.bwf-seta.dir{background:linear-gradient(270deg,rgba(21,23,29,.96),rgba(21,23,29,0))}.bwf-seta:active{opacity:1}" +
     ".bwf-vz{position:absolute;z-index:6;height:26px;padding:0 10px;border-radius:999px;border:0;background:rgba(3,6,16,.7);color:#fff;font:800 11px Inter,system-ui,sans-serif;cursor:pointer}.bwf-vz[hidden]{display:none}";
   (document.head || document.documentElement).appendChild(css3);
 
-  window.BWFerr = { previa: previa, barra: barra, trocar: trocar, atalhos: atalhos, menu: menu, fecharMenu: fecharMenu, contexto: contexto, ajuda: ajuda, telaFixa: telaFixa, mostrarAjuda: mostrarAjuda, preso: preso, digitando: digitando,
+  window.BWFerr = { faixaFirme: faixaFirme, previa: previa, barra: barra, trocar: trocar, atalhos: atalhos, menu: menu, fecharMenu: fecharMenu, contexto: contexto, ajuda: ajuda, telaFixa: telaFixa, mostrarAjuda: mostrarAjuda, preso: preso, digitando: digitando,
     atual: function () { return BARRA ? (BARRA.temp || BARRA.atual) : "v"; }, alt: function () { return !!(BARRA && BARRA.alt); },
     ICONES: { v: "➤", c: "✂", h: "✋", z: "🔍", t: "T", b: "🖌", e: "⌫", i: "💧", m: "⬚", r: "⟳", p: "✒" } };
 })();

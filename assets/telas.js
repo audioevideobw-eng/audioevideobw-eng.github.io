@@ -63,7 +63,7 @@
   }
   function desenharMidias() {
     $("tlMidias").innerHTML = ORDEM.map(function (id, i) { var m = MID[id]; if (!m) return "";
-      return '<div class="tl-mid" data-arr="m:' + id + '" title="' + esc(m.nome) + ' — arraste para a SEQUÊNCIA ou para uma cena">' + (m.thumb ? '<img src="' + esc(m.thumb.src) + '" alt="">' : "") + '<span class="n">' + (i + 1) + "</span>" +
+      return '<div class="tl-mid" data-arr="m:' + id + '" title="' + esc(m.nome) + ' — arraste para a SEQUÊNCIA ou para uma cena">' + '<span class="tl-mais" data-mais role="button" aria-label="Opções da mídia">⋯</span>' + (m.thumb ? '<img src="' + esc(m.thumb.src) + '" alt="">' : "") + '<span class="n">' + (i + 1) + "</span>" +
         (m.tipo === "video" ? '<span class="v">▶ ' + fmt(m.dur || 0) + "s</span>" : "") + '<button class="x" type="button" data-tirar="' + id + '" aria-label="Tirar">✕</button>' +
         '<span class="mv"><button type="button" data-mover="' + id + '" data-d="-1" aria-label="Antes">◀</button><button type="button" data-mover="' + id + '" data-d="1" aria-label="Depois">▶</button></span></div>'; }).join("");
   }
@@ -189,7 +189,7 @@
   function desenharFila() {
     var h = ""; P.cenas.forEach(function (c, i) {
       if (i) h += '<span class="tl-tr" data-tr="' + i + '" title="Transição — solte um efeito aqui para trocar">' + esc((T.TRANS[c.trans] || T.TRANS.corte).nome.toUpperCase()) + "</span>";
-      h += '<button type="button" class="tl-cena' + (i === SEL ? " on" : "") + '" data-cena="' + i + '" data-arr="c:' + i + '"><canvas width="84" height="149" data-cmini="' + i + '"></canvas><span>' + (i + 1) + " · " + esc(T.LAYOUTS[c.layout || "cheia"].nome) + " · " + fmt(c.dur) + "s</span></button>";
+      h += '<button type="button" class="tl-cena' + (i === SEL ? " on" : "") + '" data-cena="' + i + '" data-arr="c:' + i + '"><span class="tl-mais" data-mais role="button" aria-label="Opções da cena">⋯</span><canvas width="84" height="149" data-cmini="' + i + '"></canvas><span>' + (i + 1) + " · " + esc(T.LAYOUTS[c.layout || "cheia"].nome) + " · " + fmt(c.dur) + "s</span></button>";
     });
     if (!P.cenas.length) h = '<div class="tl-vazio tl-soltaqui">Arraste fotos e vídeos para cá — ou toque em ✨ MONTAR SOZINHO.</div>';
     $("tlFila").innerHTML = h;
@@ -298,7 +298,7 @@
     if (a.rolar) cancelAnimationFrame(a.rolar);
     var parado = a.ativo && Math.hypot(a.x - a.x0, a.y - a.y0) < 10;
     if (a.ativo) { a.g.remove(); a.origem.classList.remove("tl-pego"); document.documentElement.classList.remove("tl-arrastando"); marcarAlvo(null); a.solto = Date.now(); if (ok && !parado) soltar(a.alvo); }
-    if (ok && parado && a.toque) { var its = menuDe(a.origem); if (its) { ULTIMO_ARR = Date.now(); ARR = null; if (window.BWFerr) BWFerr.menu(a.x, a.y, its.itens, its.titulo, true); return; } }
+    /* 22/11 (dono): segurar e soltar sem arrastar não abre mais o menu no toque — atrapalhava o arrastar; as opções ficam no botão direito (PC) e nos ⋯ */
     ULTIMO_ARR = a.ativo ? Date.now() : 0; ARR = null;
   }
   var ULTIMO_ARR = 0;
@@ -315,6 +315,9 @@
       ORDEM = ORDEM.filter(function (x) { return x !== novo; }); ORDEM.splice(ORDEM.indexOf(idVelho) + 1, 0, novo); P.ordem = ORDEM.slice(); desenharMidias(); mudou({ painel: true }); aviso("⇄ Arquivo trocado em " + n + " tela(s). O antigo continua na lista (✕ tira)."); };
     inp.click(); }
   // opções de cada coisa (botão direito no PC, segurar e soltar sem mexer no celular)
+  /* 22/11 (dono): segurar o dedo não abre mais menu (atrapalhava o arrastar) — cada cena e cada mídia têm um ⋯ discreto que abre as opções */
+  document.addEventListener("click", function (e) { var b = e.target.closest && e.target.closest("[data-mais]"); if (!b) return; e.preventDefault(); e.stopPropagation();
+    var el = b.closest("[data-arr]"), r = b.getBoundingClientRect(), its = menuDe(el); if (its && window.BWFerr) BWFerr.menu(Math.max(8, r.right - 240), r.bottom + 4, its.itens, its.titulo, false); }, true);
   function menuDe(el) {
     if (!el) return null; var v = (el.getAttribute("data-arr") || "").split(":"), tipo = v[0], k = v.slice(1).join(":");
     if (tipo === "c") { var i = +k, c = P.cenas[i]; if (!c) return null; if (SEL !== i) { SEL = i; desenharPainel(); desenharFila(); }

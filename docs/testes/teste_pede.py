@@ -40,6 +40,9 @@ with sync_playwright() as p:
         ok(pg.inner_text("#bpModeloNome") == "BW Smart", "padrão = BW Smart")
         # modelo
         pg.click("#bpModelo"); pg.wait_for_timeout(150); ok(pg.locator("#bpMenu [data-nivel]").count() == 3, "menu do modelo com 3 níveis")
+        frente = pg.evaluate("""() => { const m = document.getElementById('bpMenu'), r = m.getBoundingClientRect(); const pts = [[.2,.15],[.5,.15],[.8,.15],[.2,.5],[.5,.5],[.8,.5],[.5,.85]];
+          return pts.every(([fx,fy]) => { const e = document.elementFromPoint(r.left + r.width*fx, r.top + r.height*fy); return e && m.contains(e); }) && r.top >= 0 && r.bottom <= innerHeight; }""")
+        ok(frente, "o menu fica NA FRENTE de tudo (roda do robô e Tio Cláudio) e inteiro na tela")
         pg.click('#bpMenu [data-nivel="rapido"]'); pg.wait_for_timeout(100)
         ok(pg.inner_text("#bpModeloNome") == "Rápido" and pg.evaluate("localStorage.getItem('ui_agente_nivel')") == '"rapido"' and not pg.is_visible("#bpMenu"), "escolher Rápido grava no aparelho e fecha")
         pg.reload(); pg.wait_for_function("window.BWIA", timeout=8000); ok(pg.inner_text("#bpModeloNome") == "Rápido", "escolha continua ao recarregar")

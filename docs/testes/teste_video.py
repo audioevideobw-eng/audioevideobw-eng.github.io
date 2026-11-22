@@ -131,10 +131,12 @@ with sync_playwright() as p:
         vc = pg.evaluate("__video.P().clips.filter(c => c.tipo === 'video').sort((a,b)=>a.ini-b.ini)[0]"); el = pg.locator(f'[data-clip="{vc["id"]}"]'); el.evaluate("e => e.scrollIntoView({block: 'center'})"); pg.wait_for_timeout(150); bx = el.bounding_box()   # no meio da tela: com as camadas vazias escondidas a linha do tempo é mais baixa e o clipe parava atrás das abas de baixo
         mx, my = bx["x"] + bx["width"] / 2, bx["y"] + bx["height"] / 2   # no MEIO do take: perto da ponta fica a emenda ◆ (22/11), que tem o menu das transições
         if cel:
-            cdp = ctx.new_cdp_session(pg); cdp.send("Input.dispatchTouchEvent", {"type": "touchStart", "touchPoints": [{"x": mx, "y": my}]}); pg.wait_for_timeout(700); cdp.send("Input.dispatchTouchEvent", {"type": "touchEnd", "touchPoints": []})
+            cdp = ctx.new_cdp_session(pg); cdp.send("Input.dispatchTouchEvent", {"type": "touchStart", "touchPoints": [{"x": mx, "y": my}]}); pg.wait_for_timeout(700); cdp.send("Input.dispatchTouchEvent", {"type": "touchEnd", "touchPoints": []}); pg.wait_for_timeout(300)
+            ok(pg.locator(".bwf-menu").count() == 0, "no toque, segurar o take NÃO abre menu (dono, 22/11)")
+            el.evaluate("e => e.dispatchEvent(new MouseEvent('contextmenu', {bubbles: true, cancelable: true, clientX: " + str(mx) + ", clientY: " + str(my) + "}))")
         else: pg.mouse.click(mx, my, button="right")
         pg.wait_for_timeout(250)
-        ok(pg.locator(".bwf-menu").count() == 1 and "Duplicar" in pg.inner_text(".bwf-menu") and "Substituir" in pg.inner_text(".bwf-menu"), "menu do clipe (" + ("segurar o dedo" if cel else "botão direito") + "): cortar, duplicar, copiar, substituir, velocidade…")
+        ok(pg.locator(".bwf-menu").count() == 1 and "Duplicar" in pg.inner_text(".bwf-menu") and "Substituir" in pg.inner_text(".bwf-menu"), "menu do clipe (" + ("⋯ Mais, pelo código" if cel else "botão direito") + "): cortar, duplicar, copiar, substituir, velocidade…")
         pg.locator(".bwf-menu button", has_text="Velocidade").click(); pg.wait_for_timeout(150); d0 = vc["dur"]
         pg.locator(".bwf-menu button", has_text="2×").first.click(); pg.wait_for_timeout(250)
         vc2 = pg.evaluate(f"__video.P().clips.find(c => c.id === '{vc['id']}')")

@@ -428,18 +428,28 @@
     });
     BWFerr.ajuda("ATALHOS DO ESTÚDIO DE MOTION", [["#", "TOCAR"], ["Espaço / K", "tocar / pausar"], ["Home / End", "início / fim"],
       ["#", "ITEM ESCOLHIDO"], ["← ↑ ↓ →", "mover 1 px (com Shift, 10 px)"], ["Ctrl+D", "duplicar"], ["Ctrl+K", "cortar na agulha"], ["Ctrl+C / Ctrl+V", "copiar / colar na agulha"], ["Ctrl+] / Ctrl+[", "para a frente / para trás"], ["Ctrl+Shift+C / V", "copiar / colar ajustes (efeitos e cor)"], ["Q / W", "cortar o começo / o fim até a agulha"], ["Shift+E", "desativar / ativar o item"], ["Rodinha na prévia", "zoom da vista (F volta a 100%)"], ["Alt + rodinha na linha do tempo", "camadas mais altas / mais baixas"], ["Delete", "apagar o item (ou o keyframe aberto)"],
-      ["Botão direito", "opções do item (celular: segure o dedo)"], ["#", "GERAL"], ["Ctrl+Z", "desfazer"], ["Ctrl+Shift+Z / Ctrl+Y", "refazer"], ["= / -", "zoom da linha do tempo"], ["Ctrl+S", "salvar"], ["Ctrl+M", "exportar"], ["?", "esta lista"]]);
+      ["Botão direito", "opções do item (celular: ⋯ MAIS)"], ["#", "GERAL"], ["Ctrl+Z", "desfazer"], ["Ctrl+Shift+Z / Ctrl+Y", "refazer"], ["= / -", "zoom da linha do tempo"], ["Ctrl+S", "salvar"], ["Ctrl+M", "exportar"], ["?", "esta lista"]]);
     BWFerr.contexto($("moTela"), "[data-item]", function (el) { return menuItem(el.getAttribute("data-item")); });
     BWFerr.contexto($("moPistas"), "[data-barra]", function (el) { return menuItem(el.getAttribute("data-barra")); });
     BWFerr.contexto($("moRot"), "[data-sel]", function (el) { return menuItem(el.getAttribute("data-sel")); });
     FIXA = BWFerr.telaFixa({ wrap: document.querySelector(".wrap"), grade: $("moGrade"), palco: document.querySelector(".mo-palco"), rola: [document.querySelector(".mo-tl")], painelLer: function () { return JSON.parse(localStorage.getItem("ui_motion_paineis") || "{}"); }, painelGravar: function (S) { localStorage.setItem("ui_motion_paineis", JSON.stringify(S)); }, some: [document.querySelector(".wrap > .mo-nota")], aviso: $("moAviso"), aoMedir: function () { if (P) { medir(); desenharTimeline(); ver(T); } } });
   }
+  var SEGM = { t: 0 };
+  function soltarSegM() { clearTimeout(SEGM.t); SEGM = { t: 0 }; }
+  addEventListener("pointermove", function (e) { if (!SEGM.t || window.__bwSegurando) return; SEGM.x1 = e.clientX; SEGM.y1 = e.clientY; if (Math.hypot(e.clientX - SEGM.x, e.clientY - SEGM.y) > 8) soltarSegM(); }, true);
+  addEventListener("pointercancel", function () { if (!window.__bwSegurando) soltarSegM(); }, true);
+  addEventListener("pointerup", function () { soltarSegM(); setTimeout(function () { window.__bwSegurando = false; }, 0); }, true);
   function ligarTimeline() {
     var pis = $("moPistas"), arr = null;
     $("moRot").addEventListener("click", function (e) { var d = e.target.closest("[data-sel]"); if (d) selecionar(d.getAttribute("data-sel"), true); });
     pis.addEventListener("pointerdown", function (e) {
       if (e.button === 2) return; var F = window.BWFerr ? BWFerr.atual() : "v";
-      if (APP && e.pointerType !== "mouse") { var bA = e.target.closest("[data-barra]"); if (!e.target.closest("[data-kf]") && !(bA && bA.getAttribute("data-barra") === SEL)) return; }   /* no app o dedo rola a linha do tempo; tocar escolhe (mo-app.js) */
+      if (APP && e.pointerType !== "mouse") { var bA = e.target.closest("[data-barra]"); if (!e.target.closest("[data-kf]") && !(bA && bA.getAttribute("data-barra") === SEL)) {
+        /* no app o dedo rola a linha do tempo e tocar escolhe (mo-app.js); 22/11 (dono): SEGURAR o dedo parado ~0,3 s pega a barra e já arrasta */
+        if (bA) { var itS = item(bA.getAttribute("data-barra")); if (itS) { clearTimeout(SEGM.t); SEGM = { pid: e.pointerId, x: e.clientX, y: e.clientY, x1: e.clientX, y1: e.clientY, t: setTimeout(function () { var s0 = SEGM; if (!s0.t) return;
+          window.__bwSegurando = true; selecionar(itS.id, false); try { pis.setPointerCapture(s0.pid); } catch (x) {} arr = { tipo: e.target.getAttribute("data-al") || "mover", id: itS.id, x: s0.x1, ini: itS.ini, fim: itS.fim, mexeu: false, keys: JSON.stringify(itS.keys || {}) };
+          if (navigator.vibrate) try { navigator.vibrate(12); } catch (x) {} aviso("✋ Item pego — arraste para o lugar e solte."); }, 320) }; } }
+        return; } }
       if (F === "h") { arr = { tipo: "mao", x: e.clientX, sl: pis.scrollLeft }; BWFerr.preso(true); try { pis.setPointerCapture(e.pointerId); } catch (x) {} e.preventDefault(); return; }
       if (F === "z") { var t0 = (e.clientX - bx() + pis.scrollLeft) / pxs(), xx = e.clientX - bx(); ZOOM = e.altKey ? Math.max(1, ZOOM / 1.5) : Math.min(8, ZOOM * 1.5); desenharTimeline(); pis.scrollLeft = Math.max(0, t0 * pxs() - xx); e.preventDefault(); return; }
       if (F === "c") { var bc = e.target.closest("[data-barra]"); if (bc) { cortarItem(bc.getAttribute("data-barra"), (e.clientX - bx() + pis.scrollLeft) / pxs()); e.preventDefault(); } return; }

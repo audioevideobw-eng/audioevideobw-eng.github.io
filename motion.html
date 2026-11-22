@@ -11,7 +11,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Brightway">
-<link rel="stylesheet" href="assets/brightway.css?v=34">
+<link rel="stylesheet" href="assets/brightway.css?v=35">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Caveat:wght@700&family=Inter:wght@500;700;900&family=JetBrains+Mono:wght@500;800&family=Playfair+Display:ital,wght@0,800;1,800&display=swap">
 <style>
 .wrap{max-width:1560px;margin:0 auto;padding:0 14px 110px}
@@ -127,7 +127,9 @@
 .mo-fantasma{position:fixed;z-index:9500;pointer-events:none;max-width:220px;padding:7px 10px;border-radius:10px;background:#B6FF3B;color:#0a120a;font:800 11px Inter,sans-serif;box-shadow:0 10px 30px rgba(0,0,0,.55)}.mo-fantasma::after{content:attr(data-dica);display:block;margin-top:3px;font:700 9.5px Inter,sans-serif;opacity:.8}
 .mo-alvo{outline:2px dashed #B6FF3B!important;outline-offset:2px}
 </style>
-<link rel="stylesheet" href="assets/mo-app.css?v=1">
+<link rel="stylesheet" href="assets/mo-app.css?v=2">
+<script>/* 22/11: decide o layout de app ANTES de desenhar (senão a tela antiga aparecia por um instante) */(function(){var q=new URLSearchParams(location.search).get("layout")||"";if(q==="app"||(q!=="classico"&&(innerWidth<=900||(matchMedia("(pointer:coarse)").matches&&innerWidth<=1180))))document.documentElement.classList.add("app-cedo")})()</script>
+
 <script src="assets/modos.js?v=6"></script>
 </head>
 <body>
@@ -209,10 +211,10 @@
 <script src="assets/bw-sync.js"></script>
 <script src="assets/motion-motor.js?v=3"></script>
 <script src="assets/reels-celular.js?v=5"></script>
-<script src="assets/bw-ferramentas.js?v=3"></script>
+<script src="assets/bw-ferramentas.js?v=4"></script>
 <script src="assets/bw-criacoes.js?v=1"></script>
 <script src="assets/bw-controle.js?v=1"></script>
-<script src="assets/mo-app.js?v=1"></script>
-<script src="assets/motion.js?v=9"></script>
+<script src="assets/mo-app.js?v=3"></script>
+<script src="assets/motion.js?v=10"></script>
 </body>
 </html>

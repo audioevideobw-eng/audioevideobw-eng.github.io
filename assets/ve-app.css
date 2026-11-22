@@ -78,3 +78,9 @@ html.va-folha .va .vm-faixa{display:none}
 
 /* 22/11: a tela do app fica parada — só as faixas rolam (nada de a página inteira deslizar para o lado) */
 html.ve-app,html.ve-app body{overflow-x:hidden}html.ve-app .va{overscroll-behavior:none}
+
+/* 22/11: enquanto o app não monta, a tela antiga NÃO aparece (fundo escuro com um ponto girando) */
+html.app-cedo body{background:#0b0c10}
+html.app-cedo body>*{visibility:hidden}
+html.app-cedo body::after{content:"";position:fixed;left:50%;top:50%;width:28px;height:28px;margin:-14px 0 0 -14px;border-radius:50%;border:3px solid rgba(255,255,255,.15);border-top-color:#21D4E4;animation:appCedo .8s linear infinite;visibility:visible}
+@keyframes appCedo{to{transform:rotate(360deg)}}

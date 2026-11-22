@@ -650,7 +650,9 @@
       if (SEL !== cj.id) { SEL = cj.id; desenharProp(); } arr = {tipo: "trans", c: cj, x0: e.clientX, y0: e.clientY, dur0: transDe(cj) || 0.6, tinha: !!cj.trans, moveu: false}; e.preventDefault(); return; }
     var el = e.target.closest("[data-clip]"); if (!el) { if (toqueApp) return; if (SEL) { SEL = null; desenharTL(); desenharProp(); } return; }
     var c = P.clips.filter(function (x) { return x.id === el.dataset.clip; })[0]; if (!c) return; var al = e.target.dataset.al || "";
-    if (toqueApp && SEL !== c.id) return;   /* no app, dedo em take NÃO escolhido rola a linha do tempo; o toque (click) escolhe — ve-app.js */
+    /* no app, dedo em take NÃO escolhido rola a linha do tempo e o toque (click) escolhe — ve-app.js. 22/11 (dono): SEGURAR o dedo parado ~0,3 s
+       PEGA o take e já arrasta (antes segurar abria o menu e atrapalhava o arraste; o menu ficou no ⋯ MAIS) */
+    if (toqueApp && SEL !== c.id) { segurarPegar(e, el, c, al); return; }
     if (SEL !== c.id) { SEL = c.id; $("veFaixas").querySelectorAll(".ve-clip").forEach(function (x) { x.classList.toggle("on", x === el); }); desenharProp(); }
     arr = {tipo: al ? "al" + al : "mover", c: c, el: el, x0: e.clientX, ini: c.ini, dur: c.dur, corte: c.corte || 0, trOrig: c.trilha, moveu: false}; e.preventDefault();
   });
@@ -684,7 +686,16 @@
     else { c.dur = r(lim(arr.dur + d, 0.2, temFonte ? maxDur(c) : 600)); }
     arr.el.style.left = (c.ini * PPS) + "px"; arr.el.style.width = Math.max(18, c.dur * PPS) + "px"; if (!TOCANDO) desenhar();
   });
-  window.addEventListener("pointerup", function () { if (!arr) return; var a = arr; arr = null; if (window.BWFerr) BWFerr.preso(false);
+  var SEG = null;
+  function segurarPegar(e, el, c, al) { soltarSeg(); SEG = {x: e.clientX, y: e.clientY, x1: e.clientX, y1: e.clientY, t: setTimeout(function () { if (!SEG) return; var s0 = SEG;
+      window.__bwSegurando = true; SEL = c.id; $("veFaixas").querySelectorAll(".ve-clip").forEach(function (x) { x.classList.toggle("on", x.dataset.clip === c.id); }); desenharProp();
+      arr = {tipo: al ? "al" + al : "mover", c: c, el: el, x0: s0.x1, ini: c.ini, dur: c.dur, corte: c.corte || 0, trOrig: c.trilha, moveu: false, segurou: true};
+      if (navigator.vibrate) try { navigator.vibrate(12); } catch (x) {} aviso("✋ Take pego — arraste para o lugar e solte."); }, 320)}; }
+  function soltarSeg() { if (SEG) clearTimeout(SEG.t); SEG = null; window.__bwSegurando = false; }
+  window.addEventListener("pointermove", function (e) { if (!SEG || arr) return; SEG.x1 = e.clientX; SEG.y1 = e.clientY; if (Math.hypot(e.clientX - SEG.x, e.clientY - SEG.y) > 8) soltarSeg(); }, true);
+  window.addEventListener("pointercancel", function () { if (SEG && !arr) soltarSeg(); }, true);
+  window.addEventListener("pointerup", function () { if (SEG && !arr) soltarSeg(); }, true);
+  window.addEventListener("pointerup", function () { if (SEG) { SEG = null; setTimeout(function () { window.__bwSegurando = false; }, 0); } if (!arr) return; var a = arr; arr = null; if (window.BWFerr) BWFerr.preso(false);
     dicaArr(null);
     if (a.tipo === "mover" && a.moveu && a.troca) trocarLugar(a.c, a.troca, a.ini, a.trOrig);
     else if (a.tipo === "mover" && a.moveu && a.subiu) aviso("⬆ Camada nova: " + infoTr(a.c.trilha)[0] + " — o take ficou por cima do outro.");
@@ -795,7 +806,7 @@
     });
     BWFerr.ajuda("ATALHOS DO EDITOR DE VÍDEO", [["#", "TOCAR E NAVEGAR"], ["Espaço / K", "tocar / pausar"], ["L", "tocar"], ["J", "voltar 1 s"], ["← / →", "um quadro para trás / frente"], ["Shift+← / Shift+→", "1 segundo"], ["Home / End", "início / fim"],
       ["#", "EDITAR"], ["Ctrl+K", "cortar na agulha (o clipe escolhido, ou tudo o que está na agulha)"], ["Delete", "apagar o clipe"], ["Shift+Delete", "apagar e fechar o espaço"], ["Ctrl+C / Ctrl+V", "copiar / colar na agulha"], ["Ctrl+Shift+C / Ctrl+Shift+V", "copiar os AJUSTES de um take / colar em outro"], ["Q / W", "cortar o começo / o fim do take até a agulha"], ["Shift+E", "desativar / ativar o take"],
-      ["Ctrl+Shift+D", "duplicar"], ["Ctrl+D", "transição Dissolver no clipe"], ["Ctrl+Z", "desfazer"], ["Ctrl+Shift+Z / Ctrl+Y", "refazer"], ["Botão direito", "opções do clipe (no celular: segure o dedo)"],
+      ["Ctrl+Shift+D", "duplicar"], ["Ctrl+D", "transição Dissolver no clipe"], ["Ctrl+Z", "desfazer"], ["Ctrl+Shift+Z / Ctrl+Y", "refazer"], ["Botão direito", "opções do clipe (no celular: ⋯ MAIS)"],
       ["#", "LINHA DO TEMPO E ARQUIVO"], ["= / -", "aproximar / afastar"], ["\\", "caber o vídeo inteiro"], ["Ctrl+roda do mouse", "zoom onde está o mouse"], ["Ctrl+I", "importar mídia"], ["Ctrl+S", "salvar"], ["Ctrl+M", "exportar o vídeo"], ["?", "esta lista"]]);
     // MENU DO CLIPE (botão direito / segurar o dedo)
     BWFerr.contexto($("veFaixas"), "[data-clip]", function (el) { var c = P.clips.filter(function (x) { return x.id === el.dataset.clip; })[0]; if (!c) return [];

@@ -11,7 +11,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Brightway">
-<link rel="stylesheet" href="assets/brightway.css?v=34">
+<link rel="stylesheet" href="assets/brightway.css?v=35">
 <style>
 .wrap{max-width:1500px;margin:0 auto;padding:0 16px 110px}
 .ve-topo{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px}
@@ -177,7 +177,9 @@
   .wrap.bwf-fixo #veCriar h3{pointer-events:none}.wrap.bwf-fixo #veCriar h3::after{display:none}
 </style>
 <script src="assets/modos.js?v=6"></script>
-<link rel="stylesheet" href="assets/ve-app.css?v=2">
+<link rel="stylesheet" href="assets/ve-app.css?v=4">
+<script>/* 22/11: decide o layout de app ANTES de desenhar (senão a tela antiga aparecia por um instante) */(function(){var q=new URLSearchParams(location.search).get("layout")||"";if(q==="app"||(q!=="classico"&&(innerWidth<=900||(matchMedia("(pointer:coarse)").matches&&innerWidth<=1180))))document.documentElement.classList.add("app-cedo")})()</script>
+
 </head>
 <body>
 <header><div class="hd"><button id="btnVoltar" type="button">‹</button><div id="userBox"></div></div></header>
@@ -234,13 +236,13 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="assets/bw-sync.js"></script>
 <script src="assets/bw-personagens.js?v=3"></script>
-<script src="assets/bw-ferramentas.js?v=3"></script>
+<script src="assets/bw-ferramentas.js?v=4"></script>
 <script src="assets/bw-criacoes.js?v=1"></script>
 <script src="assets/bw-chroma.js?v=1"></script>
 <script src="assets/bw-cor.js?v=1"></script>
 <script src="assets/bw-mascara.js?v=1"></script>
-<script src="assets/ve-app.js?v=2"></script>
-<script src="assets/video-editor.js?v=10"></script>
+<script src="assets/ve-app.js?v=4"></script>
+<script src="assets/video-editor.js?v=11"></script>
 <script src="assets/ve-modelos.js?v=1"></script>
 <script src="assets/bw-controle.js?v=1"></script>
 </body>
