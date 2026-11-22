@@ -465,3 +465,11 @@ Tamanho > 0 e sem erro = o pdfmake montou o arquivo. Localmente (T1) confira o `
 - Conferir no olho: folha com 7 quadros por modelo (página com o motor + Playwright → JPG). 45 modelos revisados assim antes do teste.
 - Teste `docs/testes/teste_album.py`: pixel da 1ª foto no centro do efeito de tela cheia, take de vídeo no 4º, todos os modelos desenhando com
   mídia, fundo de chroma no canto, MP4 gerado com a cor certa no tempo certo (ffprobe/ffmpeg).
+
+## Arrastar com escolha (22/11 — editor de vídeo e Motion)
+- Durante o arraste só MOSTRE (aviso com pointer-events:none). Ao soltar, guarde o estado do arraste (`a.ini`, `a.trOrig`, `a.keys`) e abra um
+  painel com botões; só o clique aplica. Cancelar (Esc, toque fora depois de 250 ms) restaura o estado guardado.
+- "Em cima" = sobreposição ≥ 60% do MENOR dos dois takes E o ponteiro dentro do outro take; abaixo disso, encostar (fim do vizinho ou antes dele, o mais perto que estiver livre).
+- Ação escolhida → `tudo()` + `gravarHist()` na hora (um passo do desfazer).
+- Transição pela agulha: procurar o take com `anteriorDe(c)` cujo `c.ini` está a ≤ max(0,12 s, 14 px) de T; marcar o ◆ no relógio (`marcarEmenda` só parado).
+- Teste: `pg.mouse.down` + passos + `pg.mouse.up`, ler `#veDicaArr` ANTES do up, conferir que nada mudou, clicar `[data-esc=…]`, desfazer.

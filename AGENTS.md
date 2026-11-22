@@ -668,6 +668,14 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
      Revisar TODO modelo numa folha de quadros antes de publicar (achou grade pequena, faixa bagunçada, filme sumindo). Entra também como
      botão-link nos modos do ESTÚDIO 3D (o laço de cliques dos modos só liga quem tem data-m) (auto: teste_album.py).
 
+**Aprendidos em 22/11 (arrastar sem aplicar sozinho; transição na agulha)**
+172. ARRASTAR NÃO DECIDE PELO USUÁRIO (dono, 22/11 10:05): aviso que mostra escolhas NUNCA aplica uma delas ao soltar. Editor de vídeo: take
+     cobrindo ≥ 60% do outro (e o ponteiro em cima dele) → ao soltar abre a ESCOLHA (#veEscolha: TROCAR / SUBSTITUIR / PÔR POR CIMA / CANCELAR;
+     Esc ou toque fora = cancelar, o take volta); menos que isso = ENCOSTAR no vizinho (sem trocar nem criar camada). Camada nova "na hora" durante
+     o arraste acabou. Motion: barra levada a outra camada → escolha #moEscolha (trocar / por cima / por baixo / cancelar). TRANSIÇÃO vai na EMENDA
+     da AGULHA (emendaNaAgulha, ◆ acende amarelo, tolerância 14 px); longe da emenda o toque só avisa — nunca aplica em take errado. Teste de
+     arrastar usa take com espaço livre (encostar no vizinho agora não move) (auto: teste_video_arrastar.py, teste_motion_ferramentas.py).
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -1954,7 +1962,14 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   cartão, moldura, fundo (inclui chroma), título, música, projetos, desfazer, ⋯ da prévia (2º monitor, celular), GERAR VÍDEO no aparelho e ➜ LINHA DO TEMPO.
   Entra em Marketing, Ferramentas, Minha empresa e como botão nos modos do ESTÚDIO 3D. Nada do pacote do vídeo foi copiado. teste_album.py 0 falhas ×
   1280/390 (pixel da foto certa no MP4), vigia ✅. Manual 58 → 59 p. layout.js v71, bw-criacoes v2, video-editor v12, bw3d v13, sw v179. PENTE FINO 171.
+- 22/11/2026 10:40 · Claude (dono: "transição com a agulha entre os takes; substituir só com 60% em cima; o aviso mostra a opção mas aplica sozinho —
+  deve esperar o clique; encostar um take no outro substitui"): EDITOR DE VÍDEO — take um pouco por cima do outro só ENCOSTA; cobrindo 60% ou mais,
+  ao soltar aparece a escolha TROCAR DE LUGAR / SUBSTITUIR (novo: o outro sai) / PÔR POR CIMA / CANCELAR e nada muda até o toque; a camada não nasce
+  mais sozinha no meio do arraste. TRANSIÇÃO: agulha na emenda → o ◆ acende e tocar numa transição aplica ali (vale no celular, com a agulha fixa no
+  meio). ESTÚDIO DE MOTION igual: barra levada a outra camada pergunta (trocar / por cima / por baixo / cancelar). Testes teste_video_arrastar (+18),
+  teste_motion_ferramentas (+8) e a bateria do editor 0 falhas; vigia ✅. Manual 59 p. App BW 1.9.26. video-editor v13, motion v11, sw v180. PENTE FINO 172.
 ## Pendências (dono)
+- [ ] (22/11) ARRASTAR: dono testar no PC e no celular — encostar um take no outro, cobrir mais da metade e escolher, e aplicar transição com a agulha na emenda.
 - [ ] (22/11) ÁLBUM 3D: dono abrir Marketing → Álbum 3D e efeitos no celular e no PC, pôr fotos de um evento real, trocar de modelos e gerar um vídeo; dizer quais modelos quer a mais (e o BW-Setup.exe 1.9.25: dois cliques em "5 - GERAR INSTALADOR EXE").
 - [x] (22/11 08:43) BW-Setup.exe 1.9.24 gerado pelo dono e publicado (8,3 MB, versão conferida dentro do .exe).
 - [ ] (22/11) MOTION NO CELULAR + ⋯ NAS TELAS E NO 3D: dono testar o Motion no celular (tocar num item, folhas, segurar) e os ⋯ das Telas/3D no PC (2º monitor).

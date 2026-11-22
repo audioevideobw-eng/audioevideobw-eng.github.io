@@ -46,7 +46,7 @@ with sync_playwright() as p:
         # ---- 1) o centro: a caixa CRIAR com os atalhos VISÍVEIS ----
         pg.goto(BASE + "video.html?layout=classico"); pg.wait_for_function("window.__veProntoOk === true", timeout=20000)
         atalhos = pg.locator("#veCriarLista a")
-        ok(atalhos.count() == 7, f"7 ferramentas na caixa CRIAR (achei {atalhos.count()})")
+        ok(atalhos.count() == 8, f"8 ferramentas na caixa CRIAR (com o Álbum 3D) (achei {atalhos.count()})")
         # 21/11: a caixa fica GUARDADA (não ocupa lugar) — no PC abre pelo botão ✦ CRIAR da mídia; no celular pela seta do título
         ok(not atalhos.first.is_visible(), "a caixa CRIAR começa guardada (não ocupa lugar)")
         if pg.locator("#veCriarBt").is_visible(): pg.click("#veCriarBt")

@@ -1,19 +1,19 @@
 {
- "versao": "1.9.25",
+ "versao": "1.9.26",
  "data": "22/11/2026",
  "pacote": "downloads/BW-Reels-Studio.zip",
- "sha256": "a33f6788c625d2203995e5b8eec53c6ffa4a36954bcd4eef55839fdc7076d9da",
- "bytes": 41426446,
+ "sha256": "77687dff45164bfc177e58987933a0d09f5094a9417ff120b5f3ed96344dc0ad",
+ "bytes": 41467374,
  "novidades": [
   {
-   "titulo": "Álbum 3D e efeitos",
-   "texto": "45 modelos prontos (anel, carrossel, cascata, livro de fotos, polaroids, coração, rolo de filme e efeitos 3D de tela cheia): ponha suas fotos e vídeos no lugar dos números e gere o vídeo.",
-   "abrir": "album3d"
+   "titulo": "Arrastar sem surpresa",
+   "texto": "No editor de vídeo e no Motion, encostar um take no outro só encosta. Cobrindo 60% ou mais, ao soltar aparece a pergunta (trocar, substituir, pôr por cima ou cancelar) e nada muda até você tocar.",
+   "abrir": "video"
   },
   {
-   "titulo": "Também no Estúdio 3D",
-   "texto": "O botão 🎞 ÁLBUM 3D E EFEITOS fica junto dos outros modos do Estúdio 3D.",
-   "abrir": "estudio3d"
+   "titulo": "Transição na agulha",
+   "texto": "Ponha a agulha na emenda entre dois takes (o ◆ acende em amarelo) e toque numa transição: ela entra ali.",
+   "abrir": "video"
   }
  ]
 }

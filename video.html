@@ -88,6 +88,15 @@
 .ve-junta.com{background:#fff;border:2px solid #7C5CFF;box-shadow:0 0 0 3px rgba(124,92,255,.35),0 4px 12px rgba(0,0,0,.5);cursor:ew-resize}
 .ve-junta b{position:absolute;left:11px;top:-14px;transform:rotate(-45deg);transform-origin:0 100%;white-space:nowrap;font:800 9px Inter,sans-serif;letter-spacing:.04em;background:#7C5CFF;color:#fff;border-radius:6px;padding:1px 5px;pointer-events:none}
 .ve-faixa.baixa .ve-junta b{display:none}
+.ve-junta.agulha{background:#FFD23F;border:2px solid #fff;box-shadow:0 0 0 4px rgba(255,210,63,.45),0 0 14px rgba(255,210,63,.8);width:17px;height:17px;margin:-8.5px 0 0 -8.5px;animation:veJuntaPulsa 1.1s ease-in-out infinite}
+@keyframes veJuntaPulsa{50%{box-shadow:0 0 0 7px rgba(255,210,63,.18),0 0 18px rgba(255,210,63,.9)}}
+@media (prefers-reduced-motion:reduce){.ve-junta.agulha{animation:none}}
+.ve-escolha{position:fixed;z-index:9700;width:260px;max-width:calc(100vw - 16px);padding:10px;border-radius:14px;background:rgba(14,16,22,.97);border:1px solid rgba(255,255,255,.2);box-shadow:0 16px 40px rgba(0,0,0,.6);display:flex;flex-direction:column;gap:6px}
+.ve-escolha p{margin:0 2px 4px;font:600 12px Inter,sans-serif;color:#cfd3dc;line-height:1.35}
+.ve-escolha button{all:unset;cursor:pointer;display:block;padding:9px 10px;border-radius:9px;background:rgba(255,255,255,.06);font:800 12px Inter,sans-serif;letter-spacing:.05em;color:#fff;touch-action:manipulation}
+.ve-escolha button small{display:block;font:600 10px Inter,sans-serif;letter-spacing:.02em;opacity:.7;margin-top:2px}
+.ve-escolha button:hover,.ve-escolha button:focus-visible{background:#7C5CFF}
+.ve-escolha button.nao{background:transparent;border:1px solid rgba(255,255,255,.18)}
 .ve-clip.marcado{animation:veMarca 1.2s ease}@keyframes veMarca{0%,60%{box-shadow:0 0 0 3px #fff,0 0 22px 6px var(--c)}100%{box-shadow:none}}
 .ve-clip.ld-alvo,.ve-faixa.ld-alvo{outline:2px solid #fff;outline-offset:1px}
 .ve-fantasma{position:fixed;z-index:9500;pointer-events:none;max-width:220px;padding:7px 10px;border-radius:10px;background:#7C5CFF;color:#fff;font:800 11px Inter,sans-serif;box-shadow:0 10px 30px rgba(0,0,0,.55)}.ve-fantasma::after{content:attr(data-dica);display:block;margin-top:3px;font:700 9.5px Inter,sans-serif;opacity:.85;letter-spacing:.04em}
@@ -242,7 +251,7 @@
 <script src="assets/bw-cor.js?v=1"></script>
 <script src="assets/bw-mascara.js?v=1"></script>
 <script src="assets/ve-app.js?v=4"></script>
-<script src="assets/video-editor.js?v=12"></script>
+<script src="assets/video-editor.js?v=13"></script>
 <script src="assets/ve-modelos.js?v=1"></script>
 <script src="assets/bw-controle.js?v=1"></script>
 </body>

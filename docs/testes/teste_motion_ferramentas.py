@@ -68,25 +68,28 @@ with sync_playwright() as p:
                 for i in range(1, 15): pg.mouse.move(x0 + (xb - x0) * i / 14, y0 + (bb["y"] + bb["height"] / 2 - y0) * i / 14); pg.wait_for_timeout(12)
                 vis = pg.locator(".mo-fantasma").count() == 1; pg.mouse.up(); pg.wait_for_timeout(300)
                 ok(vis and pg.evaluate(f"{P}.itens.find(i=>i.id==='{alvo}').{lado}.efeito") == ef, f"efeito arrastado até a barra vira {lado.upper()} ({ef})")
-            # CAMADAS: arrastar a barra para cima de outra camada
-            pg.evaluate("BWMotionEditor.ver(0)"); ordem0 = pg.evaluate(f"{P}.itens.map(i=>i.id)")
-            a_id = ordem0[0]; c_id = ordem0[1]   # a (mais atrás) passa a ficar por cima de c
-            pg.locator(f'[data-barra="{a_id}"]').scroll_into_view_if_needed()
-            xa, ya, ba = centro(pg, f'[data-barra="{a_id}"]'); pc = pg.locator(f'[data-barra="{c_id}"]').locator("xpath=..").bounding_box()
-            pg.mouse.move(xa, ya); pg.mouse.down()
-            for i in range(1, 13): pg.mouse.move(xa + 6 * i / 12, ya + (pc["y"] + pc["height"] * 0.2 - ya) * i / 12); pg.wait_for_timeout(15)
-            ordem1 = pg.evaluate(f"{P}.itens.map(i=>i.id)")
-            ok(ordem1.index(a_id) == ordem1.index(c_id) + 1, "⬆ PARA CIMA: a camada passa por cima da outra NA HORA (antes de soltar)")
-            ok(pg.is_visible("#moDicaArr") and "PARA CIMA" in pg.inner_text("#moDicaArr"), "…com o aviso ⬆ PARA CIMA")
-            pg.mouse.up(); pg.wait_for_timeout(300); ok(not pg.is_visible("#moDicaArr") and pg.evaluate(f"{P}.itens.length") == n, "…o aviso some e nenhum item some")
-            pg.keyboard.press("Control+z"); pg.wait_for_timeout(300)
-            ordem0 = pg.evaluate(f"{P}.itens.map(i=>i.id)"); a_id = ordem0[0]; c_id = ordem0[1]
-            xa, ya, ba = centro(pg, f'[data-barra="{a_id}"]'); pc = pg.locator(f'[data-barra="{c_id}"]').locator("xpath=..").bounding_box()
-            pg.mouse.move(xa, ya); pg.mouse.down()
-            for i in range(1, 13): pg.mouse.move(xa + 6 * i / 12, ya + (pc["y"] + pc["height"] * 0.75 - ya) * i / 12); pg.wait_for_timeout(15)
-            ok(pg.is_visible("#moDicaArr") and "TROCAR DE LUGAR" in pg.inner_text("#moDicaArr"), "⇄ em cima da camada aparece TROCAR DE LUGAR")
-            pg.mouse.up(); pg.wait_for_timeout(300); ordem1 = pg.evaluate(f"{P}.itens.map(i=>i.id)")
-            ok(ordem1[0] == c_id and ordem1[1] == a_id, "…soltar troca as duas camadas de lugar")
+            # CAMADAS (22/11 10:05, dono): arrastar a barra até outra camada NÃO muda nada sozinho — ao soltar aparece a escolha e espera o toque
+            def ate_camada():
+                o = pg.evaluate(f"{P}.itens.map(i=>i.id)"); a, c = o[0], o[1]
+                pg.locator(f'[data-barra="{a}"]').scroll_into_view_if_needed(); xa, ya, _ = centro(pg, f'[data-barra="{a}"]'); pc = pg.locator(f'[data-barra="{c}"]').locator("xpath=..").bounding_box()
+                pg.mouse.move(xa, ya); pg.mouse.down()
+                for i in range(1, 13): pg.mouse.move(xa + 6 * i / 12, ya + (pc["y"] + pc["height"] * 0.5 - ya) * i / 12); pg.wait_for_timeout(15)
+                d = pg.inner_text("#moDicaArr") if pg.is_visible("#moDicaArr") else ""; o1 = pg.evaluate(f"{P}.itens.map(i=>i.id)")
+                pg.mouse.up(); pg.wait_for_timeout(400); return a, c, o, d, o1
+            pg.evaluate("BWMotionEditor.ver(0)")
+            a_id, c_id, ordem0, dica, durante = ate_camada()
+            ok("escolher" in dica.lower() and durante == ordem0, f"em cima de outra camada o aviso diz que vai PERGUNTAR e nada muda enquanto arrasta ({dica.strip()})")
+            ok(pg.locator("#moEscolha").is_visible() and all(t in pg.inner_text("#moEscolha") for t in ("TROCAR DE LUGAR", "PÔR POR CIMA", "PÔR POR BAIXO", "CANCELAR")), "…ao soltar aparece a escolha (TROCAR / POR CIMA / POR BAIXO / CANCELAR)")
+            pg.wait_for_timeout(500); ok(pg.evaluate(f"{P}.itens.map(i=>i.id)") == ordem0, "…e nada foi aplicado sozinho")
+            pg.click('#moEscolha [data-esc="cima"]'); pg.wait_for_timeout(300); ordem1 = pg.evaluate(f"{P}.itens.map(i=>i.id)")
+            ok(ordem1.index(a_id) == ordem1.index(c_id) + 1 and len(ordem1) == n, "⬆ PÔR POR CIMA (só depois do toque): a camada passa por cima da outra")
+            pg.wait_for_timeout(900); pg.keyboard.press("Control+z"); pg.wait_for_timeout(400)
+            ok(pg.evaluate(f"{P}.itens.map(i=>i.id)") == ordem0, "↶ Ctrl+Z desfaz")
+            a_id, c_id, ordem0, dica, durante = ate_camada(); pg.click('#moEscolha [data-esc="trocar"]'); pg.wait_for_timeout(300); ordem1 = pg.evaluate(f"{P}.itens.map(i=>i.id)")
+            ok(ordem1[0] == c_id and ordem1[1] == a_id, "⇄ TROCAR DE LUGAR troca as duas camadas")
+            pg.wait_for_timeout(900); pg.keyboard.press("Control+z"); pg.wait_for_timeout(400)
+            a_id, c_id, ordem0, dica, durante = ate_camada(); pg.keyboard.press("Escape"); pg.wait_for_timeout(300)
+            ok(pg.evaluate(f"{P}.itens.map(i=>i.id)") == ordem0 and pg.locator("#moEscolha").count() == 0, "Esc = CANCELAR: tudo fica como estava")
             # Alt + rodinha = altura
             xr, yr, _ = centro(pg, "#moPistas .mo-pista"); h0 = pg.locator("#moPistas .mo-pista").first.bounding_box()["height"]
             pg.mouse.move(xr, yr); pg.keyboard.down("Alt"); pg.mouse.wheel(0, -100); pg.mouse.wheel(0, -100); pg.keyboard.up("Alt"); pg.wait_for_timeout(200)

@@ -122,6 +122,8 @@ with sync_playwright() as p:
         tocar_el("#vaDesf"); pg.wait_for_timeout(300); ok(pg.evaluate(f"{CL}.length") == n0, "↶ desfaz")
         # segurar o dedo no take → opções
         pg.evaluate("__video.sel(null)"); pg.wait_for_timeout(250)
+        # 22/11 10:05: encostar num vizinho agora só ENCOSTA — o teste pega o ÚLTIMO take (tem espaço livre para andar)
+        c1 = pg.evaluate(f"{CL}.filter(c=>c.trilha==='v1').sort((a,b)=>b.ini-a.ini)[0].id"); pg.evaluate(f"__video.irPara({CL}.find(c=>c.id==='{c1}').ini+0.3)"); pg.wait_for_timeout(300)
         ini0 = pg.evaluate(f"{CL}.find(c=>c.id==='{c1}').ini"); bb = pg.locator(f'[data-clip="{c1}"]').bounding_box(); hx = max(bb["x"] + 10, min(bb["x"] + bb["width"] / 2, vp[0] - 80)); hy = bb["y"] + bb["height"] / 2
         cdp.send("Input.dispatchTouchEvent", {"type": "touchStart", "touchPoints": [{"x": hx, "y": hy}]}); pg.wait_for_timeout(550)
         for k in range(1, 13): cdp.send("Input.dispatchTouchEvent", {"type": "touchMove", "touchPoints": [{"x": hx + 5 * k, "y": hy}]}); pg.wait_for_timeout(16)

@@ -476,19 +476,36 @@
       else if (arr.tipo === "d") it.fim = +Math.min(P.dur, Math.max(it.ini + 0.2, arr.fim + d)).toFixed(3);
       ver(T); desenharTimeline();
     });
-    /* 22/11 (dono): barra arrastada EM CIMA de outra camada mostra o aviso — metade de cima da camada = ⬆ PARA CIMA (o item passa a ficar por cima
-       dela NA HORA), resto = ⇄ TROCAR DE LUGAR (troca a ordem das duas ao soltar). Trava de 20 px depois de subir (regra 159). */
+    /* 22/11 10:05 (dono): barra arrastada até OUTRA camada não muda nada sozinha — ao soltar aparece a ESCOLHA (trocar de lugar, pôr por cima,
+       pôr por baixo ou cancelar) e só o toque aplica. Arrastar só para os lados continua mudando o tempo, como sempre. */
     function camadaSob(e, it) {
       var fx = document.elementFromPoint(e.clientX, e.clientY), pista = fx && fx.closest && fx.closest(".mo-pista"), bb = pista && pista.querySelector("[data-barra]"), alvo = bb && item(bb.getAttribute("data-barra"));
-      arr.troca = null;
-      if (!alvo || alvo === it || (arr.yCriou != null && Math.abs(e.clientY - arr.yCriou) < 20)) { dicaArr(arr.subiu ? e : null, arr.subiu ? "⬆ PARA CIMA · por cima de “" + nomeItem(arr.subiu) + "”" : ""); return; }
-      var r = pista.getBoundingClientRect();
-      if (e.clientY < r.top + r.height * 0.42) { P.itens.splice(P.itens.indexOf(it), 1); P.itens.splice(P.itens.indexOf(alvo) + 1, 0, it); arr.subiu = alvo; arr.yCriou = e.clientY; remontar(); dicaArr(e, "⬆ PARA CIMA · por cima de “" + nomeItem(alvo) + "”"); }
-      else { arr.troca = alvo; dicaArr(e, "trocar"); }
+      arr.troca = null; arr.xy = { x: e.clientX, y: e.clientY };
+      if (!alvo || alvo === it) { dicaArr(null); return; }
+      arr.troca = alvo; dicaArr(e, "Solte para escolher: trocar ou pôr por cima de “" + nomeItem(alvo) + "”");
     }
     function soltar() { dicaArr(null); var a = arr; arr = null; if (!a) return;
-      if (a.mexeu && a.troca) { var it = item(a.id), i = P.itens.indexOf(it), j = P.itens.indexOf(a.troca); if (i >= 0 && j >= 0) { P.itens[i] = a.troca; P.itens[j] = it; } mudou({ painel: true }); aviso("⇄ Camadas trocadas de lugar (Ctrl+Z desfaz)."); return; }
-      if (a.mexeu) { mudou({ remontar: !!a.subiu, painel: true }); if (a.subiu) aviso("⬆ O item ficou por cima de “" + nomeItem(a.subiu) + "”."); } }
+      if (a.mexeu && a.troca) { remontar(); escolherCamada(a); return; }
+      if (a.mexeu) mudou({ painel: true }); }
+    var ESCO = null;
+    function escolherCamada(a) { fecharEsc(); var alvo = a.troca, d = document.createElement("div"); d.id = "moEscolha"; d.className = "mo-escolha"; d.setAttribute("role", "dialog");
+      d.innerHTML = "<p>A barra está em cima da camada <b>" + esc(nomeItem(alvo)) + "</b>. O que você quer?</p>" +
+        '<button type="button" data-esc="trocar">⇄ TROCAR DE LUGAR<small>as duas camadas trocam de ordem</small></button>' +
+        '<button type="button" data-esc="cima">⬆ PÔR POR CIMA<small>o item fica na frente dela</small></button>' +
+        '<button type="button" data-esc="baixo">⬇ PÔR POR BAIXO<small>o item fica atrás dela</small></button>' +
+        '<button type="button" data-esc="cancelar" class="nao">↩ CANCELAR<small>volta para onde estava</small></button>';
+      document.body.appendChild(d); var w = Math.min(260, innerWidth - 16), xy = a.xy || { x: innerWidth / 2, y: innerHeight / 2 }; d.style.left = Math.max(8, Math.min(innerWidth - w - 8, xy.x - w / 2)) + "px";
+      var h = d.offsetHeight, y = xy.y - h - 14; d.style.top = Math.max(8, y < 8 ? Math.min(innerHeight - h - 8, xy.y + 14) : y) + "px";
+      ESCO = { a: a, el: d, desde: Date.now() }; d.addEventListener("click", function (e) { var b = e.target.closest("[data-esc]"); if (b) escolherEsc(b.dataset.esc); }); }
+    function escolherEsc(k) { if (!ESCO) return; var a = ESCO.a, it = item(a.id), alvo = a.troca; ESCO.el.remove(); ESCO = null; if (!it) return;
+      if (k === "cancelar") { it.keys = JSON.parse(a.keys); it.ini = a.ini; it.fim = a.fim; ver(T); desenharTimeline(); aviso("↩ Cancelado — o item voltou para onde estava."); return; }
+      var i = P.itens.indexOf(it), j = P.itens.indexOf(alvo);
+      if (k === "trocar") { if (i >= 0 && j >= 0) { P.itens[i] = alvo; P.itens[j] = it; } aviso("⇄ Camadas trocadas de lugar (Ctrl+Z desfaz)."); }
+      else { P.itens.splice(i, 1); j = P.itens.indexOf(alvo); P.itens.splice(k === "cima" ? j + 1 : j, 0, it); aviso((k === "cima" ? "⬆ O item ficou por cima de “" : "⬇ O item ficou por baixo de “") + nomeItem(alvo) + "”."); }
+      mudou({ remontar: true, painel: true }); }
+    function fecharEsc() { if (ESCO) { ESCO.el.remove(); ESCO = null; } }
+    document.addEventListener("pointerdown", function (e) { if (ESCO && !e.target.closest("#moEscolha") && Date.now() - ESCO.desde > 250) escolherEsc("cancelar"); }, true);
+    document.addEventListener("keydown", function (e) { if (ESCO && e.key === "Escape") { e.preventDefault(); e.stopImmediatePropagation(); escolherEsc("cancelar"); } }, true);
     pis.addEventListener("pointerup", soltar); pis.addEventListener("pointercancel", soltar);
     /* Alt + rodinha = camadas mais altas / mais baixas (guardado no aparelho) */
     var corpo = pis.parentNode; function altura(h) { ALT = Math.max(22, Math.min(90, Math.round(h))); corpo.style.setProperty("--mo-alt", ALT + "px"); try { localStorage.setItem("ui_motion_alt", ALT); } catch (x) {} }
