@@ -337,7 +337,7 @@
   /* ---------- linha do tempo ---------- */
   var NOMES = {gancho: "Gancho", texto: "Texto", midia: "Mídia", dado: "Dado", lista: "Lista", citacao: "Citação", cta: "Chamada", personagem: "Personagem",
     logo: "Logo", nome: "Nome", contagem: "Contagem", grafico: "Gráfico", linha: "Linha do tempo", checklist: "Checklist", ranking: "Top", depoimento: "Depoimento",
-    local: "Local", oferta: "Oferta", aovivo: "AO VIVO", celular: "Celular", antesdepois: "Antes/depois", dividida: "Dividida"};
+    local: "Local", oferta: "Oferta", aovivo: "AO VIVO", celular: "Celular", antesdepois: "Antes/depois", dividida: "Dividida", passo: "Passo", terminal: "Terminal", painel: "Painel", medidor: "Medidor", catalogo: "Catálogo", comenta: "Comenta"};
   function resumo(c) { if (c.tipo === "personagem") { var f = (c.falas && c.falas[0] && c.falas[0].texto) || c.balao; var el = c.elenco && c.elenco.length ? c.elenco : [{personagem: c.personagem || "be"}]; return f || el.map(function (a) { return (M.PERSONAGENS[a.personagem] || {nome: "?"}).nome.split(" ")[0]; }).join(" e "); } return c.texto || c.titulo || (c.tipo === "dado" ? (c.prefixo || "") + " " + (c.valor != null ? c.valor : "") + " " + (c.rotulo || "") : "") || (c.midia ? (MID.find(function (m) { return m.caminho === c.midia; }) || {}).nome || "mídia" : "—"); }
   var ERROS_CENA = {};
   function desenharLinha() {
@@ -367,20 +367,28 @@
     logo: ["gTexto", "gSub"], nome: ["gTexto", "gSub"], contagem: ["gTexto", "gNum", "gEnfase"], grafico: ["gTexto", "gItens", "gForma", "gUnid", "gFonte2", "gEnfase"],
     linha: ["gTexto", "gItens", "gEnfase"], checklist: ["gTexto", "gItens", "gEnfase"], ranking: ["gTexto", "gItens", "gEnfase"], depoimento: ["gTexto", "gAutor", "gEstrelas", "gEnfase"],
     local: ["gTexto", "gSub", "gEnfase"], oferta: ["gChamada", "gTexto", "gDado", "gEnfase"], aovivo: ["gTexto", "gSub", "gEnfase"], celular: ["gTexto", "gEnfase"],
-    antesdepois: ["gTexto", "gMidia2", "gEnfase"], dividida: ["gTexto", "gSub", "gMidia2"]
+    antesdepois: ["gTexto", "gMidia2", "gEnfase"], dividida: ["gTexto", "gSub", "gMidia2"],
+    passo: ["gTexto", "gSub", "gEnfase", "gIcone", "gCor", "gNumero", "gTotal"], terminal: ["gTexto", "gSub", "gCmd", "gItens", "gEnfase"],
+    painel: ["gTexto", "gDado", "gItens", "gVariacao", "gEnfase"], medidor: ["gTexto", "gDado", "gMaximo", "gEnfase"],
+    catalogo: ["gTexto", "gItens", "gIcone", "gEnfase"], comenta: ["gTexto", "gPalavra", "gResposta"]
   };
-  var USA_TITULO = ["texto", "lista", "nome", "grafico", "linha", "checklist", "ranking"];
+  var CAMPOS_ENSINA = ["gCmd", "gIcone", "gCor", "gNumero", "gTotal", "gPalavra", "gResposta", "gVariacao", "gMaximo"];
+  var USA_TITULO = ["texto", "lista", "nome", "grafico", "linha", "checklist", "ranking", "passo", "catalogo"];
   var ROTULOS = {nome: ["Nome", "Cargo / empresa"], logo: ["Marca (se não usar imagem)", "Frase embaixo"], contagem: ["Texto depois da contagem"], local: ["Local", "Data e hora"],
     aovivo: ["Chamada", "Linha de baixo"], dividida: ["Etiqueta de cima", "Etiqueta de baixo"], oferta: ["Produto / pacote"], celular: ["Texto em cima"], antesdepois: ["Legenda"],
-    depoimento: ["Frase REAL do cliente"], grafico: ["Título do gráfico"], linha: ["Título"], checklist: ["Título"], ranking: ["Título"]};
-  var DICA_ITENS = {grafico: "Um por linha: Rótulo: número (ex.: 2024: 24)", linha: "Um por linha: quando — o quê (ex.: 2015 — nasce a produtora)", ranking: "Um por linha, do 1º para o último", checklist: "Um por linha (até 5)", lista: "Itens (um por linha, até 4)"};
+    depoimento: ["Frase REAL do cliente"], grafico: ["Título do gráfico"], linha: ["Título"], checklist: ["Título"], ranking: ["Título"],
+    passo: ["Nome do passo", "Frase embaixo do ícone"], terminal: ["Texto em cima (opcional)", "Nome da janela"], painel: ["Texto em cima (opcional)"], medidor: ["Texto em cima (opcional)"], catalogo: ["Título"], comenta: ["Chamada (ex.: Comenta)"]};
+  var DICA_ITENS = {grafico: "Um por linha: Rótulo: número (ex.: 2024: 24)", linha: "Um por linha: quando — o quê (ex.: 2015 — nasce a produtora)", ranking: "Um por linha, do 1º para o último", checklist: "Um por linha (até 5)", lista: "Itens (um por linha, até 4)", terminal: "Linhas de resultado (até 4)", painel: "Pontos do gráfico (um número por linha)", catalogo: "Itens (um por linha, até 10)"};
   function textoPrincipal(c) { return USA_TITULO.indexOf(c.tipo) >= 0 ? (c.titulo || "") : (c.texto || ""); }
   function desenharCena() {
     var c = P.roteiro.cenas[SEL];
     $("cenaVazia").hidden = !!c; $("cenaForm").hidden = !c; if (!c) return;
-    ["gTexto", "gEnfase", "gSub", "gChamada", "gItens", "gDado", "gAutor", "gAcao", "gPers", "gNum", "gForma", "gUnid", "gFonte2", "gEstrelas", "gMidia2"].forEach(function (g) { $(g).hidden = (CAMPOS[c.tipo] || []).indexOf(g) < 0; });
+    ["gTexto", "gEnfase", "gSub", "gChamada", "gItens", "gDado", "gAutor", "gAcao", "gPers", "gNum", "gForma", "gUnid", "gFonte2", "gEstrelas", "gMidia2"].concat(CAMPOS_ENSINA).forEach(function (g) { $(g).hidden = (CAMPOS[c.tipo] || []).indexOf(g) < 0; });
+    $("gEnsina").hidden = CAMPOS_ENSINA.every(function (g) { return $(g).hidden; });
+    $("cComando").value = c.comando || ""; $("cIcone").value = c.tipo === "catalogo" ? (c.icones || []).join(" ") : (c.icone || ""); $("cCor").value = /^#[0-9a-f]{6}$/i.test(c.cor || "") ? c.cor : "#8be36a";
+    $("cNumero").value = c.numero != null ? c.numero : ""; $("cTotal").value = c.total || ""; $("cPalavra").value = c.palavra || ""; $("cResposta").value = c.resposta || ""; $("cVariacao").value = c.variacao || ""; $("cMaximo").value = c.maximo || "";
     $("cTipo").value = c.tipo; $("cDur").value = c.duracao;
-    $("cTexto").value = textoPrincipal(c); $("cEnfase").value = (c.enfase || []).join(", "); $("cSub").value = c.subtitulo || ""; $("cChamada").value = c.chamada || "";
+    $("cTexto").value = textoPrincipal(c); $("cEnfase").value = (c.enfase || []).join(", "); $("cSub").value = (c.tipo === "terminal" ? c.titulo : c.subtitulo) || ""; $("cChamada").value = c.chamada || "";
     $("cItens").value = (c.itens || []).join("\n"); $("cValor").value = c.valor != null ? c.valor : ""; $("cCasas").value = c.casas || 0;
     $("cPref").value = c.prefixo || ""; $("cSuf").value = c.sufixo || ""; $("cRotulo").value = c.rotulo || ""; $("cFonte").value = c.fonte || "";
     $("cAutor").value = c.autor || ""; $("cAcao").value = c.acao || ""; $("cMov").value = c.movimento || ""; $("cTrans").value = c.transicao || "";
@@ -404,6 +412,21 @@
     if (["texto", "nome", "logo", "local", "aovivo", "dividida"].indexOf(tipo) >= 0 && $("cSub").value.trim()) n.subtitulo = $("cSub").value.trim();
     if ((tipo === "gancho" || tipo === "oferta") && $("cChamada").value.trim()) n.chamada = $("cChamada").value.trim();
     if (["lista", "grafico", "linha", "checklist", "ranking"].indexOf(tipo) >= 0) n.itens = $("cItens").value.split("\n").map(function (s) { return s.trim(); }).filter(Boolean).slice(0, tipo === "lista" ? 4 : tipo === "grafico" ? 6 : 5);
+    if (["passo", "texto"].indexOf(tipo) >= 0 && tipo === "passo" && $("cSub").value.trim()) n.subtitulo = $("cSub").value.trim();
+    if (tipo === "terminal") { if ($("cSub").value.trim()) n.titulo = $("cSub").value.trim(); n.comando = $("cComando").value.trim() || "bw criar reel"; }
+    if (["terminal", "painel", "catalogo"].indexOf(tipo) >= 0) n.itens = $("cItens").value.split("\n").map(function (s) { return s.trim(); }).filter(Boolean).slice(0, tipo === "terminal" ? 4 : tipo === "painel" ? 12 : 10);
+    if (tipo === "passo") { if ($("cIcone").value.trim()) n.icone = $("cIcone").value.trim(); n.cor = $("cCor").value; if ($("cNumero").value.trim()) n.numero = $("cNumero").value.trim(); if ($("cTotal").value.trim()) n.total = $("cTotal").value.trim(); }
+    if (tipo === "catalogo" && $("cIcone").value.trim()) n.icones = $("cIcone").value.trim().split(/\s+/);
+    if (tipo === "comenta") { n.palavra = ($("cPalavra").value.trim() || "QUERO").toUpperCase(); if ($("cResposta").value.trim()) n.resposta = $("cResposta").value.trim(); }
+    if (tipo === "painel" || tipo === "medidor") {
+      var v2 = Number(String($("cValor").value).replace(",", ".")); n.valor = isFinite(v2) ? v2 : 0;
+      if (Number($("cCasas").value)) n.casas = Number($("cCasas").value);
+      if ($("cPref").value.trim()) n.prefixo = $("cPref").value.trim() + " ";
+      if ($("cSuf").value.trim()) n.sufixo = " " + $("cSuf").value.trim();
+      if ($("cRotulo").value.trim()) n.rotulo = $("cRotulo").value.trim(); n.fonte = $("cFonte").value.trim();
+      if (tipo === "painel" && $("cVariacao").value.trim()) n.variacao = $("cVariacao").value.trim();
+      if (tipo === "medidor") n.maximo = Number($("cMaximo").value) || 100;
+    }
     if (tipo === "contagem") n.valor = Math.max(1, Math.min(10, Number($("cNum").value) || 3));
     if (tipo === "grafico") { n.forma = $("cForma").value; if ($("cUnid").value.trim()) n.sufixo = $("cUnid").value.trim(); if ($("cFonte2").value.trim()) n.fonte = $("cFonte2").value.trim(); }
     if (tipo === "depoimento") { n.estrelas = Number($("cEstrelas").value) || 5; if ($("cAutor").value.trim()) n.autor = $("cAutor").value.trim(); }
@@ -434,15 +457,18 @@
       checklist: {titulo: "Checklist", itens: ["Primeiro item", "Segundo item"]}, ranking: {titulo: "Top 3", itens: ["Primeiro", "Segundo", "Terceiro"]},
       depoimento: {texto: "Escreva aqui a frase real do seu cliente", autor: "Nome do cliente", estrelas: 5}, local: {texto: "Local do evento", subtitulo: "Data · hora"},
       oferta: {chamada: "Oferta", texto: "Seu pacote", valor: 1000, prefixo: "R$ "}, aovivo: {texto: "Estamos no ar", subtitulo: "Link na bio"}, celular: {texto: "Assista de qualquer lugar"},
-      antesdepois: {texto: "Olha a diferença"}, dividida: {texto: "Em cima", subtitulo: "Embaixo"}};
+      antesdepois: {texto: "Olha a diferença"}, dividida: {texto: "Em cima", subtitulo: "Embaixo"},
+      passo: {numero: "1", titulo: "Nome do passo", subtitulo: "Explique em uma frase", icone: "⚡", cor: "#8be36a"}, terminal: {titulo: "terminal", comando: "bw criar reel", itens: ["pronto"]},
+      painel: {rotulo: "Visualizações", valor: 1000, itens: ["1", "3", "2", "5", "8"], fonte: "dados próprios"}, medidor: {valor: 70, maximo: 100, sufixo: " %", rotulo: "da meta", fonte: "dados próprios"},
+      catalogo: {titulo: "5 ideias", itens: ["Primeira", "Segunda", "Terceira", "Quarta", "Quinta"], icones: ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣"]}, comenta: {texto: "Comenta", palavra: "QUERO", resposta: "Te mando no direct"}};
     if (id === "cTipo" && PADRAO_TIPO[this.value] && era !== this.value) { var d0 = Number(P.roteiro.cenas[SEL].duracao) || 3.5, velha = P.roteiro.cenas[SEL];
       var nova = Object.assign({tipo: this.value, duracao: Math.max(3, d0)}, JSON.parse(JSON.stringify(PADRAO_TIPO[this.value])));
       if (velha.midia && ["antesdepois", "dividida", "celular", "nome", "aovivo", "logo"].indexOf(this.value) >= 0) nova.midia = velha.midia;
       P.roteiro.cenas[SEL] = nova; salvar(); desenharCena(); atualizar(); return; }
     lerCena(); salvar(); desenharCena(); atualizar(); }); });
   ["cNum", "cUnid", "cFonte2"].forEach(function (id) { $(id).addEventListener("input", function () { lerCena(); salvar(); atualizar(); }); });
-  ["cForma", "cEstrelas", "cMidia2"].forEach(function (id) { $(id).addEventListener("change", function () { lerCena(); salvar(); atualizar(); }); });
-  ["cDur", "cTexto", "cEnfase", "cSub", "cChamada", "cItens", "cValor", "cCasas", "cPref", "cSuf", "cRotulo", "cFonte", "cAutor", "cAcao", "cIni", "cFala"].forEach(function (id) {
+  ["cForma", "cEstrelas", "cMidia2", "cCor"].forEach(function (id) { $(id).addEventListener("change", function () { lerCena(); salvar(); atualizar(); }); });
+  ["cDur", "cTexto", "cEnfase", "cSub", "cChamada", "cItens", "cValor", "cCasas", "cPref", "cSuf", "cRotulo", "cFonte", "cAutor", "cAcao", "cIni", "cFala", "cComando", "cIcone", "cNumero", "cTotal", "cPalavra", "cResposta", "cVariacao", "cMaximo"].forEach(function (id) {
     $(id).addEventListener("input", function () { lerCena(); salvar(); atualizar(); });
   });
 

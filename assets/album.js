@@ -132,7 +132,7 @@
 
   /* ---------- ajustes ---------- */
   var BORDAS = [["nenhuma", "Sem moldura"], ["fina", "Fio branco"], ["branca", "Branca"], ["polaroid", "Polaroid"], ["cor", "Cor"], ["neon", "Neon"]];
-  var FUNDOS = [["escuro", "Escuro"], ["estudio", "Estúdio"], ["claro", "Claro"], ["cor", "Cor"], ["degrade", "Degradê"], ["foto", "1ª foto desfocada"], ["papel", "Papel"], ["madeira", "Madeira"], ["verde", "Verde (chroma)"], ["azul", "Azul (chroma)"], ["magenta", "Magenta (chroma)"]];
+  var FUNDOS = [["escuro", "Escuro"], ["estudio", "Estúdio"], ["claro", "Claro"], ["cor", "Cor"], ["degrade", "Degradê"], ["foto", "1ª foto desfocada"], ["papel", "Papel"], ["madeira", "Madeira"], ["linho", "Linho"], ["verde", "Verde (chroma)"], ["azul", "Azul (chroma)"], ["magenta", "Magenta (chroma)"]];
   var CARTOES = [["auto", "Automático"], ["3:4", "3:4"], ["4:5", "4:5"], ["1:1", "1:1"], ["2:3", "2:3"], ["9:16", "9:16"], ["16:9", "16:9"]];
   function chips(nome, lista, atual) { return '<div class="al-chips" data-grupo="' + nome + '">' + lista.map(function (x) { return '<button type="button" data-v="' + x[0] + '"' + (atual === x[0] ? ' class="on"' : "") + ">" + x[1] + "</button>"; }).join("") + "</div>"; }
   function desenharVisual() {

@@ -683,6 +683,14 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
      bw_eventos não assina nem para o dono (bw_evento_meu): teste registra o evento com BWSync.registrarAgora e apaga a linha no SQL depois.
      Script comum (bw-sync.js) sempre com ?v= em TODAS as páginas: sem ele o navegador ficou com a versão velha 10 min depois de publicar (auto: vigia 7.7b).
 
+**Aprendidos em 22/11 (reels que ensinam e fotolivros)**
+174. Número vindo de lista do usuário: só tratar ponto como milhar quando houver VÍRGULA ("3.500,00"); número que já é number fica como está —
+     `String(v).replace(/\./g,'')` transformou 3.5 em 35 e o gráfico do painel ganhou um pico falso (visto na folha de quadros, não no teste).
+     Campo novo no editor de cena entra TAMBÉM na lista de ouvintes de input/change (o teste pegou "trocar o comando" sem efeito).
+175. Pintor (ordem por profundidade) com peças grandes no mesmo plano (capa, papel, fotos de um livro) falha quando a câmera inclina:
+     o papel da esquerda passava para trás da capa. Peças coplanares usam `sobre` (índice da peça-base) + `nivel` (camada) no album-motor.
+     Modelo inspirado em template pago (Motion Array etc.): gênero e ideia sim, cópia não (regra 123) — e dizer isso ao dono.
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -1982,7 +1990,19 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   logado, com evento e foto de TESTE: endereço público = 400, link do dono = 200, galeria com o token = 1 foto carregada, token falso = 404;
   tudo de teste apagado (0 eventos de teste, 0 galerias, 0 fotos). Não havia nenhuma foto nem galeria real no bucket — nada quebrou para ninguém.
   bw-sync.js com ?v=20261122 em todas as páginas; sw v181. PENTE FINO 173.
+- 22/11/2026 14:45 · Claude (dono mandou 24 reels de referência — "tente fazer modelos assim" — e o link de um photobook do Motion Array "para os álbuns"):
+  BW REELS PRO › 🎬 MODELOS ganhou REELS QUE ENSINAM (7 modelos com vídeo de exemplo): TOP 5 COM ÍCONES, TUTORIAL NO TERMINAL, CATÁLOGO NUMERADO,
+  PAINEL DE NÚMEROS, MEDIDOR, IMPACTO PRETO E ROSA e PASSO A PASSO COM O ROBÔ. Motor (Studio → reels-motor.js v7): 6 tipos de cena novos — terminal
+  (comando digitado letra a letra + linhas ✓), passo (número + emoji com feixe de luz, cor própria por cena), painel (número contando + linha do gráfico),
+  medidor (ponteiro), catálogo (lista que acende + cartão colorido) e comenta (palavra + caixa de comentário digitando + resposta); estilos TECH e IMPACTO
+  com trilhas próprias; painel/medidor sem fonte bloqueiam o vídeo; editor da aba CENA com o grupo "Reels que ensinam". Nada copiado das referências
+  (desenho e textos próprios, ideias de evento). ÁLBUM 3D: 4 FOTOLIVROS (aberto, com capa, de cima, em close) — várias fotos por página com 5 diagramações,
+  páginas virando, fundo LINHO; a página do Motion Array não abriu (pedido de acesso sem resposta) e o modelo é próprio. teste_reels (+16) e teste_album
+  (+3) 0 falhas; teste-app 0; vigia ✅. App BW 1.9.27 publicado (cópia sem internet, tutorial, novidades) e arquivos no PC. Manual 59 → 60 p.
+  reels.js v18, reels-modelos v4, album-motor v2, album.js v2, sw v182. PENTE FINO 174–175.
 ## Pendências (dono)
+- [ ] (22/11) BW-Setup.exe 1.9.27: os arquivos novos já estão em Vídeos\\bw-reels-studio — dois cliques em "5 - GERAR INSTALADOR EXE" e avisar (quem tem o app atualiza sozinho).
+- [ ] (22/11) REELS QUE ENSINAM e FOTOLIVROS: dono abrir no celular e no PC, usar um modelo com fotos/textos reais e dizer o que ajustar.
 - [ ] (22/11) ARRASTAR: dono testar no PC e no celular — encostar um take no outro, cobrir mais da metade e escolher, e aplicar transição com a agulha na emenda.
 - [ ] (22/11) ÁLBUM 3D: dono abrir Marketing → Álbum 3D e efeitos no celular e no PC, pôr fotos de um evento real, trocar de modelos e gerar um vídeo; dizer quais modelos quer a mais (e o BW-Setup.exe 1.9.25: dois cliques em "5 - GERAR INSTALADOR EXE").
 - [x] (22/11 13:33) BW-Setup.exe 1.9.26 gerado pelo dono e publicado (8,4 MB, versão conferida dentro do .exe).

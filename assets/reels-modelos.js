@@ -11,6 +11,7 @@
   };
   window.BWReelsModelos = {
     categorias: [
+      {id: "explica", nome: "REELS QUE ENSINAM", icone: "⌘", desc: "Reels que explicam: terminal digitando, passos com ícone que brilha, painel com números, catálogo numerado e o \"Comenta PALAVRA\" no fim."},
       {id: "texto", nome: "MOTION DE TEXTO", icone: "Aa", desc: "Textos, números e listas animados com cara de cinema. O jeito mais rápido de postar todo dia."},
       {id: "meu", nome: "ANIMAR MEU PERSONAGEM", icone: "📷", desc: "Envie a foto do seu avatar ou mascote e conte a história: ele vira recorte animado, cenas criadas por IA ou clipes de IA de vídeo."},
       {id: "personagem", nome: "HISTÓRIAS COM PERSONAGENS", icone: "☺", desc: "Personagens desenhados pelo motor contam a história em balões: falam, acenam, comemoram. Grátis e sem IA de vídeo."},
@@ -18,6 +19,47 @@
       {id: "ia", nome: "PERSONAGEM COM IA", icone: "✦", desc: "Seu personagem criado e animado em IAs de imagem e vídeo (Flux, Higgsfield, Kling, Veo). Aqui você monta o Reel com os clipes."}
     ],
     modelos: [
+      /* ---------- REELS QUE ENSINAM (22/11) ---------- */
+      {id: "ex-top5", cat: "explica", nome: "TOP 5 COM ÍCONES", desc: "Um item por vez, cada um com a sua cor e um ícone que brilha. Fecha com Comenta PALAVRA.", roteiro: base("tech", [
+        {tipo: "gancho", duracao: 2.6, texto: "5 coisas que salvam a sua live", enfase: ["salvam"], chamada: "Salva esse"},
+        {tipo: "passo", duracao: 2.4, numero: "1.", titulo: "Internet dupla", subtitulo: "Uma cai, a outra segura.", icone: "📶", cor: "#22d3ee"},
+        {tipo: "passo", duracao: 2.4, numero: "2.", titulo: "Áudio separado", subtitulo: "Nunca só da câmera.", icone: "🎙️", cor: "#f97316"},
+        {tipo: "passo", duracao: 2.4, numero: "3.", titulo: "Teste na véspera", subtitulo: "Tudo ligado, um dia antes.", icone: "🧪", cor: "#eab308"},
+        {tipo: "passo", duracao: 2.4, numero: "4.", titulo: "Alguém no chat", subtitulo: "O público pergunta ao vivo.", icone: "💬", cor: "#22c55e"},
+        {tipo: "passo", duracao: 2.4, numero: "5.", titulo: "Plano B pronto", subtitulo: "Vídeo de espera na mão.", icone: "🛟", cor: "#3b82f6"},
+        {tipo: "comenta", duracao: 3.6, palavra: "LIVE", resposta: "Te mando o checklist no direct"}])},
+      {id: "ex-terminal", cat: "explica", nome: "TUTORIAL NO TERMINAL", desc: "Passo numerado + janela de terminal digitando o comando, com as linhas de resultado aparecendo.", roteiro: base("tech", [
+        {tipo: "gancho", duracao: 2.6, texto: "Legenda pronta em um comando", enfase: ["um"]},
+        {tipo: "passo", duracao: 2.2, numero: "1", total: "2", titulo: "Abra o app", icone: "💻", cor: "#8be36a"},
+        {tipo: "terminal", duracao: 4.2, titulo: "BW · legendas", comando: "bw legendar evento.mp4", itens: ["ouvindo o áudio…", "142 palavras encontradas", "legenda.srt pronta"], texto: "Passo 2: um comando só", enfase: ["comando"]},
+        {tipo: "texto", duracao: 2.6, titulo: "Sem internet e de graça", subtitulo: "Roda no seu computador.", enfase: ["graça"]},
+        {tipo: "comenta", duracao: 3.6, palavra: "LEGENDA"}])},
+      {id: "ex-catalogo", cat: "explica", nome: "CATÁLOGO NUMERADO", desc: "Lista numerada à esquerda que vai acendendo e um cartão grande de cada item. Ótimo para \"10 estilos\", \"7 ideias\".", roteiro: base("tech", [
+        {tipo: "catalogo", duracao: 9, titulo: "6 estilos de aftermovie", enfase: ["aftermovie"], itens: ["Cinemático", "Energia", "Documental", "Retrô", "Corporativo", "Para as redes"], icones: ["🎬", "⚡", "🎙️", "📼", "💼", "📱"]},
+        {tipo: "comenta", duracao: 3.6, palavra: "ESTILO", resposta: "Te mando exemplos no direct"}])},
+      {id: "ex-painel", cat: "explica", nome: "PAINEL DE NÚMEROS", desc: "Cartão de app com o número contando e o gráfico se desenhando. Troque pelos SEUS números (com fonte).", roteiro: base("tech", [
+        {tipo: "gancho", duracao: 2.4, texto: "O que um aftermovie faz", enfase: ["aftermovie"]},
+        {tipo: "painel", duracao: 4, rotulo: "Visualizações no mês", valor: 47000, variacao: "+312%", itens: [3, 4, 3.5, 6, 9, 14, 22, 31, 47], fonte: "exemplo — troque pelos seus dados"},
+        {tipo: "texto", duracao: 2.6, titulo: "Evento bom vira conteúdo", enfase: ["conteúdo"]},
+        {tipo: "comenta", duracao: 3.6, palavra: "VÍDEO"}])},
+      {id: "ex-medidor", cat: "explica", nome: "MEDIDOR", desc: "Velocímetro com o ponteiro subindo até o valor. Use para internet, nota, meta, lotação.", roteiro: base("tech", [
+        {tipo: "gancho", duracao: 2.4, texto: "A sua internet aguenta a live?", enfase: ["aguenta"]},
+        {tipo: "medidor", duracao: 3.8, valor: 18, maximo: 50, sufixo: " Mbps", rotulo: "upload medido no local", fonte: "exemplo — meça no local do evento"},
+        {tipo: "checklist", duracao: 4, titulo: "Antes do evento", itens: ["Meça o upload no local", "Peça cabo, não Wi-Fi", "Tenha um 4G de reserva"]},
+        {tipo: "comenta", duracao: 3.6, palavra: "LIVE"}])},
+      {id: "ex-impacto", cat: "explica", nome: "IMPACTO PRETO E ROSA", desc: "Palavras gigantes, brilho rosa e cortes secos. Para afirmações fortes.", roteiro: base("impacto", [
+        {tipo: "gancho", duracao: 2.4, texto: "Ninguém repara nisso", enfase: ["Ninguém"]},
+        {tipo: "texto", duracao: 2.4, titulo: "Até faltar.", enfase: ["faltar"], transicao: "flash"},
+        {tipo: "texto", duracao: 2.8, titulo: "O áudio", subtitulo: "segura o público mais que a imagem.", enfase: ["áudio"], transicao: "flash"},
+        {tipo: "lista", duracao: 4.2, titulo: "Cuide de", itens: ["Microfone certo", "Retorno no palco", "Teste de som"]},
+        {tipo: "comenta", duracao: 3.6, palavra: "ÁUDIO"}])},
+      {id: "ex-robo", cat: "explica", nome: "PASSO A PASSO COM O ROBÔ", desc: "O robô apresenta, os passos aparecem com ícone e o Comenta fecha. Um mascote dá cara ao perfil.", roteiro: base("tech", [
+        {tipo: "personagem", duracao: 3, personagem: "robo", acao: "acena", balao: "Bora montar sua live em 3 passos?", cenario: "bolinhas", entrada: "pula"},
+        {tipo: "passo", duracao: 2.4, numero: "1", total: "3", titulo: "Câmera fixa", icone: "🎥", cor: "#a78bfa"},
+        {tipo: "passo", duracao: 2.4, numero: "2", total: "3", titulo: "Áudio limpo", icone: "🎧", cor: "#f472b6"},
+        {tipo: "passo", duracao: 2.4, numero: "3", total: "3", titulo: "Internet com cabo", icone: "🔌", cor: "#34d399"},
+        {tipo: "personagem", duracao: 2.6, personagem: "robo", acao: "comemora", balao: "Pronto pra transmitir!", cenario: "bolinhas", entrada: "nenhuma"},
+        {tipo: "comenta", duracao: 3.6, palavra: "ROBÔ"}])},
       /* ---------- MOTION DE TEXTO ---------- */
       {id: "dica-rapida", cat: "texto", nome: "DICA RÁPIDA", desc: "Gancho + 3 dicas + chamada. Ótimo para educar o público.", roteiro: base("cinema", [
         {tipo: "gancho", duracao: 3, texto: "3 erros que derrubam a sua live", enfase: ["erros"], chamada: "Dica rápida"},

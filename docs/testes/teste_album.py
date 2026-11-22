@@ -86,6 +86,15 @@ with sync_playwright() as p:
           const f=i=>{{const x=m[o[i]]; return x&&x.el&&x.w?{{el:x.el,w:x.w,h:x.h}}:null}};
           BWAlbum.MODELOS.forEach(md=>{{ P.modelo=md.id; const D=BWAlbum.duracao(P,o.length); [0.05,0.35,0.6,0.97].forEach(k=>BWAlbum.desenhar(c.getContext('2d'),P,D*k,180,320,f,{{nMidias:o.length,cache:{{}}}})); }}); }})()""")
         ok(len(erros) == e0, f"todos os {n} modelos desenham com fotos e vídeo, sem erro")
+        # FOTOLIVRO (22/11): várias fotos por página e página virando
+        ok(len(pg.evaluate("BWAlbum.MODELOS.filter(m=>m.id.indexOf('fotolivro')===0).map(m=>m.id)")) == 4, "4 modelos de FOTOLIVRO (aberto, capa, de cima, close)")
+        CORES = """(()=>{const c=document.querySelector('#alCv'),d=c.getContext('2d').getImageData(0,0,c.width,c.height).data;let r=0,b=0,a=0;for(let i=0;i<d.length;i+=16){const R=d[i],G=d[i+1],B=d[i+2];if(R>180&&G<90&&B<90)r++;if(B>180&&R<90&&G<130)b++;if(R>200&&G>180&&B<90)a++}return [r,b,a]})()"""
+        pg.evaluate(f"{E}.escolher('fotolivro-cima', true)"); pg.wait_for_timeout(200)
+        if pg.evaluate(f"{E}.tocando()"): pg.click("#alTocar")
+        pg.evaluate(f"{E}.ver(0.3)"); pg.wait_for_timeout(500)
+        cs = pg.evaluate(CORES); ok(cs[0] > 30 and cs[1] > 30 and cs[2] > 30, f"fotolivro de cima: 4 fotos na 1ª página, juntas (vermelha/azul/amarela {cs})")
+        e1 = len(erros); pg.evaluate(f"{E}.ver({E}.duracao()-0.2)"); pg.wait_for_timeout(500)
+        ok(len(erros) == e1, "fotolivro chega ao fim sem erro")
         # ajustes
         aba("aju")
         pg.evaluate(f"{E}.escolher('polaroid', true)"); pg.wait_for_timeout(200)

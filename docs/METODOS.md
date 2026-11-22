@@ -482,3 +482,13 @@ Tamanho > 0 e sem erro = o pdfmake montou o arquivo. Localmente (T1) confira o `
   conferir SHA-256 → nome → Deploy → Settings: desligar "Verify JWT" e Save.
 - Endereços públicos antigos guardados nos dados: não migrar; o leitor (`urlSegura`) reconhece o formato e troca por link temporário.
 - Teste no ar: subir arquivo de TESTE numa pasta registrada, conferir público=400, assinado=200, função com token=200 e token falso=404, e apagar tudo.
+
+
+## Modelos de Reels a partir de referências (22/11)
+- Assistir as referências em FOLHAS DE QUADROS (`ffmpeg -vf "fps=20/D,scale=144:-1,tile=10x2"`) e listar os FORMATOS que se repetem
+  (terminal digitando, passo com ícone, painel, catálogo, Comenta PALAVRA) — o modelo é o formato, não o vídeo.
+- Tipo novo de cena = um `case` no plano.mjs (Studio) + CSS no html.mjs + regra no validar.mjs + campos na aba CENA (reels.js/reels.html,
+  inclusive na lista de ouvintes) → `python3 motor/gerar-motor-web.py assets/reels-motor.js` → `node motor/exemplos-web.mjs <site> ids…`.
+- Digitação determinística: span monoespaçado com `max-width: calc(var(--p) * var(--n) * 1ch)` e tween de `p` (nada de setInterval).
+- Revisar cada exemplo numa folha de quadros ANTES de publicar (pegou o feixe por cima do título e o pico falso do gráfico).
+- Álbum com peças coplanares (livro): `sobre`/`nivel` na peça para a ordem de pintura não depender da média de profundidade.

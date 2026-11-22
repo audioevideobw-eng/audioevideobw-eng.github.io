@@ -1,19 +1,19 @@
 {
- "versao": "1.9.26",
+ "versao": "1.9.27",
  "data": "22/11/2026",
  "pacote": "downloads/BW-Reels-Studio.zip",
- "sha256": "77687dff45164bfc177e58987933a0d09f5094a9417ff120b5f3ed96344dc0ad",
- "bytes": 41467374,
+ "sha256": "6917cdfef17fbe23284c068594ae91956325388273bf2240569b801e5ed958ef",
+ "bytes": 41566977,
  "novidades": [
   {
-   "titulo": "Arrastar sem surpresa",
-   "texto": "No editor de vídeo e no Motion, encostar um take no outro só encosta. Cobrindo 60% ou mais, ao soltar aparece a pergunta (trocar, substituir, pôr por cima ou cancelar) e nada muda até você tocar.",
-   "abrir": "video"
+   "titulo": "Reels que ensinam",
+   "texto": "No BW Reels Pro, 🎬 MODELOS ganhou 7 modelos: terminal digitando, passos com ícone que brilha, painel de números, medidor, catálogo numerado e o Comenta PALAVRA no fim.",
+   "abrir": "reels"
   },
   {
-   "titulo": "Transição na agulha",
-   "texto": "Ponha a agulha na emenda entre dois takes (o ◆ acende em amarelo) e toque numa transição: ela entra ali.",
-   "abrir": "video"
+   "titulo": "Fotolivros",
+   "texto": "No Álbum 3D e efeitos: um livro de fotos na mesa, com várias fotos por página e as páginas virando. Aberto, com capa, de cima e em close.",
+   "abrir": "album"
   }
  ]
 }

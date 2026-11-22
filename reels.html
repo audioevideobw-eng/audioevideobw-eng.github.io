@@ -387,7 +387,7 @@ html.qd-aberto,html.qd-aberto body{overflow:hidden}
         <div id="cenaForm" hidden>
           <div class="rl-dupla">
             <div class="rl-campo"><label for="cTipo">Tipo</label>
-              <select id="cTipo"><option value="gancho">Gancho</option><option value="texto">Texto</option><option value="midia">Mídia</option><option value="dado">Dado (número)</option><option value="lista">Lista</option><option value="citacao">Citação</option><option value="cta">Chamada final</option><option value="personagem">Personagem</option><optgroup label="Gráficos e eventos"><option value="logo">Logo animado</option><option value="nome">Nome e cargo</option><option value="contagem">Contagem 3, 2, 1</option><option value="grafico">Gráfico</option><option value="linha">Linha do tempo</option><option value="checklist">Checklist</option><option value="ranking">Top / ranking</option><option value="depoimento">Depoimento</option><option value="local">Local e data</option><option value="oferta">Oferta / preço</option><option value="aovivo">AO VIVO</option><option value="celular">Vídeo no celular</option><option value="antesdepois">Antes e depois</option><option value="dividida">Tela dividida</option></optgroup></select></div>
+              <select id="cTipo"><option value="gancho">Gancho</option><option value="texto">Texto</option><option value="midia">Mídia</option><option value="dado">Dado (número)</option><option value="lista">Lista</option><option value="citacao">Citação</option><option value="cta">Chamada final</option><option value="personagem">Personagem</option><optgroup label="Gráficos e eventos"><option value="logo">Logo animado</option><option value="nome">Nome e cargo</option><option value="contagem">Contagem 3, 2, 1</option><option value="grafico">Gráfico</option><option value="linha">Linha do tempo</option><option value="checklist">Checklist</option><option value="ranking">Top / ranking</option><option value="depoimento">Depoimento</option><option value="local">Local e data</option><option value="oferta">Oferta / preço</option><option value="aovivo">AO VIVO</option><option value="celular">Vídeo no celular</option><option value="antesdepois">Antes e depois</option><option value="dividida">Tela dividida</option></optgroup><optgroup label="Reels que ensinam"><option value="passo">Passo com ícone</option><option value="terminal">Terminal digitando</option><option value="painel">Painel de números</option><option value="medidor">Medidor</option><option value="catalogo">Catálogo numerado</option><option value="comenta">Comenta PALAVRA</option></optgroup></select></div>
             <div class="rl-campo"><label for="cDur">Duração (s)</label><input id="cDur" type="number" min="1" max="15" step="0.1" inputmode="decimal"></div>
           </div>
           <div class="rl-campo" id="gTexto"><label for="cTexto">Texto na tela</label><textarea id="cTexto" rows="2"></textarea></div>
@@ -395,6 +395,17 @@ html.qd-aberto,html.qd-aberto body{overflow:hidden}
           <div class="rl-campo" id="gSub"><label for="cSub">Subtítulo</label><input id="cSub"></div>
           <div class="rl-campo" id="gChamada"><label for="cChamada">Etiqueta acima (opcional)</label><input id="cChamada"></div>
           <div class="rl-campo" id="gItens"><label for="cItens">Itens (um por linha, até 4)</label><textarea id="cItens" rows="4"></textarea></div>
+          <div id="gEnsina" class="rl-dupla">
+            <div class="rl-campo" id="gCmd"><label for="cComando">Comando digitado</label><input id="cComando" placeholder="ex.: bw legendar evento.mp4"></div>
+            <div class="rl-campo" id="gIcone"><label for="cIcone">Ícone (emoji)</label><input id="cIcone" placeholder="ex.: 🎙️"></div>
+            <div class="rl-campo" id="gCor"><label for="cCor">Cor desta cena</label><input id="cCor" type="color" value="#8be36a"></div>
+            <div class="rl-campo" id="gNumero"><label for="cNumero">Número do passo</label><input id="cNumero" placeholder="ex.: 1"></div>
+            <div class="rl-campo" id="gTotal"><label for="cTotal">De quantos (opcional)</label><input id="cTotal" placeholder="ex.: 3"></div>
+            <div class="rl-campo" id="gPalavra"><label for="cPalavra">Palavra que a pessoa comenta</label><input id="cPalavra" placeholder="ex.: LIVE"></div>
+            <div class="rl-campo" id="gResposta"><label for="cResposta">Resposta embaixo</label><input id="cResposta" placeholder="Te mando no direct"></div>
+            <div class="rl-campo" id="gVariacao"><label for="cVariacao">Selo de variação</label><input id="cVariacao" placeholder="ex.: +312%"></div>
+            <div class="rl-campo" id="gMaximo"><label for="cMaximo">Valor máximo do medidor</label><input id="cMaximo" type="number" inputmode="decimal" placeholder="100"></div>
+          </div>
           <div id="gDado">
             <div class="rl-dupla">
               <div class="rl-campo"><label for="cValor">Número</label><input id="cValor" type="number" inputmode="decimal"></div>
@@ -717,14 +728,14 @@ html.qd-aberto,html.qd-aberto body{overflow:hidden}
 <script src="assets/layout.js?v=71"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="assets/bw-sync.js?v=20261122"></script>
-<script src="assets/reels-motor.js?v=6"></script>
-<script src="assets/reels-modelos.js?v=3"></script>
+<script src="assets/reels-motor.js?v=7"></script>
+<script src="assets/reels-modelos.js?v=4"></script>
 <script src="assets/fotos-nuvem.js?v=3"></script>
 <script src="assets/reels-avatar.js?v=1"></script>
 <script src="assets/reels-celular.js?v=5"></script>
 <script src="assets/bw-personagens.js?v=3"></script>
 <script src="assets/reels-quadro.js?v=8"></script>
 <script src="assets/bw-criacoes.js?v=2"></script>
-<script src="assets/reels.js?v=17"></script>
+<script src="assets/reels.js?v=18"></script>
 </body>
 </html>

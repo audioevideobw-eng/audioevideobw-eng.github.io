@@ -368,6 +368,8 @@ const TRILHAS = {
   corporativo: { nome: 'Corporativa (leve e confiante)', bpm: 112, acordes: [[60, 64, 67], [55, 59, 62], [57, 60, 64], [53, 57, 60]], pad: 0.6, baixo: 'tempo', bumbo: [0, 2], chimbal: true, palma: true, arpejo: 8, sino: false },
   neon:        { nome: 'Neon (eletrônica)', bpm: 124, acordes: [[57, 60, 64], [53, 57, 60], [48, 52, 55], [55, 59, 62]], pad: 0.7, baixo: 'contra', bumbo: [0, 1, 2, 3], chimbal: true, palma: true, arpejo: 16, sino: false },
   editorial:   { nome: 'Editorial (lo-fi)', bpm: 88,  acordes: [[62, 65, 69, 72], [55, 59, 62, 65], [60, 64, 67, 71], [57, 60, 64, 67]], pad: 0.5, baixo: 'tempo', bumbo: [0, 2.5], chimbal: true, palma: true, arpejo: false, sino: true },
+  tech:        { nome: 'Tech (eletrônica leve)', bpm: 118, acordes: [[57, 60, 64, 67], [53, 57, 60, 64], [55, 59, 62, 65], [52, 55, 59, 62]], pad: 0.55, baixo: 'contra', bumbo: [0, 2], chimbal: true, palma: false, arpejo: 16, sino: false },
+  impacto:     { nome: 'Impacto (batida forte)', bpm: 128, acordes: [[57, 60, 64], [57, 60, 64], [53, 57, 60], [55, 59, 62]], pad: 0.5, baixo: 'contra', bumbo: [0, 1, 2, 3], chimbal: true, palma: true, arpejo: false, sino: false },
   luxo:        { nome: 'Luxo (piano e cordas)', bpm: 72,  acordes: [[60, 64, 67, 71], [53, 57, 60, 64], [57, 60, 64, 67], [55, 59, 62, 64]], pad: 0.8, baixo: 'pulso', bumbo: false, chimbal: false, palma: false, arpejo: false, sino: true },
 };
 
@@ -533,6 +535,20 @@ const ESTILOS = {
     pesoTitulo: 500, caixaAlta: true, espacamento: 0.08,
     gradiente: 'radial-gradient(100% 70% at 50% 35%, #1d1a15 0%, #0e0d0b 70%)',
   },
+  tech: {
+    fundo: '#07090f', texto: '#f2f5fa', destaque: '#8be36a', suave: '#8790a3',
+    fonteTitulo: "'Inter', 'BWPesada', sans-serif",
+    fonteTexto: "'Inter', sans-serif",
+    pesoTitulo: 900, caixaAlta: false, enfaseItalica: true, grade: true,
+    gradiente: 'radial-gradient(90% 60% at 50% 35%, #121826 0%, #07090f 75%)',
+  },
+  impacto: {
+    fundo: '#0a0a0c', texto: '#ffffff', destaque: '#ff2d6f', suave: '#b9b3bd',
+    fonteTitulo: "'Anton', 'Bebas Neue', 'BWPesada', sans-serif",
+    fonteTexto: "'Inter', sans-serif",
+    pesoTitulo: 400, caixaAlta: true, brilho: true,
+    gradiente: 'radial-gradient(100% 60% at 50% 100%, #4a0b22 0%, #0a0a0c 65%)',
+  },
 };
 
 const FORMATOS = {
@@ -558,6 +574,7 @@ const TRANSICAO_PADRAO = {
   gancho: 'zoom', texto: 'deslize', midia: 'corte', dado: 'zoom', lista: 'deslize', citacao: 'fade', cta: 'zoom', personagem: 'fade',
   nome: 'corte', logo: 'fade', contagem: 'corte', grafico: 'deslize', linha: 'deslize', checklist: 'deslize', ranking: 'zoom',
   antesdepois: 'fade', depoimento: 'fade', local: 'zoom', oferta: 'zoom', aovivo: 'flash', celular: 'deslize', dividida: 'fade',
+  terminal: 'deslize', passo: 'zoom', painel: 'deslize', medidor: 'zoom', catalogo: 'fade', comenta: 'zoom',
 };
 
 function criarPlano(roteiro) {
@@ -579,7 +596,8 @@ function criarPlano(roteiro) {
   // trilha de fundo gerada pelo motor: 'auto' = a do estilo; com música própria, fica desligada (a não ser que peçam)
   const tr0 = au0.trilha ?? (au0.musica ? 'nenhuma' : 'auto');
   plano.trilha = tr0 === 'auto' ? plano.estiloNome : tr0;
-  plano.volumeTrilha = au0.volumeTrilha ?? (au0.narracao ? 0.22 : 0.45);
+  const temFala = !!au0.narracao || (roteiro.cenas || []).some((c) => c.somDoVideo && /\.(mp4|mov|webm|m4v|mkv)$/i.test(c.midia || ''));
+  plano.volumeTrilha = au0.volumeTrilha ?? (temFala ? 0.22 : 0.45);
   const som = (ev) => { if (fx.sfx) plano.sfx.push(ev); };
 
   let t = 0;
@@ -883,6 +901,81 @@ function criarPlano(roteiro) {
         som({ tipo: 'whoosh', inicio: a });
         break;
       }
+      /* ---- reels que explicam (22/11): terminal, passo, painel, medidor, catálogo, comenta ---- */
+      case 'terminal': {   // janela de terminal: o comando é digitado e as linhas de saída aparecem com ✓
+        if (c.texto) filhos.push({ id: novoId('h'), tag: 'h2', classe: 'titulo pequeno', filhos: palavras(c.texto, a, { y: 40 * u, enfase: c.enfase }) });
+        const cmd = String(c.comando || 'bw criar reel');
+        const tDig = Math.min(Math.max(0.6, cmd.length * 0.045), Math.max(0.8, d * 0.45)), t0 = a + 0.45;
+        const saida = (c.itens || []).slice(0, 4), passoS = Math.min(0.45, Math.max(0.2, (d - (t0 - a) - tDig - 0.6) / Math.max(1, saida.length)));
+        filhos.push({ id: novoId('tm'), tag: 'div', classe: 'tm', tweens: [tw(a + 0.1, 0.6, { opacity: 0, y: 60 * u, scale: 0.94 }, { opacity: 1, y: 0, scale: 1 }, 'expo.out')],
+          filhos: [{ id: novoId('tmb'), tag: 'div', classe: 'tm-barra', html: `<i></i><i></i><i></i><span>${esc(c.titulo || 'terminal')}</span>` },
+            { id: novoId('tml'), tag: 'div', classe: 'tm-linha', html: `<b>›</b>`, filhos: [{ id: novoId('tmc'), tag: 'span', classe: 'tm-cmd', html: esc(cmd), estilo: `--n:${cmd.length}`, tweens: [tw(t0, tDig, { p: 0 }, { p: 1 }, 'linear')] }, { id: novoId('tmk'), tag: 'i', classe: 'tm-cursor' }] }]
+            .concat(saida.map((s, k) => ({ id: novoId('tmo'), tag: 'div', classe: 'tm-out', html: `<b>✓</b> ${esc(s)}`, tweens: [tw(t0 + tDig + 0.25 + k * passoS, 0.3, { opacity: 0, x: -20 * u }, { opacity: 1, x: 0 })] }))) });
+        for (let k = 0; k < cmd.length; k += 3) som({ tipo: 'clique', inicio: t0 + (k / cmd.length) * tDig });
+        saida.forEach((_, k) => som({ tipo: 'pop', inicio: t0 + tDig + 0.25 + k * passoS }));
+        break;
+      }
+      case 'passo': {   // "1. NOME" + ícone grande com brilho, cada passo com a sua cor
+        const num = c.numero ?? '', tot = c.total ? ` <small>/ ${esc(c.total)}</small>` : '';
+        filhos.push({ id: novoId('ps'), tag: 'div', classe: 'ps-num', html: `${esc(String(num))}${tot}`, tweens: [tw(a, 0.5, { opacity: 0, y: -30 * u }, { opacity: 1, y: 0 })] });
+        if (c.titulo) filhos.push({ id: novoId('h'), tag: 'h2', classe: 'titulo pequeno ps-tit', filhos: palavras(c.titulo, a + 0.1, { y: 30 * u, enfase: c.enfase }) });
+        filhos.push({ id: novoId('pf'), tag: 'i', classe: 'ps-feixe', tweens: [tw(a + 0.15, 0.7, { opacity: 0, scale: 0.3 }, { opacity: 1, scale: 1 }, 'expo.out')] });
+        filhos.push({ id: novoId('pi'), tag: 'div', classe: 'ps-icone', html: esc(c.icone || '★'), tweens: [tw(a + 0.25, 0.7, { opacity: 0, scale: 0.2, rot: -25 }, { opacity: 1, scale: 1, rot: 0 }, 'back.out'), tw(a + 1, Math.max(0.2, d - 1), { y: 0 }, { y: -18 * u }, 'sine.inOut')] });
+        if (c.subtitulo) filhos.push({ id: novoId('p'), tag: 'p', classe: 'sub ps-sub', html: esc(c.subtitulo), tweens: [tw(a + 0.8, 0.5, { opacity: 0, y: 24 * u }, { opacity: 1, y: 0 })] });
+        som({ tipo: 'whoosh', inicio: a + 0.05 }); som({ tipo: 'brilho', inicio: a + 0.4 });
+        break;
+      }
+      case 'painel': {   // cartão de app: número contando + linha do gráfico se desenhando
+        const num = (v) => typeof v === 'number' ? v : /,/.test(String(v)) ? Number(String(v).replace(/\./g, '').replace(',', '.')) : Number(v);
+        const pts = (c.itens || []).map(num).filter((v) => isFinite(v)).slice(0, 12);
+        const serie = pts.length >= 2 ? pts : [2, 3, 2.6, 4, 5.2, 4.8, 7, 9];
+        const mn = Math.min(...serie), mx = Math.max(...serie), rg = mx - mn || 1;
+        const path = serie.map((v, k) => `${k ? 'L' : 'M'}${(k / (serie.length - 1) * 600).toFixed(1)} ${(190 - (v - mn) / rg * 170).toFixed(1)}`).join(' ');
+        if (c.texto) filhos.push({ id: novoId('h'), tag: 'h2', classe: 'titulo pequeno', filhos: palavras(c.texto, a, { y: 40 * u, enfase: c.enfase }) });
+        filhos.push({ id: novoId('pn'), tag: 'div', classe: 'pn', tweens: [tw(a + 0.1, 0.6, { opacity: 0, y: 70 * u, scale: 0.92 }, { opacity: 1, y: 0, scale: 1 }, 'expo.out')],
+          filhos: [{ id: novoId('pnr'), tag: 'div', classe: 'pn-rot', html: esc(c.rotulo || 'Visualizações') },
+            { id: novoId('pnv'), tag: 'div', classe: 'pn-val', html: '0', contador: { de: 0, para: Number(c.valor) || 0, t0: a + 0.4, dur: Math.min(1.8, d * 0.6), prefixo: c.prefixo, sufixo: c.sufixo, casas: c.casas } },
+            ...(c.variacao ? [{ id: novoId('pnx'), tag: 'div', classe: 'pn-var', html: esc(c.variacao), tweens: [tw(a + 1.2, 0.4, { opacity: 0, scale: 0.6 }, { opacity: 1, scale: 1 }, 'back.out')] }] : []),
+            { id: novoId('png'), tag: 'div', classe: 'pn-graf', html: `<svg viewBox="-10 -10 620 220"><path class="pn-area" d="${path} L600 200 L0 200 Z"/><path class="pn-traco" pathLength="1" d="${path}"/></svg>`, tweens: [tw(a + 0.4, Math.min(1.8, d * 0.6), { p: 0 }, { p: 1 }, 'power2.out')] }] });
+        if (c.fonte) filhos.push({ id: novoId('f'), tag: 'p', classe: 'fonte', html: `Fonte: ${esc(c.fonte)}`, tweens: [tw(a + 1.0, 0.5, { opacity: 0 }, { opacity: 0.85 })] });
+        som({ tipo: 'contador', inicio: a + 0.4, dur: Math.min(1.8, d * 0.6) });
+        break;
+      }
+      case 'medidor': {   // velocímetro: o ponteiro sobe até o valor
+        const max = Number(c.maximo) || 100, fr = Math.max(0, Math.min(1, (Number(c.valor) || 0) / max));
+        if (c.texto) filhos.push({ id: novoId('h'), tag: 'h2', classe: 'titulo pequeno', filhos: palavras(c.texto, a, { y: 40 * u, enfase: c.enfase }) });
+        filhos.push({ id: novoId('md'), tag: 'div', classe: 'md', tweens: [tw(a + 0.1, 0.6, { opacity: 0, scale: 0.85 }, { opacity: 1, scale: 1 }, 'expo.out')],
+          filhos: [{ id: novoId('mda'), tag: 'div', classe: 'md-arco', tweens: [tw(a + 0.4, 1.4, { p: 0 }, { p: fr }, 'expo.out')] },
+            { id: novoId('mdp'), tag: 'i', classe: 'md-ponteiro', tweens: [tw(a + 0.4, 1.4, { rot: -120 }, { rot: -120 + 240 * fr }, 'expo.out')] },
+            { id: novoId('mdv'), tag: 'b', classe: 'md-val', html: '0', contador: { de: 0, para: Number(c.valor) || 0, t0: a + 0.4, dur: 1.4, sufixo: c.sufixo, casas: c.casas } },
+            { id: novoId('mdr'), tag: 'span', classe: 'md-rot', html: esc(c.rotulo || '') }] });
+        if (c.fonte) filhos.push({ id: novoId('f'), tag: 'p', classe: 'fonte', html: `Fonte: ${esc(c.fonte)}`, tweens: [tw(a + 1.0, 0.5, { opacity: 0 }, { opacity: 0.85 })] });
+        som({ tipo: 'contador', inicio: a + 0.4, dur: 1.4 });
+        break;
+      }
+      case 'catalogo': {   // lista numerada que vai acendendo + cartão grande do item da vez
+        const itens = (c.itens || []).slice(0, 10), n = itens.length || 1, t0 = a + 0.35, passo = (d - 0.45) / n;
+        const icones = c.icones || [];
+        if (c.titulo) filhos.push({ id: novoId('h'), tag: 'h2', classe: 'titulo pequeno ct-tit', filhos: palavras(c.titulo, a, { y: 30 * u, enfase: c.enfase }) });
+        filhos.push({ id: novoId('ct'), tag: 'div', classe: 'ct', filhos: [
+          { id: novoId('ctl'), tag: 'ol', classe: 'ct-lista', filhos: itens.map((it, k) => ({ id: novoId('cti'), tag: 'li', classe: 'ct-item', html: `<b>${k + 1}</b>${esc(it)}`,
+            tweens: [tw(t0 + k * passo, 0.25, { opacity: 0.28, x: 0, scale: 1 }, { opacity: 1, x: 14 * u, scale: 1.04 }, 'power2.out')].concat(k < n - 1 ? [tw(t0 + (k + 1) * passo, 0.25, { x: 14 * u, scale: 1.04 }, { x: 0, scale: 1 }, 'power2.out')] : []) })) },
+          { id: novoId('ctc'), tag: 'div', classe: 'ct-cartoes', filhos: itens.map((it, k) => ({ id: novoId('ctk'), tag: 'div', classe: 'ct-cartao c' + (k % 6), html: `<span class="ct-ic">${esc(icones[k] || String(k + 1))}</span><b>${esc(it)}</b>`,
+            tweens: [tw(t0 + k * passo, 0.4, { opacity: 0, scale: 0.8, rot: 6, y: 40 * u }, { opacity: 1, scale: 1, rot: 0, y: 0 }, 'back.out')].concat(k < n - 1 ? [tw(t0 + (k + 1) * passo, 0.25, { opacity: 1, scale: 1 }, { opacity: 0, scale: 0.9 }, 'power2.out')] : []) })) }] });
+        itens.forEach((_, k) => som({ tipo: k ? 'clique' : 'pop', inicio: t0 + k * passo }));
+        break;
+      }
+      case 'comenta': {   // "Comenta PALAVRA": caixa de comentário digitando + resposta
+        const pal = String(c.palavra || 'QUERO').toUpperCase();
+        filhos.push({ id: novoId('h'), tag: 'h2', classe: 'titulo cm-tit', filhos: palavras(c.texto || 'Comenta', a, { y: 40 * u }) });
+        filhos.push({ id: novoId('cmp'), tag: 'div', classe: 'cm-pal', html: esc(pal), tweens: [tw(a + 0.3, 0.55, { opacity: 0, scale: 1.8, rot: -6 }, { opacity: 1, scale: 1, rot: -2 }, 'back.out')] });
+        filhos.push({ id: novoId('cmc'), tag: 'div', classe: 'cm-caixa', tweens: [tw(a + 0.6, 0.5, { opacity: 0, y: 50 * u }, { opacity: 1, y: 0 })],
+          filhos: [{ id: novoId('cma'), tag: 'i', classe: 'cm-av' }, { id: novoId('cmt'), tag: 'span', classe: 'tm-cmd cm-txt', html: esc(pal), estilo: `--n:${pal.length}`, tweens: [tw(a + 1.0, Math.min(0.9, pal.length * 0.09), { p: 0 }, { p: 1 }, 'linear')] }, { id: novoId('cme'), tag: 'b', classe: 'cm-env', html: '➤' }] });
+        if (c.resposta !== '') filhos.push({ id: novoId('cmr'), tag: 'div', classe: 'cm-resp', html: `📩 ${esc(c.resposta || 'Te mando no direct')}`, tweens: [tw(a + 2.0, 0.45, { opacity: 0, y: 30 * u, scale: 0.9 }, { opacity: 1, y: 0, scale: 1 }, 'back.out')] });
+        for (let k = 0; k < pal.length; k++) som({ tipo: 'clique', inicio: a + 1.0 + k * Math.min(0.9, pal.length * 0.09) / pal.length });
+        som({ tipo: 'pop', inicio: a + 1.95 }); som({ tipo: 'brilho', inicio: a + 2.05 });
+        break;
+      }
       default:
         throw new Error(`cena ${i + 1}: tipo desconhecido "${c.tipo}"`);
     }
@@ -908,8 +1001,11 @@ function criarPlano(roteiro) {
 
     plano.cenas.push({
       id: `cena${i}`, tag: 'section', classe: `cena tipo-${c.tipo}${m ? ' com-midia' : ''}`,
-      inicio: a, fim: a + d, tweens: trTweens, filhos, fala: c.fala, legendaOculta: !!c.legendaOculta,
+      inicio: a, fim: a + d, tweens: trTweens, filhos, fala: c.fala, estilo: /^#[0-9a-f]{3,8}$/i.test(c.cor || '') ? `--destaque:${c.cor}` : undefined, legendaOculta: !!c.legendaOculta,
     });
+    // som original da filmagem (fala de quem aparece): entra na mixagem só no trecho usado
+    if (c.somDoVideo && /\.(mp4|mov|webm|m4v|mkv)$/i.test(c.midia || ''))
+      plano.audios.push({ papel: 'fala', src: c.midia, inicio: a, corte: { de: c.inicioNoArquivo || 0, dur: d }, volume: c.volumeVideo ?? 1 });
     t += d;
   });
   plano.duracao = +t.toFixed(3);
@@ -1120,12 +1216,68 @@ html,body{width:${W}px;height:${H}px;overflow:hidden;background:var(--fundo)}
 .balao.duplo{width:${W * (p.vertical ? 0.56 : 0.34)}px;font-size:${48 * u}px}
 .balao.duplo.lado-1{left:${p.vertical ? 40 : 38}%;margin-left:${-W * (p.vertical ? 0.28 : 0.17)}px}.balao.duplo.lado1{left:${p.vertical ? 60 : 62}%;margin-left:${-W * (p.vertical ? 0.28 : 0.17)}px}
 .balao.duplo.lado-1::after{left:${p.vertical ? 27 : 30}%}.balao.duplo.lado1::after{left:${p.vertical ? 73 : 70}%}
+/* ---- reels que explicam (22/11) ---- */
+.tm{width:100%;background:rgba(12,14,20,.92);border:${2 * u}px solid rgba(255,255,255,.14);border-radius:${26 * u}px;overflow:hidden;text-align:left;box-shadow:0 ${30 * u}px ${70 * u}px rgba(0,0,0,.55)}
+.tm-barra{display:flex;align-items:center;gap:${12 * u}px;padding:${18 * u}px ${24 * u}px;background:rgba(255,255,255,.06);font-family:ui-monospace,'Cascadia Mono',Consolas,monospace;font-size:${28 * u}px;color:#8b93a7}
+.tm-barra i{width:${20 * u}px;height:${20 * u}px;border-radius:50%;background:#ff5f57}.tm-barra i:nth-child(2){background:#febc2e}.tm-barra i:nth-child(3){background:#28c840}
+.tm-barra span{margin-left:${14 * u}px}
+.tm-linha,.tm-out{font-family:ui-monospace,'Cascadia Mono',Consolas,monospace;font-size:${42 * u}px;line-height:1.35;padding:${8 * u}px ${30 * u}px;color:#e9edf5;white-space:nowrap}
+.tm-linha{padding-top:${26 * u}px}.tm-out:last-child{padding-bottom:${30 * u}px}
+.tm-linha>b{color:var(--destaque);margin-right:${18 * u}px}
+.tm-cmd{display:inline-block;overflow:hidden;white-space:nowrap;vertical-align:bottom;--p:0;max-width:calc(var(--p) * var(--n) * 1ch + .02ch)}
+.tm-cursor{display:inline-block;width:.6ch;height:1.1em;vertical-align:text-bottom;background:var(--destaque);margin-left:${4 * u}px}
+.tm-out{color:#aab3c5;font-size:${36 * u}px;white-space:normal}.tm-out b{color:#28c840}
+.tipo-passo{background:radial-gradient(70% 45% at 50% 52%,color-mix(in srgb,var(--destaque) 38%,transparent),transparent 75%)}
+.ps-num{z-index:3!important;text-shadow:0 0 ${30 * u}px #000;font-family:var(--ft);font-size:${64 * u}px;color:var(--destaque);line-height:1}.ps-num small{font-size:.55em;color:var(--suave)}
+.ps-feixe{position:absolute!important;z-index:1!important;left:50%;top:0;width:${140 * u}px;margin-left:${-70 * u}px;height:52%;background:linear-gradient(180deg,transparent,color-mix(in srgb,var(--destaque) 70%,#fff) 85%,transparent);filter:blur(${16 * u}px);opacity:.7;transform-origin:50% 0}
+.ps-icone{width:${330 * u}px;height:${330 * u}px;border-radius:${80 * u}px;display:grid;place-items:center;font-size:${180 * u}px;line-height:1;
+  background:linear-gradient(160deg,color-mix(in srgb,var(--destaque) 55%,#111),#0c0d12);border:${4 * u}px solid color-mix(in srgb,var(--destaque) 70%,#fff);
+  box-shadow:0 0 ${60 * u}px color-mix(in srgb,var(--destaque) 70%,transparent),0 0 ${160 * u}px color-mix(in srgb,var(--destaque) 40%,transparent)}
+.ps-sub{color:var(--texto);font-weight:700}
+.ps-tit{z-index:3!important;text-shadow:0 ${4 * u}px ${30 * u}px #000}
+.tipo-passo .ps-icone{z-index:3!important}
+.pn{width:100%;background:rgba(18,20,28,.92);border:${2 * u}px solid rgba(255,255,255,.12);border-radius:${34 * u}px;padding:${40 * u}px ${44 * u}px;text-align:left;box-shadow:0 ${30 * u}px ${70 * u}px rgba(0,0,0,.5);position:relative}
+.pn-rot{font-size:${34 * u}px;color:#9aa3b5;font-weight:700;letter-spacing:.03em}
+.pn-val{font-family:var(--ft);font-size:${170 * u}px;line-height:1;color:#fff;font-variant-numeric:tabular-nums;margin-top:${10 * u}px}
+.pn-val small{font-size:.4em;color:#9aa3b5}
+.pn-var{position:absolute;top:${40 * u}px;right:${44 * u}px;background:color-mix(in srgb,#28c840 22%,transparent);color:#5fe07a;font-weight:900;font-size:${38 * u}px;padding:${8 * u}px ${20 * u}px;border-radius:999px}
+.pn-graf{height:${300 * u}px;margin-top:${24 * u}px;--p:0}.pn-graf svg{width:100%;height:100%;overflow:visible}
+.pn-traco{fill:none;stroke:var(--destaque);stroke-width:5;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1;stroke-dashoffset:calc(1 - var(--p))}
+.pn-area{fill:var(--destaque);opacity:calc(var(--p) * .18)}
+.md{position:relative;width:${720 * u}px;height:${720 * u}px}
+.md-arco{position:absolute;inset:0;border-radius:50%;--p:0;background:conic-gradient(from -120deg,var(--destaque) calc(var(--p) * 240deg),rgba(255,255,255,.1) 0 240deg,transparent 0);
+  -webkit-mask:radial-gradient(closest-side,transparent 80%,#000 81%);mask:radial-gradient(closest-side,transparent 80%,#000 81%);filter:drop-shadow(0 0 ${20 * u}px var(--destaque))}
+.md-ponteiro{position:absolute;left:50%;bottom:50%;width:${14 * u}px;height:${300 * u}px;margin-left:${-7 * u}px;border-radius:${7 * u}px;background:#fff;transform-origin:50% 100%}
+.md-val{position:absolute;left:0;right:0;top:62%;font-family:var(--ft);font-size:${130 * u}px;line-height:1;color:#fff;font-variant-numeric:tabular-nums}
+.md-val small{font-size:.38em;color:var(--suave)}
+.md-rot{position:absolute;left:0;right:0;top:82%;font-size:${40 * u}px;color:var(--suave);font-weight:700}
+.tipo-catalogo{justify-content:flex-start}
+.ct{width:100%;flex:1;display:grid;grid-template-columns:minmax(0,40%) minmax(0,60%);gap:${30 * u}px;align-items:center;min-height:0}
+.ct-lista{list-style:none;display:flex;flex-direction:column;gap:${16 * u}px;text-align:left}
+.ct-item{font-size:${38 * u}px;font-weight:800;line-height:1.15;display:flex;gap:${14 * u}px;align-items:baseline;opacity:.28}
+.ct-item b{flex:none;color:var(--destaque);font-family:var(--ft);font-size:1.1em;min-width:1.3em}
+.ct-cartoes{position:relative;height:${H * 0.5}px}
+.ct-cartao{position:absolute;inset:0;border-radius:${36 * u}px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:${24 * u}px;padding:${30 * u}px;opacity:0;
+  border:${3 * u}px solid rgba(255,255,255,.18);box-shadow:0 ${30 * u}px ${70 * u}px rgba(0,0,0,.55)}
+.ct-cartao b{font-family:var(--ft);font-size:${66 * u}px;line-height:1.05;color:#fff;text-shadow:0 ${4 * u}px ${20 * u}px rgba(0,0,0,.5)}
+.ct-ic{font-size:${200 * u}px;line-height:1}
+.ct-cartao.c0{background:linear-gradient(160deg,#3b82f6,#0b1d4a)}.ct-cartao.c1{background:linear-gradient(160deg,#ec4899,#3b0a2a)}.ct-cartao.c2{background:linear-gradient(160deg,#f59e0b,#4a2a03)}
+.ct-cartao.c3{background:linear-gradient(160deg,#10b981,#06392a)}.ct-cartao.c4{background:linear-gradient(160deg,#8b5cf6,#25124d)}.ct-cartao.c5{background:linear-gradient(160deg,#ef4444,#4a0d0d)}
+.cm-tit{font-size:${96 * u}px}
+.cm-pal{font-family:var(--ft);font-size:${170 * u}px;line-height:1;color:var(--fundo);background:var(--destaque);padding:${14 * u}px ${44 * u}px;border-radius:${20 * u}px;${brilho}}
+.cm-caixa{display:flex;align-items:center;gap:${20 * u}px;width:92%;background:rgba(255,255,255,.95);color:#111;border-radius:999px;padding:${18 * u}px ${24 * u}px;font-size:${48 * u}px;font-weight:800;text-align:left}
+.cm-av{flex:none;width:${70 * u}px;height:${70 * u}px;border-radius:50%;background:linear-gradient(135deg,var(--destaque),#7c3aed)}
+.cm-txt{flex:1;font-family:var(--fx);max-width:calc(var(--p) * var(--n) * 1.1ch + .02ch)}
+.cm-env{flex:none;color:var(--destaque);font-size:${54 * u}px}
+.cm-resp{background:#1f2937;color:#fff;border-radius:${30 * u}px;padding:${22 * u}px ${34 * u}px;font-size:${42 * u}px;font-weight:700}
+${e.enfaseItalica ? `.enf{font-family:'Playfair Display',Georgia,serif;font-style:italic;font-weight:700;text-transform:none}` : ''}
+${e.grade ? `#stage::before{content:'';position:absolute;inset:0;pointer-events:none;background:linear-gradient(rgba(255,255,255,.045) ${2 * u}px,transparent 0) 0 0/${90 * u}px ${90 * u}px,linear-gradient(90deg,rgba(255,255,255,.045) ${2 * u}px,transparent 0) 0 0/${90 * u}px ${90 * u}px;-webkit-mask:radial-gradient(80% 70% at 50% 45%,#000,transparent);mask:radial-gradient(80% 70% at 50% 45%,#000,transparent)}` : ''}
 `;
 }
 
 function no(n, sabor) {
   if (n.tag === 'video' && sabor === 'hyperframes') return ''; // vídeos viram clips de topo no HyperFrames
-  const attrs = [`id="${n.id}"`, n.classe ? `class="${n.classe}"` : ''];
+  const attrs = [`id="${n.id}"`, n.classe ? `class="${n.classe}"` : '', n.estilo ? `style="${n.estilo}"` : ''];
   if (n.tag === 'video') attrs.push(`src="${n.src}"`, 'muted', 'playsinline', 'preload="auto"');
   if (n.tag === 'img') return `<img ${attrs.join(' ')} src="${n.src}" alt="">`;
   const filhos = (n.filhos || []).map((f) => no(f, sabor)).join('');
@@ -1263,7 +1415,7 @@ ${sabor === 'hyperframes' ? '<script src="https://cdn.jsdelivr.net/npm/gsap@3/di
 // Uso direto: node motor/validar.mjs projetos/<slug>/roteiro.json
 
 
-const TIPOS = ['gancho', 'texto', 'midia', 'dado', 'lista', 'citacao', 'cta', 'personagem', 'nome', 'logo', 'contagem', 'grafico', 'linha', 'checklist', 'ranking', 'antesdepois', 'depoimento', 'local', 'oferta', 'aovivo', 'celular', 'dividida'];
+const TIPOS = ['gancho', 'texto', 'midia', 'dado', 'lista', 'citacao', 'cta', 'personagem', 'nome', 'logo', 'contagem', 'grafico', 'linha', 'checklist', 'ranking', 'antesdepois', 'depoimento', 'local', 'oferta', 'aovivo', 'celular', 'dividida', 'terminal', 'passo', 'painel', 'medidor', 'catalogo', 'comenta'];
 const palavras = (s = '') => String(s).split(/\s+/).filter(Boolean).length;
 
 function validarRoteiro(r, proj, avisos = []) {
@@ -1286,6 +1438,10 @@ function validarRoteiro(r, proj, avisos = []) {
       if (c.valor === undefined) e.push(`${n}: "valor" obrigatório`);
       if (!c.fonte) e.push(`${n}: todo dado precisa de "fonte" visível na tela`);
     }
+    if (c.tipo === 'terminal' && !c.comando) e.push(`${n}: terminal sem "comando"`);
+    if (c.tipo === 'catalogo' && !(Array.isArray(c.itens) && c.itens.length >= 2)) e.push(`${n}: catálogo precisa de pelo menos 2 "itens"`);
+    if ((c.tipo === 'painel' || c.tipo === 'medidor') && !isFinite(Number(c.valor))) e.push(`${n}: "valor" numérico obrigatório`);
+    if ((c.tipo === 'painel' || c.tipo === 'medidor') && !c.fonte) e.push(`${n}: número sem "fonte" (escreva de onde ele vem, ex.: "dados próprios")`);
     if (['lista', 'grafico', 'linha', 'checklist', 'ranking'].includes(c.tipo) && !(Array.isArray(c.itens) && c.itens.length)) e.push(`${n}: "itens" obrigatório`);
     if (c.tipo === 'grafico') {
       if (!c.fonte) e.push(`${n}: gráfico precisa de "fonte" visível (ou "dados próprios")`);
@@ -1311,7 +1467,7 @@ function validarRoteiro(r, proj, avisos = []) {
     }
     // leitura confortável: ~3,2 palavras/s de texto na tela
     const txt = [c.texto, c.titulo, c.subtitulo, c.rotulo, ...(c.itens || [])].filter(Boolean).join(' ');
-    if (c.tipo !== 'personagem' && c.tipo !== 'grafico' && d && palavras(txt) / d > 3.2) avisos.push(`${n}: ${palavras(txt)} palavras em ${d}s — difícil de ler; aumente a duração ou corte texto`);
+    if (!['personagem', 'grafico', 'catalogo', 'terminal'].includes(c.tipo) && d && palavras(txt) / d > 3.2) avisos.push(`${n}: ${palavras(txt)} palavras em ${d}s — difícil de ler; aumente a duração ou corte texto`);
     if (c.fala && d && palavras(c.fala) / d > 3.6) avisos.push(`${n}: fala rápida demais (${palavras(c.fala)} palavras em ${d}s)`);
   });
 

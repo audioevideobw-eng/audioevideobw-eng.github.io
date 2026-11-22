@@ -201,6 +201,74 @@
       ps.push({ m: -1, cor: "#6b1f2a", x: -pw * 0.56 + (pw * 0.56) * Math.cos(th), y: 0, z: -(pw * 0.56) * Math.sin(th) - 0.01, ry: th, w: pw * 1.12, h: ph * 1.12, op: 1 - A.seg(ab, 0.85, 1) });
       return { cam: { rx: 0.35, dist: 3, zoom: A.fit(Math.max(pw, ph) * 0.62, o, 0.95) }, pecas: ps }; } });
 
+  /* ===== FOTOLIVRO (22/11): livro de fotos com VÁRIAS fotos por página, diagramações que mudam, páginas virando ===== */
+  var DIAG = [ [[0.5, 0.5, 0.86, 0.86]],
+    [[0.5, 0.275, 0.86, 0.41], [0.5, 0.725, 0.86, 0.41]],
+    [[0.5, 0.3, 0.86, 0.46], [0.282, 0.765, 0.424, 0.33], [0.718, 0.765, 0.424, 0.33]],
+    [[0.282, 0.282, 0.424, 0.424], [0.718, 0.282, 0.424, 0.424], [0.282, 0.718, 0.424, 0.424], [0.718, 0.718, 0.424, 0.424]],
+    [[0.5, 0.42, 0.7, 0.6], [0.5, 0.86, 0.36, 0.06]] ];
+  /* monta as páginas: cada página recebe uma diagramação e as próximas fotos */
+  function paginasLivro(n, ciclo) { var pg = [], i = 0, k = 0; while (i < n) { var d = DIAG[ciclo[k % ciclo.length]], sl = [];
+      d.forEach(function (s, j) { if (d === DIAG[4] && j === 1) sl.push({ s: s, m: -1, cor: "#cdbfa8" }); else if (i < n) sl.push({ s: s, m: i++ }); }); pg.push(sl); k++; } return pg; }
+  /* recorte da textura para o cartão ficar na proporção do espaço (sem esticar a foto) */
+  function uvPara(sw, sh, r) { var sa = sw / sh; if (sa > r) { var v = r / sa; return [0, 0.5 - v / 2, 1, 0.5 + v / 2]; } var uu = sa / r; return [0.5 - uu / 2, 0, 0.5 + uu / 2, 1]; }
+  /* peças de uma página: lado +1 (direita) / -1 (esquerda); th = ângulo da folha (0 deitada à direita … PI deitada à esquerda) */
+  function pecasPagina(ps, pg, lado, th, pw, ph, o, frente, nivel, zb) {
+    var r = o.cw / o.ch;
+    (pg || []).forEach(function (it) { var s = it.s, d = lado > 0 ? s[0] * pw : (1 - s[0]) * pw, y = (0.5 - s[1]) * ph, w = s[2] * pw, h = s[3] * ph;
+      var ang = lado > 0 ? th : th, ca = Math.cos(ang), sa = Math.sin(ang), x = d * ca, z = -d * sa + zb, ry = frente ? ang : ang - PI;
+      ps.push({ m: it.m, cor: it.cor, x: x, y: y, z: z, ry: ry, w: w, h: h, uv: it.m >= 0 ? uvPara(w, h, r) : undefined, sombra: 0, sobre: 0, nivel: nivel }); });
+  }
+  function fotolivro(t, n, D, A, o, op) {
+    var pw = 0.98, ph = 1.3, ciclo = op.ciclo || [0, 2, 1, 3, 0, 4, 2, 1], pg = paginasLivro(n, ciclo), npg = pg.length;
+    var giros = Math.max(1, Math.floor(npg / 2)), ini = op.capa ? 1.6 : 0.5, tg = (D - ini - 1) / Math.max(1, giros), ps = [], papel = op.papel || "#F6F1E7", capaCor = op.capaCor || "#22324a";
+    /* capa: abre no começo (vira como uma folha) */
+    var ab = op.capa ? A.eio(A.seg(t, 0.25, 1.45)) : 1;
+    /* folha virando agora */
+    var s = 0, vira = 0;
+    for (var g = 0; g < giros; g++) { var t0 = ini + g * tg + tg * 0.55, q = A.eio(A.seg(t, t0, t0 + Math.min(1.1, tg * 0.6))); if (q >= 1) s = g + 1; else { vira = q; s = g; break; } }
+    if (s >= giros) { s = giros; vira = 0; }
+    /* capa dura por baixo (as duas metades) */
+    if (ab >= 1) ps.push({ m: -1, cor: capaCor, x: 0, y: 0, z: 0.03, w: pw * 2 + 0.1, h: ph + 0.08, sombra: 1 });
+    else ps.push({ m: -1, cor: capaCor, x: pw / 2 + 0.025, y: 0, z: 0.03, w: pw + 0.05, h: ph + 0.08, sombra: 1 });
+    /* bloco de páginas: esquerda e direita (papel) */
+    if (ab >= 0.5) ps.push({ m: -1, cor: papel, x: -pw / 2, y: 0, z: 0.012, w: pw, h: ph, escuro: 0.04, sobre: 0, nivel: 1 });
+    ps.push({ m: -1, cor: papel, x: pw / 2, y: 0, z: 0.012, w: pw, h: ph, sobre: 0, nivel: 1 });
+    ps.push({ m: -1, cor: "rgba(0,0,0,.16)", x: 0, y: 0, z: 0.011, w: 0.05, h: ph, sobre: 0, nivel: 2 });   /* sombra da lombada */
+    /* página da esquerda = verso da última folha virada (página 2s-1); direita = página 2s */
+    var pE = 2 * s - 1, pD = 2 * s;
+    if (ab >= 1 || !op.capa) {
+      if (pE >= 0 && pE < npg) pecasPagina(ps, pg[pE], -1, PI, pw, ph, o, false, 3, 0.011);
+      var pDbaixo = vira > 0 ? pD + 2 : pD; if (pDbaixo < npg && !(vira > 0 && pD >= npg)) pecasPagina(ps, pg[vira > 0 ? pD + 2 : pD], 1, 0, pw, ph, o, true, 3, 0.011);
+      if (vira > 0) {   /* a folha: frente = página pD, verso = página pD+1 */
+        var th = vira * PI;
+        ps.push({ m: -1, cor: papel, x: (pw / 2) * Math.cos(th), y: 0, z: -(pw / 2) * Math.sin(th) + 0.008, ry: th, w: pw, h: ph, sombra: 0, sobre: 0, nivel: 4 });
+        if (th < PI / 2) { if (pD < npg) pecasPagina(ps, pg[pD], 1, th, pw, ph, o, true, 5, 0.008); }
+        else if (pD + 1 < npg) pecasPagina(ps, pg[pD + 1], -1, th, pw, ph, o, false, 5, 0.008);
+      }
+    }
+    if (op.capa && ab < 1) {   /* capa abrindo: frente escura com a 1ª foto na janela */
+      var tc = ab * PI;
+      ps.push({ m: -1, cor: capaCor, x: (pw / 2 + 0.025) * Math.cos(tc), y: 0, z: -(pw / 2 + 0.025) * Math.sin(tc) - 0.004, ry: tc, w: pw + 0.05, h: ph + 0.08, sombra: 0, sobre: 0, nivel: 6 });
+      if (tc < PI / 2) ps.push({ m: 0, x: (pw / 2 + 0.025) * Math.cos(tc), y: ph * 0.06, z: -(pw / 2 + 0.025) * Math.sin(tc) - 0.006, ry: tc, w: pw * 0.62, h: ph * 0.46, uv: uvPara(pw * 0.62, ph * 0.46, o.cw / o.ch), sombra: 0, sobre: 0, nivel: 7 });
+    }
+    var cam = op.cam(t, D, A, s, vira, giros, pw, ph, o);
+    return { cam: cam, pecas: ps };
+  }
+  mod({ id: "fotolivro", nome: "Fotolivro aberto", cat: "album", desc: "Um livro de fotos de verdade na mesa: várias fotos por página, diagramações que mudam e as páginas virando.", nPad: 14, nMin: 4, nMax: 40, tp: 0.75, fundo: "linho", cantos: 0.01,
+    dur: function (n, tp) { return Math.max(8, n * tp + 2); },
+    quadro: function (t, n, D, A, o) { return fotolivro(t, n, D, A, o, { cam: function (t, D, A) { var k = t / D; return { rx: mix(0.75, 0.5, A.eio(k)), rz: mix(-0.12, 0.08, k), ry: mix(0.1, -0.06, k), dist: 3.4, zoom: A.fit(1.08, o, 0.98) }; } }); } });
+  mod({ id: "fotolivro-capa", nome: "Fotolivro com capa", cat: "album", desc: "Começa fechado, com a primeira foto na capa e o título; a capa abre e as páginas vão virando.", nPad: 14, nMin: 4, nMax: 40, tp: 0.75, fundo: "madeira", cantos: 0.01,
+    dur: function (n, tp) { return Math.max(9, n * tp + 3); },
+    quadro: function (t, n, D, A, o) { return fotolivro(t, n, D, A, o, { capa: true, capaCor: "#1d2633", cam: function (t, D, A) { var a = A.eio(A.seg(t, 0, 1.6)); return { rx: mix(0.45, 0.6, a), rz: mix(0.1, -0.04, t / D), x: mix(-0.5, 0, a), dist: 3.4, zoom: mix(A.fit(0.8, o, 0.95), A.fit(1.08, o, 0.98), a) }; } }); } });
+  mod({ id: "fotolivro-cima", nome: "Fotolivro visto de cima", cat: "album", desc: "Vista de cima, como foto de catálogo: o livro aberto e as páginas virando, com zoom suave.", nPad: 14, nMin: 4, nMax: 40, tp: 0.7, fundo: "claro", cantos: 0.01,
+    dur: function (n, tp) { return Math.max(8, n * tp + 2); },
+    quadro: function (t, n, D, A, o) { return fotolivro(t, n, D, A, o, { ciclo: [3, 0, 2, 1, 4, 3], papel: "#FFFFFF", capaCor: "#e7e1d6", cam: function (t, D, A) { return { rx: 0.06, rz: mix(-0.04, 0.04, t / D), dist: 3.4, zoom: mix(1, 1.08, A.eio(t / D)) * A.fit(1.06, o, 0.98) }; } }); } });
+  mod({ id: "fotolivro-close", nome: "Fotolivro em close", cat: "album", desc: "A câmera passeia de perto pelas páginas — ora a da esquerda, ora a da direita — e se afasta para virar.", nPad: 14, nMin: 4, nMax: 40, tp: 0.85, fundo: "estudio", cantos: 0.01,
+    dur: function (n, tp) { return Math.max(9, n * tp + 2); },
+    quadro: function (t, n, D, A, o) { return fotolivro(t, n, D, A, o, { capaCor: "#3a2314", cam: function (t, D, A, s, vira, giros, pw) { var g = giros || 1, tg = (D - 1.5) / g, r = ((t - 0.5) % tg + tg) % tg / tg, perto = Math.sin(Math.min(1, r / 0.55) * PI), lado = (Math.floor((t - 0.5) / tg) % 2 ? -1 : 1);
+      return { rx: 0.55, rz: lado * 0.05, x: -lado * pw * 0.5 * perto, dist: 3.4, zoom: mix(A.fit(1.08, o, 0.98), A.fit(0.6, o, 0.98), perto * 0.85) }; } }); } });
+
   /* ===== EFEITOS 3D (tela cheia, foto ou vídeo) ===== */
   function cheia(o) { return { w: o.tw, h: o.th }; }
   mod({ id: "fx-cubo", nome: "Cubo (tela cheia)", cat: "efeitos", desc: "Cada foto/vídeo ocupa a tela e gira como a face de um cubo para o próximo.", nPad: 5, tp: 2.2, tela: true, seq: true,
@@ -342,6 +410,8 @@
     if (f === "degrade") { g = c.createLinearGradient(0, 0, W * 0.4, H); g.addColorStop(0, c1); g.addColorStop(1, c2); c.fillStyle = g; c.fillRect(0, 0, W, H); return; }
     if (f === "claro") { g = c.createRadialGradient(W / 2, H * 0.45, 0, W / 2, H * 0.5, Math.max(W, H) * 0.75); g.addColorStop(0, "#ffffff"); g.addColorStop(1, "#cfd3da"); c.fillStyle = g; c.fillRect(0, 0, W, H); return; }
     if (f === "papel") { c.fillStyle = "#EFE8DA"; c.fillRect(0, 0, W, H); g = c.createRadialGradient(W / 2, H / 2, 0, W / 2, H / 2, Math.max(W, H) * 0.7); g.addColorStop(0, "rgba(255,255,255,.4)"); g.addColorStop(1, "rgba(120,96,60,.25)"); c.fillStyle = g; c.fillRect(0, 0, W, H); return; }
+    if (f === "linho") { c.fillStyle = "#d9cfbf"; c.fillRect(0, 0, W, H); c.globalAlpha = 0.07; for (var li = 0; li < H; li += 3) { c.fillStyle = li % 6 ? "#fff" : "#6b5a40"; c.fillRect(0, li, W, 1); } for (var lj = 0; lj < W; lj += 4) { c.fillStyle = "#7a6648"; c.fillRect(lj, 0, 1, H); } c.globalAlpha = 1;
+      g = c.createRadialGradient(W / 2, H * 0.45, 0, W / 2, H / 2, Math.max(W, H) * 0.72); g.addColorStop(0, "rgba(255,250,240,.35)"); g.addColorStop(1, "rgba(60,45,25,.45)"); c.fillStyle = g; c.fillRect(0, 0, W, H); return; }
     if (f === "madeira") { c.fillStyle = "#6B4A2E"; c.fillRect(0, 0, W, H); c.globalAlpha = 0.18; for (var i = 0; i < 26; i++) { c.fillStyle = i % 2 ? "#3d2716" : "#8a6440"; c.fillRect(0, (i / 26) * H + Math.sin(i * 7) * 6, W, H / 60 + (i % 3) * 2); } c.globalAlpha = 1;
       g = c.createRadialGradient(W / 2, H / 2, 0, W / 2, H / 2, Math.max(W, H) * 0.7); g.addColorStop(0, "rgba(255,220,170,.18)"); g.addColorStop(1, "rgba(0,0,0,.5)"); c.fillStyle = g; c.fillRect(0, 0, W, H); return; }
     if (f === "foto") { var fo = fontes(0); c.fillStyle = "#000"; c.fillRect(0, 0, W, H); if (fo && fo.el && fo.w) { var t = TMP(Math.max(8, Math.round(W / 24)), Math.max(8, Math.round(H / 24))); var tc = t.getContext("2d"); try { cover(tc, fo.el, fo.w, fo.h, 0, 0, t.width, t.height); } catch (e) {} c.save(); c.imageSmoothingEnabled = true; c.globalAlpha = 0.85; c.drawImage(t, 0, 0, W, H); c.restore(); c.fillStyle = "rgba(0,0,0,.45)"; c.fillRect(0, 0, W, H); } return; }
@@ -363,14 +433,14 @@
     c.save(); fundo(c, P, W, H, fontes);
     var r = ratioCartao(P, W, H), base = 1.25, cw = r >= 1 ? base * 1.15 : base * r, ch = r >= 1 ? base * 1.15 / r : base, o = { cw: cw, ch: ch, tw: W / u, th: H / u };
     var q = md.quadro(t, n, D, A, o), cam = q.cam || {}, dist = cam.dist || 3, cs = cam.rx || 0, cy = cam.ry || 0, cz = cam.rz || 0, tx = cam.x || 0, ty = cam.y || 0, tz = cam.z || 0;
-    var est = { borda: P.borda || md.borda || "nenhuma", cor: P.bordaCor || "#B6FF3B", cantos: md.tela ? 0 : (P.cantos == null ? 0.06 : +P.cantos), numeros: P.numeros !== false };
+    var est = { borda: P.borda || md.borda || "nenhuma", cor: P.bordaCor || "#B6FF3B", cantos: md.tela ? 0 : (P.cantos == null ? (md.cantos != null ? md.cantos : 0.06) : +P.cantos), numeros: P.numeros !== false };
     est.chave = [est.borda, est.cor, est.cantos, est.numeros].join(",");
     var verso = P.verso || md.verso || "espelho", sombra = P.sombra !== false;
     var long = md.tela ? Math.min(1920, Math.round(Math.max(W, H) * 0.92)) : Math.min(opc.textura || 900, Math.max(160, Math.round(Math.min(W, H) * 0.62)));
     var tw = r >= 1 ? long : Math.round(long * r), th = r >= 1 ? Math.round(long / r) : long;
     var zoom = cam.zoom || 1; function proj(p) { var X = p[0] + tx, Y = p[1] + ty, Z = p[2] + tz + dist; if (Z < 0.08) return null; var s = u * zoom * dist / Z; return [W / 2 + X * s, H / 2 - Y * s, Z]; }
     function cameraDe(p) { return rot(p, 0, 0, 0); }
-    var lista = [];
+    var lista = [], zDe = {};
     (q.pecas || []).forEach(function (pc, ordem) {
       if (pc.op === 0 || (pc.op != null && pc.op < 0.003)) return;
       var w = pc.w || cw, h = pc.h || ch, cu = pc.curva || 0, cv = pc.curvaY || 0, cols = cu ? (opc.leve ? 6 : 10) : 2, rows = cv ? (opc.leve ? 6 : 10) : 2;
@@ -384,7 +454,9 @@
       }
       if (!ok) return;
       lista.push({ pc: pc, pts: pts, cols: cols, rows: rows, z: zs / pts.length, ordem: ordem });
+      zDe[ordem] = zs / pts.length;
     });
+    lista.forEach(function (it) { if (it.pc.sobre != null && zDe[it.pc.sobre] != null) it.z = zDe[it.pc.sobre] - (it.pc.nivel || 1) * 1e-4; });
     lista.sort(function (a, b) { return b.z - a.z || a.ordem - b.ordem; });
     /* cada peça é montada numa CAMADA (lc) em opacidade cheia, escurecida só onde ela existe (source-atop) e colada na tela com a opacidade dela:
        assim não há risco nas emendas das células, nem dobra de sombra, nem emenda aparecendo quando a peça está meio transparente */
