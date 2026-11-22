@@ -574,7 +574,7 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
      AJUSTES (o grupo leva data-g; a folha esconde os outros). O ve-app.js NÃO desenha nada de novo: MOVE os pedaços que o video-editor.js já
      desenha (#veProp, #veMidia, #veCriar…) e clica nos MESMOS botões — mudança de função continua sendo feita no video-editor.js. Ele vem ANTES
      do video-editor.js (liga html.ve-app; vigia 7.8h). No app, dedo em take NÃO escolhido rola; toque (click) escolhe; segurar abre as opções.
-     ?layout=classico / ⋯ → layout clássico volta o antigo; os testes de função antigos abrem ?layout=classico e o teste_video_app.py cobre o app.
+     UM layout só no celular (dono, 22/11: "deixe um só") — ?layout=classico existe só para os testes de função antigos; o teste_video_app.py cobre o app.
 153. Botão fixo por cima da linha do tempo (＋) pega o toque de quem mira o MEIO de uma camada comprida: no teste, tocar na parte visível do take.
      Faixa que rola para o lado: o ‹ VOLTAR fica preso à esquerda (position:sticky), senão some quando a pessoa rola até o fim. Toque no "vazio" antes
      do tempo zero cai no PADDING do #veRolo, não no #veFaixas: ouvir o toque no contêiner que rola. Folha que reusa a biblioteca volta a aba certa
@@ -1774,7 +1774,7 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   no celular e no tablet (assets/ve-app.js + ve-app.css): topo fino (‹, formato, MODELOS, ⋯, Exportar), prévia grande, ▶ no meio, linha do tempo fina
   com a agulha parada no meio (o dedo arrasta o tempo, pinça aproxima, miniaturas nos takes, ＋ para mídia), faixa de ferramentas que rola para o lado
   e muda com o toque (projeto · vídeo/foto · texto · som; submenus Áudio e Texto; Trocar pelo meu take nos modelos), folhas que sobem de baixo com só
-  o ajuste escolhido, segurar o dedo no take = opções. Tudo o que já existia continua (é o mesmo motor). PC sem mudança; ⋯ → layout clássico no celular.
+  o ajuste escolhido, segurar o dedo no take = opções. Tudo o que já existia continua (é o mesmo motor). PC sem mudança. 23:40: opção "layout clássico" tirada (dono: "deixe um só").
   Novo docs/testes/teste_video_app.py (toque de verdade, 390 e 820 px + PC) 0 falhas; bateria do editor 0 falhas; vigia ✅ (7.8h). App BW 1.9.14,
   manual 56 → 57 p. ("Editor de vídeo no celular"). video-editor v9, ve-app v1, sw v168. PENTE FINO 152–153.
 

@@ -1,23 +1,13 @@
 {
- "versao": "1.9.14",
+ "versao": "1.9.15",
  "data": "21/11/2026",
  "pacote": "downloads/BW-Reels-Studio.zip",
- "sha256": "dd2152981b84c6d11130d56fd7b7d19ea3b6fce7e7899f1e70aae91cb7afed3a",
- "bytes": 40787678,
+ "sha256": "25913c9c9a539a0cdf41dd219da221f1c9c87a29cb6a02498806726e3e856009",
+ "bytes": 40787519,
  "novidades": [
   {
-   "titulo": "Editor de vídeo com cara de app",
-   "texto": "No celular e no tablet: prévia grande, linha do tempo fina com a agulha parada no meio (arraste com o dedo; pinça aproxima) e miniaturas dos takes.",
-   "abrir": "video"
-  },
-  {
-   "titulo": "Ferramentas que mudam com o toque",
-   "texto": "A faixa de baixo rola para o lado e muda conforme o que você toca: vídeo, texto ou som. Cada ferramenta abre uma folha só com aquele ajuste, e a prévia continua à vista.",
-   "abrir": "video"
-  },
-  {
-   "titulo": "Segurar para as opções",
-   "texto": "Segure o dedo num take para copiar e colar ajustes, substituir a mídia e mais. Nos modelos prontos, toque no espaço TAKE e em Trocar pelo meu take.",
+   "titulo": "Um layout só no celular",
+   "texto": "O editor de vídeo no celular e no tablet fica só com a tela de app (prévia grande, agulha no meio e ferramentas que rolam para o lado).",
    "abrir": "video"
   }
  ]

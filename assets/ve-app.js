@@ -4,19 +4,15 @@
    FERRAMENTAS que rola para o lado e MUDA conforme o que foi tocado (nada escolhido = ferramentas do projeto; vídeo/foto, texto ou som =
    ferramentas daquele take). Cada ferramenta abre uma FOLHA que sobe de baixo com só aquele ajuste. Segurar o dedo no take abre as opções.
    Este arquivo só ARRUMA a tela: move os pedaços que o video-editor.js já desenha e chama os mesmos botões — nada de dado novo, nada sai do aparelho.
-   ?layout=classico (ou ui_ve_layout = "classico") volta o layout antigo. */
+   No celular/tablet há UM layout só (decisão do dono, 22/11). */
 (function () {
   "use strict";
-  var H = document.documentElement, q = new URLSearchParams(location.search), pref = "";
-  try { pref = localStorage.getItem("ui_ve_layout") || ""; } catch (e) {}
-  var forcar = q.get("layout") || pref;
+  var H = document.documentElement, q = new URLSearchParams(location.search);
+  try { localStorage.removeItem("ui_ve_layout"); } catch (e) {}   /* 22/11: o dono pediu UM layout só no celular — a opção "clássico" saiu */
+  var forcar = q.get("layout") || "";   /* ?layout=classico fica só para os testes automáticos das funções */
   var largura = Math.min(innerWidth, screen && screen.width ? screen.width : innerWidth);
   var ligado = forcar === "app" || (forcar !== "classico" && (innerWidth <= 900 || (matchMedia("(pointer:coarse)").matches && innerWidth <= 1180)));
-  if (!ligado) { window.VEApp = {ligado: false};
-    if (pref === "classico" && !q.get("layout") && innerWidth <= 1180) document.addEventListener("DOMContentLoaded", function () { var t = document.querySelector(".ve-topo"); if (!t) return;
-      var b = document.createElement("button"); b.type = "button"; b.className = "ve-bt"; b.id = "veVoltarApp"; b.textContent = "📱 LAYOUT DE APP"; b.title = "Voltar para o layout de app (estilo editor do celular)";
-      b.onclick = function () { try { localStorage.removeItem("ui_ve_layout"); } catch (e) {} location.reload(); }; t.appendChild(b); });
-    return; }
+  if (!ligado) { window.VEApp = {ligado: false}; return; }
   H.classList.add("ve-app");
   var MEIO_ANT = innerWidth <= 900;
   addEventListener("resize", function () { clearTimeout(window.__veAppRz); window.__veAppRz = setTimeout(function () { if (forcar === "app") return; if ((innerWidth <= 900) !== MEIO_ANT && !matchMedia("(pointer:coarse)").matches) location.reload(); }, 400); });
@@ -110,7 +106,7 @@
     $("vaMais").onclick = function (e) { if (!window.BWFerr) return; var r = e.currentTarget.getBoundingClientRect();
       BWFerr.menu(r.right - 220, r.bottom + 4, [{icone: "＋", rot: "Projeto novo", fn: function () { clicar("veNovo"); }}, {icone: "🎬", rot: "Modelos prontos", fn: function () { if (window.VEModelos) VEModelos.abrir(); }},
         {icone: "✦", rot: "Criar com as ferramentas", fn: function () { abrir("criar"); }}, {icone: "🖥", rot: "Prévia no 2º monitor", fn: function () { clicar("veSegunda"); }}, {icone: "📱", rot: "Controle pelo celular", fn: function () { clicar("veCelular"); }},
-        {icone: "☰", rot: "Mostrar todas as camadas", fn: function () { clicar("veTlMin"); }}, "-", {icone: "▭", rot: "Usar o layout clássico", fn: function () { try { localStorage.setItem("ui_ve_layout", "classico"); } catch (x) {} location.reload(); }}], "PROJETO"); };
+        {icone: "☰", rot: "Mostrar todas as camadas", fn: function () { clicar("veTlMin"); }}], "PROJETO"); };
     document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !SHEET.hidden && !document.querySelector(".bwf-menu,#vmFolha:not([hidden])")) { fechar(); e.stopPropagation(); } }, true);
   }
   function espelhar() { var v = V(); if (!v) return; var vf = $("vmFaixa"); if (vf && vf.parentNode !== APP) APP.appendChild(vf);   /* faixa dos MODELOS ("faltam N takes") por cima da prévia */ var t = $("veTempo"); if (t) $("vaTempo").textContent = t.textContent; var p = $("vaPlay"); p.classList.toggle("on", !!v.tocando()); p.setAttribute("aria-label", v.tocando() ? "Pausar" : "Tocar");
