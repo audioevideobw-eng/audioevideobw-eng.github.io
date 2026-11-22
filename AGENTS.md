@@ -1756,6 +1756,10 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   cópia sem internet, tutorial, novidades) e manual 55 → 56 p. ("Pessoa, modelos e duas telas"). video-editor v8, sw v167. PENTE FINO 149–151.
 
 ## Pendências (dono)
+- [ ] (22/11) BW-Setup.exe 1.9.13: os arquivos novos já estão em Vídeos\bw-reels-studio, mas o gerador não abriu pelo clique remoto (3 tentativas,
+      nenhuma janela). Dono: dois cliques em "5 - GERAR INSTALADOR EXE" e avisar o Claude, que traz o .exe. Quem já tem o app atualiza sozinho para a 1.9.13.
+- [ ] (22/11) AJUSTES DO EDITOR: dono testar no PC — arrastar take em cima de outro, rodinha e clique na prévia, Alt + rodinha na camada e as abas
+      ◧ TRANSIÇÕES / ✦ EFEITOS arrastando até a emenda ◆.
 - [ ] (21/11) MÁSCARA E MODELOS: dono abrir o editor de vídeo no PC, pôr um take com uma pessoa, 🧠 ANALISAR e testar o texto atrás dela e o ANEL; abrir
       🎬 MODELOS, escolher um aftermovie e trocar os espaços pelos takes dele. DUAS TELAS: testar o 🖥 com o segundo monitor e o 📱 com o celular.
 - [ ] (21/11) EDITOR DE VÍDEO NOVO: dono abrir no PC e no celular; testar o CHROMA com uma filmagem REAL de fundo verde (dizer em que nível
