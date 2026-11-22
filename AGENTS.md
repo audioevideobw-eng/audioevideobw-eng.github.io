@@ -691,6 +691,18 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
      o papel da esquerda passava para trás da capa. Peças coplanares usam `sobre` (índice da peça-base) + `nivel` (camada) no album-motor.
      Modelo inspirado em template pago (Motion Array etc.): gênero e ideia sim, cópia não (regra 123) — e dizer isso ao dono.
 
+**Aprendidos em 22/11 (GERADOR 3D FUNCIONANDO no PC do dono — a história inteira, para não repetir)**
+176. Receita que FUNCIONOU (RTX 3050 6 GB notebook, Windows, 22/11 15:49 — 9/9 etapas + teste de prova ✓): Python 3.12 do python.org (arquivo exato,
+     nunca o da Microsoft Store nem o 3.15) → venv → PyTorch cu124 → git clone Tencent-Hunyuan/Hunyuan3D-2 → requirements → `pip install -e .` →
+     PINOS num comando só `transformers==4.46.3 diffusers==0.31.0` → snapshot_download do tencent/Hunyuan3D-2mini com DiT + VAE + config.yaml →
+     gerar.py → prova. As 6 tentativas até aqui, cada uma com a sua causa: (1) Python/Git "não achados" fora do PATH → procurar nas pastas
+     padrão; (2) Python 3.15 sem roda do torch+CUDA → FAIXA 3.10–3.13; (3) Python da Store em WindowsApps → recusar pelo caminho real;
+     (4) faltou o VAE (allow_patterns só do DiT) → baixar as pastas que o pipeline carrega; (5) transformers 5.x renomeou a atenção do DINOv2 →
+     pino; (6) pino sozinho quebrou o diffusers (resolve_revision) e a tela disse "internet caiu" → pinar o GRUPO e separar erro de versão de
+     erro de rede. O pip avisa "hy3dgen requires transformers>=4.48" e mesmo assim FUNCIONA (o aviso é do metadado; o código roda com 4.46.3) —
+     não "consertar" esse aviso subindo a versão sem testar no PC. Lição geral: instalador de IA de terceiros = etapas que retomam, log real
+     na tela, faixa de versão, pinos em grupo, e o teste de prova no fim é o que decide; testar só simulado aqui e o REAL no PC do dono.
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -2000,6 +2012,9 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   páginas virando, fundo LINHO; a página do Motion Array não abriu (pedido de acesso sem resposta) e o modelo é próprio. teste_reels (+16) e teste_album
   (+3) 0 falhas; teste-app 0; vigia ✅. App BW 1.9.27 publicado (cópia sem internet, tutorial, novidades) e arquivos no PC. Manual 59 → 60 p.
   reels.js v18, reels-modelos v4, album-motor v2, album.js v2, sw v182. PENTE FINO 174–175.
+- 22/11/2026 15:50 · Dono (print): GERADOR 3D NO MEU PC instalado com as 9 etapas e o TESTE DE PROVA passando (1.9.11+, RTX 3050 6 GB). Fim da pendência
+  aberta desde 20/11. O aviso do pip "hy3dgen requires transformers>=4.48" aparece mas não impede (registrado em PENTE FINO 176 com as 6 tentativas).
+  Próximo passo do dono: 🧊 GERAR UMA PEÇA DE PROVA e depois usar no Estúdio 3D.
 ## Pendências (dono)
 - [x] (22/11 15:38) BW-Setup.exe 1.9.27 gerado pelo dono e publicado (8,5 MB, versão conferida dentro do .exe).
 - [ ] (22/11) REELS QUE ENSINAM e FOTOLIVROS: dono abrir no celular e no PC, usar um modelo com fotos/textos reais e dizer o que ajustar.
@@ -2025,7 +2040,7 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
 - [ ] (21/11) AMBIENTE ÚNICO: dono abrir o EDITOR DE VÍDEO (Marketing → Editor de vídeo), tocar num atalho da caixa CRIAR, fazer uma peça
       (ex.: um motion curto ou uma logo 3D), mandar para a linha do tempo, juntar com uma filmagem dele e exportar. Depois tocar no ✎ de uma
       criação, mudar algo na ferramenta e ver se trocou no lugar sem desfazer a edição. Dizer se falta alguma ferramenta nessa caixa.
-- [ ] (21/11) GERADOR 3D — FALTA SÓ ISSO: dono abrir o BW, tocar em ATUALIZAR (1.9.11), abrir GERADOR 3D NO MEU PC e tocar em
+- [x] (22/11 15:50) GERADOR 3D INSTALADO E TESTADO no PC do dono (9/9 + prova). Era: dono abrir o BW, tocar em ATUALIZAR (1.9.11), abrir GERADOR 3D NO MEU PC e tocar em
       ↻ TENTAR DE NOVO. O conserto (transformers 4.46.3 + diffusers 0.31.0 juntos) já está no app; ele refaz pacote + modelo + roteiro + teste (minutos, sem rebaixar os
       7,6 GB). Depois tocar em 🧊 GERAR UMA PEÇA DE PROVA e mandar o resultado (ou o erro + ⧉ COPIAR O LOG). Aqui não há placa NVIDIA, então
       os comandos só foram testados simulados.

@@ -492,3 +492,12 @@ Tamanho > 0 e sem erro = o pdfmake montou o arquivo. Localmente (T1) confira o `
 - Digitação determinística: span monoespaçado com `max-width: calc(var(--p) * var(--n) * 1ch)` e tween de `p` (nada de setInterval).
 - Revisar cada exemplo numa folha de quadros ANTES de publicar (pegou o feixe por cima do título e o pico falso do gráfico).
 - Álbum com peças coplanares (livro): `sobre`/`nivel` na peça para a ordem de pintura não depender da média de profundidade.
+
+
+## Instalar IA de terceiros no PC do usuário (receita que funcionou — gerador 3D, 22/11)
+1. Etapas gravadas em disco (estado.json) que RETOMAM; log real de cada comando na tela; faixa vermelha com o motivo + COPIAR O LOG.
+2. Achar programas fora do PATH (pastas padrão) e usar o caminho real; FAIXA de versão (não só mínimo); recusar a versão da loja (WindowsApps).
+3. Ler a ÁRVORE do repositório do modelo antes de restringir o download (o pipeline carrega mais pastas que o checkpoint principal).
+4. Biblioteca que o projeto não fixa = PINOS em GRUPO num comando só, aplicados depois do `pip install -e .`; o TENTAR DE NOVO refaz a etapa dos pinos.
+5. Diagnóstico separa erro de VERSÃO (ImportError/cannot import name) de erro de REDE (ConnectionError, Max retries, Failed to resolve).
+6. Aviso de dependência do pip não é falha: o teste de prova no fim é quem decide.
