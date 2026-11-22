@@ -1937,7 +1937,7 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   08:55 (dono: "ao abrir o editor aparece a tela antiga por um instante"): decisão do layout no <head> + tela antiga escondida até o app montar (vídeo e
   Motion); Telas com ⋯ em cada cena/mídia. video, telas, video_app, motion_app 0 falhas. ve-app v4, mo-app v3, telas v10, sw v178. PENTE FINO 170.
 ## Pendências (dono)
-- [ ] (22/11) BW-Setup.exe 1.9.23: arquivos novos já copiados para Vídeos\bw-reels-studio; o "5 - GERAR INSTALADOR EXE" não abriu pelo clique remoto
+- [ ] (22/11) BW-Setup.exe 1.9.24 (arquivos já no PC): arquivos novos já copiados para Vídeos\bw-reels-studio; o "5 - GERAR INSTALADOR EXE" não abriu pelo clique remoto
       (2 tentativas, o .exe não mudou). Dono: dois cliques nele e avisar o Claude, que traz o .exe. Quem já tem o app atualiza sozinho para a 1.9.23.
 - [ ] (22/11) MOTION NO CELULAR + ⋯ NAS TELAS E NO 3D: dono testar o Motion no celular (tocar num item, folhas, segurar) e os ⋯ das Telas/3D no PC (2º monitor).
 - [ ] (22/11) CAIXA DO TIO CLÁUDIO: dono testar no PC e no celular, logado — pedir algo pela caixa, trocar BW Smart / Rápido / Inteligente e usar a ✨ varinha.
