@@ -778,6 +778,11 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
      seletor de arquivo vai DENTRO da página (escondido fora da tela) e sai depois do change. Teste clica no BOTÃO de verdade (expect_file_chooser),
      não só chama a função.
 
+190. iPhone "TOPO EMBAÇADO" no app instalado (print do dono, 22/11): o meta apple-mobile-web-app-status-bar-style="black-translucent" põe a
+     PÁGINA INTEIRA por baixo da barra de status, e o iOS novo embaça o que passa por baixo dela (‹ e título da página borrados ao rolar).
+     Todas as páginas usam "black" (barra de status opaca, página começa abaixo dela) — o app lê isso da página de abertura, então o usuário
+     precisa FECHAR e abrir o app de novo (ou tirar e pôr de novo na tela de início). Página com viewport-fit=cover desce env(safe-area-inset-top).
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -2163,6 +2168,10 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   ainda faltar som, o aviso diz o motivo. CAMADAS (editor de fotos): ＋ IMAGEM não fazia nada no iPhone (seletor fora da página) → corrigido.
   Desfoque no topo do iPhone: ainda sem conserto — aguarda print do dono. teste_proxy_som (novo), teste_video_proxy, teste_video_midia, teste_fotos (+2)
   0 falhas; vigia ✅. bw-proxy v2, video-editor v19, fotos v18, sw v195. App BW 1.9.34. PENTE FINO 188–189.
+
+- 22/11/2026 20:35 · Claude (dono, print do app instalado no iPhone: topo do editor de fotos ainda embaçado): causa achada — o meta
+  black-translucent deixava a página por baixo da barra de status e o iOS embaça o que passa por baixo. Trocado para "black" em todas as páginas
+  (e no molde dos ambientes); fotos.html desce a área segura. Precisa fechar e abrir o app. sw v196. PENTE FINO 190.
 
 ## Pendências (dono)
 - [ ] (22/11) iPhone: abrir o EDITOR DE FOTOS no Safari e dizer se o desfoque de cima sumiu; testar ⚡ FAZER PROXY e a JANELA DE EXPORTAR no PC com takes reais.

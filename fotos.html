@@ -10,6 +10,7 @@
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="apple-mobile-web-app-title" content="Brightway">
 <link rel="stylesheet" href="assets/brightway.css?v=36">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat:wght@600;800&family=Oswald:wght@500&family=Pacifico&family=Playfair+Display:wght@700&family=Michroma&family=Inter:wght@400;600;700&family=Poppins:wght@800&family=Anton&family=Righteous&family=Abril+Fatface&family=Cinzel:wght@700&family=Lobster&family=Dancing+Script:wght@700&family=Great+Vibes&family=Satisfy&family=Caveat:wght@700&family=Permanent+Marker&display=swap" rel="stylesheet">
@@ -210,6 +211,8 @@ textarea.c-campo{min-height:56px;resize:vertical}
 .ed-abas button{transition:color .15s,background .15s}
 .ed-abas button.on svg{filter:drop-shadow(0 0 6px rgba(255,181,71,.55))}
 
+/* iPhone: com viewport-fit=cover a página começa por baixo da barra de status — a entrada desce a área segura (senão o topo fica embaçado) */
+body{padding-top:env(safe-area-inset-top,0px)}
 /* 22/11 — TELA DE ENTRADA com BIBLIOTECA (assets/fotos-inicio.js): a foto é o assunto — palco grande + biblioteca ao lado (embaixo no celular) */
 .fi-casca{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,340px);gap:16px;min-height:calc(100vh - 70px)}
 @media (max-width:900px){.fi-casca{grid-template-columns:minmax(0,1fr);min-height:0}}
