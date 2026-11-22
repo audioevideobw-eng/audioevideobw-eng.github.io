@@ -396,3 +396,14 @@ Tamanho > 0 e sem erro = o pdfmake montou o arquivo. Localmente (T1) confira o `
   Teste: docs/testes/teste_paineis.py (esconder, ＋, descolar, arrastar, recarregar, encaixar, esticar pela beirada, altura de baixo, celular).
 - **Janela para o 2º monitor:** `window.open` + `<video>` com `canvas.captureStream(30)` e botão de tela cheia na própria janela; o Playwright
   pega a janela com `ctx.expect_page()` e confere `video.srcObject.getVideoTracks().length`.
+
+
+## Editor de vídeo: arrastar, camadas dinâmicas e prévia (22/11/2026)
+- Teste com mouse REAL (docs/testes/teste_video_arrastar.py): `mouse.move/down` + vários `move` com 15 ms + `up`; Alt/Ctrl + rodinha com
+  `keyboard.down("Alt")` + `mouse.wheel`. Toque pelo CDP (`Input.dispatchTouchEvent`): segurar 320 ms antes de mexer; para chegar a um alvo fora
+  da tela, deixar o dedo parado na borda (vários touchMove no mesmo ponto) até o alvo aparecer, tirar o dedo da borda e só então medir o alvo.
+- Coordenadas: pegar a caixa do alvo DEPOIS de qualquer scroll_into_view de outro elemento (no celular a biblioteca e a linha do tempo não cabem juntas).
+- Arraste próprio na biblioteca: bloquear `dragstart` (imagens), engolir o clique logo depois de soltar, fantasma com pointer-events:none e
+  escondido durante o elementFromPoint.
+- Zoom da prévia só por CSS (`transform` com origem 0 0 no canvas, `overflow:hidden` no pai): getBoundingClientRect já devolve o tamanho com zoom,
+  então as contas de arrastar o take na prévia continuam certas; o vídeo exportado e o captureStream não mudam.

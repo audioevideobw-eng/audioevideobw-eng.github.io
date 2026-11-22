@@ -556,6 +556,17 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
      NÍVEIS (cada nível sobe intensidade, suavidade da borda, limpeza e sombra juntos, e o app indica o nível pela variação do fundo nas
      bordas) + MANUAL com as 4 barras. Calibrar os níveis com filmagem REAL de verde, não só com fundo sintético.
 
+
+**Aprendidos em 22/11 (editor de vídeo: arrastar, camadas e prévia)**
+149. CAMADAS DINÂMICAS no editor de vídeo: id = família + número (v1, v2, v3… · tx, tx2… · a1, a2, a3…), lista calculada por trilhas() — nunca uma
+     lista fixa de ids no código (desenhar, seleção na prévia, máscara e o seletor de camada usam fam()). Take solto em cima de outro da mesma
+     camada → novaTrilha(); camada vazia some sozinha. Altura por camada em P.alt (Alt + rodinha, mínimo 22 px) — nome e faixa com a MESMA altura.
+150. Arrastar da biblioteca com pointer events: a miniatura <img> começava o arrastar NATIVO do navegador e engolia os pointermove (o fantasma
+     ficava parado) → dragstart com preventDefault na biblioteca; pointercancel sempre encerra o arraste. No celular a biblioteca fica LONGE
+     da linha do tempo: dedo parado perto da borda rola a PÁGINA (não só a linha do tempo). Teste: CDP touch com o dedo parado na borda.
+151. Marcador sobre a emenda (◆) pega o clique de quem mira a ponta de um take curto: o teste do menu mira o MEIO do take; a emenda tem o
+     próprio botão direito (lista de transições). Tocar/clicar na prévia abre o MENU só quando não houve arraste (> 5 px).
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -1735,6 +1746,14 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   CELULAR (assets/bw-controle.js + controle.html): QR/código de 6 letras, o celular toca/pausa/anda/corta/desfaz — vai só o comando e o tempo pelo canal de
   aviso do Supabase Realtime (nada gravado, vídeo não sai do PC; vigia 7.8g). Testes novos teste_mascara e teste_controle (0 falhas × 1280/390) + bateria
   do editor 0 falhas; vigia ✅. NÃO testado: o modelo real do MediaPipe (testar no ar), dois monitores e o celular de verdade. video-editor v7, sw v166.
+
+- 22/11/2026 00:10 · Claude (dono testou no PC e pediu 4 ajustes): EDITOR DE VÍDEO — (1) take arrastado EM CIMA de outro cria uma CAMADA NOVA na hora
+  (vídeo, texto e som; também arrastando da biblioteca); (2) RODINHA em cima da prévia = zoom só da vista (selo 🔍 volta a 100%; mão/botão do meio
+  arrasta) e CLICAR na prévia abre as opções (zoom, desafixar, 2º monitor, tela cheia, salvar quadro, centralizar o take); (3) Alt + rodinha em cima
+  da camada = mais alta/mais baixa até 22 px (Ctrl + rodinha segue no tempo); (4) abas ◧ TRANSIÇÕES e ✦ EFEITOS na mídia com prévia animada,
+  aplicadas por ARRASTO até o take ou a emenda ◆, emenda marcada com o nome, tempo por arrasto no ◆ e na alça da própria camada, toque no ◆ abre
+  a lista e os tempos. teste_video_arrastar.py (mouse e toque de verdade) 0 falhas + bateria do editor 0 falhas; vigia ✅. App BW 1.9.13 (pacote,
+  cópia sem internet, tutorial, novidades) e manual 55 → 56 p. ("Pessoa, modelos e duas telas"). video-editor v8, sw v167. PENTE FINO 149–151.
 
 ## Pendências (dono)
 - [ ] (21/11) MÁSCARA E MODELOS: dono abrir o editor de vídeo no PC, pôr um take com uma pessoa, 🧠 ANALISAR e testar o texto atrás dela e o ANEL; abrir

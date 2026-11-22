@@ -27,6 +27,7 @@
 .ve-cx h3{margin:0 0 8px;font:800 11px Inter,sans-serif;letter-spacing:.14em;color:#B9C0CC}
 .ve-palco{display:flex;flex-direction:column;align-items:center;gap:8px;min-height:0}
 .ve-tela{width:100%;display:flex;align-items:center;justify-content:center}
+.ve-tela{position:relative;overflow:hidden;max-width:100%}.ve-zoomp{position:absolute;left:8px;top:8px;z-index:3;min-height:28px;padding:0 10px;border-radius:999px;border:1px solid rgba(255,255,255,.3);background:rgba(10,12,18,.8);color:#fff;font:800 10.5px Inter,sans-serif;letter-spacing:.06em;cursor:pointer}
 .ve-tela canvas{max-width:100%;max-height:46vh;width:auto;height:auto;border-radius:14px;background:#000;box-shadow:0 14px 40px rgba(0,0,0,.5)}
 .ve-play{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center}
 .ve-tempo{font:700 12.5px Inter,sans-serif;color:#F5F1EA;font-variant-numeric:tabular-nums;min-width:96px;text-align:center}
@@ -60,9 +61,9 @@
 .ve-regua{height:24px;margin-bottom:6px;position:relative;cursor:pointer;border-bottom:1px solid rgba(245,241,234,.1);font:600 9.5px Inter,sans-serif;color:#8d95a3;touch-action:none}
 .ve-regua i{position:absolute;top:4px;font-style:normal;padding-left:3px;border-left:1px solid rgba(245,241,234,.25);height:16px}
 .ve-faixa{height:52px;margin-bottom:6px;position:relative;border-radius:12px;background:rgba(255,255,255,.03)}
-.ve-clip{position:absolute;top:3px;height:46px;box-sizing:border-box;border-radius:12px;border:2px solid transparent;background:var(--c);color:#fff;font:700 11px Inter,sans-serif;overflow:hidden;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;display:flex;align-items:center;gap:6px;padding:0 12px}
+.ve-clip{position:absolute;top:3px;bottom:3px;box-sizing:border-box;border-radius:12px;border:2px solid transparent;background:var(--c);color:#fff;font:700 11px Inter,sans-serif;overflow:hidden;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;display:flex;align-items:center;gap:6px;padding:0 12px}
 .ve-clip.on{border-color:#fff;box-shadow:0 0 0 2px rgba(255,255,255,.25),0 6px 18px rgba(0,0,0,.4)}
-.ve-clip img{flex:none;height:34px;width:34px;object-fit:cover;border-radius:7px;pointer-events:none}
+.ve-clip img{flex:none;height:min(34px,calc(100% - 8px));width:auto;aspect-ratio:1;object-fit:cover;border-radius:7px;pointer-events:none}
 .ve-clip span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:none}
 .ve-clip .al{position:absolute;top:0;bottom:0;width:14px;cursor:ew-resize;background:rgba(0,0,0,.28);z-index:2}
 .ve-clip .al.e{left:0}.ve-clip .al.d{right:0}
@@ -75,6 +76,28 @@
 .ve-chips button.on{background:#7C5CFF;border-color:#7C5CFF;color:#fff}
 .ve-clip .onda{position:absolute;left:0;right:0;top:6px;bottom:6px;background-repeat:no-repeat;pointer-events:none;opacity:.7;transform-origin:50% 50%}.ve-clip .onda.v{top:auto;height:12px;bottom:2px;opacity:.55}.ve-clip>span,.ve-clip>img,.ve-clip>.bd{position:relative;z-index:1}
 .ve-clip .bd{flex:none;font:800 9.5px Inter,sans-serif;background:rgba(0,0,0,.45);border-radius:6px;padding:1px 4px;pointer-events:none}
+.ve-faixa.baixa .ve-clip{font-size:9.5px;border-radius:8px}.ve-faixa.baixa .ve-clip .onda,.ve-faixa.baixa .ve-clip .bd{display:none}.ve-faixa.baixa .ve-clip .al::after{top:4px;bottom:4px}
+.ve-rot div{overflow:hidden;white-space:nowrap}
+.ve-clip.nova{outline:2px dashed #fff;outline-offset:2px;box-shadow:0 -10px 0 -4px rgba(255,255,255,.35)}.ve-clip.nova::before{content:attr(data-dica);position:absolute;right:4px;top:2px;z-index:4;font:800 9px Inter,sans-serif;letter-spacing:.08em;background:#fff;color:#111;border-radius:6px;padding:1px 5px}
+.ve-clip .tr .trp{position:absolute;right:-5px;top:0;bottom:0;width:10px;cursor:ew-resize;pointer-events:auto;z-index:3}.ve-clip .tr .trp::after{content:"";position:absolute;left:3px;top:30%;bottom:30%;width:4px;border-radius:3px;background:#fff;box-shadow:0 0 6px rgba(0,0,0,.6)}
+.ve-junta{position:absolute;top:50%;width:13px;height:13px;margin:-6.5px 0 0 -6.5px;transform:rotate(45deg);border-radius:4px;background:rgba(255,255,255,.18);border:1.5px dashed rgba(255,255,255,.55);z-index:4;cursor:pointer;touch-action:none}
+.ve-junta:hover,.ve-junta.ld-alvo{background:rgba(255,255,255,.4);border-style:solid}
+.ve-junta.com{background:#fff;border:2px solid #7C5CFF;box-shadow:0 0 0 3px rgba(124,92,255,.35),0 4px 12px rgba(0,0,0,.5);cursor:ew-resize}
+.ve-junta b{position:absolute;left:11px;top:-14px;transform:rotate(-45deg);transform-origin:0 100%;white-space:nowrap;font:800 9px Inter,sans-serif;letter-spacing:.04em;background:#7C5CFF;color:#fff;border-radius:6px;padding:1px 5px;pointer-events:none}
+.ve-faixa.baixa .ve-junta b{display:none}
+.ve-clip.marcado{animation:veMarca 1.2s ease}@keyframes veMarca{0%,60%{box-shadow:0 0 0 3px #fff,0 0 22px 6px var(--c)}100%{box-shadow:none}}
+.ve-clip.ld-alvo,.ve-faixa.ld-alvo{outline:2px solid #fff;outline-offset:1px}
+.ve-fantasma{position:fixed;z-index:9500;pointer-events:none;max-width:220px;padding:7px 10px;border-radius:10px;background:#7C5CFF;color:#fff;font:800 11px Inter,sans-serif;box-shadow:0 10px 30px rgba(0,0,0,.55)}.ve-fantasma::after{content:attr(data-dica);display:block;margin-top:3px;font:700 9.5px Inter,sans-serif;opacity:.85;letter-spacing:.04em}
+.ve-item.arrastando{opacity:.45}
+.ve-fx .mini{display:block;width:100%;aspect-ratio:16/10;border-radius:9px;overflow:hidden;position:relative;background:linear-gradient(90deg,#3a4a8a 0 50%,#c05a2a 50% 100%)}
+.ve-fx .mini i{position:absolute;inset:0;background:linear-gradient(90deg,#3a4a8a,#c05a2a);animation:veFxA 1.8s ease-in-out infinite alternate}
+@keyframes veFxA{0%{opacity:0}100%{opacity:1}}
+.ve-fx.tr-preto .mini i{background:#000}.ve-fx.tr-branco .mini i{background:#fff}.ve-fx.tr-empurrar .mini i{background:#c05a2a;animation-name:veFxE}.ve-fx.tr-deslizar .mini i{background:#c05a2a;animation-name:veFxS}
+.ve-fx.tr-circulo .mini i{background:#c05a2a;border-radius:50%;animation-name:veFxZ}.ve-fx.tr-zoom .mini i,.ve-fx.tr-zoom-saida .mini i{background:#c05a2a;animation-name:veFxZ}.ve-fx.tr-cortina .mini i{background:#c05a2a;animation-name:veFxC}.ve-fx.tr-girar .mini i{background:#c05a2a;animation-name:veFxG}
+@keyframes veFxE{0%{transform:translateX(100%)}100%{transform:none}}@keyframes veFxS{0%{transform:translateY(100%)}100%{transform:none}}@keyframes veFxZ{0%{transform:scale(0)}100%{transform:scale(1.5)}}@keyframes veFxC{0%{clip-path:inset(0 50%)}100%{clip-path:inset(0 0)}}@keyframes veFxG{0%{transform:rotate(-90deg) scale(.2)}100%{transform:none}}
+.ve-fx[class*=" ef-"] .mini{background:linear-gradient(135deg,#d9a35c,#3c6fb8)}.ve-fx[class*=" ef-"] .mini i{display:none}
+.ve-fx.ef-pb .mini{filter:grayscale(1)}.ve-fx.ef-sepia .mini{filter:sepia(1)}.ve-fx.ef-vintage .mini{filter:sepia(.5) contrast(.85)}.ve-fx.ef-quente .mini{filter:sepia(.3) saturate(1.4) hue-rotate(-10deg)}.ve-fx.ef-frio .mini{filter:hue-rotate(25deg) saturate(.9)}.ve-fx.ef-vivido .mini{filter:saturate(2)}.ve-fx.ef-contraste .mini{filter:contrast(1.8)}.ve-fx.ef-noite .mini{filter:brightness(.45) hue-rotate(40deg)}.ve-fx.ef-vinheta .mini{box-shadow:inset 0 0 18px 8px #000}.ve-fx.ef-desfoque .mini{filter:blur(2px)}.ve-fx.ef-vhs .mini{filter:saturate(1.6) hue-rotate(-20deg) contrast(1.2)}.ve-fx.ef-grao .mini{filter:contrast(1.3) saturate(.8)}
+@media (prefers-reduced-motion:reduce){.ve-fx .mini i{animation:none;opacity:.6}}
 .ve-clip .tr{position:absolute;left:0;top:0;bottom:0;pointer-events:none;background:linear-gradient(90deg,rgba(255,255,255,.55),rgba(255,255,255,0));border-right:2px dashed rgba(255,255,255,.7)}
 .ve-lamina{position:absolute;width:2px;background:#B6FF3B;box-shadow:0 0 8px #B6FF3B;pointer-events:none;z-index:4}.ve-lamina[hidden]{display:none}
 #veFerr{margin-right:6px}
@@ -212,7 +235,7 @@
 <script src="assets/bw-chroma.js?v=1"></script>
 <script src="assets/bw-cor.js?v=1"></script>
 <script src="assets/bw-mascara.js?v=1"></script>
-<script src="assets/video-editor.js?v=7"></script>
+<script src="assets/video-editor.js?v=8"></script>
 <script src="assets/ve-modelos.js?v=1"></script>
 <script src="assets/bw-controle.js?v=1"></script>
 </body>

@@ -1,28 +1,28 @@
 {
- "versao": "1.9.12",
+ "versao": "1.9.13",
  "data": "21/11/2026",
  "pacote": "downloads/BW-Reels-Studio.zip",
- "sha256": "7f116d8e551c87ec6f172bb7e04e674e870da91dee22c7e33ba96961ba683c6e",
- "bytes": 40772303,
+ "sha256": "0d2e539d7366d94e17139f701f01aca9e35f67997f5c8e89deb4fec9d4b5ec14",
+ "bytes": 40767409,
  "novidades": [
   {
-   "titulo": "Editor de vídeo: tela limpa e painéis livres",
-   "texto": "Nas ferramentas de edição somem o menu e o topo (fica só a setinha de voltar). Cada painel esconde (✕), descola e vira janela solta (⇱) e estica pela beirada da prévia. Vale também no motion, nas Telas, no Estúdio 3D e no Editor de fotos.",
+   "titulo": "Pessoa e fundo com IA",
+   "texto": "No editor de vídeo, ANALISAR acha a pessoa em cada quadro: textos e camadas passam por trás dela, o texto em ANEL gira em volta, e o fundo pode ficar desfocado, preto e branco, escuro, de uma cor ou sumir. Tudo no próprio computador.",
    "abrir": "video"
   },
   {
-   "titulo": "Chroma key em níveis",
-   "texto": "Ligue o chroma e o app acha o fundo sozinho e indica um nível de 1 a 5: cada nível tira mais fundo, suaviza a borda e guarda mais sombra. No modo manual você ajusta intensidade, borda, limpeza e sombra olhando a prévia.",
+   "titulo": "12 modelos prontos de edição",
+   "texto": "Aftermovie de 30 e 60 s, corporativo, reels, casamento, show, contagem, antes e depois, depoimento, top 3, telão e nome atrás da pessoa. Veja o modelo, troque os espaços TAKE pelos seus takes (ou PREENCHER SOZINHO) e salve as suas edições como modelo.",
    "abrir": "video"
   },
   {
-   "titulo": "Cor e som de cada take",
-   "texto": "Cor: exposição, contraste, realces, sombras, temperatura, saturação, nitidez, vinheta e mais, com pontos de partida, predefinições suas e aplicar em todos. Som: volume em dB, normalizar, reduzir ruído, realçar voz, extrair áudio e forma de onda.",
+   "titulo": "Arrastar para criar camada e aplicar transição",
+   "texto": "Take solto em cima de outro cria uma camada nova. Transições e efeitos vão por arrasto até o take ou a emenda ◆, que fica marcada com o nome; arraste o ◆ para mudar o tempo. Alt + rodinha muda a altura da camada.",
    "abrir": "video"
   },
   {
-   "titulo": "Botão direito no take e prévia no 2º monitor",
-   "texto": "Copie os ajustes de um take e cole em outro, corte até a agulha (Q/W), desative um take (Shift+E). O botão 🖥 manda a prévia para uma janela que você põe em tela cheia no segundo monitor.",
+   "titulo": "Prévia com zoom, 2º monitor e celular de controle",
+   "texto": "Rodinha em cima da prévia aproxima e afasta; um clique abre as opções. O 🖥 abre a prévia direto no segundo monitor e o 📱 transforma o celular em controle remoto pelo QR.",
    "abrir": "video"
   }
  ]
