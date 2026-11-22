@@ -45,7 +45,7 @@ with sync_playwright() as p:
         FORA.clear(); ctx = b.new_context(viewport={"width": largura, "height": altura}, service_workers="block", has_touch=largura < 500); ctx.route("**/*", rota)
         pg = ctx.new_page(); erros = []
         pg.on("pageerror", lambda e: erros.append(str(e))); pg.on("dialog", lambda d: d.accept(d.default_value) if d.type == "prompt" else d.accept())
-        pg.goto(BASE + "video.html"); pg.wait_for_function("window.__veProntoOk === true", timeout=15000)
+        pg.goto(BASE + "video.html?layout=classico"); pg.wait_for_function("window.__veProntoOk === true", timeout=15000)
         ok(pg.evaluate("!!window.BWCor") and pg.evaluate("BWCor.CAMPOS.length") >= 13, f"módulo de cor carregado ({pg.evaluate('BWCor.CAMPOS.length')} ajustes, motor {pg.evaluate('BWCor.motor()')})")
         pg.set_input_files("#veArq", [f"{TMP}/faixas.png", f"{TMP}/cinza.png"]); pg.wait_for_function("Object.keys(__video.MID).length === 2", timeout=15000); pg.wait_for_timeout(300)
         pg.evaluate("document.querySelector('#veLib [data-mid=\"' + Object.values(__video.MID).find(m => m.nome.indexOf('faixas')>=0).id + '\"]').click()"); pg.wait_for_timeout(250)

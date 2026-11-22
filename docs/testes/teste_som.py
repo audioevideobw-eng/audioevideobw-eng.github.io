@@ -45,7 +45,7 @@ with sync_playwright() as p:
         FORA.clear(); ctx = b.new_context(viewport={"width": largura, "height": altura}, service_workers="block", has_touch=largura < 500); ctx.route("**/*", rota)
         pg = ctx.new_page(); erros = []
         pg.on("pageerror", lambda e: erros.append(str(e))); pg.on("dialog", lambda d: d.accept())
-        pg.goto(BASE + "video.html"); pg.wait_for_function("window.__veProntoOk === true", timeout=15000)
+        pg.goto(BASE + "video.html?layout=classico"); pg.wait_for_function("window.__veProntoOk === true", timeout=15000)
         pg.set_input_files("#veArq", [f"{TMP}/fundo.png", f"{TMP}/zumbido.wav", f"{TMP}/clipe.webm"]); pg.wait_for_function("Object.keys(__video.MID).length === 3", timeout=15000); pg.wait_for_timeout(300)
         for n in ("fundo", "zumbido"):
             pg.evaluate("document.querySelector('#veLib [data-mid=\"' + Object.values(__video.MID).find(m => m.nome.indexOf('" + n + "')>=0).id + '\"]').click()"); pg.wait_for_timeout(250)

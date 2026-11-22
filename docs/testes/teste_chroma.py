@@ -37,7 +37,7 @@ with sync_playwright() as p:
         FORA.clear(); ctx = b.new_context(viewport={"width": largura, "height": altura}, service_workers="block", has_touch=largura < 500); ctx.route("**/*", rota)
         pg = ctx.new_page(); erros = []
         pg.on("pageerror", lambda e: erros.append(str(e))); pg.on("dialog", lambda d: d.accept())
-        pg.goto(BASE + "video.html"); pg.wait_for_function("window.__veProntoOk === true", timeout=15000)
+        pg.goto(BASE + "video.html?layout=classico"); pg.wait_for_function("window.__veProntoOk === true", timeout=15000)
         ok(pg.evaluate("!!window.BWChroma"), f"módulo do chroma carregado (motor: {pg.evaluate('BWChroma.motor()')})")
         pg.set_input_files("#veArq", [f"{TMP}/azul.png", f"{TMP}/verde.webm"]); pg.wait_for_function("Object.keys(__video.MID).length === 2", timeout=15000); pg.wait_for_timeout(300)
         for t in ("imagem", "video"):

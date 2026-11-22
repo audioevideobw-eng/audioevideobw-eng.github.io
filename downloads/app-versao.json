@@ -1,28 +1,23 @@
 {
- "versao": "1.9.13",
+ "versao": "1.9.14",
  "data": "21/11/2026",
  "pacote": "downloads/BW-Reels-Studio.zip",
- "sha256": "0d2e539d7366d94e17139f701f01aca9e35f67997f5c8e89deb4fec9d4b5ec14",
- "bytes": 40767409,
+ "sha256": "dd2152981b84c6d11130d56fd7b7d19ea3b6fce7e7899f1e70aae91cb7afed3a",
+ "bytes": 40787678,
  "novidades": [
   {
-   "titulo": "Pessoa e fundo com IA",
-   "texto": "No editor de vídeo, ANALISAR acha a pessoa em cada quadro: textos e camadas passam por trás dela, o texto em ANEL gira em volta, e o fundo pode ficar desfocado, preto e branco, escuro, de uma cor ou sumir. Tudo no próprio computador.",
+   "titulo": "Editor de vídeo com cara de app",
+   "texto": "No celular e no tablet: prévia grande, linha do tempo fina com a agulha parada no meio (arraste com o dedo; pinça aproxima) e miniaturas dos takes.",
    "abrir": "video"
   },
   {
-   "titulo": "12 modelos prontos de edição",
-   "texto": "Aftermovie de 30 e 60 s, corporativo, reels, casamento, show, contagem, antes e depois, depoimento, top 3, telão e nome atrás da pessoa. Veja o modelo, troque os espaços TAKE pelos seus takes (ou PREENCHER SOZINHO) e salve as suas edições como modelo.",
+   "titulo": "Ferramentas que mudam com o toque",
+   "texto": "A faixa de baixo rola para o lado e muda conforme o que você toca: vídeo, texto ou som. Cada ferramenta abre uma folha só com aquele ajuste, e a prévia continua à vista.",
    "abrir": "video"
   },
   {
-   "titulo": "Arrastar para criar camada e aplicar transição",
-   "texto": "Take solto em cima de outro cria uma camada nova. Transições e efeitos vão por arrasto até o take ou a emenda ◆, que fica marcada com o nome; arraste o ◆ para mudar o tempo. Alt + rodinha muda a altura da camada.",
-   "abrir": "video"
-  },
-  {
-   "titulo": "Prévia com zoom, 2º monitor e celular de controle",
-   "texto": "Rodinha em cima da prévia aproxima e afasta; um clique abre as opções. O 🖥 abre a prévia direto no segundo monitor e o 📱 transforma o celular em controle remoto pelo QR.",
+   "titulo": "Segurar para as opções",
+   "texto": "Segure o dedo num take para copiar e colar ajustes, substituir a mídia e mais. Nos modelos prontos, toque no espaço TAKE e em Trocar pelo meu take.",
    "abrir": "video"
   }
  ]

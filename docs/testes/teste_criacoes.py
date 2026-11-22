@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Teste do AMBIENTE ÚNICO (20/11): a LINHA DO TEMPO é o centro e as ferramentas criam para ela.
 Confere: a caixa CRIAR PARA A LINHA DO TEMPO com os atalhos VISÍVEIS (regra 131), a biblioteca única
-(assets/bw-criacoes.js) guardando no aparelho, a criação entrando na linha do tempo por video.html?criacao=ID,
+(assets/bw-criacoes.js) guardando no aparelho, a criação entrando na linha do tempo por video.html?layout=classico&criacao=ID,
 a TROCA NO LUGAR (nova versão mantém o clipe, o corte e os efeitos), o ✎ EDITAR abrindo a ferramenta de origem
 com ?p=&voltar=video&criacao=, a barra de volta nas ferramentas e que nada sai do aparelho. 1280 e 390 px.
 Uso (na raiz): python3 docs/testes/teste_criacoes.py"""
@@ -44,7 +44,7 @@ with sync_playwright() as p:
         pg.on("pageerror", lambda e: erros.append(str(e)))
 
         # ---- 1) o centro: a caixa CRIAR com os atalhos VISÍVEIS ----
-        pg.goto(BASE + "video.html"); pg.wait_for_function("window.__veProntoOk === true", timeout=20000)
+        pg.goto(BASE + "video.html?layout=classico"); pg.wait_for_function("window.__veProntoOk === true", timeout=20000)
         atalhos = pg.locator("#veCriarLista a")
         ok(atalhos.count() == 7, f"7 ferramentas na caixa CRIAR (achei {atalhos.count()})")
         # 21/11: a caixa fica GUARDADA (não ocupa lugar) — no PC abre pelo botão ✦ CRIAR da mídia; no celular pela seta do título
@@ -67,7 +67,7 @@ with sync_playwright() as p:
         ok(lista[0]["capa"] is True, "capa feita no aparelho (sem enviar nada)")
 
         # ---- 3) ?criacao=ID põe na linha do tempo ----
-        pg.goto(BASE + "video.html?criacao=" + cid); pg.wait_for_function("window.__veProntoOk === true", timeout=20000)
+        pg.goto(BASE + "video.html?layout=classico&criacao=" + cid); pg.wait_for_function("window.__veProntoOk === true", timeout=20000)
         pg.wait_for_function("window.__video && window.__video.P().clips.length > 0", timeout=10000)
         clips = pg.evaluate("window.__video.P().clips")
         ok(len(clips) == 1 and clips[0]["mid"] == "bc-" + cid, "a criação entrou na linha do tempo")
@@ -82,7 +82,7 @@ with sync_playwright() as p:
         # ---- 4) TROCA NO LUGAR: mesma criação, arquivo novo ----
         cid2 = pg.evaluate(GUARDAR, ["motion", "#12B76A", "Abertura verde", cid, "proj-1"])
         ok(cid2 == cid, "a nova versão fica com o MESMO id de criação")
-        pg.goto(BASE + "video.html?criacao=" + cid); pg.wait_for_function("window.__veProntoOk === true", timeout=20000)
+        pg.goto(BASE + "video.html?layout=classico&criacao=" + cid); pg.wait_for_function("window.__veProntoOk === true", timeout=20000)
         pg.wait_for_timeout(600)
         depois = pg.evaluate("window.__video.P().clips")
         ok(len(depois) == 1, "não duplicou o clipe (trocou no lugar)")

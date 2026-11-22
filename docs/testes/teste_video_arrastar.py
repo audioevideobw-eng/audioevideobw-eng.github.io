@@ -42,7 +42,7 @@ with sync_playwright() as p:
         cel = largura < 500; print(f"\n=== {largura}px ===")
         ctx = b.new_context(viewport={"width": largura, "height": altura}, service_workers="block", has_touch=cel); ctx.route("**/*", rota)
         pg = ctx.new_page(); erros = []; pg.on("pageerror", lambda e: erros.append(str(e)))
-        pg.goto(BASE + "video.html"); pg.wait_for_function("window.__veProntoOk === true", timeout=15000); pg.wait_for_timeout(400)
+        pg.goto(BASE + "video.html?layout=classico"); pg.wait_for_function("window.__veProntoOk === true", timeout=15000); pg.wait_for_timeout(400)
         pg.set_input_files("#veArq", [f"{TMP}/azul.webm", f"{TMP}/verde.webm"]); pg.wait_for_function("Object.keys(__video.MID).length >= 2", timeout=15000); pg.wait_for_timeout(400)
         ids = pg.evaluate("Object.values(__video.MID).filter(m=>m.tipo==='video').map(m=>m.id)")
         pg.evaluate(f"(()=>{{const M=__video.MID;__video.addClip(M['{ids[0]}']);__video.addClip(M['{ids[1]}']);const cs={CL};cs[0].dur=3;cs[1].ini=3;cs[1].dur=3;__video.tudo();}})()"); pg.wait_for_timeout(400)

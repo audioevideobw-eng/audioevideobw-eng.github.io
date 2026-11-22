@@ -567,6 +567,20 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
 151. Marcador sobre a emenda (◆) pega o clique de quem mira a ponta de um take curto: o teste do menu mira o MEIO do take; a emenda tem o
      próprio botão direito (lista de transições). Tocar/clicar na prévia abre o MENU só quando não houve arraste (> 5 px).
 
+**Aprendidos em 22/11 (editor de vídeo com cara de APP no celular)**
+152. LAYOUT DE APP (assets/ve-app.js + ve-app.css, decisão do dono com prints do CapCut): no celular/tablet (≤ 900 px ou toque ≤ 1180 px) o editor
+     vira app — topo fino, prévia grande, ▶ no meio, linha do tempo fina com a AGULHA PARADA NO MEIO (rolar = andar no vídeo; padding de meia
+     largura no #veRolo, scrollLeft = T × PPS), FAIXA DE FERRAMENTAS que rola para o lado e muda com a seleção, FOLHA de baixo com UM grupo do
+     AJUSTES (o grupo leva data-g; a folha esconde os outros). O ve-app.js NÃO desenha nada de novo: MOVE os pedaços que o video-editor.js já
+     desenha (#veProp, #veMidia, #veCriar…) e clica nos MESMOS botões — mudança de função continua sendo feita no video-editor.js. Ele vem ANTES
+     do video-editor.js (liga html.ve-app; vigia 7.8h). No app, dedo em take NÃO escolhido rola; toque (click) escolhe; segurar abre as opções.
+     ?layout=classico / ⋯ → layout clássico volta o antigo; os testes de função antigos abrem ?layout=classico e o teste_video_app.py cobre o app.
+153. Botão fixo por cima da linha do tempo (＋) pega o toque de quem mira o MEIO de uma camada comprida: no teste, tocar na parte visível do take.
+     Faixa que rola para o lado: o ‹ VOLTAR fica preso à esquerda (position:sticky), senão some quando a pessoa rola até o fim. Toque no "vazio" antes
+     do tempo zero cai no PADDING do #veRolo, não no #veFaixas: ouvir o toque no contêiner que rola. Folha que reusa a biblioteca volta a aba certa
+     (a aba de transições ficava aberta e o "trocar pelo meu take" mostrava a biblioteca vazia). Peça que outro módulo põe no layout antigo
+     (#vmFaixa dos modelos) precisa ser trazida para o app.
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -1755,7 +1769,18 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   a lista e os tempos. teste_video_arrastar.py (mouse e toque de verdade) 0 falhas + bateria do editor 0 falhas; vigia ✅. App BW 1.9.13 (pacote,
   cópia sem internet, tutorial, novidades) e manual 55 → 56 p. ("Pessoa, modelos e duas telas"). video-editor v8, sw v167. PENTE FINO 149–151.
 
+- 22/11/2026 00:55 · Claude (dono, com 6 prints do CapCut do celular: "o nosso é muito grosseiro… cada ferramenta rolar para o lado… segurar abre as
+  opções, clicar altera as ferramentas aplicadas ao vídeo/áudio… aprenda com este layout, mantendo as facilidades"): EDITOR DE VÍDEO com cara de APP
+  no celular e no tablet (assets/ve-app.js + ve-app.css): topo fino (‹, formato, MODELOS, ⋯, Exportar), prévia grande, ▶ no meio, linha do tempo fina
+  com a agulha parada no meio (o dedo arrasta o tempo, pinça aproxima, miniaturas nos takes, ＋ para mídia), faixa de ferramentas que rola para o lado
+  e muda com o toque (projeto · vídeo/foto · texto · som; submenus Áudio e Texto; Trocar pelo meu take nos modelos), folhas que sobem de baixo com só
+  o ajuste escolhido, segurar o dedo no take = opções. Tudo o que já existia continua (é o mesmo motor). PC sem mudança; ⋯ → layout clássico no celular.
+  Novo docs/testes/teste_video_app.py (toque de verdade, 390 e 820 px + PC) 0 falhas; bateria do editor 0 falhas; vigia ✅ (7.8h). App BW 1.9.14,
+  manual 56 → 57 p. ("Editor de vídeo no celular"). video-editor v9, ve-app v1, sw v168. PENTE FINO 152–153.
+
 ## Pendências (dono)
+- [ ] (22/11) EDITOR NO CELULAR: dono abrir o editor de vídeo no celular e dizer o que ainda falta para ficar como o CapCut (tempo do "segurar"
+      hoje é ~0,5 s — pediu 2 s: confirmar se quer mesmo mais longo). BW-Setup.exe 1.9.14 depende do PC (o 1.9.12 do site atualiza sozinho).
 - [ ] (22/11) BW-Setup.exe 1.9.13: os arquivos novos já estão em Vídeos\bw-reels-studio, mas o gerador não abriu pelo clique remoto (3 tentativas,
       nenhuma janela). Dono: dois cliques em "5 - GERAR INSTALADOR EXE" e avisar o Claude, que traz o .exe. Quem já tem o app atualiza sozinho para a 1.9.13.
 - [ ] (22/11) AJUSTES DO EDITOR: dono testar no PC — arrastar take em cima de outro, rodinha e clique na prévia, Alt + rodinha na camada e as abas

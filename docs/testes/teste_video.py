@@ -35,7 +35,7 @@ with sync_playwright() as p:
         FORA.clear(); ctx = b.new_context(viewport={"width": largura, "height": altura}, service_workers="block", has_touch=largura < 500); ctx.route("**/*", rota)
         pg = ctx.new_page(); erros = []; dlg = []
         pg.on("pageerror", lambda e: erros.append(str(e))); pg.on("dialog", lambda d: (dlg.append(d.message), d.accept()))
-        pg.goto(BASE + "video.html"); pg.wait_for_function("window.__veProntoOk === true", timeout=15000)
+        pg.goto(BASE + "video.html?layout=classico"); pg.wait_for_function("window.__veProntoOk === true", timeout=15000)
         ok(pg.locator("#veRot div").count() == 6 and pg.locator(".ve-faixa").count() == 5 and pg.evaluate(SEM) <= 0, "abre com 5 camadas (sobreposição, vídeo, texto, trilha, efeitos), sem estouro")
         ok(pg.evaluate("[...document.querySelectorAll('button')].filter(b => b.offsetParent && !(b.textContent.trim() || b.getAttribute('aria-label'))).length") == 0, "todo botão tem nome")
         pg.set_input_files("#veArq", [f"{TMP}/clipe.webm", f"{TMP}/foto.png", f"{TMP}/musica.wav"]); pg.wait_for_function("Object.keys(__video.MID).length === 3", timeout=15000); pg.wait_for_timeout(300)

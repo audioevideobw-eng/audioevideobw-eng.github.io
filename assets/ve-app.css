@@ -1,0 +1,77 @@
+/* EDITOR DE VÍDEO — layout de app (celular/tablet). Só vale com html.ve-app (assets/ve-app.js). */
+html.ve-app,html.ve-app body{height:100%;overflow:hidden;overscroll-behavior:none}
+html.ve-app body{background:#0b0c10}
+html.ve-app .bw-foco-barra,html.ve-app .bwg-fab,html.ve-app .bw-abas{display:none!important}
+html.ve-app .wrap.va-escondido{position:absolute!important;left:-9999px;top:0;width:360px;height:1px;overflow:hidden;visibility:hidden}
+.va{position:fixed;inset:0;z-index:50;display:grid;grid-template-rows:52px minmax(0,1fr) 46px auto 78px;background:#0b0c10;color:#F5F1EA;font-family:Inter,system-ui,sans-serif;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+.va svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.va-sp{flex:1}
+.va-topo{display:flex;align-items:center;gap:8px;padding:0 10px}
+.va-ic{width:40px;height:40px;flex:none;display:flex;align-items:center;justify-content:center;border:0;border-radius:12px;background:transparent;color:#E8EAEE;cursor:pointer;touch-action:manipulation}
+.va-ic:active{background:rgba(255,255,255,.08)}
+.va-chip{height:34px;padding:0 12px;border:0;border-radius:10px;background:#1b1d24;color:#F5F1EA;font:700 12.5px Inter,sans-serif;letter-spacing:.02em;cursor:pointer;white-space:nowrap}
+.va-exp{height:36px;padding:0 16px;border:0;border-radius:11px;background:#21D4E4;color:#06222a;font:800 14px Inter,sans-serif;cursor:pointer}
+.va-tela{position:relative;min-height:0;display:flex;align-items:center;justify-content:center;padding:4px 12px}
+.va-tela .ve-tela{position:absolute;inset:4px 12px;display:flex;align-items:center;justify-content:center;overflow:hidden}
+html.ve-app #veCv{max-width:100%!important;max-height:100%!important;width:auto;height:auto;border-radius:6px;box-shadow:none}
+.va-ctrl{display:flex;align-items:center;gap:4px;padding:0 10px;position:relative}
+.va-tempo{font:600 12px Inter,monospace;color:#c9ccd3;font-variant-numeric:tabular-nums;margin-left:4px}
+.va-play{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:44px;height:44px;border:0;border-radius:50%;background:transparent;color:#fff;cursor:pointer}
+.va-play::before{content:"";display:block;margin:0 auto;width:0;height:0;border-left:16px solid #fff;border-top:10px solid transparent;border-bottom:10px solid transparent;transform:translateX(3px)}
+.va-play.on::before{width:14px;height:18px;border:0;border-left:4px solid #fff;border-right:4px solid #fff;box-sizing:border-box;transform:none}
+.va-tl{position:relative;background:#111318;border-top:1px solid rgba(255,255,255,.06);max-height:34vh;min-height:118px;overflow:hidden;display:flex;flex-direction:column}
+html.va-grande .va{grid-template-rows:52px minmax(0,1fr) 46px 0 0}html.va-grande .va-tl,html.va-grande .va-faixa{display:none}
+.va-tl .ve-tl-corpo{display:block!important;flex:1;min-height:0;overflow-y:auto;overflow-x:hidden}
+html.ve-app .ve-rot{display:none!important}
+html.ve-app #veRolo{overflow-x:auto;overflow-y:hidden;padding:0 var(--va-meio,50%);scrollbar-width:none;-webkit-overflow-scrolling:touch;touch-action:pan-x pan-y}
+html.ve-app #veRolo::-webkit-scrollbar{display:none}
+html.ve-app .ve-regua{height:22px;border:0;background:transparent}
+html.ve-app .ve-regua i{color:#8b909a;font-size:10px}
+html.ve-app .ve-faixa{margin-bottom:4px;border-radius:6px;background:transparent}
+html.ve-app .ve-faixa.vazia{display:none}
+html.ve-app .ve-clip{top:1px;bottom:1px;border-radius:7px;border-width:2px;font-size:10px;touch-action:pan-x pan-y;cursor:pointer}
+html.ve-app .ve-clip.on{touch-action:none;border-color:#fff;box-shadow:0 0 0 1px #fff}
+html.ve-app .ve-clip[style*="--mini"]{background:linear-gradient(rgba(0,0,0,.12),rgba(0,0,0,.35)),var(--mini) repeat-x left center/auto 100%,var(--c)}
+html.ve-app .ve-clip[style*="--mini"] img{display:none}
+html.ve-app .ve-clip>span{text-shadow:0 1px 3px rgba(0,0,0,.8)}
+html.ve-app .ve-clip:not(.on) .al{display:none}
+html.ve-app .ve-clip.on .al{width:16px;background:#fff}html.ve-app .ve-clip.on .al::after{background:#111}
+html.ve-app #veAgulha{display:none}
+.va-agulha{position:absolute;left:50%;top:0;bottom:0;width:2px;margin-left:-1px;background:#fff;z-index:6;pointer-events:none;box-shadow:0 0 6px rgba(0,0,0,.6)}
+.va-agulha::before{content:"";position:absolute;left:-4px;top:0;width:10px;height:10px;border-radius:50%;background:#fff}
+.va-add{position:absolute;right:8px;top:34px;width:38px;height:38px;border:0;border-radius:9px;background:#fff;color:#111;font:300 26px/1 Inter,sans-serif;z-index:7;box-shadow:0 4px 14px rgba(0,0,0,.5);cursor:pointer}
+.va-faixa{display:flex;align-items:stretch;gap:2px;overflow-x:auto;overflow-y:hidden;padding:4px 8px;background:#15171d;border-top:1px solid rgba(255,255,255,.06);scrollbar-width:none;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity}
+.va-faixa::-webkit-scrollbar{display:none}
+.va-f{flex:none;min-width:70px;max-width:84px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:4px 4px;border:0;border-radius:12px;background:transparent;color:#E8EAEE;font:600 11px/1.15 Inter,sans-serif;text-align:center;cursor:pointer;scroll-snap-align:start;touch-action:pan-x}
+.va-f span{display:block;white-space:normal}
+.va-f:active{background:rgba(255,255,255,.08)}
+.va-f.volta{min-width:44px;max-width:44px;margin-right:6px;border-radius:10px;background:#22252d;position:sticky;left:0;z-index:2;box-shadow:8px 0 10px #15171d}
+.va-f.perigo{color:#ff9a9a}
+.va-etq{flex:none;align-self:center;padding:3px 7px;margin-right:4px;border-radius:6px;background:rgba(124,92,255,.22);color:#c9bcff;font:800 9.5px Inter,sans-serif;letter-spacing:.1em}
+.va-faixa[data-ctx="texto"] .va-etq{background:rgba(34,184,207,.2);color:#8fe7f5}.va-faixa[data-ctx="audio"] .va-etq{background:rgba(18,183,106,.2);color:#8ff0bf}
+.va-sheet{position:fixed;left:0;right:0;bottom:0;z-index:60;max-height:min(62vh,560px);display:flex;flex-direction:column;background:#17191f;border-radius:18px 18px 0 0;box-shadow:0 -14px 40px rgba(0,0,0,.6);padding-bottom:env(safe-area-inset-bottom);animation:vaSobe .18s ease-out}
+.va-sheet[hidden]{display:none}
+@keyframes vaSobe{from{transform:translateY(30px);opacity:.4}to{transform:none;opacity:1}}
+.va-sheet-cab{display:flex;align-items:center;gap:8px;padding:8px 10px 4px 16px;position:relative}
+.va-sheet-cab b{font:800 12px Inter,sans-serif;letter-spacing:.12em;color:#E8EAEE}
+.va-alca{position:absolute;left:50%;top:5px;width:36px;height:4px;margin-left:-18px;border-radius:2px;background:rgba(255,255,255,.22)}
+.va-sheet-corpo{overflow-y:auto;overscroll-behavior:contain;padding:4px 14px 16px;min-height:0}
+.va-sheet-corpo .ve-cx{background:transparent;border:0;padding:0;box-shadow:none;margin:0}
+.va-sheet-corpo .ve-pega,.va-sheet-corpo #veProp>h3,.va-sheet-corpo #veMidia>h3,.va-sheet-corpo #veCriar>h3{display:none!important}
+.va-sheet-corpo .ve-g.va-fora{display:none!important}
+.va-sheet-corpo .ve-g>h4{display:none!important}
+.va-sheet-corpo .ve-g>h4 ~ *{display:block!important}
+.va-sheet-corpo .ve-g{border:0;padding:0;margin:0}
+.va-sheet-corpo .ve-lib{grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;max-height:none}
+.va-sheet-corpo input,.va-sheet-corpo select,.va-sheet-corpo textarea{font-size:16px}
+html.va-folha .va-faixa{visibility:hidden}
+.va-fmts{display:flex;gap:10px;overflow-x:auto;padding:6px 2px 10px;flex-wrap:wrap}
+.va-fmt{flex:none;width:76px;display:flex;flex-direction:column;align-items:center;gap:7px;padding:10px 4px;border:1px solid transparent;border-radius:12px;background:#22252d;color:#E8EAEE;font:600 10.5px/1.2 Inter,sans-serif;cursor:pointer}
+.va-fmt i{display:block;border:2px solid #cfd3da;border-radius:4px}
+.va-fmt.on{border-color:#fff;background:#2b2e38}
+html.ve-app .ve-aviso{position:fixed;left:12px;right:12px;top:calc(56px + env(safe-area-inset-top));z-index:70;margin:0;box-shadow:0 8px 24px rgba(0,0,0,.5);backdrop-filter:blur(6px)}
+html.ve-app .bwf-menu{z-index:9600}
+@media (min-width:700px){.va{grid-template-rows:56px minmax(0,1fr) 48px auto 84px}.va-tl{max-height:30vh}.va-f{min-width:80px}}
+.va .vm-faixa{position:absolute;left:8px;right:8px;top:calc(56px + env(safe-area-inset-top));z-index:8;margin:0;max-height:30vh;overflow:auto;box-shadow:0 8px 24px rgba(0,0,0,.5)}
+.va-f.destaque{min-width:92px;max-width:110px;background:linear-gradient(160deg,#7C5CFF,#4C8DFF);color:#fff;margin-right:6px}
+html.va-folha .va .vm-faixa{display:none}

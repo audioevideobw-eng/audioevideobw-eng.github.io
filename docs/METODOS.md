@@ -407,3 +407,14 @@ Tamanho > 0 e sem erro = o pdfmake montou o arquivo. Localmente (T1) confira o `
   escondido durante o elementFromPoint.
 - Zoom da prévia só por CSS (`transform` com origem 0 0 no canvas, `overflow:hidden` no pai): getBoundingClientRect já devolve o tamanho com zoom,
   então as contas de arrastar o take na prévia continuam certas; o vídeo exportado e o captureStream não mudam.
+
+
+## Layout de app por cima de um editor que já existe (22/11/2026)
+- Não reescrever o editor: um módulo à parte (assets/ve-app.js) liga uma classe no <html> ANTES do editor carregar, espera o editor ficar pronto
+  (__veProntoOk) e MOVE os elementos que ele já desenha para a casca nova (os ouvintes continuam valendo, porque o elemento é o mesmo); os botões
+  da casca só fazem `document.getElementById(id).click()` nos botões antigos. Painel de ajustes em grupos: cada grupo com data-g e a folha esconde
+  os outros por classe; MutationObserver no corpo dos ajustes refaz o filtro e a faixa de ferramentas quando a seleção muda.
+- Agulha parada no meio: `#veRolo{padding:0 var(--meio)}` (o padding da direita conta na rolagem), laço de rAF que põe scrollLeft = T × PPS quando
+  ninguém está rolando, e o scroll do dedo chama irPara(scrollLeft / PPS) (marcar a rolagem feita pelo código para não virar "dedo").
+- Teste com toque de verdade (CDP Input.dispatchTouchEvent): tocar em parte VISÍVEL do elemento (botões fixos por cima), segurar 0,9 s para o menu,
+  e checar com getClientRects + visibility que a folha mostra SÓ o grupo pedido.

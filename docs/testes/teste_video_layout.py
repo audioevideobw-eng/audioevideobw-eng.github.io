@@ -33,7 +33,7 @@ with sync_playwright() as p:
         print(f"\n=== {largura}×{altura} ==="); cel = largura < 1100
         ctx = b.new_context(viewport={"width": largura, "height": altura}, service_workers="block", has_touch=cel); ctx.route("**/*", rota)
         pg = ctx.new_page(); erros = []; pg.on("pageerror", lambda e: erros.append(str(e))); pg.on("dialog", lambda d: d.accept())
-        pg.goto(BASE + "video.html"); pg.wait_for_function("window.__veProntoOk === true", timeout=15000); pg.wait_for_timeout(600)
+        pg.goto(BASE + "video.html?layout=classico"); pg.wait_for_function("window.__veProntoOk === true", timeout=15000); pg.wait_for_timeout(600)
         ok(pg.evaluate(VIS) == ["v1"], f"linha do tempo vazia mostra só a camada VÍDEO {pg.evaluate(VIS)}")
         pg.set_input_files("#veArq", [f"{TMP}/clipe.webm", f"{TMP}/musica.wav"]); pg.wait_for_function("Object.keys(__video.MID).length === 2", timeout=15000); pg.wait_for_timeout(300)
         for t in ("video", "audio"):

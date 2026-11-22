@@ -32,7 +32,7 @@ with sync_playwright() as p:
         print(f"\n=== {largura}px ===")
         FORA.clear(); ctx = b.new_context(viewport={"width": largura, "height": altura}, service_workers="block", has_touch=largura < 500); ctx.route("**/*", rota); ctx.add_init_script(BUS)
         pg = ctx.new_page(); erros = []; pg.on("pageerror", lambda e: erros.append(str(e)))
-        pg.goto(BASE + "video.html"); pg.wait_for_function("window.__veProntoOk === true", timeout=15000); pg.wait_for_timeout(400)
+        pg.goto(BASE + "video.html?layout=classico"); pg.wait_for_function("window.__veProntoOk === true", timeout=15000); pg.wait_for_timeout(400)
         pg.evaluate("(()=>{const P=__video.P();P.clips.push({id:'tx1',trilha:'tx',tipo:'texto',ini:0,dur:20,txt:'OI',fonte:'Inter',tam:10,cor:'#ffffff',fundo:'',x:0,y:0,op:100,fin:0,fout:0});__video.tudo()})()")
         bt = pg.locator("#veCelular"); ok(bt.count() == 1, "botão 📱 CONTROLE PELO CELULAR no editor")
         pg.evaluate("document.getElementById('veCelular').click()"); pg.wait_for_selector("#bwcPainel", timeout=5000); pg.wait_for_timeout(600)

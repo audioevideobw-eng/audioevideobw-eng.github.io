@@ -44,7 +44,7 @@ with sync_playwright() as p:
         FORA.clear(); ctx = b.new_context(viewport={"width": largura, "height": altura}, service_workers="block", has_touch=cel, accept_downloads=True); ctx.route("**/*", rota); ctx.add_init_script(FALSA)
         pg = ctx.new_page(); erros = []
         pg.on("pageerror", lambda e: erros.append(str(e))); pg.on("dialog", lambda d: d.accept(d.default_value) if d.type == "prompt" else d.accept())
-        pg.goto(BASE + "video.html"); pg.wait_for_function("window.__veProntoOk === true", timeout=15000); pg.wait_for_timeout(500)
+        pg.goto(BASE + "video.html?layout=classico"); pg.wait_for_function("window.__veProntoOk === true", timeout=15000); pg.wait_for_timeout(500)
         ok(pg.evaluate("!!window.BWMascara && !!window.VEModelos") and pg.locator("#veModelos").count() == 1, "módulos de máscara e de modelos carregados; botão 🎬 MODELOS no topo")
         pg.set_input_files("#veArq", [f"{TMP}/pessoa.webm"]); pg.wait_for_function("Object.keys(__video.MID).length >= 1", timeout=15000); pg.wait_for_timeout(300)
         pg.evaluate("document.querySelector('#veLib [data-mid]').click()"); pg.wait_for_timeout(300)
