@@ -111,6 +111,10 @@
       menu: c.menu, menuTxt: mt ? mix(c.menu, "#000000", 0.7) : mix(c.menu, "#ffffff", 0.74), menuForte: mt ? "#0B0D14" : "#FFFFFF", menuLinha: mix(c.menu, mt ? "#000000" : "#ffffff", 0.12),
       fundoCss: m.fundoCss || c.fundo, claro: claro};
   }
+  /* 22/11 (dono): PRETO E BRANCO é o modo de quem ainda não escolheu nenhum (ui_modo vazio) */
+  var PADRAO = "pb";
+  /* 22/11 (dono): dentro do app BW do PC (window.BW_APP, posto antes da página) somem as opções que só fazem sentido na web (.so-web) */
+  if (window.BW_APP) { R.classList.add("bw-no-app"); try { var st = document.createElement("style"); st.textContent = "html.bw-no-app .so-web{display:none!important}"; (document.head || R).appendChild(st); } catch (e) { } }
   var VARS = [];
   function limpar() { VARS.forEach(function (v) { R.style.removeProperty(v); }); VARS = []; ["data-modo", "data-base", "data-conteudo", "data-fx", "data-estilo", "data-cena", "data-fonte"].forEach(function (a) { R.removeAttribute(a); }); }
   function def(o) { Object.keys(o).forEach(function (k) { R.style.setProperty(k, o[k]); VARS.push(k); }); }
@@ -195,10 +199,10 @@
   try { var lk = document.createElement("link"); lk.rel = "stylesheet"; lk.href = "assets/modos.css?v=5"; (document.head || R).appendChild(lk); } catch (e) { }
   /* cor de uma variável da página (gráficos desenhados em canvas não leem CSS sozinhos) */
   window.__cv = function (v, p) { try { return getComputedStyle(R).getPropertyValue(v).trim() || p; } catch (e) { return p; } };
-  window.BWModos = {lista: lista, achar: achar, aplicar: aplicar, paleta: paleta, montar: montar, atual: function () { return achar(ler("ui_modo", "dark")).id; },
-    animado: function () { return !!ler("ui_modo_fx", 1); }, animar: function (v) { gravar("ui_modo_fx", v ? 1 : 0); aplicar(ler("ui_modo", "dark")); },
+  window.BWModos = {lista: lista, achar: achar, aplicar: aplicar, paleta: paleta, montar: montar, atual: function () { return achar(ler("ui_modo", PADRAO)).id; },
+    animado: function () { return !!ler("ui_modo_fx", 1); }, animar: function (v) { gravar("ui_modo_fx", v ? 1 : 0); aplicar(ler("ui_modo", PADRAO)); },
     salvarMeu: function (o) { var m = montar(o), l = meus().filter(function (x) { return x.id !== m.id; }); l.push(m); gravar("ui_modos_meus", l); return m; },
-    apagarMeu: function (id) { gravar("ui_modos_meus", meus().filter(function (x) { return x.id !== id; })); if (ler("ui_modo", "dark") === id) aplicar("dark"); }};
-  aplicar(ler("ui_modo", "dark"), true);
-  window.addEventListener("storage", function (e) { if (e.key === "ui_modo" || e.key === "ui_modos_meus" || e.key === "ui_modo_fx") aplicar(ler("ui_modo", "dark"), true); });   /* outra aba trocou o modo */
+    apagarMeu: function (id) { gravar("ui_modos_meus", meus().filter(function (x) { return x.id !== id; })); if (ler("ui_modo", PADRAO) === id) aplicar(PADRAO); }};
+  aplicar(ler("ui_modo", PADRAO), true);
+  window.addEventListener("storage", function (e) { if (e.key === "ui_modo" || e.key === "ui_modos_meus" || e.key === "ui_modo_fx") aplicar(ler("ui_modo", PADRAO), true); });   /* outra aba trocou o modo */
 })();

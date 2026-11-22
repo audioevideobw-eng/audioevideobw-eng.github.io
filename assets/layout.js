@@ -117,7 +117,7 @@
   var menu = '<aside class="bw-menu" id="bwMenu">' +
     '<div class="logo"><a href="./" aria-label="Brightway, início"><div role="img" aria-label="BRIGHTWAY" style="font-family:Michroma,sans-serif;font-size:17px;line-height:1;letter-spacing:.16em;color:#F5F1EA;white-space:nowrap;margin-right:-.16em">BRIGHTW<svg viewBox="0 0 80 72" aria-hidden="true" style="width:.8em;height:.72em;vertical-align:baseline;overflow:visible;margin-right:.16em"><defs><linearGradient id="rdM" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#FFB547" stop-opacity=".04"/><stop offset="1" stop-color="#FFB547" stop-opacity=".55"/></linearGradient></defs><path d="M4 72 L37 8 L43 8 L76 72 Z" fill="url(#rdM)"/><path d="M4.5 70 L37.5 8 M75.5 70 L42.5 8" stroke="#FFB547" stroke-width="8" stroke-linecap="square" fill="none"/><path d="M40 68 L40 24" stroke="#FFF4DC" stroke-width="3" stroke-dasharray="8 6"/><path d="M40 -16 L42.8 -.8 L58 2 L42.8 4.8 L40 20 L37.2 4.8 L22 2 L37.2 -.8 Z" fill="#FFF8EA"/></svg>Y</div></a></div>' +
     itens +
-    '<button type="button" class="bw-app-dl" onclick="window.bwInstalarApp()"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M5 21h14"/></svg><span>APP DOWNLOAD</span></button>' +
+    '<button type="button" class="bw-app-dl so-web" onclick="window.bwInstalarApp()"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M5 21h14"/></svg><span>APP DOWNLOAD</span></button>' +
     '<button type="button" class="bw-fb-btn" onclick="window.bwFeedback()"><svg width="17" height="17" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M8 9h8M8 13h5"/></svg><span>ENVIAR FEEDBACK</span></button>' +
     '<a class="bw-fb-btn bw-cfg" href="config.html" title="Meus dados e modos de aparência"><svg width="17" height="17" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M12 2v3M12 19v3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M2 12h3M19 12h3M4.9 19.1 7 17M17 7l2.1-2.1"/></svg><span>CONFIGURAÇÕES</span></a>' +
     /* 15/11 (pedido do dono): baixar o Guia do usuário (PDF) direto do menu */
@@ -125,7 +125,7 @@
     '<div class="sync-card">' +
       '<div class="linha"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/></svg><span data-slot="menuSync">Sincronizado</span></div>' +
       '<div class="info">Celular e PC atualizados — automático ao abrir e ao salvar.</div>' +
-      '<a href="#" onclick="window.bwInstalarApp();return false">Instalar no celular</a>' +
+      '<a href="#" class="so-web" onclick="window.bwInstalarApp();return false">Instalar no celular</a>' +
     '</div>' +
     '<div class="bw-menu-conta"><div data-slot="userBox" style="font-size:11px;color:var(--txt2)"></div>' +
       '<button type="button" class="bw-atualizar" onclick="window.bwAtualizar(this)" title="Atualizar a página (sincroniza e recarrega)" aria-label="Atualizar"><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/></svg><span>ATUALIZAR</span></button></div>' +
@@ -222,12 +222,15 @@
     m.insertBefore(x, m.firstChild); x.focus();
   }
   var celular = function(){ return window.matchMedia("(max-width: 899px)").matches; };
+  /* 22/11 (dono): no app BW do PC o menu fica SEMPRE escondido; o ☰ abre como gaveta por cima e fecha ao tocar fora */
+  var noApp = document.documentElement.classList.contains("bw-no-app");
   window.bwMenu = function(){
-    if (celular()) { var m = document.querySelector("#bwMenu"); if (m && m.classList.contains("bw-menu-aberto")) { var f = m.querySelector(".bw-menu-fechar"); if (f) f.click(); } else abrirMenuMovel(); return; }
+    if (celular() || noApp) { var m = document.querySelector("#bwMenu"); if (m && m.classList.contains("bw-menu-aberto")) { var f = m.querySelector(".bw-menu-fechar"); if (f) f.click(); } else abrirMenuMovel(); return; }
     var rec = document.documentElement.classList.toggle("bw-menu-recolhido");
     try { localStorage.setItem("ui_menu_recolhido", rec ? "1" : "0"); } catch (e) { }
   };
   try { if (localStorage.getItem("ui_menu_recolhido") === "1") document.documentElement.classList.add("bw-menu-recolhido"); } catch (e) { }
+  if (noApp) document.addEventListener("click", function(e){ var m = document.querySelector("#bwMenu.bw-menu-aberto"); if (!m || m.contains(e.target) || (e.target.closest && e.target.closest(".bw-menu-bt,[onclick*='bwMenu']"))) return; var f = m.querySelector(".bw-menu-fechar"); if (f) f.click(); });
   document.addEventListener("keydown", function(e){ if (e.key === "Escape") { var f = document.querySelector("#bwMenu .bw-menu-fechar"); if (f) f.click(); } });
   if (mais) mais.onclick = function(e){ e.preventDefault(); abrirMenuMovel(); };
   /* 14/11 (Claude): selo LOGADO também no topo (no celular o menu lateral fica escondido) */

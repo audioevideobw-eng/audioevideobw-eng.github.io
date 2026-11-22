@@ -35,7 +35,7 @@
   function ligar() { if (!rodando) { rodando = true; requestAnimationFrame(quadro); } }
   function textos() {
     var t = telas[foco];
-    nome.textContent = t ? t.getAttribute("data-nome") : "POR ONDE VOCÊ QUER ENTRAR?";
+    nome.textContent = t ? t.getAttribute("data-nome") : "BRIGHTWAY · SEU SOFTWARE INTELIGENTE";
     sub.textContent = t ? t.getAttribute("data-sub") : "Toque numa tela ou passe para o lado";
     entrar.hidden = !t; if (t) { entrar.href = t.getAttribute("href"); entrar.setAttribute("data-cor", t.getAttribute("data-cor")); entrar.textContent = "ENTRAR EM " + t.getAttribute("data-nome") + " →"; }
     telas.forEach(function (x, i) { x.setAttribute("aria-current", i === foco ? "true" : "false"); });

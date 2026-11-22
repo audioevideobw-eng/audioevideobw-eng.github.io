@@ -13,7 +13,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Brightway">
-<link rel="stylesheet" href="assets/brightway.css?v=32">
+<link rel="stylesheet" href="assets/brightway.css?v=33">
 <style>
 :root{
   /* Identidade Brightway — paleta oficial */
@@ -222,7 +222,7 @@ footer b{color:var(--gold)}
 #evDossie>.bw-card:first-child{grid-column:1/-1}
 @media(max-width:899px){#evDossie{grid-template-columns:1fr}}
 </style>
-<script src="assets/modos.js?v=5"></script>
+<script src="assets/modos.js?v=6"></script>
 </head>
 <body>
 <header><div class="hd">
@@ -279,7 +279,7 @@ footer b{color:var(--gold)}
 
   <!-- 15/11 (pedido do dono): frase em uma linha · AGENDA no meio · atalhos lado a lado -->
   <div class="bw-home-topo">
-    <h1 class="bw-home-frase" id="bwSauda">Boa noite. Seu <span>caminho</span> de hoje.</h1>
+    <h1 class="bw-home-frase" id="bwSauda">Seu <span>caminho</span> certo, com as ferramentas certas.</h1>
     <div class="bw-home-data" id="bwHoje"></div>
   </div>
   <!-- 20/11 (desenho e vídeo de referência do dono): o robô no centro e as quatro TELAS girando em volta dele. Cada tela leva a um ecossistema:
@@ -304,7 +304,7 @@ footer b{color:var(--gold)}
       <a class="hub-tela" data-cor="verde" data-ang="45" data-nome="FERRAMENTAS" data-sub="PDF, leitor de contas, calculadoras, conversores e os seus dados" href="ferramentas.html"><b>FERRAMENTAS</b>
         <svg viewBox="0 0 200 110" aria-hidden="true"><circle cx="30" cy="34" r="9"/><path d="M30 12v8M30 48v8M8 34h8M44 34h8M14 18l6 6M40 44l6 6M46 18l-6 6M20 44l-6 6"/><path d="M12 100a22 22 0 0 1 44 0M34 100l12-16"/><circle class="ch" cx="34" cy="100" r="4"/><path d="M80 96 132 34a14 14 0 0 0-18-18l10 10-8 8-10-10a14 14 0 0 0 18 18"/><path d="M128 96 84 44l-8-18 6-4 12 14 44 52zM132 82l8 8-10 8-8-8z"/><path d="M158 20h36M158 36h36M158 52h36"/><circle class="ch" cx="170" cy="20" r="4.5"/><circle class="ch" cx="184" cy="36" r="4.5"/><circle class="ch" cx="166" cy="52" r="4.5"/><rect x="158" y="76" width="36" height="26" rx="5"/><path d="M168 76v-6h16v6M158 88h36"/></svg></a>
     </div>
-    <div class="hub-barra"><div class="hub-txt" aria-live="polite"><b id="hubNome">POR ONDE VOCÊ QUER ENTRAR?</b><small id="hubSub">Toque numa tela ou passe para o lado</small></div></div>
+    <div class="hub-barra"><div class="hub-txt" aria-live="polite"><b id="hubNome">BRIGHTWAY · SEU SOFTWARE INTELIGENTE</b><small id="hubSub">Toque numa tela ou passe para o lado</small></div></div>
     <a class="hub-entrar" id="hubEntrar" href="negocio.html" hidden>ENTRAR →</a>
   </section>
 
@@ -312,17 +312,17 @@ footer b{color:var(--gold)}
     <img src="icons/brightway-logo.png" alt="Brightway" style="height:17px">
     <span style="font-size:12px;color:var(--txt2)">Gestão · Tecnologia · IA</span>
     <span style="margin-left:auto;display:flex;gap:14px;font-size:12px">
-      <a href="login.html">Conta</a><a href="baixar.html">App</a>
+      <a href="login.html">Conta</a><a href="baixar.html" class="so-web">App</a>
     </span>
   </div>
 </div>
 
 </div>
-<script src="assets/layout.js?v=65"></script>
+<script src="assets/layout.js?v=66"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="assets/bw-sync.js"></script>
 <script src="assets/agenda.js?v=1"></script>
-<script src="assets/portal.js?v=2"></script>
+<script src="assets/portal.js?v=3"></script>
 <script src="https://cdn.jsdelivr.net/npm/pdfmake@0.2.20/build/pdfmake.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
@@ -1048,11 +1048,22 @@ const {  fmt  } = MOD['core/format'];
   await montarCabecalho();
   wireHeader();
   registrarSW();
-  /* ---- saudação pela hora ---- */
-  const h = new Date().getHours();
-  const sauda = h < 6 ? "Boa madrugada" : h < 12 ? "Bom dia" : h < 18 ? "Boa tarde" : "Boa noite";
-  const el = document.querySelector("#bwSauda");
-  if (el) el.innerHTML = sauda + ". Seu <span>caminho</span> de hoje.";
+  /* 22/11 (dono): sem "Boa noite" — frases da marca (Brightway = caminho que brilha) que trocam sozinhas; a 1ª fica no HTML */
+  (function () {
+    const F = ["Seu <span>caminho</span> certo, com as ferramentas certas.",
+      "Cada passo do seu negócio, num <span>caminho</span> só.",
+      "Ilumine o <span>caminho</span>. As ferramentas a gente entrega.",
+      "Do evento à planilha: tudo no mesmo <span>caminho</span>.",
+      "Menos abas abertas, mais <span>caminho</span> andado.",
+      "Criar, organizar e crescer — no mesmo <span>caminho</span>.",
+      "Onde a sua ideia ganha <span>estrada</span>.",
+      "Tecnologia que abre <span>caminho</span> para o seu trabalho."];
+    const el = document.querySelector("#bwSauda"); if (!el) return;
+    let i = 0; try { const v = sessionStorage.getItem("ui_frase"); i = v == null ? 0 : (Number(v) + 1) % F.length || 0; sessionStorage.setItem("ui_frase", String(i)); } catch (e) { }
+    el.innerHTML = F[i]; el.style.transition = "opacity .45s";
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    setInterval(function () { if (document.hidden) return; el.style.opacity = "0"; setTimeout(function () { i = (i + 1) % F.length; el.innerHTML = F[i]; el.style.opacity = "1"; }, 460); }, 8000);
+  })();
   const hj = document.querySelector("#bwHoje");
   if (hj) hj.textContent = new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long", year: "numeric" });
   /* ---- resumo: eventos da semana + contas a vencer ---- */

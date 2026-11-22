@@ -418,3 +418,12 @@ Tamanho > 0 e sem erro = o pdfmake montou o arquivo. Localmente (T1) confira o `
   ninguém está rolando, e o scroll do dedo chama irPara(scrollLeft / PPS) (marcar a rolagem feita pelo código para não virar "dedo").
 - Teste com toque de verdade (CDP Input.dispatchTouchEvent): tocar em parte VISÍVEL do elemento (botões fixos por cima), segurar 0,9 s para o menu,
   e checar com getClientRects + visibility que a folha mostra SÓ o grupo pedido.
+
+
+## App BW com cara de software (22/11)
+- Detectar o app nas páginas do site: o app injeta `window.BW_APP` antes de tudo (addInitScript); `modos.js` (no <head> de toda página) põe
+  `html.bw-no-app` e o CSS some com `.so-web`. Teste local: `pg.add_init_script("window.BW_APP={versao:'x'}")`.
+- Abertura sobre a tela: `.nucleo.cheia{position:fixed;inset:0}`; tirar a classe mostra o conteúdo por baixo (mesmo canvas, ResizeObserver refaz a medida).
+- Globo de pontos sem biblioteca: `npm i world-atlas topojson-client d3-geo` numa pasta temporária, `geoContains(land,[lon,lat])` para cada ponto
+  de uma esfera de Fibonacci de 7000, guardar só os índices em base36 com diferença (~4 KB) e refazer os pontos no navegador.
+- Testes do app com a abertura: `goto(URL + '?r=' + Date.now() + '#pc')`.

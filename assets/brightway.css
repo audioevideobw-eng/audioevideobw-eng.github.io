@@ -744,7 +744,7 @@ html[data-amb] .ag-titulo .ico{color:var(--amb)}
 .hub-barra{display:flex;align-items:center;justify-content:center;gap:12px;margin:14px 0 10px}
 .hub-seta{position:absolute;top:50%;z-index:8;margin-top:-24px;width:48px;height:48px;border-radius:50%;border:1.5px solid rgba(120,170,255,.45);background:rgba(120,170,255,.08);color:#DCE8FF;font:700 22px/1 Inter,sans-serif;cursor:pointer;touch-action:manipulation}
 .hub-seta:hover{background:rgba(120,170,255,.2)}#hubAnt{left:10px}#hubProx{right:10px}
-.hub-txt{min-width:0;flex:0 1 420px;text-align:center}
+.hub-txt{min-width:0;flex:0 1 560px;text-align:center}
 .hub-txt b{display:block;font:800 clamp(15px,3.6vw,20px) Montserrat,Inter,sans-serif;letter-spacing:.08em;color:#F5F1EA}
 .hub-txt small{display:block;margin-top:3px;font:500 12.5px/1.4 Inter,sans-serif;color:#9fb2d6}
 .hub-entrar{display:flex;align-items:center;justify-content:center;min-height:54px;max-width:460px;margin:0 auto;padding:0 18px;border-radius:16px;text-decoration:none;text-align:center;
@@ -753,3 +753,11 @@ html[data-amb] .ag-titulo .ico{color:var(--amb)}
 @media (prefers-reduced-motion:reduce){.hub-robo,.hub-robo .olho,.hub-robo.oi .hub-robo-in{animation:none}.hub-robo-in{transition:none}}
 .bw-cfg-topo{display:inline-flex;text-decoration:none}
 @media (max-width:480px){.bw-topo .bw-fb-topo{display:none}}   /* com a engrenagem o topo do celular ficou cheio: o feedback continua no menu */
+
+/* 22/11 (dono): dentro do app BW do PC — tela de software: o menu lateral fica sempre escondido (☰ abre por cima) e as abas de celular somem */
+html.bw-no-app .bw-menu{display:none}
+html.bw-no-app .bw-menu.bw-menu-aberto{display:flex;position:fixed;left:0;top:0;bottom:0;width:286px;max-width:88vw;height:100%;z-index:70;overflow-y:auto;box-shadow:24px 0 60px rgba(0,0,0,.6)}
+html.bw-no-app .bw-menu-fechar{display:block}
+html.bw-no-app .bw-abas{display:none}
+html.bw-no-app .wrap,html.bw-no-app .bw-pagina{max-width:none}
+html.bw-no-app .hub-palco{height:max(430px,calc(100vh - 250px))}

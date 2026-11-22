@@ -1,14 +1,22 @@
 {
- "versao": "1.9.15",
- "data": "21/11/2026",
+ "versao": "1.9.16",
+ "data": "22/11/2026",
  "pacote": "downloads/BW-Reels-Studio.zip",
- "sha256": "25913c9c9a539a0cdf41dd219da221f1c9c87a29cb6a02498806726e3e856009",
- "bytes": 40787519,
+ "sha256": "3f8a49aca845e36aa55b54faa54dfe0e21f46fa45fc8c5e9f3aa06e99ad36015",
+ "bytes": 40804127,
  "novidades": [
   {
-   "titulo": "Um layout só no celular",
-   "texto": "O editor de vídeo no celular e no tablet fica só com a tela de app (prévia grande, agulha no meio e ferramentas que rolam para o lado).",
-   "abrir": "video"
+   "titulo": "Abertura nova em tela cheia",
+   "texto": "O BW abre com o mundo em rede animado, que reage ao mouse, e o letreiro BRIGHTWAY · SEU SOFTWARE INTELIGENTE. O ENTRAR, no centro, leva para a página do robô ocupando a tela inteira.",
+   "abrir": "plataforma"
+  },
+  {
+   "titulo": "Cara de software",
+   "texto": "Menu sempre escondido (☰ ou Ctrl+M abre por cima), busca com Ctrl+K, barra de status com a placa de vídeo e, dentro da plataforma, sem as opções que só servem na web (como APP DOWNLOAD)."
+  },
+  {
+   "titulo": "Preto e branco é o padrão",
+   "texto": "Quem ainda não escolheu um modo de aparência vê a plataforma em PRETO E BRANCO. Para trocar: engrenagem → APARÊNCIA."
   }
  ]
 }

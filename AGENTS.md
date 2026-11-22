@@ -581,6 +581,21 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
      (a aba de transições ficava aberta e o "trocar pelo meu take" mostrava a biblioteca vazia). Peça que outro módulo põe no layout antigo
      (#vmFaixa dos modelos) precisa ser trazida para o app.
 
+**Aprendidos em 22/11 (abertura do app BW com cara de software)**
+154. APP BW = SOFTWARE, não site (dono, 22/11): a janela abre MAXIMIZADA (--start-maximized); a 1ª tela é a ABERTURA (app/index.html, núcleo em
+     tela cheia + BRIGHTWAY · SEU SOFTWARE INTELIGENTE + ENTRAR no centro) e o ENTRAR leva à página do robô (index.html). As ferramentas do PC
+     ficam em app/index.html#pc (link da abertura e botão ⌂ BW). Dentro do app as páginas da plataforma ganham html.bw-no-app (modos.js, quando
+     window.BW_APP existe): menu lateral SEMPRE escondido (☰ abre por cima, toque fora fecha), sem abas de celular, largura total e tudo que tem a
+     classe so-web some (APP DOWNLOAD, instalar no celular, BAIXAR O APP). Opção nova que só serve na web = classe so-web.
+155. Camada em tela cheia por cima da página (abertura): toda folha/aviso que precisa aparecer na hora (atualização, O QUE MUDOU) fica com
+     z-index MAIOR que ela; teste que precisa das ferramentas abre com #pc — e, como trocar só o #hash não recarrega, o goto leva ?r=<agora>#pc.
+     Elemento que vira gaveta escondida por transform continua "visível" para o Playwright; antes de clicar num item dela, abrir a gaveta.
+156. Animação de abertura é DESENHO PRÓPRIO em canvas (nada de vídeo de terceiros): o mapa do globo vem do world-atlas/Natural Earth
+     (domínio público) gerado uma vez em índices de uma esfera de Fibonacci (base36, ~4 KB). Vídeo do dono só se for dele (app/abertura.mp4,
+     toca 1 vez por sessão e passa para o canvas). Escala de elipse em canvas nunca pode ser negativa (Math.max/abs) — o arc com raio
+     negativo derrubava o quadro. Espelho: no globo, X da tela = cx − x·R (senão os continentes saem invertidos).
+157. MODO PADRÃO = PRETO E BRANCO (pb) para quem não escolheu (modos.js PADRAO); excluir o modo da marca volta para o padrão.
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -1778,7 +1793,23 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   Novo docs/testes/teste_video_app.py (toque de verdade, 390 e 820 px + PC) 0 falhas; bateria do editor 0 falhas; vigia ✅ (7.8h). App BW 1.9.14,
   manual 56 → 57 p. ("Editor de vídeo no celular"). video-editor v9, ve-app v1, sw v168. PENTE FINO 152–153.
 
+- 22/11/2026 00:30 · Claude (dono: "tela principal do app tecnológica e moderna, com o vídeo de referência animado reagindo ao mouse, BRIGHTWAY SEU
+  SOFTWARE INTELIGENTE"; "tire as opções que só fazem sentido na web"; "cara de software"; "tudo em tela cheia, sem o menu lateral igual web, o menu
+  fica sempre omisso"; "preto e branco passa a ser o padrão"; "tire POR ONDE VOCÊ QUER ENTRAR e o Boa noite"; "na primeira página um botão ENTRAR
+  que leva à página do robô em tela cheia"; referência = mãos humana e de robô se tocam, a luz surge e nasce o mundo em rede):
+  APP BW 1.9.16 — abertura em tela cheia (canvas próprio: dois feixes quente/frio se encontram, clarão, nasce o globo de pontos com os continentes,
+  nós dourados com arcos e sinais correndo, anéis, mostrador e as palavras IA/VÍDEO/GESTÃO/3D… em volta; reage ao mouse; clique repete o toque;
+  ciclo de 14 s), letreiro discreto com a mesma textura, ENTRAR no centro → página do robô; ferramentas do PC em #pc com barra de título, menu em
+  gaveta (☰/Ctrl+M), busca Ctrl+K, ⛶ tela cheia e barra de status com a placa; janela maximizada; app/abertura.mp4 (vídeo do dono) toca 1 vez e
+  passa para o canvas. PLATAFORMA — dentro do app (html.bw-no-app) menu sempre escondido e sem APP DOWNLOAD/instalar no celular (classe so-web);
+  Início: "Por onde você quer entrar?" → BRIGHTWAY · SEU SOFTWARE INTELIGENTE e "Boa noite. Seu caminho de hoje." → frases da marca que se
+  revezam ("Seu caminho certo, com as ferramentas certas." e mais 7); PRETO E BRANCO é o modo padrão. teste-app.mjs 107 ✓, teste_modos/ambientes/
+  layout/agenda/lancamentos 0 falhas, vigia ✅, manual 57 p. O vídeo do Pinterest NÃO foi usado (link não abre aqui e é de terceiros). brightway.css v33,
+  layout.js v66, modos.js v6, portal.js v3, sw v170. PENTE FINO 154–157.
+
 ## Pendências (dono)
+- [ ] (22/11) ABERTURA DO APP: dono gerar o vídeo das mãos (Higgsfield/Veo, 16:9, sem som, terminando no mundo aceso) e mandar; o Claude coloca
+      como app/abertura.mp4. Conferir no PC a abertura, o ENTRAR e o menu escondido. BW-Setup.exe 1.9.16 depende do PC (o do site atualiza sozinho).
 - [ ] (22/11) EDITOR NO CELULAR: dono abrir o editor de vídeo no celular e dizer o que ainda falta para ficar como o CapCut (tempo do "segurar"
       hoje é ~0,5 s — pediu 2 s: confirmar se quer mesmo mais longo). BW-Setup.exe 1.9.14 depende do PC (o 1.9.12 do site atualiza sozinho).
 - [ ] (22/11) BW-Setup.exe 1.9.13: os arquivos novos já estão em Vídeos\bw-reels-studio, mas o gerador não abriu pelo clique remoto (3 tentativas,
