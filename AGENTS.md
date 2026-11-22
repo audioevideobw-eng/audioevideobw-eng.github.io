@@ -1807,9 +1807,14 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   layout/agenda/lancamentos 0 falhas, vigia ✅, manual 57 p. O vídeo do Pinterest NÃO foi usado (link não abre aqui e é de terceiros). brightway.css v33,
   layout.js v66, modos.js v6, portal.js v3, sw v170. PENTE FINO 154–157.
 
+- 22/11/2026 00:40 · Claude (dono mandou o vídeo dele — mão humana toca mão de robô, a luz nasce e o mundo vira cérebro de luz — e pediu "duas opções
+  para escolha": vídeo, ou foto com a animação no mundo): APP BW 1.9.17 — chave ABERTURA (VÍDEO | FOTO + MUNDO, ui_app_abertura, por PC).
+  VÍDEO: app/abertura.mp4 (o vídeo do dono, sem som) toca 1 vez por sessão e passa para app/abertura-loop.mp4 (o fim indo e voltando, sem emenda);
+  por cima, faíscas que seguem o mouse e clarão no toque dos dedos. FOTO + MUNDO: quadro do mesmo vídeo (app/abertura-foto.jpg) com a rede animada
+  alinhada ao mundo da foto (conta do object-fit:cover) e faísca entre os dedos. Letreiro e ENTRAR no azul do vídeo. As fotos do Pinterest NÃO
+  foram usadas (de terceiros). teste-app 107 ✓ (o Chromium do teste não toca H.264: o caminho de vídeo foi conferido com cópias VP9).
 ## Pendências (dono)
-- [ ] (22/11) ABERTURA DO APP: dono gerar o vídeo das mãos (Higgsfield/Veo, 16:9, sem som, terminando no mundo aceso) e mandar; o Claude coloca
-      como app/abertura.mp4. Conferir no PC a abertura, o ENTRAR e o menu escondido. BW-Setup.exe 1.9.16 depende do PC (o do site atualiza sozinho).
+- [ ] (22/11) ABERTURA DO APP: dono atualizar para 1.9.17 e escolher VÍDEO ou FOTO + MUNDO (chave no alto); conferir o ENTRAR e o menu escondido. BW-Setup.exe 1.9.16 depende do PC (o do site atualiza sozinho).
 - [ ] (22/11) EDITOR NO CELULAR: dono abrir o editor de vídeo no celular e dizer o que ainda falta para ficar como o CapCut (tempo do "segurar"
       hoje é ~0,5 s — pediu 2 s: confirmar se quer mesmo mais longo). BW-Setup.exe 1.9.14 depende do PC (o 1.9.12 do site atualiza sozinho).
 - [ ] (22/11) BW-Setup.exe 1.9.13: os arquivos novos já estão em Vídeos\bw-reels-studio, mas o gerador não abriu pelo clique remoto (3 tentativas,
