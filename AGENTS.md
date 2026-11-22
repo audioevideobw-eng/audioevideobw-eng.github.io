@@ -2050,6 +2050,7 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   Pastas do Drive conferidas (logos animadas Studios Monkey, LETRAS 3D, Café, Anime Ultra Pack, compartilhados): nenhuma traz licença para
   redistribuir (o PDF "Recomendações" só explica download; há personagens de anime e programas .rar) → nada delas entrou, decisão do dono: "só o que não nos comprometa".
 ## Pendências (dono)
+- [x] (22/11 17:05) BW-Setup.exe 1.9.29 gerado pelo dono e publicado (8,5 MB, versão conferida dentro do .exe).
 - [ ] (22/11) CONVITES: dono abrir Criador IA → CONVITE no celular e no PC, escolher um modelo da 📚 BIBLIOTECA, ligar ✨ ANIMADO, arrastar um bichinho e GERAR VÍDEO; dizer quais bichinhos/temas faltam. Próximas bibliotecas: posts, flyers, Reels, Motion, Telas ("todas as ferramentas").
 - [x] (22/11 15:38) BW-Setup.exe 1.9.27 gerado pelo dono e publicado (8,5 MB, versão conferida dentro do .exe).
 - [ ] (22/11) REELS QUE ENSINAM e FOTOLIVROS: dono abrir no celular e no PC, usar um modelo com fotos/textos reais e dizer o que ajustar.
