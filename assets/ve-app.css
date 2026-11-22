@@ -69,7 +69,7 @@ html.va-folha .va-faixa{visibility:hidden}
 .va-fmt{flex:none;width:76px;display:flex;flex-direction:column;align-items:center;gap:7px;padding:10px 4px;border:1px solid transparent;border-radius:12px;background:#22252d;color:#E8EAEE;font:600 10.5px/1.2 Inter,sans-serif;cursor:pointer}
 .va-fmt i{display:block;border:2px solid #cfd3da;border-radius:4px}
 .va-fmt.on{border-color:#fff;background:#2b2e38}
-html.ve-app .ve-aviso{position:fixed;left:12px;right:12px;top:calc(56px + env(safe-area-inset-top));z-index:70;margin:0;box-shadow:0 8px 24px rgba(0,0,0,.5);backdrop-filter:blur(6px)}
+html.ve-app .ve-aviso{position:fixed;left:12px;right:12px;transform:none;width:auto;max-width:none;top:calc(56px + env(safe-area-inset-top));z-index:70;margin:0;box-shadow:0 8px 24px rgba(0,0,0,.5);backdrop-filter:blur(6px)}
 html.ve-app .bwf-menu{z-index:9600}
 @media (min-width:700px){.va{grid-template-rows:56px minmax(0,1fr) 48px auto 84px}.va-tl{max-height:30vh}.va-f{min-width:80px}}
 .va .vm-faixa{position:absolute;left:8px;right:8px;top:calc(56px + env(safe-area-inset-top));z-index:8;margin:0;max-height:30vh;overflow:auto;box-shadow:0 8px 24px rgba(0,0,0,.5)}

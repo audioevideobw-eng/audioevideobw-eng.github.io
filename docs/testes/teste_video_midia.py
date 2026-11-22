@@ -32,6 +32,9 @@ with sync_playwright() as p:
             ok(pg.locator("#veLib .ve-item.ruim").count() == 2, "…com o selo ⚠ NÃO ABRE AQUI na biblioteca")
             pg.locator('#veLib [data-mid]', has_text="azul.webm").first.click(); pg.wait_for_timeout(400)
             ok(pg.evaluate(f"{CL}.length") == 1 and "✓" in pg.inner_text("#veAviso"), "2) clicar no item põe o take e avisa onde entrou")
+        # 2b) o aviso FLUTUA (não empurra a linha do tempo) e some sozinho (dono, 22/11: "o aviso de importação fica estático")
+        ok(pg.evaluate("getComputedStyle(document.getElementById('veAviso')).position") == "fixed", "2b) o aviso flutua por cima, sem ocupar lugar na página")
+        pg.wait_for_timeout(4200); ok(pg.locator("#veAviso").is_hidden(), "…e some sozinho depois de alguns segundos")
         # 3) página parada
         ok(pg.evaluate("getComputedStyle(document.documentElement).overscrollBehaviorX") == "none" and pg.evaluate("getComputedStyle(document.body).overscrollBehaviorX") == "none", "3) a página não deixa a rolagem vazar (overscroll none)")
         ok(pg.evaluate("document.documentElement.scrollWidth - document.documentElement.clientWidth") <= 0, "…sem rolagem lateral da página")

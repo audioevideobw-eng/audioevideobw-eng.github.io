@@ -527,3 +527,9 @@ Tamanho > 0 e sem erro = o pdfmake montou o arquivo. Localmente (T1) confira o `
 - Codec pelo arquivo: ler 4 MB do começo e do fim (Blob.slice) e procurar hvc1/hev1/avc1/av01/apcn.
 - Próximo nível (para arquivos de qualquer câmera): PROXY 720p H.264 gerado pelo ffmpeg no app BW do PC (NVENC), edição com o proxy e
   exportação com o original.
+
+## Prévia leve no editor de vídeo (22/11/2026)
+- Canvas da prévia em tamanho reduzido (≤ 1280 px no lado maior) enquanto se edita; tudo desenhado em % de W/H, então só a nitidez muda.
+- Antes de exportar/salvar quadro: `tamanhoReal(true)` (redimensiona e redesenha na hora); no fim (e em todo retorno de erro) `tamanhoReal(false)`.
+- Tamanho do projeto = `tamReal()`; `cv.width` é o da prévia. Teste: projeto 1450×2000 → prévia ≤ 1280 e tamanhoReal(true) = 1450×2000.
+- Mais leve ainda = PROXY (cópia 720p feita fora do navegador, ex.: `ffmpeg -hwaccel cuda -i in.mp4 -vf scale=-2:720 -c:v h264_nvenc -preset p1 -c:a copy proxy.mp4`).

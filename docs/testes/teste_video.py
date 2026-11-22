@@ -166,7 +166,9 @@ with sync_playwright() as p:
         ok(pg.evaluate("BWFerr.atual()") == "v", "depois de criar o texto volta para a SELEÇÃO")
         # formato personalizado
         pg.select_option("#veFmt", "livre"); pg.fill("#veLargura", "1450"); pg.fill("#veAltura", "2000"); pg.locator("#veAltura").dispatch_event("change"); pg.wait_for_timeout(200)
-        ok(pg.evaluate("[document.getElementById('veCv').width, document.getElementById('veCv').height]") == [1450, 2000], "formato Personalizado: tela de 1450×2000 (telão)")
+        ok(pg.evaluate("window.__video.tamReal()") == [1450, 2000], "formato Personalizado: projeto de 1450×2000 (telão)")
+        ok(pg.evaluate("Math.max(document.getElementById('veCv').width, document.getElementById('veCv').height)") <= 1280, "PRÉVIA LEVE: a prévia do telão é desenhada em no máximo 1280 px")
+        ok(pg.evaluate("(function(){ window.__video.tamanhoReal(true); var r=[document.getElementById('veCv').width, document.getElementById('veCv').height]; window.__video.tamanhoReal(false); return r; })()") == [1450, 2000], "na exportação a tela volta ao tamanho real 1450×2000")
         pg.select_option("#veFmt", "9:16"); pg.wait_for_timeout(150)
         ok(pg.evaluate(SEM) <= 0, "sem estouro com a barra de ferramentas")
         ok(not FORA, f"nada saiu para a internet {FORA[:2]}")

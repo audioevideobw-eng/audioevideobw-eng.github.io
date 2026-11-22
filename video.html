@@ -113,8 +113,8 @@
 .ve-clip .tr{position:absolute;left:0;top:0;bottom:0;pointer-events:none;background:linear-gradient(90deg,rgba(255,255,255,.55),rgba(255,255,255,0));border-right:2px dashed rgba(255,255,255,.7)}
 .ve-lamina{position:absolute;width:2px;background:#B6FF3B;box-shadow:0 0 8px #B6FF3B;pointer-events:none;z-index:4}.ve-lamina[hidden]{display:none}
 #veFerr{margin-right:6px}
-.ve-aviso{pointer-events:none;margin-top:8px;padding:9px 12px;border-radius:12px;font:600 12.5px/1.4 Inter,sans-serif;background:rgba(62,207,142,.12);border:1px solid rgba(62,207,142,.4);color:#9af0c4}
-.ve-aviso.erro{background:rgba(242,104,107,.12);border-color:rgba(242,104,107,.45);color:#ffb3b5}
+.ve-aviso{pointer-events:none;position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:80;width:max-content;max-width:min(620px,92vw);box-shadow:0 10px 28px rgba(0,0,0,.5);backdrop-filter:blur(6px);padding:9px 12px;border-radius:12px;font:600 12.5px/1.4 Inter,sans-serif;background:rgba(12,40,28,.94);border:1px solid rgba(62,207,142,.5);color:#9af0c4}
+.ve-aviso.erro{background:rgba(48,14,16,.95);border-color:rgba(242,104,107,.45);color:#ffb3b5}
 .ve-aviso[hidden]{display:none}
 .ve-ocup{position:fixed;inset:0;z-index:9000;background:rgba(6,8,13,.86);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:#F5F1EA;font:700 15px Inter,sans-serif;text-align:center;padding:24px}
 .ve-ocup[hidden]{display:none}
@@ -186,7 +186,7 @@
   .wrap.bwf-fixo #veCriar h3{pointer-events:none}.wrap.bwf-fixo #veCriar h3::after{display:none}
 </style>
 <script src="assets/modos.js?v=6"></script>
-<link rel="stylesheet" href="assets/ve-app.css?v=4">
+<link rel="stylesheet" href="assets/ve-app.css?v=5">
 <script>/* 22/11: decide o layout de app ANTES de desenhar (senão a tela antiga aparecia por um instante) */(function(){var q=new URLSearchParams(location.search).get("layout")||"";if(q==="app"||(q!=="classico"&&(innerWidth<=900||(matchMedia("(pointer:coarse)").matches&&innerWidth<=1180))))document.documentElement.classList.add("app-cedo")})()</script>
 
 </head>
@@ -251,7 +251,7 @@
 <script src="assets/bw-cor.js?v=1"></script>
 <script src="assets/bw-mascara.js?v=1"></script>
 <script src="assets/ve-app.js?v=4"></script>
-<script src="assets/video-editor.js?v=15"></script>
+<script src="assets/video-editor.js?v=16"></script>
 <script src="assets/ve-modelos.js?v=1"></script>
 <script src="assets/bw-controle.js?v=1"></script>
 </body>

@@ -737,6 +737,11 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
      Teste: contar os players vivos (gancho no setter de src) depois de importar 36 takes = 0 (docs/testes/teste_video_takes.py). Input dentro de
      flex precisa de min-width:0 (controle.html estourava 132 px no celular).
 
+181. AVISO QUE OCUPA LUGAR NA PÁGINA empurra/tampa a linha do tempo: aviso de editor é FLUTUANTE (position:fixed, pointer-events:none) e SOME
+     SOZINHO em todo aparelho (só o "⏳ andamento" fica até o próximo aviso). PRÉVIA LEVE (preview scaling): o canvas da prévia é desenhado em
+     ≤ 1280 px no lado maior enquanto se edita; EXPORTAR e SALVAR QUADRO chamam tamanhoReal(true) antes e (false) depois. Quem precisa do tamanho
+     do PROJETO usa tamReal(), nunca cv.width (o teste do telão 1450×2000 pegou isso) (auto: teste_video.py, teste_video_midia.py).
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -2095,7 +2100,15 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   tempo com no máximo ~5 vídeos abertos (perto da agulha); arquivo grande não é mais copiado inteiro para a memória (PC/Android); capa guardada.
   Mesmo vazamento corrigido em Telas, Álbum 3D e biblioteca de criações. PENTE FINO: 51 testes rodados — corrigidos controle.html (estourava 132 px
   no celular) e 2 testes do 3D desatualizados; o resto 0 falhas. video-editor v15, telas v11, album v4, bw-criacoes v3, sw v191. App BW 1.9.31. PENTE FINO 180.
+- 22/11/2026 18:40 · Claude (dono: "abriram, mas o computador é bem exigido; o aviso de importação fica parado em cima da linha do tempo; pesquise como
+  deixar mais leve"): EDITOR DE VÍDEO — aviso de importação agora flutua no alto e some sozinho (no PC ele ficava no meio da página para sempre).
+  PRÉVIA LEVE (o "preview scaling" dos editores de mesa, achado na pesquisa): a prévia é desenhada em até 1280 px enquanto se edita (um 4K/telão pesa
+  ~9× menos por quadro); exportar e salvar quadro voltam ao tamanho real; opção "Prévia em tamanho cheio" no painel do projeto (ui_ve_previa).
+  Próximo passo sugerido (aguarda o dono): PROXY no app BW — ffmpeg com NVENC cria cópias 720p para editar e a exportação usa o original.
+  Testes video, video_midia (+2), takes, layout, arrastar, app 0 falhas. App BW 1.9.32 publicado (pacote, cópia sem internet, tutorial, arquivos no PC);
+  manual 62 p. video-editor v16, ve-app.css v5, sw v192. PENTE FINO 181.
 ## Pendências (dono)
+- [ ] (22/11) BW-Setup.exe 1.9.32: arquivos já no PC — dono: dois cliques em "5 - GERAR INSTALADOR EXE" e avisar. Decidir o PROXY no app BW.
 - [x] (22/11 18:16) BW-Setup.exe 1.9.31 gerado pelo dono e publicado (8,5 MB, versão conferida dentro do .exe).
 - [ ] (22/11) TAKES: dono importar de novo os takes do evento (os 26 que "não abriam") no editor de vídeo e dizer se abriram; decidir sobre o PROXY no app BW (ler qualquer formato de câmera).
 - [ ] (22/11) MOTION: dono abrir Marketing → Estúdio de motion, testar os itens novos e a BIBLIOTECA INTEGRADA (personagens, objetos, desenhos). BW-Setup.exe 1.9.30: publicado 17:10.

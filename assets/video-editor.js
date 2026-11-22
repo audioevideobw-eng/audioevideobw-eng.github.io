@@ -92,7 +92,7 @@
   function refazer() { if (!FUT.length) { aviso("Nada para refazer."); return; } var s = FUT.pop(); HIST.push(s); P = JSON.parse(s); tudo(true); aviso("↷ Refeito."); }
   function guardar() { clearTimeout(tSalvar); tSalvar = setTimeout(function () { tx("estado", "readwrite", function (s) { return s.put({id: "atual", p: JSON.parse(JSON.stringify(P))}); }); }, 400); }
   var AVISO_T = 0;
-  function aviso(t, erro) { var a = $("veAviso"); a.hidden = !t; a.className = "ve-aviso" + (erro ? " erro" : ""); a.textContent = t || ""; clearTimeout(AVISO_T); if (t && APP) AVISO_T = setTimeout(function () { a.hidden = true; }, erro ? 6000 : 3200); }   /* no app o aviso some sozinho (fica por cima da prévia) */
+  function aviso(t, erro) { var a = $("veAviso"); a.hidden = !t; a.className = "ve-aviso" + (erro ? " erro" : ""); a.textContent = t || ""; clearTimeout(AVISO_T); if (t && !/^⏳/.test(t)) AVISO_T = setTimeout(function () { a.hidden = true; }, erro ? 9000 : 3500); }   /* 22/11 (dono: "o aviso de importação fica parado em cima da linha do tempo"): some sozinho no PC também; o ⏳ de andamento fica até o próximo aviso */
   function fmtT(t) { t = Math.max(0, t); var m = Math.floor(t / 60), s = t - m * 60; return m + ":" + (s < 10 ? "0" : "") + s.toFixed(1).replace(".", ","); }
   function total() { return P.clips.reduce(function (m, c) { return Math.max(m, c.ini + c.dur); }, 0); }
 
@@ -536,7 +536,7 @@
   var ULT_SEL = null;
   function desenharProp() {
     var c = sel(), b = $("vePropCorpo"); if (!c) { var nC = P.clips.length, f0 = FMT[P.fmt] || [P.w || cv.width, P.h || cv.height];
-      b.innerHTML = '<div class="ve-g"><h4>O PROJETO</h4><p class="ve-nota" style="margin:0 0 4px">Tamanho: <b>' + cv.width + " × " + cv.height + ' px</b><br>Duração: <b>' + fmtT(total()) + '</b><br>Clipes: <b>' + nC + '</b></p></div><p class="ve-nota" style="margin:0">Toque num clipe da linha do tempo: este painel mostra os ajustes daquele tipo de clipe (vídeo e foto, som ou texto).</p>'; return; }
+      b.innerHTML = '<div class="ve-g"><h4>O PROJETO</h4><p class="ve-nota" style="margin:0 0 4px">Tamanho: <b>' + tamReal()[0] + " × " + tamReal()[1] + ' px</b>' + (escalaPrev() < 1 ? '<br><span style="opacity:.75">Prévia leve: ' + cv.width + ' × ' + cv.height + ' (o vídeo sai no tamanho real)</span>' : '') + '<br><label style="display:flex;gap:6px;align-items:center;margin-top:4px;text-transform:none"><input type="checkbox" id="vePreviaCheia"' + (CHEIA ? ' checked' : '') + '> Prévia em tamanho cheio (mais pesado)</label><br>Duração: <b>' + fmtT(total()) + '</b><br>Clipes: <b>' + nC + '</b></p></div><p class="ve-nota" style="margin:0">Toque num clipe da linha do tempo: este painel mostra os ajustes daquele tipo de clipe (vídeo e foto, som ou texto).</p>'; return; }
     if (c.id !== ULT_SEL) { ULT_SEL = c.id; if (window.__veVista) window.__veVista.aoSelecionar(); }
     var visual = c.tipo !== "audio", g = function (k, t, corpo, fechada) { return corpo ? '<div class="ve-g" data-g="' + k + '"><h4 data-seta="ve-' + k + '"' + (fechada ? ' data-seta-padrao="fechada"' : "") + '>' + t + '</h4><div>' + corpo + '</div></div>' : ""; }, h = "";
     if (c.tipo === "texto") h += g("texto", "TEXTO", '<label class="um"><span>Texto</span><textarea data-p="txt" rows="3" maxlength="200" aria-label="Texto do clipe">' + esc(c.txt) + '</textarea></label><label class="um"><span>Fonte</span><select data-p="fonte" aria-label="Fonte">' + FONTES.map(function (f) { return '<option' + (f === c.fonte ? " selected" : "") + '>' + f + '</option>'; }).join("") + '</select></label>' + faixaR("tam", "Tamanho", 2, 20, c.tam, "%", 0.5) +
@@ -585,7 +585,15 @@
   }
   function tudo(semHist) { desenharTL(); desenharProp(); desenhar(); guardar(); if (!semHist) marcarHist(); }
   function verTransicao(c) { if (!transDe(c) || !anteriorDe(c)) return; parar(); irPara(Math.max(0, c.ini - 0.4)); tocar(); var fim = c.ini + transDe(c) + 0.5, olha = function () { if (!TOCANDO) return; if (T >= fim) parar(); else setTimeout(olha, 60); }; olha(); }
-  function formato() { var f = P.fmt === "livre" && P.w && P.h ? [P.w, P.h] : FMT[P.fmt] || FMT["9:16"]; cv.width = f[0]; cv.height = f[1]; $("veFmt").value = P.fmt; var l = $("veLivre"); if (l) { l.hidden = P.fmt !== "livre"; $("veLargura").value = f[0]; $("veAltura").value = f[1]; } desenhar(); }
+  /* PRÉVIA LEVE (22/11, dono: "o computador é bem exigido"): enquanto se edita, a prévia é desenhada em no máximo 1280 px no lado maior
+     (o mesmo "preview scaling" dos editores de mesa); exportar e salvar quadro voltam ao tamanho real. Tudo é medido em % de W/H, então só a nitidez muda. */
+  var CHEIA = false; try { CHEIA = localStorage.getItem("ui_ve_previa") === "cheia"; } catch (e) {}
+  var FORCAR_REAL = false;
+  function tamReal() { return P.fmt === "livre" && P.w && P.h ? [P.w, P.h] : FMT[P.fmt] || FMT["9:16"]; }
+  function escalaPrev() { var f = tamReal(); return (CHEIA || FORCAR_REAL || GRAV) ? 1 : Math.min(1, 1280 / Math.max(f[0], f[1])); }
+  function tamanhoReal(sim) { FORCAR_REAL = !!sim; formato(); }
+  document.addEventListener("change", function (e) { if (e.target && e.target.id === "vePreviaCheia") { CHEIA = e.target.checked; try { localStorage.setItem("ui_ve_previa", CHEIA ? "cheia" : "leve"); } catch (x) {} formato(); desenharProp(); aviso(CHEIA ? "Prévia em tamanho cheio (mais pesada)." : "Prévia leve ligada: edição mais solta; o vídeo sai no tamanho real."); } });
+  function formato() { var f = tamReal(), k = escalaPrev(), par = function (v) { v = Math.round(v * k); return v - v % 2; }; if (cv.width !== par(f[0]) || cv.height !== par(f[1])) { cv.width = par(f[0]); cv.height = par(f[1]); } $("veFmt").value = P.fmt; var l = $("veLivre"); if (l) { l.hidden = P.fmt !== "livre"; $("veLargura").value = f[0]; $("veAltura").value = f[1]; } desenhar(); }
 
   /* ---------- exportar (gravado pelo navegador, no tempo do vídeo) ---------- */
   function tipoGravacao() { var ts = ["video/mp4;codecs=avc1.42E01E,mp4a.40.2", "video/mp4", "video/webm;codecs=vp9,opus", "video/webm;codecs=vp8,opus", "video/webm"]; for (var i = 0; i < ts.length; i++) if (window.MediaRecorder && MediaRecorder.isTypeSupported(ts[i])) return ts[i]; return ""; }
@@ -593,10 +601,11 @@
     if (!P.clips.length) { aviso("A linha do tempo está vazia.", true); return; }
     var tipo = tipoGravacao(); if (!tipo || !cv.captureStream) { aviso("Este navegador não grava vídeo por aqui. Use o Chrome, o Edge ou o Safari atualizados.", true); return; }
     parar(); var a = audioCtx(); if (a && a.state === "suspended") a.resume();
+    tamanhoReal(true);   /* exporta no tamanho real, não no da prévia leve */
     var fluxo = cv.captureStream(30); if (DEST) DEST.stream.getAudioTracks().forEach(function (t) { fluxo.addTrack(t); });
-    var partes = [], mr; try { mr = new MediaRecorder(fluxo, {mimeType: tipo, videoBitsPerSecond: Math.round(lim(6e6 * cv.width * cv.height / (720 * 1280), 4e6, 40e6))}); } catch (e) { aviso("Não consegui começar a gravação neste navegador.", true); return; }
+    var partes = [], mr; try { mr = new MediaRecorder(fluxo, {mimeType: tipo, videoBitsPerSecond: Math.round(lim(6e6 * cv.width * cv.height / (720 * 1280), 4e6, 40e6))}); } catch (e) { tamanhoReal(false); aviso("Não consegui começar a gravação neste navegador.", true); return; }
     var cancelado = false; mr.ondataavailable = function (e) { if (e.data && e.data.size) partes.push(e.data); };
-    mr.onstop = function () { GRAV = null; $("veOcup").hidden = true; fluxo.getVideoTracks().forEach(function (t) { t.stop(); }); if (cancelado) { aviso("Exportação cancelada."); return; }
+    mr.onstop = function () { GRAV = null; tamanhoReal(false); $("veOcup").hidden = true; fluxo.getVideoTracks().forEach(function (t) { t.stop(); }); if (cancelado) { aviso("Exportação cancelada."); return; }
       var mp4 = /mp4/.test(tipo), blob = new Blob(partes, {type: mp4 ? "video/mp4" : "video/webm"}), url = URL.createObjectURL(blob), nome = "video-brightway." + (mp4 ? "mp4" : "webm");
       window.__veSaida = {blob: blob, tipo: blob.type, bytes: blob.size, nome: nome};
       $("veVideoPronto").src = url; $("veBaixar").href = url; $("veBaixar").download = nome; $("veSaidaTxt").textContent = "Vídeo pronto · " + (blob.size / 1048576).toFixed(1).replace(".", ",") + " MB" + (mp4 ? "" : " · formato WebM (este navegador não grava MP4; o Chrome e o Safari novos gravam)"); $("veSaida").hidden = false; $("veSaida")._blob = blob; $("veSaida")._nome = nome; };
@@ -637,7 +646,7 @@
   $("veInicio").onclick = function () { irPara(0); $("veRolo").scrollLeft = 0; };
   $("veDesf").onclick = desfazer; $("veRef").onclick = refazer; $("veApIni").onclick = function () { aparar("ini"); }; $("veApFim").onclick = function () { aparar("fim"); }; $("veCortar").onclick = function () { return dividir.apply(this, arguments); }; $("veDuplicar").onclick = function () { return duplicar.apply(this, arguments); }; $("veApagar").onclick = function () { return apagar.apply(this, arguments); };
   $("veZoomMais").onclick = function () { PPS = Math.min(200, Math.round(PPS * 1.4)); desenharTL(); }; $("veZoomMenos").onclick = function () { PPS = Math.max(12, Math.round(PPS / 1.4)); desenharTL(); };
-  $("veFmt").onchange = function () { P.fmt = this.value; if (P.fmt === "livre" && !P.w) { P.w = cv.width; P.h = cv.height; } formato(); guardar(); };
+  $("veFmt").onchange = function () { var tr = tamReal(); P.fmt = this.value; if (P.fmt === "livre" && !P.w) { P.w = tr[0]; P.h = tr[1]; } formato(); guardar(); };
   ["veLargura", "veAltura"].forEach(function (id) { $(id).onchange = function () { if (P.fmt !== "livre") return; var par = function (v) { v = Math.round(Number(v) || 0); return lim(v - v % 2, 240, 4096); }; P.w = par($("veLargura").value); P.h = par($("veAltura").value); formato(); guardar(); aviso("Tamanho " + P.w + " × " + P.h + " px."); }; });
   $("veNovo").onclick = function () { if (P.clips.length && !confirm("Começar um vídeo novo? A linha do tempo atual é apagada (a biblioteca de mídia continua).")) return; parar(); Object.keys(EL).forEach(soltarEl); P = {fmt: P.fmt, clips: []}; SEL = null; T = 0; tudo(); aviso(""); };
   $("veExportar").onclick = exportar; $("veCancelar").onclick = function () { if (GRAV) GRAV.cancelar(); };
@@ -828,7 +837,7 @@
     var px = cxp - L, py = cyp - Tp, ux = (px - ZP.x) / ZP.z, uy = (py - ZP.y) / ZP.z; ZP.x = px - ux * novo; ZP.y = py - uy * novo; ZP.z = Math.round(novo * 100) / 100; limitarZP(); aplicarZP(); }
   (cv.parentElement || cv).addEventListener("wheel", function (e) { if (e.ctrlKey || e.altKey) return; e.preventDefault(); zoomPrevia(ZP.z * (e.deltaY < 0 ? 1.15 : 1 / 1.15), e.clientX, e.clientY); }, {passive: false});
   addEventListener("resize", function () { if (ZP.z !== 1) { limitarZP(); aplicarZP(); } });
-  function salvarQuadro() { cv.toBlob(function (bl) { if (!bl) return; var a = document.createElement("a"), u = URL.createObjectURL(bl); a.href = u; a.download = (P.nome || "video").replace(/[^\w\-]+/g, "-") + "-quadro-" + fmtT(T).replace(/[^\d]/g, "") + ".png"; document.body.appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(u); }, 4000); aviso("🖼 Quadro salvo como imagem (PNG)."); }, "image/png"); }
+  function salvarQuadro() { tamanhoReal(true); cv.toBlob(function (bl) { tamanhoReal(false); if (!bl) return; var a = document.createElement("a"), u = URL.createObjectURL(bl); a.href = u; a.download = (P.nome || "video").replace(/[^\w\-]+/g, "-") + "-quadro-" + fmtT(T).replace(/[^\d]/g, "") + ".png"; document.body.appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(u); }, 4000); aviso("🖼 Quadro salvo como imagem (PNG)."); }, "image/png"); }
   function menuPrevia(x, y) { if (!window.BWFerr) return; if (Date.now() - (BWFerr._acabouSegurar || 0) < 900) return; var c = sel(), vis = c && c.tipo !== "audio" && T >= c.ini && T < c.ini + c.dur;
     var it = [{tit: "VISTA (não muda o vídeo)"}, {icone: "＋", rot: "Aproximar", tecla: "Rodinha ↑", fn: function () { zoomPrevia(ZP.z * 1.5); }}, {icone: "－", rot: "Afastar", tecla: "Rodinha ↓", fn: function () { zoomPrevia(ZP.z / 1.5); }},
       {icone: "⤢", rot: "Ajustar à tela (100%)", off: ZP.z === 1, fn: function () { zoomPrevia(0); }}, {icone: "🔍", rot: "Zoom", sub: [2, 4, 8].map(function (z) { return {rot: z * 100 + "%" + (ZP.z === z ? "  ✓" : ""), fn: function () { zoomPrevia(z); }}; })}, "-",
@@ -1008,7 +1017,7 @@
    ["colar", function (f) { colar = f; }, function () { return colar; }], ["colarAtrib", function (f) { colarAtrib = f; }, function () { return colarAtrib; }],
    ["addClip", function (f) { addClip = f; }, function () { return addClip; }], ["addTexto", function (f) { addTexto = f; }, function () { return addTexto; }]].forEach(function (q) {
     var orig = q[2](); q[1](function () { gravarHist(); var r = orig.apply(this, arguments); gravarHist(); return r; }); });
-  window.__video = {porMidia: porMidia, EL: EL, abrirVideo: abrirVideo, codecDe: codecDe, tudo: function () { tudo(); }, desenharLib: desenharLib, guardarJa: function () { return tx("estado", "readwrite", function (s) { return s.put({id: "atual", p: JSON.parse(JSON.stringify(P))}); }); },
+  window.__video = {tamReal: function () { return tamReal(); }, tamanhoReal: tamanhoReal, porMidia: porMidia, EL: EL, abrirVideo: abrirVideo, codecDe: codecDe, tudo: function () { tudo(); }, desenharLib: desenharLib, guardarJa: function () { return tx("estado", "readwrite", function (s) { return s.put({id: "atual", p: JSON.parse(JSON.stringify(P))}); }); },
     trocarProjeto: function (np) { parar(); Object.keys(EL).forEach(soltarEl); P = np; SEL = null; T = 0; formato(); desenharLib(); tudo(); },
     backup: function () { return tx("estado", "readwrite", function (s) { return s.put({id: "anterior", p: JSON.parse(JSON.stringify(P))}); }); },
     anterior: function () { return new Promise(function (ok) { db().then(function (d) { var q = d.transaction("estado").objectStore("estado").get("anterior"); q.onsuccess = function () { ok(q.result && q.result.p); }; q.onerror = function () { ok(null); }; }); }); },
