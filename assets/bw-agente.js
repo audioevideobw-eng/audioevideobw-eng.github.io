@@ -400,10 +400,10 @@
       body: JSON.stringify({ sistema: "Você melhora PEDIDOS que uma pessoa vai fazer a um assistente de uma plataforma de gestão e marketing de uma produtora audiovisual. " +
         "Reescreva o pedido em português, claro e completo, deixando explícitos: o objetivo (intenção), a ação pedida (instrução) e os dados que a pessoa deu (informação). " +
         "NUNCA invente valores, datas, nomes ou fatos que não estão no pedido; se faltar algo importante, termine com UMA pergunta curta entre colchetes, ex.: [qual o valor?]. " +
-        "Sem markdown, sem aspas, sem explicar o que fez: devolva SÓ o pedido reescrito, em até 4 frases.", pedido: String(texto).slice(0, 1500), max: 400, nivel: nivelPara(texto, "melhorar") }) });
+        "Escreva como a própria pessoa pediria, em primeira pessoa e frases naturais — SEM rótulos como Objetivo:, Ação:, Informação:. Sem markdown, sem aspas, sem explicar o que fez: devolva SÓ o pedido reescrito, em até 4 frases. Exemplo: entrada \"gastei 80 mercado ontem\" → saída \"Lance um gasto de R$ 80 no mercado, com a data de ontem. [qual a categoria?]\"", pedido: String(texto).slice(0, 1500), max: 400, nivel: nivelPara(texto, "melhorar") }) });
     var j = await r.json().catch(function () { return {}; }); marcarErro(r, j); anotar(j);
     if (!r.ok || !j.texto) throw new Error(motivoIA() || "A varinha não respondeu agora.");
-    return String(j.texto).replace(/[*#`]/g, "").replace(/^\s*["“]|["”]\s*$/g, "").trim();
+    return String(j.texto).replace(/^(objetivo|a[çc][ãa]o|informa[çc][ãa]o|intera[çc][ãa]o)\s*:\s*/gim, "").replace(/[*#`]/g, "").replace(/^\s*["“]|["”]\s*$/g, "").trim();
   }
   function normalizar(a) {   /* confere o que a IA devolveu antes de mostrar */
     a = Object.assign({}, a || {}); a.valor = num(a.valor);

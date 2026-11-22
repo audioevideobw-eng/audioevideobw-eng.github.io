@@ -292,6 +292,14 @@
   }
 
   /* montar(palco, projeto, {recorte}) → { seek(t), dur, caixas }  — o palco recebe uma <div> do tamanho do vídeo (w × h) */
+  /* 22/11: COR por item (como no editor de vídeo): exposição, contraste, saturação, matiz, temperatura, preto e branco, desfoque — filtro CSS,
+     igual na prévia, no vídeo feito no aparelho e no render do PC */
+  function corFiltro(c) { if (!c) return ""; var f = [], n = function (k) { return +c[k] || 0; };
+    if (n("exp")) f.push("brightness(" + (1 + n("exp") / 100).toFixed(3) + ")"); if (n("contraste")) f.push("contrast(" + (1 + n("contraste") / 100).toFixed(3) + ")");
+    if (n("sat")) f.push("saturate(" + Math.max(0, 1 + n("sat") / 100).toFixed(3) + ")"); if (n("temp") > 0) f.push("sepia(" + (n("temp") / 250).toFixed(3) + ")");
+    if (n("matiz") || n("temp") < 0) f.push("hue-rotate(" + (n("matiz") + (n("temp") < 0 ? n("temp") * 0.3 : 0)).toFixed(1) + "deg)");
+    if (n("pb")) f.push("grayscale(" + Math.min(1, n("pb") / 100).toFixed(3) + ")"); if (n("desfoque") > 0) f.push("blur(" + (n("desfoque") / 10).toFixed(1) + "px)");
+    return f.join(" "); }
   function montar(palco, P, op) {
     op = op || {};
     palco.innerHTML = "";
@@ -324,7 +332,7 @@
         var tr = "translate(" + (x + (fx.dx || 0) - c.w / 2).toFixed(2) + "px," + (y + (fx.dy || 0) - c.h / 2).toFixed(2) + "px)";
         if (fx.rx || fx.ry) tr += " perspective(1200px) rotateX(" + (fx.rx || 0).toFixed(2) + "deg) rotateY(" + (fx.ry || 0).toFixed(2) + "deg)";
         tr += " rotate(" + (r + (fx.r || 0)).toFixed(2) + "deg) scale(" + Math.max(0, S).toFixed(4) + ")";
-        b.style.transform = tr; b.style.opacity = O.toFixed(3); b.style.filter = fx.b > 0.05 ? "blur(" + fx.b.toFixed(1) + "px)" : "";
+        b.style.transform = tr; b.style.opacity = O.toFixed(3); var cf = corFiltro(it.cor); b.style.filter = (fx.b > 0.05 ? "blur(" + fx.b.toFixed(1) + "px) " : "") + cf;
         // textos: palavra por palavra / máquina de escrever
         if (pals) {
           var nP = pals.length, total = 0; pals.forEach(function (w) { total += w.letras.length; });
@@ -408,7 +416,7 @@
       '})();<\/script></body></html>';
   }
 
-  window.BWMotion = { VERSAO: VERSAO, ITENS: ITENS, EFEITOS: EFEITOS, LOOPS: LOOPS, EASE: EASE, NOMES_EASE: NOMES_EASE, FUNDOS: FUNDOS, CHROMA: CHROMA, FORMATOS: FORMATOS,
+  window.BWMotion = { corFiltro: corFiltro, VERSAO: VERSAO, ITENS: ITENS, EFEITOS: EFEITOS, LOOPS: LOOPS, EASE: EASE, NOMES_EASE: NOMES_EASE, FUNDOS: FUNDOS, CHROMA: CHROMA, FORMATOS: FORMATOS,
     LINK_FONTES: LINK_FONTES, novoProjeto: novoProjeto, novoItem: novoItem, montar: montar, valorKeys: valorKeys, auto: auto, efeitoPorTexto: efeitoPorTexto,
     limparEfeito: limparEfeito, efeitoProprio: efeitoProprio, html: html, imgOk: imgOk, uid: uid, clone: clone };
 })();

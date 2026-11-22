@@ -606,6 +606,13 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
 159. ARRASTAR TAKE EM CIMA DE OUTRO (dono, 22/11): aviso flutuante com as DUAS escolhas pela altura — metade de cima da camada = ⬆ PARA CIMA (camada nova criada NA
      HORA, ainda arrastando), resto = ⇄ TROCAR DE LUGAR (ao soltar; quem não couber sobe de camada). Depois de criar a camada, trava de 26 px na troca de faixa pelo
      ponteiro: sem ela a faixa de baixo puxava o take de volta e nascia uma camada a cada movimento (auto: teste_video_arrastar.py).
+160. ESTÚDIO DE MOTION COM AS FERRAMENTAS DO EDITOR DE VÍDEO (dono, 22/11): cada item é uma camada — barra em cima de outra = ⬆ PARA CIMA na hora /
+     ⇄ TROCAR (ao soltar); Alt + rodinha = altura (ui_motion_alt, --mo-alt no nome E na faixa); rodinha na prévia = zoom SÓ da vista (VZ; quem mede ponteiro
+     divide por sc() = SC × zoom, a moldura divide pelo zoom); clique no vazio = opções; galeria EFEITOS arrastada (metade esquerda da barra = entrada,
+     direita = saída); COR por item = filtro CSS no motor (corFiltro — motor do site e do app IGUAIS, regra 109); janela do 2º monitor desenhada pelo motor
+     DESTA página dentro da janela (mesma origem) — script escrito por document.write na janela não carregou no teste; controle pelo celular = BWControle
+     com a API do motion. AVISO de rodapé por cima da linha do tempo engolia o clique na barra: aviso com pointer-events:none. Teste de desfazer: passos
+     a menos de 0,35 s se juntam num só (espere antes do próximo passo) (auto: teste_motion_ferramentas.py).
 
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
@@ -1844,9 +1851,16 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   outro mostra ⇄ TROCAR DE LUGAR / ⬆ PARA CIMA; subir cria a camada na hora. (4) APP BW 1.9.20: a abertura VÍDEO saiu (ficam FOTO + MUNDO e MUNDO).
   Testes: teste_pede (novo, 0 falhas × 1280/390), teste_video_arrastar (+7), ambientes, modos, layout, agente_leitor, video, video_app, video_layout, lancamentos,
   agenda 0 falhas; vigia ✅; manual 57 p. brightway.css v34, layout.js v67, bw-agente v24, bw-pede v1, sw v171. PENTE FINO 158–159.
+- 22/11/2026 02:05 · Claude (dono, 01:14: "aplique as mesmas ferramentas e funcionalidades do editor de vídeo no estúdio de motion"): ESTÚDIO DE MOTION —
+  galeria EFEITOS (prévia ao passar o mouse; arrastar até a barra: esquerda = entrada, direita = saída; ou até o item na tela; tocar aplica no escolhido),
+  camadas com ⬆ PARA CIMA (na hora) / ⇄ TROCAR DE LUGAR, Alt + rodinha (altura), rodinha na prévia = zoom da vista + 🔍 % ✕ (F volta), clique na prévia =
+  opções, COR por item (8 looks + 7 barras, ⇉ aplicar em todos; vale na prévia, no vídeo do aparelho e no render do PC), Q/W, Shift+E (desativar),
+  Ctrl+Shift+C/V (ajustes), 🖥 prévia no 2º monitor e 📱 controle pelo celular. Varinha do Tio Cláudio escreve em frase natural (sem "Objetivo:").
+  Testes: teste_motion_ferramentas (novo, 0 falhas × 1280/390), teste_motion, paineis, criacoes, pede 0 falhas; vigia ✅. App BW 1.9.21 (motor igual).
+  motion.js v7, motion-motor v3, bw-agente v25, layout.js v68, sw v172. PENTE FINO 160. Fica para depois: layout de app no celular (como o do editor de vídeo).
 ## Pendências (dono)
 - [ ] (22/11) CAIXA DO TIO CLÁUDIO: dono testar no PC e no celular, logado — pedir algo pela caixa, trocar BW Smart / Rápido / Inteligente e usar a ✨ varinha.
-- [ ] (22/11) ESTÚDIO DE MOTION com as ferramentas do editor de vídeo: pedido do dono 01:14 — em andamento.
+- [ ] (22/11) ESTÚDIO DE MOTION: dono testar no PC — arrastar efeito até a barra, barra em cima de outra camada, COR, rodinha na prévia, 🖥 2º monitor e 📱 celular. Dizer se quer também o layout de app no celular.
 - [ ] (22/11) ABERTURA DO APP: dono atualizar para 1.9.17 e escolher VÍDEO, FOTO + MUNDO ou MUNDO (chave no alto); conferir o ENTRAR e o menu escondido. BW-Setup.exe 1.9.16 depende do PC (o do site atualiza sozinho).
 - [ ] (22/11) EDITOR NO CELULAR: dono abrir o editor de vídeo no celular e dizer o que ainda falta para ficar como o CapCut (tempo do "segurar"
       hoje é ~0,5 s — pediu 2 s: confirmar se quer mesmo mais longo). BW-Setup.exe 1.9.14 depende do PC (o 1.9.12 do site atualiza sozinho).

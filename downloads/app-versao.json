@@ -1,27 +1,18 @@
 {
- "versao": "1.9.20",
+ "versao": "1.9.21",
  "data": "22/11/2026",
  "pacote": "downloads/BW-Reels-Studio.zip",
- "sha256": "202f2887af517ba612ddce93778b79047d3e0a2123237cddd0c580e1cf734d0b",
- "bytes": 41404833,
+ "sha256": "37f3b44d29dab49f846a43c5266c34e4b66a4210ca76405b7fa35e08e360e36e",
+ "bytes": 41413914,
  "novidades": [
   {
-   "titulo": "Caixa do Tio Cláudio",
-   "texto": "Na página do robô: escreva o pedido e toque em ➤. ＋ anexa conta, foto ou print; ⚡ traz atalhos para gerar e lançar; 🎙 fala.",
-   "abrir": "plataforma"
+   "titulo": "Estúdio de motion turbinado",
+   "texto": "As ferramentas do editor de vídeo chegaram ao Estúdio de motion: galeria de EFEITOS para arrastar até o item, camadas que trocam de lugar ou sobem, cor por item, zoom na prévia, prévia no segundo monitor e controle pelo celular.",
+   "abrir": "motion"
   },
   {
-   "titulo": "BW Smart: escolha da IA",
-   "texto": "O chip da caixa escolhe sozinho entre Rápido e Inteligente (ou fixe um). Se a IA principal estiver ocupada, a reserva responde e a tela diz quem respondeu. A ✨ varinha deixa o pedido mais claro sem inventar nada."
-  },
-  {
-   "titulo": "Editor de vídeo: trocar ou subir",
-   "texto": "Arrastando um take em cima de outro aparece o aviso: ⇄ TROCAR DE LUGAR (solte ali) ou ⬆ PARA CIMA (suba o take e a camada nova nasce na hora).",
-   "abrir": "video"
-  },
-  {
-   "titulo": "Abertura",
-   "texto": "A opção VÍDEO saiu: ficam FOTO + MUNDO (padrão) e MUNDO."
+   "titulo": "Varinha mais natural",
+   "texto": "A ✨ varinha do Tio Cláudio agora reescreve o pedido em frase natural, como você pediria."
   }
  ]
 }

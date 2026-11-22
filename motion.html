@@ -70,14 +70,14 @@
 .mo-tl-barra{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:8px}
 .mo-tl-barra .titulo{font:800 11px Inter,sans-serif;letter-spacing:.14em;color:#B9C0CC;margin-right:auto}
 .mo-tl-corpo{display:grid;grid-template-columns:130px minmax(0,1fr);max-height:230px;overflow:auto;overscroll-behavior:contain}
-.mo-rot div{height:38px;margin-bottom:4px;display:flex;align-items:center;gap:6px;font:700 11px Inter,sans-serif;color:#d7dce4;padding:0 6px;border-radius:8px;cursor:pointer;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.mo-rot div{height:var(--mo-alt,38px);margin-bottom:4px;display:flex;align-items:center;gap:6px;font:700 11px Inter,sans-serif;color:#d7dce4;padding:0 6px;border-radius:8px;cursor:pointer;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
 .mo-rot div:first-child{height:22px;color:#8d95a3;cursor:default;font-size:10px}
 .mo-rot div.on{background:rgba(182,255,59,.12);color:#fff}
 .mo-rot i{font-style:normal;width:22px;text-align:center;flex:none}
 .mo-pistas{position:relative;min-width:0;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain}
 .mo-regua{height:22px;margin-bottom:4px;position:relative;cursor:pointer;border-bottom:1px solid rgba(245,241,234,.1);font:600 9.5px Inter,sans-serif;color:#8d95a3;touch-action:none}
 .mo-regua i{position:absolute;top:3px;font-style:normal;padding-left:3px;border-left:1px solid rgba(245,241,234,.25);height:15px}
-.mo-pista{height:38px;margin-bottom:4px;position:relative;border-radius:8px;background:rgba(255,255,255,.03)}
+.mo-pista{height:var(--mo-alt,38px);margin-bottom:4px;position:relative;border-radius:8px;background:rgba(255,255,255,.03)}
 .mo-barra{position:absolute;top:4px;height:30px;box-sizing:border-box;border-radius:9px;border:2px solid transparent;background:var(--c);cursor:grab;touch-action:none;overflow:hidden}
 .mo-barra.on{border-color:#fff;box-shadow:0 0 0 2px rgba(255,255,255,.2)}
 .mo-barra .en,.mo-barra .sa{position:absolute;top:0;bottom:0;background:rgba(255,255,255,.22);pointer-events:none}
@@ -91,7 +91,7 @@
 .mo-livre{display:inline-flex;align-items:center;gap:4px;color:#B9C0CC;font:700 12px Inter,sans-serif}
 .mo-livre[hidden]{display:none}
 .mo-livre input{width:78px;font-size:16px}
-.mo-aviso{margin-top:8px;padding:9px 12px;border-radius:12px;font:600 12.5px/1.4 Inter,sans-serif;background:rgba(62,207,142,.12);border:1px solid rgba(62,207,142,.4);color:#9af0c4}
+.mo-aviso{pointer-events:none;margin-top:8px;padding:9px 12px;border-radius:12px;font:600 12.5px/1.4 Inter,sans-serif;background:rgba(62,207,142,.12);border:1px solid rgba(62,207,142,.4);color:#9af0c4}
 .mo-aviso.erro{background:rgba(242,104,107,.12);border-color:rgba(242,104,107,.45);color:#ffb3b5}
 .mo-aviso[hidden]{display:none}
 .mo-nota{margin:8px 0 0;font:500 11.5px/1.4 Inter,sans-serif;color:#8d95a3}
@@ -119,6 +119,13 @@
   .mo-play .mo-bt{min-height:36px;padding:0 10px}
   .mo-play{gap:5px}
 }
+.mo-tela{transform-origin:50% 50%}.mo-palco{overflow:hidden}
+.mo-dica-arr{position:fixed;z-index:9600;pointer-events:none;display:flex;flex-direction:column;gap:4px;width:236px;padding:7px;border-radius:12px;background:rgba(14,16,22,.94);border:1px solid rgba(255,255,255,.18);box-shadow:0 12px 34px rgba(0,0,0,.55)}.mo-dica-arr[hidden]{display:none}.mo-dica-arr b{display:block;padding:6px 8px;border-radius:8px;font:800 11px Inter,sans-serif;letter-spacing:.06em;color:#cfd3dc;background:rgba(255,255,255,.04)}.mo-dica-arr b small{display:block;font:600 9.5px Inter,sans-serif;opacity:.75;margin-top:2px}.mo-dica-arr b.on{background:#B6FF3B;color:#0a120a}
+#moEfs h6{margin:6px 0 5px;font:800 10px Inter,sans-serif;letter-spacing:.12em;color:#8d95a3}.mo-efs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.mo-ef{min-width:0;display:flex;flex-direction:column;align-items:center;gap:5px;padding:7px 4px;border-radius:12px;border:1px solid rgba(245,241,234,.12);background:rgba(255,255,255,.03);color:#d7dce4;font:700 10px/1.15 Inter,sans-serif;cursor:grab;touch-action:pan-y;text-align:center}
+.mo-ef:hover{border-color:#B6FF3B}.mo-ef .pv{width:44px;height:30px;border-radius:7px;background:#0b0d12;display:grid;place-items:center;overflow:hidden;pointer-events:none}.mo-ef .pv i{width:14px;height:14px;border-radius:4px;background:linear-gradient(135deg,#B6FF3B,#3bd6ff);display:block}
+.mo-fantasma{position:fixed;z-index:9500;pointer-events:none;max-width:220px;padding:7px 10px;border-radius:10px;background:#B6FF3B;color:#0a120a;font:800 11px Inter,sans-serif;box-shadow:0 10px 30px rgba(0,0,0,.55)}.mo-fantasma::after{content:attr(data-dica);display:block;margin-top:3px;font:700 9.5px Inter,sans-serif;opacity:.8}
+.mo-alvo{outline:2px dashed #B6FF3B!important;outline-offset:2px}
 </style>
 <script src="assets/modos.js?v=6"></script>
 </head>
@@ -140,6 +147,7 @@
   <div class="mo-grade" id="moGrade" data-aba="lib">
     <aside class="mo-cx mo-lado" id="moEsq" data-bwf-nome="ITENS">
       <div class="mo-g"><h4 data-seta="mo_lib">BIBLIOTECA DE ITENS</h4><div id="moLib"></div><p class="mo-dica">Toque num item: ele entra no tempo da agulha, no meio da tela, já com um efeito. Arraste na tela para posicionar.</p></div>
+      <div class="mo-g"><h4 data-seta="mo_efs">EFEITOS</h4><div id="moEfs"></div><p class="mo-dica">Passe o mouse para ver. ARRASTE até um item: na linha do tempo, a metade da esquerda da barra = entrada, a da direita = saída. Tocar aplica no item escolhido.</p></div>
       <div class="mo-g"><h4 data-seta="mo_fundo">FUNDO</h4><div class="mo-prop" id="moFundo"></div></div>
       <div class="mo-g"><h4 data-seta="mo_modelos">MODELOS PRONTOS</h4><div class="mo-mod" id="moModelos"></div></div>
       <div class="mo-g"><h4 data-seta="mo_proj" data-seta-padrao="fechada">MEUS PROJETOS</h4><div id="moProjetos"></div></div>
@@ -151,6 +159,9 @@
         <button class="mo-bt" id="moTocar" type="button">▶ TOCAR</button>
         <span class="mo-tempo" id="moTempo">0,0 / 8,0 s</span>
         <button class="mo-bt mini" id="moGravar" type="button" title="Arrastar na tela cria keyframes">◆ GRAVAR MOVIMENTO</button>
+        <button class="mo-bt mini" id="moVZ" type="button" hidden title="Voltar a vista para 100% (F)">🔍 100%</button>
+        <button class="mo-bt mini" id="moJanela" type="button" title="Prévia no segundo monitor ou numa janela solta">🖥</button>
+        <button class="mo-bt mini" id="moCelular" type="button" title="Controle pelo celular">📱</button>
       </div>
     </section>
     <aside class="mo-cx mo-lado mo-prop" id="moDir" data-bwf-nome="AJUSTES"><div class="mo-vazio" id="moSemItem">Toque num item da tela ou da linha do tempo para mudar o conteúdo, a posição, os keyframes e os efeitos.</div><div id="moPainel"></div></aside>
@@ -192,13 +203,14 @@
 
 <input type="file" id="moArqImg" accept="image/*" hidden>
 <input type="file" id="moArqProj" accept=".json,application/json" hidden>
-<script src="assets/layout.js?v=67"></script>
+<script src="assets/layout.js?v=68"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="assets/bw-sync.js"></script>
-<script src="assets/motion-motor.js?v=2"></script>
+<script src="assets/motion-motor.js?v=3"></script>
 <script src="assets/reels-celular.js?v=5"></script>
 <script src="assets/bw-ferramentas.js?v=2"></script>
 <script src="assets/bw-criacoes.js?v=1"></script>
-<script src="assets/motion.js?v=6"></script>
+<script src="assets/bw-controle.js?v=1"></script>
+<script src="assets/motion.js?v=7"></script>
 </body>
 </html>
