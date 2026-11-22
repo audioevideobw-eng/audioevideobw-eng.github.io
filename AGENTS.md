@@ -2096,7 +2096,8 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   Mesmo vazamento corrigido em Telas, Álbum 3D e biblioteca de criações. PENTE FINO: 51 testes rodados — corrigidos controle.html (estourava 132 px
   no celular) e 2 testes do 3D desatualizados; o resto 0 falhas. video-editor v15, telas v11, album v4, bw-criacoes v3, sw v191. App BW 1.9.31. PENTE FINO 180.
 ## Pendências (dono)
-- [ ] (22/11) TAKES: dono importar de novo os takes do evento (os 26 que "não abriam") no editor de vídeo e dizer se abriram; BW-Setup.exe 1.9.31 depende do PC; decidir sobre o PROXY no app BW (ler qualquer formato de câmera).
+- [x] (22/11 18:16) BW-Setup.exe 1.9.31 gerado pelo dono e publicado (8,5 MB, versão conferida dentro do .exe).
+- [ ] (22/11) TAKES: dono importar de novo os takes do evento (os 26 que "não abriam") no editor de vídeo e dizer se abriram; decidir sobre o PROXY no app BW (ler qualquer formato de câmera).
 - [ ] (22/11) MOTION: dono abrir Marketing → Estúdio de motion, testar os itens novos e a BIBLIOTECA INTEGRADA (personagens, objetos, desenhos). BW-Setup.exe 1.9.30: publicado 17:10.
 - [x] (22/11 17:05) BW-Setup.exe 1.9.29 gerado pelo dono e publicado (8,5 MB, versão conferida dentro do .exe).
 - [ ] (22/11) CONVITES: dono abrir Criador IA → CONVITE no celular e no PC, escolher um modelo da 📚 BIBLIOTECA, ligar ✨ ANIMADO, arrastar um bichinho e GERAR VÍDEO; dizer quais bichinhos/temas faltam. Próximas bibliotecas: posts, flyers, Reels, Motion, Telas ("todas as ferramentas").
