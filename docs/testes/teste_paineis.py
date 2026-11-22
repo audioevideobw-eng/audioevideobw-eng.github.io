@@ -43,13 +43,13 @@ with sync_playwright() as p:
         ok(f2 and abs(f2[0] - f1[0]) <= 8 and pg.evaluate("getComputedStyle(document.querySelector('" + dirr + "')).position") == "fixed", "recarregou: continua solta no mesmo lugar")
         pg.click(dirr + ' > .bwf-pega [data-bwf-p="solta"]'); pg.wait_for_timeout(350); ok(abs(q(palco)[2] - p0[2]) <= 6 and abs(q(dirr)[2] - d0[2]) <= 6, "⇲ encaixa de novo, do tamanho de antes")
         pg.click(dirr + ' > .bwf-pega [data-bwf-p="some"]'); pg.wait_for_timeout(350)
-        ok(q(dirr) is None and q(palco)[2] > p0[2] + 150 and pg.locator(".bwf-volta button").count() == 1, "✕ esconde (não ocupa lugar) e aparece o botão ＋ para trazer de volta")
-        pg.click(".bwf-volta button"); pg.wait_for_timeout(350); ok(q(dirr) is not None and abs(q(palco)[2] - p0[2]) <= 6, "＋ traz o painel de volta")
+        ok(q(dirr) and q(dirr)[2] <= 20 and q(palco)[2] > p0[2] + 150 and pg.locator(dirr + " > .bwf-borda-bt").is_visible(), "✕ esconde: o painel vira só uma BORDA fina e a prévia cresce")
+        pg.click(dirr + " > .bwf-borda-bt"); pg.wait_for_timeout(350); ok(q(dirr) is not None and abs(q(palco)[2] - p0[2]) <= 6, "＋ traz o painel de volta")
         pu = q(palco + " > .bwf-puxa.d"); pg.mouse.move(pu[0] + 5, pu[1] + pu[3] / 2); pg.mouse.down(); pg.mouse.move(pu[0] + 5 - 90, pu[1] + pu[3] / 2, steps=5); pg.mouse.up(); pg.wait_for_timeout(350)
         ok(abs(q(dirr)[2] - (d0[2] + 90)) <= 8, f"arrastar a beirada da prévia estica o painel ({d0[2]} → {q(dirr)[2]} px)")
         pg.dblclick(palco + " > .bwf-puxa.d"); pg.wait_for_timeout(350); ok(abs(q(dirr)[2] - d0[2]) <= 6, "dois toques na beirada volta à largura padrão")
         if esq:
-            pg.click(esq + ' > .bwf-pega [data-bwf-p="some"]'); pg.wait_for_timeout(300); ok(q(esq) is None and q(palco)[0] < p0[0] - 100, "o painel da esquerda também some e a prévia vai até a beirada"); pg.click(".bwf-volta button"); pg.wait_for_timeout(300)
+            pg.click(esq + ' > .bwf-pega [data-bwf-p="some"]'); pg.wait_for_timeout(300); ok(q(esq)[2] <= 20 and q(palco)[0] < p0[0] - 100, "o painel da esquerda também vira borda e a prévia vai até a beirada"); pg.click(esq + " > .bwf-borda-bt"); pg.wait_for_timeout(300)
         if rola:
             r0 = q(rola); pe = q(rola + " > .bwf-pega"); pg.mouse.move(pe[0] + 80, pe[1] + 8); pg.mouse.down(); pg.mouse.move(pe[0] + 80, pe[1] + 8 - 70, steps=5); pg.mouse.up(); pg.wait_for_timeout(350)
             ok(q(rola)[3] > r0[3] + 40, f"arrastar a barrinha da parte de baixo estica a altura ({r0[3]} → {q(rola)[3]} px)")

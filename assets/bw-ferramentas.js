@@ -185,6 +185,10 @@
       if (!naGrade && !o.alturaPropria) pg.title = "Arraste para cima ou para baixo para esticar";
       el.insertBefore(pg, el.firstChild); el.classList.add("bwf-painel");
       var it = {el: el, id: el.id || ("p" + i), nome: nome, naGrade: naGrade, pega: pg, solto: false};
+      /* 22/11 (dono: "omitir para cima e para o lado, deixando só uma BORDA; a tela é o assunto principal"): painel escondido vira uma
+         borda fina no lugar dele (com a seta e o nome); tocar na borda traz o painel de volta. */
+      var bb = document.createElement("button"); bb.type = "button"; bb.className = "bwf-borda-bt"; bb.title = "Mostrar " + nome; bb.setAttribute("aria-label", "Mostrar " + nome);
+      bb.innerHTML = "<b></b><span>" + nome + "</span>"; bb.addEventListener("click", function () { var st = est(it); delete st.o; lembrar(); refazer(); }); el.appendChild(bb); it.borda = bb;
       pg.addEventListener("click", function (e) { var b = e.target.closest("[data-bwf-p]"); if (!b) return; var st = est(it);
         if (b.getAttribute("data-bwf-p") === "some") st.o = 1;
         else if (st.s) delete st.s; else { var r = el.getBoundingClientRect(); st.s = {x: Math.round(lim(r.left + (r.left > innerWidth / 2 ? -24 : 24), 0, innerWidth - 240)), y: Math.round(lim(r.top - (naGrade ? -24 : 60), 0, innerHeight - 160)), w: Math.round(lim(r.width, 260, innerWidth * 0.7)), h: Math.round(lim(r.height, 160, innerHeight * 0.7))}; }
@@ -203,6 +207,12 @@
       return it; });
     var daGrade = itens.filter(function (it) { return it.naGrade; }), volta = document.createElement("div"); volta.className = "bwf-volta";
     volta.addEventListener("click", function (e) { var b = e.target.closest("[data-bwf-id]"); if (!b) return; var st = S[b.getAttribute("data-bwf-id")]; if (st) delete st.o; lembrar(); refazer(); });
+    /* 22/11 (dono: "todo o resto deve se omitir"): ⛶ SÓ A TELA esconde todos os painéis de uma vez (viram bordas); de novo = volta como estava */
+    var soTela = document.createElement("button"); soTela.type = "button"; soTela.className = "bwf-sotela"; soTela.setAttribute("data-bwf-sotela", "1");
+    soTela.addEventListener("click", function () { var algum = itens.some(function (it) { return !(S[it.id] || {}).o; });
+      if (algum) { S.__antes = itens.filter(function (it) { return (S[it.id] || {}).o; }).map(function (it) { return it.id; }); itens.forEach(function (it) { est(it).o = 1; }); }
+      else { var ant = S.__antes || []; itens.forEach(function (it) { if (ant.indexOf(it.id) < 0) delete est(it).o; }); delete S.__antes; }
+      lembrar(); refazer(); });
     function porEl(e) { for (var i = 0; i < itens.length; i++) if (itens[i].el === e) return itens[i]; return null; }
     /* beiradas da prévia: arrastar muda a largura do painel vizinho (até o fim = esconde); dois toques = largura padrão */
     var puxa = {};
@@ -219,19 +229,24 @@
       CEL = cel; var escondidos = [];
       itens.forEach(function (it) { var st = S[it.id] || {}, oc = !cel && !!st.o, so = !cel && !oc && !!st.s, el = it.el;
         el.classList.toggle("bwf-oculto", oc); el.classList.toggle("bwf-solto", so); if (oc) escondidos.push(it);
+        if (it.borda) { var antes = it.naGrade && [].indexOf.call(grade.children, el) < [].indexOf.call(grade.children, palco); it.borda.firstChild.textContent = !it.naGrade ? "▴" : antes ? "▸" : "◂"; it.borda.classList.toggle("hor", !it.naGrade); }
         if (so) { el.style.width = lim(st.s.w || 320, 220, innerWidth - 16) + "px"; el.style.height = lim(st.s.h || 380, 120, innerHeight - 16) + "px"; el.style.maxHeight = ""; el.style.left = lim(st.s.x, 0, Math.max(0, innerWidth - 80)) + "px"; el.style.top = lim(st.s.y, 0, Math.max(0, innerHeight - 40)) + "px"; }
         else { if (it.solto) el.style.width = el.style.left = el.style.top = el.style.height = el.style.maxHeight = "";
-          if (!it.naGrade && !o.alturaPropria) { var hh = !cel && st.h ? st.h + "px" : ""; el.style.height = hh; el.style.maxHeight = hh; } }
+          if (!it.naGrade && !o.alturaPropria) { var hh = !cel && st.h && !oc ? st.h + "px" : ""; el.style.height = hh; el.style.maxHeight = hh; } }
         it.solto = so; var b = it.pega.querySelector('[data-bwf-p="solta"]'); if (b) b.textContent = so ? "⇲" : "⇱"; });
       if (daGrade.length) {
         if (cel) grade.style.gridTemplateColumns = "";
         else { if (!ORIG) { grade.style.gridTemplateColumns = ""; var t = getComputedStyle(grade).gridTemplateColumns.split(" "); if (t.length === grade.children.length && t.every(function (x) { return /px$/.test(x); })) ORIG = t.map(parseFloat); }
-          if (ORIG) { var cols = []; [].forEach.call(grade.children, function (e, i) { if (e === palco) { cols.push("minmax(0,1fr)"); return; } var it = porEl(e), st = it ? S[it.id] || {} : {}; if (st.o || st.s) return; cols.push(Math.round(st.w || ORIG[i]) + "px"); }); grade.style.gridTemplateColumns = cols.join(" "); } }
+          if (ORIG) { var cols = []; [].forEach.call(grade.children, function (e, i) { if (e === palco) { cols.push("minmax(0,1fr)"); return; } var it = porEl(e), st = it ? S[it.id] || {} : {}; if (st.s) return; if (st.o) { cols.push("18px"); return; } cols.push(Math.round(st.w || ORIG[i]) + "px"); }); grade.style.gridTemplateColumns = cols.join(" "); } }
         ["e", "d"].forEach(function (l) { if (puxa[l]) puxa[l].style.display = cel || !puxa[l]._viz() ? "none" : ""; }); }
       volta.textContent = ""; escondidos.forEach(function (it) { var b = document.createElement("button"); b.type = "button"; b.textContent = "＋ " + it.nome; b.setAttribute("data-bwf-id", it.id); b.title = "Mostrar " + it.nome; volta.appendChild(b); });
       var barra = document.querySelector(".bw-foco-barra"), naBarra = !!(barra && barra.getClientRects().length);
       if (naBarra) { if (volta.parentNode !== barra) barra.insertBefore(volta, barra.lastElementChild); } else if (volta.parentNode !== document.body) document.body.appendChild(volta);
-      volta.classList.toggle("fora", !naBarra); volta.style.display = escondidos.length ? "" : "none"; }
+      volta.classList.toggle("fora", !naBarra); volta.style.display = "none";   /* agora o painel escondido vira BORDA (tocar traz de volta) */
+      var todos = escondidos.length === itens.length; soTela.textContent = todos ? "⊞ MOSTRAR PAINÉIS" : "⛶ SÓ A TELA"; soTela.title = todos ? "Traz os painéis de volta" : "Esconde todos os painéis: só a tela fica (atalho: Tab)";
+      if (naBarra) { if (soTela.parentNode !== barra) barra.insertBefore(soTela, barra.lastElementChild); } else if (soTela.parentNode !== volta.parentNode || soTela.nextSibling) volta.parentNode.appendChild(soTela);
+      soTela.style.display = cel ? "none" : ""; soTela.classList.toggle("fora", !naBarra); }
+    document.addEventListener("keydown", function (e) { if (e.key !== "Tab" || e.ctrlKey || e.altKey || e.metaKey || e.shiftKey || CEL) return; var t = e.target; if (t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT|BUTTON|A)$/.test(t.tagName))) return; e.preventDefault(); soTela.click(); });
     return { aplicar: aplicar, estado: function () { return JSON.parse(JSON.stringify(S)); } };
   }
   var css2 = document.createElement("style");
@@ -254,7 +269,14 @@
     ".bwf-pega button,.bwf-volta button{height:20px;min-width:24px;border-radius:6px;border:1px solid rgba(245,241,234,.14);background:transparent;color:#B9C0CC;font:700 11px Inter,sans-serif;cursor:pointer;padding:0 5px;line-height:1}" +
     ".bwf-pega button:hover,.bwf-volta button:hover{border-color:#7C5CFF;color:#fff}" +
     ".bwf-fixo .bwf-pega.alt{cursor:ns-resize;touch-action:none}" +
-    ".bwf-fixo .bwf-oculto{display:none!important}" +
+    ".bwf-fixo .bwf-oculto{padding:0!important;overflow:hidden!important;border-radius:10px!important;min-width:0!important;background:transparent!important;border:0!important;box-shadow:none!important}" +
+    ".bwf-fixo .bwf-oculto>:not(.bwf-borda-bt){display:none!important}" +
+    ".bwf-fixo>.bwf-oculto{min-height:0!important;height:18px!important;max-height:18px!important;flex:none!important}" +
+    ".bwf-borda-bt{display:none}" +
+    ".bwf-fixo .bwf-oculto>.bwf-borda-bt{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:8px;width:100%;height:100%;padding:8px 0;border:1px solid rgba(245,241,234,.12);border-radius:10px;background:linear-gradient(90deg,#1d222b,#151920);color:#B9C0CC;cursor:pointer;font:800 10px Inter,sans-serif;letter-spacing:.14em}" +
+    ".bwf-fixo .bwf-oculto>.bwf-borda-bt span{writing-mode:vertical-rl;text-orientation:mixed;white-space:nowrap;opacity:.8}" +
+    ".bwf-fixo .bwf-oculto>.bwf-borda-bt.hor{flex-direction:row;justify-content:center;padding:0 10px;background:linear-gradient(180deg,#1d222b,#151920)}.bwf-fixo .bwf-oculto>.bwf-borda-bt.hor span{writing-mode:horizontal-tb}" +
+    ".bwf-fixo .bwf-oculto>.bwf-borda-bt:hover{color:#fff;border-color:rgba(255,181,71,.55)}" +
     ".bwf-fixo .bwf-solto,.bwf-fixo>.bwf-grade>.bwf-solto,.bwf-fixo>.bwf-rola.bwf-solto{position:fixed!important;z-index:80;resize:both;overflow:auto!important;max-height:none!important;min-width:220px;min-height:120px;box-sizing:border-box;margin:0!important;border-radius:16px;border:1px solid #7C5CFF;background:#0f1218;box-shadow:0 22px 60px rgba(0,0,0,.7);padding:12px}" +
     ".bwf-fixo .bwf-solto>.bwf-pega{cursor:grab;touch-action:none;position:sticky;top:-12px;z-index:5;background:#0f1218;height:26px;margin:-8px 0 6px}.bwf-fixo .bwf-solto>.bwf-pega span{color:#c9bcff}" +
     ".bwf-fixo .bwf-rel{position:relative}" +
@@ -262,6 +284,7 @@
     ".bwf-fixo .bwf-puxa::after{content:'';position:absolute;top:50%;left:3px;width:4px;height:56px;margin-top:-28px;border-radius:3px;background:rgba(245,241,234,.2)}.bwf-fixo .bwf-puxa:hover::after,.bwf-fixo .bwf-puxa.on::after{background:#7C5CFF}" +
     ".bwf-volta{display:flex;gap:6px;align-items:center}.bwf-volta button{height:22px;font-size:10px;letter-spacing:.08em;padding:0 8px;color:#c9bcff;border-color:rgba(124,92,255,.5)}" +
     ".bwf-volta.fora{position:fixed;top:8px;right:70px;z-index:70}" +
+    ".bwf-sotela{height:22px;padding:0 9px;border-radius:7px;border:1px solid rgba(255,181,71,.45);background:linear-gradient(180deg,#2b313c,#1d222b);color:#FFC46B;font:800 10px Inter,sans-serif;letter-spacing:.08em;cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 3px 8px -3px rgba(0,0,0,.7)}.bwf-sotela.fora{position:fixed;top:8px;right:70px;z-index:70}.bw-foco-barra button.bwf-sotela{width:auto;height:24px;white-space:nowrap;font:800 10px Inter,sans-serif;padding:0 9px}" +
     ".bwf-cel{display:flex!important;flex-direction:column}" +
     ".bwf-cel>.bwf-grade{display:contents!important}" +
     ".bwf-cel .bwf-palco{position:sticky!important;top:0;z-index:6}";

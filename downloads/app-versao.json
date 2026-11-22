@@ -1,19 +1,24 @@
 {
- "versao": "1.9.32",
+ "versao": "1.9.33",
  "data": "22/11/2026",
  "pacote": "downloads/BW-Reels-Studio.zip",
- "sha256": "1d9ffdb5b63102166343ec9a2233345b1d56752227ab7ab82062b3062a79a997",
- "bytes": 41620457,
+ "sha256": "831473195196673e70d1161b8c323aaf4af3c3f786b557cec76cabd5c5aee136",
+ "bytes": 41687464,
  "novidades": [
   {
-   "titulo": "Editor de vídeo mais leve",
-   "texto": "Prévia leve: enquanto você edita, a prévia é desenhada em até 1280 px; o vídeo exportado sai no tamanho real.",
+   "titulo": "Proxy e exportação profissional",
+   "texto": "⚡ FAZER PROXY deixa a edição leve; EXPORTAR abre a janela com YouTube 4K/Full HD, Instagram, só o áudio, sequência de imagens e personalizado.",
    "abrir": "video"
   },
   {
-   "titulo": "Aviso que não atrapalha",
-   "texto": "O aviso de importação flutua por cima e some sozinho, sem tampar a linha do tempo.",
+   "titulo": "A tela é o assunto",
+   "texto": "Painel escondido vira uma borda fina; ⛶ SÓ A TELA (Tab) esconde todos.",
    "abrir": "video"
+  },
+  {
+   "titulo": "Criador IA e Editor de fotos",
+   "texto": "Criador com setas, arte grande e segurar para ver opções; fotos com entrada nova e biblioteca.",
+   "abrir": "criador"
   }
  ]
 }

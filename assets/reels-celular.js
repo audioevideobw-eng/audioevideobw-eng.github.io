@@ -255,5 +255,5 @@
       return { blob: blob, comSom: !!codecSom, codecSom: codecSom, somInfo: somInfo, largura: ow, altura: oh, quadros: total };
     } finally { if (fr) fr.remove(); }
   }
-  window.BWReelsCelular = { suporta: suporta, gerar: gerar, cabe: cabe, configVideo: configVideo, _extrairAac: extrairAac, _mp4: mp4, _stsdAudio: stsdAudio };
+  window.BWReelsCelular = { suporta: suporta, gerar: gerar, cabe: cabe, configVideo: configVideo, _extrairAac: extrairAac, _mp4: mp4, _stsdAudio: stsdAudio, _stsdVideo: stsdVideo };
 })();

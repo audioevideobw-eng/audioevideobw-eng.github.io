@@ -7,7 +7,7 @@ ffprobe + pixel do fundo), pedido para o app BW (.verde.bwmotion.json) e HTML da
 import base64, http.server, json, os, socketserver, subprocess, threading, tempfile
 from playwright.sync_api import sync_playwright
 RAIZ = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")); PORTA = 8857
-STUDIO = os.environ.get("BW_STUDIO", "/home/claude/bw-reels-studio")
+STUDIO = os.environ.get("BW_STUDIO", "/home/claude/app-bw/pacote/bw-reels-studio")
 STUB = "window.supabase={createClient:function(){return {auth:{getSession:async()=>({data:{session:null}}),getUser:async()=>({data:{user:null}}),onAuthStateChange(){return {data:{subscription:{unsubscribe(){}}}}}},from(){const q={select(){return q},eq(){return q},then(r){return Promise.resolve({data:[],error:null}).then(r)}};return q},rpc:async()=>({data:null,error:null})}}};"
 class Q(http.server.SimpleHTTPRequestHandler):
     def log_message(self, *a): pass

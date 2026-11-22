@@ -178,7 +178,8 @@ with sync_playwright() as p:
         ok(not pg.evaluate(f"({CL}.find(c=>c.id==='{ph}')||{{}}).ph"), "tocar no vídeo da biblioteca troca o espaço pelo take")
         tocar_el("#vaSheetOk"); pg.evaluate("__video.sel(null)"); pg.wait_for_timeout(200)
         # exportar
-        tocar_el("#vaExportar"); pg.wait_for_timeout(600); ok(visivel(pg, "#veOcup") or visivel(pg, "#veSaida"), "EXPORTAR do topo começa a exportação")
+        tocar_el("#vaExportar"); pg.wait_for_timeout(600); ok(visivel(pg, "#veJanExp"), "EXPORTAR do topo abre a janela de exportação")
+        tocar_el('[data-pronto="whats"]'); tocar_el("#veExIr"); pg.wait_for_timeout(900); ok(visivel(pg, "#veOcup") or visivel(pg, "#veSaida"), "…e o EXPORTAR da janela começa a exportação")
         pg.evaluate("(()=>{const b=document.getElementById('veCancelar')||document.querySelector('#veOcup button');if(b)b.click()})()"); pg.wait_for_timeout(500)
         sw = pg.evaluate("document.documentElement.scrollWidth-innerWidth"); ok(sw <= 0, f"no fim, nada estoura ({sw})")
         ok(not erros, "sem erro de JavaScript" + (": " + "; ".join(erros[:3]) if erros else ""))

@@ -240,7 +240,8 @@
   function posTexto() { return E.aj.pos || TIPOS[E.tipo].pos; }
   function desenharAjustes() {
     var a = E.aj, h = "";
-    var lin = function (tit, lista, k, atual, fmt) { return '<div class="cr-tit">' + tit + '</div><div class="cr-chips">' + lista.map(function (x) { return '<button type="button" class="cr-chip' + (x[0] === atual ? " on" : "") + '" data-k="' + k + '" data-v="' + esc(x[0]) + '"' + (x[1] ? "" : ' aria-label="' + esc(tit + " " + x[0]) + '"') + ">" + (fmt ? fmt(x) : esc(x[1])) + "</button>"; }).join("") + "</div>"; };
+    var FECH_AJ = { par: 1, letra: 1, cor: 1, destaque: 1, alinh: 1, logoId: 1, qr: 1, moldura: 1 };
+    var lin = function (tit, lista, k, atual, fmt) { return '<div class="bw-sec"><div class="cr-tit" data-seta="cra_' + k + '"' + (FECH_AJ[k] ? ' data-seta-padrao="fechada"' : "") + '>' + tit + '</div><div class="cr-chips">' + lista.map(function (x) { return '<button type="button" class="cr-chip' + (x[0] === atual ? " on" : "") + '" data-k="' + k + '" data-v="' + esc(x[0]) + '"' + (x[1] ? "" : ' aria-label="' + esc(tit + " " + x[0]) + '"') + ">" + (fmt ? fmt(x) : esc(x[1])) + "</button>"; }).join("") + "</div></div>"; };
     var sl = function (k, rot, min, max, v, suf) { return '<label class="cr-sl"><span>' + rot + '</span><input type="range" data-k="' + k + '" min="' + min + '" max="' + max + '" value="' + v + '"><output>' + v + (suf || "") + "</output></label>"; };
     h += lin("Posição do texto", [["topo", "EM CIMA"], ["centro", "NO MEIO"], ["baixo", "EMBAIXO"]], "pos", posTexto());
     h += lin("Fundo do texto", [["degrade", "DEGRADÊ"], ["vidro", "VIDRO"], ["solido", "FAIXA"], ["nenhum", "SÓ SOMBRA"]], "caixa", a.caixa);
@@ -255,7 +256,7 @@
     else h += '<p class="tf-nota">Para pôr sua logo, cadastre em <a href="fotos.html" style="color:#FFB547">Editor de fotos → ★ MINHA MARCA</a>.</p>';
     h += lin("QR code", qrOpcoes(), "qr", a.qr);
     if (FOTO && E.fotoModo === "moldura") h += lin("Moldura da foto", [["circulo", "CÍRCULO"], ["arredondada", "ARREDONDADA"], ["polaroid", "POLAROID"]], "moldura", a.moldura);
-    $("ajustes").innerHTML = h;
+    $("ajustes").innerHTML = h; if (window.BWDobras) BWDobras.aplicar($("ajustes"));
   }
   function qrOpcoes() {
     var o = [["", "SEM QR"]], d = dados();
@@ -1231,6 +1232,44 @@
   document.addEventListener("visibilitychange", function () { if (!document.hidden) agendar(); });
   lerKit().then(function () { tudo(); carregarQr().then(agendar); });
   tudo();
+
+  /* ===== 22/11 (dono): SETAS em todas as seções, TELA FIXA como o editor de vídeo e SEGURAR 0,5 s num objeto = opções =====
+     Mesma língua das outras ferramentas: botão direito ou segurar abre o menu do objeto; Delete apaga; Ctrl+D duplica; Esc solta. */
+  (function () {
+    var esq = document.querySelector(".cr-esq");
+    if (window.BWDobras && esq) BWDobras.agrupar(esq, ".cr-tit", "cr_", ["descreva_do_seu_jeito_opcion", "musica_opcional"]);
+    if ($("crFecharTudo")) $("crFecharTudo").onclick = function () { BWDobras.todas(esq, false); };
+    if ($("crAbrirTudo")) $("crAbrirTudo").onclick = function () { BWDobras.todas(esq, true); };
+    if (window.BWFerr && BWFerr.telaFixa) BWFerr.telaFixa({ wrap: document.querySelector(".wrap"), grade: document.querySelector(".cr-grade"), palco: document.querySelector(".cr-prev"), rola: [],
+      painelLer: function () { try { return JSON.parse(localStorage.getItem("ui_criador_paineis") || "{}"); } catch (e) { return {}; } },
+      painelGravar: function (S) { try { localStorage.setItem("ui_criador_paineis", JSON.stringify(S)); } catch (e) {} },
+      aoMedir: function (cel) { var c = $("cv"), pc = document.querySelector(".cr-palco"); if (!c || !pc) return; if (cel) { c.style.maxHeight = ""; return; } c.style.maxHeight = Math.max(160, pc.clientHeight - 22) + "px"; } });
+    var cv = $("cv"); if (!cv) return;
+    function itemEm(ev) { if (!E.anim || !E.anim.ligado || !E.anim.itens.length) return -1; var r = cv.getBoundingClientRect(), fx = (ev.clientX - r.left) / r.width, fy = (ev.clientY - r.top) / r.height, m = Math.min(r.width, r.height);
+      for (var i = E.anim.itens.length - 1; i >= 0; i--) { var it = E.anim.itens[i], r0 = it.s * m * 0.6; if (Math.abs((fx - it.x) * r.width) < r0 && Math.abs((fy - it.y) * r.height) < r0) return i; } return -1; }
+    function acao(q, i) { var an = E.anim, it = an.itens[i]; if (!it) return;
+      if (q === "menor") it.s = Math.max(0.08, it.s - 0.04); else if (q === "maior") it.s = Math.min(0.6, it.s + 0.04); else if (q === "virar") it.esp = !it.esp;
+      else if (q === "dup") { var c = JSON.parse(JSON.stringify(it)); c.x = lim(c.x + 0.06, 0, 1); c.y = lim(c.y + 0.04, 0, 1); an.itens.push(c); ITEM_SEL = an.itens.length - 1; }
+      else if (q === "frente") { an.itens.splice(i, 1); an.itens.push(it); ITEM_SEL = an.itens.length - 1; }
+      else if (q === "tras") { an.itens.splice(i, 1); an.itens.unshift(it); ITEM_SEL = 0; }
+      else if (q === "tirar") { an.itens.splice(i, 1); ITEM_SEL = -1; toast("Objeto apagado."); }
+      mudouAnim(); gravar(); }
+    function menuDe(i, x, y, toque) { if (!window.BWFerr) return; var nome = window.BWConviteAnim && BWConviteAnim.ITENS[E.anim.itens[i].id] ? BWConviteAnim.ITENS[E.anim.itens[i].id].nome : "Objeto";
+      ITEM_SEL = i; desenharSel(); agendar();
+      BWFerr.menu(x, y, [{icone: "＋", rot: "Maior", fn: function () { acao("maior", i); }}, {icone: "−", rot: "Menor", fn: function () { acao("menor", i); }}, {icone: "⇋", rot: "Virar", fn: function () { acao("virar", i); }},
+        {icone: "⧉", rot: "Duplicar", tecla: "Ctrl+D", fn: function () { acao("dup", i); }}, "-", {icone: "⬆", rot: "Trazer para a frente", fn: function () { acao("frente", i); }}, {icone: "⬇", rot: "Mandar para trás", fn: function () { acao("tras", i); }},
+        "-", {icone: "🗑", rot: "Apagar", tecla: "Delete", perigo: true, fn: function () { acao("tirar", i); }}], nome.toUpperCase(), toque); }
+    var seg = null;
+    cv.addEventListener("pointerdown", function (ev) { var i = itemEm(ev); if (i < 0 || ev.button > 0) return; clearTimeout(seg && seg.t);
+      seg = {x: ev.clientX, y: ev.clientY, i: i, t: setTimeout(function () { if (!seg) return; var s2 = seg; seg = null; cv.dispatchEvent(new PointerEvent("pointerup", {pointerId: ev.pointerId, bubbles: true})); menuDe(s2.i, s2.x, s2.y, true); }, 500)}; });
+    cv.addEventListener("pointermove", function (ev) { if (seg && Math.hypot(ev.clientX - seg.x, ev.clientY - seg.y) > 6) { clearTimeout(seg.t); seg = null; } });
+    ["pointerup", "pointercancel"].forEach(function (n) { cv.addEventListener(n, function (ev) { if (seg && ev.isTrusted) { clearTimeout(seg.t); seg = null; } }); });
+    cv.addEventListener("contextmenu", function (ev) { var i = itemEm(ev); if (i < 0) return; ev.preventDefault(); if (seg) { clearTimeout(seg.t); seg = null; } menuDe(i, ev.clientX, ev.clientY, false); });
+    document.addEventListener("keydown", function (ev) { if (ITEM_SEL < 0 || !E.anim || !E.anim.itens[ITEM_SEL]) return; var t = ev.target; if (t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))) return;
+      if (ev.key === "Delete" || ev.key === "Backspace") { ev.preventDefault(); acao("tirar", ITEM_SEL); }
+      else if ((ev.ctrlKey || ev.metaKey) && ev.key.toLowerCase() === "d") { ev.preventDefault(); acao("dup", ITEM_SEL); }
+      else if (ev.key === "Escape") { ITEM_SEL = -1; desenharSel(); agendar(); } });
+  })();
   window.__criador = { E: function () { return E; }, render: render, prontos: prontos, criarIA: criarIA, png: png, pdf: pdf, compartilhar: compartilhar, textosIA: textosIA, legenda: legenda,
     blocos: blocos, fmtData: fmtData, urlQr: urlQr, ops: function () { return OPS; }, sel: function () { return SEL; }, tudo: tudo, dados: dados, carregarQr: carregarQr,
     modelos: MODELOS_CONVITE, aplicarModelo: aplicarModelo, gerarVideo: gerarVideo, anim: function () { return E.anim; }, itemSel: function () { return ITEM_SEL; } };

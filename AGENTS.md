@@ -742,6 +742,30 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
      ≤ 1280 px no lado maior enquanto se edita; EXPORTAR e SALVAR QUADRO chamam tamanhoReal(true) antes e (false) depois. Quem precisa do tamanho
      do PROJETO usa tamReal(), nunca cv.width (o teste do telão 1450×2000 pegou isso) (auto: teste_video.py, teste_video_midia.py).
 
+**Aprendidos em 22/11 (PROXY, JANELA DE EXPORTAR, Criador com setas e TELA É O ASSUNTO)**
+182. PROXY e EXPORTAR (assets/bw-proxy.js + video-editor.js): o proxy é feito NO APARELHO (requestVideoFrameCallback → VideoEncoder H.264 → MP4 pelo
+     mesmo mux do reels-celular; som AAC, e Opus quando o navegador não tem AAC) e mora no IndexedDB (bw_video v2 "proxies") ou na pasta de cache
+     escolhida no ⚙ (File System Access). Editar usa o proxy; EXPORTAR usa SEMPRE o original (usarOriginais) no tamanho do preset (SAIDA) e volta
+     para o proxy no fim. Preset de rede social = resolução + fps + Mbps + AAC conferidos na página oficial do dia (YouTube 4K 45 Mbps, Full HD 12,
+     Instagram 1080 a 10). Biblioteca de terceiros que só um botão usa (JSZip da sequência de imagens) vem de CÓPIA LOCAL e só quando o botão é
+     tocado — CDN no <script> da página fez o teste "nada saiu para a internet" falhar. Atributo novo na janela: procurar antes (data-aba já era
+     das abas da mídia → data-exaba). Teste confere o tamanho pela conta do projeto (tamReal), não por um número fixo (o "16:9" daqui é 1280×720).
+183. SETAS EM TODA FERRAMENTA (BWDobras.agrupar, layout.js): título + irmãos até o próximo título viram uma seção com seta; conteúdo redesenhado por
+     innerHTML (ajustes do Criador) chama BWDobras.aplicar(caixa) no fim e marca a caixa com data-seta-livre para o agrupar de fora não mexer
+     nela. Seção que tem os BOTÕES DE AÇÃO logo abaixo não começa fechada (o "Formato" fechado escondeu ✨ CRIAR e FUNDOS PRONTOS). ▸ FECHAR TUDO /
+     ▾ ABRIR TUDO no topo; teste clica em ABRIR TUDO antes de mexer no que está dentro.
+184. A TELA É O ASSUNTO (dono, 22/11): toda ferramenta de criação usa BWFerr.telaFixa + painéis livres (Criador entrou); a coluna de ajustes é
+     estreita e a prévia é 1fr. Painel escondido vira BORDA fina no lugar dele (▸/◂/▴ + nome na vertical) — tocar na borda traz de volta; ⛶ SÓ A
+     TELA (ou Tab) esconde todos de uma vez e lembra o que já estava escondido. Teste de "escondido" mede a LARGURA (≤ 20 px), não getClientRects.
+185. BOTÃO DAS FERRAMENTAS = um só (brightway.css, html.bw-foco): grafite com relevo e sombra para .bw-btn e para ve-bt/mo-bt/tl-bt/d3-bt/al-bt/
+     rl-bt/pg-bt; o principal (.pri) só ganha letra âmbar; estados (.on/.perigo) mantêm a cor. Botão novo de ferramenta usa uma dessas classes.
+186. Segurar 0,5 s num objeto da prévia (Criador, objetos animados) abre as opções (maior, menor, virar, duplicar, frente/trás, apagar) pelo BWFerr.menu,
+     o mesmo do botão direito; Delete apaga, Ctrl+D duplica, Esc solta. Menu aberto por toque ignora o clique dos primeiros 450 ms (teste espera).
+187. EDITOR DE FOTOS — ENTRADA com BIBLIOTECA (assets/fotos-inicio.js): palco grande + BIBLIOTECA (RECENTES no IndexedDB bw_fotos_rec, até 40;
+     CRIAÇÕES; ★ MARCA). Elemento que outro arquivo já ligou (input #arquivos, #solta) é MOVIDO, nunca recriado por innerHTML (perde o onchange).
+     Foto reaberta da biblioteca não entra de novo nas recentes (flag durante o adicionar — o MutationObserver chega antes do fim). Safari do
+     iPhone novo (vidro "Liquid Glass") desfoca uma faixa maior: barra do editor desce 48 px + bloco liso da mesma cor por trás.
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -2107,8 +2131,23 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   Próximo passo sugerido (aguarda o dono): PROXY no app BW — ffmpeg com NVENC cria cópias 720p para editar e a exportação usa o original.
   Testes video, video_midia (+2), takes, layout, arrastar, app 0 falhas. App BW 1.9.32 publicado (pacote, cópia sem internet, tutorial, arquivos no PC);
   manual 62 p. video-editor v16, ve-app.css v5, sw v192. PENTE FINO 181.
+- 22/11/2026 19:45 · Claude (dono: "FAZER PROXY + LIMPAR CACHE + ⚙ pastas + JANELA DE EXPORTAÇÃO profissional"; "setas de omissão no Criador IA,
+  a tela visual mais vista, segurar 0,5 s abre opções"; "botões mais modernos, mesma cor, relevo e sombra, padronizado em tudo"; "as ferramentas se
+  omitem para cima e para o lado deixando só uma borda, a tela é o assunto principal"; "editor de fotos: desfoque no iPhone e entrada moderna com
+  biblioteca"): EDITOR DE VÍDEO — abaixo da mídia ⚡ FAZER PROXY (escolhe os takes, barra que enche com o tempo que falta; cópia 720p leve feita no
+  aparelho), 🧹 LIMPAR CACHE, uso em GB e memória, ⚙ pastas do PROJETO, do CACHE e das EXPORTAÇÕES; EXPORTAR abre a JANELA com PRONTOS (qualidade
+  máxima, YouTube 4K/4K60/Full HD/60, Instagram Reels/feed, WhatsApp, telão), SÓ O ÁUDIO (WAV 24 bits, M4A, Opus), SEQUÊNCIA JPG/PNG (pasta ou .zip),
+  PERSONALIZADO (codec, tamanho, fps, Mbps) e PROFISSIONAL (ProRes/DNxHR "em breve" — o navegador não grava). CRIADOR IA — seções com seta + ▸ FECHAR
+  TUDO / ▾ ABRIR TUDO, tela fixa do editor de vídeo (ajustes à esquerda, arte grande), painel ⠿ AJUSTES esconde/descola/estica, segurar 0,5 s num
+  objeto = opções. TODAS AS FERRAMENTAS — botões grafite com relevo e sombra (um padrão só), painel escondido vira BORDA e ⛶ SÓ A TELA (Tab).
+  EDITOR DE FOTOS — entrada nova (palco grande + BIBLIOTECA RECENTES/CRIAÇÕES/MARCA), painel escondido vira borda, barra do iPhone mais baixa com
+  fundo liso (NÃO testado em iPhone real). Testes: teste_video_proxy (novo), teste_fotos_inicio (novo), teste_criador (+11), paineis, video_layout,
+  video, video_app, fotos, convites, motion*, telas, 3d, album, previa, layout 0 falhas; vigia ✅. layout.js v72, brightway.css v36, bw-ferramentas v5,
+  video-editor v18, criador v13, fotos v17, sw v194. PENTE FINO 182–187.
+
 ## Pendências (dono)
-- [ ] (22/11) BW-Setup.exe 1.9.32: arquivos já no PC — dono: dois cliques em "5 - GERAR INSTALADOR EXE" e avisar. Decidir o PROXY no app BW.
+- [ ] (22/11) iPhone: abrir o EDITOR DE FOTOS no Safari e dizer se o desfoque de cima sumiu; testar ⚡ FAZER PROXY e a JANELA DE EXPORTAR no PC com takes reais.
+- [ ] (22/11) BW-Setup.exe 1.9.33: arquivos já no PC — dono: dois cliques em "5 - GERAR INSTALADOR EXE" e avisar (quem tem o app atualiza sozinho).
 - [x] (22/11 18:16) BW-Setup.exe 1.9.31 gerado pelo dono e publicado (8,5 MB, versão conferida dentro do .exe).
 - [ ] (22/11) TAKES: dono importar de novo os takes do evento (os 26 que "não abriam") no editor de vídeo e dizer se abriram; decidir sobre o PROXY no app BW (ler qualquer formato de câmera).
 - [ ] (22/11) MOTION: dono abrir Marketing → Estúdio de motion, testar os itens novos e a BIBLIOTECA INTEGRADA (personagens, objetos, desenhos). BW-Setup.exe 1.9.30: publicado 17:10.

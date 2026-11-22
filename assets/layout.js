@@ -608,5 +608,15 @@
   document.addEventListener("keydown", function (e) { if ((e.key === "Enter" || e.key === " ") && e.target.matches && e.target.matches("[data-seta]")) { e.preventDefault(); alternar(e.target); } });
   var t0 = 0; try { new MutationObserver(function () { clearTimeout(t0); t0 = setTimeout(function () { aplicar(document); }, 30); }).observe(document.documentElement, {childList: true, subtree: true}); } catch (e) {}
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", function () { aplicar(document); }); else aplicar(document);
-  window.BWDobras = {aplicar: aplicar};
+  /* 22/11 (dono: "setas de omissão em QUALQUER ferramenta — os ícones e config ficam extensos demais"): agrupar(raiz, ".titulo", "pre_", ["slug"…])
+     transforma cada título + o que vem depois dele (até o próximo título) numa seção com seta, sem mexer nos ids. fechadas = slugs que começam fechados. */
+  function slug(t) { return String(t || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "").slice(0, 28) || "sec"; }
+  function agrupar(raiz, sel, pre, fechadas) { if (!raiz) return; fechadas = fechadas || [];
+    [].slice.call(raiz.querySelectorAll(sel)).forEach(function (t) { if (t.hasAttribute("data-seta") || (t.parentNode.closest && t.parentNode.closest("[data-seta-livre]"))) return; var p = t.parentNode;
+      if (!(p.classList && p.classList.contains("bw-sec") && p.firstElementChild === t)) { var w = document.createElement("div"); w.className = "bw-sec"; p.insertBefore(w, t); var n = t;
+        while (n) { var prox = n.nextSibling; w.appendChild(n); n = prox; if (n && n.nodeType === 1 && n.matches(sel)) break; } }
+      var k = slug(t.firstChild && t.firstChild.nodeType === 3 ? t.firstChild.textContent : t.textContent); t.setAttribute("data-seta", (pre || "s_") + k); if (fechadas.indexOf(k) >= 0) t.setAttribute("data-seta-padrao", "fechada"); });
+    aplicar(raiz); }
+  function todas(raiz, abrir) { var est = ler(); (raiz || document).querySelectorAll("[data-seta]").forEach(function (t) { est[t.getAttribute("data-seta")] = abrir ? 1 : 0; }); try { localStorage.setItem("ui_dobras", JSON.stringify(est)); } catch (e) {} aplicar(raiz); }
+  window.BWDobras = {aplicar: aplicar, agrupar: agrupar, todas: todas, slug: slug};
 })();

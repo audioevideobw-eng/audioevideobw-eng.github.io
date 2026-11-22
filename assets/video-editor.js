@@ -82,7 +82,7 @@
 
   /* ---------- banco do aparelho ---------- */
   var DB = null;
-  function db() { return new Promise(function (ok, erro) { if (DB) return ok(DB); var r = indexedDB.open("bw_video", 1); r.onupgradeneeded = function () { var d = r.result; if (!d.objectStoreNames.contains("midias")) d.createObjectStore("midias", {keyPath: "id"}); if (!d.objectStoreNames.contains("estado")) d.createObjectStore("estado", {keyPath: "id"}); }; r.onsuccess = function () { DB = r.result; ok(DB); }; r.onerror = function () { erro(r.error); }; }); }
+  function db() { return new Promise(function (ok, erro) { if (DB) return ok(DB); var r = indexedDB.open("bw_video", 2); r.onupgradeneeded = function () { var d = r.result; if (!d.objectStoreNames.contains("midias")) d.createObjectStore("midias", {keyPath: "id"}); if (!d.objectStoreNames.contains("estado")) d.createObjectStore("estado", {keyPath: "id"}); if (!d.objectStoreNames.contains("proxies")) d.createObjectStore("proxies", {keyPath: "id"}); if (!d.objectStoreNames.contains("cfg")) d.createObjectStore("cfg", {keyPath: "id"}); };   /* v2 (22/11): proxies + pastas escolhidas */ r.onsuccess = function () { DB = r.result; ok(DB); }; r.onerror = function () { erro(r.error); }; }); }
   function tx(loja, modo, fn) { return db().then(function (d) { return new Promise(function (ok, erro) { var t = d.transaction(loja, modo), q = fn(t.objectStore(loja)); t.oncomplete = function () { ok(q && q.result); }; t.onerror = function () { erro(t.error); }; }); }).catch(function () { return null; }); }
   var tSalvar = 0;
   var HIST = [], FUT = [], tHist = 0;
@@ -90,7 +90,7 @@
   function gravarHist() { clearTimeout(tHist); var s = JSON.stringify(P); if (HIST[HIST.length - 1] !== s) { HIST.push(s); if (HIST.length > 60) HIST.shift(); FUT = []; } }
   function desfazer() { gravarHist(); if (HIST.length < 2) { aviso("Nada para desfazer."); return; } FUT.push(HIST.pop()); P = JSON.parse(HIST[HIST.length - 1]); SEL = sel() ? SEL : null; tudo(true); aviso("↶ Desfeito."); }
   function refazer() { if (!FUT.length) { aviso("Nada para refazer."); return; } var s = FUT.pop(); HIST.push(s); P = JSON.parse(s); tudo(true); aviso("↷ Refeito."); }
-  function guardar() { clearTimeout(tSalvar); tSalvar = setTimeout(function () { tx("estado", "readwrite", function (s) { return s.put({id: "atual", p: JSON.parse(JSON.stringify(P))}); }); }, 400); }
+  function guardar() { clearTimeout(tSalvar); tSalvar = setTimeout(function () { tx("estado", "readwrite", function (s) { return s.put({id: "atual", p: JSON.parse(JSON.stringify(P))}); }); if (typeof copiaProjeto === "function") copiaProjeto(); }, 400); }
   var AVISO_T = 0;
   function aviso(t, erro) { var a = $("veAviso"); a.hidden = !t; a.className = "ve-aviso" + (erro ? " erro" : ""); a.textContent = t || ""; clearTimeout(AVISO_T); if (t && !/^⏳/.test(t)) AVISO_T = setTimeout(function () { a.hidden = true; }, erro ? 9000 : 3500); }   /* 22/11 (dono: "o aviso de importação fica parado em cima da linha do tempo"): some sozinho no PC também; o ⏳ de andamento fica até o próximo aviso */
   function fmtT(t) { t = Math.max(0, t); var m = Math.floor(t / 60), s = t - m * 60; return m + ":" + (s < 10 ? "0" : "") + s.toFixed(1).replace(".", ","); }
@@ -125,7 +125,7 @@
   async function porMidia(blob, nome, tipo, id, durFixa, capaFixa) {
     var m = {id: id || uid("m"), nome: String(nome || "arquivo").slice(0, 60), tipo: tipo, blob: blob, url: URL.createObjectURL(blob)};
     if (capaFixa && durFixa && tipo === "video") { m.capa = capaFixa; m.dur = durFixa; MID[m.id] = m; return m; }   /* ao reabrir: capa guardada, nada de abrir 37 vídeos 4K de novo */
-    var r = await abrirVideo(m, tipo === "video", 15000);
+    var r = await abrirVideo(m, tipo === "video", 15000); if (r.w) { m.w = r.w; m.h = r.h; }
     if (!r.ok && tipo !== "imagem") { await new Promise(function (ok) { setTimeout(ok, 400); }); r = await abrirVideo(m, tipo === "video", 25000); }   /* 2ª tentativa, com mais prazo (4K pesado) */
     if (r.capa) m.capa = r.capa; m.dur = durFixa || r.dur || (tipo === "imagem" ? 4 : 5);
     if (!r.ok || (tipo === "video" && !m.capa)) { m.ruim = true; if (tipo === "video") m.codec = await codecDe(blob); }
@@ -352,7 +352,7 @@
       delete ANALISANDO[m.id]; c.ia = c.ia || {}; if (c.ia.frente == null) c.ia.frente = true; tudo(); aviso("✓ Pessoa encontrada em todo o take. Agora é só pôr texto atrás dela (ou escolher um MODELO COM A PESSOA)."); }
     catch (e) { delete ANALISANDO[m.id]; desenharProp(); aviso(/cancel/.test(String(e && e.message)) ? "Análise cancelada." : "Não consegui analisar este take" + (navigator.onLine ? "" : " (sem internet: a 1ª vez precisa baixar o modelo)") + ".", true); } }
   function ganhoTake(c) { return (c.vol == null ? 100 : c.vol) / 100 * (+c.normG > 0 ? +c.normG : 1); }
-  function elDe(c) { var o = EL[c.id]; if (o) return o; var m = MID[c.mid]; if (!m) return null; var e = document.createElement(c.tipo === "video" ? "video" : "audio"); e.preload = "auto"; e.playsInline = true; e.crossOrigin = "anonymous"; e.src = m.url; e.addEventListener("seeked", function () { if (!TOCANDO) desenhar(); }); e.addEventListener("loadeddata", function () { if (!TOCANDO) desenhar(); }); o = EL[c.id] = {e: e, g: null}; ligarSom(o); return o; }
+  function elDe(c) { var o = EL[c.id]; if (o) return o; var m = MID[c.mid]; if (!m) return null; var e = document.createElement(c.tipo === "video" ? "video" : "audio"); e.preload = "auto"; e.playsInline = true; e.crossOrigin = "anonymous"; e.src = urlDe(m); e.addEventListener("seeked", function () { if (!TOCANDO) desenhar(); }); e.addEventListener("loadeddata", function () { if (!TOCANDO) desenhar(); }); o = EL[c.id] = {e: e, g: null, px: e.src !== m.url}; ligarSom(o); return o; }
   function soltarEl(id) { var o = EL[id]; if (!o) return; try { o.e.pause(); o.e.removeAttribute("src"); o.e.load(); } catch (e) {} delete EL[id]; }
   function fade(c, t) { if (c.off) return 0; var a = 1, r = t - c.ini, f = c.ini + c.dur - t; if (c.fin > 0 && r < c.fin) a = Math.min(a, r / c.fin); if (c.fout > 0 && f < c.fout) a = Math.min(a, f / c.fout); return lim(a, 0, 1); }
   function sincronizar(c, t, ativo) {
@@ -498,7 +498,7 @@
     var l = Object.keys(MID).map(function (k) { return MID[k]; }).filter(function (m) { return !m.ph && (ABA === "tudo" || m.tipo === ABA); });   /* espaços de modelo não aparecem na biblioteca */
     $("veLib").innerHTML = l.length ? l.map(function (m) { var mini = m.tipo === "imagem" ? '<img alt="" src="' + m.url + '">' : m.capa ? '<img alt="" src="' + m.capa + '">' : '<span class="mini" aria-hidden="true">' + (m.tipo === "audio" ? "🎵" : "🎬") + '</span>';
       var f = m.cr && window.BWCriacoes ? BWCriacoes.FERR[m.cr.ferramenta] : null;
-      return '<div class="ve-item' + (m.ruim ? " ruim" : "") + '" role="button" tabindex="0" data-mid="' + esc(m.id) + '" aria-label="Pôr ' + esc(m.nome) + ' na linha do tempo"' + (m.ruim ? ' title="Este arquivo não abre neste navegador"' : "") + (f ? ' style="--cf:' + f.cor + '"' : "") + '>' + mini + (m.ruim ? '<b class="selo ruim">⚠ ' + (m.codec === "hevc" ? "HEVC · NÃO ABRE AQUI" : "NÃO ABRE AQUI") + '</b><button type="button" class="ve-retry" data-retry="' + esc(m.id) + '" title="Tentar abrir de novo" aria-label="Tentar abrir de novo">↻</button>' : "") + (f ? '<b class="selo">' + f.icone + " " + esc(f.curto) + "</b>" : "") + '<span>' + esc(m.nome) + '</span>' + (f ? '<button type="button" class="ed" data-editar="' + esc(m.id) + '" title="Abrir no ' + esc(f.nome) + ' e trocar aqui" aria-label="Editar no ' + esc(f.nome) + '">✎</button>' : "") + '<button type="button" class="x" data-del="' + esc(m.id) + '" aria-label="Tirar ' + esc(m.nome) + ' da biblioteca">✕</button></div>'; }).join("")
+      return '<div class="ve-item' + (m.ruim ? " ruim" : "") + '" role="button" tabindex="0" data-mid="' + esc(m.id) + '" aria-label="Pôr ' + esc(m.nome) + ' na linha do tempo"' + (m.ruim ? ' title="Este arquivo não abre neste navegador"' : "") + (f ? ' style="--cf:' + f.cor + '"' : "") + '>' + mini + (PX[m.id] ? '<b class="selo px" title="Tem proxy: edita leve, exporta com o original">⚡ PROXY ' + PX[m.id].curto + 'p</b>' : "") + (m.ruim ? '<b class="selo ruim">⚠ ' + (m.codec === "hevc" ? "HEVC · NÃO ABRE AQUI" : "NÃO ABRE AQUI") + '</b><button type="button" class="ve-retry" data-retry="' + esc(m.id) + '" title="Tentar abrir de novo" aria-label="Tentar abrir de novo">↻</button>' : "") + (f ? '<b class="selo">' + f.icone + " " + esc(f.curto) + "</b>" : "") + '<span>' + esc(m.nome) + '</span>' + (f ? '<button type="button" class="ed" data-editar="' + esc(m.id) + '" title="Abrir no ' + esc(f.nome) + ' e trocar aqui" aria-label="Editar no ' + esc(f.nome) + '">✎</button>' : "") + '<button type="button" class="x" data-del="' + esc(m.id) + '" aria-label="Tirar ' + esc(m.nome) + ' da biblioteca">✕</button></div>'; }).join("")
       : '<p class="ve-nota" style="grid-column:1/-1;margin:0">Nada aqui ainda. Toque em ＋ IMPORTAR ou em ✨ MINHAS CRIAÇÕES.</p>';
   }
   function desenharTL() {
@@ -591,27 +591,62 @@
   var FORCAR_REAL = false;
   function tamReal() { return P.fmt === "livre" && P.w && P.h ? [P.w, P.h] : FMT[P.fmt] || FMT["9:16"]; }
   function escalaPrev() { var f = tamReal(); return (CHEIA || FORCAR_REAL || GRAV) ? 1 : Math.min(1, 1280 / Math.max(f[0], f[1])); }
-  function tamanhoReal(sim) { FORCAR_REAL = !!sim; formato(); }
+  var SAIDA = null;   /* tamanho de saída escolhido na janela de EXPORTAR (ex.: YouTube 4K a partir de um projeto 1080p) */
+  function tamanhoReal(sim, saida) { FORCAR_REAL = !!sim; SAIDA = sim && saida ? saida : null; formato(); }
   document.addEventListener("change", function (e) { if (e.target && e.target.id === "vePreviaCheia") { CHEIA = e.target.checked; try { localStorage.setItem("ui_ve_previa", CHEIA ? "cheia" : "leve"); } catch (x) {} formato(); desenharProp(); aviso(CHEIA ? "Prévia em tamanho cheio (mais pesada)." : "Prévia leve ligada: edição mais solta; o vídeo sai no tamanho real."); } });
-  function formato() { var f = tamReal(), k = escalaPrev(), par = function (v) { v = Math.round(v * k); return v - v % 2; }; if (cv.width !== par(f[0]) || cv.height !== par(f[1])) { cv.width = par(f[0]); cv.height = par(f[1]); } $("veFmt").value = P.fmt; var l = $("veLivre"); if (l) { l.hidden = P.fmt !== "livre"; $("veLargura").value = f[0]; $("veAltura").value = f[1]; } desenhar(); }
+  function formato() { var f = tamReal(), k = escalaPrev(), par = function (v) { v = Math.round(v * k); return v - v % 2; }; var fw = SAIDA ? SAIDA[0] : par(f[0]), fh = SAIDA ? SAIDA[1] : par(f[1]); if (cv.width !== fw || cv.height !== fh) { cv.width = fw; cv.height = fh; } $("veFmt").value = P.fmt; var l = $("veLivre"); if (l) { l.hidden = P.fmt !== "livre"; $("veLargura").value = f[0]; $("veAltura").value = f[1]; } desenhar(); }
 
   /* ---------- exportar (gravado pelo navegador, no tempo do vídeo) ---------- */
   function tipoGravacao() { var ts = ["video/mp4;codecs=avc1.42E01E,mp4a.40.2", "video/mp4", "video/webm;codecs=vp9,opus", "video/webm;codecs=vp8,opus", "video/webm"]; for (var i = 0; i < ts.length; i++) if (window.MediaRecorder && MediaRecorder.isTypeSupported(ts[i])) return ts[i]; return ""; }
-  function exportar() {
+  /* EXPORTAR (22/11, dono: "janela de exportação com ultra qualidade, YouTube 4K, Full HD, Instagram, só o áudio, sequência de imagens,
+     outro codec"). op = {mime, ext, vbps, abps, fps, saida:[w,h], nome, audio:"wav"|"m4a"|"opus"}. Grava no tempo do vídeo (MediaRecorder),
+     com os ARQUIVOS ORIGINAIS (nunca o proxy) e no tamanho de saída; no fim volta para a prévia leve e para os proxies. */
+  function exportar(op) {
+    op = op || {};
     if (!P.clips.length) { aviso("A linha do tempo está vazia.", true); return; }
-    var tipo = tipoGravacao(); if (!tipo || !cv.captureStream) { aviso("Este navegador não grava vídeo por aqui. Use o Chrome, o Edge ou o Safari atualizados.", true); return; }
+    var soAudio = !!op.audio, tipo = op.mime || (soAudio ? "" : tipoGravacao());
+    if (!soAudio && (!tipo || !cv.captureStream)) { aviso("Este navegador não grava vídeo por aqui. Use o Chrome, o Edge ou o Safari atualizados.", true); return; }
     parar(); var a = audioCtx(); if (a && a.state === "suspended") a.resume();
-    tamanhoReal(true);   /* exporta no tamanho real, não no da prévia leve */
-    var fluxo = cv.captureStream(30); if (DEST) DEST.stream.getAudioTracks().forEach(function (t) { fluxo.addTrack(t); });
-    var partes = [], mr; try { mr = new MediaRecorder(fluxo, {mimeType: tipo, videoBitsPerSecond: Math.round(lim(6e6 * cv.width * cv.height / (720 * 1280), 4e6, 40e6))}); } catch (e) { tamanhoReal(false); aviso("Não consegui começar a gravação neste navegador.", true); return; }
-    var cancelado = false; mr.ondataavailable = function (e) { if (e.data && e.data.size) partes.push(e.data); };
-    mr.onstop = function () { GRAV = null; tamanhoReal(false); $("veOcup").hidden = true; fluxo.getVideoTracks().forEach(function (t) { t.stop(); }); if (cancelado) { aviso("Exportação cancelada."); return; }
-      var mp4 = /mp4/.test(tipo), blob = new Blob(partes, {type: mp4 ? "video/mp4" : "video/webm"}), url = URL.createObjectURL(blob), nome = "video-brightway." + (mp4 ? "mp4" : "webm");
-      window.__veSaida = {blob: blob, tipo: blob.type, bytes: blob.size, nome: nome};
-      $("veVideoPronto").src = url; $("veBaixar").href = url; $("veBaixar").download = nome; $("veSaidaTxt").textContent = "Vídeo pronto · " + (blob.size / 1048576).toFixed(1).replace(".", ",") + " MB" + (mp4 ? "" : " · formato WebM (este navegador não grava MP4; o Chrome e o Safari novos gravam)"); $("veSaida").hidden = false; $("veSaida")._blob = blob; $("veSaida")._nome = nome; };
-    GRAV = {prog: function (p) { $("veProg").value = p; }, fim: function () { setTimeout(function () { try { mr.stop(); } catch (e) {} }, 180); }, cancelar: function () { cancelado = true; parar(); try { mr.stop(); } catch (e) {} }};
-    $("veOcupTxt").textContent = "Gravando o vídeo… deixe esta tela aberta (" + fmtT(total()) + ")"; $("veProg").value = 0; $("veOcup").hidden = false;
-    T = 0; desenhar(); mr.start(500); setTimeout(tocar, 250);
+    usarOriginais(true); if (!soAudio) tamanhoReal(true, op.saida);   /* tamanho de saída, nunca o da prévia leve */
+    var fps = op.fps || 30, fluxo = null, mr = null, partes = [], wav = null, cancelado = false;
+    function voltar() { GRAV = null; tamanhoReal(false); usarOriginais(false); $("veOcup").hidden = true; if (fluxo) fluxo.getVideoTracks().forEach(function (t) { t.stop(); }); }
+    function entregar(blob, nome) {
+      window.__veSaida = {blob: blob, tipo: blob.type, bytes: blob.size, nome: nome, op: op};
+      var url = URL.createObjectURL(blob), vd = $("veVideoPronto"); vd.hidden = soAudio && op.audio !== "m4a" && op.audio !== "opus" ? true : false; vd.src = url;
+      $("veBaixar").href = url; $("veBaixar").download = nome;
+      $("veSaidaTxt").textContent = (soAudio ? "Áudio pronto · " : "Vídeo pronto · ") + (blob.size / 1048576).toFixed(1).replace(".", ",") + " MB · " + nome + (!soAudio && !/mp4/.test(blob.type) ? " · WebM" : "");
+      $("veSaida").hidden = false; $("veSaida")._blob = blob; $("veSaida")._nome = nome;
+      salvarNaPasta("export", nome, blob).then(function (ok) { if (ok) $("veSaidaTxt").textContent += " · salvo na pasta " + ok; });
+    }
+    var base = (op.nome || (P.nome || "video-brightway")).replace(/[^\w\-]+/g, "-");
+    if (op.audio === "wav") {
+      if (!ACTX || !MESTRE) { voltar(); aviso("O som não ligou neste navegador.", true); return; }
+      var L = [], R = [], proc = ACTX.createScriptProcessor(4096, 2, 2); proc.onaudioprocess = function (ev) { if (!GRAV || !TOCANDO) return; L.push(new Float32Array(ev.inputBuffer.getChannelData(0))); R.push(new Float32Array(ev.inputBuffer.getChannelData(1))); };
+      MESTRE.connect(proc); proc.connect(ACTX.destination);
+      wav = {fim: function () { try { MESTRE.disconnect(proc); proc.disconnect(); } catch (e) {} if (cancelado) return; entregar(wavDe(L, R, ACTX.sampleRate, op.bits || 24), base + ".wav"); }};
+    } else {
+      fluxo = soAudio ? new MediaStream() : cv.captureStream(fps); if (DEST) DEST.stream.getAudioTracks().forEach(function (t) { fluxo.addTrack(t); });
+      var cfgR = {mimeType: tipo}; if (!soAudio) cfgR.videoBitsPerSecond = Math.round(op.vbps || lim(6e6 * cv.width * cv.height / (720 * 1280), 4e6, 40e6)); cfgR.audioBitsPerSecond = op.abps || 192000;
+      try { mr = new MediaRecorder(fluxo, cfgR); } catch (e) { voltar(); aviso("Este navegador não grava nesse formato (" + tipo + "). Escolha outro na janela de exportar.", true); return; }
+      mr.ondataavailable = function (e) { if (e.data && e.data.size) partes.push(e.data); };
+      mr.onstop = function () { var tp = (tipo.split(";")[0]) || (soAudio ? "audio/webm" : "video/webm"); voltar(); if (cancelado) { aviso("Exportação cancelada."); return; }
+        var ext = op.ext || (/mp4/.test(tp) ? (soAudio ? "m4a" : "mp4") : soAudio ? "webm" : "webm");
+        entregar(new Blob(partes, {type: tp}), base + "." + ext); };
+    }
+    GRAV = {prog: function (p) { $("veProg").value = p; $("veOcupTxt").textContent = (soAudio ? "Gravando o áudio" : "Gravando o vídeo") + " · " + Math.round(p * 100) + "% · faltam " + fmtT(total() * (1 - p)) + " — deixe esta tela aberta"; },
+      fim: function () { setTimeout(function () { if (mr) { try { mr.stop(); } catch (e) {} } else { var w = wav; voltar(); if (w) w.fim(); } }, 180); },
+      cancelar: function () { cancelado = true; parar(); if (mr) { try { mr.stop(); } catch (e) {} } else { voltar(); aviso("Exportação cancelada."); } }};
+    $("veOcupTxt").textContent = (soAudio ? "Gravando o áudio… " : "Gravando o vídeo… ") + "deixe esta tela aberta (" + fmtT(total()) + ")"; $("veProg").value = 0; $("veOcup").hidden = false;
+    T = 0; desenhar(); setTimeout(function () { if (mr) mr.start(500); tocar(); }, 450);   /* dá tempo de os originais carregarem */
+  }
+  function wavDe(L, R, sr, bits) {
+    var n = L.reduce(function (t, x) { return t + x.length; }, 0), by = bits === 16 ? 2 : 3, buf = new ArrayBuffer(44 + n * 2 * by), v = new DataView(buf), p = 0;
+    function txt(t) { for (var i = 0; i < t.length; i++) v.setUint8(p++, t.charCodeAt(i)); } function u32(x) { v.setUint32(p, x, true); p += 4; } function u16(x) { v.setUint16(p, x, true); p += 2; }
+    txt("RIFF"); u32(36 + n * 2 * by); txt("WAVE"); txt("fmt "); u32(16); u16(1); u16(2); u32(sr); u32(sr * 2 * by); u16(2 * by); u16(bits === 16 ? 16 : 24); txt("data"); u32(n * 2 * by);
+    var max = bits === 16 ? 32767 : 8388607;
+    for (var b = 0; b < L.length; b++) for (var i = 0; i < L[b].length; i++) for (var c = 0; c < 2; c++) { var s = Math.max(-1, Math.min(1, (c ? R : L)[b][i])), x = Math.round(s * max);
+      if (by === 2) { v.setInt16(p, x, true); p += 2; } else { v.setUint8(p++, x & 255); v.setUint8(p++, (x >> 8) & 255); v.setUint8(p++, (x >> 16) & 255); } }
+    return new Blob([buf], {type: "audio/wav"});
   }
 
   /* ---------- ligações ---------- */
@@ -649,7 +684,7 @@
   $("veFmt").onchange = function () { var tr = tamReal(); P.fmt = this.value; if (P.fmt === "livre" && !P.w) { P.w = tr[0]; P.h = tr[1]; } formato(); guardar(); };
   ["veLargura", "veAltura"].forEach(function (id) { $(id).onchange = function () { if (P.fmt !== "livre") return; var par = function (v) { v = Math.round(Number(v) || 0); return lim(v - v % 2, 240, 4096); }; P.w = par($("veLargura").value); P.h = par($("veAltura").value); formato(); guardar(); aviso("Tamanho " + P.w + " × " + P.h + " px."); }; });
   $("veNovo").onclick = function () { if (P.clips.length && !confirm("Começar um vídeo novo? A linha do tempo atual é apagada (a biblioteca de mídia continua).")) return; parar(); Object.keys(EL).forEach(soltarEl); P = {fmt: P.fmt, clips: []}; SEL = null; T = 0; tudo(); aviso(""); };
-  $("veExportar").onclick = exportar; $("veCancelar").onclick = function () { if (GRAV) GRAV.cancelar(); };
+  $("veExportar").onclick = function () { abrirExportar(); }; $("veCancelar").onclick = function () { if (GRAV) GRAV.cancelar(); };
   $("veFecharSaida").onclick = function () { $("veSaida").hidden = true; try { $("veVideoPronto").pause(); } catch (e) {} };
   $("veCompartilhar").onclick = async function () { var s = $("veSaida"), f = new File([s._blob], s._nome, {type: s._blob.type}); try { if (navigator.canShare && navigator.canShare({files: [f]})) await navigator.share({files: [f]}); else $("veBaixar").click(); } catch (e) {} };
   $("vePropCorpo").addEventListener("input", function (e) { var el = e.target, k = el.dataset.p, c = sel(); if (!k || !c) return;
@@ -998,15 +1033,294 @@
   })();
   function reservar() { var m = window.matchMedia("(max-width:1100px)").matches, h = document.documentElement.style; h.scrollPaddingTop = m ? (document.querySelector(".ve-palco").offsetHeight + 10) + "px" : ""; h.scrollPaddingBottom = m ? "90px" : ""; }
   window.addEventListener("resize", reservar); reservar();
+  /* ================= PROXY, CACHE, PASTAS E JANELA DE EXPORTAR (22/11/2026) =================
+     Dono: "FAZER PROXY abaixo da mídia, com a barra se enchendo e o tempo que falta; LIMPAR CACHE; mostrar o tamanho em GB e a memória;
+     engrenagem para escolher onde o projeto e o cache são salvos e exportados; janela de exportação com ultra qualidade, YouTube 4K,
+     Full HD, Instagram, só o áudio, sequência de JPEG/PNG e outros codecs". Proxy = cópia 720p feita no aparelho (assets/bw-proxy.js);
+     a edição usa o proxy, a exportação usa SEMPRE o original. Nada sai do aparelho. */
+  var PX = {}, ORIGINAL = false, PASTAS = {projeto: null, cache: null, export: null}, PXCFG = {usar: true, curto: 720};
+  try { var pc0 = JSON.parse(localStorage.getItem("ui_ve_proxy") || "{}"); if (pc0.usar === false) PXCFG.usar = false; if (pc0.curto) PXCFG.curto = pc0.curto; } catch (e) {}
+  function gravarPxCfg() { try { localStorage.setItem("ui_ve_proxy", JSON.stringify(PXCFG)); } catch (e) {} }
+  function urlDe(m) { var x = PX[m.id]; return x && x.url && PXCFG.usar && !ORIGINAL && m.tipo === "video" ? x.url : m.url; }
+  function recarregarEls(mid) { Object.keys(EL).forEach(function (k) { var c = P.clips.filter(function (x) { return x.id === k; })[0]; if (!mid || (c && c.mid === mid)) soltarEl(k); }); if (!TOCANDO) desenhar(); }
+  function usarOriginais(sim) { if (ORIGINAL === !!sim) return; ORIGINAL = !!sim; if (Object.keys(PX).length) recarregarEls(); }
+  function mb(b) { return b >= 1073741824 ? (b / 1073741824).toFixed(2).replace(".", ",") + " GB" : (b / 1048576).toFixed(b < 10485760 ? 1 : 0).replace(".", ",") + " MB"; }
+  function tempoTxt(s) { if (s == null || !isFinite(s)) return "calculando…"; s = Math.max(1, Math.round(s)); return s < 60 ? s + " s" : Math.floor(s / 60) + " min " + (s % 60 < 10 ? "0" : "") + s % 60 + " s"; }
+
+  /* ---------- pastas (File System Access: Chrome/Edge do computador) ---------- */
+  var TEM_PASTA = typeof window.showDirectoryPicker === "function";
+  async function permissao(h, pedir) { if (!h) return false; try { var o = {mode: "readwrite"}; if ((await h.queryPermission(o)) === "granted") return true; return pedir ? (await h.requestPermission(o)) === "granted" : false; } catch (e) { return false; } }
+  async function salvarNaPasta(qual, nome, blob) { var h = PASTAS[qual]; if (!h || !(await permissao(h, false))) return ""; try { var f = await h.getFileHandle(nome, {create: true}), w = await f.createWritable(); await w.write(blob); await w.close(); return h.name; } catch (e) { return ""; } }
+  async function lerDaPasta(qual, nome) { var h = PASTAS[qual]; if (!h || !(await permissao(h, false))) return null; try { return await (await h.getFileHandle(nome)).getFile(); } catch (e) { return null; } }
+  async function apagarDaPasta(qual, nome) { var h = PASTAS[qual]; if (!h || !(await permissao(h, false))) return; try { await h.removeEntry(nome); } catch (e) {} }
+  async function carregarPastas() { var r = await tx("cfg", "readonly", function (s) { return s.get("pastas"); }); if (r) ["projeto", "cache", "export"].forEach(function (k) { PASTAS[k] = r[k] || null; }); }
+  function gravarPastas() { return tx("cfg", "readwrite", function (s) { return s.put({id: "pastas", projeto: PASTAS.projeto, cache: PASTAS.cache, export: PASTAS.export}); }); }
+  var tProj = 0;
+  function copiaProjeto() { if (!PASTAS.projeto) return; clearTimeout(tProj); tProj = setTimeout(function () { salvarNaPasta("projeto", (P.nome || "projeto-brightway").replace(/[^\w\-]+/g, "-") + ".bwvideo.json", new Blob([JSON.stringify({app: "BW editor de vídeo", versao: 1, salvo: new Date().toISOString(), projeto: P, midias: Object.keys(MID).map(function (k) { return {id: k, nome: MID[k].nome, tipo: MID[k].tipo, bytes: MID[k].blob ? MID[k].blob.size : 0}; })}, null, 1)], {type: "application/json"})); }, 2500); }
+
+  /* ---------- proxies guardados ---------- */
+  async function carregarProxies() {
+    var l = (await tx("proxies", "readonly", function (s) { return s.getAll(); })) || [];
+    for (var i = 0; i < l.length; i++) { var x = l[i]; if (!MID[x.id]) continue; var b = x.blob || (x.arquivo ? await lerDaPasta("cache", x.arquivo) : null);
+      PX[x.id] = {url: b ? URL.createObjectURL(b) : "", bytes: x.bytes || (b ? b.size : 0), w: x.w, h: x.h, curto: x.curto, comSom: x.comSom, arquivo: x.arquivo || "", trancado: !b}; }
+  }
+  async function guardarProxy(mid, r) {
+    var nome = "", reg = {id: mid, w: r.w, h: r.h, curto: r.curto, comSom: r.comSom, bytes: r.blob.size, criado: Date.now()};
+    if (PASTAS.cache) { nome = mid + ".proxy" + r.curto + ".mp4"; if (await salvarNaPasta("cache", nome, r.blob)) reg.arquivo = nome; else nome = ""; }
+    if (!nome) reg.blob = r.blob;
+    var ok = true; try { await tx("proxies", "readwrite", function (s) { return s.put(reg); }); } catch (e) { ok = false; }
+    if (PX[mid] && PX[mid].url) try { URL.revokeObjectURL(PX[mid].url); } catch (e) {}
+    PX[mid] = {url: URL.createObjectURL(r.blob), bytes: r.blob.size, w: r.w, h: r.h, curto: r.curto, comSom: r.comSom, arquivo: reg.arquivo || ""};
+    return ok;
+  }
+  async function apagarProxy(mid) { var x = PX[mid]; if (!x) return; if (x.url) try { URL.revokeObjectURL(x.url); } catch (e) {} if (x.arquivo) await apagarDaPasta("cache", x.arquivo); delete PX[mid]; await tx("proxies", "readwrite", function (s) { return s.delete(mid); }); }
+
+  /* ---------- barra embaixo da mídia: FAZER PROXY · LIMPAR CACHE · ⚙ + uso de disco e memória ---------- */
+  function montarCache() {
+    if ($("veCache")) return; var lib = $("veLib"); if (!lib) return;
+    var d = document.createElement("div"); d.className = "ve-cache"; d.id = "veCache";
+    d.innerHTML = '<div class="ve-linha"><button class="ve-bt" id="veProxyBt" type="button" title="Faz cópias leves (720p) dos vídeos para editar sem pesar — a exportação usa o original">⚡ FAZER PROXY</button><button class="ve-bt" id="veLimparBt" type="button" title="Libera espaço: proxies, análises de pessoa, arquivos fora da linha do tempo">🧹 LIMPAR CACHE</button><button class="ve-bt ic" id="veCfgBt" type="button" title="Onde o projeto, o cache e os arquivos exportados são salvos" aria-label="Configurar pastas e proxy">⚙</button></div>'
+      + '<div class="ve-uso" id="veUso" aria-live="polite">Medindo o espaço…</div>'
+      + '<label class="ve-px"><input type="checkbox" id="veUsarPx"' + (PXCFG.usar ? " checked" : "") + '> Editar com os proxies (mais leve) <small id="vePxConta"></small></label>';
+    lib.parentNode.insertBefore(d, lib.nextSibling);
+    $("veProxyBt").onclick = abrirProxy; $("veLimparBt").onclick = abrirLimpar; $("veCfgBt").onclick = abrirCfg;
+    $("veUsarPx").onchange = function () { PXCFG.usar = this.checked; gravarPxCfg(); recarregarEls(); aviso(PXCFG.usar ? "⚡ Edição com proxy: os vídeos leves entram na prévia (a exportação usa o original)." : "Edição com os arquivos originais (mais pesado)."); medir(); };
+    medir(); setInterval(function () { if (!document.hidden && $("veUso") && $("veUso").getClientRects().length) medir(); }, 6000);
+  }
+  async function medir() {
+    var u = $("veUso"); if (!u) return;
+    var midB = 0, pxB = 0, nV = 0, nP = 0; Object.keys(MID).forEach(function (k) { var m = MID[k]; if (m.blob && !m.ph) midB += m.blob.size || 0; if (m.tipo === "video" && !m.ph) { nV++; if (PX[k]) nP++; } });
+    Object.keys(PX).forEach(function (k) { pxB += PX[k].bytes || 0; });
+    var est = null; try { est = navigator.storage && navigator.storage.estimate ? await navigator.storage.estimate() : null; } catch (e) {}
+    var mem = performance.memory ? performance.memory.usedJSHeapSize : 0, players = Object.keys(EL).length;
+    u.innerHTML = '<b>💾 ' + (est && est.usage != null ? mb(est.usage) + '</b> usados' + (est.quota ? ' de ' + mb(est.quota) : '') : mb(midB + pxB) + '</b>') + ' · mídias ' + mb(midB) + ' · proxies ' + mb(pxB)
+      + '<br><b>🧠 ' + (mem ? mb(mem) : "—") + '</b> de memória' + (mem ? "" : " (o navegador não informa)") + ' · ' + players + ' vídeo' + (players === 1 ? "" : "s") + ' aberto' + (players === 1 ? "" : "s");
+    var pc = $("vePxConta"); if (pc) pc.textContent = nV ? "· " + nP + " de " + nV + " vídeos com proxy" : "";
+  }
+
+  /* janela comum (fundo escuro + cartão); fecha no ✕, no Esc e no toque fora */
+  function janela(id, titulo, html) {
+    var j = $(id); if (j) j.remove(); j = document.createElement("div"); j.className = "ve-jan"; j.id = id; j.setAttribute("role", "dialog"); j.setAttribute("aria-modal", "true"); j.setAttribute("aria-label", titulo);
+    j.innerHTML = '<div class="ve-jan-c"><div class="ve-jan-t"><b>' + esc(titulo) + '</b><button type="button" class="ve-bt ic" data-fechar aria-label="Fechar">✕</button></div><div class="ve-jan-corpo">' + html + "</div></div>";
+    document.body.appendChild(j);
+    j.addEventListener("click", function (e) { if (e.target === j || e.target.closest("[data-fechar]")) fecharJan(j); });
+    j._tecla = function (e) { if (e.key === "Escape") { e.stopImmediatePropagation(); fecharJan(j); } }; document.addEventListener("keydown", j._tecla, true);
+    return j;
+  }
+  function fecharJan(j) { if (!j) return; document.removeEventListener("keydown", j._tecla, true); j.remove(); }
+
+  /* ---------- FAZER PROXY: escolher os vídeos → barra de cópia ---------- */
+  function abrirProxy() {
+    if (!window.BWProxy || !BWProxy.suporta()) { aviso("Este navegador não faz proxy. Use o Chrome ou o Edge atualizados (no PC ou no app BW).", true); return; }
+    var vs = Object.keys(MID).map(function (k) { return MID[k]; }).filter(function (m) { return m.tipo === "video" && !m.ph; });
+    if (!vs.length) { aviso("Importe vídeos primeiro: o proxy é feito dos vídeos da biblioteca.", true); return; }
+    vs.sort(function (a, b) { return (b.blob ? b.blob.size : 0) - (a.blob ? a.blob.size : 0); });
+    var na = P.clips.map(function (c) { return c.mid; });
+    var j = janela("veJanProxy", "FAZER PROXY", '<p class="ve-nota" style="margin:0 0 8px">Cópias leves dos vídeos só para EDITAR — a prévia fica solta e o computador respira. Na exportação entra o arquivo ORIGINAL, sem perder qualidade.</p>'
+      + '<div class="ve-linha" style="align-items:center"><label class="ve-cmp">Qualidade do proxy <select class="ve-sel" id="vePxCurto"><option value="540">540p (mais leve)</option><option value="720">720p (recomendado)</option><option value="1080">1080p (mais nítido)</option></select></label>'
+      + '<button class="ve-bt" type="button" id="vePxTodos">MARCAR TODOS</button><button class="ve-bt" type="button" id="vePxSem">SÓ OS SEM PROXY</button></div>'
+      + '<div class="ve-pxlista">' + vs.map(function (m) { var tem = PX[m.id], grande = (m.w || 0) * (m.h || 0) > 2.5e6;
+        return '<label class="ve-pxit' + (m.ruim ? " ruim" : "") + '"><input type="checkbox" value="' + esc(m.id) + '"' + (!tem && !m.ruim ? " checked" : "") + (m.ruim ? " disabled" : "") + '>' + (m.capa ? '<img alt="" src="' + m.capa + '">' : '<span class="mini">🎬</span>') + '<span><b>' + esc(m.nome) + '</b><small>' + (m.w ? m.w + "×" + m.h + " · " : "") + (m.blob ? mb(m.blob.size) : "") + (m.dur ? " · " + fmtT(m.dur) : "") + (na.indexOf(m.id) >= 0 ? " · na linha do tempo" : "") + '</small></span>'
+          + (m.ruim ? '<em class="dn">NÃO ABRE AQUI</em>' : tem ? '<em class="ok">⚡ ' + tem.curto + 'p · ' + mb(tem.bytes) + '</em>' : grande ? '<em class="md">pesado</em>' : "") + "</label>"; }).join("") + "</div>"
+      + '<p class="ve-nota" id="vePxResumo"></p><div class="ve-linha"><button class="ve-bt pri" type="button" id="vePxIr">⚡ FAZER PROXY</button><button class="ve-bt" type="button" data-fechar>CANCELAR</button></div>');
+    $("vePxCurto").value = String(PXCFG.curto);
+    function resumo() { var sel = [].slice.call(j.querySelectorAll(".ve-pxlista input:checked")), seg = sel.reduce(function (t, i) { var m = MID[i.value]; return t + (m && m.dur || 0); }, 0);
+      $("vePxResumo").textContent = sel.length ? sel.length + " vídeo" + (sel.length > 1 ? "s" : "") + " · " + fmtT(seg) + " de filmagem · leva uns " + tempoTxt(seg * 0.7) + " (depende da máquina)" : "Marque os vídeos que vão virar proxy.";
+      $("vePxIr").disabled = !sel.length; $("vePxIr").textContent = "⚡ FAZER PROXY" + (sel.length ? " (" + sel.length + ")" : ""); }
+    j.querySelector(".ve-pxlista").addEventListener("change", resumo); resumo();
+    $("vePxTodos").onclick = function () { j.querySelectorAll(".ve-pxlista input:not(:disabled)").forEach(function (i) { i.checked = true; }); resumo(); };
+    $("vePxSem").onclick = function () { j.querySelectorAll(".ve-pxlista input:not(:disabled)").forEach(function (i) { i.checked = !PX[i.value]; }); resumo(); };
+    $("vePxIr").onclick = function () { var ids = [].map.call(j.querySelectorAll(".ve-pxlista input:checked"), function (i) { return i.value; }); PXCFG.curto = Number($("vePxCurto").value) || 720; gravarPxCfg(); fecharJan(j); filaProxy(ids, PXCFG.curto); };
+  }
+  var FILA = null;
+  async function filaProxy(ids, curto) {
+    if (FILA) { aviso("Já tem proxy sendo feito — espere terminar ou cancele.", true); return; }
+    var lista = ids.map(function (k) { return MID[k]; }).filter(Boolean), totSeg = lista.reduce(function (t, m) { return t + (m.dur || 1); }, 0), feitoSeg = 0, t0 = performance.now(), feitos = 0, falhas = [];
+    FILA = {cancelado: false};
+    var c = document.createElement("div"); c.className = "ve-copia"; c.id = "veCopia"; c.setAttribute("role", "status");
+    c.innerHTML = '<div class="ve-copia-t"><b>⚡ FAZENDO PROXY</b><span id="veCpN"></span><button type="button" class="ve-bt ic" id="veCpMin" aria-label="Minimizar" title="Minimizar">—</button></div><div class="ve-copia-corpo"><div class="ve-cp-nome" id="veCpNome"></div>'
+      + '<div class="ve-cp-barra"><i id="veCpB1"></i></div><div class="ve-cp-info" id="veCpI1"></div><div class="ve-cp-rot">TOTAL</div><div class="ve-cp-barra total"><i id="veCpB2"></i></div><div class="ve-cp-info" id="veCpI2"></div>'
+      + '<div class="ve-linha"><button class="ve-bt perigo" type="button" id="veCpCancelar">CANCELAR</button></div></div>';
+    document.body.appendChild(c);
+    $("veCpMin").onclick = function () { c.classList.toggle("min"); this.textContent = c.classList.contains("min") ? "▢" : "—"; };
+    $("veCpCancelar").onclick = function () { FILA.cancelado = true; this.disabled = true; this.textContent = "CANCELANDO…"; };
+    for (var i = 0; i < lista.length && !FILA.cancelado; i++) {
+      var m = lista[i], dm = m.dur || 1; $("veCpN").textContent = (i + 1) + " de " + lista.length; $("veCpNome").textContent = m.nome;
+      try {
+        var r = await BWProxy.fazer(m.blob, {curto: curto, cancelar: function () { return FILA.cancelado; }, aoProgredir: function (p) {
+          var f = (p.pct || 0) / 100, proc = feitoSeg + f * dm, gasto = (performance.now() - t0) / 1000, falta = proc > 0.5 ? gasto * (totSeg - proc) / proc : null;
+          $("veCpB1").style.width = (p.pct || 0).toFixed(1) + "%"; $("veCpI1").textContent = Math.floor(p.pct || 0) + "% · " + (p.etapa || "") + (p.falta != null ? " · faltam " + tempoTxt(p.falta) : "") + (p.ow ? " · " + p.ow + "×" + p.oh : "");
+          $("veCpB2").style.width = (proc / totSeg * 100).toFixed(1) + "%"; $("veCpI2").textContent = Math.floor(proc / totSeg * 100) + "% · " + feitos + " pronto" + (feitos === 1 ? "" : "s") + " · tempo esperado até concluir: " + tempoTxt(falta); }});
+        await guardarProxy(m.id, r); feitos++; recarregarEls(m.id); desenharLib(); medir();
+        if (!r.comSom) aviso("⚡ " + m.nome + ": proxy pronto SEM SOM (o som do arquivo não foi lido) — na prévia este take fica mudo; a exportação tem o som do original.", true);
+      } catch (e) { if (!FILA.cancelado) falhas.push(m.nome + " (" + (e && e.message || e) + ")"); }
+      feitoSeg += dm;
+    }
+    var cancel = FILA.cancelado; FILA = null; c.remove(); medir();
+    aviso(cancel ? "Proxy cancelado. " + feitos + " ficou" + (feitos === 1 ? "" : "aram") + " pronto" + (feitos === 1 ? "" : "s") + "." : falhas.length ? "⚡ " + feitos + " proxy pronto(s). Não deu: " + falhas.slice(0, 2).join("; ") : "⚡ " + feitos + " proxy" + (feitos === 1 ? "" : "s") + " pronto" + (feitos === 1 ? "" : "s") + " em " + tempoTxt((performance.now() - t0) / 1000) + ". A edição já usa a versão leve.", !!falhas.length && !cancel);
+  }
+
+  /* ---------- LIMPAR CACHE ---------- */
+  function contarMascaras() { return new Promise(function (ok) { try { var r = indexedDB.open("bw_mascaras", 1); r.onupgradeneeded = function () { r.result.createObjectStore("m", {keyPath: "mid"}); }; r.onsuccess = function () { var d = r.result, q = d.transaction("m").objectStore("m").getAllKeys(); q.onsuccess = function () { d.close(); ok(q.result || []); }; q.onerror = function () { d.close(); ok([]); }; }; r.onerror = function () { ok([]); }; } catch (e) { ok([]); } }); }
+  async function abrirLimpar() {
+    var usados = {}; P.clips.forEach(function (c) { if (c.mid) usados[c.mid] = 1; });
+    var fora = Object.keys(MID).filter(function (k) { return !usados[k] && !MID[k].ph && MID[k].tipo !== "audio" || (!usados[k] && MID[k].tipo === "audio" && k.indexOf("som-") !== 0 && !MID[k].ph); }), foraB = fora.reduce(function (t, k) { return t + (MID[k].blob ? MID[k].blob.size : 0); }, 0);
+    var pxIds = Object.keys(PX), pxB = pxIds.reduce(function (t, k) { return t + (PX[k].bytes || 0); }, 0), mk = await contarMascaras(), abertos = Object.keys(EL).length;
+    var j = janela("veJanLimpar", "LIMPAR CACHE", '<p class="ve-nota" style="margin:0 0 8px">Libera espaço e memória deste aparelho. Os arquivos que estão no seu computador ou celular <b>não</b> são apagados — só as cópias que a plataforma guardou.</p>'
+      + '<label class="ve-lp"><input type="checkbox" value="mem" checked><span><b>Memória da sessão</b><small>Fecha os ' + abertos + ' vídeo(s) abertos na prévia (reabrem sozinhos)</small></span></label>'
+      + '<label class="ve-lp"><input type="checkbox" value="px"' + (pxIds.length ? "" : " disabled") + '><span><b>Proxies · ' + mb(pxB) + '</b><small>' + pxIds.length + ' cópia(s) leves — dá para fazer de novo quando quiser</small></span></label>'
+      + '<label class="ve-lp"><input type="checkbox" value="mk"' + (mk.length ? "" : " disabled") + '><span><b>Análises de pessoa (IA)</b><small>' + mk.length + ' análise(s) — o 🧠 ANALISAR refaz</small></span></label>'
+      + '<label class="ve-lp perigo"><input type="checkbox" value="fora"' + (fora.length ? "" : " disabled") + '><span><b>Arquivos fora da linha do tempo · ' + mb(foraB) + '</b><small>' + fora.length + ' arquivo(s) que estão só na biblioteca (para usar de novo, importe outra vez)</small></span></label>'
+      + '<div class="ve-linha"><button class="ve-bt perigo" type="button" id="veLpIr">🧹 LIMPAR O QUE ESTÁ MARCADO</button><button class="ve-bt" type="button" data-fechar>CANCELAR</button></div>');
+    $("veLpIr").onclick = async function () {
+      var q = [].map.call(j.querySelectorAll(".ve-lp input:checked"), function (i) { return i.value; }); if (!q.length) { fecharJan(j); return; }
+      if (q.indexOf("fora") >= 0 && !confirm("Tirar " + fora.length + " arquivo(s) da biblioteca? Eles não estão na linha do tempo. O arquivo original no seu aparelho continua lá.")) return;
+      var antes = 0; try { antes = (await navigator.storage.estimate()).usage || 0; } catch (e) {}
+      if (q.indexOf("mem") >= 0) Object.keys(EL).forEach(soltarEl);
+      if (q.indexOf("px") >= 0) for (var a = 0; a < pxIds.length; a++) await apagarProxy(pxIds[a]);
+      if (q.indexOf("mk") >= 0 && window.BWMascara) for (var b = 0; b < mk.length; b++) await BWMascara.apagar(mk[b]);
+      if (q.indexOf("fora") >= 0) for (var c2 = 0; c2 < fora.length; c2++) { var id = fora[c2]; if (PX[id]) await apagarProxy(id); try { URL.revokeObjectURL(MID[id].url); } catch (e) {} delete MID[id]; await tx("midias", "readwrite", function (s) { return s.delete(id); }); }
+      fecharJan(j); desenharLib(); desenhar(); var depois = 0; try { depois = (await navigator.storage.estimate()).usage || 0; } catch (e) {}
+      aviso("🧹 Cache limpo" + (antes > depois ? " · " + mb(antes - depois) + " liberados" : "") + "."); medir(); };
+  }
+
+  /* ---------- ⚙ PASTAS E PROXY ---------- */
+  function abrirCfg() {
+    function linha(k, tit, txt) { var h = PASTAS[k]; return '<div class="ve-cfgl"><div><b>' + tit + '</b><small>' + txt + '</small><em id="veCfgN-' + k + '">' + (h ? "📁 " + esc(h.name) : (k === "export" ? "Downloads (padrão)" : "Neste navegador (padrão)")) + '</em></div><div class="ve-linha" style="margin:0"><button class="ve-bt" type="button" data-pasta="' + k + '"' + (TEM_PASTA ? "" : " disabled") + '>ESCOLHER PASTA</button>' + (h ? '<button class="ve-bt" type="button" data-reconectar="' + k + '">🔓 PERMITIR</button><button class="ve-bt" type="button" data-padrao="' + k + '">PADRÃO</button>' : "") + '</div></div>'; }
+    var j = janela("veJanCfg", "ONDE SALVAR", (TEM_PASTA ? "" : '<p class="ve-nota" style="margin:0 0 8px">Escolher pastas funciona no Chrome e no Edge do computador (e no app BW). Aqui o projeto e o cache ficam neste navegador e os arquivos exportados vão para os Downloads.</p>')
+      + linha("projeto", "PROJETO", "Uma cópia da edição (.bwvideo.json) é salva na pasta a cada mudança.")
+      + linha("cache", "CACHE (PROXIES)", "Os proxies novos viram arquivos nessa pasta, em vez de ocupar o navegador.")
+      + linha("export", "EXPORTAÇÃO", "Vídeos, áudios e sequências exportados são salvos direto nessa pasta.")
+      + '<div class="ve-cfgl"><div><b>PROXY</b><small>Qualidade padrão e se a edição usa os proxies.</small></div><div class="ve-linha" style="margin:0"><select class="ve-sel" id="veCfgCurto"><option value="540">540p</option><option value="720">720p</option><option value="1080">1080p</option></select><label class="ve-px" style="margin:0"><input type="checkbox" id="veCfgUsar"' + (PXCFG.usar ? " checked" : "") + '> usar na edição</label></div></div>'
+      + '<p class="ve-nota">O navegador pede licença uma vez por pasta. Se depois de reabrir ele perguntar de novo, toque em 🔓 PERMITIR.</p>');
+    $("veCfgCurto").value = String(PXCFG.curto);
+    $("veCfgCurto").onchange = function () { PXCFG.curto = Number(this.value); gravarPxCfg(); };
+    $("veCfgUsar").onchange = function () { var u = $("veUsarPx"); if (u) { u.checked = this.checked; u.dispatchEvent(new Event("change")); } else { PXCFG.usar = this.checked; gravarPxCfg(); } };
+    j.addEventListener("click", async function (e) {
+      var b = e.target.closest("[data-pasta]"), rc = e.target.closest("[data-reconectar]"), pd = e.target.closest("[data-padrao]");
+      if (b) { try { var h = await window.showDirectoryPicker({id: "bw-ve-" + b.dataset.pasta, mode: "readwrite"}); PASTAS[b.dataset.pasta] = h; await gravarPastas(); abrirCfg(); aviso("📁 " + h.name + " escolhida para " + (b.dataset.pasta === "export" ? "a exportação" : b.dataset.pasta === "cache" ? "o cache" : "o projeto") + "."); if (b.dataset.pasta === "projeto") copiaProjeto(); } catch (x) {} }
+      if (rc) { var ok = await permissao(PASTAS[rc.dataset.reconectar], true); aviso(ok ? "🔓 Pasta liberada." : "O navegador não liberou a pasta.", !ok); if (ok && rc.dataset.reconectar === "cache") { await carregarProxies(); desenharLib(); } }
+      if (pd) { PASTAS[pd.dataset.padrao] = null; await gravarPastas(); abrirCfg(); }
+    });
+  }
+
+  /* ---------- JANELA DE EXPORTAR ----------
+     Bitrates de referência: YouTube (página "recommended upload encoding settings", conferida em 22/11/2026): 4K 35–45 Mbps (24–30 fps) e
+     53–68 Mbps (48–60 fps), 1080p 8 Mbps / 12 Mbps, áudio AAC-LC 48 kHz estéreo 384 kbps, MP4, taxa variável. Instagram (guias de 2026):
+     1080×1920, H.264 + AAC 48 kHz, 30 fps constante, 3,5–10 Mbps — o app recomprime, então mandar perto do teto. Aqui vão sempre um pouco
+     acima do mínimo para a recompressão da plataforma ter detalhe para guardar. */
+  var CODECS = [
+    {id: "h264", nome: "H.264 · MP4 (o mais compatível)", ext: "mp4", mimes: ["video/mp4;codecs=avc1.640033,mp4a.40.2", "video/mp4;codecs=avc1.640028,mp4a.40.2", "video/mp4;codecs=avc1.42E01E,mp4a.40.2", "video/mp4;codecs=avc1,mp4a.40.2", "video/mp4;codecs=avc1,opus", "video/mp4"]},
+    {id: "hevc", nome: "H.265 / HEVC · MP4 (mesma qualidade, ~metade do tamanho)", ext: "mp4", mimes: ["video/mp4;codecs=hvc1.1.6.L153.B0,mp4a.40.2", "video/mp4;codecs=hvc1,mp4a.40.2", "video/mp4;codecs=hev1.1.6.L153.B0,mp4a.40.2", "video/mp4;codecs=hev1,mp4a.40.2"]},
+    {id: "av1", nome: "AV1 (o mais moderno, arquivo pequeno)", ext: "", mimes: ["video/mp4;codecs=av01.0.12M.08,mp4a.40.2", "video/mp4;codecs=av01,opus", "video/webm;codecs=av01,opus", "video/webm;codecs=av1,opus"]},
+    {id: "vp9", nome: "VP9 · WebM (web e YouTube)", ext: "webm", mimes: ["video/webm;codecs=vp9,opus", "video/webm;codecs=vp9"]},
+    {id: "vp8", nome: "VP8 · WebM (antigo, roda em tudo na web)", ext: "webm", mimes: ["video/webm;codecs=vp8,opus", "video/webm"]}];
+  function mimeDe(id) { var c = CODECS.filter(function (x) { return x.id === id; })[0]; if (!c || !window.MediaRecorder) return ""; for (var i = 0; i < c.mimes.length; i++) if (MediaRecorder.isTypeSupported(c.mimes[i])) return c.mimes[i]; return ""; }
+  function extDe(mime) { return /mp4/.test(mime) ? "mp4" : "webm"; }
+  var PRONTOS = [
+    {id: "master", nome: "★ MÁXIMA QUALIDADE", sub: "Master para guardar ou reeditar · tamanho real", curto: 0, fps: 30, mbps: function (w, h, f) { return Math.round(Math.min(160, Math.max(30, w * h * f * 0.4 / 1e6))); }, abps: 320000, cod: ["hevc", "h264", "av1", "vp9"]},
+    {id: "yt4k", nome: "YOUTUBE 4K", sub: "2160p · 30 fps · 45 Mbps · AAC 384 kbps", curto: 2160, fps: 30, mbps: 45, abps: 384000, cod: ["h264", "vp9"]},
+    {id: "yt4k60", nome: "YOUTUBE 4K 60", sub: "2160p · 60 fps · 68 Mbps · AAC 384 kbps", curto: 2160, fps: 60, mbps: 68, abps: 384000, cod: ["h264", "vp9"]},
+    {id: "ytfhd", nome: "YOUTUBE FULL HD", sub: "1080p · 30 fps · 12 Mbps · AAC 384 kbps", curto: 1080, fps: 30, mbps: 12, abps: 384000, cod: ["h264", "vp9"]},
+    {id: "ytfhd60", nome: "YOUTUBE FULL HD 60", sub: "1080p · 60 fps · 18 Mbps · AAC 384 kbps", curto: 1080, fps: 60, mbps: 18, abps: 384000, cod: ["h264", "vp9"]},
+    {id: "insta", nome: "INSTAGRAM REELS / STORIES", sub: "1080×1920 · 30 fps · 10 Mbps · AAC 48 kHz", curto: 1080, fps: 30, mbps: 10, abps: 256000, cod: ["h264"], aspecto: 9 / 16},
+    {id: "instafeed", nome: "INSTAGRAM FEED 4:5", sub: "1080×1350 · 30 fps · 10 Mbps", curto: 1080, fps: 30, mbps: 10, abps: 256000, cod: ["h264"], aspecto: 4 / 5},
+    {id: "whats", nome: "WHATSAPP / LEVE", sub: "720p · 30 fps · 4 Mbps · AAC 128 kbps", curto: 720, fps: 30, mbps: 4, abps: 128000, cod: ["h264"]},
+    {id: "telao", nome: "TELÃO DE LED", sub: "Tamanho do projeto · 30 fps · alta", curto: 0, fps: 30, mbps: function (w, h) { return Math.round(Math.min(80, Math.max(16, w * h / 1e6 * 14))); }, abps: 320000, cod: ["h264", "hevc"]}];
+  function tamSaida(curto) { var f = tamReal(), p2 = function (v) { v = Math.round(v); return v - v % 2; }; if (!curto) return [p2(f[0]), p2(f[1])]; var k = curto / Math.min(f[0], f[1]), w = p2(f[0] * k), h = p2(f[1] * k); if (Math.max(w, h) > 4096) { var r = 4096 / Math.max(w, h); w = p2(w * r); h = p2(h * r); } return [w, h]; }
+  var EXP = {aba: "prontos", pronto: "ytfhd", codec: "h264", curto: 0, fps: 30, mbps: 20, abps: 320000, audio: "wav", bits: 24, seq: "png", seqFps: 30, jpgQ: 95, de: 0, ate: 0};
+  try { Object.assign(EXP, JSON.parse(localStorage.getItem("ui_ve_exportar") || "{}")); } catch (e) {}
+  function opDe() {
+    var dur = total();
+    if (EXP.aba === "audio") { var am = EXP.audio === "m4a" ? (MediaRecorder.isTypeSupported("audio/mp4;codecs=mp4a.40.2") ? "audio/mp4;codecs=mp4a.40.2" : MediaRecorder.isTypeSupported("audio/mp4") ? "audio/mp4" : "") : EXP.audio === "opus" ? (MediaRecorder.isTypeSupported("audio/webm;codecs=opus") ? "audio/webm;codecs=opus" : "") : "";
+      var kbA = EXP.audio === "wav" ? 48 * 2 * EXP.bits : EXP.audio === "m4a" ? 320 : 192; return {audio: EXP.audio, mime: am, abps: EXP.audio === "m4a" ? 320000 : 192000, bits: EXP.bits, ext: EXP.audio === "wav" ? "wav" : EXP.audio === "m4a" ? "m4a" : "webm", bytes: dur * kbA * 1000 / 8, desc: EXP.audio === "wav" ? "WAV · 48 kHz · " + EXP.bits + " bits · sem perda" : EXP.audio === "m4a" ? "M4A · AAC 320 kbps" : "WebM · Opus 192 kbps", ok: EXP.audio === "wav" || !!am}; }
+    if (EXP.aba === "seq") { var sa = tamSaida(EXP.curto), nq = Math.ceil(Math.max(0, (EXP.ate || dur) - (EXP.de || 0)) * EXP.seqFps); return {seq: EXP.seq, saida: sa, fps: EXP.seqFps, q: EXP.jpgQ / 100, n: nq, bytes: nq * sa[0] * sa[1] * (EXP.seq === "png" ? 1.6 : 0.25), desc: (EXP.seq === "png" ? "PNG (sem perda)" : "JPEG " + EXP.jpgQ + "%") + " · " + sa[0] + "×" + sa[1] + " · " + EXP.seqFps + " quadros/s · " + nq + " imagens", ok: true}; }
+    var pr = EXP.aba === "prontos" ? PRONTOS.filter(function (x) { return x.id === EXP.pronto; })[0] : null, curto = pr ? pr.curto : EXP.curto, fps = pr ? pr.fps : EXP.fps, sa2 = tamSaida(curto);
+    var mime = "", cod = ""; (pr ? pr.cod : [EXP.codec]).some(function (k) { var mm = mimeDe(k); if (mm) { mime = mm; cod = k; } return !!mm; });
+    var mbps = pr ? (typeof pr.mbps === "function" ? pr.mbps(sa2[0], sa2[1], fps) : pr.mbps) : EXP.mbps, abps = pr ? pr.abps : EXP.abps;
+    var cn = CODECS.filter(function (x) { return x.id === cod; })[0];
+    return {mime: mime, ext: mime ? extDe(mime) : "mp4", vbps: mbps * 1e6, abps: abps, fps: fps, saida: sa2, bytes: dur * (mbps * 1e6 + abps) / 8, nome: (P.nome || "video-brightway") + (pr ? "-" + pr.id : "-" + cod + "-" + sa2[1] + "p"), aspecto: pr && pr.aspecto,
+      desc: sa2[0] + "×" + sa2[1] + " · " + fps + " fps · " + (cn ? cn.nome.split(" (")[0] : "—") + " · " + mbps + " Mbps · áudio " + Math.round(abps / 1000) + " kbps", ok: !!mime};
+  }
+  function abrirExportar() {
+    if (!P.clips.length) { aviso("A linha do tempo está vazia.", true); return; }
+    var disp = CODECS.map(function (c) { return {c: c, m: mimeDe(c.id)}; });
+    var j = janela("veJanExp", "EXPORTAR", '<div class="ve-exp-abas" role="tablist">' + [["prontos", "PRONTOS"], ["perso", "PERSONALIZADO"], ["audio", "SÓ O ÁUDIO"], ["seq", "SEQUÊNCIA DE IMAGENS"], ["pro", "PROFISSIONAL"]].map(function (a) { return '<button type="button" class="ve-bt" role="tab" data-exaba="' + a[0] + '">' + a[1] + "</button>"; }).join("") + "</div>"
+      + '<div class="ve-exp-pn" data-pn="prontos"><div class="ve-exp-cards">' + PRONTOS.map(function (p) { return '<button type="button" class="ve-exp-card" data-pronto="' + p.id + '"><b>' + p.nome + "</b><small>" + p.sub + "</small></button>"; }).join("") + "</div></div>"
+      + '<div class="ve-exp-pn" data-pn="perso"><div class="ve-exp-grade"><label>Codec <select class="ve-sel" id="veExCod">' + disp.map(function (d) { return '<option value="' + d.c.id + '"' + (d.m ? "" : " disabled") + ">" + d.c.nome + (d.m ? "" : " — não grava neste navegador") + "</option>"; }).join("") + '</select></label>'
+      + '<label>Resolução <select class="ve-sel" id="veExRes"><option value="0">Tamanho do projeto</option><option value="2160">4K (2160p)</option><option value="1440">2K (1440p)</option><option value="1080">Full HD (1080p)</option><option value="720">HD (720p)</option></select></label>'
+      + '<label>Quadros por segundo <select class="ve-sel" id="veExFps"><option>24</option><option>25</option><option>30</option><option>50</option><option>60</option></select></label>'
+      + '<label>Taxa de vídeo (Mbps) <input class="ve-sel" id="veExMbps" type="number" min="1" max="200" step="1"></label>'
+      + '<label>Áudio <select class="ve-sel" id="veExAbps"><option value="128000">128 kbps</option><option value="192000">192 kbps</option><option value="256000">256 kbps</option><option value="320000">320 kbps</option><option value="384000">384 kbps (YouTube)</option></select></label></div><p class="ve-nota" id="veExSug"></p></div>'
+      + '<div class="ve-exp-pn" data-pn="audio"><div class="ve-exp-cards">' + [["wav", "WAV SEM PERDA", "48 kHz · 24 bits · para mixar e masterizar"], ["m4a", "M4A · AAC 320", "Leve e compatível · celular, WhatsApp, podcast"], ["opus", "OPUS · WebM", "O menor arquivo com boa qualidade · web"]].map(function (a) { return '<button type="button" class="ve-exp-card" data-audio="' + a[0] + '"><b>' + a[1] + "</b><small>" + a[2] + "</small></button>"; }).join("") + '</div><label class="ve-px"><input type="checkbox" id="veEx16"> WAV em 16 bits (CD) em vez de 24</label></div>'
+      + '<div class="ve-exp-pn" data-pn="seq"><div class="ve-exp-cards">' + [["png", "PNG", "Sem perda · para compor, telão e After Effects"], ["jpg", "JPEG", "Arquivos menores · revisão e miniaturas"]].map(function (a) { return '<button type="button" class="ve-exp-card" data-seq="' + a[0] + '"><b>' + a[1] + "</b><small>" + a[2] + "</small></button>"; }).join("") + '</div>'
+      + '<div class="ve-exp-grade"><label>Resolução <select class="ve-sel" id="veExSRes"><option value="0">Tamanho do projeto</option><option value="2160">4K (2160p)</option><option value="1080">1080p</option><option value="720">720p</option></select></label><label>Quadros por segundo <select class="ve-sel" id="veExSFps"><option>12</option><option>24</option><option>25</option><option>30</option><option>60</option></select></label>'
+      + '<label>De (s) <input class="ve-sel" id="veExDe" type="number" min="0" step="0.1"></label><label>Até (s) <input class="ve-sel" id="veExAte" type="number" min="0" step="0.1"></label><label>Qualidade do JPEG <input class="ve-sel" id="veExQ" type="number" min="50" max="100" step="1"></label></div>'
+      + '<p class="ve-nota">' + (TEM_PASTA ? "Com uma PASTA DE EXPORTAÇÃO escolhida (⚙), cada quadro vai direto para ela — o melhor para sequências longas. Sem pasta, sai um .zip." : "As imagens saem num .zip. Sequência longa em PNG pesa muito: prefira JPEG ou um trecho.") + "</p></div>"
+      + '<div class="ve-exp-pn" data-pn="pro"><div class="ve-exp-cards">' + [["ProRes 422 HQ", "Master de edição (Premiere, Final Cut, DaVinci)"], ["ProRes 4444", "Com transparência · motion e chroma"], ["DNxHR HQX", "Master 10 bits para Windows"], ["H.265 10 bits", "HDR e cor com mais tons"]].map(function (a) { return '<button type="button" class="ve-exp-card off" disabled aria-disabled="true"><b>' + a[0] + "</b><small>" + a[1] + " · disponível em breve no app BW</small></button>"; }).join("") + '</div><p class="ve-nota">Esses formatos de estúdio precisam do programa do computador (o navegador não grava neles). Vão chegar pelo app BW, que já tem o FFmpeg.</p></div>'
+      + '<div class="ve-exp-res" id="veExRes2"></div><div class="ve-linha"><button class="ve-bt pri" type="button" id="veExIr">⬇ EXPORTAR</button><button class="ve-bt ic" type="button" id="veExPasta" title="Onde salvar" aria-label="Onde salvar">⚙</button><button class="ve-bt" type="button" data-fechar>CANCELAR</button></div>');
+    var g = function (id) { return $(id); };
+    g("veExCod").value = EXP.codec; g("veExRes").value = String(EXP.curto); g("veExFps").value = String(EXP.fps); g("veExMbps").value = EXP.mbps; g("veExAbps").value = String(EXP.abps);
+    g("veEx16").checked = EXP.bits === 16; g("veExSRes").value = String(EXP.curto); g("veExSFps").value = String(EXP.seqFps); g("veExDe").value = EXP.de || 0; g("veExAte").value = EXP.ate || Math.round(total() * 10) / 10; g("veExQ").value = EXP.jpgQ;
+    function att() {
+      try { localStorage.setItem("ui_ve_exportar", JSON.stringify(EXP)); } catch (e) {}
+      j.querySelectorAll("[data-exaba]").forEach(function (b) { b.classList.toggle("on", b.dataset.exaba === EXP.aba); b.setAttribute("aria-selected", b.dataset.exaba === EXP.aba); });
+      j.querySelectorAll("[data-pn]").forEach(function (p) { p.hidden = p.dataset.pn !== EXP.aba; });
+      j.querySelectorAll("[data-pronto]").forEach(function (b) { b.classList.toggle("on", b.dataset.pronto === EXP.pronto); });
+      j.querySelectorAll("[data-audio]").forEach(function (b) { b.classList.toggle("on", b.dataset.audio === EXP.audio); });
+      j.querySelectorAll("[data-seq]").forEach(function (b) { b.classList.toggle("on", b.dataset.seq === EXP.seq); });
+      var sa = tamSaida(EXP.curto); g("veExSug").textContent = "Sugestão para " + sa[0] + "×" + sa[1] + " a " + EXP.fps + " fps: " + Math.round(Math.max(8, sa[0] * sa[1] * EXP.fps * 0.15 / 1e6)) + "–" + Math.round(Math.max(12, sa[0] * sa[1] * EXP.fps * 0.3 / 1e6)) + " Mbps (mais = mais nítido e maior).";
+      var o = opDe(), f = tamReal(), av = "";
+      if (o.aspecto && Math.abs(f[0] / f[1] - o.aspecto) > 0.02) av = '<br><span class="dn">⚠ O projeto não está em ' + (o.aspecto < 0.6 ? "9:16" : "4:5") + ' — o vídeo sai no formato do projeto. Troque o formato lá no alto se quiser o tamanho exato.</span>';
+      if (EXP.aba === "pro") { g("veExRes2").innerHTML = '<span class="md">Escolha outra aba para exportar agora.</span>'; g("veExIr").disabled = true; return; }
+      g("veExRes2").innerHTML = (o.ok ? "<b>Sai:</b> " + o.desc : '<span class="dn">⚠ Este navegador não grava nesse formato — escolha outro.</span>') + "<br><b>Tamanho:</b> ≈ " + mb(o.bytes) + " · <b>leva:</b> " + (o.seq ? "≈ " + tempoTxt(o.n * 0.12) : fmtT(total()) + " (o tempo do vídeo — deixe a tela aberta)") + "<br><b>Vai para:</b> " + (PASTAS.export ? "📁 " + esc(PASTAS.export.name) : "Downloads") + av;
+      g("veExIr").disabled = !o.ok;
+    }
+    j.addEventListener("click", function (e) { var a = e.target.closest("[data-exaba]"), p = e.target.closest("[data-pronto]"), au = e.target.closest("[data-audio]"), sq = e.target.closest("[data-seq]");
+      if (a) EXP.aba = a.dataset.exaba; if (p) EXP.pronto = p.dataset.pronto; if (au) EXP.audio = au.dataset.audio; if (sq) EXP.seq = sq.dataset.seq; if (a || p || au || sq) att(); });
+    j.addEventListener("change", function () { EXP.codec = g("veExCod").value; EXP.curto = Number(EXP.aba === "seq" ? g("veExSRes").value : g("veExRes").value) || 0; EXP.fps = Number(g("veExFps").value) || 30; EXP.mbps = lim(Number(g("veExMbps").value) || 20, 1, 200); EXP.abps = Number(g("veExAbps").value) || 320000;
+      EXP.bits = g("veEx16").checked ? 16 : 24; EXP.seqFps = Number(g("veExSFps").value) || 30; EXP.de = Math.max(0, Number(g("veExDe").value) || 0); EXP.ate = Math.max(0, Number(g("veExAte").value) || 0); EXP.jpgQ = lim(Number(g("veExQ").value) || 95, 50, 100); att(); });
+    g("veExPasta").onclick = abrirCfg;
+    g("veExIr").onclick = function () { var o = opDe(); if (!o.ok) return; fecharJan(j); if (o.seq) exportarSequencia(o); else exportar(o); };
+    att();
+  }
+
+  /* ---------- SEQUÊNCIA DE IMAGENS: quadro a quadro, cada vídeo posto no ponto exato antes da foto ---------- */
+  function esperarQuadro() { return new Promise(function (ok) { var t0 = performance.now(); (function v() { var falta = Object.keys(EL).some(function (k) { var e = EL[k].e; return e.tagName === "VIDEO" && (e.seeking || e.readyState < 2) && e.getAttribute("src"); }); if (!falta || performance.now() - t0 > 6000) ok(); else setTimeout(v, 15); })(); }); }
+  async function exportarSequencia(o) {
+    parar(); var cancel = false, ini = Math.max(0, EXP.de || 0), fim = Math.min(total(), EXP.ate || total()); if (fim <= ini) fim = total();
+    var n = Math.max(1, Math.ceil((fim - ini) * o.fps)), base = (P.nome || "video-brightway").replace(/[^\w\-]+/g, "-"), ext = o.seq === "png" ? "png" : "jpg", tipo = o.seq === "png" ? "image/png" : "image/jpeg";
+    var pasta = PASTAS.export && (await permissao(PASTAS.export, true)) ? PASTAS.export : null, sub = null, zip = null;
+    if (pasta) { try { sub = await pasta.getDirectoryHandle(base + "-" + ext + "-" + Date.now().toString(36), {create: true}); } catch (e) { sub = null; } }
+    if (!sub) { if (!window.JSZip) await new Promise(function (ok) { var sc = document.createElement("script"); sc.src = "assets/jszip.min.js"; sc.onload = sc.onerror = ok; document.head.appendChild(sc); });   /* compactador só quando precisa (cópia local, sem internet) */
+      if (!window.JSZip) { aviso("Não carreguei o compactador (.zip). Escolha uma PASTA DE EXPORTAÇÃO no ⚙.", true); return; } zip = new JSZip(); }
+    usarOriginais(true); tamanhoReal(true, o.saida);
+    var t0 = performance.now(); $("veOcup").hidden = false; GRAV = {prog: function () {}, fim: function () {}, cancelar: function () { cancel = true; }};
+    try {
+      for (var i = 0; i < n && !cancel; i++) {
+        T = ini + i / o.fps; desenhar(); await esperarQuadro(); desenhar();
+        var b = await new Promise(function (ok) { cv.toBlob(ok, tipo, o.q); }); if (!b) throw new Error("o navegador não gerou a imagem");
+        var nome = base + "_" + String(i + 1).padStart(5, "0") + "." + ext;
+        if (sub) { var fh = await sub.getFileHandle(nome, {create: true}), w = await fh.createWritable(); await w.write(b); await w.close(); } else zip.file(nome, b);
+        var p = (i + 1) / n, gasto = (performance.now() - t0) / 1000; $("veProg").value = p; $("veOcupTxt").textContent = "Gerando as imagens · " + (i + 1) + " de " + n + " · faltam " + tempoTxt(gasto * (1 - p) / p);
+      }
+      if (!cancel && zip) { $("veOcupTxt").textContent = "Compactando o .zip…"; var zb = await zip.generateAsync({type: "blob", compression: "STORE"}), un = base + "-" + ext + ".zip", ok2 = await salvarNaPasta("export", un, zb);
+        var a = document.createElement("a"), u = URL.createObjectURL(zb); if (!ok2) { a.href = u; a.download = un; document.body.appendChild(a); a.click(); a.remove(); } setTimeout(function () { URL.revokeObjectURL(u); }, 60000); window.__veSaida = {blob: zb, tipo: "application/zip", bytes: zb.size, nome: un, quadros: n}; }
+      if (!cancel && sub) window.__veSaida = {pasta: sub.name, quadros: n, tipo: tipo, nome: sub.name};
+      aviso(cancel ? "Sequência cancelada." : "🖼 " + n + " imagens prontas" + (sub ? " na pasta " + pasta.name + "/" + sub.name : " no .zip") + ".");
+    } catch (e) { aviso("A sequência parou: " + (e && e.message || e), true); }
+    finally { GRAV = null; tamanhoReal(false); usarOriginais(false); $("veOcup").hidden = true; }
+  }
   /* ---------- começo: volta o que estava aberto ---------- */
   (async function () {
     var ms = (await tx("midias", "readonly", function (s) { return s.getAll(); })) || [];
     for (var i = 0; i < ms.length; i++) { try { var mm = await porMidia(ms[i].blob, ms[i].nome, ms[i].tipo, ms[i].id, ms[i].dur, ms[i].capa); if (ms[i].cr) { mm.cr = ms[i].cr; mm.crCriado = ms[i].crCriado; mm.criacao = true; } } catch (e) {} }
+    await carregarPastas(); await carregarProxies();
     var st = await tx("estado", "readonly", function (s) { return s.get("atual"); });
     if (st && st.p && Array.isArray(st.p.clips)) { P = st.p; for (var k = 0; k < P.clips.length; k++) { var c = P.clips[k]; if (c.mid && !MID[c.mid] && c.mid.indexOf("som-") === 0) { var ix = SONS.map(function (s) { return "som-" + s[1].toLowerCase().replace(/\s+/g, "-"); }).indexOf(c.mid); if (ix >= 0) await porSom(ix); } }
       if (window.VEModelos && VEModelos.garantir) { try { await VEModelos.garantir(P); } catch (e) {} }   /* espaços e música de modelo são refeitos (não ficam guardados) */
       P.clips = P.clips.filter(function (c) { return c.tipo === "texto" || MID[c.mid]; }); }
-    formato(); desenharFerramentas(); desenharLib(); desenharTL(); desenharProp(); desenhar(); window.__veProntoOk = true;
+    formato(); desenharFerramentas(); desenharLib(); montarCache(); desenharTL(); desenharProp(); desenhar(); window.__veProntoOk = true;
     if (window.BWMascara) BWMascara.carregar(Object.keys(MID)).then(function () { desenharProp(); desenhar(); });
     await chegouCriacao();
   })();
@@ -1017,7 +1331,7 @@
    ["colar", function (f) { colar = f; }, function () { return colar; }], ["colarAtrib", function (f) { colarAtrib = f; }, function () { return colarAtrib; }],
    ["addClip", function (f) { addClip = f; }, function () { return addClip; }], ["addTexto", function (f) { addTexto = f; }, function () { return addTexto; }]].forEach(function (q) {
     var orig = q[2](); q[1](function () { gravarHist(); var r = orig.apply(this, arguments); gravarHist(); return r; }); });
-  window.__video = {tamReal: function () { return tamReal(); }, tamanhoReal: tamanhoReal, porMidia: porMidia, EL: EL, abrirVideo: abrirVideo, codecDe: codecDe, tudo: function () { tudo(); }, desenharLib: desenharLib, guardarJa: function () { return tx("estado", "readwrite", function (s) { return s.put({id: "atual", p: JSON.parse(JSON.stringify(P))}); }); },
+  window.__video = {PX: PX, PASTAS: PASTAS, opDe: function () { return opDe(); }, EXP: EXP, abrirExportar: function () { abrirExportar(); }, exportar: function (o) { exportar(o); }, filaProxy: function (a, b) { return filaProxy(a, b); }, medir: function () { return medir(); }, urlDe: function (m) { return urlDe(m); }, tamReal: function () { return tamReal(); }, tamanhoReal: tamanhoReal, porMidia: porMidia, EL: EL, abrirVideo: abrirVideo, codecDe: codecDe, tudo: function () { tudo(); }, desenharLib: desenharLib, guardarJa: function () { return tx("estado", "readwrite", function (s) { return s.put({id: "atual", p: JSON.parse(JSON.stringify(P))}); }); },
     trocarProjeto: function (np) { parar(); Object.keys(EL).forEach(soltarEl); P = np; SEL = null; T = 0; formato(); desenharLib(); tudo(); },
     backup: function () { return tx("estado", "readwrite", function (s) { return s.put({id: "anterior", p: JSON.parse(JSON.stringify(P))}); }); },
     anterior: function () { return new Promise(function (ok) { db().then(function (d) { var q = d.transaction("estado").objectStore("estado").get("anterior"); q.onsuccess = function () { ok(q.result && q.result.p); }; q.onerror = function () { ok(null); }; }); }); },

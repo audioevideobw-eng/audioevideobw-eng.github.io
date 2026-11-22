@@ -80,7 +80,8 @@ with sync_playwright() as p:
         # exportar de verdade: encurta para ~3 s (tira a imagem), toca e grava
         idi = pg.evaluate("__video.P().clips.find(c => c.tipo === 'imagem').id"); pg.evaluate(f"__video.sel('{idi}')"); pg.click("#veApagar"); pg.wait_for_timeout(200)
         tot = pg.evaluate("__video.total()")
-        pg.click("#veExportar"); pg.wait_for_timeout(600)
+        pg.click("#veExportar"); pg.wait_for_selector("#veJanExp", timeout=3000)   # 22/11: EXPORTAR abre a janela de exportação
+        pg.click('[data-exaba="prontos"]'); pg.click('[data-pronto="master"]'); pg.click("#veExIr"); pg.wait_for_timeout(900)
         ok(pg.is_visible("#veOcup"), "EXPORTAR mostra o progresso com CANCELAR")
         pg.wait_for_function("window.__veSaida && window.__veSaida.bytes > 0", timeout=40000)
         b64 = pg.evaluate("(async()=>{const a=new Uint8Array(await __veSaida.blob.arrayBuffer());let s='';for(let i=0;i<a.length;i+=8192)s+=String.fromCharCode.apply(null,a.subarray(i,i+8192));return btoa(s)})()")
@@ -93,7 +94,7 @@ with sync_playwright() as p:
         ok(tp == ["audio", "video"], f"o arquivo exportado tem vídeo E áudio {tp} ({os.path.getsize(arq)} bytes)")
         ok(nq.startswith("720,1280") and int(nq.split(",")[2] or 0) > tot * 12, f"vídeo 720×1280 com quadros de verdade ({nq}) para {tot:.1f} s")
         ok(mv and float(mv.group(1)) > -45 and dec.returncode == 0, f"o som do vídeo não está mudo (volume médio {mv.group(1) if mv else '?'} dB) e o arquivo decodifica inteiro")
-        ok(pg.is_visible("#veSaida") and pg.get_attribute("#veBaixar", "download").startswith("video-brightway."), "mostra o vídeo pronto com SALVAR e COMPARTILHAR")
+        ok(pg.is_visible("#veSaida") and re.search(r"\.(mp4|webm)$", pg.get_attribute("#veBaixar", "download") or ""), "mostra o vídeo pronto com SALVAR e COMPARTILHAR")
         pg.click("#veFecharSaida"); pg.wait_for_timeout(700)
         # recarregar: projeto e biblioteca voltam
         n_cl = pg.evaluate("__video.P().clips.length"); pg.reload(); pg.wait_for_function("window.__veProntoOk === true", timeout=15000)

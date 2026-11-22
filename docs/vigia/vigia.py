@@ -235,6 +235,7 @@ crmjs = ler("assets/crm.js") if os.path.exists("assets/crm.js") else ""
 if crmjs and ("toISOString().slice(0, 10)" in crmjs or "BWSync.antesDeSalvar(k, 1, v)" not in crmjs):
     problemas.append("assets/crm.js: data em UTC (use data local) ou gravação sem antesDeSalvar")
 fotosjs = ler("assets/fotos.js") if os.path.exists("assets/fotos.js") else ""
+fotosjs += ler("assets/fotos-inicio.js") if os.path.exists("assets/fotos-inicio.js") else ""   # 22/11: tela de entrada com biblioteca (só IndexedDB)
 if "fotos.html" in todos and re.search(r"\.upload\(|from\(\"user_data\"\)|fetch\(|BWSync\.(antesDeSalvar|registrarAgora)", todos["fotos.html"] + fotosjs):
     problemas.append("fotos.html/assets/fotos.js: o editor não pode enviar fotos para a nuvem (regra 24)")
 # 16/11: AGENTE (assets/bw-agente.js) e LEITOR DE CONTAS (assets/bw-leitor.js) — só falam com a IA Brightway (bw-ia);
@@ -291,6 +292,8 @@ if pjs:
 if os.path.exists("assets/personagens-prontos.js") and re.search(r"fetch\(|XMLHttpRequest|localStorage|indexedDB", ler("assets/personagens-prontos.js")): problemas.append("assets/personagens-prontos.js: só lista os prontos (não busca nem grava nada)")
 if os.path.exists("assets/bw-personagens.js") and re.search(r"fetch\(|XMLHttpRequest|supabase", ler("assets/bw-personagens.js")): problemas.append("assets/bw-personagens.js: a biblioteca de personagens não fala com a internet")
 if os.path.exists("assets/video-editor.js") and re.search(r"fetch\(|XMLHttpRequest|supabase\.|BWSync\.(?!cliente)|\.upload\(|https?://", ler("assets/video-editor.js")): problemas.append("assets/video-editor.js: o editor de vídeo não envia nada (sem fetch, upload, conta nem endereço de fora)")
+if os.path.exists("assets/bw-proxy.js") and re.search(r"fetch\(|XMLHttpRequest|supabase\.|BWSync\.|\.upload\(|https?://", ler("assets/bw-proxy.js")): problemas.append("assets/bw-proxy.js: o proxy é feito no aparelho e não pode enviar nada (PENTE FINO 182)")
+if os.path.exists("video.html") and "assets/bw-proxy.js" not in ler("video.html"): problemas.append("video.html: precisa carregar assets/bw-proxy.js (FAZER PROXY, PENTE FINO 182)")
 # TELAS EM MOVIMENTO (20/11): fotos, vídeos e música ficam no aparelho — motor e editor sem rede, conta ou envio
 for _f in ("assets/telas-motor.js", "assets/telas.js", "assets/album-motor.js", "assets/album.js"):
     if os.path.exists(_f) and re.search(r"fetch\(|XMLHttpRequest|supabase\.|BWSync\.(?!cliente)|\.upload\(|https?://", ler(_f)): problemas.append(_f + ": Telas em movimento não envia nada (sem fetch, upload, conta nem endereço de fora)")

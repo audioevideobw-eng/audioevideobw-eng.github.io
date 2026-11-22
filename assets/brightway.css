@@ -800,3 +800,20 @@ html.bw-no-app .hub-palco{height:max(380px,calc(100vh - 400px))}
 @media (max-width:360px){.bp-modelo span{max-width:64px;overflow:hidden;text-overflow:ellipsis}}
 /* 22/11: o menu da caixa do Tio Cláudio vai para o <body> e fica na FRENTE da roda do robô e do botão flutuante */
 .bp-menu.bp-solto{position:fixed;z-index:9900;top:auto}
+
+/* ===== 22/11 (dono: "botões do Criador IA mais modernos — MESMA COR, com RELEVO e SOMBRA — padronizado em TUDO") =====
+   BOTÃO DAS FERRAMENTAS (todas as páginas de edição/criação, modo foco): uma cor só (grafite), relevo (luz em cima, borda escura embaixo)
+   e sombra que sobe no hover e afunda no toque. Vale para .bw-btn e para os botões de cada editor (ve-bt, mo-bt, tl-bt, d3-bt, al-bt,
+   rl-bt, pg-bt), inclusive o principal (.pri, que só ganha a letra âmbar). Estados (.on ligado, .perigo) mantêm a cor própria.
+   Botão novo de ferramenta = usar uma dessas classes; nunca cor de fundo escrita no botão. */
+html.bw-foco .bw-btn{min-height:44px;padding:0 16px;border-radius:13px;font:700 12.5px/1.15 Inter,sans-serif;letter-spacing:.06em;text-transform:uppercase;text-align:center;text-wrap:balance}
+html.bw-foco :is(.bw-btn,.ve-bt,.mo-bt,.tl-bt,.d3-bt,.al-bt,.rl-bt,.pg-bt):not(.on):not(.perigo):not([aria-pressed="true"]){
+  position:relative;border:1px solid rgba(255,255,255,.10);background:linear-gradient(180deg,#2b313c 0%,#1d222b 55%,#181c24 100%);color:#F5F1EA;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.14),inset 0 -2px 0 rgba(0,0,0,.35),0 6px 14px -6px rgba(0,0,0,.75),0 2px 3px rgba(0,0,0,.35);
+  transition:transform .14s ease,box-shadow .14s ease,border-color .14s ease,filter .14s ease;-webkit-tap-highlight-color:transparent}
+html.bw-foco :is(.bw-btn--primario,.pri):is(.bw-btn,.ve-bt,.mo-bt,.tl-bt,.d3-bt,.al-bt,.rl-bt,.pg-bt):not(.on){color:#FFC46B;border-color:rgba(255,181,71,.38)}
+html.bw-foco :is(.bw-btn,.ve-bt,.mo-bt,.tl-bt,.d3-bt,.al-bt,.rl-bt,.pg-bt):not(.on):not(.perigo):not([disabled]):hover{transform:translateY(-1px);border-color:rgba(255,181,71,.45);filter:brightness(1.1);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.18),inset 0 -2px 0 rgba(0,0,0,.35),0 10px 20px -8px rgba(0,0,0,.8),0 0 0 1px rgba(255,181,71,.12)}
+html.bw-foco :is(.bw-btn,.ve-bt,.mo-bt,.tl-bt,.d3-bt,.al-bt,.rl-bt,.pg-bt):not([disabled]):active{transform:translateY(1px)!important;box-shadow:inset 0 2px 5px rgba(0,0,0,.55),0 1px 2px rgba(0,0,0,.4)!important;filter:brightness(.96)}
+html.bw-foco :is(.bw-btn,.ve-bt,.mo-bt,.tl-bt,.d3-bt,.al-bt,.rl-bt,.pg-bt):focus-visible{outline:2px solid #FFB547;outline-offset:2px}
+html.bw-foco :is(.bw-btn,.ve-bt,.mo-bt,.tl-bt,.d3-bt,.al-bt,.rl-bt,.pg-bt)[disabled]{opacity:.45;transform:none;filter:none;cursor:not-allowed}

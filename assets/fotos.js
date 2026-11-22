@@ -1713,7 +1713,7 @@
     var pega = document.createElement("div"); pega.className = "ed-pega"; pega.innerHTML = '<span>⠿ FERRAMENTAS</span><button type="button" data-ep="solta" title="Descolar: vira uma janela solta que você arrasta e estica" aria-label="Descolar o painel">⇱</button><button type="button" data-ep="some" title="Esconder o painel (a foto fica com a tela toda)" aria-label="Esconder o painel">✕</button>';
     pn.insertBefore(pega, pn.firstChild);
     var puxa = document.createElement("i"); puxa.className = "ed-puxa"; puxa.title = "Arraste para alargar ou estreitar o painel (até o fim = esconde)"; centro.style.position = "relative"; centro.appendChild(puxa);
-    var volta = document.createElement("div"); volta.className = "ed-volta"; volta.hidden = true; volta.innerHTML = '<button type="button" title="Mostrar o painel de ferramentas">＋ FERRAMENTAS</button>'; centro.appendChild(volta);
+    var volta = document.createElement("div"); volta.className = "ed-volta"; volta.hidden = true; volta.innerHTML = '<button type="button" title="Mostrar o painel de ferramentas" aria-label="Mostrar o painel de ferramentas"><b>▸</b><span>FERRAMENTAS</span></button>'; centro.appendChild(volta);
     var fbt = null; if (faixa) { fbt = document.createElement("button"); fbt.type = "button"; fbt.className = "ed-faixa-bt"; fbt.title = "Recolher ou mostrar os filtros"; }
     function aplicar() {
       var p = pc(); ed.classList.toggle("sem-painel", p && !!S.oculto); ed.classList.toggle("painel-solto", p && !!S.solto && !S.oculto); pn.classList.toggle("solto", p && !!S.solto && !S.oculto);

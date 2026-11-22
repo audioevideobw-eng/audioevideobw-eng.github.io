@@ -11,7 +11,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Brightway">
-<link rel="stylesheet" href="assets/brightway.css?v=35">
+<link rel="stylesheet" href="assets/brightway.css?v=36">
 <style>
 .wrap{max-width:1500px;margin:0 auto;padding:0 16px 110px}
 .ve-topo{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px}
@@ -184,6 +184,46 @@
   #veCriarBt{display:none}.wrap.bwf-fixo #veCriarBt{display:inline-flex}
   .wrap.bwf-fixo #veCriar{display:none;order:2}.wrap.bwf-fixo .ve-esq.criar #veCriar{display:block}
   .wrap.bwf-fixo #veCriar h3{pointer-events:none}.wrap.bwf-fixo #veCriar h3::after{display:none}
+
+/* 22/11: PROXY, CACHE, PASTAS e janela de EXPORTAR */
+.ve-cache{margin-top:10px;padding-top:10px;border-top:1px dashed rgba(245,241,234,.14)}
+.ve-cache .ve-linha{margin-top:0}.ve-cache .ve-bt.ic{flex:0 0 42px;padding:0}
+.ve-uso{margin-top:7px;font:500 11px/1.5 Inter,sans-serif;color:rgba(245,241,234,.72)}.ve-uso b{color:#F5F1EA}
+.ve-px{display:flex;align-items:center;gap:7px;margin-top:6px;font:600 11.5px Inter,sans-serif;color:#F5F1EA;text-transform:none;cursor:pointer}.ve-px small{color:rgba(245,241,234,.6);font-weight:500}
+.ve-px input{width:18px;height:18px;accent-color:#7C5CFF}
+.ve-item .selo.px{left:auto;right:4px;top:auto;bottom:26px;color:#3ECF8E;font-weight:800}
+.ve-jan{position:fixed;inset:0;z-index:9500;background:rgba(4,6,10,.74);display:flex;align-items:center;justify-content:center;padding:14px}
+.ve-jan-c{width:min(720px,100%);max-height:min(88vh,900px);display:flex;flex-direction:column;background:#0D1119;border:1px solid rgba(245,241,234,.16);border-radius:18px;box-shadow:0 24px 70px rgba(0,0,0,.6);color:#F5F1EA;min-height:0}
+.ve-jan-t{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px;border-bottom:1px solid rgba(245,241,234,.1);font:800 13px Inter,sans-serif;letter-spacing:.08em}
+.ve-jan-corpo{overflow:auto;padding:14px;min-height:0;overscroll-behavior:contain}
+.ve-jan .ve-sel{min-height:40px;font-size:16px}
+.ve-pxlista{display:grid;gap:6px;margin:10px 0;max-height:46vh;overflow:auto}
+.ve-pxit{display:grid;grid-template-columns:22px 64px minmax(0,1fr) auto;align-items:center;gap:9px;padding:7px;border-radius:12px;border:1px solid rgba(245,241,234,.1);background:rgba(255,255,255,.03);cursor:pointer;text-transform:none}
+.ve-pxit img,.ve-pxit .mini{width:64px;height:38px;object-fit:cover;border-radius:7px;background:#000;display:flex;align-items:center;justify-content:center}
+.ve-pxit b{display:block;font:700 12px Inter,sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ve-pxit small{display:block;font:500 10.5px Inter,sans-serif;color:rgba(245,241,234,.6)}
+.ve-pxit input,.ve-lp input{width:20px;height:20px;accent-color:#7C5CFF}.ve-pxit.ruim{opacity:.55}
+.ve-pxit em,.ve-exp-res .dn,.ve-exp-res .md{font:800 10px Inter,sans-serif;font-style:normal;letter-spacing:.05em}.ve-pxit em.ok{color:#3ECF8E}.ve-pxit em.dn,.dn{color:#FF8A8A}.ve-pxit em.md,.md{color:#FFB547}
+.ve-cmp{display:flex;align-items:center;gap:8px;font:600 12px Inter,sans-serif;text-transform:none}
+.ve-copia{position:fixed;right:14px;bottom:14px;z-index:9400;width:min(380px,calc(100vw - 28px));background:#0D1119;border:1px solid rgba(124,92,255,.55);border-radius:16px;box-shadow:0 18px 50px rgba(0,0,0,.6);color:#F5F1EA;font:600 12px Inter,sans-serif}
+.ve-copia-t{display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid rgba(245,241,234,.1)}.ve-copia-t b{flex:1;letter-spacing:.06em}.ve-copia-t span{color:rgba(245,241,234,.7)}
+.ve-copia-t .ve-bt{min-height:30px;width:30px;padding:0}
+.ve-copia-corpo{padding:10px 12px}.ve-copia.min .ve-copia-corpo{display:none}
+.ve-cp-nome{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:6px}
+.ve-cp-barra{height:12px;border-radius:7px;background:rgba(255,255,255,.08);overflow:hidden}.ve-cp-barra i{display:block;height:100%;width:0;background:linear-gradient(90deg,#7C5CFF,#3ECF8E);transition:width .25s linear}
+.ve-cp-barra.total{height:8px}.ve-cp-barra.total i{background:#3ECF8E}
+.ve-cp-info{margin:5px 0 9px;font:500 11px Inter,sans-serif;color:rgba(245,241,234,.75)}.ve-cp-rot{font:800 9.5px Inter,sans-serif;letter-spacing:.1em;color:rgba(245,241,234,.55);margin-bottom:4px}
+.ve-lp{display:flex;gap:10px;align-items:flex-start;padding:9px;border-radius:12px;border:1px solid rgba(245,241,234,.1);margin-bottom:7px;cursor:pointer;text-transform:none}.ve-lp b{display:block;font:700 12.5px Inter,sans-serif}.ve-lp small{display:block;font:500 11px Inter,sans-serif;color:rgba(245,241,234,.62)}
+.ve-lp.perigo b{color:#FF8A8A}
+.ve-cfgl{display:flex;flex-wrap:wrap;justify-content:space-between;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid rgba(245,241,234,.08)}.ve-cfgl>div:first-child{min-width:0;flex:1 1 240px}
+.ve-cfgl b{display:block;font:800 12px Inter,sans-serif;letter-spacing:.06em}.ve-cfgl small{display:block;font:500 11px Inter,sans-serif;color:rgba(245,241,234,.62)}.ve-cfgl em{display:block;font:700 11px Inter,sans-serif;font-style:normal;color:#9fb4ff;margin-top:3px}
+.ve-exp-abas{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}.ve-exp-abas .ve-bt{flex:1 1 auto;min-height:38px;font-size:10.5px}.ve-exp-abas .ve-bt.on{background:#7C5CFF;border-color:#7C5CFF;color:#fff}
+.ve-exp-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:8px}
+.ve-exp-card{text-align:left;padding:11px;border-radius:13px;border:1px solid rgba(245,241,234,.14);background:rgba(255,255,255,.04);color:#F5F1EA;cursor:pointer;min-width:0}
+.ve-exp-card b{display:block;font:800 12px Inter,sans-serif;letter-spacing:.04em}.ve-exp-card small{display:block;margin-top:3px;font:500 10.5px/1.4 Inter,sans-serif;color:rgba(245,241,234,.66)}
+.ve-exp-card.on{border-color:#7C5CFF;background:rgba(124,92,255,.18);box-shadow:0 0 0 2px rgba(124,92,255,.35) inset}.ve-exp-card.off{opacity:.5;cursor:not-allowed}
+.ve-exp-grade{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:9px}.ve-exp-grade label{display:flex;flex-direction:column;gap:4px;font:700 11px Inter,sans-serif;text-transform:none;min-width:0}
+.ve-exp-res{margin:12px 0 4px;padding:10px;border-radius:12px;background:rgba(255,255,255,.04);font:500 11.5px/1.6 Inter,sans-serif}
+@media (max-width:560px){.ve-jan{padding:0;align-items:flex-end}.ve-jan-c{border-radius:18px 18px 0 0;max-height:92vh}.ve-exp-cards{grid-template-columns:1fr 1fr}.ve-copia{right:8px;left:8px;width:auto;bottom:calc(70px + env(safe-area-inset-bottom))}}
 </style>
 <script src="assets/modos.js?v=6"></script>
 <link rel="stylesheet" href="assets/ve-app.css?v=5">
@@ -241,17 +281,19 @@
 <div class="ve-ocup ve-saida" id="veSaida" hidden><span id="veSaidaTxt">Vídeo pronto</span><video id="veVideoPronto" controls playsinline></video><div class="ve-linha"><a class="ve-bt pri" id="veBaixar" download="video-brightway.mp4">⬇ SALVAR VÍDEO</a><button class="ve-bt" id="veCompartilhar" type="button">COMPARTILHAR</button><button class="ve-bt" id="veFecharSaida" type="button">FECHAR</button></div></div>
 <input type="file" id="veArq" accept="video/*,image/*,audio/*" multiple hidden>
 <input type="file" id="veArqTroca" accept="video/*,image/*,audio/*" hidden>
-<script src="assets/layout.js?v=71"></script>
+<script src="assets/layout.js?v=72"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="assets/bw-sync.js?v=20261122"></script>
 <script src="assets/bw-personagens.js?v=3"></script>
-<script src="assets/bw-ferramentas.js?v=4"></script>
+<script src="assets/bw-ferramentas.js?v=5"></script>
 <script src="assets/bw-criacoes.js?v=3"></script>
 <script src="assets/bw-chroma.js?v=1"></script>
 <script src="assets/bw-cor.js?v=1"></script>
 <script src="assets/bw-mascara.js?v=1"></script>
 <script src="assets/ve-app.js?v=4"></script>
-<script src="assets/video-editor.js?v=16"></script>
+<script src="assets/reels-celular.js?v=6"></script>
+<script src="assets/bw-proxy.js?v=1"></script>
+<script src="assets/video-editor.js?v=18"></script>
 <script src="assets/ve-modelos.js?v=1"></script>
 <script src="assets/bw-controle.js?v=1"></script>
 </body>

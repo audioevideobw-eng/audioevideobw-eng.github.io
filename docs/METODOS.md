@@ -533,3 +533,14 @@ Tamanho > 0 e sem erro = o pdfmake montou o arquivo. Localmente (T1) confira o `
 - Antes de exportar/salvar quadro: `tamanhoReal(true)` (redimensiona e redesenha na hora); no fim (e em todo retorno de erro) `tamanhoReal(false)`.
 - Tamanho do projeto = `tamReal()`; `cv.width` é o da prévia. Teste: projeto 1450×2000 → prévia ≤ 1280 e tamanhoReal(true) = 1450×2000.
 - Mais leve ainda = PROXY (cópia 720p feita fora do navegador, ex.: `ffmpeg -hwaccel cuda -i in.mp4 -vf scale=-2:720 -c:v h264_nvenc -preset p1 -c:a copy proxy.mp4`).
+
+## Proxy, exportação profissional e "a tela é o assunto" (22/11/2026)
+- PROXY no navegador: `<video>` escondido tocando a 1,5–2× + `requestVideoFrameCallback` → canvas → `VideoFrame` → `VideoEncoder` (H.264, quadro-chave a cada 0,5 s,
+  esperar `encodeQueueSize` baixar) → mux MP4 do reels-celular; som por `decodeAudioData` (≤ 1,5 GB) → `AudioEncoder` AAC, com Opus de reserva. Editar = proxy;
+  exportar = original (soltar os `<video>` e reabrir com o arquivo), no tamanho do preset, e voltar. Teste: ffprobe do proxy + do arquivo exportado.
+- Janela de exportar: presets em tabela (resolução pelo lado curto, fps, Mbps, AAC); codecs pelo `MediaRecorder.isTypeSupported`; WAV pelo MESTRE (ScriptProcessor,
+  RIFF 24 bits); sequência de imagens = andar T, esperar os `seeked`, `toBlob`, gravar na pasta (File System Access) ou num .zip com JSZip de CÓPIA LOCAL carregado só ali.
+- Seções com seta numa ferramenta nova: `BWDobras.agrupar(coluna, ".titulo", "prefixo_", ["seções_fechadas"])` + `BWDobras.todas(coluna, true|false)` nos botões
+  ABRIR/FECHAR TUDO; caixa redesenhada por innerHTML → `data-seta-livre` e `BWDobras.aplicar(caixa)` depois de desenhar.
+- Tela fixa + painéis: `BWFerr.telaFixa({wrap, grade, palco, rola:[], painelLer, painelGravar, aoMedir})`; dar `data-bwf-nome` ao painel; aoMedir ajusta o canvas pela
+  altura do palco. O painel escondido já vira BORDA e há ⛶ SÓ A TELA (Tab).

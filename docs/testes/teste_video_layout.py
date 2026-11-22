@@ -86,8 +86,8 @@ with sync_playwright() as p:
             pg.click('#veTl .bwf-pega [data-bwf-p="solta"]'); pg.wait_for_timeout(300)
             ok(pg.evaluate("getComputedStyle(document.getElementById('veTl')).position") == "fixed" and pg.evaluate(R + "('#veCv')")[3] > cvr[3], "⇱ na LINHA DO TEMPO: ela vira janela solta e a prévia cresce")
             pg.click('#veTl .bwf-pega [data-bwf-p="solta"]'); pg.wait_for_timeout(300); pg.click('#veTl .bwf-pega [data-bwf-p="some"]'); pg.wait_for_timeout(300)
-            ok(pg.evaluate("document.getElementById('veTl').getClientRects().length") == 0 and pg.locator('.bwf-volta [data-bwf-id="veTl"]').is_visible(), "✕ esconde a linha do tempo e aparece ＋ LINHA DO TEMPO lá em cima")
-            pg.click('.bwf-volta [data-bwf-id="veTl"]'); pg.wait_for_timeout(300); ok(pg.evaluate("getComputedStyle(document.getElementById('veTl')).position") != "fixed" and pg.evaluate("document.getElementById('veTl').getClientRects().length") > 0, "＋ traz de volta, encaixada")
+            ok(pg.evaluate("document.getElementById('veTl').getBoundingClientRect().height") <= 20 and pg.locator('#veTl > .bwf-borda-bt').is_visible(), "✕ esconde a linha do tempo: fica só uma BORDA embaixo")
+            pg.click('#veTl > .bwf-borda-bt'); pg.wait_for_timeout(300); ok(pg.evaluate("getComputedStyle(document.getElementById('veTl')).position") != "fixed" and pg.evaluate("document.getElementById('veTl').getClientRects().length") > 0, "＋ traz de volta, encaixada")
             # BARRA DE CORTE e MENU DO TAKE: aparar até a agulha, copiar/colar ajustes, desativar
             vid = pg.evaluate("__video.P().clips.find(c=>c.tipo==='video').id"); pg.evaluate(f"__video.sel('{vid}'); __video.irPara(1)"); pg.click("#veApFim"); pg.wait_for_timeout(250)
             ok(abs(pg.evaluate(f"__video.P().clips.find(c=>c.id==='{vid}').dur") - 1) < 0.06 and pg.evaluate("__video.P().clips.filter(c=>c.tipo==='video').length") == 1, "[⇥ corta o fim do take na agulha (sobra 1 s, sem pedaço solto)")

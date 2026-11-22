@@ -11,12 +11,12 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Brightway">
-<link rel="stylesheet" href="assets/brightway.css?v=35">
+<link rel="stylesheet" href="assets/brightway.css?v=36">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat:wght@500;800&family=Pacifico&family=Playfair+Display:wght@700&family=Michroma&family=Inter:wght@400;600;700&family=Poppins:wght@500;800&family=Anton&family=Righteous&family=Cinzel:wght@700&family=Lobster&family=Dancing+Script:wght@700&family=Great+Vibes&family=Caveat:wght@700&family=Fredoka:wght@600&family=Russo+One&family=Bungee&family=Permanent+Marker&family=Rye&family=Bangers&family=Mochiy+Pop+One&display=swap" rel="stylesheet">
 <style>
 .wrap{max-width:1180px;margin:0 auto;padding:0 20px 90px}
-.cr-grade{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,440px);gap:18px;align-items:start}
+.cr-grade{display:grid;grid-template-columns:minmax(0,430px) minmax(0,1fr);gap:18px;align-items:start}   /* a arte é o assunto principal: coluna de ajustes estreita, prévia grande */
 @media (max-width:920px){.cr-grade{grid-template-columns:minmax(0,1fr)}}
 .cr-tipos{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
 @media (max-width:560px){.cr-tipos{grid-template-columns:repeat(2,minmax(0,1fr))}}
@@ -64,7 +64,7 @@
 .cr-sl{display:grid;grid-template-columns:92px minmax(0,1fr) 44px;align-items:center;gap:8px;font:600 12px Inter,system-ui,sans-serif;color:rgba(245,241,234,.8);margin:6px 0}
 .cr-sl input{width:100%;accent-color:#FFB547}
 .cr-saida{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
-.cr-saida .bw-btn{flex:1 1 140px;min-height:44px}
+.cr-saida{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:9px}.cr-saida .bw-btn{min-height:48px;width:100%}
 .cr-msg{font:500 13px Inter,system-ui,sans-serif;color:rgba(245,241,234,.8);min-height:18px;margin-top:8px}
 .cr-legenda{white-space:pre-wrap;background:rgba(6,8,13,.55);border:1px solid rgba(245,241,234,.14);border-radius:12px;padding:12px;font:400 14px/1.5 Inter,system-ui,sans-serif;color:#F5F1EA;margin-top:8px}
 .cr-ocup{position:fixed;inset:0;z-index:9000;background:rgba(6,8,13,.72);display:flex;align-items:center;justify-content:center;color:#F5F1EA;font:600 15px Inter,system-ui,sans-serif;text-align:center;padding:24px}
@@ -84,27 +84,40 @@
 .cr-selbar[hidden]{display:none}
 #animCorpo[hidden]{display:none}
 .cr-toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);z-index:9100;background:#151a23;border:1px solid rgba(245,241,234,.18);color:#F5F1EA;padding:11px 16px;border-radius:12px;font:500 14px Inter,system-ui,sans-serif;max-width:min(90vw,460px);text-align:center;box-shadow:0 10px 30px rgba(0,0,0,.5)}
+
+/* 22/11 (dono: "setas de omissão no Criador IA; mesma tela do editor de vídeo: a arte sempre à vista, os ajustes rolam"):
+   seções com seta (BWDobras.agrupar) e, no computador, a página na altura da janela — coluna da esquerda rola, a prévia fica parada. */
+.cr-barra-dob{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 8px}.cr-barra-dob b{flex:1;font:800 13px Inter,sans-serif;letter-spacing:.1em;color:#F5F1EA}
+.cr-esq .bw-sec{min-width:0}.cr-esq .bw-sec+.bw-sec{margin-top:2px}
+.cr-esq .cr-tit[data-seta]{padding:6px 2px;border-radius:8px}.cr-esq .cr-tit[data-seta]:hover{background:rgba(255,255,255,.04)}
+/* tela fixa e painéis livres do bw-ferramentas (os mesmos do editor de vídeo): no PC a coluna de ajustes rola, a arte fica parada;
+   ⠿ AJUSTES esconde/descola; a beirada da prévia estica a coluna. */
+.bwf-fixo .cr-prev{display:flex;flex-direction:column;position:static}
+.bwf-fixo .cr-prev>.tf-card{margin:0;flex:1 1 auto;display:flex;flex-direction:column;min-height:0}
+.bwf-fixo .cr-palco{flex:1 1 auto;min-height:0}
+.bwf-fixo .cr-palco canvas{width:auto;max-width:100%}
+.bwf-fixo .cr-esq{padding-right:6px;padding-bottom:30px;scrollbar-width:thin}
 </style>
 <script src="assets/modos.js?v=6"></script>
 </head>
 <body>
 <header><div class="hd"><button id="btnVoltar" type="button">‹</button><div id="userBox"></div></div></header>
 <div class="wrap">
-  <div class="tf-card" style="margin-top:0">
-    <h3>Criador IA — convites, posts, flyers e cartões</h3>
-    <p class="tf-sub">Escolha o que criar, preencha os dados e a IA faz a arte. Os textos entram por cima com fontes de verdade (sem erro de letra) e você ajusta tudo antes de baixar.</p>
-    <div class="cr-tipos" id="tipos" role="group" aria-label="O que criar"></div>
-    <div class="cr-tit">Modelo</div><div class="cr-chips" id="subtipos"></div>
-  </div>
-  <div class="tf-card" id="bibCard">
-    <div class="cr-tit">📚 Biblioteca de convites prontos</div>
-    <p class="tf-nota" style="margin:0 0 6px">Toque num modelo: ele entra com o estilo, as cores e as animações. Depois é só pôr os seus dados. Os ✨ já vêm animados.</p>
-    <div class="cr-chips" id="bibCats"></div>
-    <div class="cr-bib" id="bib" role="list"></div>
-  </div>
-
   <div class="cr-grade">
-    <div class="cr-esq" style="min-width:0">
+    <div class="cr-esq" id="crPainel" data-bwf-nome="AJUSTES" style="min-width:0">
+    <div class="cr-barra-dob"><b>CRIADOR IA</b><button type="button" class="cr-chip" id="crFecharTudo">▸ FECHAR TUDO</button><button type="button" class="cr-chip" id="crAbrirTudo">▾ ABRIR TUDO</button></div>
+    <div class="tf-card" style="margin-top:0">
+      <div class="cr-tit">O que criar</div>
+      <p class="tf-sub" style="margin-top:0">Escolha o que criar, preencha os dados e a IA faz a arte. Os textos entram por cima com fontes de verdade (sem erro de letra) e você ajusta tudo antes de baixar.</p>
+      <div class="cr-tipos" id="tipos" role="group" aria-label="O que criar"></div>
+      <div class="cr-tit">Modelo</div><div class="cr-chips" id="subtipos"></div>
+    </div>
+    <div class="tf-card" id="bibCard">
+      <div class="cr-tit">📚 Biblioteca de convites prontos</div>
+      <p class="tf-nota" style="margin:0 0 6px">Toque num modelo: ele entra com o estilo, as cores e as animações. Depois é só pôr os seus dados. Os ✨ já vêm animados.</p>
+      <div class="cr-chips" id="bibCats"></div>
+      <div class="cr-bib" id="bib" role="list"></div>
+    </div>
       <div class="tf-card">
         <div class="cr-tit">Dados</div>
         <div class="cr-campos" id="campos"></div>
@@ -149,7 +162,7 @@
             <div class="cr-saida"><a class="bw-btn" id="animBaixar" download="convite.mp4">⇩ BAIXAR VÍDEO</a><button type="button" class="bw-btn bw-btn--vidro" id="animShare">COMPARTILHAR</button></div></div>
         </div>
       </div>
-      <div class="tf-card"><div class="cr-tit">Ajustes do texto e da arte</div><div id="ajustes"></div></div>
+      <div class="tf-card"><div class="cr-tit">Ajustes do texto e da arte</div><div id="ajustes" data-seta-livre></div></div>
       <div class="tf-card"><div class="cr-tit">Salvar e enviar</div>
         <div class="cr-saida">
           <button type="button" class="bw-btn" id="btnVideo">🎬 BAIXAR VÍDEO ANIMADO (MP4)</button>
@@ -177,13 +190,14 @@
 </div>
 <div class="cr-ocup" id="ocup" hidden></div>
 
-<script src="assets/layout.js?v=71"></script>
+<script src="assets/layout.js?v=72"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="assets/bw-sync.js?v=20261122"></script>
 <script src="assets/fotos-nuvem.js?v=3"></script>
 <script src="assets/convite-anim.js?v=4"></script>
-<script src="assets/reels-celular.js?v=5"></script>
+<script src="assets/reels-celular.js?v=6"></script>
 <script src="assets/bw-criacoes.js?v=3"></script>
-<script src="assets/criador.js?v=12"></script>
+<script src="assets/bw-ferramentas.js?v=5"></script>
+<script src="assets/criador.js?v=13"></script>
 </body>
 </html>

@@ -59,6 +59,23 @@ with sync_playwright() as p:
         ok(not erros, f"abre sem erro de JS {erros[:2]}")
         ok(pg.locator("#tipos .cr-tipo").count() == 4, "4 tipos: CONVITE, POST, FLYER, CARTÃO")
         ok(pg.locator("#subtipos .cr-chip").count() == 28, "convite tem 28 modelos")
+        # 22/11: setas em todas as seções (PENTE FINO 182) + ABRIR/FECHAR TUDO
+        nsec = pg.locator(".cr-esq [data-seta]").count(); ok(nsec >= 10, f"seções com seta no Criador ({nsec})")
+        ok(pg.locator("#ajustes [data-seta]").count() >= 5, "ajustes também em seções com seta")
+        pg.click("#crFecharTudo"); pg.wait_for_timeout(200)
+        ok(not pg.locator("#estilos").is_visible() and not pg.locator("#campos").is_visible(), "▸ FECHAR TUDO fecha as seções")
+        pg.click("#crAbrirTudo"); pg.wait_for_timeout(200)
+        ok(pg.locator("#estilos").is_visible() and pg.locator('#ajustes [data-k="qr"]').first.is_visible(), "▾ ABRIR TUDO abre todas (inclusive ajustes)")
+        if largura > 920:
+            ok(pg.evaluate("document.querySelector('.wrap').classList.contains('bwf-fixo')"), "PC: tela fixa do editor de vídeo (a coluna rola, a arte fica parada)")
+            w0 = pg.evaluate("document.getElementById('cv').getBoundingClientRect().width")
+            pg.click('#crPainel [data-bwf-p="some"]'); pg.wait_for_timeout(500)
+            w1 = pg.evaluate("document.getElementById('cv').getBoundingClientRect().width")
+            ok(pg.evaluate("document.getElementById('crPainel').getBoundingClientRect().width") <= 20 and w1 >= w0, f"✕ esconde os AJUSTES (vira borda) e a arte cresce ({w0:.0f} → {w1:.0f} px)")
+            pg.click('[data-bwf-sotela]'); pg.wait_for_timeout(300); a1 = pg.locator("#crPainel #campos").is_visible()
+            pg.click('[data-bwf-sotela]'); pg.wait_for_timeout(300); a2 = pg.locator("#crPainel #campos").is_visible()
+            ok(a1 and not a2 and "MOSTRAR" in pg.inner_text('[data-bwf-sotela]'), "⊞ MOSTRAR PAINÉIS traz tudo / ⛶ SÓ A TELA esconde tudo")
+            pg.click('#crPainel > .bwf-borda-bt'); pg.wait_for_timeout(400); ok(pg.locator("#crPainel").is_visible(), "＋ AJUSTES traz o painel de volta")
         # dados do convite
         for k, v in (("nome", "Marina"), ("idade", "30"), ("data", "2026-12-20"), ("hora", "19:00"), ("local", "Espaço Jardim"), ("rsvp", "(31) 98888-7777")):
             pg.fill(f'#campos [data-c="{k}"]', v)
@@ -112,6 +129,15 @@ with sync_playwright() as p:
         for k, v in (("pos", "topo"), ("caixa", "vidro"), ("par", "elegante"), ("cor", "escuro"), ("alinh", "esquerda"), ("qr", "rsvp")):
             pg.click(f'#ajustes [data-k="{k}"][data-v="{v}"]'); pg.wait_for_timeout(150)
         ok(not erros, f"ajustes sem erro {erros[:2]}")
+        # segurar 0,5 s num objeto animado = opções (Apagar, Duplicar…)
+        pg.evaluate("__criador.E().anim||0"); 
+        res = pg.evaluate("""(async()=>{const E=__criador.E(); if(!E.anim) return 'sem anim'; E.anim.ligado=true; E.anim.itens=[{id:Object.keys(BWConviteAnim.ITENS)[0],x:.5,y:.5,s:.2}];
+          const cv=document.getElementById('cv'),r=cv.getBoundingClientRect(),x=r.left+r.width/2,y=r.top+r.height/2;
+          cv.dispatchEvent(new PointerEvent('pointerdown',{clientX:x,clientY:y,pointerId:9,bubbles:true,isPrimary:true}));
+          await new Promise(o=>setTimeout(o,700)); const m=document.querySelector('.bwf-menu'); if(!m) return 'sem menu'; await new Promise(o=>setTimeout(o,500));
+          const it=[...m.querySelectorAll('button')].find(b=>/Apagar/.test(b.textContent)); it.click(); await new Promise(o=>setTimeout(o,100));
+          return E.anim.itens.length})()""")
+        ok(res == 0, f"segurar 0,5 s no objeto abre as opções e APAGAR tira ({res})")
         # PNG e PDF de verdade
         b64 = pg.evaluate("""(async()=>{const b=await __criador.png(true);const a=new Uint8Array(await b.arrayBuffer());let s='';for(let i=0;i<a.length;i+=8192)s+=String.fromCharCode.apply(null,a.subarray(i,i+8192));return btoa(s)})()""")
         dim = pg.evaluate(DIM, b64); ok(dim == [1080, 1920], f"PNG story em 1080×1920 ({dim})")
