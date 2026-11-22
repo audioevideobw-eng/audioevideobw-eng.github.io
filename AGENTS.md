@@ -1910,6 +1910,9 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   docs/testes/teste_previa_ferramentas.py (popup, PNG baixado de verdade, celular anda o tempo) 0 falhas; telas, 3d, 3d_plano, 3d_foto 0 falhas.
   APP BW 1.9.23 (cópia sem internet de hoje, tutorial, novidades) publicado. Manual 58 p. telas.js v8, bw3d.js v12, sw v176.
 ## Pendências (dono)
+- [ ] (22/11) BW-Setup.exe 1.9.23: arquivos novos já copiados para Vídeos\bw-reels-studio; o "5 - GERAR INSTALADOR EXE" não abriu pelo clique remoto
+      (2 tentativas, o .exe não mudou). Dono: dois cliques nele e avisar o Claude, que traz o .exe. Quem já tem o app atualiza sozinho para a 1.9.23.
+- [ ] (22/11) MOTION NO CELULAR + ⋯ NAS TELAS E NO 3D: dono testar o Motion no celular (tocar num item, folhas, segurar) e os ⋯ das Telas/3D no PC (2º monitor).
 - [ ] (22/11) CAIXA DO TIO CLÁUDIO: dono testar no PC e no celular, logado — pedir algo pela caixa, trocar BW Smart / Rápido / Inteligente e usar a ✨ varinha.
 - [ ] (22/11) ESTÚDIO DE MOTION: dono testar no PC — arrastar efeito até a barra, barra em cima de outra camada, COR, rodinha na prévia, 🖥 2º monitor e 📱 celular. Dizer se quer também o layout de app no celular.
 - [ ] (22/11) ABERTURA DO APP: dono atualizar para 1.9.17 e escolher VÍDEO, FOTO + MUNDO ou MUNDO (chave no alto); conferir o ENTRAR e o menu escondido. BW-Setup.exe 1.9.16 depende do PC (o do site atualiza sozinho).
