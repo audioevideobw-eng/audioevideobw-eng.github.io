@@ -1,23 +1,23 @@
 {
- "versao": "1.9.22",
+ "versao": "1.9.23",
  "data": "22/11/2026",
  "pacote": "downloads/BW-Reels-Studio.zip",
- "sha256": "ecc8fdde922eea9b18d60f6392877312db767453dfb4ab0e1bf6e425fe2f05d7",
- "bytes": 41424096,
+ "sha256": "e220f62c09cf0a79a45394ce5ea168920b4aaec68d6397caf2ef4cc1e6ee34c7",
+ "bytes": 41439813,
  "novidades": [
   {
-   "titulo": "Adicionar mídia sem susto",
-   "texto": "No editor de vídeo, arquivo que não abre neste computador (vídeo HEVC, foto HEIC) aparece com ⚠ e o aviso explica; vários arquivos mostram o progresso; cada botão vira um passo do desfazer.",
-   "abrir": "video"
-  },
-  {
-   "titulo": "Opções nos ⋯",
-   "texto": "As opções da prévia (zoom, segundo monitor, tela cheia, celular) ficam nos ⋯ discretos no alto da prévia, no editor de vídeo e no Estúdio de motion.",
+   "titulo": "Motion com cara de app",
+   "texto": "No celular e no tablet o Estúdio de motion ficou igual ao editor de vídeo: prévia grande, agulha parada no meio, faixa de ferramentas que muda com o item tocado e folhas de baixo.",
    "abrir": "motion"
   },
   {
-   "titulo": "Tela parada",
-   "texto": "Ao rolar as ferramentas para o lado, só elas rolam: a tela não anda mais junto."
+   "titulo": "⋯ nas Telas e no 3D",
+   "texto": "Telas em movimento e Estúdio 3D ganharam os ⋯ da prévia: segundo monitor, tela cheia, salvar o quadro em PNG e controle pelo celular.",
+   "abrir": "telas"
+  },
+  {
+   "titulo": "Desfazer com um toque",
+   "texto": "No Motion e nas Telas o ↶ desfaz com um toque só."
   }
  ]
 }

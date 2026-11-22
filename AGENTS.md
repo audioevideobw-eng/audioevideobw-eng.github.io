@@ -1903,6 +1903,12 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   segurar o dedo = opções, "⟵ Linha do tempo" à vista. Bug achado: o DESFAZER do Motion e das Telas precisava de dois toques (o salvar mudava o
   carimbo do projeto) → corrigido. Teste novo docs/testes/teste_motion_app.py (toque real, 390/820/1280) 0 falhas; motion, motion_ferramentas,
   criacoes, paineis 0 falhas; vigia ✅ (7.8i). Manual 57 → 58 p. motion.js v9, telas.js v7, mo-app v1, sw v175. PENTE FINO 165–166.
+- 22/11/2026 08:00 · Claude (parte 2 do mesmo pedido): TELAS EM MOVIMENTO e ESTÚDIO 3D com as ferramentas da prévia do editor de vídeo — novo
+  BWFerr.previa (bw-ferramentas.js v3, comum): ⋯ discreto no alto da prévia (extras da ferramenta + vista + tocar + 2º monitor ao vivo por
+  captureStream + tela cheia + salvar quadro PNG + controle pelo celular). Telas: rodinha = zoom só da vista (selo 🔍 volta a 100%), "Cena na agulha"
+  com as opções da cena. 3D: a rodinha continua sendo o zoom da câmera; ⋯ com ângulos, girar, PNG e gerar vídeo. Teste novo
+  docs/testes/teste_previa_ferramentas.py (popup, PNG baixado de verdade, celular anda o tempo) 0 falhas; telas, 3d, 3d_plano, 3d_foto 0 falhas.
+  APP BW 1.9.23 (cópia sem internet de hoje, tutorial, novidades) publicado. Manual 58 p. telas.js v8, bw3d.js v12, sw v176.
 ## Pendências (dono)
 - [ ] (22/11) CAIXA DO TIO CLÁUDIO: dono testar no PC e no celular, logado — pedir algo pela caixa, trocar BW Smart / Rápido / Inteligente e usar a ✨ varinha.
 - [ ] (22/11) ESTÚDIO DE MOTION: dono testar no PC — arrastar efeito até a barra, barra em cima de outra camada, COR, rodinha na prévia, 🖥 2º monitor e 📱 celular. Dizer se quer também o layout de app no celular.

@@ -7,6 +7,8 @@
   var T = window.BWTelas, $ = function (id) { return document.getElementById(id); };
   var FORMATOS = { "9:16": [1080, 1920], "16:9": [1920, 1080], "1:1": [1080, 1080], "4:5": [1080, 1350], "4k-v": [2160, 3840], "4k-h": [3840, 2160] };
   function par(v) { v = Math.round(Number(v) || 0); return Math.max(240, Math.min(4096, v - v % 2)); }
+  var PREVIA = null;
+  function cenaNaAgulha() { var at = P && P.cenas.length ? T.ativas(P, TEMPO) : []; return at.length ? at[at.length - 1].i : -1; }
   var P = null, MID = {}, ORDEM = [], SEL = -1, TEMPO = 0, TOCANDO = false, HIST = [], FUT = [], SALVAR_T = 0, HIST_T = 0, SOM = null, BATIDA = 0;
   var PREVIA = { esc: 0.5 };
 
@@ -481,6 +483,11 @@
     try { var pq = new URLSearchParams(location.search).get("p"); if (pq) ult = pq; } catch (e) {}
     var r = ult ? await op("projetos", "readonly", function (s) { return s.get(ult); }).catch(function () { return null; }) : null;
     desenharEfx(); ligarArrastar(); ligarFerramentas();
+    /* 22/11 (dono: "as mesmas ferramentas do editor de vídeo"): ⋯ da prévia, rodinha = zoom da vista, 2º monitor, tela cheia, salvar quadro, controle pelo celular */
+    if (window.BWFerr && BWFerr.previa) PREVIA = BWFerr.previa({ palco: document.querySelector(".tl-palco"), alvo: $("tlCv"), canvas: function () { return $("tlCv"); }, nome: "telas", zoom: true, aviso: aviso,
+      api: { tocar: function () { if (!TOCANDO) tocar(); }, parar: function () { if (TOCANDO) tocar(); }, tocando: function () { return TOCANDO; }, irPara: function (t) { if (TOCANDO) tocar(); ver(t); }, T: function () { return TEMPO; }, total: function () { return T.duracao(P); },
+        dividir: function () { var i = cenaNaAgulha(); if (i < 0) return; var c = P.cenas[i], ini = T.inicios(P)[i] || 0; cortarCena(i, (TEMPO - ini) / c.dur); }, desfazer: function () { $("tlDesfazer").click(); }, refazer: function () { $("tlRefazer").click(); } },
+      extras: function () { var i = cenaNaAgulha(), el = i >= 0 && document.querySelector('[data-arr="c:' + i + '"]'), m = el && menuDe(el); return m ? [{ icone: "🎬", rot: "Cena " + (i + 1) + " (na agulha)", sub: m.itens.filter(function (x) { return x !== "-"; }) }] : []; } });
     if (window.BWFerr) FIXA = BWFerr.telaFixa({ wrap: document.querySelector(".wrap"), grade: $("tlGrade"), palco: document.querySelector(".tl-palco"), rola: [document.querySelector(".tl-seq")], nomeRola: "SEQUÊNCIA E EFEITOS", painelLer: function () { return JSON.parse(localStorage.getItem("ui_telas_paineis") || "{}"); }, painelGravar: function (S) { localStorage.setItem("ui_telas_paineis", JSON.stringify(S)); }, some: [document.querySelector(".wrap > .tl-nota")], aviso: $("tlAviso"), aoMedir: function () { if (P) { medir(); if (!TOCANDO) ver(TEMPO); } } });
     if (r && r.projeto) await abrirProjeto(r); else { P = novoProjeto("9:16"); ORDEM = Object.keys(MID); P.ordem = ORDEM.slice(); HIST = [foto()]; desenharTudo(); }
     /* 20/11: tamanho vindo do ESTÚDIO 3D (resolução do telão): telas.html?w=896&h=512 */
@@ -566,7 +573,7 @@
     $("tlAbasCel").addEventListener("click", function (e) { var b = e.target.closest("[data-aba]"); if (b) abaCel(b.getAttribute("data-aba")); });
     addEventListener("resize", function () { medir(); if (!TOCANDO) ver(TEMPO); });
     addEventListener("keydown", function (e) { if (e.key === "Escape") { $("tlFolha").hidden = true; return; } if (/INPUT|TEXTAREA|SELECT/.test((document.activeElement || {}).tagName || "")) return; if (e.key === " " && !window.BWFerr) { e.preventDefault(); tocar(); } });
-    window.BWTelasEditor = { projeto: function () { return P; }, midias: function () { return MID; }, ordem: function () { return ORDEM; }, ver: ver, tempo: function () { return TEMPO; }, batida: function () { return BATIDA; } }; // testes
+    window.BWTelasEditor = { projeto: function () { return P; }, midias: function () { return MID; }, ordem: function () { return ORDEM; }, ver: ver, tempo: function () { return TEMPO; }, batida: function () { return BATIDA; }, previa: function () { return PREVIA; }, tocando: function () { return TOCANDO; } }; // testes
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", iniciar); else iniciar();
 })();

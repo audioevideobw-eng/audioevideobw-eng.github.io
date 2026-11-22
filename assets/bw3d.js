@@ -11,7 +11,7 @@
   var ACAB = { dourado: ["Dourado", "#C9A227"], prata: ["Prata", "#C8CDD6"], cromado: ["Cromado", "#E6EDF7"], cobre: ["Cobre", "#B76E3A"], cor: ["Cor sólida", "#B6FF3B"], imagem: ["A própria arte", "#FFFFFF"] };
   var PITCHES = [[2.604, "P2.6"], [2.976, "P3.0"], [3.906, "P3.9"], [4.81, "P4.8"], [5.952, "P6.0"], [10, "P10"]];
   var LUZES = { estudio: [-0.6, 0.7, -0.42], frontal: [0, 0.25, -1], lateral: [-1, 0.35, -0.2], palco: [0.3, 0.9, -0.6] };
-  var P = null, ARQ = {}, MALHA3D = null, CV = null, CX = null, DPR = 1, TOCA = false, T0 = 0, TEMPO = 0, FIXA = null, DB = null, EXP = { parar: false, url: "", arquivo: null }, DICA = null;
+  var P = null, ARQ = {}, MALHA3D = null, CV = null, CX = null, DPR = 1, TOCA = false, T0 = 0, TEMPO = 0, FIXA = null, PREVIA = null, DB = null, EXP = { parar: false, url: "", arquivo: null }, DICA = null;
 
   function uid(p) { return (p || "o") + Math.random().toString(36).slice(2, 8); }
   function num(v, d) { v = parseFloat(String(v).replace(",", ".")); return isFinite(v) ? v : d; }
@@ -224,7 +224,7 @@
   /* para os testes e para o app BW: ler o projeto e a ficha do telão sem mexer em nada */
   window.BW3DEditor = { projeto: function () { return P; }, montar: montar, ficha: fichaLED, ver: ver, arquivos: function () { return ARQ; },
     modo: function (m) { trocarModo(m); }, tamanho: tamanhoExp, png: salvarPNG, folha: folhaExportar,
-    montarFoto: montarFoto, malha: function () { return MALHA3D; }, malhas: malhasDaCena, exportar3D: exportar3D };
+    montarFoto: montarFoto, previa: function () { return PREVIA; }, tocando: function () { return TOCA; }, malha: function () { return MALHA3D; }, malhas: malhasDaCena, exportar3D: exportar3D };
 
   /* ---------- painel (muda com o modo) ---------- */
   function op(lista, val) { return lista.map(function (o) { return '<option value="' + esc(o[0]) + '"' + (String(o[0]) === String(val) ? " selected" : "") + ">" + esc(o[1]) + "</option>"; }).join(""); }
@@ -833,6 +833,14 @@
     medir(); orbitar(); ferramentas();
     try { await recarregar(); } catch (e) {}
     trocarModo(P.modo, true);
+    /* 22/11 (dono: "as mesmas ferramentas do editor de vídeo"): ⋯ da prévia (ângulos, giro, PNG, vídeo, 2º monitor, tela cheia, controle pelo celular).
+       A rodinha continua sendo o zoom da CÂMERA (é ela que entra no vídeo). */
+    if (window.BWFerr && BWFerr.previa) PREVIA = BWFerr.previa({ palco: document.querySelector(".d3-palco"), alvo: CV, canvas: function () { return CV; }, nome: "estudio-3d", zoom: false, aviso: aviso,
+      api: { tocar: function () { tocar(true); }, parar: function () { tocar(false); }, tocando: function () { return TOCA; }, irPara: function (t) { tocar(false); ver(Math.max(0, Math.min(Math.max(0.5, P.giro.seg), t))); }, T: function () { return TEMPO; }, total: function () { return Math.max(0.5, P.giro.seg); } },
+      extras: function () { return [{ tit: "CÂMERA" }, { icone: "◎", rot: "Ângulo", sub: [["frente", "Frente", "1"], ["tres", "3/4", "2"], ["lado", "Lado", "3"], ["cima", "De cima", "4"]].map(function (a) { return { rot: a[1], tecla: a[2], fn: function () { angulo(a[0]); } }; }) },
+        { icone: "＋", rot: "Aproximar a câmera", tecla: "=", fn: function () { zoom(0.85); } }, { icone: "－", rot: "Afastar a câmera", tecla: "-", fn: function () { zoom(1.18); } },
+        { icone: "⟳", rot: P.giro.liga ? "Parar o giro sozinho" : "Girar sozinho", tecla: "G", fn: function () { P.giro.liga = !P.giro.liga; painel(); tocar(P.giro.liga); } },
+        "-", { icone: "🖼", rot: "Salvar PNG (com o fundo escolhido)", fn: salvarPNG }, { icone: "🎬", rot: "Gerar vídeo", tecla: "E", fn: folhaExportar }]; } });
     if (window.BWFerr) FIXA = BWFerr.telaFixa({ wrap: document.querySelector(".wrap"), grade: $("d3Grade"), palco: document.querySelector(".d3-palco"),
       rola: [], some: [$("d3Nota")], painelLer: function () { return JSON.parse(localStorage.getItem("ui_3d_paineis") || "{}"); }, painelGravar: function (S) { localStorage.setItem("ui_3d_paineis", JSON.stringify(S)); }, aviso: $("d3Aviso"), aoMedir: function () { medir(); ver(TEMPO); } });
     [].forEach.call($("d3Modos").children, function (b) { b.onclick = function () { trocarModo(b.getAttribute("data-m")); }; });

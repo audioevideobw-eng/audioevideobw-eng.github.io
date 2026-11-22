@@ -272,7 +272,66 @@
     ".bwf-cel .bwf-palco{position:sticky!important;top:0;z-index:6}";
   (document.head || document.documentElement).appendChild(css2);
 
-  window.BWFerr = { barra: barra, trocar: trocar, atalhos: atalhos, menu: menu, fecharMenu: fecharMenu, contexto: contexto, ajuda: ajuda, telaFixa: telaFixa, mostrarAjuda: mostrarAjuda, preso: preso, digitando: digitando,
+  /* ---------- PRÉVIA COMUM (22/11, dono: "as mesmas ferramentas do editor de vídeo" nas Telas e no Estúdio 3D) ----------
+     ⋯ discreto no canto de cima da prévia (o menu: extras do editor + VISTA + TOCAR + TELA), rodinha = zoom SÓ da vista (selo 🔍 % volta a 100%),
+     🖥 prévia no 2º monitor (a MESMA imagem do canvas, ao vivo, por captureStream — nada sai do aparelho), ⛶ tela cheia, 💾 salvar o quadro (PNG)
+     e 📱 controle pelo celular (BWControle). Não guarda nada. o = {palco, alvo, canvas: fn → canvas, nome, zoom (bool), api, extras: fn → itens, aviso: fn} */
+  function previa(o) {
+    var palco = o.palco, alvo = o.alvo, cv = function () { return typeof o.canvas === "function" ? o.canvas() : o.canvas; }, av = o.aviso || function () {}, api = o.api || {};
+    if (!palco || !alvo) return null;
+    if (getComputedStyle(palco).position === "static") palco.style.position = "relative";
+    var VZ = {z: 1, x: 0, y: 0}, JAN = null;
+    var bt = document.createElement("button"); bt.type = "button"; bt.className = "bwf-opcp"; bt.textContent = "⋯"; bt.title = "Opções da prévia"; bt.setAttribute("aria-label", "Opções da prévia"); palco.appendChild(bt);
+    var selo = document.createElement("button"); selo.type = "button"; selo.className = "bwf-vz"; selo.hidden = true; selo.title = "Voltar a vista para 100%"; palco.appendChild(selo);
+    function pos() { var r = alvo.getBoundingClientRect(), p = palco.getBoundingClientRect(); bt.style.left = Math.max(4, r.right - p.left - 42) + "px"; bt.style.top = Math.max(4, r.top - p.top + 8) + "px"; selo.style.left = Math.max(4, r.left - p.left + 8) + "px"; selo.style.top = bt.style.top; }
+    if (window.ResizeObserver) { var ro = new ResizeObserver(pos); ro.observe(alvo); ro.observe(palco); } addEventListener("resize", pos); setTimeout(pos, 0); setTimeout(pos, 400);
+    function vista() { alvo.style.transformOrigin = "50% 50%"; alvo.style.transform = VZ.z === 1 ? "" : "translate(" + VZ.x.toFixed(1) + "px," + VZ.y.toFixed(1) + "px) scale(" + VZ.z + ")"; selo.hidden = VZ.z === 1; selo.textContent = "🔍 " + Math.round(VZ.z * 100) + "% ✕"; }
+    function zoomV(z) { VZ.z = z ? Math.max(1, Math.min(8, z)) : 1; if (VZ.z === 1) { VZ.x = 0; VZ.y = 0; } vista(); }
+    selo.onclick = function () { zoomV(0); };
+    if (o.zoom) palco.addEventListener("wheel", function (e) { if (e.ctrlKey && !e.altKey) return; e.preventDefault(); var r = alvo.getBoundingClientRect(), z0 = VZ.z, z1 = Math.max(1, Math.min(8, z0 * (e.deltaY < 0 ? 1.15 : 1 / 1.15)));
+      if (z1 === z0) return; var cx = e.clientX - (r.left - VZ.x) - alvo.offsetWidth / 2, cy = e.clientY - (r.top - VZ.y) - alvo.offsetHeight / 2;
+      VZ.x = z1 === 1 ? 0 : cx - (cx - VZ.x) * z1 / z0; VZ.y = z1 === 1 ? 0 : cy - (cy - VZ.y) * z1 / z0; VZ.z = z1; vista(); }, {passive: false});
+    async function outraTela() { try { if (!window.getScreenDetails) return null; var sd = await window.getScreenDetails(), at = sd.currentScreen; return sd.screens.filter(function (x) { return x !== at && !(x.left === at.left && x.top === at.top); })[0] || null; } catch (e) { return null; } }
+    async function segunda() {
+      if (JAN && !JAN.closed) { JAN.close(); JAN = null; return; }
+      var c = cv(); if (!c || !c.captureStream) { av("Este navegador não abre a prévia em outra janela.", true); return; }
+      var t2 = await outraTela(), ps = t2 ? "popup=1,left=" + t2.availLeft + ",top=" + t2.availTop + ",width=" + t2.availWidth + ",height=" + t2.availHeight : "popup=1,width=960,height=600";
+      JAN = window.open("", "bwPrevia" + (o.nome || ""), ps); if (!JAN) { av("O navegador bloqueou a janela — libere pop-ups para este site e toque de novo.", true); return; }
+      var d = JAN.document; d.title = "Prévia — Brightway"; d.body.style.cssText = "margin:0;background:#000;height:100vh;display:flex;align-items:center;justify-content:center;overflow:hidden";
+      var v = d.createElement("video"); v.muted = true; v.autoplay = true; v.playsInline = true; v.style.cssText = "max-width:100vw;max-height:100vh;width:100%;height:100%;object-fit:contain"; d.body.appendChild(v);
+      var b2 = d.createElement("button"); b2.textContent = "⛶ TELA CHEIA (ou duplo clique)"; b2.style.cssText = "position:fixed;left:50%;bottom:18px;transform:translateX(-50%);padding:10px 16px;border-radius:12px;border:1px solid #555;background:#12151c;color:#fff;font:700 13px sans-serif;cursor:pointer"; d.body.appendChild(b2);
+      var cheia = function () { var el = d.documentElement; if (d.fullscreenElement) d.exitFullscreen(); else if (el.requestFullscreen) el.requestFullscreen().catch(function () {}); };
+      b2.onclick = cheia; v.ondblclick = cheia; d.addEventListener("fullscreenchange", function () { b2.style.display = d.fullscreenElement ? "none" : ""; });
+      try { v.srcObject = c.captureStream(30); v.play().catch(function () {}); } catch (e) { av("Não consegui mandar a prévia para a outra janela.", true); }
+      d.addEventListener("keydown", function (e) { if ((e.key === " " || e.key === "k") && api.tocar) { e.preventDefault(); if (api.tocando && api.tocando()) api.parar(); else api.tocar(); }
+        else if (e.key === "ArrowLeft" && api.irPara) api.irPara(api.T() - (e.shiftKey ? 1 : 1 / 30)); else if (e.key === "ArrowRight" && api.irPara) api.irPara(api.T() + (e.shiftKey ? 1 : 1 / 30)); else if (e.key === "Home" && api.irPara) api.irPara(0); else if (e.key === "f") cheia(); });
+      if (o.aoAbrir) o.aoAbrir(); av(t2 ? "🖥 Prévia aberta no outro monitor — toque em TELA CHEIA lá (Espaço toca e pausa)." : "🖥 Prévia aberta em outra janela — arraste para o segundo monitor e toque em TELA CHEIA lá.");
+      var vg = setInterval(function () { if (!JAN || JAN.closed) { clearInterval(vg); JAN = null; } }, 800);
+    }
+    addEventListener("pagehide", function () { if (JAN && !JAN.closed) JAN.close(); });
+    function telaCheia() { if (document.fullscreenElement) document.exitFullscreen(); else if (palco.requestFullscreen) palco.requestFullscreen().catch(function () {}); }
+    function salvarQuadro() { var c = cv(); if (!c || !c.toBlob) return; c.toBlob(function (b) { if (!b) return; var a = document.createElement("a"); a.href = URL.createObjectURL(b); a.download = (o.nome || "quadro") + ".png"; document.body.appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(a.href); }, 4000); av("💾 Quadro salvo (PNG)."); }, "image/png"); }
+    function celular() { if (!window.BWControle) { av("O controle pelo celular não carregou (sem internet?).", true); return; } BWControle.painel(api); }
+    function itens() {
+      var L = (o.extras ? o.extras() : []) || []; if (L.length) L.push("-");
+      if (o.zoom) L.push({tit: "VISTA (não muda o vídeo)"}, {icone: "＋", rot: "Aproximar", tecla: "Rodinha ↑", fn: function () { zoomV(VZ.z * 1.5); }}, {icone: "－", rot: "Afastar", tecla: "Rodinha ↓", off: VZ.z === 1, fn: function () { zoomV(VZ.z / 1.5); }},
+        {icone: "⤢", rot: "Ajustar à tela (100%)", off: VZ.z === 1, fn: function () { zoomV(0); }});
+      if (api.tocar) L.push({icone: api.tocando && api.tocando() ? "⏸" : "▶", rot: api.tocando && api.tocando() ? "Pausar" : "Tocar", tecla: "Espaço", fn: function () { if (api.tocando && api.tocando()) api.parar(); else api.tocar(); }});
+      L.push("-", {tit: "TELA"}, {icone: "🖥", rot: JAN && !JAN.closed ? "Fechar a prévia do 2º monitor" : "Prévia no segundo monitor / janela solta", fn: segunda}, {icone: "⛶", rot: "Tela cheia (monitor inteiro)", fn: telaCheia},
+        {icone: "💾", rot: "Salvar este quadro (PNG)", fn: salvarQuadro});
+      if (api.irPara) L.push({icone: "📱", rot: "Controle pelo celular", fn: celular});
+      return L;
+    }
+    bt.onclick = function () { var r = bt.getBoundingClientRect(); menu(Math.max(8, r.right - 250), r.bottom + 6, itens(), "PRÉVIA"); };
+    return {zoom: zoomV, vista: function () { return VZ.z; }, segunda: segunda, celular: celular, telaCheia: telaCheia, salvarQuadro: salvarQuadro, menu: function () { bt.click(); }, botao: bt, pos: pos};
+  }
+  var css3 = document.createElement("style"); css3.textContent =
+    ".bwf-opcp{position:absolute;z-index:6;width:34px;height:26px;border-radius:999px;border:0;background:rgba(3,6,16,.45);color:#fff;font:900 17px/1 Inter,system-ui,sans-serif;letter-spacing:1px;cursor:pointer;opacity:.6;transition:opacity .2s;touch-action:manipulation}" +
+    ".bwf-opcp:hover,.bwf-opcp:focus-visible{opacity:1;background:rgba(3,6,16,.75)}" +
+    ".bwf-vz{position:absolute;z-index:6;height:26px;padding:0 10px;border-radius:999px;border:0;background:rgba(3,6,16,.7);color:#fff;font:800 11px Inter,system-ui,sans-serif;cursor:pointer}.bwf-vz[hidden]{display:none}";
+  (document.head || document.documentElement).appendChild(css3);
+
+  window.BWFerr = { previa: previa, barra: barra, trocar: trocar, atalhos: atalhos, menu: menu, fecharMenu: fecharMenu, contexto: contexto, ajuda: ajuda, telaFixa: telaFixa, mostrarAjuda: mostrarAjuda, preso: preso, digitando: digitando,
     atual: function () { return BARRA ? (BARRA.temp || BARRA.atual) : "v"; }, alt: function () { return !!(BARRA && BARRA.alt); },
     ICONES: { v: "➤", c: "✂", h: "✋", z: "🔍", t: "T", b: "🖌", e: "⌫", i: "💧", m: "⬚", r: "⟳", p: "✒" } };
 })();
