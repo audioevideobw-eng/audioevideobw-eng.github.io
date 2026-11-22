@@ -596,6 +596,17 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
      negativo derrubava o quadro. Espelho: no globo, X da tela = cx − x·R (senão os continentes saem invertidos).
 157. MODO PADRÃO = PRETO E BRANCO (pb) para quem não escolheu (modos.js PADRAO); excluir o modo da marca volta para o padrão.
 
+**Aprendidos em 22/11 (BW SMART e caixa única do Tio Cláudio)**
+158. IA DE TEXTO EM NÍVEIS (bw-ia): o pedido leva `nivel` (rapido | inteligente) e o servidor tem uma CADEIA por nível (rápido: gpt-oss-20b → llama-3.1-8b-instant;
+     inteligente: gpt-oss-120b → llama-3.3-70b-versatile), passa para a reserva sozinho e devolve {modelo, nivel, reserva}; chave inválida (401) não tenta a reserva.
+     Modelo Llama não recebe campos de raciocínio. BW Smart (padrão, ui_agente_nivel) decide no aparelho pelo pedido. A tela diz QUEM respondeu. A VARINHA reescreve
+     o pedido sem inventar dado (falta algo = pergunta entre colchetes), tira a marcação e sempre tem ↺ voltar. Teste: `pg.evaluate("a=1;f=function(){}")` EXECUTA a
+     função devolvida — envolver em `() => { … }` (a "chamada fantasma" com undefined parecia bug da caixa). Script de teste fora de docs/testes/ chdir para o lugar
+     errado (usa __file__) e o servidor responde "Error response" (auto: teste_pede.py).
+159. ARRASTAR TAKE EM CIMA DE OUTRO (dono, 22/11): aviso flutuante com as DUAS escolhas pela altura — metade de cima da camada = ⬆ PARA CIMA (camada nova criada NA
+     HORA, ainda arrastando), resto = ⇄ TROCAR DE LUGAR (ao soltar; quem não couber sobe de camada). Depois de criar a camada, trava de 26 px na troca de faixa pelo
+     ponteiro: sem ela a faixa de baixo puxava o take de volta e nascia uma camada a cada movimento (auto: teste_video_arrastar.py).
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -1824,7 +1835,18 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   cursos Maestro, Adapta ONE, Assistentes, Vídeo, Imagem, Automação, Marketing, Vendas, Conteúdo e Masterizando IA. Método e frameworks
   (tarefa → skill → automação; 4Is; expert de 8 partes; memória em 2 camadas; 2P2C; ordem do vídeo com IA) + lista de ideias para a Brightway
   em docs/APRENDIZADOS-ADAPTA.md (com palavras próprias). Nada foi alterado na conta do dono (só fechei pesquisa de nota e convite do WhatsApp).
+- 22/11/2026 01:20 · Claude (dono: "FAÇA ISSO / COMECE O TRABALHO", com "pode tudo"): BW SMART + CAIXA ÚNICA DO TIO CLÁUDIO. (1) Edge Function bw-ia
+  republicada pelo painel (SHA 5ff8e4f2…, conferido antes e depois): níveis RÁPIDO e INTELIGENTE, cada um com reserva automática; testada no ar logado (rápido
+  20b 3,5 s; inteligente 120b 1,6 s). (2) Página do robô: caixa de pedido abaixo das telas — ＋ anexar (leitor, fotos, Prompt IA, planilha), ⚡ atalhos (gerar
+  arte/reel/orçamento/personagem, lançar gasto/recebi/conta/lembrete, como está meu dia), chip BW Smart / Rápido / Inteligente (no aparelho), ✨ varinha
+  (melhora o pedido pelos 4Is, sem inventar, com ↺), 🎙 falar e ➤ (Enter) para o Tio Cláudio, que continua só lançando com ✓ LANÇAR. A linha embaixo diz qual
+  modelo respondeu e quando foi a reserva. Tio Cláudio manda o nível em todo pedido. (3) EDITOR DE VÍDEO (pedido do dono no meio): take arrastado em cima de
+  outro mostra ⇄ TROCAR DE LUGAR / ⬆ PARA CIMA; subir cria a camada na hora. (4) APP BW 1.9.20: a abertura VÍDEO saiu (ficam FOTO + MUNDO e MUNDO).
+  Testes: teste_pede (novo, 0 falhas × 1280/390), teste_video_arrastar (+7), ambientes, modos, layout, agente_leitor, video, video_app, video_layout, lancamentos,
+  agenda 0 falhas; vigia ✅; manual 57 p. brightway.css v34, layout.js v67, bw-agente v24, bw-pede v1, sw v171. PENTE FINO 158–159.
 ## Pendências (dono)
+- [ ] (22/11) CAIXA DO TIO CLÁUDIO: dono testar no PC e no celular, logado — pedir algo pela caixa, trocar BW Smart / Rápido / Inteligente e usar a ✨ varinha.
+- [ ] (22/11) ESTÚDIO DE MOTION com as ferramentas do editor de vídeo: pedido do dono 01:14 — em andamento.
 - [ ] (22/11) ABERTURA DO APP: dono atualizar para 1.9.17 e escolher VÍDEO, FOTO + MUNDO ou MUNDO (chave no alto); conferir o ENTRAR e o menu escondido. BW-Setup.exe 1.9.16 depende do PC (o do site atualiza sozinho).
 - [ ] (22/11) EDITOR NO CELULAR: dono abrir o editor de vídeo no celular e dizer o que ainda falta para ficar como o CapCut (tempo do "segurar"
       hoje é ~0,5 s — pediu 2 s: confirmar se quer mesmo mais longo). BW-Setup.exe 1.9.14 depende do PC (o 1.9.12 do site atualiza sozinho).

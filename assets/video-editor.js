@@ -22,6 +22,25 @@
     var l = Object.keys(ids), ord = {v: 0, t: 1, a: 2}; l.sort(function (a, b) { var fa = fam(a), fb = fam(b); if (fa !== fb) return ord[fa] - ord[fb]; return fa === "a" ? numTr(a) - numTr(b) : numTr(b) - numTr(a); });
     return l.map(function (id) { var i = infoTr(id); return [id, i[0], i[1]]; }); }
   function novaTrilha(f) { var n = 1; P.clips.forEach(function (c) { if (fam(c.trilha) === f) n = Math.max(n, numTr(c.trilha)); }); if (f !== "t") n = Math.max(n, 2); return idTr(f, n + 1); }
+  /* aviso flutuante do arrastar (22/11): as duas escolhas, a ativa acesa */
+  function dicaArr(e, modo, txt) {
+    var d = document.getElementById("veDicaArr");
+    if (!e || (!modo && !txt)) { if (d) d.hidden = true; return; }
+    if (!d) { d = document.createElement("div"); d.id = "veDicaArr"; d.className = "ve-dica-arr"; d.setAttribute("role", "status"); document.body.appendChild(d); }
+    d.innerHTML = txt ? "<b class='on'>" + esc(txt) + "</b>" : "<b class='" + (modo === "trocar" ? "on" : "") + "'>⇄ TROCAR DE LUGAR <small>solte aqui</small></b><b class='" + (modo === "cima" ? "on" : "") + "'>⬆ PARA CIMA <small>suba o take: cria a camada na hora</small></b>";
+    d.hidden = false; d.style.left = Math.min(innerWidth - 250, Math.max(8, e.clientX + 14)) + "px"; d.style.top = Math.max(8, e.clientY - 74) + "px";
+  }
+  /* TROCAR DE LUGAR: cada take vai para o lugar do outro (o que estava antes continua antes, pelas pontas); se não couber, o que veio sobe de camada */
+  function trocarLugar(c, o, iniOrig, trOrig) {
+    var oIni = o.ini, oTr = o.trilha, cFim = iniOrig + c.dur, oFim = oIni + o.dur;
+    if (trOrig === oTr) { if (iniOrig <= oIni) { o.ini = iniOrig; c.ini = Math.max(0, oFim - c.dur); } else { c.ini = oIni; o.ini = Math.max(0, cFim - o.dur); } c.trilha = oTr; }
+    else { c.ini = oIni; c.trilha = oTr; o.ini = iniOrig; o.trilha = trOrig; }
+    c.ini = Math.round(c.ini * 20) / 20; o.ini = Math.round(o.ini * 20) / 20;
+    var extra = "";
+    if (!livreEm(o.trilha, o.ini, o.dur, o)) { o.trilha = novaTrilha(famDoClip(o)); extra = " (" + (o.nome || "o outro take") + " subiu de camada para caber)"; }
+    if (!livreEm(c.trilha, c.ini, c.dur, c)) { c.trilha = novaTrilha(famDoClip(c)); extra = " (o take subiu de camada para caber)"; }
+    aviso("⇄ Trocados de lugar" + extra + ". Ctrl + Z desfaz.");
+  }
   function livreEm(tr, ini, dur, menos) { return !P.clips.some(function (x) { return x !== menos && x.trilha === tr && x.ini < ini + dur - 0.02 && x.ini + x.dur > ini + 0.02; }); }
   var APP = document.documentElement.classList.contains("ve-app");   /* 22/11: layout de app (celular/tablet, estilo CapCut) — assets/ve-app.js */
   function altTr(id) { var a = P.alt && P.alt[id]; return a ? lim(a, ALT_MIN, 160) : APP ? (fam(id) === "v" ? 48 : 30) : 52; }
@@ -624,7 +643,7 @@
     var c = P.clips.filter(function (x) { return x.id === el.dataset.clip; })[0]; if (!c) return; var al = e.target.dataset.al || "";
     if (toqueApp && SEL !== c.id) return;   /* no app, dedo em take NÃO escolhido rola a linha do tempo; o toque (click) escolhe — ve-app.js */
     if (SEL !== c.id) { SEL = c.id; $("veFaixas").querySelectorAll(".ve-clip").forEach(function (x) { x.classList.toggle("on", x === el); }); desenharProp(); }
-    arr = {tipo: al ? "al" + al : "mover", c: c, el: el, x0: e.clientX, ini: c.ini, dur: c.dur, corte: c.corte || 0, moveu: false}; e.preventDefault();
+    arr = {tipo: al ? "al" + al : "mover", c: c, el: el, x0: e.clientX, ini: c.ini, dur: c.dur, corte: c.corte || 0, trOrig: c.trilha, moveu: false}; e.preventDefault();
   });
   window.addEventListener("pointermove", function (e) {
     if (!arr) { lamina(e); return; }
@@ -638,15 +657,28 @@
       if (!TOCANDO) { irPara(ct.ini + ct.trans.dur / 2); } return; }
     var c = arr.c, d = (e.clientX - arr.x0) / PPS; if (Math.abs(e.clientX - arr.x0) > 3) arr.moveu = true; if (!arr.moveu) return;
     var temFonte = c.tipo === "video" || c.tipo === "audio", r = function (v) { return Math.round(v * 20) / 20; };
-    if (arr.tipo === "mover") { c.ini = Math.max(0, r(arr.ini + d)); var fx = document.elementFromPoint(e.clientX, e.clientY), fa = fx && fx.closest && fx.closest("[data-trilha]"); if (fa) { var tr = fa.dataset.trilha; if (fam(tr) === famDoClip(c) && tr !== c.trilha) { c.trilha = tr; fa.appendChild(arr.el); arr.el.style.setProperty("--c", corTr(tr)); } }
-      /* soltar EM CIMA de outro take da mesma camada = camada nova (acima), na hora de soltar */
-      arr.nova = !livreEm(c.trilha, c.ini, c.dur, c); arr.el.classList.toggle("nova", arr.nova); if (arr.nova) arr.el.setAttribute("data-dica", "＋ CAMADA NOVA"); }
+    if (arr.tipo === "mover") { c.ini = Math.max(0, r(arr.ini + d)); var fx = document.elementFromPoint(e.clientX, e.clientY), fa = fx && fx.closest && fx.closest("[data-trilha]"); if (fa) { var tr = fa.dataset.trilha; if (fam(tr) === famDoClip(c) && tr !== c.trilha && !(arr.yCriou != null && Math.abs(e.clientY - arr.yCriou) < 26)) { c.trilha = tr; fa.appendChild(arr.el); arr.el.style.setProperty("--c", corTr(tr)); } }
+      /* 22/11 (dono): EM CIMA de outro take aparece o aviso com DUAS escolhas pela altura do dedo/mouse —
+         metade de CIMA da camada = ⬆ PARA CIMA: a camada nova é criada NA HORA (o take já sobe enquanto arrasta);
+         metade de BAIXO = ⇄ TROCAR DE LUGAR com o take de baixo (vale ao soltar). */
+      var alvo = !livreEm(c.trilha, c.ini, c.dur, c) ? P.clips.filter(function (x) { return x !== c && x.trilha === c.trilha && x.ini < c.ini + c.dur - 0.02 && x.ini + x.dur > c.ini + 0.02; })
+        .sort(function (x, y) { return Math.abs(x.ini + x.dur / 2 - c.ini - c.dur / 2) - Math.abs(y.ini + y.dur / 2 - c.ini - c.dur / 2); })[0] : null;
+      arr.nova = false; arr.troca = null;
+      if (alvo) { var faixa = arr.el.parentNode, fr = faixa && faixa.getBoundingClientRect(), emCima = fr && e.clientY < fr.top + fr.height * 0.42;
+        if (emCima) { var trAntes = c.trilha, nt0 = novaTrilha(famDoClip(c)); c.trilha = nt0; arr.yCriou = e.clientY; desenharTL();
+          var el2 = $("veFaixas").querySelector('[data-clip="' + c.id + '"]'); if (el2) { arr.el = el2; el2.classList.add("on"); }
+          dicaArr(e, "cima", "⬆ PARA CIMA · camada nova criada (" + infoTr(nt0)[0] + ")"); arr.subiu = trAntes; }
+        else { arr.troca = alvo; dicaArr(e, "trocar", ""); } }
+      else dicaArr(e, arr.subiu ? "cima" : "", arr.subiu ? "⬆ PARA CIMA · na camada nova — solte onde quiser" : "");
+      arr.el.classList.toggle("nova", !!arr.troca); if (arr.troca) arr.el.setAttribute("data-dica", "⇄ TROCAR"); }
     else if (arr.tipo === "ale") { var dd = lim(d, temFonte ? -arr.corte / vel(c) : -arr.ini, arr.dur - 0.2); dd = Math.max(dd, -arr.ini); c.ini = r(arr.ini + dd); c.dur = r(arr.dur - dd); if (temFonte) c.corte = Math.max(0, arr.corte + dd * vel(c)); }
     else { c.dur = r(lim(arr.dur + d, 0.2, temFonte ? maxDur(c) : 600)); }
     arr.el.style.left = (c.ini * PPS) + "px"; arr.el.style.width = Math.max(18, c.dur * PPS) + "px"; if (!TOCANDO) desenhar();
   });
   window.addEventListener("pointerup", function () { if (!arr) return; var a = arr; arr = null; if (window.BWFerr) BWFerr.preso(false);
-    if (a.tipo === "mover" && a.nova && a.moveu) { var nt = novaTrilha(famDoClip(a.c)); a.c.trilha = nt; aviso("＋ Camada nova: " + infoTr(nt)[0] + " — o take ficou por cima do outro."); }
+    dicaArr(null);
+    if (a.tipo === "mover" && a.moveu && a.troca) trocarLugar(a.c, a.troca, a.ini, a.trOrig);
+    else if (a.tipo === "mover" && a.moveu && a.subiu) aviso("⬆ Camada nova: " + infoTr(a.c.trilha)[0] + " — o take ficou por cima do outro.");
     if (a.tipo === "palco" && !a.moveu && a.menu) { menuPrevia(a.mx, a.my); return; }
     if (a.tipo === "trans") { if (!a.moveu) { menuTrans(a.c, a.x0, a.y0); return; } tudo(); marcar(a.c.id); aviso("◧ Transição “" + TRANS[a.c.trans.tipo] + "” com " + String(a.c.trans.dur).replace(".", ",") + " s" + (a.tinha ? "." : " (Dissolver — toque no ◆ para trocar).")); return; }
     if (a.tipo !== "agulha" && a.tipo !== "mao" && (a.moveu || a.tipo === "trans")) tudo(); });

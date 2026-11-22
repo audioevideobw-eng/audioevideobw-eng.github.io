@@ -13,7 +13,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Brightway">
-<link rel="stylesheet" href="assets/brightway.css?v=33">
+<link rel="stylesheet" href="assets/brightway.css?v=34">
 <style>
 :root{
   /* Identidade Brightway — paleta oficial */
@@ -307,6 +307,8 @@ footer b{color:var(--gold)}
     <div class="hub-barra"><div class="hub-txt" aria-live="polite"><b id="hubNome">BRIGHTWAY · SEU SOFTWARE INTELIGENTE</b><small id="hubSub">Toque numa tela ou passe para o lado</small></div></div>
     <a class="hub-entrar" id="hubEntrar" href="negocio.html" hidden>ENTRAR →</a>
   </section>
+  <!-- 22/11 caixa única do Tio Cláudio: pedir, anexar, atalhos, escolher a IA (BW Smart / Rápido / Inteligente), varinha, falar — assets/bw-pede.js -->
+  <div class="bp-pede" id="bwPede" aria-label="Pedir ao Tio Cláudio"></div>
 
   <div style="display:flex;align-items:center;gap:14px;margin-top:28px;flex-wrap:wrap">
     <img src="icons/brightway-logo.png" alt="Brightway" style="height:17px">
@@ -318,11 +320,12 @@ footer b{color:var(--gold)}
 </div>
 
 </div>
-<script src="assets/layout.js?v=66"></script>
+<script src="assets/layout.js?v=67"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="assets/bw-sync.js"></script>
 <script src="assets/agenda.js?v=1"></script>
 <script src="assets/portal.js?v=3"></script>
+<script src="assets/bw-pede.js?v=1"></script>
 <script src="https://cdn.jsdelivr.net/npm/pdfmake@0.2.20/build/pdfmake.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>

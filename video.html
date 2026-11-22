@@ -11,7 +11,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Brightway">
-<link rel="stylesheet" href="assets/brightway.css?v=33">
+<link rel="stylesheet" href="assets/brightway.css?v=34">
 <style>
 .wrap{max-width:1500px;margin:0 auto;padding:0 16px 110px}
 .ve-topo{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px}
@@ -78,6 +78,7 @@
 .ve-clip .bd{flex:none;font:800 9.5px Inter,sans-serif;background:rgba(0,0,0,.45);border-radius:6px;padding:1px 4px;pointer-events:none}
 .ve-faixa.baixa .ve-clip{font-size:9.5px;border-radius:8px}.ve-faixa.baixa .ve-clip .onda,.ve-faixa.baixa .ve-clip .bd{display:none}.ve-faixa.baixa .ve-clip .al::after{top:4px;bottom:4px}
 .ve-rot div{overflow:hidden;white-space:nowrap}
+.ve-dica-arr{position:fixed;z-index:9600;pointer-events:none;display:flex;flex-direction:column;gap:4px;width:236px;padding:7px;border-radius:12px;background:rgba(14,16,22,.94);border:1px solid rgba(255,255,255,.18);box-shadow:0 12px 34px rgba(0,0,0,.55)}.ve-dica-arr[hidden]{display:none}.ve-dica-arr b{display:block;padding:6px 8px;border-radius:8px;font:800 11px Inter,sans-serif;letter-spacing:.06em;color:#cfd3dc;background:rgba(255,255,255,.04)}.ve-dica-arr b small{display:block;font:600 9.5px Inter,sans-serif;letter-spacing:.02em;opacity:.75;margin-top:2px}.ve-dica-arr b.on{background:#7C5CFF;color:#fff}
 .ve-clip.nova{outline:2px dashed #fff;outline-offset:2px;box-shadow:0 -10px 0 -4px rgba(255,255,255,.35)}.ve-clip.nova::before{content:attr(data-dica);position:absolute;right:4px;top:2px;z-index:4;font:800 9px Inter,sans-serif;letter-spacing:.08em;background:#fff;color:#111;border-radius:6px;padding:1px 5px}
 .ve-clip .tr .trp{position:absolute;right:-5px;top:0;bottom:0;width:10px;cursor:ew-resize;pointer-events:auto;z-index:3}.ve-clip .tr .trp::after{content:"";position:absolute;left:3px;top:30%;bottom:30%;width:4px;border-radius:3px;background:#fff;box-shadow:0 0 6px rgba(0,0,0,.6)}
 .ve-junta{position:absolute;top:50%;width:13px;height:13px;margin:-6.5px 0 0 -6.5px;transform:rotate(45deg);border-radius:4px;background:rgba(255,255,255,.18);border:1.5px dashed rgba(255,255,255,.55);z-index:4;cursor:pointer;touch-action:none}
@@ -227,7 +228,7 @@
 <div class="ve-ocup ve-saida" id="veSaida" hidden><span id="veSaidaTxt">Vídeo pronto</span><video id="veVideoPronto" controls playsinline></video><div class="ve-linha"><a class="ve-bt pri" id="veBaixar" download="video-brightway.mp4">⬇ SALVAR VÍDEO</a><button class="ve-bt" id="veCompartilhar" type="button">COMPARTILHAR</button><button class="ve-bt" id="veFecharSaida" type="button">FECHAR</button></div></div>
 <input type="file" id="veArq" accept="video/*,image/*,audio/*" multiple hidden>
 <input type="file" id="veArqTroca" accept="video/*,image/*,audio/*" hidden>
-<script src="assets/layout.js?v=66"></script>
+<script src="assets/layout.js?v=67"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="assets/bw-sync.js"></script>
 <script src="assets/bw-personagens.js?v=3"></script>

@@ -49,10 +49,26 @@ with sync_playwright() as p:
         if not cel:
             # 1) arrastar o 2º take por cima do 1º (mesma camada) → camada nova
             c2 = pg.evaluate(f"{CL}[1].id"); x, y, bx = centro(pg, f'[data-clip="{c2}"]'); pr = pg.evaluate("__video.pps()")
-            arrastar(pg, x, y, x - 2.2 * pr, y)
+            # 22/11: arrastar pela metade de CIMA da camada = ⬆ PARA CIMA (camada criada na hora, ainda arrastando)
+            hb = pg.evaluate(f"document.querySelector('[data-clip=\"{c2}\"]').parentNode.getBoundingClientRect().height")
+            pg.mouse.move(x, y); pg.mouse.down()
+            for i in range(1, 13): pg.mouse.move(x - 2.2 * pr * i / 12, y - hb * 0.4 * i / 12); pg.wait_for_timeout(15)
+            ok(pg.evaluate(f"{CL}.find(c=>c.id==='{c2}').trilha") != "v1", "1) subindo em cima de outro take a camada nova nasce NA HORA (antes de soltar)")
+            ok(pg.is_visible("#veDicaArr") and "PARA CIMA" in pg.inner_text("#veDicaArr"), "…e aparece o aviso ⬆ PARA CIMA")
+            pg.mouse.up(); pg.wait_for_timeout(350); ok(not pg.is_visible("#veDicaArr"), "…o aviso some ao soltar")
+            ok(pg.evaluate(f"new Set({CL}.map(c=>c.trilha)).size") == 2, "…só UMA camada nova (sem criar camadas em sequência)")
             tr = pg.evaluate(f"{CL}.find(c=>c.id==='{c2}').trilha"); ok(tr not in ("v1",) and tr.startswith("v"), f"1) take solto EM CIMA de outro foi para uma camada nova ({tr})")
             ok(pg.locator(f'[data-trilha="{tr}"]').count() == 1 and pg.locator(f'[data-rot="{tr}"]').is_visible(), "…a camada nova aparece na linha do tempo com o nome")
             pg.evaluate("__video.desfazer()"); pg.wait_for_timeout(300); ok(pg.evaluate(f"{CL}.find(c=>c.id==='{c2}').trilha") == "v1", "↶ desfazer volta o take para a camada de antes")
+            # 1c) arrastar pelo MEIO da camada em cima do outro = ⇄ TROCAR DE LUGAR
+            c1 = pg.evaluate(f"{CL}[0].id"); x, y, bx = centro(pg, f'[data-clip="{c2}"]')
+            pg.mouse.move(x, y); pg.mouse.down()
+            for i in range(1, 13): pg.mouse.move(x - 2.2 * pr * i / 12, y + 2); pg.wait_for_timeout(15)
+            ok(pg.is_visible("#veDicaArr") and "TROCAR DE LUGAR" in pg.inner_text("#veDicaArr"), "1c) em cima de outro take aparece o aviso ⇄ TROCAR DE LUGAR")
+            pg.mouse.up(); pg.wait_for_timeout(350)
+            st = pg.evaluate(f"(()=>{{const a={CL}.find(c=>c.id==='{c1}'),b={CL}.find(c=>c.id==='{c2}');return [a.ini,b.ini,a.trilha,b.trilha]}})()")
+            ok(st[1] == 0 and st[0] == 3 and st[2] == st[3] == "v1", f"…soltar troca os dois de lugar na mesma camada ({st})")
+            pg.evaluate("__video.desfazer()"); pg.wait_for_timeout(300)
             # 1b) soltar mídia da biblioteca em cima de um take
             n0 = pg.evaluate(f"{CL}.length"); xi, yi, _ = centro(pg, f'#veLib [data-mid="{ids[1]}"]'); c1 = pg.evaluate(f"{CL}[0].id"); xc, yc, _ = centro(pg, f'[data-clip="{c1}"]')
             arrastar(pg, xi, yi, xc, yc, 18); n1 = pg.evaluate(f"{CL}.length"); nv = pg.evaluate(f"{CL}[{CL}.length-1].trilha")

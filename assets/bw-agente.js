@@ -45,6 +45,21 @@
   function novoId(p) { return p + Date.now() + Math.random().toString(36).slice(2, 6); }
   function ui(k, padrao) { try { var v = localStorage.getItem("ui_agente_" + k); return v == null ? padrao : JSON.parse(v); } catch (e) { return padrao; } }
   function uiSet(k, v) { try { localStorage.setItem("ui_agente_" + k, JSON.stringify(v)); } catch (e) { } }
+  /* 22/11 BW SMART (dono): a IA Brightway tem dois níveis — RÁPIDO (gpt-oss-20b) e INTELIGENTE (gpt-oss-120b), cada um com reserva no servidor.
+     BW Smart (padrão) escolhe pelo pedido: papo e lançamento curto = rápido; texto longo, orçamento, roteiro, análise, plano = inteligente.
+     A escolha da pessoa fica no aparelho (ui_agente_nivel). O último modelo usado aparece na caixa (BWIA.ultimo). */
+  var NIVEIS = { smart: "BW Smart", rapido: "Rápido", inteligente: "Inteligente" };
+  function nivelEscolhido() { var n = ui("nivel", "smart"); return NIVEIS[n] ? n : "smart"; }
+  function nivelPara(texto, uso) {
+    var n = nivelEscolhido(); if (n !== "smart") return n;
+    if (uso === "papo") return "rapido";
+    if (uso === "melhorar" || uso === "escrever") return "inteligente";
+    var t = String(texto || "");
+    return (t.length > 140 || /orçament|orcament|roteiro|analis|planej|estrat|relat|compar|explic|por ?que|como (eu )?fa[çz]|resum|proposta|campanha|legenda/i.test(t) || (t.match(/,| e /g) || []).length > 3) ? "inteligente" : "rapido";
+  }
+  var ULTIMO = { modelo: "", nivel: "", reserva: false };
+  function anotar(j) { if (j && j.modelo) { ULTIMO = { modelo: j.modelo, nivel: j.nivel || "", reserva: !!j.reserva }; try { window.dispatchEvent(new CustomEvent("bw-ia-modelo", { detail: ULTIMO })); } catch (e) { } } }
+  window.BWIA = { niveis: NIVEIS, nivel: nivelEscolhido, escolher: function (n) { if (NIVEIS[n]) { uiSet("nivel", n); try { window.dispatchEvent(new CustomEvent("bw-ia-nivel", { detail: n })); } catch (e) { } } }, para: nivelPara, ultimo: function () { return ULTIMO; } };
 
   /* ================= categorias ================= */
   var CAT_CASA = ["Alimentação", "Combustível", "Lazer", "Saúde", "Educação", "Moradia", "Transporte", "Vestuário", "Contas (luz/água/net)", "Assinaturas", "Outros"];
@@ -342,7 +357,7 @@
       : IA_ERRO === "rede" ? "Estou sem conexão com a IA Brightway agora." : IA_ERRO ? "A IA Brightway está fora do ar agora (" + IA_ERRO + "). Avise o administrador da plataforma." : "";
   }
   function semIA() { return motivoIA() + " Sem ela eu ainda entendo pedidos diretos: gastei 50 no mercado, lembrar de ligar amanhã às 10, o que tenho hoje."; }
-  function marcarErro(r, j) { IA_ERRO = r.ok ? "" : String((j && j.erro) || r.status) + (j && j.detalhe && /key/i.test(j.detalhe) ? ": chave inválida" : ""); }
+  function marcarErro(r, j) { IA_ERRO = r.ok ? "" : String((j && j.erro) || r.status) + (j && j.detalhe && /key/i.test(j.detalhe) ? ": chave inválida" : (j && j.erro === "ocupada" ? ": todas as IAs de reserva estão ocupadas agora" : "")); }
   async function entenderIA(texto) {
     var s = await sessao(); if (!s) return null;
     var d = new Date(), sem = ["domingo", "segunda", "terça", "quarta", "quinta", "sexta", "sábado"][d.getDay()];
@@ -352,9 +367,9 @@
     var pedido = (hist ? "CONVERSA ANTERIOR:\n" + hist + "\n\n" : "") + "HOJE: " + hoje() + " (" + sem + "), " + dois(d.getHours()) + ":" + dois(d.getMinutes()) + "\nPRÓXIMOS DIAS: " + dias.join(", ") + "\nEVENTOS: " + (evs.join("; ") || "nenhum") + "\nPEDIDO: " + String(texto).slice(0, 600);
     try {
       var ctl = new AbortController(), tm = setTimeout(function () { ctl.abort(); }, 12000);
-      var r = await fetch(FN, { method: "POST", signal: ctl.signal, headers: { "Content-Type": "application/json", "Authorization": "Bearer " + s.access_token, "apikey": PUB }, body: JSON.stringify({ sistema: SISTEMA, pedido: pedido, max: 500 }) });
+      var r = await fetch(FN, { method: "POST", signal: ctl.signal, headers: { "Content-Type": "application/json", "Authorization": "Bearer " + s.access_token, "apikey": PUB }, body: JSON.stringify({ sistema: SISTEMA, pedido: pedido, max: 500, nivel: nivelPara(texto, "comando") }) });
       clearTimeout(tm);
-      var j = await r.json().catch(function () { return {}; }); marcarErro(r, j); if (!r.ok || !j.texto) return null;
+      var j = await r.json().catch(function () { return {}; }); marcarErro(r, j); anotar(j); if (!r.ok || !j.texto) return null;
       var o = jsonDe(j.texto); if (!o || !Array.isArray(o.acoes)) return null;
       return o;
     } catch (e) { IA_ERRO = "rede"; return null; }
@@ -374,9 +389,21 @@
     var hist = (ESTADO.hist || []).slice(-4).map(function (h) { return "Pessoa: " + h.q + "\nTio Cláudio: " + h.r; }).join("\n");
     try {
       var r = await fetch(FN, { method: "POST", headers: { "Content-Type": "application/json", "Authorization": "Bearer " + s.access_token, "apikey": PUB },
-        body: JSON.stringify({ sistema: "Você é o TIO CLÁUDIO, assistente de voz da Brightway, do Marcos (mineiro, produtora de eventos e audiovisual). Responda em português, de forma calorosa e descontraída, um toque mineiro com moderação, em 1 a 3 frases curtas para serem FALADAS (sem emoji, sem markdown, sem listas). Se não souber, diga que não sabe. Não invente dados da agenda ou das contas dele.", pedido: (hist ? hist + "\n" : "") + "Pessoa: " + String(texto).slice(0, 500), max: 300 }) });
-      var j = await r.json().catch(function () { return {}; }); marcarErro(r, j); return r.ok && j.texto ? String(j.texto).replace(/[*#_`]/g, "").trim().slice(0, 600) : "";
+        body: JSON.stringify({ sistema: "Você é o TIO CLÁUDIO, assistente de voz da Brightway, do Marcos (mineiro, produtora de eventos e audiovisual). Responda em português, de forma calorosa e descontraída, um toque mineiro com moderação, em 1 a 3 frases curtas para serem FALADAS (sem emoji, sem markdown, sem listas). Se não souber, diga que não sabe. Não invente dados da agenda ou das contas dele.", pedido: (hist ? hist + "\n" : "") + "Pessoa: " + String(texto).slice(0, 500), max: 300, nivel: nivelPara(texto, "papo") }) });
+      var j = await r.json().catch(function () { return {}; }); marcarErro(r, j); anotar(j); return r.ok && j.texto ? String(j.texto).replace(/[*#_`]/g, "").trim().slice(0, 600) : "";
     } catch (e) { return ""; }
+  }
+  /* 22/11: VARINHA (melhorar o pedido pelos 4Is: intenção, instrução, informação, interação) — reescreve sem inventar nada */
+  async function melhorar(texto) {
+    var s = await sessao(); if (!s) throw new Error("Entre na sua conta para usar a varinha.");
+    var r = await fetch(FN, { method: "POST", headers: { "Content-Type": "application/json", "Authorization": "Bearer " + s.access_token, "apikey": PUB },
+      body: JSON.stringify({ sistema: "Você melhora PEDIDOS que uma pessoa vai fazer a um assistente de uma plataforma de gestão e marketing de uma produtora audiovisual. " +
+        "Reescreva o pedido em português, claro e completo, deixando explícitos: o objetivo (intenção), a ação pedida (instrução) e os dados que a pessoa deu (informação). " +
+        "NUNCA invente valores, datas, nomes ou fatos que não estão no pedido; se faltar algo importante, termine com UMA pergunta curta entre colchetes, ex.: [qual o valor?]. " +
+        "Sem markdown, sem aspas, sem explicar o que fez: devolva SÓ o pedido reescrito, em até 4 frases.", pedido: String(texto).slice(0, 1500), max: 400, nivel: nivelPara(texto, "melhorar") }) });
+    var j = await r.json().catch(function () { return {}; }); marcarErro(r, j); anotar(j);
+    if (!r.ok || !j.texto) throw new Error(motivoIA() || "A varinha não respondeu agora.");
+    return String(j.texto).replace(/[*#`]/g, "").replace(/^\s*["“]|["”]\s*$/g, "").trim();
   }
   function normalizar(a) {   /* confere o que a IA devolveu antes de mostrar */
     a = Object.assign({}, a || {}); a.valor = num(a.valor);
@@ -815,6 +842,6 @@
     if (el.dataset.k === "tipo") { if (v === "tarefa" && !a.titulo) a.titulo = a.descricao; if (v === "conta_pagar" && !a.vencimento) a.vencimento = a.data || hoje(); if (v === "gasto_casa" && CAT_CASA.indexOf(a.categoria) < 0) a.categoria = categoria(a.descricao); if (!a.data) a.data = hoje(); desenharAcoes(); }
   }
 
-  window.BWAgente = { abrir: function (escutar) { montar(); abrir(!!escutar); }, processar: function (t) { montar(); abrir(false); return processar(t); }, entenderLocal: entenderLocal, entender: entender, voz: function () { var v = melhorVoz(); return v ? { nome: v.name, homem: ehHomem(v), tom: tomDe(v) } : null; }, consultar: consultar, executar: executar, estado: ESTADO };
+  window.BWAgente = { melhorar: melhorar, abrir: function (escutar) { montar(); abrir(!!escutar); }, processar: function (t) { montar(); abrir(false); return processar(t); }, entenderLocal: entenderLocal, entender: entender, voz: function () { var v = melhorVoz(); return v ? { nome: v.name, homem: ehHomem(v), tom: tomDe(v) } : null; }, consultar: consultar, executar: executar, estado: ESTADO };
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", montar); else montar();
 })();

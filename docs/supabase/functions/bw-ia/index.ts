@@ -2,13 +2,20 @@
 // Recebe {sistema, pedido, max} de um usuário LOGADO, chama a Groq com a chave guardada no Supabase
 // (Secret GROQ_API_KEY) e devolve {texto}. Também transcreve áudio (Content-Type audio/*) com whisper-large-v3-turbo. A chave nunca vai para o site. Limite: 60 pedidos/dia por conta.
 // {ping:true} só diz se está pronta (tem chave). Nada do texto é gravado.
+// 22/11/2026: níveis RÁPIDO/INTELIGENTE (BW Smart) com cadeia de reserva — ver CADEIAS.
 // 19/11/2026 (PROMPT IA, com o "sim" do dono): {imagem:"data:image/jpeg;base64,…", sistema, pedido} → modelo com VISÃO da Groq lê a imagem
 // (cópia pequena feita no site, só depois de a pessoa confirmar) e devolve {texto}. A imagem não é gravada. Conta no mesmo limite diário.
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
 const LIMITE_DIA = 60;          // textos por dia (conta junto com os pedaços de áudio)
 const LIMITE_AUDIO_DIA = 200;   // pedaços de ~3 min de áudio por dia (~10 h)
-const MODELOS = ["openai/gpt-oss-120b", "openai/gpt-oss-20b"];
+// 22/11/2026 (BW SMART, com o "sim" do dono): o site manda {nivel:"rapido"|"inteligente"} (o BW Smart decide no aparelho pelo tipo de pedido;
+// sem nivel = inteligente, como sempre). Cada nível tem uma CADEIA de reserva: se um modelo falha (cota, fora do ar, nome trocado), vai para o
+// próximo e, se todos falharem, devolve o motivo de CADA um. Modelos de produção da Groq conferidos em console.groq.com/docs/models (22/11).
+const CADEIAS: Record<string, string[]> = {
+  rapido: ["openai/gpt-oss-20b", "llama-3.1-8b-instant", "openai/gpt-oss-120b"],
+  inteligente: ["openai/gpt-oss-120b", "llama-3.3-70b-versatile", "openai/gpt-oss-20b"],
+};
 // modelos com visão, na ordem de tentativa (a Groq troca os nomes de tempos em tempos — conferir em console.groq.com/docs/vision)
 const MODELOS_VISAO = ["qwen/qwen3.8-27b", "meta-models/muse-spark-open"];
 const CORS = {
@@ -57,9 +64,9 @@ Deno.serve(async (req) => {
     return resp({ texto: j.text || "", trechos: (j.segments || []).map((s: { start: number; end: number; text: string }) => ({ i: s.start, f: s.end, t: s.text })) });
   }
 
-  let corpo: { ping?: boolean; sistema?: string; pedido?: string; max?: number; imagem?: string } = {};
+  let corpo: { ping?: boolean; sistema?: string; pedido?: string; max?: number; imagem?: string; nivel?: string } = {};
   try { corpo = await req.json(); } catch { return resp({ erro: "corpo" }, 400); }
-  if (corpo.ping) return resp({ pronto: !!chave });
+  if (corpo.ping) return resp({ pronto: !!chave, niveis: Object.keys(CADEIAS) });
   if (!chave) return resp({ erro: "sem_chave" }, 503);
 
   const pedido = String(corpo.pedido || "").slice(0, 14000);
@@ -97,7 +104,10 @@ Deno.serve(async (req) => {
     return resp({ erro: "visao", detalhe: falhas.join(" | ").slice(0, 500) }, 502);   // mostra o motivo de CADA modelo, não só do último
   }
 
-  for (const modelo of MODELOS) {
+  const nivel = corpo.nivel === "rapido" ? "rapido" : "inteligente";
+  const cadeia = CADEIAS[nivel], falhasT: string[] = [];
+  for (const modelo of cadeia) {
+    const oss = modelo.startsWith("openai/gpt-oss");
     const r = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: { "Authorization": `Bearer ${chave}`, "Content-Type": "application/json" },
@@ -105,16 +115,16 @@ Deno.serve(async (req) => {
         model: modelo,
         messages: [{ role: "system", content: sistema }, { role: "user", content: pedido }],
         temperature: 0.5,
-        max_completion_tokens: max + 1500,   // gpt-oss "pensa" antes de responder; o texto final cabe em `max`
-        reasoning_effort: "low",
-        include_reasoning: false,
+        // gpt-oss "pensa" antes de responder (o texto final cabe em `max`); os Llama não aceitam os campos de raciocínio
+        ...(oss ? { max_completion_tokens: max + 1500, reasoning_effort: nivel === "rapido" ? "low" : "medium", include_reasoning: false } : { max_completion_tokens: max }),
       }),
     });
-    if (r.status === 429 || r.status >= 500) continue;   // cota/instabilidade: tenta o modelo menor
     const j = await r.json().catch(() => ({}));
-    if (!r.ok) return resp({ erro: "groq", detalhe: j?.error?.message?.slice(0, 200) }, 502);
+    if (r.status === 401) return resp({ erro: "groq", detalhe: String(j?.error?.message || "Invalid API Key").slice(0, 200) }, 502);   // chave inválida vale para todos
+    if (!r.ok) { falhasT.push(modelo + ": " + String(j?.error?.message || r.status).slice(0, 140)); continue; }
     const texto = j?.choices?.[0]?.message?.content || "";
-    if (texto.trim()) return resp({ texto, modelo });
+    if (texto.trim()) return resp({ texto, modelo, nivel, reserva: modelo !== cadeia[0] });
+    falhasT.push(modelo + ": resposta vazia (" + String(j?.choices?.[0]?.finish_reason || "?") + ")");
   }
-  return resp({ erro: "ocupada" }, 503);
+  return resp({ erro: "ocupada", detalhe: falhasT.join(" | ").slice(0, 500) }, 503);
 });

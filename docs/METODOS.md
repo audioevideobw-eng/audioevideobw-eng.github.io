@@ -427,3 +427,11 @@ Tamanho > 0 e sem erro = o pdfmake montou o arquivo. Localmente (T1) confira o `
 - Globo de pontos sem biblioteca: `npm i world-atlas topojson-client d3-geo` numa pasta temporária, `geoContains(land,[lon,lat])` para cada ponto
   de uma esfera de Fibonacci de 7000, guardar só os índices em base36 com diferença (~4 KB) e refazer os pontos no navegador.
 - Testes do app com a abertura: `goto(URL + '?r=' + Date.now() + '#pc')`.
+
+
+## IA em níveis com reserva (bw-ia, 22/11)
+- Cliente manda `nivel`; servidor percorre `CADEIAS[nivel]`; 401 = para na hora (chave); outro erro = próximo modelo; junta os motivos de TODOS no `detalhe`.
+- Resposta traz `{texto, modelo, nivel, reserva}` → a tela mostra quem respondeu (evento `bw-ia-modelo`, BWIA.ultimo()).
+- Publicar pelo painel do Supabase: ler o texto do editor (Monaco), comparar SHA-256 com o repositório, executeEdits com o texto todo, conferir SHA, Deploy updates, confirmar
+  o aviso (às vezes o primeiro clique não pega: recarregar e conferir o SHA de novo).
+- Teste com Playwright: `evaluate` de uma expressão que termina em função EXECUTA a função — use sempre `() => { … }`.
