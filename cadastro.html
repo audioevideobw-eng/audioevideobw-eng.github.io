@@ -87,17 +87,16 @@ button:disabled{opacity:.6;cursor:wait}
       '<div class="rodape">BW Audiovisual · fotos do seu evento</div>';
     (async function(){
       try {
-        var sb = window.supabase.createClient(SB_URL, SB_ANON);
-        /* 14/11: só com o código secreto do link (bw_galeria_fotos) */
-        var res = await sb.rpc("bw_galeria_fotos", { p_token: GALERIA });
-        var linhas = res.data || [];
-        var pasta = linhas.length ? linhas[0].evento_id : "";
-        var fotos = linhas.map(function(l){ return { name: l.nome }; })
-          .filter(function(a){ return a.name && /\.(jpe?g|png|webp|gif|heic|heif)$/i.test(a.name); });
-        document.querySelector("#gNome").textContent = fotos.length + " foto(s) do evento";
+        /* 22/11: as fotos ficam em pasta PRIVADA — a função bw-galeria confere o código secreto do link e devolve links temporários (1 h) */
+        var r = await fetch(SB_URL + "/functions/v1/bw-galeria", { method: "POST", headers: { "Content-Type": "application/json", apikey: SB_ANON, Authorization: "Bearer " + SB_ANON }, body: JSON.stringify({ token: GALERIA }) });
+        var j = await r.json().catch(function(){ return {}; });
+        if (!r.ok) { document.querySelector("#gNome").textContent = ""; document.querySelector("#gMsg").textContent = j.erro === "link" ? "Este link de galeria não vale mais. Peça um novo a quem enviou." : "Não consegui carregar a galeria agora. Tente de novo em instantes."; return; }
+        var fotos = (j.fotos || []);
+        document.querySelector("#gNome").textContent = fotos.length + " arquivo(s) do evento";
         document.querySelector("#gFotos").innerHTML = fotos.map(function(a){
-          var u = SB_URL + "/storage/v1/object/public/eventos-midia/" + encodeURIComponent(pasta) + "/" + encodeURIComponent(a.name);
-          return '<a href="' + u + '" target="_blank"><img src="' + u + '" style="width:100%;height:110px;object-fit:cover;border-radius:8px"></a>';
+          var u = String(a.url).replace(/"/g, "&quot;");
+          return a.video ? '<video src="' + u + '" controls playsinline preload="metadata" style="width:100%;height:110px;object-fit:cover;border-radius:8px;background:#000"></video>'
+            : '<a href="' + u + '" target="_blank" rel="noopener"><img src="' + u + '" loading="lazy" alt="Foto do evento" style="width:100%;height:110px;object-fit:cover;border-radius:8px"></a>';
         }).join("");
         if (!fotos.length) document.querySelector("#gMsg").textContent = "Nenhuma foto publicada ainda.";
       } catch (e) {

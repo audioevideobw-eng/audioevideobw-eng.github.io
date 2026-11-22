@@ -175,6 +175,9 @@ for p, t in todos.items():
         for m in re.finditer(r'const cp = [^\n]*/(comprovantes|contratos|nfe)/[^\n]*\n[^\n]*from\("([a-z-]+)"\)\.upload', t):
             if m.group(2) != "eventos-docs":
                 problemas.append(f"{p}: {m.group(1)} enviado para bucket público ({m.group(2)}) — documentos vão para eventos-docs (privado)")
+    # 22/11: fotos dos eventos em pasta PRIVADA — a galeria do cliente só pela função bw-galeria (token), nunca pelo endereço público
+    if p == "cadastro.html" and ("object/public/eventos-midia" in t or "functions/v1/bw-galeria" not in t):
+        problemas.append(f"{p}: galeria do cliente tem de usar a função bw-galeria (links temporários) — o bucket eventos-midia é privado")
     if "?galeria=\" + e.id" in t or '"?galeria=" + e.id' in t:
         problemas.append(f"{p}: galeria por número do evento (adivinhável) — use o link secreto bw_galerias (?g=TOKEN)")
     for m in re.finditer(r'<a [^>]*href="financeiro-painel\.html"[^>]*>', t):

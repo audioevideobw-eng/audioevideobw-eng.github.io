@@ -614,15 +614,20 @@
      um marcador; na hora de abrir, o app pede ao Supabase um link temporário (10 min),
      que só sai para o dono logado. */
   var DOCS = "/storage/v1/object/public/eventos-docs/";
-  function caminhoDoc(url) {
-    var i = String(url || "").indexOf(DOCS);
-    return i < 0 ? null : decodeURIComponent(String(url).slice(i + DOCS.length).split("?")[0]);
+  /* 22/11: as FOTOS dos eventos (eventos-midia) também viraram pasta privada — o endereço público antigo guardado
+     nos eventos continua servindo de "nome", e aqui vira link temporário do dono */
+  var MIDIA = "/storage/v1/object/public/eventos-midia/";
+  function caminhoDe(url) {
+    var u = String(url || ""), i = u.indexOf(DOCS), b = "eventos-docs", t = DOCS.length;
+    if (i < 0) { i = u.indexOf(MIDIA); b = "eventos-midia"; t = MIDIA.length; }
+    return i < 0 ? null : { bucket: b, caminho: decodeURIComponent(u.slice(i + t).split("?")[0]) };
   }
+  function caminhoDoc(url) { var c = caminhoDe(url); return c ? c.caminho : null; }
   async function urlSegura(url) {
-    var cam = caminhoDoc(url);
-    if (!cam) return url;
+    var cd = caminhoDe(url);
+    if (!cd) return url;
     var c = cliente(); if (!c) return null;
-    var r = await c.storage.from("eventos-docs").createSignedUrl(cam, 600);
+    var r = await c.storage.from(cd.bucket).createSignedUrl(cd.caminho, 600);
     return (r && r.data && r.data.signedUrl) || null;
   }
   document.addEventListener("click", function (e) {
