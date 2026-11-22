@@ -177,7 +177,10 @@
       ".bw-foco-barra{display:none}html.bw-foco .bw-foco-barra{display:flex;align-items:center;gap:8px;height:30px;padding:4px 10px 0;font:700 11px Inter,sans-serif;letter-spacing:.12em;color:#8d95a3;text-transform:uppercase}" +
       ".bw-foco-barra button{width:30px;height:28px;border-radius:9px;border:1px solid rgba(245,241,234,.14);background:transparent;color:#cfd5de;font:800 15px Inter,sans-serif;cursor:pointer;padding:0;line-height:1}" +
       ".bw-foco-barra button:hover{border-color:rgba(245,241,234,.4);color:#fff}" +
-      "@media(max-width:899px){html.bw-foco .bw-pagina{padding:4px 10px 24px}}";
+      "@media(max-width:899px){html.bw-foco .bw-pagina{padding:4px 10px 24px}}" +
+      /* 22/11 (dono): ao rolar as faixas de ferramentas para o lado, a tela inteira andava junto "como bloco" (a rolagem vazava para a página e o
+         navegador puxava a página para o lado, como o "puxar para atualizar"). Página de edição fica PARADA: nada vaza, nada anda para o lado. */
+      "html.bw-foco,html.bw-foco body{overscroll-behavior:none}html.bw-foco{overflow-x:hidden}html.bw-foco body{overflow-x:clip}html.bw-foco *{overscroll-behavior-x:none}";
     document.head.appendChild(stF);
     var bf = document.createElement("div"); bf.className = "bw-foco-barra";
     bf.innerHTML = '<button type="button" id="bwFocoVoltar" title="Voltar" aria-label="Voltar">‹</button><span>' + (TITULOS[PAGINA] || PAGINA) + '</span><span style="flex:1"></span><button type="button" id="bwFocoMenu" title="Mostrar os menus" aria-label="Mostrar os menus">☰</button>';

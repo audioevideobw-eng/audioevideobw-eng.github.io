@@ -618,6 +618,18 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
      preventDefault só enquanto arrasta, lugar em FRAÇÃO da tela no aparelho (ui_agente_pos) e sempre acima das barras de baixo; o clique logo depois
      de soltar é engolido UMA vez (flag consumida), senão o clique seguinte do mouse também era ignorado. Menu de caixa que fica no pé da tela do
      celular abre PARA CIMA (mede o espaço acima × abaixo, descontando as abas) (auto: teste_agente_arrastar.py).
+**Aprendidos em 22/11 (mídia, ⋯ da prévia e tela parada)**
+162. MÍDIA QUE NÃO ABRE (vídeo HEVC/H.265, foto HEIC do iPhone, codec raro) entrava calada com 5 s e tela preta: quem importa marca `m.ruim` (sem metadados /
+     sem quadro / imagem que não carrega), mostra ⚠ NÃO ABRE AQUI na biblioteca e o aviso diz o que fazer (iPhone: Câmera → Formatos → Mais compatível).
+     Vários arquivos: aviso "Trazendo N de M" e a biblioteca redesenhada a cada um. No celular, pôr um item (mídia ou som) FECHA a folha e avisa onde
+     entrou — a folha aberta fazia parecer que nada tinha acontecido. AVISO por cima da prévia/linha do tempo = pointer-events:none (engolia toques).
+163. Opções da prévia ficam nos ⋯ discretos no canto de cima (editor de vídeo #veOpcP, Motion #moOpcP); CLICAR na prévia não abre menu (dono: "não ficou
+     bom"); o botão direito continua. Botão posto por cima de algo que muda de tamanho/zoom: posição recalculada (ResizeObserver).
+164. TELA PARADA (dono: "ao rolar as ferramentas a tela anda junto como bloco"): páginas de edição (bw-foco) com overscroll-behavior none no html/body e
+     overscroll-behavior-x none em tudo; faixas que rolam com touch-action pan-x. NUNCA overflow-x:hidden no BODY: vira área de rolagem própria e a
+     prévia sticky some (no teste ela foi parar a −942 px) — use overflow-x:hidden só no html e overflow-x:clip no body. Ações de botão/tecla
+     (aparar, dividir, duplicar, apagar, colar, pôr take) gravam o passo do desfazer NA HORA (antes duas ações em < 0,3 s viravam um passo só);
+     ligações diretas (onclick = dividir) viram funções que chamam pelo nome, para valer a versão embrulhada (auto: teste_video_midia.py).
 
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
@@ -1869,6 +1881,12 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   layout.js v69, sw v173. Testes: teste_agente_arrastar (20), teste_pede, teste_ambientes, teste_layout 0 falhas; vigia ✅.
   App BW do PC: abre a plataforma pela rede, então já recebe; .exe/pacote novo NÃO gerado (fica em Pendências com a próxima versão do app).
 
+- 22/11/2026 02:40 · Claude (dono: "bugs no editor de vídeo ao adicionar mídia; trocar o clique na prévia por três pontinhos discretos no alto; ao rolar as
+  ferramentas a tela se mexe como bloco — deixe parada e só as ferramentas rolarem" + "faça tudo"): EDITOR DE VÍDEO — arquivo que o navegador não abre
+  (HEVC/HEIC) fica com ⚠ NÃO ABRE AQUI e aviso explicando; importar vários mostra o progresso; no celular tocar num item ou som põe na linha do tempo,
+  FECHA a folha e avisa onde entrou; cada ação de botão é um passo próprio do desfazer. PRÉVIA: ⋯ discretos no alto (vídeo e Motion), clique não abre menu.
+  TELA PARADA: editores não deixam a rolagem das faixas vazar para a página. Testes: teste_video_midia (novo) + 14 da bateria 0 falhas; vigia ✅.
+  App BW 1.9.22. video-editor v10, ve-app.css v2, motion.js v8, layout.js v70, sw v174. PENTE FINO 162–164. (Juntado com a sessão paralela das 02:10, que também tinha usado layout v69/sw v173.)
 ## Pendências (dono)
 - [ ] (22/11) CAIXA DO TIO CLÁUDIO: dono testar no PC e no celular, logado — pedir algo pela caixa, trocar BW Smart / Rápido / Inteligente e usar a ✨ varinha.
 - [ ] (22/11) ESTÚDIO DE MOTION: dono testar no PC — arrastar efeito até a barra, barra em cima de outra camada, COR, rodinha na prévia, 🖥 2º monitor e 📱 celular. Dizer se quer também o layout de app no celular.

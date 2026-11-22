@@ -23,7 +23,7 @@ html.ve-app #veCv{max-width:100%!important;max-height:100%!important;width:auto;
 html.va-grande .va{grid-template-rows:52px minmax(0,1fr) 46px 0 0}html.va-grande .va-tl,html.va-grande .va-faixa{display:none}
 .va-tl .ve-tl-corpo{display:block!important;flex:1;min-height:0;overflow-y:auto;overflow-x:hidden}
 html.ve-app .ve-rot{display:none!important}
-html.ve-app #veRolo{overflow-x:auto;overflow-y:hidden;padding:0 var(--va-meio,50%);scrollbar-width:none;-webkit-overflow-scrolling:touch;touch-action:pan-x pan-y}
+html.ve-app #veRolo{overflow-x:auto;overflow-y:hidden;overscroll-behavior:none;padding:0 var(--va-meio,50%);scrollbar-width:none;-webkit-overflow-scrolling:touch;touch-action:pan-x pan-y}
 html.ve-app #veRolo::-webkit-scrollbar{display:none}
 html.ve-app .ve-regua{height:22px;border:0;background:transparent}
 html.ve-app .ve-regua i{color:#8b909a;font-size:10px}
@@ -40,7 +40,7 @@ html.ve-app #veAgulha{display:none}
 .va-agulha{position:absolute;left:50%;top:0;bottom:0;width:2px;margin-left:-1px;background:#fff;z-index:6;pointer-events:none;box-shadow:0 0 6px rgba(0,0,0,.6)}
 .va-agulha::before{content:"";position:absolute;left:-4px;top:0;width:10px;height:10px;border-radius:50%;background:#fff}
 .va-add{position:absolute;right:8px;top:34px;width:38px;height:38px;border:0;border-radius:9px;background:#fff;color:#111;font:300 26px/1 Inter,sans-serif;z-index:7;box-shadow:0 4px 14px rgba(0,0,0,.5);cursor:pointer}
-.va-faixa{display:flex;align-items:stretch;gap:2px;overflow-x:auto;overflow-y:hidden;padding:4px 8px;background:#15171d;border-top:1px solid rgba(255,255,255,.06);scrollbar-width:none;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity}
+.va-faixa{display:flex;align-items:stretch;gap:2px;overflow-x:auto;overflow-y:hidden;overscroll-behavior:none;touch-action:pan-x;padding:4px 8px;background:#15171d;border-top:1px solid rgba(255,255,255,.06);scrollbar-width:none;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity}
 .va-faixa::-webkit-scrollbar{display:none}
 .va-f{flex:none;min-width:70px;max-width:84px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:4px 4px;border:0;border-radius:12px;background:transparent;color:#E8EAEE;font:600 11px/1.15 Inter,sans-serif;text-align:center;cursor:pointer;scroll-snap-align:start;touch-action:pan-x}
 .va-f span{display:block;white-space:normal}
@@ -75,3 +75,6 @@ html.ve-app .bwf-menu{z-index:9600}
 .va .vm-faixa{position:absolute;left:8px;right:8px;top:calc(56px + env(safe-area-inset-top));z-index:8;margin:0;max-height:30vh;overflow:auto;box-shadow:0 8px 24px rgba(0,0,0,.5)}
 .va-f.destaque{min-width:92px;max-width:110px;background:linear-gradient(160deg,#7C5CFF,#4C8DFF);color:#fff;margin-right:6px}
 html.va-folha .va .vm-faixa{display:none}
+
+/* 22/11: a tela do app fica parada — só as faixas rolam (nada de a página inteira deslizar para o lado) */
+html.ve-app,html.ve-app body{overflow-x:hidden}html.ve-app .va{overscroll-behavior:none}

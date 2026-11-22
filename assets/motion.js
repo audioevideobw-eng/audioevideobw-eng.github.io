@@ -72,7 +72,7 @@
     SC = Math.max(0.05, Math.min(larg / P.w, alt / P.h));
     $("moTela").style.width = Math.round(P.w * SC) + "px"; $("moTela").style.height = Math.round(P.h * SC) + "px";
     $("moCena").style.transform = "scale(" + SC + ")"; $("moCena").style.width = P.w + "px"; $("moCena").style.height = P.h + "px";
-    document.documentElement.style.scrollPaddingTop = cel ? Math.round(P.h * SC + 70) + "px" : "";
+    document.documentElement.style.scrollPaddingTop = cel ? Math.round(P.h * SC + 70) + "px" : ""; posOpc();
   }
   function remontar() { MONT = M.montar($("moCena"), P, {}); medir(); if (JAN && !JAN.closed) montarJanela(); ver(T); }
   function ver(t) {
@@ -120,8 +120,13 @@
       { icone: "🖥", rot: "Prévia no segundo monitor / janela solta", fn: abrirJanela }, { icone: "⛶", rot: "Tela cheia (monitor inteiro)", fn: function () { var el = $("moTela").parentNode; if (document.fullscreenElement) document.exitFullscreen(); else if (el.requestFullscreen) el.requestFullscreen().catch(function () {}); } },
       { icone: "📱", rot: "Controle pelo celular", fn: controleCelular }];
     BWFerr.menu(x, y, it, "PRÉVIA"); }
+  /* 22/11 (dono): clicar na prévia não abre mais o menu — ⋯ discretos no canto de cima da prévia (o botão direito no item continua) */
+  function posOpc() { var b = $("moOpcP"), t = $("moTela"); if (!b || !t) return; b.style.left = Math.max(4, t.offsetLeft + t.offsetWidth - 42) + "px"; b.style.top = (t.offsetTop + 8) + "px"; }
   function ligarPalco() {
     var tela = $("moTela"), arr = null;
+    var ob = document.createElement("button"); ob.type = "button"; ob.id = "moOpcP"; ob.className = "mo-opcp"; ob.textContent = "⋯"; ob.title = "Opções da prévia"; ob.setAttribute("aria-label", "Opções da prévia");
+    ob.onclick = function () { var r = ob.getBoundingClientRect(); menuPrevia(Math.max(8, r.right - 250), r.bottom + 6); }; tela.parentNode.appendChild(ob);
+    if (window.ResizeObserver) new ResizeObserver(posOpc).observe(tela); setTimeout(posOpc, 0);
     tela.parentNode.addEventListener("wheel", function (e) { if (e.ctrlKey && !e.altKey) return; e.preventDefault(); var r = tela.getBoundingClientRect(), z0 = VZ.z, z1 = Math.max(1, Math.min(8, z0 * (e.deltaY < 0 ? 1.15 : 1 / 1.15)));
       if (z1 === z0) return; var cx = e.clientX - (r.left - VZ.x) - tela.offsetWidth / 2, cy = e.clientY - (r.top - VZ.y) - tela.offsetHeight / 2;
       VZ.x = z1 === 1 ? 0 : cx - (cx - VZ.x) * z1 / z0; VZ.y = z1 === 1 ? 0 : cy - (cy - VZ.y) * z1 / z0; VZ.z = z1; aplicarVista(); }, { passive: false });
@@ -132,7 +137,7 @@
       if ((F === "h" || e.button === 1) && VZ.z > 1) { arr = { pan: true, px: e.clientX, py: e.clientY, vx: VZ.x, vy: VZ.y }; try { tela.setPointerCapture(e.pointerId); } catch (x) {} e.preventDefault(); return; }
       if (F === "h" || F === "c") return;
       var alvo = e.target.closest("[data-item]"), id = alvo && alvo.getAttribute("data-item");
-      if (!id) { selecionar(null); arr = { vazio: true, px: e.clientX, py: e.clientY, mexeu: false }; return; }
+      if (!id) { selecionar(null); return; }
       if (TOCANDO) tocar();
       selecionar(id, true); var it = item(id); if (!it) return;
       arr = { id: id, px: e.clientX, py: e.clientY, x0: valorEm(it, "x", T), y0: valorEm(it, "y", T), mexeu: false };
@@ -141,12 +146,11 @@
     });
     tela.addEventListener("pointermove", function (e) {
       if (!arr) return; if (arr.pan) { VZ.x = arr.vx + e.clientX - arr.px; VZ.y = arr.vy + e.clientY - arr.py; aplicarVista(); return; }
-      if (arr.vazio) { if (Math.abs(e.clientX - arr.px) + Math.abs(e.clientY - arr.py) > 5) arr.mexeu = true; return; }
       var it = item(arr.id); if (!it) return;
       var dx = (e.clientX - arr.px) / sc(), dy = (e.clientY - arr.py) / sc(); if (!arr.mexeu && Math.abs(dx) + Math.abs(dy) < 4 / sc()) return;
       arr.mexeu = true; definir(it, "x", Math.round(arr.x0 + dx)); definir(it, "y", Math.round(arr.y0 + dy)); ver(T);
     });
-    function soltar(e) { var a = arr; arr = null; if (!a) return; if (a.vazio) { if (!a.mexeu && e && e.type === "pointerup" && e.pointerType !== "touch") menuPrevia(e.clientX, e.clientY); return; } if (a.mexeu && !a.pan) mudou({ remontar: false, painel: true }); }
+    function soltar(e) { var a = arr; arr = null; if (!a) return; if (a.mexeu && !a.pan) mudou({ remontar: false, painel: true }); }
     tela.addEventListener("pointerup", soltar); tela.addEventListener("pointercancel", soltar);
   }
 

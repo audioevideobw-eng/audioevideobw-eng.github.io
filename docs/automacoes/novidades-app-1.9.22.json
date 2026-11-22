@@ -1,0 +1,3 @@
+[{"titulo":"Adicionar mídia sem susto","texto":"No editor de vídeo, arquivo que não abre neste computador (vídeo HEVC, foto HEIC) aparece com ⚠ e o aviso explica; vários arquivos mostram o progresso; cada botão vira um passo do desfazer.","abrir":"video"},
+ {"titulo":"Opções nos ⋯","texto":"As opções da prévia (zoom, segundo monitor, tela cheia, celular) ficam nos ⋯ discretos no alto da prévia, no editor de vídeo e no Estúdio de motion.","abrir":"motion"},
+ {"titulo":"Tela parada","texto":"Ao rolar as ferramentas para o lado, só elas rolam: a tela não anda mais junto."}]

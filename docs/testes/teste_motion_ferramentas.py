@@ -99,7 +99,12 @@ with sync_playwright() as p:
             vazio = pg.evaluate("(()=>{const t=document.getElementById('moTela').getBoundingClientRect();for(let y=t.top+4;y<t.bottom;y+=9)for(let x=t.left+4;x<t.right;x+=9){const e=document.elementFromPoint(x,y);if(e&&!e.closest('[data-item]')&&e.closest('#moTela'))return [x,y]}return null})()")
             if vazio:
                 pg.mouse.click(vazio[0], vazio[1]); pg.wait_for_timeout(250)
-                ok("Aproximar" in pg.inner_text("body") and "segundo monitor" in pg.inner_text("body"), "clicar no vazio da prévia abre as OPÇÕES (zoom, 2º monitor, tela cheia, celular)")
+                ok(pg.locator(".bwf-menu").count() == 0, "clicar na prévia NÃO abre mais o menu (pedido do dono, 22/11)")
+                ok(pg.locator("#moOpcP").is_visible(), "…os ⋯ discretos ficam no alto da prévia")
+                ob = pg.locator("#moOpcP").bounding_box(); tb = pg.locator("#moTela").bounding_box()
+                ok(ob["y"] < tb["y"] + 30 and ob["x"] + ob["width"] <= tb["x"] + tb["width"] + 2 and ob["x"] > tb["x"] + tb["width"] / 2, "…no canto de cima, à direita, dentro da prévia")
+                pg.click("#moOpcP"); pg.wait_for_timeout(250)
+                ok("Aproximar" in pg.inner_text("body") and "segundo monitor" in pg.inner_text("body"), "…e os ⋯ abrem as OPÇÕES (zoom, 2º monitor, tela cheia, celular)")
                 pg.keyboard.press("Escape"); pg.wait_for_timeout(150)
             # prévia em outra janela
             with pg.expect_popup() as pop: pg.click("#moJanela")

@@ -1,18 +1,23 @@
 {
- "versao": "1.9.21",
+ "versao": "1.9.22",
  "data": "22/11/2026",
  "pacote": "downloads/BW-Reels-Studio.zip",
- "sha256": "37f3b44d29dab49f846a43c5266c34e4b66a4210ca76405b7fa35e08e360e36e",
- "bytes": 41413914,
+ "sha256": "00c1ffc8e6d32360c4072d6962a581be855e94a403092f4058d9d3f466655c50",
+ "bytes": 41422234,
  "novidades": [
   {
-   "titulo": "Estúdio de motion turbinado",
-   "texto": "As ferramentas do editor de vídeo chegaram ao Estúdio de motion: galeria de EFEITOS para arrastar até o item, camadas que trocam de lugar ou sobem, cor por item, zoom na prévia, prévia no segundo monitor e controle pelo celular.",
+   "titulo": "Adicionar mídia sem susto",
+   "texto": "No editor de vídeo, arquivo que não abre neste computador (vídeo HEVC, foto HEIC) aparece com ⚠ e o aviso explica; vários arquivos mostram o progresso; cada botão vira um passo do desfazer.",
+   "abrir": "video"
+  },
+  {
+   "titulo": "Opções nos ⋯",
+   "texto": "As opções da prévia (zoom, segundo monitor, tela cheia, celular) ficam nos ⋯ discretos no alto da prévia, no editor de vídeo e no Estúdio de motion.",
    "abrir": "motion"
   },
   {
-   "titulo": "Varinha mais natural",
-   "texto": "A ✨ varinha do Tio Cláudio agora reescreve o pedido em frase natural, como você pediria."
+   "titulo": "Tela parada",
+   "texto": "Ao rolar as ferramentas para o lado, só elas rolam: a tela não anda mais junto."
   }
  ]
 }

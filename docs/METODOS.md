@@ -435,3 +435,10 @@ Tamanho > 0 e sem erro = o pdfmake montou o arquivo. Localmente (T1) confira o `
 - Publicar pelo painel do Supabase: ler o texto do editor (Monaco), comparar SHA-256 com o repositório, executeEdits com o texto todo, conferir SHA, Deploy updates, confirmar
   o aviso (às vezes o primeiro clique não pega: recarregar e conferir o SHA de novo).
 - Teste com Playwright: `evaluate` de uma expressão que termina em função EXECUTA a função — use sempre `() => { … }`.
+
+
+## Sonda antes de consertar "bug sem descrição" (22/11)
+- O dono disse só "bugs ao adicionar mídia": escrever uma SONDA (docs/testes/_sonda.py, apagar depois) que faz todos os caminhos — importar vários tipos
+  (vídeo bom, imagem, som, arquivo quebrado, .heic falso), tocar em cada item, PC e celular — e imprime o estado (MID, clipes, folha aberta, erros).
+  O que pareceu "funcionar" no código (o clipe entrava) era bug de uso (a folha continuava aberta) e silêncio (arquivo que não abre).
+- Testar um arquivo que o navegador não abre: 20 KB de bytes aleatórios com extensão .mp4/.heic.

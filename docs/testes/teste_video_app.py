@@ -62,9 +62,10 @@ with sync_playwright() as p:
         # MÍDIA → importar e pôr na linha do tempo
         ferr("Mídia").click(); pg.wait_for_timeout(250); ok(visivel(pg, "#vaSheet") and visivel(pg, "#veLib"), "MÍDIA abre a folha com a biblioteca")
         pg.set_input_files("#veArq", [f"{TMP}/azul.webm", f"{TMP}/verde.webm"]); pg.wait_for_function("Object.keys(__video.MID).length >= 2", timeout=15000); pg.wait_for_timeout(500)
-        tocar_el("#veLib [data-mid]"); pg.wait_for_timeout(300); tocar_el("#veLib [data-mid]:nth-child(2)"); pg.wait_for_timeout(400)
-        ok(pg.evaluate(f"{CL}.filter(c=>c.tipo==='video').length") == 2, "um toque em cada vídeo da biblioteca põe os dois na linha do tempo")
-        tocar_el("#vaSheetOk"); ok(not visivel(pg, "#vaSheet"), "✓ fecha a folha")
+        tocar_el("#veLib [data-mid]"); pg.wait_for_timeout(400)
+        ok(not visivel(pg, "#vaSheet"), "tocar no item põe na linha do tempo e FECHA a folha (22/11)")
+        tocar_el("#vaAdd"); pg.wait_for_timeout(300); tocar_el("#veLib [data-mid]:nth-child(2)"); pg.wait_for_timeout(400)
+        ok(pg.evaluate(f"{CL}.filter(c=>c.tipo==='video').length") == 2 and not visivel(pg, "#vaSheet"), "um toque em cada vídeo da biblioteca põe os dois na linha do tempo")
         pg.evaluate("__video.sel(null)"); pg.wait_for_timeout(200)
         ok(pg.evaluate("getComputedStyle(document.querySelector('.ve-clip[data-clip]')).getPropertyValue('--mini')") != "" or True, "takes com miniatura (tira de quadros) na linha do tempo")
         # agulha parada no meio
@@ -118,7 +119,7 @@ with sync_playwright() as p:
         pg.evaluate("__video.sel(null)"); pg.wait_for_timeout(150)
         ferr("Áudio").click(); pg.wait_for_timeout(150); ok("Sons e trilhas" in pg.inner_text("#vaFaixa"), "ÁUDIO abre o submenu (sons, importar, extrair)")
         ferr("Sons e trilhas").click(); pg.wait_for_timeout(400); ok(visivel(pg, "#vaSheet") and pg.locator("#veLib [data-som]").count() > 0, "SONS E TRILHAS mostra os sons prontos")
-        tocar_el("#veLib [data-som]"); pg.wait_for_timeout(800); tocar_el("#vaSheetOk")
+        tocar_el("#veLib [data-som]"); pg.wait_for_timeout(800); ok(not visivel(pg, "#vaSheet"), "tocar num som também fecha a folha")
         ca = pg.evaluate(f"({CL}.find(c=>c.tipo==='audio')||{{}}).id"); ok(bool(ca), "um toque num som põe o som na linha do tempo")
         if ca:
             pg.evaluate(f"__video.sel('{ca}')"); pg.wait_for_timeout(300)

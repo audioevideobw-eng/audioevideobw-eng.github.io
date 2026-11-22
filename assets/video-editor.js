@@ -72,23 +72,30 @@
 
   /* ---------- mídia ---------- */
   function tipoDe(f) { var t = f.type || ""; if (/^video\//.test(t)) return "video"; if (/^audio\//.test(t)) return "audio"; if (/^image\//.test(t)) return "imagem"; var n = (f.name || "").toLowerCase(); return /\.(mp4|mov|webm|m4v)$/.test(n) ? "video" : /\.(mp3|wav|m4a|ogg|aac)$/.test(n) ? "audio" : /\.(png|jpe?g|webp|gif)$/.test(n) ? "imagem" : ""; }
-  function duracaoDe(url, tipo) { return new Promise(function (ok) { if (tipo === "imagem") return ok(4); var e = document.createElement(tipo === "video" ? "video" : "audio"), fim = function (d) { ok(isFinite(d) && d > 0 ? d : 5); }; e.preload = "metadata"; e.muted = true; e.onloadedmetadata = function () { if (e.duration === Infinity) { e.currentTime = 1e7; e.ontimeupdate = function () { e.ontimeupdate = null; fim(e.duration); }; } else fim(e.duration); }; e.onerror = function () { fim(0); }; setTimeout(function () { fim(e.duration); }, 4000); e.src = url; }); }
+  function duracaoDe(url, tipo) { return new Promise(function (ok) { if (tipo === "imagem") return ok(4); var e = document.createElement(tipo === "video" ? "video" : "audio"), fim = function (d) { ok(isFinite(d) && d > 0 ? d : 5); }; e.preload = "metadata"; e.muted = true; e.onloadedmetadata = function () { duracaoDe.ok = true; if (e.duration === Infinity) { e.currentTime = 1e7; e.ontimeupdate = function () { e.ontimeupdate = null; fim(e.duration); }; } else fim(e.duration); }; e.onerror = function () { duracaoDe.ok = false; fim(0); }; setTimeout(function () { fim(e.duration); }, 4000); duracaoDe.ok = false; e.src = url; }); }
   function capa(m) { return new Promise(function (ok) {
-    if (m.tipo === "imagem") { var im = new Image(); im.onload = function () { m.img = im; ok(); }; im.onerror = function () { ok(); }; im.src = m.url; return; }
+    if (m.tipo === "imagem") { var im = new Image(); im.onload = function () { m.img = im; ok(); }; im.onerror = function () { m.ruim = true; ok(); }; im.src = m.url; return; }
     if (m.tipo !== "video") return ok();
     var v = document.createElement("video"); v.muted = true; v.playsInline = true; v.preload = "auto"; var feito = false, fim = function () { if (feito) return; feito = true; try { var c = document.createElement("canvas"); c.width = 160; c.height = Math.max(1, Math.round(160 * (v.videoHeight || 9) / (v.videoWidth || 16))); c.getContext("2d").drawImage(v, 0, 0, c.width, c.height); m.capa = c.toDataURL("image/jpeg", 0.7); } catch (e) {} ok(); };
-    v.onloadeddata = function () { try { v.currentTime = Math.min(0.3, (v.duration || 1) / 2); } catch (e) { fim(); } }; v.onseeked = fim; v.onerror = fim; setTimeout(fim, 3000); v.src = m.url; }); }
+    v.onerror = function () { m.ruim = true; }; v.onloadeddata = function () { try { v.currentTime = Math.min(0.3, (v.duration || 1) / 2); } catch (e) { fim(); } }; v.onseeked = fim; v.onerror = fim; setTimeout(fim, 3000); v.src = m.url; }); }
   async function porMidia(blob, nome, tipo, id, durFixa) {
     var m = {id: id || uid("m"), nome: String(nome || "arquivo").slice(0, 60), tipo: tipo, blob: blob, url: URL.createObjectURL(blob)};
-    m.dur = durFixa || await duracaoDe(m.url, tipo); await capa(m); MID[m.id] = m;
+    m.dur = durFixa || await duracaoDe(m.url, tipo); if (!durFixa && tipo !== "imagem" && !duracaoDe.ok) m.ruim = true; await capa(m);
+    if (tipo === "video" && !m.capa) m.ruim = true;   /* sem nenhum quadro = o navegador não abre esse vídeo (HEVC, codec raro) */
+    MID[m.id] = m;
     if (!id) await tx("midias", "readwrite", function (s) { return s.put({id: m.id, nome: m.nome, tipo: m.tipo, blob: blob, dur: m.dur}); });
     return m;
   }
   async function importar(files) {
-    var n = 0, fora = 0;
+    var n = 0, fora = 0, ruins = [];
     for (var i = 0; i < files.length; i++) { var f = files[i], t = tipoDe(f); if (!t) { fora++; continue; }
-      try { await porMidia(new Blob([await f.arrayBuffer()], {type: f.type}), f.name, t); n++; } catch (e) { fora++; } }   /* cópia na memória na hora (o iPhone invalida o original) */
-    desenharLib(); aviso(n ? n + " arquivo(s) na biblioteca. Toque neles para pôr na linha do tempo." + (fora ? " " + fora + " não é vídeo, imagem nem áudio." : "") : "Esse arquivo não é vídeo, imagem nem áudio.", !n);
+      if (files.length > 1) aviso("⏳ Trazendo " + (i + 1) + " de " + files.length + ": " + String(f.name).slice(0, 40) + "…");
+      try { var mm = await porMidia(new Blob([await f.arrayBuffer()], {type: f.type}), f.name, t); n++; if (mm.ruim) ruins.push(mm.nome); desenharLib(); } catch (e) { fora++; } }   /* cópia na memória na hora (o iPhone invalida o original); a biblioteca aparece arquivo a arquivo */
+    desenharLib();
+    /* 22/11 (dono: "bugs ao adicionar mídia"): arquivo que o navegador NÃO consegue abrir (vídeo HEVC/H.265 ou foto HEIC do iPhone, codec raro) entrava calado,
+       com 5 s e tela preta. Agora fica marcado com ⚠ na biblioteca e o aviso diz o que fazer. */
+    if (ruins.length) aviso("⚠ " + ruins.length + " arquivo(s) não abriram neste navegador (" + ruins.slice(0, 2).join(", ") + (ruins.length > 2 ? "…" : "") + "). Costuma ser vídeo HEVC ou foto HEIC do iPhone: no iPhone, Ajustes → Câmera → Formatos → MAIS COMPATÍVEL; ou use o app BW no PC (Chrome/Edge com vídeo HEVC).", true);
+    else aviso(n ? n + " arquivo(s) na biblioteca. Toque neles para pôr na linha do tempo." + (fora ? " " + fora + " não é vídeo, imagem nem áudio." : "") : "Esse arquivo não é vídeo, imagem nem áudio.", !n);
   }
   async function criacoes() {   /* imagens criadas no QUADRO DE HISTÓRIA e os personagens com imagem (mesmo aparelho) */
     var n = 0;
@@ -439,7 +446,7 @@
     var l = Object.keys(MID).map(function (k) { return MID[k]; }).filter(function (m) { return !m.ph && (ABA === "tudo" || m.tipo === ABA); });   /* espaços de modelo não aparecem na biblioteca */
     $("veLib").innerHTML = l.length ? l.map(function (m) { var mini = m.tipo === "imagem" ? '<img alt="" src="' + m.url + '">' : m.capa ? '<img alt="" src="' + m.capa + '">' : '<span class="mini" aria-hidden="true">' + (m.tipo === "audio" ? "🎵" : "🎬") + '</span>';
       var f = m.cr && window.BWCriacoes ? BWCriacoes.FERR[m.cr.ferramenta] : null;
-      return '<div class="ve-item" role="button" tabindex="0" data-mid="' + esc(m.id) + '" aria-label="Pôr ' + esc(m.nome) + ' na linha do tempo"' + (f ? ' style="--cf:' + f.cor + '"' : "") + '>' + mini + (f ? '<b class="selo">' + f.icone + " " + esc(f.curto) + "</b>" : "") + '<span>' + esc(m.nome) + '</span>' + (f ? '<button type="button" class="ed" data-editar="' + esc(m.id) + '" title="Abrir no ' + esc(f.nome) + ' e trocar aqui" aria-label="Editar no ' + esc(f.nome) + '">✎</button>' : "") + '<button type="button" class="x" data-del="' + esc(m.id) + '" aria-label="Tirar ' + esc(m.nome) + ' da biblioteca">✕</button></div>'; }).join("")
+      return '<div class="ve-item' + (m.ruim ? " ruim" : "") + '" role="button" tabindex="0" data-mid="' + esc(m.id) + '" aria-label="Pôr ' + esc(m.nome) + ' na linha do tempo"' + (m.ruim ? ' title="Este arquivo não abre neste navegador"' : "") + (f ? ' style="--cf:' + f.cor + '"' : "") + '>' + mini + (m.ruim ? '<b class="selo ruim">⚠ NÃO ABRE AQUI</b>' : "") + (f ? '<b class="selo">' + f.icone + " " + esc(f.curto) + "</b>" : "") + '<span>' + esc(m.nome) + '</span>' + (f ? '<button type="button" class="ed" data-editar="' + esc(m.id) + '" title="Abrir no ' + esc(f.nome) + ' e trocar aqui" aria-label="Editar no ' + esc(f.nome) + '">✎</button>' : "") + '<button type="button" class="x" data-del="' + esc(m.id) + '" aria-label="Tirar ' + esc(m.nome) + ' da biblioteca">✕</button></div>'; }).join("")
       : '<p class="ve-nota" style="grid-column:1/-1;margin:0">Nada aqui ainda. Toque em ＋ IMPORTAR ou em ✨ MINHAS CRIAÇÕES.</p>';
   }
   function desenharTL() {
@@ -548,24 +555,26 @@
   $("veArq").onchange = function () { var fs = [].slice.call(this.files || []); this.value = ""; if (fs.length) importar(fs); };
   $("veCriacoes").onclick = criacoes;
   $("veArqTroca").onchange = function () { var f = (this.files || [])[0]; this.value = ""; substituirCom(f); };
-  $("veTexto").onclick = addTexto;
+  $("veTexto").onclick = function () { return addTexto.apply(this, arguments); };
   $("veSons").onclick = function () { ABA = "audio"; var b = $("veLib"); desenharLib(); b.insertAdjacentHTML("afterbegin", SONS.map(function (s, i) { return '<div class="ve-item" role="button" tabindex="0" data-som="' + i + '" aria-label="Pôr ' + s[1] + ' na linha do tempo"><span class="mini" aria-hidden="true">' + (s[0] === "sfx" ? "🔊" : "🎼") + '</span><span>' + (s[0] === "sfx" ? "Efeito · " : "Trilha · ") + s[1] + '</span></div>'; }).join("")); var v = b.querySelector("p"); if (v) v.remove(); };
   $("veAbas").addEventListener("click", function (e) { var b = e.target.closest("[data-aba]"); if (b) { ABA = b.dataset.aba; desenharLib(); } });
   $("veLib").addEventListener("click", async function (e) {
     if (Date.now() - LD_FIM < 400) return;   /* o clique que vem depois de arrastar não conta */
     var fxb = e.target.closest("[data-arr]"); if (fxb) { var kk = fxb.dataset.arr; aplicarFx(sel(), kk.charAt(0), kk.slice(2)); return; }
     var d = e.target.closest("[data-del]"); if (d) { e.stopPropagation(); var id = d.dataset.del; if (P.clips.some(function (c) { return c.mid === id; }) && !confirm("Este arquivo está na linha do tempo. Tirar da biblioteca apaga os clipes dele. Continuar?")) return; P.clips.filter(function (c) { return c.mid === id; }).forEach(function (c) { soltarEl(c.id); }); P.clips = P.clips.filter(function (c) { return c.mid !== id; }); if (MID[id]) URL.revokeObjectURL(MID[id].url); delete MID[id]; if (window.BWMascara) BWMascara.apagar(id); await tx("midias", "readwrite", function (s) { return s.delete(id); }); desenharLib(); tudo(); return; }
-    var s = e.target.closest("[data-som]"); if (s) { var ms = await porSom(+s.dataset.som); addClip(ms); aviso(SONS[+s.dataset.som][1] + " na linha do tempo (" + (ms.som === "sfx" ? "EFEITOS, na posição da agulha" : "TRILHA") + ")."); return; }
+    var s = e.target.closest("[data-som]"); if (s) { var ms = await porSom(+s.dataset.som); addClip(ms); if (window.VEApp && VEApp.aberta && VEApp.aberta() === "midia") VEApp.fechar(); aviso("✓ " + SONS[+s.dataset.som][1] + " na linha do tempo (" + (ms.som === "sfx" ? "EFEITOS, na posição da agulha" : "TRILHA") + ")."); return; }
     var ed = e.target.closest("[data-editar]"); if (ed) { e.stopPropagation(); editarNaOrigem(ed.dataset.editar); return; }
     var m = e.target.closest("[data-mid]"); if (!m || !MID[m.dataset.mid]) return; var mm = MID[m.dataset.mid], cs = sel();
     if (cs && cs.ph && mm.tipo !== "audio" && cs.tipo !== "audio") { trocarEspaco(cs, mm); return; }
     if (cs && cs.phMusica && mm.tipo === "audio") { cs.mid = mm.id; cs.corte = 0; delete cs.phMusica; soltarEl(cs.id); cs.dur = Math.min(cs.dur, mm.dur || cs.dur); tudo(); aviso("🎵 Música do modelo trocada."); return; }
-    addClip(mm);
+    var nc = addClip(mm);
+    if (window.VEApp && VEApp.aberta && VEApp.aberta() === "midia") VEApp.fechar();   /* no celular a folha fechava só no ✕ e parecia que nada tinha entrado */
+    aviso((mm.ruim ? "⚠ " : "✓ ") + mm.nome + " na linha do tempo (" + infoTr(nc.trilha)[0] + ", em " + fmtT(nc.ini) + ")" + (mm.ruim ? " — mas este arquivo não abre neste navegador." : "."), !!mm.ruim);
   });
   $("veLib").addEventListener("keydown", function (e) { if ((e.key === "Enter" || e.key === " ") && e.target.matches(".ve-item")) { e.preventDefault(); e.target.click(); } });
   $("vePlay").onclick = function () { if (TOCANDO) parar(); else tocar(); };
   $("veInicio").onclick = function () { irPara(0); $("veRolo").scrollLeft = 0; };
-  $("veDesf").onclick = desfazer; $("veRef").onclick = refazer; $("veApIni").onclick = function () { aparar("ini"); }; $("veApFim").onclick = function () { aparar("fim"); }; $("veCortar").onclick = dividir; $("veDuplicar").onclick = duplicar; $("veApagar").onclick = apagar;
+  $("veDesf").onclick = desfazer; $("veRef").onclick = refazer; $("veApIni").onclick = function () { aparar("ini"); }; $("veApFim").onclick = function () { aparar("fim"); }; $("veCortar").onclick = function () { return dividir.apply(this, arguments); }; $("veDuplicar").onclick = function () { return duplicar.apply(this, arguments); }; $("veApagar").onclick = function () { return apagar.apply(this, arguments); };
   $("veZoomMais").onclick = function () { PPS = Math.min(200, Math.round(PPS * 1.4)); desenharTL(); }; $("veZoomMenos").onclick = function () { PPS = Math.max(12, Math.round(PPS / 1.4)); desenharTL(); };
   $("veFmt").onchange = function () { P.fmt = this.value; if (P.fmt === "livre" && !P.w) { P.w = cv.width; P.h = cv.height; } formato(); guardar(); };
   ["veLargura", "veAltura"].forEach(function (id) { $(id).onchange = function () { if (P.fmt !== "livre") return; var par = function (v) { v = Math.round(Number(v) || 0); return lim(v - v % 2, 240, 4096); }; P.w = par($("veLargura").value); P.h = par($("veAltura").value); formato(); guardar(); aviso("Tamanho " + P.w + " × " + P.h + " px."); }; });
@@ -679,7 +688,6 @@
     dicaArr(null);
     if (a.tipo === "mover" && a.moveu && a.troca) trocarLugar(a.c, a.troca, a.ini, a.trOrig);
     else if (a.tipo === "mover" && a.moveu && a.subiu) aviso("⬆ Camada nova: " + infoTr(a.c.trilha)[0] + " — o take ficou por cima do outro.");
-    if (a.tipo === "palco" && !a.moveu && a.menu) { menuPrevia(a.mx, a.my); return; }
     if (a.tipo === "trans") { if (!a.moveu) { menuTrans(a.c, a.x0, a.y0); return; } tudo(); marcar(a.c.id); aviso("◧ Transição “" + TRANS[a.c.trans.tipo] + "” com " + String(a.c.trans.dur).replace(".", ",") + " s" + (a.tinha ? "." : " (Dissolver — toque no ◆ para trocar).")); return; }
     if (a.tipo !== "agulha" && a.tipo !== "mao" && (a.moveu || a.tipo === "trans")) tudo(); });
   /* ARRASTAR DA BIBLIOTECA (22/11): mídia, som, transição e efeito vão por arrasto até a linha do tempo (rato depois de 5 px; dedo depois de segurar
@@ -731,7 +739,10 @@
     if (F !== "v") return;
     var ativos = P.clips.filter(function (c) { return c.tipo !== "audio" && T >= c.ini && T < c.ini + c.dur; }), pesoTr = function (id) { return (fam(id) === "t" ? 1000 : 0) + numTr(id); };
     var c = sel(); if (!c || ativos.indexOf(c) < 0) { c = ativos.sort(function (a, b) { return pesoTr(b.trilha) - pesoTr(a.trilha); })[0]; if (c) { SEL = c.id; desenharTL(); desenharProp(); } }
-    arr = {tipo: "palco", c: c || null, x0: e.clientX, y0: e.clientY, px: c ? c.x || 0 : 0, py: c ? c.y || 0 : 0, moveu: false, menu: true, mx: e.clientX, my: e.clientY}; e.preventDefault(); });
+    arr = {tipo: "palco", c: c || null, x0: e.clientX, y0: e.clientY, px: c ? c.x || 0 : 0, py: c ? c.y || 0 : 0, moveu: false}; e.preventDefault(); });
+  /* 22/11 (dono): clicar na prévia NÃO abre mais o menu — as opções ficam nos ⋯ discretos no alto da prévia (o botão direito continua) */
+  (function () { var tela = cv.parentElement; if (!tela || $("veOpcP")) return; var b = document.createElement("button"); b.type = "button"; b.id = "veOpcP"; b.className = "ve-opcp"; b.title = "Opções da prévia"; b.setAttribute("aria-label", "Opções da prévia"); b.textContent = "⋯";
+    b.addEventListener("pointerdown", function (e) { e.stopPropagation(); }); b.onclick = function (e) { e.stopPropagation(); var r = b.getBoundingClientRect(); BWFerr._acabouSegurar = 0; menuPrevia(Math.max(8, r.right - 250), r.bottom + 6); }; tela.appendChild(b); })();
   cv.addEventListener("contextmenu", function (e) { e.preventDefault(); menuPrevia(e.clientX, e.clientY); });
 
   /* ZOOM DA PRÉVIA (22/11): rodinha em cima da prévia aproxima/afasta no ponto do mouse; com zoom, a mão (H, Espaço ou botão do meio) arrasta;
@@ -775,9 +786,9 @@
       "arrowleft": function () { irPara(T - passoQ); }, "arrowright": function () { irPara(T + passoQ); }, "shift+arrowleft": function () { irPara(T - 1); }, "shift+arrowright": function () { irPara(T + 1); },
       "home": function () { irPara(0); $("veRolo").scrollLeft = 0; }, "end": function () { irPara(total()); },
       "delete": function () { if (!SEL) return false; apagar(false); }, "shift+delete": function () { if (!SEL) return false; apagar(true); },
-      "ctrl+k": dividir, "ctrl+z": desfazer, "ctrl+shift+z, ctrl+y": refazer, "ctrl+c": function () { return copiar(); }, "ctrl+v": colar, "ctrl+shift+c": function () { return copiarAtrib(); }, "ctrl+shift+v": function () { return colarAtrib(); },
+      "ctrl+k": function () { return dividir.apply(this, arguments); }, "ctrl+z": desfazer, "ctrl+shift+z, ctrl+y": refazer, "ctrl+c": function () { return copiar(); }, "ctrl+v": function () { return colar.apply(this, arguments); }, "ctrl+shift+c": function () { return copiarAtrib(); }, "ctrl+shift+v": function () { return colarAtrib(); },
       "q": function () { aparar("ini"); }, "w": function () { aparar("fim"); }, "shift+e": function () { return ligarDesligar(); },
-      "ctrl+shift+/, ctrl+shift+d": duplicar, "ctrl+d": function () { var c = sel(); if (!c || c.tipo === "audio" || c.tipo === "texto") return false; c.trans = {tipo: "dissolver", dur: 0.6}; tudo(); aviso("Ctrl+D: transição Dissolver no início do clipe" + (anteriorDe(c) ? "." : " (encoste-o no fim de outro clipe).")); },
+      "ctrl+shift+/, ctrl+shift+d": function () { return duplicar.apply(this, arguments); }, "ctrl+d": function () { var c = sel(); if (!c || c.tipo === "audio" || c.tipo === "texto") return false; c.trans = {tipo: "dissolver", dur: 0.6}; tudo(); aviso("Ctrl+D: transição Dissolver no início do clipe" + (anteriorDe(c) ? "." : " (encoste-o no fim de outro clipe).")); },
       "=, shift+=, ctrl+=": function () { zoomEm(1.4); }, "-, ctrl+-": function () { zoomEm(1 / 1.4); }, "\\": encaixarTudo,
       "ctrl+s": function () { guardar(); aviso("✓ Salvo neste aparelho (o editor também salva sozinho)."); }, "ctrl+m, ctrl+e": exportar, "ctrl+i": function () { $("veArq").click(); },
       "escape": function () { if (!SEL) return false; SEL = null; desenharTL(); desenharProp(); }
@@ -790,10 +801,10 @@
     BWFerr.contexto($("veFaixas"), "[data-clip]", function (el) { var c = P.clips.filter(function (x) { return x.id === el.dataset.clip; })[0]; if (!c) return [];
       if (SEL !== c.id) { SEL = c.id; desenharTL(); desenharProp(); }
       var vis = c.tipo !== "audio" && c.tipo !== "texto", itens = [
-        {icone: "✂", rot: "Cortar na agulha", tecla: "Ctrl+K", off: !(T > c.ini + 0.05 && T < c.ini + c.dur - 0.05), fn: dividir},
-        {icone: "⧉", rot: "Duplicar", tecla: "Ctrl+Shift+D", fn: duplicar}, {icone: "⎘", rot: "Copiar", tecla: "Ctrl+C", fn: copiar}, {icone: "📋", rot: "Colar na agulha", tecla: "Ctrl+V", off: !COPIA, fn: colar}];
+        {icone: "✂", rot: "Cortar na agulha", tecla: "Ctrl+K", off: !(T > c.ini + 0.05 && T < c.ini + c.dur - 0.05), fn: function () { return dividir.apply(this, arguments); }},
+        {icone: "⧉", rot: "Duplicar", tecla: "Ctrl+Shift+D", fn: function () { return duplicar.apply(this, arguments); }}, {icone: "⎘", rot: "Copiar", tecla: "Ctrl+C", fn: copiar}, {icone: "📋", rot: "Colar na agulha", tecla: "Ctrl+V", off: !COPIA, fn: function () { return colar.apply(this, arguments); }}];
       itens.push({icone: "⇤", rot: "Cortar o começo até a agulha", tecla: "Q", off: !(T > c.ini + 0.05 && T < c.ini + c.dur - 0.05), fn: function () { aparar("ini"); }}, {icone: "⇥", rot: "Cortar o fim na agulha", tecla: "W", off: !(T > c.ini + 0.05 && T < c.ini + c.dur - 0.05), fn: function () { aparar("fim"); }},
-        "-", {icone: "🎚", rot: "Copiar ajustes", tecla: "Ctrl+Shift+C", fn: copiarAtrib}, {icone: "🖌", rot: "Colar ajustes", tecla: "Ctrl+Shift+V", off: !ATRIB || ATRIB.id === c.id, fn: colarAtrib},
+        "-", {icone: "🎚", rot: "Copiar ajustes", tecla: "Ctrl+Shift+C", fn: copiarAtrib}, {icone: "🖌", rot: "Colar ajustes", tecla: "Ctrl+Shift+V", off: !ATRIB || ATRIB.id === c.id, fn: function () { return colarAtrib.apply(this, arguments); }},
         {icone: c.off ? "👁" : "🚫", rot: c.off ? "Ativar o take" : "Desativar o take", tecla: "Shift+E", fn: ligarDesligar});
       if (temImg(c) && window.BWCor) itens.push({icone: "🎨", rot: "Cor", sub: [{rot: "Original" + (!BWCor.ativo(c.grade) ? "  ✓" : ""), fn: function () { delete c.grade; c.look = ""; tudo(); }}].concat(Object.keys(BWCor.LOOKS).map(function (k) { return {rot: BWCor.LOOKS[k].nome + (c.look === k && BWCor.ativo(c.grade) ? "  ✓" : ""), fn: function () { c.grade = JSON.parse(JSON.stringify(BWCor.LOOKS[k].g)); c.look = k; tudo(); }}; }))
         .concat([{rot: "⇉ Aplicar esta cor em todos os takes", off: !BWCor.ativo(c.grade), fn: function () { corEmTodos(c); }}, {rot: "Abrir os ajustes de cor…", fn: function () { abrirGrupo("ve-cor"); }}])});
@@ -920,11 +931,18 @@
     if (window.BWMascara) BWMascara.carregar(Object.keys(MID)).then(function () { desenharProp(); desenhar(); });
     await chegouCriacao();
   })();
+  /* 22/11: cada AÇÃO de botão/tecla (aparar, dividir, duplicar, apagar, colar, pôr take/texto) é um passo próprio do desfazer — antes, duas ações
+     feitas em menos de 0,3 s viravam um passo só e o ↶ desfazia as duas (o histórico que espera é para arrastes, não para cliques) */
+  [["aparar", function (f) { aparar = f; }, function () { return aparar; }], ["dividir", function (f) { dividir = f; }, function () { return dividir; }],
+   ["duplicar", function (f) { duplicar = f; }, function () { return duplicar; }], ["apagar", function (f) { apagar = f; }, function () { return apagar; }],
+   ["colar", function (f) { colar = f; }, function () { return colar; }], ["colarAtrib", function (f) { colarAtrib = f; }, function () { return colarAtrib; }],
+   ["addClip", function (f) { addClip = f; }, function () { return addClip; }], ["addTexto", function (f) { addTexto = f; }, function () { return addTexto; }]].forEach(function (q) {
+    var orig = q[2](); q[1](function () { gravarHist(); var r = orig.apply(this, arguments); gravarHist(); return r; }); });
   window.__video = {porMidia: porMidia, tudo: function () { tudo(); }, desenharLib: desenharLib, guardarJa: function () { return tx("estado", "readwrite", function (s) { return s.put({id: "atual", p: JSON.parse(JSON.stringify(P))}); }); },
     trocarProjeto: function (np) { parar(); Object.keys(EL).forEach(soltarEl); P = np; SEL = null; T = 0; formato(); desenharLib(); tudo(); },
     backup: function () { return tx("estado", "readwrite", function (s) { return s.put({id: "anterior", p: JSON.parse(JSON.stringify(P))}); }); },
     anterior: function () { return new Promise(function (ok) { db().then(function (d) { var q = d.transaction("estado").objectStore("estado").get("anterior"); q.onsuccess = function () { ok(q.result && q.result.p); }; q.onerror = function () { ok(null); }; }); }); },
     preencherSozinho: preencherSozinho, trocarEspaco: trocarEspaco, analisarPessoa: function (id) { var c = P.clips.filter(function (x) { return x.id === id; })[0]; return c ? analisarPessoa(c) : null; }, selAtual: function () { return sel(); }, aviso: aviso, cv: function () { return cv; },
-    P: function () { return P; }, MID: MID, trazerCriacao: trazerCriacao, editarNaOrigem: editarNaOrigem, importar: importar, addClip: addClip, addTexto: addTexto, porSom: porSom, irPara: irPara, tocar: tocar, parar: parar, total: total, sel: function (id) { SEL = id; tudo(); }, exportar: exportar, tipoGravacao: tipoGravacao, T: function () { return T; }, tocando: function () { return TOCANDO; }, desenhar: desenhar, dividir: dividir, sintetizar: sintetizar, congelar: congelar, mudarVel: mudarVel, desfazer: desfazer, refazer: refazer, pps: function () { return PPS; }, TRANS: TRANS, EFEITOS: EFEITOS};
+    P: function () { return P; }, MID: MID, trazerCriacao: trazerCriacao, editarNaOrigem: editarNaOrigem, importar: importar, addClip: function () { return addClip.apply(this, arguments); }, addTexto: function () { return addTexto.apply(this, arguments); }, porSom: porSom, irPara: irPara, tocar: tocar, parar: parar, total: total, sel: function (id) { SEL = id; tudo(); }, exportar: exportar, tipoGravacao: tipoGravacao, T: function () { return T; }, tocando: function () { return TOCANDO; }, desenhar: desenhar, dividir: function () { return dividir.apply(this, arguments); }, sintetizar: sintetizar, congelar: congelar, mudarVel: mudarVel, desfazer: desfazer, refazer: refazer, pps: function () { return PPS; }, TRANS: TRANS, EFEITOS: EFEITOS};
   if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(function () { });
 })();
