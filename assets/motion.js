@@ -8,6 +8,7 @@
   var M = window.BWMotion, $ = function (id) { return document.getElementById(id); };
   var FN_IA = "https://zdtnetplvdonogmdvarx.supabase.co/functions/v1/bw-ia", PUB = "sb_publishable_qJ2mIx1hcn_ZH75-yxJiDA_OI-EHyIU";
   var NO_APP = !!(window.BW_APP && window.bwNode);
+  var APP = document.documentElement.classList.contains("mo-app");   /* 22/11: layout de app no celular (assets/mo-app.js) */
   var P = null, MONT = null, T = 0, SEL = null, KSEL = null, TOCANDO = false, GRAVAR = false, ZOOM = 1, SC = 0.3, HIST = [], FUT = [], SALVAR_T = 0, HIST_T = 0;
   var CORES_GRUPO = { Textos: "#7C5CFF", Interface: "#2E9BFF", Imagens: "#FF8A3D", Enfeites: "#22C58B" };
   var GRAD = ["linear-gradient(135deg,#7C5CFF,#C04CFF)", "linear-gradient(135deg,#2E9BFF,#22D3EE)", "linear-gradient(135deg,#FF8A3D,#FF4D6D)", "linear-gradient(135deg,#22C58B,#B6FF3B)",
@@ -45,13 +46,15 @@
   function mudou(opt) {
     opt = opt || {};
     clearTimeout(SALVAR_T); SALVAR_T = setTimeout(function () { salvarJa(); desenharProjetos(); }, 700);
-    clearTimeout(HIST_T); HIST_T = setTimeout(function () { var s = JSON.stringify(P); if (HIST[HIST.length - 1] !== s) { HIST.push(s); if (HIST.length > 40) HIST.shift(); FUT = []; } botoesHist(); }, 350);
+    clearTimeout(HIST_T); HIST_T = setTimeout(function () { var s = foto(); if (HIST[HIST.length - 1] !== s) { HIST.push(s); if (HIST.length > 40) HIST.shift(); FUT = []; } botoesHist(); }, 350);
     if (opt.remontar !== false) remontar(); else ver(T);
     if (opt.painel) desenharPainel();
     desenharTimeline();
   }
+  /* 22/11: a foto do desfazer ignora o "atualizado" (o salvar muda esse carimbo e o desfazer precisava de DOIS toques) */
+  function foto() { var a = P.atualizado; P.atualizado = 0; var s = JSON.stringify(P); P.atualizado = a; return s; }
   function botoesHist() { $("moDesfazer").disabled = HIST.length < 2; $("moRefazer").disabled = !FUT.length; }
-  function desfazer() { clearTimeout(HIST_T); var s0 = JSON.stringify(P); if (HIST[HIST.length - 1] !== s0) { HIST.push(s0); FUT = []; }   /* grava antes o passo que ainda estava esperando */
+  function desfazer() { clearTimeout(HIST_T); var s0 = foto(); if (HIST[HIST.length - 1] !== s0) { HIST.push(s0); FUT = []; }   /* grava antes o passo que ainda estava esperando */
     if (HIST.length < 2) return; FUT.push(HIST.pop()); P = JSON.parse(HIST[HIST.length - 1]); depoisDeTrocar(); }
   function refazer() { if (!FUT.length) return; var s = FUT.pop(); HIST.push(s); P = JSON.parse(s); depoisDeTrocar(); }
   function depoisDeTrocar() { if (SEL && !item(SEL)) SEL = null; KSEL = null; remontar(); desenharTudo(); clearTimeout(SALVAR_T); SALVAR_T = setTimeout(salvarJa, 500); botoesHist(); }
@@ -68,11 +71,11 @@
   /* ---------- palco ---------- */
   var FIXA = null;
   function medir() {
-    var cel = innerWidth <= 1100, pal = $("moTela").parentNode, larg = pal.clientWidth - 4, alt = cel ? innerHeight * 0.36 : FIXA && FIXA.fixo() ? Math.max(160, pal.clientHeight - 62) : Math.max(300, innerHeight - 420); // no PC a linha do tempo fica à vista
+    var cel = innerWidth <= 1100, pal = $("moTela").parentNode, larg = pal.clientWidth - (APP ? 16 : 4), alt = APP ? Math.max(120, pal.clientHeight - 12) : cel ? innerHeight * 0.36 : FIXA && FIXA.fixo() ? Math.max(160, pal.clientHeight - 62) : Math.max(300, innerHeight - 420); // no PC a linha do tempo fica à vista
     SC = Math.max(0.05, Math.min(larg / P.w, alt / P.h));
     $("moTela").style.width = Math.round(P.w * SC) + "px"; $("moTela").style.height = Math.round(P.h * SC) + "px";
     $("moCena").style.transform = "scale(" + SC + ")"; $("moCena").style.width = P.w + "px"; $("moCena").style.height = P.h + "px";
-    document.documentElement.style.scrollPaddingTop = cel ? Math.round(P.h * SC + 70) + "px" : ""; posOpc();
+    document.documentElement.style.scrollPaddingTop = cel && !APP ? Math.round(P.h * SC + 70) + "px" : ""; posOpc();
   }
   function remontar() { MONT = M.montar($("moCena"), P, {}); medir(); if (JAN && !JAN.closed) montarJanela(); ver(T); }
   function ver(t) {
@@ -222,9 +225,9 @@
   async function abrirProjeto(id) {
     var r = null; try { r = await dbOp("readonly", function (s) { return s.get(id); }); } catch (e) {}
     if (!r || !r.projeto) return aviso("Não achei esse projeto.", true);
-    salvarJa(); P = r.projeto; T = 0; SEL = null; HIST = [JSON.stringify(P)]; FUT = []; depoisDeTrocar();
+    salvarJa(); P = r.projeto; T = 0; SEL = null; HIST = [foto()]; FUT = []; depoisDeTrocar();
   }
-  function novoProjeto() { salvarJa(); P = M.novoProjeto(P ? P.formato : "9:16"); P.id = M.uid(); T = 0; SEL = null; HIST = [JSON.stringify(P)]; FUT = []; depoisDeTrocar(); salvarJa(); desenharProjetos(); }
+  function novoProjeto() { salvarJa(); P = M.novoProjeto(P ? P.formato : "9:16"); P.id = M.uid(); T = 0; SEL = null; HIST = [foto()]; FUT = []; depoisDeTrocar(); salvarJa(); desenharProjetos(); }
 
   /* ---------- painel do item ---------- */
   function nomeEfeito(id) { if (/^m:/.test(id)) { var e = todosMeus().filter(function (x) { return "m:" + x.id === id; })[0]; return e ? "★ " + e.nome : "efeito próprio"; } return (M.EFEITOS[id] || M.LOOPS[id] || { nome: id }).nome; }
@@ -249,7 +252,7 @@
   var PROPS_POS = [["x", "Horizontal", -1000, 3000, 1], ["y", "Vertical", -1000, 3000, 1], ["escala", "Tamanho", 0.05, 4, 0.01], ["giro", "Giro", -720, 720, 1], ["opac", "Opacidade", 0, 1, 0.01]];
   function desenharPainel() {
     var it = SEL && item(SEL), p = $("moPainel");
-    $("moSemItem").hidden = !!it; if (!it) { p.innerHTML = ""; return; }
+    $("moSemItem").hidden = !!it; if (!it) { p.innerHTML = ""; try { document.dispatchEvent(new CustomEvent("bw-mo-sel")); } catch (e) {} return; }
     var d = M.ITENS[it.tipo], h = '<div class="mo-cab"><strong>' + esc(d.icone + " " + d.nome) + '</strong><button class="mo-bt mini" type="button" data-acao="frente" title="Trazer para a frente">▲</button><button class="mo-bt mini" type="button" data-acao="tras" title="Mandar para trás">▼</button><button class="mo-bt mini" type="button" data-acao="dup" title="Duplicar">⧉</button><button class="mo-bt mini perigo" type="button" data-acao="apagar" aria-label="Apagar item">✕</button></div>';
     if (KSEL && KSEL.id === it.id) {
       var curva = keysEm(it, KSEL.t)[0]; curva = curva ? curva.k.e : "suave";
@@ -268,7 +271,7 @@
       '<label>Força<input type="range" data-loop-forca="1" min="0.1" max="3" step="0.05" value="' + (it.loop.forca === undefined ? 1 : it.loop.forca) + '"><output>' + fmt(it.loop.forca === undefined ? 1 : it.loop.forca, 2) + "</output></label></div></div>";
     h += painelCor(it);
     h += '<div class="mo-g"><h4 data-seta="mo_tempo" data-seta-padrao="fechada">TEMPO</h4><div><label class="um">Aparece em (s)<input type="number" data-tempo="ini" min="0" step="0.1" value="' + it.ini + '"></label><label class="um">Some em (s)<input type="number" data-tempo="fim" min="0.1" step="0.1" value="' + it.fim + '"></label></div></div>';
-    p.innerHTML = h; atualizarKbs();
+    p.innerHTML = h; atualizarKbs(); try { document.dispatchEvent(new CustomEvent("bw-mo-sel")); } catch (e) {}
   }
   function keysEm(it, t) { var out = []; Object.keys(it.keys || {}).forEach(function (pr) { (it.keys[pr] || []).forEach(function (k) { if (Math.abs(k.t - t) < 0.02) out.push({ pr: pr, k: k }); }); }); return out; }
   function atualizarKbs() {
@@ -346,7 +349,9 @@
   }
 
   /* ---------- linha do tempo ---------- */
-  function pxs() { var larg = Math.max(200, $("moPistas").clientWidth - 10); return (larg / P.dur) * ZOOM; }
+  function padL() { return APP ? (parseFloat(getComputedStyle($("moPistas")).paddingLeft) || 0) : 0; }
+  function bx() { return $("moPistas").getBoundingClientRect().left + padL(); }   /* começo do tempo zero na tela (no app há meia tela de folga antes) */
+  function pxs() { var larg = Math.max(200, APP ? Math.round(innerWidth * 0.9) : $("moPistas").clientWidth - 10); return (larg / P.dur) * ZOOM; }
   function desenharTimeline() {
     var px = pxs(), W = Math.ceil(P.dur * px) + 10, passo = P.dur * ZOOM > 30 ? 5 : P.dur * ZOOM > 12 ? 2 : 1, reg = "";
     for (var s = 0; s <= P.dur + 0.001; s += passo) reg += '<i style="left:' + (s * px) + 'px">' + s + "s</i>";
@@ -434,10 +439,11 @@
     $("moRot").addEventListener("click", function (e) { var d = e.target.closest("[data-sel]"); if (d) selecionar(d.getAttribute("data-sel"), true); });
     pis.addEventListener("pointerdown", function (e) {
       if (e.button === 2) return; var F = window.BWFerr ? BWFerr.atual() : "v";
+      if (APP && e.pointerType !== "mouse") { var bA = e.target.closest("[data-barra]"); if (!e.target.closest("[data-kf]") && !(bA && bA.getAttribute("data-barra") === SEL)) return; }   /* no app o dedo rola a linha do tempo; tocar escolhe (mo-app.js) */
       if (F === "h") { arr = { tipo: "mao", x: e.clientX, sl: pis.scrollLeft }; BWFerr.preso(true); try { pis.setPointerCapture(e.pointerId); } catch (x) {} e.preventDefault(); return; }
-      if (F === "z") { var t0 = (e.clientX - pis.getBoundingClientRect().left + pis.scrollLeft) / pxs(), xx = e.clientX - pis.getBoundingClientRect().left; ZOOM = e.altKey ? Math.max(1, ZOOM / 1.5) : Math.min(8, ZOOM * 1.5); desenharTimeline(); pis.scrollLeft = Math.max(0, t0 * pxs() - xx); e.preventDefault(); return; }
-      if (F === "c") { var bc = e.target.closest("[data-barra]"); if (bc) { cortarItem(bc.getAttribute("data-barra"), (e.clientX - pis.getBoundingClientRect().left + pis.scrollLeft) / pxs()); e.preventDefault(); } return; }
-      var px = pxs(), base = pis.getBoundingClientRect().left;
+      if (F === "z") { var t0 = (e.clientX - bx() + pis.scrollLeft) / pxs(), xx = e.clientX - bx(); ZOOM = e.altKey ? Math.max(1, ZOOM / 1.5) : Math.min(8, ZOOM * 1.5); desenharTimeline(); pis.scrollLeft = Math.max(0, t0 * pxs() - xx); e.preventDefault(); return; }
+      if (F === "c") { var bc = e.target.closest("[data-barra]"); if (bc) { cortarItem(bc.getAttribute("data-barra"), (e.clientX - bx() + pis.scrollLeft) / pxs()); e.preventDefault(); } return; }
+      var px = pxs(), base = bx();
       var kf = e.target.closest("[data-kf]");
       if (kf) { var id = kf.getAttribute("data-kf"), t = Number(kf.getAttribute("data-t")); SEL = id; KSEL = { id: id, t: t }; ver(t); desenharPainel(); desenharTimeline();
         arr = { tipo: "kf", id: id, t0: t, x: e.clientX, mexeu: false }; if (innerWidth <= 1100) abaCel("item"); e.preventDefault(); return; }
@@ -450,7 +456,7 @@
     pis.addEventListener("pointermove", function (e) {
       if (!arr) return; var px = pxs(), it = arr.id && item(arr.id);
       if (arr.tipo === "mao") { pis.scrollLeft = arr.sl - (e.clientX - arr.x); return; }
-      if (arr.tipo === "agulha") { ver((e.clientX - pis.getBoundingClientRect().left + pis.scrollLeft) / px); return; }
+      if (arr.tipo === "agulha") { ver((e.clientX - bx() + pis.scrollLeft) / px); return; }
       var d = (e.clientX - arr.x) / px; if (!arr.mexeu && Math.abs(e.clientX - arr.x) < 4) return; arr.mexeu = true; if (!it) return;
       if (arr.tipo === "kf") { var nt = +Math.max(it.ini, Math.min(it.fim, arr.t0 + d)).toFixed(3), atual = arr.tAtual === undefined ? arr.t0 : arr.tAtual;
         keysEm(it, atual).forEach(function (q) { q.k.t = nt; }); Object.keys(it.keys || {}).forEach(function (pr) { it.keys[pr].sort(function (a, c) { return a.t - c.t; }); });
@@ -651,7 +657,7 @@
     /* 20/11: tamanho vindo do ESTÚDIO 3D (resolução do telão): motion.html?w=896&h=512 */
     try { var uq = new URLSearchParams(location.search), uw = parseInt(uq.get("w"), 10), uh = parseInt(uq.get("h"), 10);
       if (uw > 79 && uh > 79 && uw < 4097 && uh < 4097) { P.formato = "livre"; P.w = uw; P.h = uh; } } catch (e) {}
-    HIST = [JSON.stringify(P)]; remontar(); desenharTudo(); botoesHist();
+    HIST = [foto()]; remontar(); desenharTudo(); botoesHist();
     if (window.BWDobras) BWDobras.aplicar(document);
 
     $("moLib").addEventListener("click", function (e) { var b = e.target.closest("[data-add]"); if (b) adicionar(b.getAttribute("data-add")); });
@@ -689,7 +695,7 @@
     $("moExpCompart").onclick = async function () { if (!EXP.arquivo) return; try { if (navigator.canShare && navigator.canShare({ files: [EXP.arquivo] })) await navigator.share({ files: [EXP.arquivo], title: P.nome }); else $("moExpBaixar").click(); } catch (e) {} };
     $("moArqProj").addEventListener("change", function () { var f = this.files[0]; if (!f) return; f.text().then(function (t) {
       var o = null; try { o = JSON.parse(t); } catch (e) {} if (!o || !Array.isArray(o.itens) || !o.w || !o.h) return aviso("Esse arquivo não é um projeto do Estúdio de motion.", true);
-      o.itens = o.itens.filter(function (i) { return i && M.ITENS[i.tipo]; }); o.id = M.uid(); o.nome = (o.nome || "Projeto") + " (aberto)"; salvarJa(); P = o; T = 0; SEL = null; HIST = [JSON.stringify(P)]; depoisDeTrocar(); salvarJa(); aviso("Projeto aberto."); }); });
+      o.itens = o.itens.filter(function (i) { return i && M.ITENS[i.tipo]; }); o.id = M.uid(); o.nome = (o.nome || "Projeto") + " (aberto)"; salvarJa(); P = o; T = 0; SEL = null; HIST = [foto()]; depoisDeTrocar(); salvarJa(); aviso("Projeto aberto."); }); });
     $("moArqImg").addEventListener("change", async function () {
       var f = this.files[0], a = ALVO_IMG; if (!f || !a) return; var it = item(a.id); if (!it) return;
       try { it.props[a.campo] = await reduzir(f); if (it.tipo === "foto") { var im = new Image(); im.src = it.props[a.campo]; await im.decode().catch(function () {}); if (im.width && im.height) it.props.alt = Math.round(it.props.larg * im.height / im.width); } mudou({ painel: true }); }
@@ -708,7 +714,12 @@
       else if ((e.key === "Delete" || e.key === "Backspace") && SEL) { var it = item(SEL); if (it && confirm("Apagar este item?")) { P.itens.splice(P.itens.indexOf(it), 1); SEL = null; mudou({ painel: true }); } }
     });
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { remontar(); });
-    window.BWMotionEditor = { projeto: function () { return P; }, ver: ver, selecionar: selecionar, tempo: function () { return T; } }; // para os testes
+    window.BWMotionEditor = { projeto: function () { return P; }, ver: ver, selecionar: selecionar, tempo: function () { return T; }, // para os testes e para o layout de app (mo-app.js)
+      sel: function () { return SEL; }, item: item, tocando: function () { return TOCANDO; }, tocar: tocar, pxs: pxs, medir: function () { medir(); desenharTimeline(); ver(T); },
+      cortar: function (id) { cortarItem(id, T); }, duplicar: duplicarItem, apagar: apagarItem, aparar: aparar, desativar: desativar, ordem: ordemItem, aviso: aviso,
+      menu: menuItem, desfazer: desfazer, refazer: refazer, zoom: function (f) { ZOOM = Math.max(1, Math.min(8, ZOOM * f)); desenharTimeline(); ver(T); },
+      keyPos: function () { var it = SEL && item(SEL); if (!it) return; porKey(it, "x", T, valorEm(it, "x", T)); porKey(it, "y", T, valorEm(it, "y", T)); KSEL = { id: it.id, t: +T.toFixed(3) }; mudou({ remontar: false, painel: true }); aviso("◆ Keyframe de posição marcado em " + fmt(T, 2) + " s."); },
+      menuPrevia: menuPrevia };
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", iniciar); else iniciar();
 })();

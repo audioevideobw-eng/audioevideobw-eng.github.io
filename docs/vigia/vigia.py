@@ -299,6 +299,10 @@ if _bc and re.search(r"fetch\(|XMLHttpRequest|\.from\(|\.upload\(|\.rpc\(|localS
 # 7.8h LAYOUT DE APP do editor de vídeo (22/11): só arruma a tela — nada de rede, conta, arquivo ou dado novo (só a preferência ui_ve_layout)
 if os.path.exists("assets/ve-app.js") and re.search(r"fetch\(|XMLHttpRequest|supabase|BWSync|\.upload\(|indexedDB|https?://", open("assets/ve-app.js", encoding="utf-8").read()): problemas.append("assets/ve-app.js: o layout de app do editor só pode arrumar a tela (nada de rede, conta ou banco)")
 if os.path.exists("video.html") and "assets/ve-app.js" in open("video.html", encoding="utf-8").read() and open("video.html", encoding="utf-8").read().find("assets/ve-app.js") > open("video.html", encoding="utf-8").read().find("assets/video-editor.js"): problemas.append("video.html: assets/ve-app.js precisa vir ANTES do video-editor.js (liga a classe ve-app antes do editor montar)")
+# 7.8i (22/11) Motion com cara de app no celular: mo-app.js só arruma a tela (nada de rede/conta) e vem ANTES do motion.js
+if os.path.exists("assets/mo-app.js") and re.search(r"fetch\(|XMLHttpRequest|supabase|BWSync|\.upload\(|indexedDB|https?://", open("assets/mo-app.js", encoding="utf-8").read()): problemas.append("assets/mo-app.js: o layout de app do Motion não pode falar com a internet nem guardar dados")
+_mh = open("motion.html", encoding="utf-8").read() if os.path.exists("motion.html") else ""
+if _mh and ("assets/mo-app.js" not in _mh or _mh.find("assets/mo-app.js") > _mh.find("assets/motion.js")): problemas.append("motion.html: assets/mo-app.js precisa vir ANTES do assets/motion.js")
 if os.path.exists("assets/bw-ferramentas.js") and re.search(r"fetch\(|XMLHttpRequest|supabase\.|BWSync|localStorage|indexedDB|\.upload\(", ler("assets/bw-ferramentas.js")): problemas.append("assets/bw-ferramentas.js: as ferramentas dos editores não podem usar rede, conta nem armazenamento")
 # ESTÚDIO 3D (20/11): modelo, logo e foto ficam no aparelho; o site não chama nenhuma IA de 3D
 if os.path.exists("assets/bw3d-motor.js") and re.search(r"fetch\(|XMLHttpRequest|supabase\.|BWSync|localStorage|indexedDB|\.upload\(|https?://", ler("assets/bw3d-motor.js")):

@@ -394,10 +394,11 @@
   function mudou(opt) {
     opt = opt || {};
     clearTimeout(SALVAR_T); SALVAR_T = setTimeout(function () { salvarJa(); desenharProjetos(); }, 600);
-    clearTimeout(HIST_T); HIST_T = setTimeout(function () { var s = JSON.stringify(P); if (HIST[HIST.length - 1] !== s) { HIST.push(s); if (HIST.length > 40) HIST.shift(); FUT = []; } botoesHist(); }, 300);
+    clearTimeout(HIST_T); HIST_T = setTimeout(function () { var s = foto(); if (HIST[HIST.length - 1] !== s) { HIST.push(s); if (HIST.length > 40) HIST.shift(); FUT = []; } botoesHist(); }, 300);
     if (opt.painel) desenharPainel(); if (opt.fila !== false) desenharFila(); relogio(); if (!TOCANDO) ver(TEMPO);
   }
-  function gravarHist() { clearTimeout(HIST_T); var s = JSON.stringify(P); if (HIST[HIST.length - 1] !== s) { HIST.push(s); if (HIST.length > 40) HIST.shift(); FUT = []; } }
+  function foto() { var a = P.atualizado; P.atualizado = 0; var s = JSON.stringify(P); P.atualizado = a; return s; }   /* 22/11: o carimbo do salvar não conta como mudança no desfazer */
+  function gravarHist() { clearTimeout(HIST_T); var s = foto(); if (HIST[HIST.length - 1] !== s) { HIST.push(s); if (HIST.length > 40) HIST.shift(); FUT = []; } }
   function botoesHist() { $("tlDesfazer").disabled = HIST.length < 2; $("tlRefazer").disabled = !FUT.length; }
   function trocou() { if (SEL >= P.cenas.length) SEL = P.cenas.length - 1; desenharTudo(); clearTimeout(SALVAR_T); SALVAR_T = setTimeout(salvarJa, 400); botoesHist(); }
   async function desenharProjetos() {
@@ -411,7 +412,7 @@
   async function abrirProjeto(reg) {
     salvarJa(); P = reg.projeto; ORDEM = (P.ordem || []).filter(function (id) { return MID[id]; });
     SOM = null; BATIDA = 0; if (P.musica && P.musica.id) { var r = await op("midias", "readonly", function (s) { return s.get(P.musica.id); }).catch(function () { return null; }); if (r) await abrirSom(r.blob); }
-    SEL = P.cenas.length ? 0 : -1; TEMPO = 0; HIST = [JSON.stringify(P)]; FUT = []; trocou();
+    SEL = P.cenas.length ? 0 : -1; TEMPO = 0; HIST = [foto()]; FUT = []; trocou();
   }
 
   /* ---------- montar sozinho ---------- */
@@ -481,7 +482,7 @@
     var r = ult ? await op("projetos", "readonly", function (s) { return s.get(ult); }).catch(function () { return null; }) : null;
     desenharEfx(); ligarArrastar(); ligarFerramentas();
     if (window.BWFerr) FIXA = BWFerr.telaFixa({ wrap: document.querySelector(".wrap"), grade: $("tlGrade"), palco: document.querySelector(".tl-palco"), rola: [document.querySelector(".tl-seq")], nomeRola: "SEQUÊNCIA E EFEITOS", painelLer: function () { return JSON.parse(localStorage.getItem("ui_telas_paineis") || "{}"); }, painelGravar: function (S) { localStorage.setItem("ui_telas_paineis", JSON.stringify(S)); }, some: [document.querySelector(".wrap > .tl-nota")], aviso: $("tlAviso"), aoMedir: function () { if (P) { medir(); if (!TOCANDO) ver(TEMPO); } } });
-    if (r && r.projeto) await abrirProjeto(r); else { P = novoProjeto("9:16"); ORDEM = Object.keys(MID); P.ordem = ORDEM.slice(); HIST = [JSON.stringify(P)]; desenharTudo(); }
+    if (r && r.projeto) await abrirProjeto(r); else { P = novoProjeto("9:16"); ORDEM = Object.keys(MID); P.ordem = ORDEM.slice(); HIST = [foto()]; desenharTudo(); }
     /* 20/11: tamanho vindo do ESTÚDIO 3D (resolução do telão): telas.html?w=896&h=512 */
     try { var uq = new URLSearchParams(location.search), uw = parseInt(uq.get("w"), 10), uh = parseInt(uq.get("h"), 10);
       if (uw > 79 && uh > 79 && uw < 4097 && uh < 4097) { P.formato = "livre"; P.w = uw; P.h = uh; $("tlFmt").value = "livre"; livre(); medir(); mudou();
@@ -520,7 +521,7 @@
     $("tlLinhas").addEventListener("input", function (e) { var el = e.target; if (el.id === "tlLinhaCor") { P.contorno = el.value; } if (el.id === "tlLinhaOp") { P.contornoOp = 100 - Number(el.value); el.nextElementSibling.textContent = el.value + "%"; } mudou(); });
     $("tlLinhas").addEventListener("change", function (e) { if (e.target.id === "tlLinhaCor") desenharLinhas(); });
     $("tlProjetos").addEventListener("click", async function (e) { var b = e.target.closest("button"); if (!b) return;
-      if (b.hasAttribute("data-pnovo")) { salvarJa(); var w0 = P.w, h0 = P.h; P = novoProjeto(P.formato); if (P.formato === "livre") { P.w = w0; P.h = h0; } P.ordem = ORDEM.slice(); SEL = -1; TEMPO = 0; HIST = [JSON.stringify(P)]; FUT = []; trocou(); }
+      if (b.hasAttribute("data-pnovo")) { salvarJa(); var w0 = P.w, h0 = P.h; P = novoProjeto(P.formato); if (P.formato === "livre") { P.w = w0; P.h = h0; } P.ordem = ORDEM.slice(); SEL = -1; TEMPO = 0; HIST = [foto()]; FUT = []; trocou(); }
       if (b.hasAttribute("data-pabrir")) { var r2 = await op("projetos", "readonly", function (s) { return s.get(b.getAttribute("data-pabrir")); }); if (r2) abrirProjeto(r2); }
       if (b.hasAttribute("data-papagar")) { var id = b.getAttribute("data-papagar"); if (!confirm("Apagar este projeto? As fotos e vídeos continuam no aparelho.")) return; await op("projetos", "readwrite", function (s) { return s.delete(id); }); if (id === P.id) { P = novoProjeto(P.formato); P.ordem = ORDEM.slice(); SEL = -1; trocou(); } else desenharProjetos(); } });
     $("tlNome").addEventListener("input", function () { P.nome = this.value.slice(0, 40); mudou({ fila: false }); });

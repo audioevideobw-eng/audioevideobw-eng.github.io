@@ -29,7 +29,7 @@ with sync_playwright() as p:
         cel = W < 500; print(f"\n=== {W}px ===")
         ctx = b.new_context(viewport={"width": W, "height": H}, service_workers="block", has_touch=cel); ctx.route("**/*", rota)
         pg = ctx.new_page(); er = []; pg.on("pageerror", lambda e: er.append(str(e))); pg.on("dialog", lambda d: d.accept())
-        pg.goto(BASE + "motion.html"); pg.wait_for_function("window.BWMotionEditor", timeout=15000); pg.wait_for_timeout(700)
+        pg.goto(BASE + "motion.html?layout=classico"); pg.wait_for_function("window.BWMotionEditor", timeout=15000); pg.wait_for_timeout(700)
         n = pg.evaluate(f"{P}.itens.length"); ids = pg.evaluate(f"{P}.itens.map(i=>i.id)")
         ok(pg.evaluate("document.documentElement.scrollWidth-document.documentElement.clientWidth") <= 0, "sem estouro")
         ok(pg.locator("#moEfs .mo-ef").count() > 15, f"galeria de EFEITOS ({pg.locator('#moEfs .mo-ef').count()})")

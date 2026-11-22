@@ -442,3 +442,13 @@ Tamanho > 0 e sem erro = o pdfmake montou o arquivo. Localmente (T1) confira o `
   (vídeo bom, imagem, som, arquivo quebrado, .heic falso), tocar em cada item, PC e celular — e imprime o estado (MID, clipes, folha aberta, erros).
   O que pareceu "funcionar" no código (o clipe entrava) era bug de uso (a folha continuava aberta) e silêncio (arquivo que não abre).
 - Testar um arquivo que o navegador não abre: 20 KB de bytes aleatórios com extensão .mp4/.heic.
+
+## Layout de app no celular para um editor que já existe (22/11 — Motion, mesmo jeito do editor de vídeo)
+1. Um arquivo `assets/<x>-app.js` que vem ANTES do editor: liga `html.<x>-app` (≤ 900 px ou toque ≤ 1180 px; `?layout=app|classico` para testes).
+2. O editor expõe uma API (seleção, tocar, tempo, px por segundo, cortar/duplicar/apagar…) e dispara um evento quando a seleção ou o painel mudam.
+3. A casca (grade com `grid-template-columns:minmax(0,1fr)`) EMPRESTA a prévia e a linha do tempo; as folhas emprestam o painel e filtram UMA seção
+   (só as de cima: `:scope > .grupo`), devolvendo tudo ao lugar ao fechar.
+4. Agulha parada no meio: `padding: 0 50%` na pista, `scrollLeft = T × pps` num rAF quando ninguém está rolando, e rolar = `ver(scrollLeft/pps)`;
+   no editor, toda conta de ponteiro usa o início do tempo zero (borda + padding).
+5. Toque: dedo em barra não escolhida ROLA (o editor sai cedo do pointerdown para toque); click escolhe; segurar = menu (BWFerr.contexto).
+6. Teste com toque real (CDP Input.dispatchTouchEvent) a 390 e 820 px + PC; os testes de função antigos abrem com `?layout=classico`.

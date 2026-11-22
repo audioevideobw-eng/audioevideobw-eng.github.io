@@ -1,0 +1,88 @@
+/* ESTÚDIO DE MOTION — layout de app (celular/tablet). Só vale com html.mo-app (assets/mo-app.js). Mesmo visual do ve-app.css. */
+html.mo-app,html.mo-app body{height:100%;overflow:hidden;overscroll-behavior:none}
+html.mo-app body{background:#0b0c10}
+html.mo-app .bw-foco-barra,html.mo-app .bwg-fab,html.mo-app .bw-abas{display:none!important}
+html.mo-app .wrap.ma-escondido{position:absolute!important;left:-9999px;top:0;width:360px;height:1px;overflow:hidden;visibility:hidden}
+.ma{position:fixed;inset:0;z-index:50;display:grid;grid-template-rows:52px minmax(0,1fr) 46px auto 78px;background:#0b0c10;color:#F5F1EA;font-family:Inter,system-ui,sans-serif;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+.ma svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.ma-sp{flex:1}
+.ma-topo{display:flex;align-items:center;gap:8px;padding:0 10px}
+.ma-ic{width:40px;height:40px;flex:none;display:flex;align-items:center;justify-content:center;border:0;border-radius:12px;background:transparent;color:#E8EAEE;cursor:pointer;touch-action:manipulation}
+.ma-ic:active{background:rgba(255,255,255,.08)}
+.ma-chip{height:34px;padding:0 12px;border:0;border-radius:10px;background:#1b1d24;color:#F5F1EA;font:700 12.5px Inter,sans-serif;letter-spacing:.02em;cursor:pointer;white-space:nowrap}
+.ma-exp{height:36px;padding:0 16px;border:0;border-radius:11px;background:#21D4E4;color:#06222a;font:800 14px Inter,sans-serif;cursor:pointer}
+.ma-tela{position:relative;min-height:0;display:flex;align-items:center;justify-content:center;padding:4px 12px}
+.ma-ctrl{display:flex;align-items:center;gap:4px;padding:0 10px;position:relative}
+.ma-tempo{font:600 12px Inter,monospace;color:#c9ccd3;font-variant-numeric:tabular-nums;margin-left:4px}
+.ma-play{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:44px;height:44px;border:0;border-radius:50%;background:transparent;color:#fff;cursor:pointer}
+.ma-play::before{content:"";display:block;margin:0 auto;width:0;height:0;border-left:16px solid #fff;border-top:10px solid transparent;border-bottom:10px solid transparent;transform:translateX(3px)}
+.ma-play.on::before{width:14px;height:18px;border:0;border-left:4px solid #fff;border-right:4px solid #fff;box-sizing:border-box;transform:none}
+.ma-tl{position:relative;background:#111318;border-top:1px solid rgba(255,255,255,.06);max-height:34vh;min-height:118px;overflow:hidden;display:flex;flex-direction:column}
+html.ma-grande .ma{grid-template-rows:52px minmax(0,1fr) 46px 0 0}html.ma-grande .ma-tl,html.ma-grande .ma-faixa{display:none}
+.ma-agulha{position:absolute;left:50%;top:0;bottom:0;width:2px;margin-left:-1px;background:#fff;z-index:6;pointer-events:none;box-shadow:0 0 6px rgba(0,0,0,.6)}
+.ma-agulha::before{content:"";position:absolute;left:-4px;top:0;width:10px;height:10px;border-radius:50%;background:#fff}
+.ma-add{position:absolute;right:8px;top:34px;width:38px;height:38px;border:0;border-radius:9px;background:#fff;color:#111;font:300 26px/1 Inter,sans-serif;z-index:7;box-shadow:0 4px 14px rgba(0,0,0,.5);cursor:pointer}
+.ma-faixa{display:flex;align-items:stretch;gap:2px;overflow-x:auto;overflow-y:hidden;overscroll-behavior:none;touch-action:pan-x;padding:4px 8px;background:#15171d;border-top:1px solid rgba(255,255,255,.06);scrollbar-width:none;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity}
+.ma-faixa::-webkit-scrollbar{display:none}
+.ma-f{flex:none;min-width:70px;max-width:84px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:4px 4px;border:0;border-radius:12px;background:transparent;color:#E8EAEE;font:600 11px/1.15 Inter,sans-serif;text-align:center;cursor:pointer;scroll-snap-align:start;touch-action:pan-x}
+.ma-f span{display:block;white-space:normal}
+.ma-f:active{background:rgba(255,255,255,.08)}
+.ma-f.volta{min-width:44px;max-width:44px;margin-right:6px;border-radius:10px;background:#22252d;position:sticky;left:0;z-index:2;box-shadow:8px 0 10px #15171d}
+.ma-f.perigo{color:#ff9a9a}
+.ma-etq{flex:none;align-self:center;padding:3px 7px;margin-right:4px;border-radius:6px;background:rgba(124,92,255,.22);color:#c9bcff;font:800 9.5px Inter,sans-serif;letter-spacing:.1em}
+.ma-faixa[data-ctx="texto"] .ma-etq{background:rgba(34,184,207,.2);color:#8fe7f5}.ma-faixa[data-ctx="audio"] .ma-etq{background:rgba(18,183,106,.2);color:#8ff0bf}
+.ma-sheet{position:fixed;left:0;right:0;bottom:0;z-index:60;max-height:min(62vh,560px);display:flex;flex-direction:column;background:#17191f;border-radius:18px 18px 0 0;box-shadow:0 -14px 40px rgba(0,0,0,.6);padding-bottom:env(safe-area-inset-bottom);animation:maSobe .18s ease-out}
+.ma-sheet[hidden]{display:none}
+@keyframes maSobe{from{transform:translateY(30px);opacity:.4}to{transform:none;opacity:1}}
+.ma-sheet-cab{display:flex;align-items:center;gap:8px;padding:8px 10px 4px 16px;position:relative}
+.ma-sheet-cab b{font:800 12px Inter,sans-serif;letter-spacing:.12em;color:#E8EAEE}
+.ma-alca{position:absolute;left:50%;top:5px;width:36px;height:4px;margin-left:-18px;border-radius:2px;background:rgba(255,255,255,.22)}
+.ma-sheet-corpo{overflow-y:auto;overscroll-behavior:contain;padding:4px 14px 16px;min-height:0}
+.ma-sheet-corpo input,.ma-sheet-corpo select,.ma-sheet-corpo textarea{font-size:16px}
+html.ma-folha .ma-faixa{visibility:hidden}
+.ma-fmts{display:flex;gap:10px;overflow-x:auto;padding:6px 2px 10px;flex-wrap:wrap}
+.ma-fmt{flex:none;width:76px;display:flex;flex-direction:column;align-items:center;gap:7px;padding:10px 4px;border:1px solid transparent;border-radius:12px;background:#22252d;color:#E8EAEE;font:600 10.5px/1.2 Inter,sans-serif;cursor:pointer}
+.ma-fmt i{display:block;border:2px solid #cfd3da;border-radius:4px}
+.ma-fmt.on{border-color:#fff;background:#2b2e38}
+html.mo-app .bwf-menu{z-index:9600}
+@media (min-width:700px){.ma{grid-template-rows:56px minmax(0,1fr) 48px auto 84px}.ma-tl{max-height:30vh}.ma-f{min-width:80px}}
+.ma-f.destaque{min-width:92px;max-width:110px;background:linear-gradient(160deg,#7C5CFF,#4C8DFF);color:#fff;margin-right:6px}
+
+html.mo-app,html.mo-app body{overflow-x:hidden}html.mo-app .ma{overscroll-behavior:none}
+/* prévia */
+.ma-tela #moTela{flex:none}
+html.mo-app .mo-opcp{z-index:7}
+/* linha do tempo: agulha parada no meio, camadas finas, sem os nomes à esquerda */
+.ma-tl .mo-tl-corpo{display:block!important;flex:1;min-height:0;max-height:none!important;overflow-y:auto;overflow-x:hidden}
+html.mo-app .mo-rot{display:none!important}
+html.mo-app #moPistas{overflow-x:auto;overflow-y:hidden;overscroll-behavior:none;padding:0 var(--ma-meio,50%);scrollbar-width:none;-webkit-overflow-scrolling:touch;touch-action:pan-x pan-y}
+html.mo-app #moPistas::-webkit-scrollbar{display:none}
+html.mo-app .mo-regua{border:0;touch-action:pan-x pan-y}
+html.mo-app .mo-regua i{color:#8b909a}
+html.mo-app .mo-pista{background:transparent}
+html.mo-app .mo-barra{touch-action:pan-x pan-y;cursor:pointer}
+html.mo-app .mo-barra.on{touch-action:none;border-color:#fff;box-shadow:0 0 0 1px #fff}
+html.mo-app #moAgulha{display:none}
+html.mo-app .mo-tl-corpo .mo-vazio{position:sticky;left:0;padding:10px 14px;font:600 12px Inter,sans-serif;color:#9aa1ad}
+/* folhas: só a seção escolhida, sem o título e sem a seta */
+.ma-sheet-corpo .mo-cx{background:transparent;border:0;padding:0;margin:0;max-height:none;min-height:0;overflow:visible}
+.ma-sheet-corpo .bwf-pega,.ma-sheet-corpo .bwf-puxa,.ma-sheet-corpo .mo-cab,.ma-sheet-corpo #moSemItem,.ma-sheet-corpo .mo-dica{display:none!important}
+.ma-sheet-corpo .mo-g.ma-fora{display:none!important}
+.ma-sheet-corpo .mo-g>h4{display:none!important}
+.ma-sheet-corpo .mo-g>h4 ~ *{display:block!important}
+.ma-sheet-corpo .mo-g{border:0;padding:0;margin:0}
+.ma-sheet-corpo .mo-lib{grid-template-columns:repeat(3,minmax(0,1fr))}
+.ma-sheet-corpo .mo-efs{grid-template-columns:repeat(4,minmax(0,1fr))}
+.ma-lb{display:block;margin:6px 0 4px;font:700 11px Inter,sans-serif;letter-spacing:.06em;color:#9aa1ad;text-transform:uppercase}
+.ma-sheet-corpo #moNome,.ma-sheet-corpo #moDur{width:100%;box-sizing:border-box;min-height:42px;margin-bottom:6px}
+.ma-sheet-corpo #moLivre{display:flex;gap:6px;align-items:center;margin-top:6px}
+.ma-sheet-corpo #moLivre[hidden]{display:none}
+.ma-faixa[data-ctx="item"] .ma-etq{background:rgba(182,255,59,.18);color:#d8ff8f}
+/* aviso por cima, sem pegar o toque */
+html.mo-app .mo-aviso{position:fixed;left:12px;right:12px;top:calc(56px + env(safe-area-inset-top));z-index:70;margin:0;box-shadow:0 8px 24px rgba(0,0,0,.5);backdrop-filter:blur(6px);background:rgba(16,40,30,.92)}
+html.mo-app .mo-folha{z-index:9000}
+/* a coluna da grade nunca cresce com a prévia (no 16:9 ela empurrava a faixa para fora da tela) */
+.ma{grid-template-columns:minmax(0,1fr)}.ma>*{min-width:0}.ma-tela{overflow:hidden}
+/* veio do editor de vídeo: o "⟵ Linha do tempo" vira um selo pequeno em cima da prévia (o texto longo some) */
+.ma #bwcrVolta{position:absolute;top:calc(56px + env(safe-area-inset-top));left:10px;right:auto;z-index:8;padding:0;border:0;background:transparent}
+.ma #bwcrVolta b{display:none}.ma #bwcrVolta a{background:rgba(20,40,80,.85);border-color:rgba(255,255,255,.28)}

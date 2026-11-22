@@ -631,6 +631,16 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
      (aparar, dividir, duplicar, apagar, colar, pôr take) gravam o passo do desfazer NA HORA (antes duas ações em < 0,3 s viravam um passo só);
      ligações diretas (onclick = dividir) viram funções que chamam pelo nome, para valer a versão embrulhada (auto: teste_video_midia.py).
 
+**Aprendidos em 22/11 (Motion com cara de app no celular)**
+165. DESFAZER QUE PRECISA DE DOIS TOQUES: a foto do histórico não pode conter carimbo que o SALVAR muda sozinho (P.atualizado = Date.now()
+     700 ms depois): o desfazer via "mudou" e gravava um passo igual com outro carimbo. Foto do histórico = JSON sem o carimbo (foto() no
+     motion.js e no telas.js). Teste do desfazer = UM toque, esperando o salvar passar (> 0,8 s).
+166. LAYOUT DE APP no celular (assets/mo-app.js, mesmo jeito do ve-app.js): só EMPRESTA os pedaços do editor e devolve ao lugar ao fechar a folha;
+     o editor expõe uma API (BWMotionEditor.sel/tocar/pxs/cortar…) e avisa a troca de item por evento (bw-mo-sel). Linha do tempo com folga de meia
+     tela: toda conta de ponteiro usa o começo do tempo zero (bx() = borda + padding), nunca a borda. Grade da casca com grid-template-columns
+     minmax(0,1fr): no 16:9 a prévia alargava a coluna e a faixa saía da tela. Filtro de seção pega só as seções de cima (:scope > .mo-g) — a
+     biblioteca tem .mo-g dentro e sumia. Testes antigos de função a 390 px abrem com ?layout=classico.
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -1887,6 +1897,12 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   FECHA a folha e avisa onde entrou; cada ação de botão é um passo próprio do desfazer. PRÉVIA: ⋯ discretos no alto (vídeo e Motion), clique não abre menu.
   TELA PARADA: editores não deixam a rolagem das faixas vazar para a página. Testes: teste_video_midia (novo) + 14 da bateria 0 falhas; vigia ✅.
   App BW 1.9.22. video-editor v10, ve-app.css v2, motion.js v8, layout.js v70, sw v174. PENTE FINO 162–164. (Juntado com a sessão paralela das 02:10, que também tinha usado layout v69/sw v173.)
+- 22/11/2026 07:40 · Claude (dono: "faça como for melhor, peça as permissões" — liberou publicar site + app e gerar o .exe no PC): ESTÚDIO DE MOTION com
+  cara de APP no celular e no tablet (assets/mo-app.js + mo-app.css, igual ao editor de vídeo): topo fino, prévia grande, ▶ no meio, linha do tempo com
+  a agulha parada no meio (rolar = andar; pinça = zoom), faixa de ferramentas que rola para o lado e muda com o item tocado, folhas com UMA seção,
+  segurar o dedo = opções, "⟵ Linha do tempo" à vista. Bug achado: o DESFAZER do Motion e das Telas precisava de dois toques (o salvar mudava o
+  carimbo do projeto) → corrigido. Teste novo docs/testes/teste_motion_app.py (toque real, 390/820/1280) 0 falhas; motion, motion_ferramentas,
+  criacoes, paineis 0 falhas; vigia ✅ (7.8i). Manual 57 → 58 p. motion.js v9, telas.js v7, mo-app v1, sw v175. PENTE FINO 165–166.
 ## Pendências (dono)
 - [ ] (22/11) CAIXA DO TIO CLÁUDIO: dono testar no PC e no celular, logado — pedir algo pela caixa, trocar BW Smart / Rápido / Inteligente e usar a ✨ varinha.
 - [ ] (22/11) ESTÚDIO DE MOTION: dono testar no PC — arrastar efeito até a barra, barra em cima de outra camada, COR, rodinha na prévia, 🖥 2º monitor e 📱 celular. Dizer se quer também o layout de app no celular.

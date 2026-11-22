@@ -37,7 +37,7 @@ with sync_playwright() as p:
         cel = largura < 500
         def aba(a):
             if cel: pg.click(f'#moAbasCel [data-aba="{a}"]'); pg.wait_for_timeout(120)
-        pg.goto(BASE + "motion.html"); pg.wait_for_function("window.BWMotionEditor", timeout=15000); pg.wait_for_timeout(600)
+        pg.goto(BASE + "motion.html?layout=classico"); pg.wait_for_function("window.BWMotionEditor", timeout=15000); pg.wait_for_timeout(600)
         ok(pg.evaluate(f"{P}.itens.length") == 5 and pg.locator("#moCena [data-item]").count() == 5, "abre com o modelo VITRINE DE PROMPTS (5 itens na tela)")
         ok(pg.evaluate(SEM) <= 0, f"sem estouro na largura ({pg.evaluate(SEM)})")
         ok(pg.evaluate("[...document.querySelectorAll('button')].filter(b => b.offsetParent && !(b.textContent.trim() || b.getAttribute('aria-label') || b.title)).length") == 0, "todo botão tem nome")
