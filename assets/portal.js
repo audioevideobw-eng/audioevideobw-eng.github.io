@@ -6,7 +6,7 @@
   "use strict";
   var palco = document.getElementById("hubPalco"); if (!palco) return;
   var telas = [].slice.call(palco.querySelectorAll(".hub-tela")), robo = document.getElementById("hubRobo");
-  var nome = document.getElementById("hubNome"), sub = document.getElementById("hubSub"), entrar = document.getElementById("hubEntrar");
+  var nome = document.getElementById("hubNome"), sub = document.getElementById("hubSub");
   var calmo = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
   /* ângulo de cada tela na roda (0 = na frente, 180 = atrás). Parado, fica como no desenho: negócio e casa atrás/em cima, marketing e ferramentas na frente/embaixo */
   var BASE = telas.map(function (t) { return +t.getAttribute("data-ang"); });
@@ -37,7 +37,6 @@
     var t = telas[foco];
     nome.textContent = t ? t.getAttribute("data-nome") : "BRIGHTWAY · SEU SOFTWARE INTELIGENTE";
     sub.textContent = t ? t.getAttribute("data-sub") : "Toque numa tela ou passe para o lado";
-    entrar.hidden = !t; if (t) { entrar.href = t.getAttribute("href"); entrar.setAttribute("data-cor", t.getAttribute("data-cor")); entrar.textContent = "ENTRAR EM " + t.getAttribute("data-nome") + " →"; }
     telas.forEach(function (x, i) { x.setAttribute("aria-current", i === foco ? "true" : "false"); });
     palco.setAttribute("data-foco", t ? t.getAttribute("data-cor") : "");
   }
@@ -54,8 +53,7 @@
     setTimeout(function () { location.href = href; }, 430);
   }
   window.addEventListener("pageshow", function () { saindo = -1; palco.classList.remove("saindo"); ligar(); });   /* voltar do ecossistema: a roda volta ao normal */
-  telas.forEach(function (t, i) { t.addEventListener("click", function (e) { e.preventDefault(); if (arrastou) return; if (i === foco) abrir(i); else focar(i); }); });
-  entrar.addEventListener("click", function (e) { if (foco >= 0) { e.preventDefault(); abrir(foco); } });
+  telas.forEach(function (t, i) { t.addEventListener("click", function (e) { e.preventDefault(); if (arrastou) return; focar(i); abrir(i); }); });   /* 22/11 (dono): o acesso é só tocando na tela — um toque já entra (saiu o botão ENTRAR EM …) */
   document.getElementById("hubAnt").onclick = function () { passo(-1); }; document.getElementById("hubProx").onclick = function () { passo(1); };
   document.addEventListener("keydown", function (e) { if (/INPUT|TEXTAREA|SELECT/.test((e.target.tagName || "")) || document.querySelector(".bwg-painel.aberto")) return;
     if (e.key === "ArrowRight") passo(1); else if (e.key === "ArrowLeft") passo(-1); });

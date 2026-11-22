@@ -588,6 +588,7 @@
     ".bwg-fab:active{transform:scale(.94)}.bwg-fab svg{width:36px;height:36px;fill:none;stroke:#1a1306;stroke-width:2.3;stroke-linecap:round;stroke-linejoin:round}.bwg-fab svg .vis{fill:#1a1306}.bwg-fab svg .olho{fill:#7CF3FF;stroke:none}" +
     ".bwg-fab.ouvindo{animation:bwgPulso 1.2s ease-in-out infinite}.bwg-fab.ouvindo svg .olho{fill:#5FE0A0}@keyframes bwgPulso{0%,100%{box-shadow:0 0 0 0 rgba(232,194,106,.55),0 10px 26px rgba(0,0,0,.45)}50%{box-shadow:0 0 0 14px rgba(232,194,106,0),0 10px 26px rgba(0,0,0,.45)}}" +
     "html.ed-aberto .bwg-fab,html.bw-menu-aberto .bwg-fab{display:none}" +
+    ".bwg-fab{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}.bwg-fab.bwg-arr{transform:scale(1.15);transition:none;cursor:grabbing;box-shadow:0 18px 40px rgba(0,0,0,.6),0 0 0 2px #7fd6ff inset,0 0 34px rgba(56,132,255,.9)}" +
     ".bwg-p{position:fixed;right:16px;bottom:96px;z-index:71;width:min(420px,calc(100vw - 24px));max-height:min(72vh,640px);overflow:auto;background:#0d1119;border:1px solid rgba(232,194,106,.35);border-radius:20px;box-shadow:0 24px 70px rgba(0,0,0,.6);color:#F5F1EA;font:14px/1.45 Inter,system-ui,sans-serif;padding:16px}" +
     ".bwg-p[hidden]{display:none}.bwg-cab{display:flex;align-items:center;gap:10px;margin-bottom:10px}.bwg-cab b{font:800 13px Inter,sans-serif;letter-spacing:.12em;color:#E8C26A}.bwg-cab .x{margin-left:auto;width:34px;height:34px;border-radius:50%;border:1px solid rgba(255,255,255,.18);background:transparent;color:#fff;cursor:pointer}" +
     ".bwg-cab .aj{width:34px;height:34px;border-radius:50%;border:1px solid rgba(255,255,255,.18);background:transparent;color:#fff;cursor:pointer}" +
@@ -614,7 +615,8 @@
     fab.setAttribute("aria-label", "Tio Cláudio: toque e fale"); fab.title = "TIO CLÁUDIO — toque e fale (ex.: como está meu dia?)";
     painel = document.createElement("div"); painel.className = "bwg-p"; painel.hidden = true; painel.setAttribute("role", "dialog"); painel.setAttribute("aria-label", "Tio Cláudio, assistente da Brightway");
     document.body.appendChild(painel); document.body.appendChild(fab);
-    fab.addEventListener("click", function () { destravar(); if (ouvindo) { parar(); return; } calar(); abrir(true); });
+    fab.addEventListener("click", function (e) { if (engoleClique && Date.now() < engoleClique) { engoleClique = 0; e.preventDefault(); return; } destravar(); if (ouvindo) { parar(); return; } calar(); abrir(true); });
+    ligarArraste();
     try { if (window.speechSynthesis) speechSynthesis.onvoiceschanged = function () { if (painel && !painel.hidden && !painel.querySelector("#bwgAj").hidden) desenharVozes(); }; } catch (e) { }
     sessao().then(function (s) { var m = s && s.user && s.user.user_metadata || {}; var n = String(m.full_name || m.name || "").trim().split(/\s+/)[0]; if (n && n.length >= 3 && !/^(bw|audio|video|studio|empresa|produtora)/i.test(n)) ESTADO.nomeConta = cap(n.toLowerCase()); });
     painel.addEventListener("click", clique);
@@ -622,10 +624,61 @@
     document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !painel.hidden) fechar(); });
     posicionar(); window.addEventListener("resize", posicionar); setInterval(posicionar, 2500);
   }
-  function posicionar() {   /* fica acima das barras fixas de baixo (abas do celular, barra de ações do orçamento) */
-    if (!fab) return;
+  /* 22/11 (dono): SEGURAR E ARRASTAR o Tio Cláudio para outro lugar da tela. Segurar ~350 ms sem mexer o dedo/mouse = pega; mexer antes = rolagem
+     normal. O lugar fica SÓ neste aparelho (ui_agente_pos, em fração da tela: serve para celular deitado/em pé) e respeita as barras de baixo. */
+  var engoleClique = 0, POS_K = "ui_agente_pos";
+  function posSalva() { try { var p = JSON.parse(localStorage.getItem(POS_K) || "null"); return p && isFinite(p.x) && isFinite(p.y) ? p : null; } catch (e) { return null; } }
+  function limiteBaixo() {
     var h = window.innerHeight, topo = h;
     document.querySelectorAll(".bw-abas, .pr-acoes, [data-bw-barra]").forEach(function (el) { var r = el.getBoundingClientRect(); if (r.height && r.bottom >= h - 140 && r.top < topo && getComputedStyle(el).visibility !== "hidden") topo = r.top; });
+    return topo;
+  }
+  function porNoLugar(cx, cy) {   /* centro do botão em px; segura dentro da tela e acima das barras */
+    var w = window.innerWidth, t = limiteBaixo(), m = 8, r = 30;
+    cx = Math.max(m + r, Math.min(w - m - r, cx)); cy = Math.max(m + r, Math.min(t - m - r, cy));
+    fab.style.right = "auto"; fab.style.bottom = "auto"; fab.style.left = (cx - r) + "px"; fab.style.top = (cy - r) + "px";
+    if (painel) {   /* o painel abre do lado que tem espaço */
+      if (cy > window.innerHeight / 2) { painel.style.top = "auto"; painel.style.bottom = Math.max(12, window.innerHeight - (cy - r) + 12) + "px"; }
+      else { painel.style.bottom = "auto"; painel.style.top = (cy + r + 12) + "px"; }
+    }
+    return { cx: cx, cy: cy };
+  }
+  function ligarArraste() {
+    var ini = null, tm = 0, arr = false;
+    function soltarTudo() { clearTimeout(tm); document.removeEventListener("touchmove", travaToque, { passive: false }); ini = null; }
+    function travaToque(e) { if (arr) e.preventDefault(); }
+    fab.addEventListener("contextmenu", function (e) { e.preventDefault(); });
+    fab.addEventListener("pointerdown", function (e) {
+      if (e.button > 0) return;
+      ini = { x: e.clientX, y: e.clientY, id: e.pointerId }; arr = false;
+      document.addEventListener("touchmove", travaToque, { passive: false });
+      tm = setTimeout(function () {
+        if (!ini) return; arr = true; fab.classList.add("bwg-arr");
+        try { fab.setPointerCapture(ini.id); } catch (er) { }
+        try { navigator.vibrate && navigator.vibrate(15); } catch (er) { }
+      }, 350);
+    });
+    fab.addEventListener("pointermove", function (e) {
+      if (!ini) return;
+      if (!arr) { if (Math.abs(e.clientX - ini.x) + Math.abs(e.clientY - ini.y) > 8) soltarTudo(); return; }
+      e.preventDefault(); porNoLugar(e.clientX, e.clientY);
+    });
+    function fim(e) {
+      if (arr) {
+        var p = porNoLugar(e.clientX, e.clientY);
+        try { localStorage.setItem(POS_K, JSON.stringify({ x: p.cx / window.innerWidth, y: p.cy / window.innerHeight })); } catch (er) { }
+        fab.classList.remove("bwg-arr"); engoleClique = Date.now() + 450; arr = false;
+      }
+      soltarTudo();
+    }
+    fab.addEventListener("pointerup", fim);
+    fab.addEventListener("pointercancel", function () { if (arr) { fab.classList.remove("bwg-arr"); arr = false; posicionar(); } soltarTudo(); });
+  }
+  function posicionar() {   /* fica acima das barras fixas de baixo (abas do celular, barra de ações do orçamento) */
+    if (!fab || fab.classList.contains("bwg-arr")) return;
+    var p = posSalva();
+    if (p) { porNoLugar(p.x * window.innerWidth, p.y * window.innerHeight); return; }
+    var h = window.innerHeight, topo = limiteBaixo();
     var b = Math.max(16, h - topo + 12); fab.style.bottom = b + "px"; if (painel) painel.style.bottom = (b + 72) + "px";
   }
   function fechar() { parar(); calar(); painel.hidden = true; fab.classList.remove("ouvindo"); }

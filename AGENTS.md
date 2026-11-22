@@ -614,6 +614,11 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
      com a API do motion. AVISO de rodapé por cima da linha do tempo engolia o clique na barra: aviso com pointer-events:none. Teste de desfazer: passos
      a menos de 0,35 s se juntam num só (espere antes do próximo passo) (auto: teste_motion_ferramentas.py).
 
+161. BOTÃO FLUTUANTE QUE SE ARRASTA (Tio Cláudio, 22/11): pegar só depois de SEGURAR ~350 ms parado (mexer antes = rolagem normal), touchmove com
+     preventDefault só enquanto arrasta, lugar em FRAÇÃO da tela no aparelho (ui_agente_pos) e sempre acima das barras de baixo; o clique logo depois
+     de soltar é engolido UMA vez (flag consumida), senão o clique seguinte do mouse também era ignorado. Menu de caixa que fica no pé da tela do
+     celular abre PARA CIMA (mede o espaço acima × abaixo, descontando as abas) (auto: teste_agente_arrastar.py).
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -1858,6 +1863,12 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   Ctrl+Shift+C/V (ajustes), 🖥 prévia no 2º monitor e 📱 controle pelo celular. Varinha do Tio Cláudio escreve em frase natural (sem "Objetivo:").
   Testes: teste_motion_ferramentas (novo, 0 falhas × 1280/390), teste_motion, paineis, criacoes, pede 0 falhas; vigia ✅. App BW 1.9.21 (motor igual).
   motion.js v7, motion-motor v3, bw-agente v25, layout.js v68, sw v172. PENTE FINO 160. Fica para depois: layout de app no celular (como o do editor de vídeo).
+- 22/11/2026 02:10 · Claude (dono, prints do celular): página do robô no celular sem o topo (título/selo/botões) e sem a frase/data — só o robô
+  com as telas, a caixa do Tio Cláudio e as abas de baixo; menus da caixa (＋, ⚡, BW Smart) abrem PARA CIMA; saiu o botão ENTRAR EM … — um
+  toque na tela já entra; o Tio Cláudio se arrasta (segurar e arrastar, lugar lembrado no aparelho). bw-agente v26, bw-pede v2, portal v4,
+  layout.js v69, sw v173. Testes: teste_agente_arrastar (20), teste_pede, teste_ambientes, teste_layout 0 falhas; vigia ✅.
+  App BW do PC: abre a plataforma pela rede, então já recebe; .exe/pacote novo NÃO gerado (fica em Pendências com a próxima versão do app).
+
 ## Pendências (dono)
 - [ ] (22/11) CAIXA DO TIO CLÁUDIO: dono testar no PC e no celular, logado — pedir algo pela caixa, trocar BW Smart / Rápido / Inteligente e usar a ✨ varinha.
 - [ ] (22/11) ESTÚDIO DE MOTION: dono testar no PC — arrastar efeito até a barra, barra em cima de outra camada, COR, rodinha na prévia, 🖥 2º monitor e 📱 celular. Dizer se quer também o layout de app no celular.

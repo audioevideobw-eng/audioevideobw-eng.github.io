@@ -36,6 +36,12 @@ html,body{margin:0;padding:0;background:var(--navy);color:var(--txt);
   -webkit-font-smoothing:antialiased}
 a{color:var(--gold2)}
 .wrap{max-width:1280px;margin:0 auto;padding:0 20px 80px}
+/* 22/11 (dono, print do celular): no celular a página do robô mostra só o principal — sem o topo (título, selo, botões) e sem a frase/data;
+   o menu continua nas abas de baixo (Mais). */
+@media (max-width:899px){
+  .bw-topo,.bw-home-topo{display:none!important}
+  .wrap{padding-top:calc(env(safe-area-inset-top,0px) + 14px)}
+}
 
 /* ---------- header ---------- */
 header{position:sticky;top:0;z-index:50;background:rgba(11,18,32,.92);
@@ -305,7 +311,6 @@ footer b{color:var(--gold)}
         <svg viewBox="0 0 200 110" aria-hidden="true"><circle cx="30" cy="34" r="9"/><path d="M30 12v8M30 48v8M8 34h8M44 34h8M14 18l6 6M40 44l6 6M46 18l-6 6M20 44l-6 6"/><path d="M12 100a22 22 0 0 1 44 0M34 100l12-16"/><circle class="ch" cx="34" cy="100" r="4"/><path d="M80 96 132 34a14 14 0 0 0-18-18l10 10-8 8-10-10a14 14 0 0 0 18 18"/><path d="M128 96 84 44l-8-18 6-4 12 14 44 52zM132 82l8 8-10 8-8-8z"/><path d="M158 20h36M158 36h36M158 52h36"/><circle class="ch" cx="170" cy="20" r="4.5"/><circle class="ch" cx="184" cy="36" r="4.5"/><circle class="ch" cx="166" cy="52" r="4.5"/><rect x="158" y="76" width="36" height="26" rx="5"/><path d="M168 76v-6h16v6M158 88h36"/></svg></a>
     </div>
     <div class="hub-barra"><div class="hub-txt" aria-live="polite"><b id="hubNome">BRIGHTWAY · SEU SOFTWARE INTELIGENTE</b><small id="hubSub">Toque numa tela ou passe para o lado</small></div></div>
-    <a class="hub-entrar" id="hubEntrar" href="negocio.html" hidden>ENTRAR →</a>
   </section>
   <!-- 22/11 caixa única do Tio Cláudio: pedir, anexar, atalhos, escolher a IA (BW Smart / Rápido / Inteligente), varinha, falar — assets/bw-pede.js -->
   <div class="bp-pede" id="bwPede" aria-label="Pedir ao Tio Cláudio"></div>
@@ -320,12 +325,12 @@ footer b{color:var(--gold)}
 </div>
 
 </div>
-<script src="assets/layout.js?v=68"></script>
+<script src="assets/layout.js?v=69"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="assets/bw-sync.js"></script>
 <script src="assets/agenda.js?v=1"></script>
-<script src="assets/portal.js?v=3"></script>
-<script src="assets/bw-pede.js?v=1"></script>
+<script src="assets/portal.js?v=4"></script>
+<script src="assets/bw-pede.js?v=2"></script>
 <script src="https://cdn.jsdelivr.net/npm/pdfmake@0.2.20/build/pdfmake.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>

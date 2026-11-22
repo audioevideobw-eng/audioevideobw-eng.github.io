@@ -56,22 +56,19 @@ with sync_playwright() as p:
         pg.goto(BASE + "index.html"); pg.wait_for_timeout(1200)
         hr = pg.eval_on_selector_all(".hub-tela", "ts => ts.map(t => t.getAttribute('href') + '|' + t.querySelector('b').textContent)")
         ok(sorted(hr) == sorted(["negocio.html|MEU NEGÓCIO", "casa.html|GESTÃO DE CASA", "marketing.html|MARKETING", "ferramentas.html|FERRAMENTAS"]), f"Início: o robô e as 4 telas do desenho {hr}")
-        ok(pg.evaluate("(() => { const r = document.querySelector('#hubRobo img'); return r.complete && r.naturalWidth > 100; })()") and pg.locator("#hubEntrar").is_hidden(), "o robô novo aparece no centro; parado, nenhuma tela está escolhida")
+        ok(pg.evaluate("(() => { const r = document.querySelector('#hubRobo img'); return r.complete && r.naturalWidth > 100; })()") and pg.locator("#hubEntrar").count() == 0 and pg.evaluate("BWPortal.foco()") < 0, "o robô novo aparece no centro; parado, nenhuma tela está escolhida; sem botão ENTRAR (22/11)")
         ok(pg.locator("#bwAgenda").count() == 0 and pg.locator("[data-dobra]").count() == 0, "a agenda e as seções saíram do Início (estão dentro de cada ambiente)")
         ok(pg.evaluate("typeof window.BWAgendaItens") == "function", "Início mantém o cálculo da agenda para o Tio Cláudio")
         pos = lambda sel: pg.evaluate("s => { const r = document.querySelector(s).getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2, r.width]; }", sel)
-        neg = '.hub-tela[href="negocio.html"]'; a0 = pos(neg)
-        pg.click(neg, force=True, position={"x": 22, "y": 12}); pg.wait_for_timeout(1500); a1 = pos(neg); rb = pos("#hubRobo")   # parada, a tela de trás fica meio coberta pela da frente: toca no canto que aparece
-        ok(pg.url.endswith("index.html") and pg.evaluate("BWPortal.foco()") == 0 and abs(a1[0] - rb[0]) < 12 and a1[2] > a0[2] * 1.2 and "na-frente" in pg.get_attribute(neg, "class"), "tocar numa tela traz a tela para a frente do robô e ela cresce (ainda não entra)")
-        ok(pg.locator("#hubEntrar").is_visible() and "MEU NEGÓCIO" in pg.inner_text("#hubEntrar") and pg.get_attribute("#hubEntrar", "href") == "negocio.html" and "MEU NEGÓCIO" in pg.inner_text("#hubNome"), "aparece o nome da tela e o botão ENTRAR")
+        neg = '.hub-tela[href="negocio.html"]'
         pg.click("#hubProx"); pg.wait_for_timeout(1300); f1 = pg.evaluate("BWPortal.foco()"); pg.keyboard.press("ArrowLeft"); pg.wait_for_timeout(1300)
-        ok(f1 != 0 and pg.evaluate("BWPortal.foco()") == 0, "as setas (botão e teclado) passam as telas para o lado")
+        ok(f1 >= 0 and pg.evaluate("BWPortal.foco()") not in (f1, -1), "as setas (botão e teclado) passam as telas para o lado")
         ok(pg.evaluate("!!document.querySelector('#bwAgente img.bwg-robo') && document.querySelector('#bwAgente img.bwg-robo').naturalWidth > 0"), "o botão do Tio Cláudio usa o robô novo")
         ok(pg.evaluate(SEM) <= 0, "Início sem estouro")
-        pg.click(neg, force=True); pg.wait_for_timeout(1700)
+        pg.click(neg, force=True, position={"x": 22, "y": 12}); pg.wait_for_timeout(1700)   # 22/11 (dono): um toque na tela já entra (saiu o ENTRAR)
 
         # ---------- MINHA EMPRESA ----------
-        ok(pg.url.endswith("negocio.html") and pg.evaluate("document.documentElement.dataset.amb") == "pj" and pg.evaluate(COR) == "#4C8DFF", "tocar de novo na tela da frente entra em MINHA EMPRESA (ambiente pj, azul)")
+        ok(pg.url.endswith("negocio.html") and pg.evaluate("document.documentElement.dataset.amb") == "pj" and pg.evaluate(COR) == "#4C8DFF", "um toque na tela entra em MINHA EMPRESA (ambiente pj, azul)")
         ok(pg.locator("#ambKpis .amb-kpi").count() == 5 and "1.000,00" in pg.inner_text("#ambKpis .amb-kpi >> nth=0") and "3.000" not in pg.inner_text("#ambKpis"), "números da empresa: entradas R$ 1.000,00 (o salário da casa não entra)")
         ok(pg.locator('.amb-principal[href="lancamentos.html?a=pj"]').inner_text().strip() == "LANÇAMENTOS PJ" and pg.locator('.amb-principal[href="financeiro-painel.html?a=pj"]').inner_text().strip() == "PAINEL FINANCEIRO", "botões LANÇAMENTOS PJ e PAINEL FINANCEIRO")
         ag = pg.inner_text("#bwAgenda")

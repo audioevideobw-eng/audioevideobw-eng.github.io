@@ -41,6 +41,13 @@
     fechar(); aberto = qual; menu.innerHTML = html; menu.hidden = false; botao.classList.add("bp-on");
     var r = botao.getBoundingClientRect(), rc = caixa.getBoundingClientRect();
     menu.style.left = Math.max(0, Math.min(r.left - rc.left, rc.width - menu.offsetWidth)) + "px";
+    /* 22/11 (dono): abre PARA CIMA — para baixo ficava atrás das abas do celular, fora da tela. Só desce se em cima não couber e embaixo couber mais. */
+    var acima = r.top - 12, abaixo = window.innerHeight - r.bottom - 12 - ((document.querySelector(".bw-abas") || {}).offsetHeight || 0);
+    var cima = acima >= 220 || acima >= abaixo;
+    menu.classList.toggle("bp-cima", cima);
+    menu.style.top = cima ? "auto" : ""; menu.style.bottom = cima ? (rc.bottom - r.top + 8) + "px" : "";
+    menu.style.maxHeight = Math.max(160, Math.min(420, cima ? acima : abaixo)) + "px";
+    if (!cima) { var m = menu.getBoundingClientRect(); if (m.bottom > window.innerHeight) window.scrollBy({ top: m.bottom - window.innerHeight + 12, behavior: "smooth" }); }
   }
   var ir = function (href) { return '<a class="bp-item" role="menuitem" href="' + href[0] + '"><b>' + href[1] + "</b><small>" + href[2] + "</small></a>"; };
   var por = function (t, rotulo) { return '<button type="button" class="bp-item" role="menuitem" data-por="' + esc(t) + '"><b>' + rotulo + "</b><small>" + esc(t.replace(/…/g, "…")) + "</small></button>"; };
