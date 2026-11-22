@@ -1971,6 +1971,7 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
 ## Pendências (dono)
 - [ ] (22/11) ARRASTAR: dono testar no PC e no celular — encostar um take no outro, cobrir mais da metade e escolher, e aplicar transição com a agulha na emenda.
 - [ ] (22/11) ÁLBUM 3D: dono abrir Marketing → Álbum 3D e efeitos no celular e no PC, pôr fotos de um evento real, trocar de modelos e gerar um vídeo; dizer quais modelos quer a mais (e o BW-Setup.exe 1.9.25: dois cliques em "5 - GERAR INSTALADOR EXE").
+- [x] (22/11 13:33) BW-Setup.exe 1.9.26 gerado pelo dono e publicado (8,4 MB, versão conferida dentro do .exe).
 - [x] (22/11 08:43) BW-Setup.exe 1.9.24 gerado pelo dono e publicado (8,3 MB, versão conferida dentro do .exe).
 - [ ] (22/11) MOTION NO CELULAR + ⋯ NAS TELAS E NO 3D: dono testar o Motion no celular (tocar num item, folhas, segurar) e os ⋯ das Telas/3D no PC (2º monitor).
 - [ ] (22/11) CAIXA DO TIO CLÁUDIO: dono testar no PC e no celular, logado — pedir algo pela caixa, trocar BW Smart / Rápido / Inteligente e usar a ✨ varinha.
