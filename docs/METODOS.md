@@ -518,3 +518,12 @@ Tamanho > 0 e sem erro = o pdfmake montou o arquivo. Localmente (T1) confira o `
   Assim o projeto não depende de endereço de fora (vídeo no aparelho e app do PC sem internet).
 - A aba inicial não pode carregar nada de fora; teste com as imagens do Supabase SIMULADAS (PNG local com Access-Control-Allow-Origin).
 - Item animado novo: teste que monta, vai a t=0,05 e t=1,6 e compara o innerHTML (parado = erro) + folha de quadros para conferir o desenho.
+
+
+## Mídia pesada no navegador sem travar (22/11)
+- Elemento de mídia só para ler (duração/capa): criar → ler → `pause(); removeAttribute("src"); load()` SEMPRE (sucesso, erro e prazo).
+- Contar players vivos no teste: gancho no setter `HTMLMediaElement.prototype.src` + `removeAttribute` (init script do Playwright).
+- Linha do tempo: criar o <video> do clipe só perto da agulha e soltar quando fica longe; exportação anda no tempo e o pool acompanha.
+- Codec pelo arquivo: ler 4 MB do começo e do fim (Blob.slice) e procurar hvc1/hev1/avc1/av01/apcn.
+- Próximo nível (para arquivos de qualquer câmera): PROXY 720p H.264 gerado pelo ffmpeg no app BW do PC (NVENC), edição com o proxy e
+  exportação com o original.

@@ -727,6 +727,16 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
      fora sozinha (o teste "nada sai do aparelho" pegou as 60 fotos dos personagens carregando no 1º desenho). Item novo do motor = DESENHO + VIVO
      (só de lt), conferido numa folha de quadros; motor do site e do app IGUAIS (copiar para motor/motion-motor.js na mesma entrega).
 
+**Aprendidos em 22/11 (TAKES QUE "NÃO ABRIAM" — vazamento de players de vídeo)**
+180. Todo <video>/<audio> criado só para LER (duração, miniatura) é SOLTO no fim — pause + removeAttribute("src") + load() — inclusive no erro e no
+     prazo esgotado. O editor abria 2 por arquivo e nunca soltava: 36 takes = 74 players abertos, o limite do navegador; dali em diante tudo "não
+     abria" e o aviso culpava HEVC (dono, 22/11: 26 takes da mesma câmera). Linha do tempo só mantém o <video> dos clipes perto da agulha (−3 s…+1 s;
+     solta além de 8 s). "Não abre" só depois de 2 tentativas (15 s e 25 s, 4K pesado) e o motivo vem do ARQUIVO (hvc1/hev1 no começo/fim = HEVC).
+     Arquivo grande fora do iPhone não é copiado para a memória (o File serve); IndexedDB sem espaço = fica só na sessão, sem quebrar. Capa e
+     duração guardadas com a mídia (reabrir não abre 37 vídeos 4K de novo). Mesmo conserto em telas.js, album.js e bw-criacoes.js.
+     Teste: contar os players vivos (gancho no setter de src) depois de importar 36 takes = 0 (docs/testes/teste_video_takes.py). Input dentro de
+     flex precisa de min-width:0 (controle.html estourava 132 px no celular).
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -2078,7 +2088,15 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   APARELHO (resolução real da tela, preenche monitor/telão) e ✎ PERSONALIZADO (largura × altura 240–4096) + opção 4K no GERAR VÍDEO (o vídeo agora
   sai na qualidade escolhida, não preso ao tamanho do projeto). teste_convites/teste_album 0 falhas. BW-Setup.exe 1.9.30 gerado pelo dono e publicado.
   criador.js v12, album.js v3, sw v189.
+- 22/11/2026 17:55 · Claude (dono, print com 26 takes "NÃO ABRE AQUI" + "pente fino nas ferramentas; ler arquivos diversos sem travar"): CAUSA — o editor
+  abria um <video> escondido para a duração e outro para a miniatura de CADA arquivo e nunca fechava (36 takes = 74 players, o limite do navegador),
+  a miniatura tinha só 3 s (4K pesado não dava tempo) e todo clipe da linha do tempo mantinha o vídeo carregado. CORREÇÕES: players soltos depois
+  de ler; 2 tentativas com prazo de 15/25 s; codec lido do próprio arquivo (só diz HEVC quando é HEVC); botão ↻ TENTAR DE NOVO no arquivo; linha do
+  tempo com no máximo ~5 vídeos abertos (perto da agulha); arquivo grande não é mais copiado inteiro para a memória (PC/Android); capa guardada.
+  Mesmo vazamento corrigido em Telas, Álbum 3D e biblioteca de criações. PENTE FINO: 51 testes rodados — corrigidos controle.html (estourava 132 px
+  no celular) e 2 testes do 3D desatualizados; o resto 0 falhas. video-editor v15, telas v11, album v4, bw-criacoes v3, sw v191. App BW 1.9.31. PENTE FINO 180.
 ## Pendências (dono)
+- [ ] (22/11) TAKES: dono importar de novo os takes do evento (os 26 que "não abriam") no editor de vídeo e dizer se abriram; BW-Setup.exe 1.9.31 depende do PC; decidir sobre o PROXY no app BW (ler qualquer formato de câmera).
 - [ ] (22/11) MOTION: dono abrir Marketing → Estúdio de motion, testar os itens novos e a BIBLIOTECA INTEGRADA (personagens, objetos, desenhos). BW-Setup.exe 1.9.30: publicado 17:10.
 - [x] (22/11 17:05) BW-Setup.exe 1.9.29 gerado pelo dono e publicado (8,5 MB, versão conferida dentro do .exe).
 - [ ] (22/11) CONVITES: dono abrir Criador IA → CONVITE no celular e no PC, escolher um modelo da 📚 BIBLIOTECA, ligar ✨ ANIMADO, arrastar um bichinho e GERAR VÍDEO; dizer quais bichinhos/temas faltam. Próximas bibliotecas: posts, flyers, Reels, Motion, Telas ("todas as ferramentas").

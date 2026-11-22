@@ -29,7 +29,7 @@
       var url = URL.createObjectURL(reg.blob), m = { id: reg.id, nome: reg.nome, tipo: reg.tipo, url: url, w: reg.w || 0, h: reg.h || 0, dur: reg.dur || 0, thumb: null, el: null };
       var fim = function () { var th = new Image(); th.onload = function () { m.thumb = th; ok(m); }; th.onerror = function () { ok(m); }; th.src = reg.thumb || url; };
       if (reg.tipo === "video") {
-        var v = document.createElement("video"); v.muted = true; v.playsInline = true; v.preload = "auto"; v.crossOrigin = "anonymous"; v.src = url;
+        var v = document.createElement("video"); v.muted = true; v.playsInline = true; v.preload = "metadata"; v.crossOrigin = "anonymous"; v.src = url;
         v.onloadedmetadata = function () { m.w = v.videoWidth; m.h = v.videoHeight; m.dur = v.duration || m.dur; }; m.el = v;
         v.onerror = function () { m.erro = true; }; fim();
       } else { var im = new Image(); im.onload = function () { m.w = im.naturalWidth; m.h = im.naturalHeight; m.el = im; fim(); }; im.onerror = function () { m.erro = true; fim(); }; im.src = url; }
@@ -50,9 +50,9 @@
           await new Promise(function (ok, erro) { v.onloadeddata = ok; v.onerror = function () { erro(new Error("formato")); }; setTimeout(function () { erro(new Error("demorou")); }, 15000); });
           reg.w = v.videoWidth; reg.h = v.videoHeight; reg.dur = v.duration;
           await new Promise(function (ok) { v.onseeked = ok; v.currentTime = Math.min(0.5, reg.dur / 2); setTimeout(ok, 3000); });
-          reg.thumb = miniatura(v, reg.w, reg.h); URL.revokeObjectURL(u);
+          reg.thumb = miniatura(v, reg.w, reg.h); try { v.onloadeddata = v.onseeked = v.onerror = null; v.removeAttribute("src"); v.load(); } catch (x) {} URL.revokeObjectURL(u);
         }
-      } catch (e) { ruins.push(f.name + (tipo === "video" ? " (este navegador não abre esse formato de vídeo)" : "")); continue; }
+      } catch (e) { if (v && v.removeAttribute) { try { v.onloadeddata = v.onseeked = v.onerror = null; v.removeAttribute("src"); v.load(); } catch (x) {} } ruins.push(f.name + (tipo === "video" ? " (este navegador não abre esse formato de vídeo)" : "")); continue; }
       await op("midias", "readwrite", function (s) { return s.put(reg); });
       MID[reg.id] = await abrirMidia(reg); ORDEM.push(reg.id); novos.push(reg.id); n++;
     }

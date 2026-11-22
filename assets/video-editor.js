@@ -98,29 +98,55 @@
 
   /* ---------- mídia ---------- */
   function tipoDe(f) { var t = f.type || ""; if (/^video\//.test(t)) return "video"; if (/^audio\//.test(t)) return "audio"; if (/^image\//.test(t)) return "imagem"; var n = (f.name || "").toLowerCase(); return /\.(mp4|mov|webm|m4v)$/.test(n) ? "video" : /\.(mp3|wav|m4a|ogg|aac)$/.test(n) ? "audio" : /\.(png|jpe?g|webp|gif)$/.test(n) ? "imagem" : ""; }
-  function duracaoDe(url, tipo) { return new Promise(function (ok) { if (tipo === "imagem") return ok(4); var e = document.createElement(tipo === "video" ? "video" : "audio"), fim = function (d) { ok(isFinite(d) && d > 0 ? d : 5); }; e.preload = "metadata"; e.muted = true; e.onloadedmetadata = function () { duracaoDe.ok = true; if (e.duration === Infinity) { e.currentTime = 1e7; e.ontimeupdate = function () { e.ontimeupdate = null; fim(e.duration); }; } else fim(e.duration); }; e.onerror = function () { duracaoDe.ok = false; fim(0); }; setTimeout(function () { fim(e.duration); }, 4000); duracaoDe.ok = false; e.src = url; }); }
-  function capa(m) { return new Promise(function (ok) {
-    if (m.tipo === "imagem") { var im = new Image(); im.onload = function () { m.img = im; ok(); }; im.onerror = function () { m.ruim = true; ok(); }; im.src = m.url; return; }
-    if (m.tipo !== "video") return ok();
-    var v = document.createElement("video"); v.muted = true; v.playsInline = true; v.preload = "auto"; var feito = false, fim = function () { if (feito) return; feito = true; try { var c = document.createElement("canvas"); c.width = 160; c.height = Math.max(1, Math.round(160 * (v.videoHeight || 9) / (v.videoWidth || 16))); c.getContext("2d").drawImage(v, 0, 0, c.width, c.height); m.capa = c.toDataURL("image/jpeg", 0.7); } catch (e) {} ok(); };
-    v.onerror = function () { m.ruim = true; }; v.onloadeddata = function () { try { v.currentTime = Math.min(0.3, (v.duration || 1) / 2); } catch (e) { fim(); } }; v.onseeked = fim; v.onerror = fim; setTimeout(fim, 3000); v.src = m.url; }); }
-  async function porMidia(blob, nome, tipo, id, durFixa) {
+  /* 22/11 (dono: "26 takes não abriram"): cada arquivo abria um <video> escondido para a duração e outro para a capa e NUNCA soltava —
+     o navegador aguenta ~20–30 players ao mesmo tempo e, dali em diante, todo arquivo "não abria" (parecia HEVC sem ser). Agora: UM elemento
+     por vez, solto no fim (soltarMidia), prazos maiores para 4K, nova tentativa antes de desistir e o motivo de verdade (HEVC só se o
+     arquivo disser hvc1/hev1). */
+  function soltarMidia(e) { try { e.onloadedmetadata = e.onloadeddata = e.onseeked = e.onerror = e.ontimeupdate = null; e.pause(); e.removeAttribute("src"); e.load(); } catch (x) {} }
+  function abrirVideo(m, querCapa, prazo) { return new Promise(function (ok) {
+    if (m.tipo === "imagem") { var im = new Image(); im.onload = function () { m.img = im; ok({ ok: true, dur: 4 }); }; im.onerror = function () { ok({ ok: false, dur: 4 }); }; im.src = m.url; return; }
+    var e = document.createElement(m.tipo === "video" ? "video" : "audio"), feito = false, dur = 0;
+    e.muted = true; e.playsInline = true; e.preload = querCapa ? "auto" : "metadata";
+    function fim(okk) { if (feito) return; feito = true; clearTimeout(tm); var r = { ok: okk, dur: isFinite(dur) && dur > 0 ? dur : 0, w: e.videoWidth || 0, h: e.videoHeight || 0 };
+      if (okk && querCapa && m.tipo === "video" && e.videoWidth) { try { var c = document.createElement("canvas"); c.width = 160; c.height = Math.max(1, Math.round(160 * e.videoHeight / e.videoWidth)); c.getContext("2d").drawImage(e, 0, 0, c.width, c.height); r.capa = c.toDataURL("image/jpeg", 0.7); } catch (x) {} }
+      soltarMidia(e); ok(r); }
+    var tm = setTimeout(function () { fim(dur > 0 && !querCapa); }, prazo || 15000);
+    e.onerror = function () { fim(false); };
+    e.onloadedmetadata = function () { dur = e.duration; if (dur === Infinity) { e.currentTime = 1e7; e.ontimeupdate = function () { e.ontimeupdate = null; dur = e.duration; if (!querCapa || m.tipo !== "video") fim(true); }; return; } if (!querCapa || m.tipo !== "video") fim(true); };
+    e.onloadeddata = function () { if (!querCapa) return; try { e.currentTime = Math.min(0.3, (e.duration || 1) / 2); } catch (x) { fim(true); } };
+    e.onseeked = function () { fim(true); };
+    e.src = m.url; }); }
+  /* lê o começo e o fim do arquivo e procura o codec escrito nele (o "moov" pode estar no fim) */
+  async function codecDe(blob) { try { var ler = async function (a, b) { return new TextDecoder("latin1").decode(new Uint8Array(await blob.slice(a, b).arrayBuffer())); };
+    var t = (await ler(0, Math.min(blob.size, 4e6))) + (blob.size > 4e6 ? await ler(Math.max(0, blob.size - 4e6), blob.size) : "");
+    return /hvc1|hev1/.test(t) ? "hevc" : /av01/.test(t) ? "av1" : /avc1/.test(t) ? "h264" : /apcn|apch|apcs|ap4h/.test(t) ? "prores" : ""; } catch (e) { return ""; } }
+  function duracaoDe(url, tipo) { return abrirVideo({ url: url, tipo: tipo }, false, 12000).then(function (r) { duracaoDe.ok = r.ok; return r.ok && r.dur ? r.dur : 5; }); }
+  async function capa(m) { var r = await abrirVideo(m, true, 15000); if (r.capa) m.capa = r.capa; if (!r.ok && m.tipo === "imagem") m.ruim = true; return r; }
+  async function porMidia(blob, nome, tipo, id, durFixa, capaFixa) {
     var m = {id: id || uid("m"), nome: String(nome || "arquivo").slice(0, 60), tipo: tipo, blob: blob, url: URL.createObjectURL(blob)};
-    m.dur = durFixa || await duracaoDe(m.url, tipo); if (!durFixa && tipo !== "imagem" && !duracaoDe.ok) m.ruim = true; await capa(m);
-    if (tipo === "video" && !m.capa) m.ruim = true;   /* sem nenhum quadro = o navegador não abre esse vídeo (HEVC, codec raro) */
+    if (capaFixa && durFixa && tipo === "video") { m.capa = capaFixa; m.dur = durFixa; MID[m.id] = m; return m; }   /* ao reabrir: capa guardada, nada de abrir 37 vídeos 4K de novo */
+    var r = await abrirVideo(m, tipo === "video", 15000);
+    if (!r.ok && tipo !== "imagem") { await new Promise(function (ok) { setTimeout(ok, 400); }); r = await abrirVideo(m, tipo === "video", 25000); }   /* 2ª tentativa, com mais prazo (4K pesado) */
+    if (r.capa) m.capa = r.capa; m.dur = durFixa || r.dur || (tipo === "imagem" ? 4 : 5);
+    if (!r.ok || (tipo === "video" && !m.capa)) { m.ruim = true; if (tipo === "video") m.codec = await codecDe(blob); }
     MID[m.id] = m;
-    if (!id) await tx("midias", "readwrite", function (s) { return s.put({id: m.id, nome: m.nome, tipo: m.tipo, blob: blob, dur: m.dur}); });
+    if (!id) try { await tx("midias", "readwrite", function (s) { return s.put({id: m.id, nome: m.nome, tipo: m.tipo, blob: blob, dur: m.dur, capa: m.ruim ? "" : (m.capa || "")}); }); } catch (e) { m.soAgora = true; }   /* sem espaço no aparelho: fica só nesta sessão */
     return m;
   }
+  var IOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1);
+  /* o iPhone invalida o arquivo escolhido depois (PENTE FINO 47): lá a cópia vai para a memória; no PC/Android o próprio arquivo serve —
+     copiar 37 takes 4K inteiros para a memória é o que fazia a página travar */
+  async function copiaSegura(f) { return IOS || f.size < 80e6 ? new Blob([await f.arrayBuffer()], { type: f.type }) : f; }
   async function importar(files) {
     var n = 0, fora = 0, ruins = [];
     for (var i = 0; i < files.length; i++) { var f = files[i], t = tipoDe(f); if (!t) { fora++; continue; }
       if (files.length > 1) aviso("⏳ Trazendo " + (i + 1) + " de " + files.length + ": " + String(f.name).slice(0, 40) + "…");
-      try { var mm = await porMidia(new Blob([await f.arrayBuffer()], {type: f.type}), f.name, t); n++; if (mm.ruim) ruins.push(mm.nome); desenharLib(); } catch (e) { fora++; } }   /* cópia na memória na hora (o iPhone invalida o original); a biblioteca aparece arquivo a arquivo */
+      try { var mm = await porMidia(await copiaSegura(f), f.name, t); n++; if (mm.ruim) ruins.push(mm.nome); desenharLib(); } catch (e) { fora++; } }   /* cópia na memória na hora (o iPhone invalida o original); a biblioteca aparece arquivo a arquivo */
     desenharLib();
     /* 22/11 (dono: "bugs ao adicionar mídia"): arquivo que o navegador NÃO consegue abrir (vídeo HEVC/H.265 ou foto HEIC do iPhone, codec raro) entrava calado,
        com 5 s e tela preta. Agora fica marcado com ⚠ na biblioteca e o aviso diz o que fazer. */
-    if (ruins.length) aviso("⚠ " + ruins.length + " arquivo(s) não abriram neste navegador (" + ruins.slice(0, 2).join(", ") + (ruins.length > 2 ? "…" : "") + "). Costuma ser vídeo HEVC ou foto HEIC do iPhone: no iPhone, Ajustes → Câmera → Formatos → MAIS COMPATÍVEL; ou use o app BW no PC (Chrome/Edge com vídeo HEVC).", true);
+    var hevc = ruins.filter(function (nm) { return Object.keys(MID).some(function (k) { return MID[k].nome === nm && MID[k].codec === "hevc"; }); }).length;
+    if (ruins.length) aviso("⚠ " + ruins.length + " arquivo(s) não abriram (" + ruins.slice(0, 2).join(", ") + (ruins.length > 2 ? "…" : "") + "). " + (hevc ? hevc + " são HEVC/H.265. " : "") + "Vídeo HEVC ou foto HEIC do iPhone: Ajustes → Câmera → Formatos → MAIS COMPATÍVEL; no PC, o Chrome/Edge com a extensão HEVC do Windows abre. Toque em ↻ no arquivo para tentar de novo.", true);
     else aviso(n ? n + " arquivo(s) na biblioteca. Toque neles para pôr na linha do tempo." + (fora ? " " + fora + " não é vídeo, imagem nem áudio." : "") : "Esse arquivo não é vídeo, imagem nem áudio.", !n);
   }
   async function criacoes() {   /* imagens criadas no QUADRO DE HISTÓRIA e os personagens com imagem (mesmo aparelho) */
@@ -439,8 +465,8 @@
     ordemDes.concat(trilhas().map(function (x) { return x[0]; }).filter(function (id) { return fam(id) === "a"; })).forEach(function (tr) { var pintados = {};
       P.clips.forEach(function (c) { if (c.trilha !== tr) return; var ativo = t >= c.ini && t < c.ini + c.dur;
         if (c.tipo === "texto") { if (ativo) { if (c.anima === "anel") { desenharTexto(c, t, "tras"); frente.push(c); } else if (c.frente) frente.push(c); else desenharTexto(c, t); } return; }
-        if (c.tipo === "audio") { sincronizar(c, t, ativo); return; }
-        if (!ativo) { if (c.tipo === "video" && !pintados[c.id]) sincronizar(c, t, false); return; }
+        if (c.tipo === "audio") { if (ativo || (t > c.ini - 3 && t < c.ini + c.dur + 1)) sincronizar(c, t, ativo); else if (EL[c.id] && (t < c.ini - 8 || t > c.ini + c.dur + 4)) soltarEl(c.id); return; }
+        if (!ativo) { if (c.tipo === "video" && !pintados[c.id]) { var perto = t > c.ini - 3 && t < c.ini + c.dur + 1; if (perto) sincronizar(c, t, false); else if (EL[c.id] && (t < c.ini - 8 || t > c.ini + c.dur + 4)) soltarEl(c.id); } return; }
         var td = transDe(c), ant = td ? anteriorDe(c) : null, p = td ? (t - c.ini) / td : 1;
         if (ant && p < 1) {   /* transição: o clipe que sai fica no último quadro e o novo entra por cima */
           var mt = modsTrans(c.trans.tipo, lim(p, 0, 1)), fa = fonteDe(ant, ant.ini + ant.dur - 0.04, false); pintados[ant.id] = 1;
@@ -472,7 +498,7 @@
     var l = Object.keys(MID).map(function (k) { return MID[k]; }).filter(function (m) { return !m.ph && (ABA === "tudo" || m.tipo === ABA); });   /* espaços de modelo não aparecem na biblioteca */
     $("veLib").innerHTML = l.length ? l.map(function (m) { var mini = m.tipo === "imagem" ? '<img alt="" src="' + m.url + '">' : m.capa ? '<img alt="" src="' + m.capa + '">' : '<span class="mini" aria-hidden="true">' + (m.tipo === "audio" ? "🎵" : "🎬") + '</span>';
       var f = m.cr && window.BWCriacoes ? BWCriacoes.FERR[m.cr.ferramenta] : null;
-      return '<div class="ve-item' + (m.ruim ? " ruim" : "") + '" role="button" tabindex="0" data-mid="' + esc(m.id) + '" aria-label="Pôr ' + esc(m.nome) + ' na linha do tempo"' + (m.ruim ? ' title="Este arquivo não abre neste navegador"' : "") + (f ? ' style="--cf:' + f.cor + '"' : "") + '>' + mini + (m.ruim ? '<b class="selo ruim">⚠ NÃO ABRE AQUI</b>' : "") + (f ? '<b class="selo">' + f.icone + " " + esc(f.curto) + "</b>" : "") + '<span>' + esc(m.nome) + '</span>' + (f ? '<button type="button" class="ed" data-editar="' + esc(m.id) + '" title="Abrir no ' + esc(f.nome) + ' e trocar aqui" aria-label="Editar no ' + esc(f.nome) + '">✎</button>' : "") + '<button type="button" class="x" data-del="' + esc(m.id) + '" aria-label="Tirar ' + esc(m.nome) + ' da biblioteca">✕</button></div>'; }).join("")
+      return '<div class="ve-item' + (m.ruim ? " ruim" : "") + '" role="button" tabindex="0" data-mid="' + esc(m.id) + '" aria-label="Pôr ' + esc(m.nome) + ' na linha do tempo"' + (m.ruim ? ' title="Este arquivo não abre neste navegador"' : "") + (f ? ' style="--cf:' + f.cor + '"' : "") + '>' + mini + (m.ruim ? '<b class="selo ruim">⚠ ' + (m.codec === "hevc" ? "HEVC · NÃO ABRE AQUI" : "NÃO ABRE AQUI") + '</b><button type="button" class="ve-retry" data-retry="' + esc(m.id) + '" title="Tentar abrir de novo" aria-label="Tentar abrir de novo">↻</button>' : "") + (f ? '<b class="selo">' + f.icone + " " + esc(f.curto) + "</b>" : "") + '<span>' + esc(m.nome) + '</span>' + (f ? '<button type="button" class="ed" data-editar="' + esc(m.id) + '" title="Abrir no ' + esc(f.nome) + ' e trocar aqui" aria-label="Editar no ' + esc(f.nome) + '">✎</button>' : "") + '<button type="button" class="x" data-del="' + esc(m.id) + '" aria-label="Tirar ' + esc(m.nome) + ' da biblioteca">✕</button></div>'; }).join("")
       : '<p class="ve-nota" style="grid-column:1/-1;margin:0">Nada aqui ainda. Toque em ＋ IMPORTAR ou em ✨ MINHAS CRIAÇÕES.</p>';
   }
   function desenharTL() {
@@ -594,6 +620,8 @@
         var s0 = sel(); if (s0 && anteriorDe(s0)) { aplicarFx(s0, "t", kk.slice(2)); return; }
         aviso("Ponha a AGULHA na emenda entre dois takes (o ◆ acende) e toque na transição — ou arraste a transição até a emenda.", true); return; }
       aplicarFx(sel(), kk.charAt(0), kk.slice(2)); return; }
+    var rt = e.target.closest("[data-retry]"); if (rt) { e.stopPropagation(); var mr = MID[rt.dataset.retry]; if (!mr) return; aviso("⏳ Tentando abrir " + mr.nome + " de novo…");
+      var r2 = await abrirVideo(mr, mr.tipo === "video", 30000); if (r2.ok && (mr.tipo !== "video" || r2.capa)) { mr.ruim = false; mr.capa = r2.capa || mr.capa; if (r2.dur) mr.dur = r2.dur; aviso("✓ " + mr.nome + " abriu."); } else aviso("⚠ " + mr.nome + " continua sem abrir neste navegador" + (mr.codec === "hevc" ? " (é HEVC/H.265)." : "."), true); desenharLib(); tudo(); return; }
     var d = e.target.closest("[data-del]"); if (d) { e.stopPropagation(); var id = d.dataset.del; if (P.clips.some(function (c) { return c.mid === id; }) && !confirm("Este arquivo está na linha do tempo. Tirar da biblioteca apaga os clipes dele. Continuar?")) return; P.clips.filter(function (c) { return c.mid === id; }).forEach(function (c) { soltarEl(c.id); }); P.clips = P.clips.filter(function (c) { return c.mid !== id; }); if (MID[id]) URL.revokeObjectURL(MID[id].url); delete MID[id]; if (window.BWMascara) BWMascara.apagar(id); await tx("midias", "readwrite", function (s) { return s.delete(id); }); desenharLib(); tudo(); return; }
     var s = e.target.closest("[data-som]"); if (s) { var ms = await porSom(+s.dataset.som); addClip(ms); if (window.VEApp && VEApp.aberta && VEApp.aberta() === "midia") VEApp.fechar(); aviso("✓ " + SONS[+s.dataset.som][1] + " na linha do tempo (" + (ms.som === "sfx" ? "EFEITOS, na posição da agulha" : "TRILHA") + ")."); return; }
     var ed = e.target.closest("[data-editar]"); if (ed) { e.stopPropagation(); editarNaOrigem(ed.dataset.editar); return; }
@@ -964,7 +992,7 @@
   /* ---------- começo: volta o que estava aberto ---------- */
   (async function () {
     var ms = (await tx("midias", "readonly", function (s) { return s.getAll(); })) || [];
-    for (var i = 0; i < ms.length; i++) { try { var mm = await porMidia(ms[i].blob, ms[i].nome, ms[i].tipo, ms[i].id, ms[i].dur); if (ms[i].cr) { mm.cr = ms[i].cr; mm.crCriado = ms[i].crCriado; mm.criacao = true; } } catch (e) {} }
+    for (var i = 0; i < ms.length; i++) { try { var mm = await porMidia(ms[i].blob, ms[i].nome, ms[i].tipo, ms[i].id, ms[i].dur, ms[i].capa); if (ms[i].cr) { mm.cr = ms[i].cr; mm.crCriado = ms[i].crCriado; mm.criacao = true; } } catch (e) {} }
     var st = await tx("estado", "readonly", function (s) { return s.get("atual"); });
     if (st && st.p && Array.isArray(st.p.clips)) { P = st.p; for (var k = 0; k < P.clips.length; k++) { var c = P.clips[k]; if (c.mid && !MID[c.mid] && c.mid.indexOf("som-") === 0) { var ix = SONS.map(function (s) { return "som-" + s[1].toLowerCase().replace(/\s+/g, "-"); }).indexOf(c.mid); if (ix >= 0) await porSom(ix); } }
       if (window.VEModelos && VEModelos.garantir) { try { await VEModelos.garantir(P); } catch (e) {} }   /* espaços e música de modelo são refeitos (não ficam guardados) */
@@ -980,7 +1008,7 @@
    ["colar", function (f) { colar = f; }, function () { return colar; }], ["colarAtrib", function (f) { colarAtrib = f; }, function () { return colarAtrib; }],
    ["addClip", function (f) { addClip = f; }, function () { return addClip; }], ["addTexto", function (f) { addTexto = f; }, function () { return addTexto; }]].forEach(function (q) {
     var orig = q[2](); q[1](function () { gravarHist(); var r = orig.apply(this, arguments); gravarHist(); return r; }); });
-  window.__video = {porMidia: porMidia, tudo: function () { tudo(); }, desenharLib: desenharLib, guardarJa: function () { return tx("estado", "readwrite", function (s) { return s.put({id: "atual", p: JSON.parse(JSON.stringify(P))}); }); },
+  window.__video = {porMidia: porMidia, EL: EL, abrirVideo: abrirVideo, codecDe: codecDe, tudo: function () { tudo(); }, desenharLib: desenharLib, guardarJa: function () { return tx("estado", "readwrite", function (s) { return s.put({id: "atual", p: JSON.parse(JSON.stringify(P))}); }); },
     trocarProjeto: function (np) { parar(); Object.keys(EL).forEach(soltarEl); P = np; SEL = null; T = 0; formato(); desenharLib(); tudo(); },
     backup: function () { return tx("estado", "readwrite", function (s) { return s.put({id: "anterior", p: JSON.parse(JSON.stringify(P))}); }); },
     anterior: function () { return new Promise(function (ok) { db().then(function (d) { var q = d.transaction("estado").objectStore("estado").get("anterior"); q.onsuccess = function () { ok(q.result && q.result.p); }; q.onerror = function () { ok(null); }; }); }); },

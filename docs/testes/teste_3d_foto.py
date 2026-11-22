@@ -56,7 +56,7 @@ with sync_playwright() as p:
         def aba(a):
             if cel: pg.click(f'#d3AbasCel [data-aba="{a}"]'); pg.wait_for_timeout(150)
         pg.goto(BASE + "3d.html"); pg.wait_for_function("window.BW3DEditor && window.BW3DFoto", timeout=15000); pg.wait_for_timeout(400)
-        ok(pg.locator("#d3Modos .d3-modo").count() == 6, "os 6 modos aparecem (com O QUE VOU FAZER? e FOTO → 3D)")
+        ok(pg.locator("#d3Modos .d3-modo[data-m]").count() == 6 and pg.locator("#d3Modos a.d3-modo[href*=album3d]").count() == 1, "os 6 modos aparecem (com O QUE VOU FAZER? e FOTO → 3D)")
         pg.click('#d3Modos [data-m="foto"]'); pg.wait_for_timeout(300); aba("objeto")
         ok(pg.locator("#d3Fr").count() == 1 and pg.locator("#d3La").count() == 1 and pg.locator("#d3Co").count() == 1, "pede os planos frente, lado e costas")
         # manda os dois planos

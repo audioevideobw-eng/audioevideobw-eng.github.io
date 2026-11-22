@@ -1,18 +1,18 @@
 {
- "versao": "1.9.30",
+ "versao": "1.9.31",
  "data": "22/11/2026",
  "pacote": "downloads/BW-Reels-Studio.zip",
- "sha256": "c302bff30b20f0f916511a2b6def907481202da49c48b01fa86e2ca56167d533",
- "bytes": 41649567,
+ "sha256": "f4980e298160455d7d720300e8246d7369956a706fbaa8e30e06b2acf5f741ef",
+ "bytes": 41655526,
  "novidades": [
   {
-   "titulo": "Biblioteca do motion",
-   "texto": "20 itens novos (gráficos, legenda que acende, botão com clique, post, confete…) e a biblioteca integrada com personagens, objetos e desenhos das outras ferramentas.",
-   "abrir": "motion"
+   "titulo": "Muitos takes sem travar",
+   "texto": "O editor de vídeo lê dezenas de takes 4K de uma vez sem marcar como 'não abre'; ↻ tenta de novo; linha do tempo mais leve.",
+   "abrir": "video"
   },
   {
-   "titulo": "Convites de herói e anime",
-   "texto": "12 convites com personagens próprios: herói e heroína de máscara e capa, chibis, gatinho da sorte, POW! e sakura.",
+   "titulo": "Convite em vídeo 4K",
+   "texto": "Botão 🎬 BAIXAR VÍDEO ANIMADO direto em Salvar e enviar (720p, 1080p ou 4K). Álbum 3D com tamanho personalizado.",
    "abrir": "criador"
   }
  ]

@@ -55,16 +55,16 @@
       if (tipo === "imagem") { var im = new Image(); im.onload = function () { doEl(im); }; im.onerror = function () { fim(""); }; im.src = url; return; }
       if (tipo !== "video") return fim("");
       var v = document.createElement("video"); v.muted = true; v.playsInline = true; v.preload = "auto";
-      var feito = false, pronto = function () { if (feito) return; feito = true; doEl(v); };
+      var feito = false, pronto = function () { if (feito) return; feito = true; doEl(v); try { v.onloadeddata = v.onseeked = v.onerror = null; v.removeAttribute("src"); v.load(); } catch (x) {} };
       v.onloadeddata = function () { try { v.currentTime = Math.min(0.3, (v.duration || 1) / 2); } catch (e) { pronto(); } };
-      v.onseeked = pronto; v.onerror = function () { if (!feito) { feito = true; fim(""); } }; setTimeout(pronto, 3500); v.src = url;
+      v.onseeked = pronto; v.onerror = function () { if (!feito) { feito = true; fim(""); try { v.onloadeddata = v.onseeked = v.onerror = null; v.removeAttribute("src"); v.load(); } catch (x) {} } }; setTimeout(pronto, 3500); v.src = url;
     });
   }
   function duracaoDe(blob, tipo) {
     return new Promise(function (ok) {
       if (tipo !== "video") return ok(0);
       var url = URL.createObjectURL(blob), v = document.createElement("video");
-      var fim = function (d) { URL.revokeObjectURL(url); ok(isFinite(d) && d > 0 ? Math.round(d * 100) / 100 : 0); };
+      var fim = function (d) { try { v.onloadeddata = v.onseeked = v.onerror = null; v.removeAttribute("src"); v.load(); } catch (x) {} URL.revokeObjectURL(url); ok(isFinite(d) && d > 0 ? Math.round(d * 100) / 100 : 0); };
       v.preload = "metadata"; v.muted = true;
       v.onloadedmetadata = function () { fim(v.duration); }; v.onerror = function () { fim(0); }; setTimeout(function () { fim(v.duration); }, 4000); v.src = url;
     });
