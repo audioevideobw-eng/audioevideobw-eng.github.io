@@ -783,6 +783,12 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
      Todas as páginas usam "black" (barra de status opaca, página começa abaixo dela) — o app lê isso da página de abertura, então o usuário
      precisa FECHAR e abrir o app de novo (ou tirar e pôr de novo na tela de início). Página com viewport-fit=cover desce env(safe-area-inset-top).
 
+191. EDITOR DE FOTOS NO DEDO (dono, 22/11: "a foto está estática"): o toque mexe em TUDO em qualquer aba — um dedo arrasta o item que está POR CIMA
+     (itensDe ao contrário, pulando os escondidos), dois dedos esticam (e giram, nas camadas) o item que o 1º dedo pegou ou dão zoom na foto, segurar
+     0,5 s parado abre as OPÇÕES (frente, subir, descer, trás, maior, menor, espelhar, duplicar, esconder, editar, excluir; na foto: corte, antes e
+     depois, substituir, desfazer). Ouvir o PALCO inteiro, não só o canvas: o 2º dedo cai fora da foto. O "segurar para ver o antes" saiu (fica no
+     botão ANTES). Teste: toque pelo CDP com 1 e 2 dedos (teste_fotos.py, seção iPhone).
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -2172,6 +2178,12 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
 - 22/11/2026 20:35 · Claude (dono, print do app instalado no iPhone: topo do editor de fotos ainda embaçado): causa achada — o meta
   black-translucent deixava a página por baixo da barra de status e o iOS embaça o que passa por baixo. Trocado para "black" em todas as páginas
   (e no molde dos ambientes); fotos.html desce a área segura. Precisa fechar e abrir o app. sw v196. PENTE FINO 190.
+
+- 22/11/2026 20:50 · Claude (dono: "no editor de fotos tem que dar para esticar e mexer com o dedo, e segurar 0,5 s abrir as opções" + "tire LANÇAMENTOS da
+  barra de baixo e ponha MARKETING" + "confira o embaçado em todas as ferramentas de edição"): EDITOR DE FOTOS — dedo arrasta qualquer texto/adesivo/imagem/
+  logo em qualquer aba, dois dedos esticam e giram, segurar abre as opções (frente/trás/duplicar/excluir…). Barra de baixo: INÍCIO · EMPRESA · CASA ·
+  MARKETING · MAIS. Embaçado: todas as ferramentas de edição conferidas em iPhone 13 — topo fixo e liso em todas; tirado o desfoque dos avisos do editor
+  de vídeo e do Motion. teste_fotos (+5 toque), layout, ambientes, fotos_inicio, fotos_paineis 0 falhas; vigia ✅. fotos.js v19, layout.js v74, sw v198. PENTE FINO 191.
 
 ## Pendências (dono)
 - [ ] (22/11) iPhone: abrir o EDITOR DE FOTOS no Safari e dizer se o desfoque de cima sumiu; testar ⚡ FAZER PROXY e a JANELA DE EXPORTAR no PC com takes reais.

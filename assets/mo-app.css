@@ -79,7 +79,7 @@ html.mo-app .mo-tl-corpo .mo-vazio{position:sticky;left:0;padding:10px 14px;font
 .ma-sheet-corpo #moLivre[hidden]{display:none}
 .ma-faixa[data-ctx="item"] .ma-etq{background:rgba(182,255,59,.18);color:#d8ff8f}
 /* aviso por cima, sem pegar o toque */
-html.mo-app .mo-aviso{position:fixed;left:12px;right:12px;top:calc(56px + env(safe-area-inset-top));z-index:70;margin:0;box-shadow:0 8px 24px rgba(0,0,0,.5);backdrop-filter:blur(6px);background:rgba(16,40,30,.92)}
+html.mo-app .mo-aviso{position:fixed;left:12px;right:12px;top:calc(56px + env(safe-area-inset-top));z-index:70;margin:0;box-shadow:0 8px 24px rgba(0,0,0,.5);backdrop-filter:none;background:rgba(16,40,30,.92)}
 html.mo-app .mo-folha{z-index:9000}
 /* a coluna da grade nunca cresce com a prévia (no 16:9 ela empurrava a faixa para fora da tela) */
 .ma{grid-template-columns:minmax(0,1fr)}.ma>*{min-width:0}.ma-tela{overflow:hidden}

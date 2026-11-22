@@ -903,6 +903,7 @@
     if (G.car.n > 1) { x.save(); x.setLineDash([8 * dpr, 6 * dpr]); x.strokeStyle = "rgba(255,181,71,.9)"; x.lineWidth = 2 * dpr; for (var k = 1; k < G.car.n; k++) { x.beginPath(); x.moveTo(W * k / G.car.n, 0); x.lineTo(W * k / G.car.n, H); x.stroke(); } x.restore(); }
     if (PINTA && !SEGURA) { x.save(); x.strokeStyle = "#B79CFF"; x.lineWidth = 2 * dpr; x.setLineDash([8 * dpr, 5 * dpr]); var pb = PINTA.alvo === "foto" ? LAY.P : (LAY.ades || []).filter(function (t) { return "a:" + t.id === PINTA.alvo; })[0]; if (pb) x.strokeRect(pb.x, pb.y, pb.w, pb.h); x.restore(); }
     if ((ABA === "adesivos" || ABA === "camadas") && ADS && !SEGURA) { var ab = (LAY.ades || []).filter(function (t) { return t.id === ADS; })[0]; if (ab) { x.save(); x.setLineDash([6 * dpr, 4 * dpr]); x.strokeStyle = "#FFB547"; x.lineWidth = 1.5 * dpr; x.strokeRect(ab.x, ab.y, ab.w, ab.h); x.restore(); } }
+    if (SEL && !SEGURA && !PINTA) { var sb = caixaDe(SEL); if (sb) { x.save(); x.setLineDash([6 * dpr, 4 * dpr]); x.strokeStyle = "#FFB547"; x.lineWidth = 1.5 * dpr; x.strokeRect(sb.x, sb.y, sb.w, sb.h); x.restore(); } }
     if (ABA === "texto" && TXT && !SEGURA) { var tb = LAY.textos.filter(function (t) { return t.id === TXT; })[0]; if (tb) { x.save(); x.setLineDash([6 * dpr, 4 * dpr]); x.strokeStyle = "#FFB547"; x.lineWidth = 1.5 * dpr; x.strokeRect(tb.x, tb.y, tb.w, tb.h); x.restore(); } }
     c.width = c.height = 1;
     var s = Math.min(pw / W, ph / H); cv.style.width = Math.round(W * s) + "px"; cv.style.height = Math.round(H * s) + "px";
@@ -915,36 +916,78 @@
   var ptrs = {}, gesto = null;
   function noCanvas(ev) { var r = cv.getBoundingClientRect(); return { x: (ev.clientX - r.left) * cv.width / r.width, y: (ev.clientY - r.top) * cv.height / r.height, fx: (ev.clientX - r.left) / r.width, fy: (ev.clientY - r.top) / r.height, r: r }; }
   function dentro(p, b) { return b && p.x >= b.x && p.x <= b.x + b.w && p.y >= b.y && p.y <= b.y + b.h; }
-  cv.addEventListener("pointerdown", function (ev) {
+  /* 22/11 (dono: "a foto está estática, não dá para usar o toque"): o DEDO mexe em tudo, em qualquer aba — um dedo ARRASTA o item que está
+     por cima (texto, adesivo, imagem, forma, logo), DOIS dedos ESTICAM (e giram, nas camadas), dois dedos fora de item = zoom da foto;
+     SEGURAR 0,5 s parado abre as OPÇÕES (frente, trás, duplicar, excluir…). O segundo dedo pode cair fora da foto: ouvimos o palco inteiro. */
+  var SEL = null, palcoEl = $("palco");
+  function caixaDe(k) { if (!LAY || !k) return null; if (k === "logo") return LAY.logo; var id = k.slice(2), l = k[0] === "t" ? LAY.textos : LAY.ades; return (l || []).filter(function (b) { return b.id === id; })[0]; }
+  function itemNoPonto(p) { var f = FOTOS[ATUAL], oc = f.ocultos || {}, its = itensDe(f).slice().reverse();
+    for (var i = 0; i < its.length; i++) { if (oc[its[i].k]) continue; if (dentro(p, caixaDe(its[i].k))) return its[i]; } return null; }
+  function selecionar(it) { SEL = it.k; var muda = false;
+    if (it.tipo === "a" && ADS !== it.o.id) { ADS = it.o.id; CAM = it.k; muda = true; } else if (it.tipo === "t" && TXT !== it.o.id) { TXT = it.o.id; muda = true; }
+    if (muda && (ABA === "camadas" || ABA === "adesivos" || ABA === "texto")) painel(); }
+  var FAIXA_TAM = { a: [3, 150], t: [2, 30], l: [4, 60] };
+  function porTam(it, v) { var r = FAIXA_TAM[it.tipo]; it.o.tam = Math.round(lim(v, r[0], r[1]) * 2) / 2; sincSlider(it.tipo === "a" ? "aTam" : it.tipo === "t" ? "ttam" : "logoTam", it.o.tam); }
+  function menuSegurar(x, y, it) {
+    if (!window.BWFerr || !BWFerr.menu) return; try { navigator.vibrate && navigator.vibrate(12); } catch (e) {}
+    var f = fotoAtual(), fim = function () { painel(); agendar(); gravarHist(); };
+    if (!it) { BWFerr.menu(x, y, [
+        { icone: "⛶", rot: "Ajustar o corte e o zoom", fn: function () { irAba("foto"); } }, { icone: "◐", rot: "Antes e depois", fn: function () { $("edComparar").click(); } },
+        { icone: "⇄", rot: "Substituir, duplicar ou excluir a foto…", fn: function () { opcoesFoto(ATUAL); } }, "-",
+        { icone: "↶", rot: "Desfazer", off: HPOS <= 0, fn: desfazer }, { icone: "↷", rot: "Refazer", off: HPOS >= HIST.length - 1, fn: refazer }, { icone: "⬇", rot: "Salvar…", fn: function () { irAba("salvar"); } }], "FOTO", true); return; }
+    var k = it.k, ponta = function (topo) { var ks = itensDe(f).map(function (z) { return z.k; }).filter(function (z) { return z !== k; }); f.ordem = topo ? ks.concat([k]) : [k].concat(ks); };
+    var dup = function () { var c = clone(it.o); c.cx = lim(c.cx + 0.05, 0, 1); c.cy = lim(c.cy + 0.05, 0, 1);
+      if (it.tipo === "a") { c.id = uid("ad"); f.adesivos.push(c); ADS = c.id; CAM = SEL = "a:" + c.id; } else { c.id = uid("t"); G.textos.push(c); TXT = c.id; SEL = "t:" + c.id; } fim(); };
+    var apaga = function () { if (it.tipo === "a") { f.adesivos = (f.adesivos || []).filter(function (z) { return z.id !== it.o.id; }); if (ADS === it.o.id) { ADS = null; CAM = null; PINTA = null; } }
+      else if (it.tipo === "t") { G.textos = G.textos.filter(function (z) { return z.id !== it.o.id; }); if (TXT === it.o.id) TXT = null; } else G.logo.on = false;
+      SEL = null; fim(); toast("Apagado — ↶ desfaz"); };
+    BWFerr.menu(x, y, [
+      { icone: "⬆", rot: "Trazer para a frente", fn: function () { ponta(true); fim(); } }, { icone: "↑", rot: "Subir uma camada", fn: function () { moverCamada(k, 1); fim(); } },
+      { icone: "↓", rot: "Descer uma camada", fn: function () { moverCamada(k, -1); fim(); } }, { icone: "⬇", rot: "Mandar para trás", fn: function () { ponta(false); fim(); } }, "-",
+      { icone: "＋", rot: "Maior", fn: function () { porTam(it, it.o.tam * 1.15); fim(); } }, { icone: "−", rot: "Menor", fn: function () { porTam(it, it.o.tam / 1.15); fim(); } },
+      it.tipo === "a" ? { icone: "⇋", rot: "Espelhar", fn: function () { it.o.esp = !it.o.esp; fim(); } } : null,
+      it.tipo !== "l" ? { icone: "⧉", rot: "Duplicar", fn: dup } : null,
+      { icone: "👁", rot: "Esconder", fn: function () { f.ocultos = f.ocultos || {}; f.ocultos[k] = 1; SEL = null; fim(); } },
+      { icone: "✎", rot: "Editar", fn: function () { if (it.tipo === "t") { TXT = it.o.id; irAba("texto"); } else if (it.tipo === "l") irAba("logo"); else { ADS = it.o.id; CAM = k; irAba("camadas"); } } }, "-",
+      { icone: "🗑", rot: "Excluir", perigo: true, fn: apaga }].filter(Boolean), nomeCamada(it)[1].toUpperCase(), true);
+  }
+  palcoEl.addEventListener("pointerdown", function (ev) {
+    if (ev.target !== cv && ev.target !== palcoEl) return;
     var f = FOTOS[ATUAL]; if (!f || !LAY) return;
     if (ev.button === 2) return;
     if (window.BWFerr && BWFerr.atual() === "i") { contaGotas(ev); return; }
-    if (window.BWFerr && BWFerr.atual() === "z" && ABA === "foto") { f.zoom = Math.round(lim((f.zoom || 100) * (ev.altKey ? 1 / 1.25 : 1.25), 100, 400)); sincSlider("zoom", f.zoom); agendar(true); gravarHist(); return; }
-    cv.setPointerCapture(ev.pointerId); ptrs[ev.pointerId] = { x: ev.clientX, y: ev.clientY };
+    if (window.BWFerr && BWFerr.atual() === "z") { f.zoom = Math.round(lim((f.zoom || 100) * (ev.altKey ? 1 / 1.25 : 1.25), 100, 400)); sincSlider("zoom", f.zoom); agendar(true); gravarHist(); return; }
+    try { palcoEl.setPointerCapture(ev.pointerId); } catch (e) {} ptrs[ev.pointerId] = { x: ev.clientX, y: ev.clientY };
     var p = noCanvas(ev), ids = Object.keys(ptrs);
-    clearTimeout(tSegura); segura0 = { x: ev.clientX, y: ev.clientY };
     if (PINTA) { var uv = localDaPintura(p); if (uv) { var m0 = mascAlvo(); if (m0) { var tr = { m: PINTA.modo, r: PINTA.r / 100, p: [uv[0], uv[1]] }; m0.tracos = (m0.tracos || []).concat([tr]); gesto = { tipo: "pinta", t: tr }; agendar(true); } } return; }
-    if (ids.length === 1 && !COMPARAR) tSegura = setTimeout(function () { if (!Object.keys(ptrs).length) return; gesto = null; SEGURA = true; previa(); }, 330);
-    if (ids.length === 2 && ABA === "foto") { var a = ptrs[ids[0]], b = ptrs[ids[1]]; gesto = { tipo: "pinca", d0: Math.hypot(a.x - b.x, a.y - b.y), z0: f.zoom }; return; }
+    if (ids.length === 2) {   /* segundo dedo: esticar o item que o primeiro dedo pegou, ou zoom da foto */
+      clearTimeout(tSegura); var a = ptrs[ids[0]], b = ptrs[ids[1]], d0 = Math.max(10, Math.hypot(a.x - b.x, a.y - b.y)), an0 = Math.atan2(b.y - a.y, b.x - a.x);
+      if (gesto && gesto.it) { gesto = { tipo: "pinca-it", it: gesto.it, d0: d0, an0: an0, tam0: gesto.it.o.tam, rot0: gesto.it.o.rot || 0 }; return; }
+      if (!COMPARAR) gesto = { tipo: "pinca", d0: d0, z0: f.zoom || 100 }; return;
+    }
+    if (ids.length > 2) return;
+    clearTimeout(tSegura); segura0 = { x: ev.clientX, y: ev.clientY };
     if (COMPARAR) { gesto = { tipo: "div" }; DIV = lim(p.x / cv.width, 0.02, 0.98); agendar(true); return; }
-    if (ABA === "texto" || ABA === "camadas") {
-      var t = LAY.textos.slice().reverse().filter(function (k) { return dentro(p, k); })[0];
-      if (t) { var tt = G.textos.filter(function (k) { return k.id === t.id; })[0]; if (TXT !== t.id) { TXT = t.id; if (ABA === "texto") painel(); } gesto = { tipo: "txt", t: tt, p0: p, cx: tt.cx, cy: tt.cy }; agendar(true); return; }
-    }
-    if (ABA === "adesivos" || ABA === "camadas") {
-      var ad = (LAY.ades || []).slice().reverse().filter(function (k) { return dentro(p, k); })[0];
-      if (ad) { var aa = (f.adesivos || []).filter(function (k) { return k.id === ad.id; })[0]; if (ADS !== ad.id) { ADS = ad.id; CAM = "a:" + ad.id; painel(); }
-        if (Object.keys(ptrs).length === 1) gesto = { tipo: "ades", a: aa, p0: p, cx: aa.cx, cy: aa.cy }; agendar(true); return; }
-    }
-    if ((ABA === "logo" || ABA === "camadas") && dentro(p, LAY.logo)) { gesto = { tipo: "logo", p0: p, x: (LAY.logo.x + LAY.logo.w / 2 - LAY.P.x) / LAY.P.w, y: (LAY.logo.y + LAY.logo.h / 2 - LAY.P.y) / LAY.P.h }; return; }
-    if (ABA === "foto" || ABA === "ajustes" || ABA === "filtros") gesto = { tipo: "pan", p0: p, cx: f.cx, cy: f.cy };
+    var fe = window.BWFerr ? BWFerr.atual() : "v", it = (fe === "h" || fe === "c") ? null : itemNoPonto(p);
+    tSegura = setTimeout(function () { if (Object.keys(ptrs).length !== 1) return; var g = gesto; gesto = null; menuSegurar(segura0.x, segura0.y, g && g.it); }, 500);
+    if (it) { selecionar(it); var P = LAY.P;
+      if (it.tipo === "t") gesto = { tipo: "txt", t: it.o, it: it, p0: p, cx: it.o.cx, cy: it.o.cy };
+      else if (it.tipo === "a") gesto = { tipo: "ades", a: it.o, it: it, p0: p, cx: it.o.cx, cy: it.o.cy };
+      else gesto = { tipo: "logo", it: it, p0: p, x: (LAY.logo.x + LAY.logo.w / 2 - P.x) / P.w, y: (LAY.logo.y + LAY.logo.h / 2 - P.y) / P.h };
+      agendar(true); return; }
+    if (SEL) { SEL = null; agendar(true); }
+    gesto = { tipo: "pan", p0: p, cx: f.cx, cy: f.cy };
   });
-  cv.addEventListener("pointermove", function (ev) {
+  palcoEl.addEventListener("pointermove", function (ev) {
     if (ptrs[ev.pointerId] && segura0 && Math.abs(ev.clientX - segura0.x) + Math.abs(ev.clientY - segura0.y) > 9) clearTimeout(tSegura);
     if (!ptrs[ev.pointerId] || !gesto || SEGURA) return; ptrs[ev.pointerId] = { x: ev.clientX, y: ev.clientY };
     var f = FOTOS[ATUAL], p = noCanvas(ev);
     if (gesto.tipo === "pinta") { var uv = localDaPintura(p), q = gesto.t.p; if (uv && (Math.abs(uv[0] - q[q.length - 2]) + Math.abs(uv[1] - q[q.length - 1]) > 0.004)) { q.push(uv[0], uv[1]); agendar(true); } return; }
-    if (gesto.tipo === "pinca") { var ids = Object.keys(ptrs); if (ids.length < 2) return; var a = ptrs[ids[0]], b = ptrs[ids[1]]; f.zoom = Math.round(lim(gesto.z0 * Math.hypot(a.x - b.x, a.y - b.y) / gesto.d0, 100, 400)); sincSlider("zoom", f.zoom); agendar(true); return; }
+    if (gesto.tipo === "pinca" || gesto.tipo === "pinca-it") { var ids = Object.keys(ptrs); if (ids.length < 2) return; var a = ptrs[ids[0]], b = ptrs[ids[1]], esc = Math.hypot(a.x - b.x, a.y - b.y) / gesto.d0;
+      if (gesto.tipo === "pinca") { f.zoom = Math.round(lim(gesto.z0 * esc, 100, 400)); sincSlider("zoom", f.zoom); agendar(true); return; }
+      porTam(gesto.it, gesto.tam0 * esc);
+      if (gesto.it.tipo === "a") { var r = gesto.rot0 + (Math.atan2(b.y - a.y, b.x - a.x) - gesto.an0) * 180 / Math.PI; r = ((r + 540) % 360) - 180; gesto.it.o.rot = Math.round(r); sincSlider("aRot", gesto.it.o.rot); }
+      agendar(true); return; }
     if (gesto.tipo === "div") { DIV = lim(p.x / cv.width, 0.02, 0.98); agendar(true); return; }
     /* 16/11: o arraste mede em FRAÇÃO da tela — durante o arraste a prévia é refeita em resolução menor (mais rápida) e o
        canvas muda de tamanho; medir em pixels fazia o adesivo/texto "pular" para outro lugar */
@@ -968,7 +1011,7 @@
     return [r4(lx / w + 0.5), r4(ly / h + 0.5)];
   }
   function soltar(ev) { delete ptrs[ev.pointerId]; if (!Object.keys(ptrs).length) { clearTimeout(tSegura); if (SEGURA) { SEGURA = false; gesto = null; previa(); return; } if (gesto) agendar(); gesto = null; } }
-  cv.addEventListener("pointerup", soltar); cv.addEventListener("pointercancel", soltar);
+  palcoEl.addEventListener("pointerup", soltar); palcoEl.addEventListener("pointercancel", soltar);
   $("palco").addEventListener("wheel", function (ev) {
     var f = FOTOS[ATUAL]; if (!f || ABA !== "foto") return; ev.preventDefault();
     f.zoom = Math.round(lim(f.zoom * (ev.deltaY < 0 ? 1.08 : 1 / 1.08), 100, 400)); sincSlider("zoom", f.zoom); agendar(true);

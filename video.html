@@ -114,7 +114,7 @@
 .ve-clip .tr{position:absolute;left:0;top:0;bottom:0;pointer-events:none;background:linear-gradient(90deg,rgba(255,255,255,.55),rgba(255,255,255,0));border-right:2px dashed rgba(255,255,255,.7)}
 .ve-lamina{position:absolute;width:2px;background:#B6FF3B;box-shadow:0 0 8px #B6FF3B;pointer-events:none;z-index:4}.ve-lamina[hidden]{display:none}
 #veFerr{margin-right:6px}
-.ve-aviso{pointer-events:none;position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:80;width:max-content;max-width:min(620px,92vw);box-shadow:0 10px 28px rgba(0,0,0,.5);backdrop-filter:blur(6px);padding:9px 12px;border-radius:12px;font:600 12.5px/1.4 Inter,sans-serif;background:rgba(12,40,28,.94);border:1px solid rgba(62,207,142,.5);color:#9af0c4}
+.ve-aviso{pointer-events:none;position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:80;width:max-content;max-width:min(620px,92vw);box-shadow:0 10px 28px rgba(0,0,0,.5);padding:9px 12px;border-radius:12px;font:600 12.5px/1.4 Inter,sans-serif;background:rgba(12,40,28,.94);border:1px solid rgba(62,207,142,.5);color:#9af0c4}
 .ve-aviso.erro{background:rgba(48,14,16,.95);border-color:rgba(242,104,107,.45);color:#ffb3b5}
 .ve-aviso[hidden]{display:none}
 .ve-ocup{position:fixed;inset:0;z-index:9000;background:rgba(6,8,13,.86);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:#F5F1EA;font:700 15px Inter,sans-serif;text-align:center;padding:24px}
@@ -227,7 +227,7 @@
 @media (max-width:560px){.ve-jan{padding:0;align-items:flex-end}.ve-jan-c{border-radius:18px 18px 0 0;max-height:92vh}.ve-exp-cards{grid-template-columns:1fr 1fr}.ve-copia{right:8px;left:8px;width:auto;bottom:calc(70px + env(safe-area-inset-bottom))}}
 </style>
 <script src="assets/modos.js?v=6"></script>
-<link rel="stylesheet" href="assets/ve-app.css?v=5">
+<link rel="stylesheet" href="assets/ve-app.css?v=6">
 <script>/* 22/11: decide o layout de app ANTES de desenhar (senão a tela antiga aparecia por um instante) */(function(){var q=new URLSearchParams(location.search).get("layout")||"";if(q==="app"||(q!=="classico"&&(innerWidth<=900||(matchMedia("(pointer:coarse)").matches&&innerWidth<=1180))))document.documentElement.classList.add("app-cedo")})()</script>
 
 </head>
@@ -282,7 +282,7 @@
 <div class="ve-ocup ve-saida" id="veSaida" hidden><span id="veSaidaTxt">Vídeo pronto</span><video id="veVideoPronto" controls playsinline></video><div class="ve-linha"><a class="ve-bt pri" id="veBaixar" download="video-brightway.mp4">⬇ SALVAR VÍDEO</a><button class="ve-bt" id="veCompartilhar" type="button">COMPARTILHAR</button><button class="ve-bt" id="veFecharSaida" type="button">FECHAR</button></div></div>
 <input type="file" id="veArq" accept="video/*,image/*,audio/*" multiple hidden>
 <input type="file" id="veArqTroca" accept="video/*,image/*,audio/*" hidden>
-<script src="assets/layout.js?v=73"></script>
+<script src="assets/layout.js?v=74"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="assets/bw-sync.js?v=20261122"></script>
 <script src="assets/bw-personagens.js?v=3"></script>

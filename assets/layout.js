@@ -145,7 +145,8 @@
       '<a href="login.html" title="Conta" aria-label="Conta"><span class="bw-icone" style="width:40px;height:40px"><svg width="20" height="20" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></span></a>' +
     '</div></div>';
 
-  var abas = CATEGORIAS.slice(0, 4).concat([{id:"mais", nome:"Mais", href:"#", icon:'<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>'}])
+  /* 22/11 (dono): LANÇAMENTOS saiu da barra de baixo (o Tio Cláudio já lança por lá) e entrou MARKETING */
+  var abas = ["inicio", "negocio", "casa", "mkt"].map(function(id){ return CATEGORIAS.filter(function(c){ return c.id === id; })[0]; }).concat([{id:"mais", nome:"Mais", href:"#", icon:'<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>'}])
     .map(function(c){
       var ativo = c.id === CAT ? " ativo" : "";
       return '<a href="' + c.href + '" class="' + ativo.trim() + '" data-aba="' + c.id + '" aria-label="' + c.nome + '">' +
