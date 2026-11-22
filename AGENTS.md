@@ -1813,8 +1813,12 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   por cima, faíscas que seguem o mouse e clarão no toque dos dedos. FOTO + MUNDO: quadro do mesmo vídeo (app/abertura-foto.jpg) com a rede animada
   alinhada ao mundo da foto (conta do object-fit:cover) e faísca entre os dedos. Letreiro e ENTRAR no azul do vídeo. As fotos do Pinterest NÃO
   foram usadas (de terceiros). teste-app 107 ✓ (o Chromium do teste não toca H.264: o caminho de vídeo foi conferido com cópias VP9).
+- 22/11/2026 00:50 · Claude (dono: "faça uma versão mais branco e cinza e as conexões passando amarelo e azul"): APP BW 1.9.18 — 3ª opção na chave
+  ABERTURA: MUNDO (o mundo desenhado em canvas sobre fundo branco e cinza; arcos cinza e sinais com rastro em amarelo #F2B200 e azul #1880FF;
+  feixes amarelo/azul no toque; letreiro cinza com brilho amarelo-azul; html .nucleo.claro). No fundo claro a soma de luz ('lighter') some:
+  o modo claro desenha com 'source-over'. teste-app 107 ✓.
 ## Pendências (dono)
-- [ ] (22/11) ABERTURA DO APP: dono atualizar para 1.9.17 e escolher VÍDEO ou FOTO + MUNDO (chave no alto); conferir o ENTRAR e o menu escondido. BW-Setup.exe 1.9.16 depende do PC (o do site atualiza sozinho).
+- [ ] (22/11) ABERTURA DO APP: dono atualizar para 1.9.17 e escolher VÍDEO, FOTO + MUNDO ou MUNDO (chave no alto); conferir o ENTRAR e o menu escondido. BW-Setup.exe 1.9.16 depende do PC (o do site atualiza sozinho).
 - [ ] (22/11) EDITOR NO CELULAR: dono abrir o editor de vídeo no celular e dizer o que ainda falta para ficar como o CapCut (tempo do "segurar"
       hoje é ~0,5 s — pediu 2 s: confirmar se quer mesmo mais longo). BW-Setup.exe 1.9.14 depende do PC (o 1.9.12 do site atualiza sozinho).
 - [ ] (22/11) BW-Setup.exe 1.9.13: os arquivos novos já estão em Vídeos\bw-reels-studio, mas o gerador não abriu pelo clique remoto (3 tentativas,
