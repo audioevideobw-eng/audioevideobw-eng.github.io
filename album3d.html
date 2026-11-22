@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Álbum 3D e efeitos — Brightway</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#06080D">
+<link rel="icon" type="image/png" href="icons/favicon-64.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Brightway">
+<link rel="stylesheet" href="assets/brightway.css?v=35">
+<style>
+.wrap{max-width:1560px;margin:0 auto;padding:0 14px 110px}
+.al-topo{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.al-topo h1{margin:0 auto 0 0;font:800 17px Montserrat,Inter,sans-serif;letter-spacing:.04em;color:#F5F1EA}
+.al-topo h1 small{display:block;font:700 10px Inter,sans-serif;letter-spacing:.16em;color:#8d95a3}
+.al-topo h1 a{color:inherit;text-decoration:none}
+.al-bt{min-height:42px;padding:0 13px;border-radius:12px;border:1px solid rgba(245,241,234,.16);background:rgba(255,255,255,.05);color:#F5F1EA;font:800 11.5px Inter,sans-serif;letter-spacing:.06em;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap;touch-action:manipulation;text-decoration:none}
+.al-bt:disabled{opacity:.35;cursor:default}
+.al-bt.pri{background:linear-gradient(135deg,#FF4FA3,#7C5CFF);border-color:transparent;color:#fff}
+.al-bt.ver{background:linear-gradient(135deg,#B6FF3B,#3BFF6A);border-color:transparent;color:#0a120a}
+.al-bt.perigo{color:#ff9a9d;border-color:rgba(242,104,107,.4)}
+.al-bt.mini{min-height:34px;padding:0 9px;font-size:10.5px;border-radius:10px}
+.al-sel,.al-in{min-height:42px;border-radius:12px;border:1px solid rgba(245,241,234,.16);background:#12151c;color:#F5F1EA;font:700 16px Inter,sans-serif;padding:0 10px;box-sizing:border-box;min-width:0}
+.al-in.nome{width:170px}
+.al-grade{display:grid;grid-template-columns:330px minmax(0,1fr) 330px;gap:12px;align-items:start}
+.al-cx{min-width:0;border-radius:20px;background:#12151c;border:1px solid rgba(245,241,234,.08);padding:12px}
+.al-lado{max-height:calc(100vh - 170px);min-height:300px;overflow:auto;overscroll-behavior:contain}
+.al-g{margin-bottom:10px}
+.al-g > h4{margin:0 0 6px;font:800 10.5px Inter,sans-serif;letter-spacing:.12em;color:#F5F1EA;padding:6px 0;border-bottom:1px solid rgba(245,241,234,.07)}
+.al-cats{display:flex;flex-wrap:wrap;gap:5px;margin:0 0 8px}
+.al-cats button{min-height:32px;padding:0 10px;border-radius:999px;border:1px solid rgba(245,241,234,.16);background:transparent;color:#cfd5de;font:800 10px Inter,sans-serif;letter-spacing:.05em;cursor:pointer;touch-action:manipulation}
+.al-cats button.on{background:#FF4FA3;border-color:#FF4FA3;color:#fff}
+.al-mods{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+.al-md{min-width:0;border-radius:12px;border:2px solid transparent;background:#0B0E14;padding:0;cursor:pointer;overflow:hidden;color:#cfd5de;font:800 9.5px/1.2 Inter,sans-serif;text-align:left;touch-action:manipulation;position:relative}
+.al-md.on{border-color:#FF4FA3;box-shadow:0 0 0 2px rgba(255,79,163,.25)}
+.al-md canvas{display:block;width:100%;aspect-ratio:9/14;background:#07080c}
+.al-md span{display:block;padding:5px 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.al-md i{position:absolute;left:5px;top:5px;font:800 8px Inter,sans-serif;font-style:normal;letter-spacing:.08em;padding:2px 5px;border-radius:6px;background:rgba(0,0,0,.6);color:#fff}
+.al-palco{display:flex;flex-direction:column;align-items:center;gap:8px;min-width:0}
+.al-palco canvas{display:block;border-radius:14px;background:#000;box-shadow:0 14px 40px rgba(0,0,0,.5);max-width:100%}
+.al-play{display:flex;align-items:center;gap:7px;flex-wrap:wrap;justify-content:center;width:100%}
+.al-play input[type=range]{flex:1 1 200px;min-width:0;accent-color:#FF4FA3}
+.al-tempo{font:700 12.5px Inter,sans-serif;color:#F5F1EA;font-variant-numeric:tabular-nums;min-width:92px;text-align:center}
+.al-info{font:600 12px/1.4 Inter,sans-serif;color:#B9C0CC;text-align:center;max-width:560px;margin:0}
+.al-info b{color:#F5F1EA}
+.al-passos{display:flex;gap:6px;margin:0 0 10px}
+.al-passos span{flex:1;border-radius:10px;padding:7px 6px;background:rgba(255,255,255,.04);border:1px solid rgba(245,241,234,.08);font:800 9.5px/1.25 Inter,sans-serif;letter-spacing:.04em;color:#B9C0CC;text-align:center}
+.al-passos span b{display:block;font-size:15px;color:#FF4FA3}
+.al-solta{border:2px dashed rgba(255,79,163,.45);border-radius:14px;padding:12px;text-align:center;font:600 12px/1.4 Inter,sans-serif;color:#B9C0CC;margin-bottom:8px}
+.al-solta.sobre{background:rgba(255,79,163,.08)}
+.al-midias{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.al-mid{position:relative;min-width:0;aspect-ratio:3/4;border-radius:10px;overflow:hidden;background:#0B0E14;border:1px solid rgba(245,241,234,.12)}
+.al-mid img{width:100%;height:100%;object-fit:cover;display:block}
+.al-mid .n{position:absolute;left:4px;top:4px;min-width:20px;height:20px;border-radius:6px;background:rgba(0,0,0,.7);color:#fff;font:800 11px/20px Inter,sans-serif;text-align:center}
+.al-mid .v{position:absolute;left:4px;bottom:4px;font:800 9px Inter,sans-serif;background:#7C5CFF;color:#fff;border-radius:6px;padding:2px 5px}
+.al-mid .x{position:absolute;right:3px;top:3px;width:24px;height:24px;border-radius:50%;border:0;background:rgba(0,0,0,.72);color:#fff;font-size:11px;cursor:pointer;padding:0}
+.al-mid .mv{position:absolute;right:3px;bottom:3px;display:flex;gap:2px}
+.al-mid .mv button{width:22px;height:22px;border-radius:6px;border:0;background:rgba(0,0,0,.72);color:#fff;font-size:11px;cursor:pointer;padding:0}
+.al-mid.ruim{outline:2px solid #FF6B6B}
+.al-prop label{display:grid;grid-template-columns:104px minmax(0,1fr) 46px;gap:6px;align-items:center;margin:6px 0;font:600 11.5px Inter,sans-serif;color:#B9C0CC;text-transform:none;letter-spacing:0}
+.al-prop label.um{grid-template-columns:104px minmax(0,1fr)}
+.al-prop input[type=range]{width:100%;min-width:0;accent-color:#FF4FA3}
+.al-prop output{text-align:right;color:#F5F1EA;font-variant-numeric:tabular-nums;font-size:11px}
+.al-prop select,.al-prop input[type=text]{width:100%;box-sizing:border-box;min-width:0;padding:8px;border-radius:10px;border:1px solid rgba(245,241,234,.16);background:#0B0E14;color:#F5F1EA;font:500 16px Inter,sans-serif}
+.al-prop input[type=color]{width:46px;height:36px;border:0;background:transparent;padding:0}
+.al-chips{display:flex;flex-wrap:wrap;gap:5px;margin:4px 0 6px}
+.al-chips button{min-height:32px;padding:0 9px;border-radius:999px;border:1px solid rgba(245,241,234,.16);background:transparent;color:#cfd5de;font:700 10.5px Inter,sans-serif;cursor:pointer;touch-action:manipulation}
+.al-chips button.on{background:#FF4FA3;border-color:#FF4FA3;color:#fff}
+.al-dica{font:500 11.5px/1.4 Inter,sans-serif;color:#8d95a3;margin:4px 0 0}
+.al-linha{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}.al-linha .al-bt{flex:1 1 auto}
+.al-aviso{margin-top:8px;padding:9px 12px;border-radius:12px;font:600 12.5px/1.4 Inter,sans-serif;background:rgba(62,207,142,.12);border:1px solid rgba(62,207,142,.4);color:#9af0c4}
+.al-aviso.erro{background:rgba(242,104,107,.12);border-color:rgba(242,104,107,.45);color:#ffb3b5}
+.al-aviso[hidden]{display:none}
+.al-nota{margin:8px 0 0;font:500 11.5px/1.4 Inter,sans-serif;color:#8d95a3}
+.al-folha{position:fixed;inset:0;z-index:9000;background:rgba(6,8,13,.86);display:flex;align-items:center;justify-content:center;padding:14px}
+.al-folha[hidden]{display:none}
+.al-folha .jan{width:min(520px,100%);max-height:92vh;overflow:auto;border-radius:20px;background:#12151c;border:1px solid rgba(245,241,234,.12);padding:16px;color:#F5F1EA;font:500 13px/1.45 Inter,sans-serif}
+.al-folha h2{margin:0 0 10px;font:800 15px Inter,sans-serif;letter-spacing:.06em}
+.al-folha progress{width:100%;height:10px;accent-color:#FF4FA3}
+.al-folha video{max-width:min(280px,70vw);max-height:44vh;border-radius:12px;background:#000;display:block;margin:8px auto}
+.al-abas{display:none}
+@media (max-width:1100px){
+  .al-grade{grid-template-columns:minmax(0,1fr)}
+  .al-palco{order:-1;position:sticky;top:0;z-index:5;background:#0b0d12;padding:6px 0;border-radius:0 0 14px 14px}
+  .al-lado{max-height:none}
+  .al-abas{display:flex;gap:6px;margin:4px 0 8px}
+  .al-abas button{flex:1;min-height:40px;border-radius:12px;border:1px solid rgba(245,241,234,.16);background:transparent;color:#B9C0CC;font:800 11px Inter,sans-serif;letter-spacing:.06em;touch-action:manipulation}
+  .al-abas button.on{background:#FF4FA3;color:#fff;border-color:#FF4FA3}
+  .al-grade[data-aba="mod"] #alDir,.al-grade[data-aba="fot"] #alMod,.al-grade[data-aba="aju"] #alMod{display:none}
+  .al-grade[data-aba="fot"] #alAju,.al-grade[data-aba="aju"] #alFot{display:none}
+  .al-mods{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .al-in.nome{width:120px}
+  .al-play .al-bt{min-height:36px;padding:0 10px}
+}
+@media (max-width:600px){ .al-topo{gap:6px;margin-bottom:6px} .al-topo h1{display:none} .al-in.nome{flex:1 1 120px;width:auto} .al-topo .al-bt{min-height:38px;padding:0 10px} #alExportar{flex:1 1 auto} .al-info{font-size:11px} }
+@media (max-width:480px){ .al-mods{grid-template-columns:repeat(3,minmax(0,1fr))} .al-topo .al-sel{max-width:118px} }
+</style>
+<script src="assets/modos.js?v=6"></script>
+</head>
+<body>
+<header><div class="hd"><button id="btnVoltar" type="button">‹</button><div id="userBox"></div></div></header>
+<div class="wrap">
+  <div class="al-topo">
+    <h1><small><a href="3d.html">ESTÚDIO 3D ›</a></small>ÁLBUM 3D E EFEITOS</h1>
+    <input class="al-in nome" id="alNome" type="text" aria-label="Nome do projeto" maxlength="40">
+    <select class="al-sel" id="alFmt" aria-label="Formato"><option value="9:16">9:16 Reels</option><option value="16:9">16:9 YouTube</option><option value="1:1">1:1 Quadrado</option><option value="4:5">4:5 Feed</option><option value="4k-v">4K vertical</option><option value="4k-h">4K paisagem</option></select>
+    <button class="al-bt" id="alSorte" type="button" title="Escolher um modelo qualquer">🎲 SURPRESA</button>
+    <button class="al-bt pri" id="alExportar" type="button">⬇ GERAR VÍDEO</button>
+  </div>
+  <div class="al-abas" id="alAbas"><button type="button" data-aba="mod" class="on">MODELOS</button><button type="button" data-aba="fot">＋ FOTOS E VÍDEOS</button><button type="button" data-aba="aju">AJUSTES</button></div>
+  <div class="al-grade" id="alGrade" data-aba="mod">
+    <aside class="al-cx al-lado" id="alMod" data-bwf-nome="MODELOS">
+      <div class="al-g"><h4>MODELOS <span id="alQtd" style="color:#8d95a3;font-weight:700"></span></h4>
+        <div class="al-cats" id="alCats"></div>
+        <div class="al-mods" id="alMods"></div>
+        <p class="al-dica">Toque num modelo para usar. As miniaturas já mostram as SUAS fotos quando você coloca.</p></div>
+    </aside>
+    <section class="al-palco">
+      <canvas id="alCv" width="540" height="960"></canvas>
+      <div class="al-play">
+        <button class="al-bt" id="alTocar" type="button">▶ TOCAR</button>
+        <input type="range" id="alScrub" min="0" max="10" step="0.01" value="0" aria-label="Tempo do vídeo">
+        <span class="al-tempo" id="alTempo">0,0 / 0,0 s</span>
+      </div>
+      <p class="al-info" id="alInfo"></p>
+    </section>
+    <aside class="al-cx al-lado" id="alDir" data-bwf-nome="FOTOS E AJUSTES">
+      <div id="alFot">
+        <div class="al-passos"><span><b>1</b>ESCOLHA O MODELO</span><span><b>2</b>PONHA AS FOTOS E VÍDEOS</span><span><b>3</b>GERE O VÍDEO</span></div>
+        <div class="al-g"><h4 data-seta="al_midias">FOTOS E VÍDEOS</h4><div>
+          <div class="al-solta" id="alSolta">Arraste fotos e vídeos aqui<br>ou<div class="al-linha" style="justify-content:center"><button class="al-bt mini pri" id="alImportar" type="button">＋ ESCOLHER</button></div></div>
+          <div class="al-midias" id="alMidias"></div>
+          <p class="al-dica">Elas entram no lugar dos números, nesta ordem (◀ ▶ mudam). Sem fotos, o modelo mostra 01, 02, 03… para você ver como fica.</p></div></div>
+        <div class="al-g"><h4 data-seta="al_musica">MÚSICA</h4><div class="al-prop" id="alMusica"></div></div>
+      </div>
+      <div id="alAju">
+        <div class="al-g"><h4 data-seta="al_visual">AJUSTES DO MODELO</h4><div class="al-prop" id="alVisual"></div></div>
+        <div class="al-g"><h4 data-seta="al_titulo" data-seta-padrao="fechada">TÍTULO</h4><div class="al-prop" id="alTitulo"></div></div>
+        <div class="al-g"><h4 data-seta="al_proj" data-seta-padrao="fechada">MEUS PROJETOS</h4><div id="alProjetos"></div></div>
+      </div>
+    </aside>
+  </div>
+  <div class="al-aviso" id="alAviso" hidden aria-live="polite"></div>
+  <p class="al-nota">Tudo fica neste aparelho: fotos, vídeos e música não sobem para lugar nenhum. O vídeo é feito pelo próprio navegador (celular, computador ou app BW).</p>
+</div>
+
+<div class="al-folha" id="alFolha" hidden><div class="jan">
+  <h2>⬇ GERAR VÍDEO</h2>
+  <div class="al-prop"><label class="um">Qualidade<select id="alQual"></select></label></div>
+  <p class="al-dica" id="alExpDica"></p>
+  <div class="al-linha"><button class="al-bt pri" id="alGerar" type="button">🎬 GERAR AGORA</button></div>
+  <div id="alProg" hidden><p id="alProgTxt">Preparando…</p><progress id="alBarra" max="100" value="0"></progress><div class="al-linha"><button class="al-bt" id="alCancelar" type="button">CANCELAR</button></div></div>
+  <div id="alPronto" hidden><video id="alVideo" controls playsinline></video><div class="al-linha"><a class="al-bt pri" id="alBaixar" download="album-3d.mp4">⬇ SALVAR VÍDEO</a><button class="al-bt" id="alCompart" type="button">COMPARTILHAR</button></div></div>
+  <div class="al-linha"><button class="al-bt" id="alFechar" type="button">FECHAR</button></div>
+</div></div>
+
+<input type="file" id="alArq" accept="image/*,video/*" multiple hidden>
+<input type="file" id="alArqSom" accept="audio/*" hidden>
+<script src="assets/layout.js?v=71"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="assets/bw-sync.js"></script>
+<script src="assets/bw-controle.js?v=1"></script>
+<script src="assets/album-motor.js?v=1"></script>
+<script src="assets/reels-celular.js?v=5"></script>
+<script src="assets/bw-ferramentas.js?v=4"></script>
+<script src="assets/bw-criacoes.js?v=2"></script>
+<script src="assets/album.js?v=1"></script>
+</body>
+</html>

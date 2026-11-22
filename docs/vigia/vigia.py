@@ -289,7 +289,7 @@ if os.path.exists("assets/personagens-prontos.js") and re.search(r"fetch\(|XMLHt
 if os.path.exists("assets/bw-personagens.js") and re.search(r"fetch\(|XMLHttpRequest|supabase", ler("assets/bw-personagens.js")): problemas.append("assets/bw-personagens.js: a biblioteca de personagens não fala com a internet")
 if os.path.exists("assets/video-editor.js") and re.search(r"fetch\(|XMLHttpRequest|supabase\.|BWSync\.(?!cliente)|\.upload\(|https?://", ler("assets/video-editor.js")): problemas.append("assets/video-editor.js: o editor de vídeo não envia nada (sem fetch, upload, conta nem endereço de fora)")
 # TELAS EM MOVIMENTO (20/11): fotos, vídeos e música ficam no aparelho — motor e editor sem rede, conta ou envio
-for _f in ("assets/telas-motor.js", "assets/telas.js"):
+for _f in ("assets/telas-motor.js", "assets/telas.js", "assets/album-motor.js", "assets/album.js"):
     if os.path.exists(_f) and re.search(r"fetch\(|XMLHttpRequest|supabase\.|BWSync\.(?!cliente)|\.upload\(|https?://", ler(_f)): problemas.append(_f + ": Telas em movimento não envia nada (sem fetch, upload, conta nem endereço de fora)")
 # ESTÚDIO DE MOTION (20/11): o motor só desenha (nada de rede); o editor só fala com a IA Brightway (bw-ia) e nunca grava na conta
 # 20/11: ferramentas/atalhos comuns dos editores — só interface; nada de rede, conta ou armazenamento
@@ -328,7 +328,7 @@ if os.path.exists("3d.html"):
     _h3 = ler("3d.html")
     for _n3 in ("assets/bw3d-motor.js", "assets/bw3d.js", "assets/bw3d-plano.js", "assets/reels-celular.js", "assets/bw-ferramentas.js", "assets/modos.js"):
         if _n3 not in _h3: problemas.append("3d.html: falta " + _n3)
-for _p in ("video.html", "telas.html", "motion.html", "fotos.html", "3d.html"):
+for _p in ("video.html", "telas.html", "album3d.html", "motion.html", "fotos.html", "3d.html"):
     if os.path.exists(_p) and "assets/bw-ferramentas.js" not in ler(_p): problemas.append(_p + ": editor sem as ferramentas/atalhos comuns (assets/bw-ferramentas.js) e sem a TELA FIXA")
 if os.path.exists("assets/motion-motor.js") and re.search(r"fetch\(|XMLHttpRequest|supabase\.|BWSync|localStorage|indexedDB|\.upload\(", ler("assets/motion-motor.js")): problemas.append("assets/motion-motor.js: o motor de motion só desenha (sem rede, conta nem armazenamento)")
 if os.path.exists("assets/motion.js"):
@@ -402,7 +402,7 @@ if re.search(r"fetch\(|XMLHttpRequest|supabase|BWSync|\.upload\(|\.from\(", _bc)
     problemas.append("assets/bw-criacoes.js: as criações ficam no aparelho (IndexedDB bw_criacoes) — nada de rede, upload nem conta")
 if re.search(r"(get|set)Item\(\s*[\"']bw_", _bc):
     problemas.append("assets/bw-criacoes.js: só preferências locais (ui_*) — não mexe nos dados da conta")
-_FERR_CRIA = {"motion.html": "motion", "telas.html": "telas", "3d.html": "d3", "fotos.html": "fotos", "criador.html": "criador", "reels.html": "reels", "video.html": "video"}
+_FERR_CRIA = {"motion.html": "motion", "telas.html": "telas", "album3d.html": "album", "3d.html": "d3", "fotos.html": "fotos", "criador.html": "criador", "reels.html": "reels", "video.html": "video"}
 for _pg in _FERR_CRIA:
     if "assets/bw-criacoes.js" not in todos.get(_pg, ""):
         problemas.append(f"{_pg}: sem assets/bw-criacoes.js (a criação não chega na linha do tempo)")
@@ -411,7 +411,7 @@ if 'id="veCriarLista"' not in todos.get("video.html", "") or "desenharFerramenta
     problemas.append("EDITOR DE VÍDEO: falta a caixa CRIAR PARA A LINHA DO TEMPO (veCriarLista) ou a entrada das criações")
 if "data-editar" not in _ve or "editarNaOrigem" not in _ve:
     problemas.append("EDITOR DE VÍDEO: toda criação precisa do ✎ que reabre a ferramenta de origem e troca no lugar")
-for _a, _id in (("assets/motion.js", "moExpBaixar"), ("assets/telas.js", "tlBaixar"), ("assets/bw3d.js", "d3Baixar"), ("assets/criador.js", "btnPng"), ("assets/reels.js", "aquiBaixar")):
+for _a, _id in (("assets/motion.js", "moExpBaixar"), ("assets/telas.js", "tlBaixar"), ("assets/album.js", "alBaixar"), ("assets/bw3d.js", "d3Baixar"), ("assets/criador.js", "btnPng"), ("assets/reels.js", "aquiBaixar")):
     if "BWCriacoes.aoLado(\"" + _id + "\"" not in _arq(_a):
         problemas.append(f"{_a}: sem o botão ➜ MANDAR PARA A LINHA DO TEMPO ao lado de #{_id}")
 if 'data-k="linha"' not in _arq("assets/fotos.js"):

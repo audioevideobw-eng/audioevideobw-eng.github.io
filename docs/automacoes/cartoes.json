@@ -173,6 +173,12 @@
   "ico": "<span class=\"ico\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><rect x=\"3\" y=\"3\" width=\"8\" height=\"8\" rx=\"1.5\"/><rect x=\"13\" y=\"3\" width=\"8\" height=\"8\" rx=\"1.5\" transform=\"rotate(8 17 7)\"/><rect x=\"3\" y=\"13\" width=\"8\" height=\"8\" rx=\"1.5\" transform=\"rotate(-8 7 17)\"/><path d=\"M14 14l6 6M20 14l-6 6\"/></svg></span>",
   "de": "index.html"
  },
+ "album3d.html": {
+  "nome": "ÁLBUM 3D E EFEITOS",
+  "title": "Modelos prontos em 3D: anel, carrossel, cascata, livro de fotos, polaroids, varal e efeitos 3D de tela cheia — só trocar os números pelas suas fotos e vídeos.",
+  "ico": "<span class=\"ico\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><ellipse cx=\"12\" cy=\"13\" rx=\"9\" ry=\"4\"/><rect x=\"5\" y=\"5\" width=\"5\" height=\"7\" rx=\"1\" transform=\"rotate(-12 7.5 8.5)\"/><rect x=\"10\" y=\"4\" width=\"5\" height=\"7\" rx=\"1\"/><rect x=\"15\" y=\"5\" width=\"5\" height=\"7\" rx=\"1\" transform=\"rotate(12 17.5 8.5)\"/></svg></span>",
+  "de": "index.html"
+ },
  "3d.html": {
   "nome": "ESTÚDIO 3D",
   "title": "Modelo 3D, logo em relevo, maquete de palco com painéis de LED (com a resolução em pixels do telão) e pedido pronto para IA de 3D — vídeo do giro feito no aparelho.",

@@ -139,7 +139,7 @@
   }
   function desenharFerramentas() {
     if (!window.BWCriacoes) return;
-    var ordem = ["motion", "telas", "d3", "fotos", "criador", "reels", "quadro"];
+    var ordem = ["motion", "telas", "album", "d3", "fotos", "criador", "reels", "quadro"];
     $("veCriarLista").innerHTML = ordem.map(function (k) {
       var f = BWCriacoes.FERR[k];
       return '<a href="' + BWCriacoes.url(k, "", { voltar: "video" }) + '" style="--cf:' + f.cor + '"><i aria-hidden="true">' + f.icone + "</i>" + esc(f.curto) + "</a>";

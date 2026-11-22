@@ -660,6 +660,14 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
      até a casca montar; quem não é app tira a classe na hora. Teste: no DOMContentLoaded a .wrap já está hidden (teste_video_app/motion_app).
      Telas: sem menu ao segurar, cada cena e cada mídia ganharam um ⋯ discreto (data-mais) que abre as opções.
 
+**Aprendidos em 22/11 (ÁLBUM 3D E EFEITOS)**
+171. ÁLBUM 3D (album3d.html + assets/album-motor.js + assets/album.js; dono: "modelos definidos, só substitui os arquivos; álbum; efeitos 3D com
+     vídeo e imagem; celular e PC; biblioteca vasta"): modelo novo = UM mod({...}) com quadro(t) → peças + câmera (nunca código espalhado);
+     fotos/vídeos/música só no IndexedDB bw_album (vigia). Projeção normalizada: dist muda só a perspectiva — aproximar/afastar é cam.zoom
+     (A.fit). Sombra e transparência por CAMADA (source-atop + colar com a opacidade): triângulo a triângulo deixa listras nas emendas.
+     Revisar TODO modelo numa folha de quadros antes de publicar (achou grade pequena, faixa bagunçada, filme sumindo). Entra também como
+     botão-link nos modos do ESTÚDIO 3D (o laço de cliques dos modos só liga quem tem data-m) (auto: teste_album.py).
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -1936,7 +1944,18 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   mo-app v2, telas v9, sw v177. PENTE FINO 167–169.
   08:55 (dono: "ao abrir o editor aparece a tela antiga por um instante"): decisão do layout no <head> + tela antiga escondida até o app montar (vídeo e
   Motion); Telas com ⋯ em cada cena/mídia. video, telas, video_app, motion_app 0 falhas. ve-app v4, mo-app v3, telas v10, sw v178. PENTE FINO 170.
+- 22/11/2026 09:55 · Claude (dono mandou um vídeo de pacote 3D para Premiere — cartões 01, 02, 03 em anel, faixa curva, cascata — "só substitui os arquivos;
+  modo álbum com várias sequências; efeitos 3D com vídeo e imagem; inclua no Estúdio 3D; celular e PC; biblioteca vasta"): ÁLBUM 3D E EFEITOS (album3d.html +
+  assets/album-motor.js + assets/album.js), motor próprio em canvas 2D (cartões com foto/vídeo, curva, frente e verso, peças), 45 MODELOS ORIGINAIS: 18 de
+  3D EM MOVIMENTO (anel, carrossel, faixa curva, cascata, voo, espiral, leque, onda, vitrine, cubo, globo, chuva, pilha, mergulho, escada, museu, mosaico que se
+  monta, caça-níquel), 14 de ÁLBUM DE FOTOS (polaroids, livro com páginas virando, varal, colagem, folheando, linha do tempo, moldura, scrapbook, grade, rolo de
+  filme, estante de retratos, mesa de luz, coração, capa dura) e 13 EFEITOS 3D de tela cheia (cubo, persiana, mosaico, explosão, montar, cartão, página,
+  portas, sanfona, mergulho, inclinação, carta). Galeria com miniaturas animadas que já mostram as fotos da pessoa, 🎲 SURPRESA, tempo por foto / na batida,
+  cartão, moldura, fundo (inclui chroma), título, música, projetos, desfazer, ⋯ da prévia (2º monitor, celular), GERAR VÍDEO no aparelho e ➜ LINHA DO TEMPO.
+  Entra em Marketing, Ferramentas, Minha empresa e como botão nos modos do ESTÚDIO 3D. Nada do pacote do vídeo foi copiado. teste_album.py 0 falhas ×
+  1280/390 (pixel da foto certa no MP4), vigia ✅. Manual 58 → 59 p. layout.js v71, bw-criacoes v2, video-editor v12, bw3d v13, sw v179. PENTE FINO 171.
 ## Pendências (dono)
+- [ ] (22/11) ÁLBUM 3D: dono abrir Marketing → Álbum 3D e efeitos no celular e no PC, pôr fotos de um evento real, trocar de modelos e gerar um vídeo; dizer quais modelos quer a mais (e o BW-Setup.exe 1.9.25: dois cliques em "5 - GERAR INSTALADOR EXE").
 - [x] (22/11 08:43) BW-Setup.exe 1.9.24 gerado pelo dono e publicado (8,3 MB, versão conferida dentro do .exe).
 - [ ] (22/11) MOTION NO CELULAR + ⋯ NAS TELAS E NO 3D: dono testar o Motion no celular (tocar num item, folhas, segurar) e os ⋯ das Telas/3D no PC (2º monitor).
 - [ ] (22/11) CAIXA DO TIO CLÁUDIO: dono testar no PC e no celular, logado — pedir algo pela caixa, trocar BW Smart / Rápido / Inteligente e usar a ✨ varinha.

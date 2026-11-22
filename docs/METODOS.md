@@ -452,3 +452,16 @@ Tamanho > 0 e sem erro = o pdfmake montou o arquivo. Localmente (T1) confira o `
    no editor, toda conta de ponteiro usa o início do tempo zero (borda + padding).
 5. Toque: dedo em barra não escolhida ROLA (o editor sai cedo do pointerdown para toque); click escolhe; segurar = menu (BWFerr.contexto).
 6. Teste com toque real (CDP Input.dispatchTouchEvent) a 390 e 820 px + PC; os testes de função antigos abrem com `?layout=classico`.
+
+## Álbum 3D: cartões com foto/vídeo em 3D no canvas 2D (22/11)
+- Motor = `assets/album-motor.js`. Cada MODELO é só `quadro(t, n, D, A, o)` → `{cam, pecas}`; modelo novo = um `mod({...})` na lista.
+  Peça: `m` (índice da mídia; −1 = peça lisa com `cor`), posição/giro, `w/h` em unidades (lado MENOR da tela = 2), `curva`/`curvaY`
+  (dobra), `tras` + `trasEixo` (verso com outra mídia), `uv` (pedaço da imagem — base dos efeitos em peças), `uvZoom`, `op`, `sombra`, `escuro`.
+- Projeção normalizada: em z = 0 a escala é sempre 1, então `dist` só muda a FORÇA da perspectiva — para afastar/aproximar use `cam.zoom`
+  (helper `A.fit(raio, o, k)`). Erro de 22/11: a colagem "abria" mudando dist e não mudava nada.
+- Textura afim em células (2×2 plano, 10 colunas com curva) por TRIÂNGULOS; para não aparecer risco na diagonal, o recorte de cada triângulo
+  é ALARGADO pela distância centro→lado (não raio do vértice). Sombra/luz NÃO vai triângulo por triângulo (dobra nas emendas = listras):
+  cada peça é montada numa CAMADA do tamanho da tela, escurecida com `source-atop` célula a célula e colada com a opacidade dela.
+- Conferir no olho: folha com 7 quadros por modelo (página com o motor + Playwright → JPG). 45 modelos revisados assim antes do teste.
+- Teste `docs/testes/teste_album.py`: pixel da 1ª foto no centro do efeito de tela cheia, take de vídeo no 4º, todos os modelos desenhando com
+  mídia, fundo de chroma no canto, MP4 gerado com a cor certa no tempo certo (ffprobe/ffmpeg).

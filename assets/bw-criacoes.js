@@ -13,6 +13,7 @@
   var FERR = {
     motion:  { nome: "ESTÚDIO DE MOTION",   curto: "Motion",     icone: "◆", pagina: "motion.html",   cor: "#B14DFF" },
     telas:   { nome: "TELAS EM MOVIMENTO",  curto: "Telas",      icone: "▦", pagina: "telas.html",    cor: "#22B8CF" },
+    album:   { nome: "ÁLBUM 3D E EFEITOS",  curto: "Álbum 3D",   icone: "❒", pagina: "album3d.html",  cor: "#FF4FA3" },
     d3:      { nome: "ESTÚDIO 3D",          curto: "3D",         icone: "◼", pagina: "3d.html",       cor: "#F5A524" },
     fotos:   { nome: "EDITOR DE FOTOS",     curto: "Foto",       icone: "✦", pagina: "fotos.html",    cor: "#12B76A" },
     criador: { nome: "CRIADOR IA",          curto: "Criador IA", icone: "✨", pagina: "criador.html",  cor: "#FF6B9A" },

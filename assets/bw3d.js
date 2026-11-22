@@ -843,7 +843,7 @@
         "-", { icone: "🖼", rot: "Salvar PNG (com o fundo escolhido)", fn: salvarPNG }, { icone: "🎬", rot: "Gerar vídeo", tecla: "E", fn: folhaExportar }]; } });
     if (window.BWFerr) FIXA = BWFerr.telaFixa({ wrap: document.querySelector(".wrap"), grade: $("d3Grade"), palco: document.querySelector(".d3-palco"),
       rola: [], some: [$("d3Nota")], painelLer: function () { return JSON.parse(localStorage.getItem("ui_3d_paineis") || "{}"); }, painelGravar: function (S) { localStorage.setItem("ui_3d_paineis", JSON.stringify(S)); }, aviso: $("d3Aviso"), aoMedir: function () { medir(); ver(TEMPO); } });
-    [].forEach.call($("d3Modos").children, function (b) { b.onclick = function () { trocarModo(b.getAttribute("data-m")); }; });
+    [].forEach.call($("d3Modos").children, function (b) { if (b.hasAttribute("data-m")) b.onclick = function () { trocarModo(b.getAttribute("data-m")); }; });   /* o ÁLBUM 3D é um link (outra página) */
     [].forEach.call($("d3AbasCel").children, function (b) { b.onclick = function () { aba(b.getAttribute("data-aba")); }; });
     $("d3Nome").addEventListener("input", function () { P.nome = this.value; guardarTarde(); });
     $("d3Zmais").onclick = function () { zoom(0.86); }; $("d3Zmenos").onclick = function () { zoom(1.16); };

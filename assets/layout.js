@@ -71,7 +71,7 @@
     casa: [["casa","Minha casa (PF)"],["lancamentos-pf","Lançamentos PF","lancamentos.html?a=pf"],["financeiro-painel-pf","Painel PF","financeiro-painel.html?a=pf"],["orcamento","Orçamento familiar"],["contas","Contas a pagar"],["reserva","Reserva de emergência"]],
     invest: [["investimentos-painel","Painel de Investimentos"],["cambio","Câmbio"],["evento","Evento no exterior"],["milhas","Mercado de milhas"],["meta","Meta de milhas"],["recs","★ Recomendações"],["noticias","Notícias"]],
     crm: [["crm","Painel do CRM"],["captacao","Funil de clientes"],["resultados","Indicadores"]],
-    mkt: [["marketing","Todas de marketing"],["promptia","Prompt IA"],["reels","BW Reels Pro"],["personagens","Personagens"],["video","Editor de vídeo"],["motion","Estúdio de motion"],["telas","Telas em movimento"],["3d","Estúdio 3D"],["criador","Criador IA"],["fotos","Editor de fotos"],["assistente","Assistente de texto"],["transcricao","Transcrição e legendas"]],
+    mkt: [["marketing","Todas de marketing"],["promptia","Prompt IA"],["reels","BW Reels Pro"],["personagens","Personagens"],["video","Editor de vídeo"],["motion","Estúdio de motion"],["telas","Telas em movimento"],["album3d","Álbum 3D e efeitos"],["3d","Estúdio 3D"],["criador","Criador IA"],["fotos","Editor de fotos"],["assistente","Assistente de texto"],["transcricao","Transcrição e legendas"]],
     ferr: [["ferramentas","Todas as ferramentas"],["pdf","PDF"],["dados","Meus dados"]],
     conta: [["config","Configurações e aparência"],["login","Acesso"],["configadm","Configuração (ADM)"]]
   };
@@ -82,7 +82,7 @@
     if (["orcamento","casa","contas","reserva"].indexOf(p) > -1) return "casa";
     if (["investimentos-painel","cambio","comparador","serie","calc","viagem","diario","alertas","evento","milhas","meta","invest","recs","noticias"].indexOf(p) > -1) return "invest";
     if (["crm","captacao","resultados"].indexOf(p) > -1) return "crm";
-    if (["marketing","assistente","transcricao","fotos","criador","reels","personagens","video","motion","telas","promptia","3d"].indexOf(p) > -1) return "mkt";
+    if (["marketing","assistente","transcricao","fotos","criador","reels","personagens","video","motion","telas","album3d","promptia","3d"].indexOf(p) > -1) return "mkt";
     if (["ferramentas","pdf","dados"].indexOf(p) > -1) return "ferr";
     return "conta";
   }
@@ -96,7 +96,7 @@
     viagem:"Conversor de viagem", leitor:"Leitor de contas", recs:"Recomendações",
     noticias:"Notícias", dados:"Meus dados", app:"App & sincronização", login:"Acesso",
     configadm:"Configuração", config:"Configurações", marketing:"Marketing", assistente:"Assistente de texto", transcricao:"Transcrição e legendas", pdf:"Ferramentas de PDF",
-    crm:"CRM", captacao:"Funil de clientes", resultados:"Indicadores", fotos:"Editor de fotos", criador:"Criador IA", reels:"BW Reels Pro", personagens:"Personagens", promptia:"Prompt IA", video:"Editor de vídeo", motion:"Estúdio de motion", telas:"Telas em movimento", "3d":"Estúdio 3D", propostas:"Gerador de orçamento" };
+    crm:"CRM", captacao:"Funil de clientes", resultados:"Indicadores", fotos:"Editor de fotos", criador:"Criador IA", reels:"BW Reels Pro", personagens:"Personagens", promptia:"Prompt IA", video:"Editor de vídeo", motion:"Estúdio de motion", telas:"Telas em movimento", album3d:"Álbum 3D e efeitos", "3d":"Estúdio 3D", propostas:"Gerador de orçamento" };
   var NOMES_CAT = {}; CATEGORIAS.forEach(function(c){ NOMES_CAT[c.id] = c.nome; });
 
   var itens = CATEGORIAS.map(function(c){
@@ -168,7 +168,7 @@
   body.insertBefore(shell, body.firstChild);
   /* 21/11 (dono): MODO FOCO — nas ferramentas de edição e criação somem o menu lateral, o topo e as abas de baixo;
      fica só uma setinha discreta de voltar (e ☰ para trazer os menus de volta nesta visita). Página nova de edição = entrar na lista. */
-  var FOCO = ["video", "motion", "telas", "3d", "fotos", "criador", "reels", "personagens"];
+  var FOCO = ["video", "motion", "telas", "album3d", "3d", "fotos", "criador", "reels", "personagens"];
   if (FOCO.indexOf(PAGINA) >= 0) {
     document.documentElement.classList.add("bw-foco");
     var stF = document.createElement("style");
