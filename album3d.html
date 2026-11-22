@@ -26,6 +26,7 @@
 .al-bt.mini{min-height:34px;padding:0 9px;font-size:10.5px;border-radius:10px}
 .al-sel,.al-in{min-height:42px;border-radius:12px;border:1px solid rgba(245,241,234,.16);background:#12151c;color:#F5F1EA;font:700 16px Inter,sans-serif;padding:0 10px;box-sizing:border-box;min-width:0}
 .al-in.nome{width:170px}
+.al-livre{display:inline-flex;align-items:center;gap:4px}.al-livre[hidden]{display:none}.al-livre .al-in{width:92px}.al-livre b{color:#9aa}
 .al-grade{display:grid;grid-template-columns:330px minmax(0,1fr) 330px;gap:12px;align-items:start}
 .al-cx{min-width:0;border-radius:20px;background:#12151c;border:1px solid rgba(245,241,234,.08);padding:12px}
 .al-lado{max-height:calc(100vh - 170px);min-height:300px;overflow:auto;overscroll-behavior:contain}
@@ -107,7 +108,8 @@
   <div class="al-topo">
     <h1><small><a href="3d.html">ESTÚDIO 3D ›</a></small>ÁLBUM 3D E EFEITOS</h1>
     <input class="al-in nome" id="alNome" type="text" aria-label="Nome do projeto" maxlength="40">
-    <select class="al-sel" id="alFmt" aria-label="Formato"><option value="9:16">9:16 Reels</option><option value="16:9">16:9 YouTube</option><option value="1:1">1:1 Quadrado</option><option value="4:5">4:5 Feed</option><option value="4k-v">4K vertical</option><option value="4k-h">4K paisagem</option></select>
+    <select class="al-sel" id="alFmt" aria-label="Formato"><option value="9:16">9:16 Reels</option><option value="16:9">16:9 YouTube</option><option value="1:1">1:1 Quadrado</option><option value="4:5">4:5 Feed</option><option value="4k-v">4K vertical</option><option value="4k-h">4K paisagem</option><option value="21:9">21:9 Cinema / ultrawide</option><option value="tela">📺 Tela deste aparelho</option><option value="livre">✎ Personalizado…</option></select>
+    <span class="al-livre" id="alLivre" hidden><input class="al-in" id="alLarg" type="number" min="240" max="4096" step="2" aria-label="Largura em pixels" title="Largura (px)"><b>×</b><input class="al-in" id="alAlt" type="number" min="240" max="4096" step="2" aria-label="Altura em pixels" title="Altura (px)"></span>
     <button class="al-bt" id="alSorte" type="button" title="Escolher um modelo qualquer">🎲 SURPRESA</button>
     <button class="al-bt pri" id="alExportar" type="button">⬇ GERAR VÍDEO</button>
   </div>
@@ -168,6 +170,6 @@
 <script src="assets/reels-celular.js?v=5"></script>
 <script src="assets/bw-ferramentas.js?v=4"></script>
 <script src="assets/bw-criacoes.js?v=2"></script>
-<script src="assets/album.js?v=2"></script>
+<script src="assets/album.js?v=3"></script>
 </body>
 </html>

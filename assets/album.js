@@ -5,7 +5,9 @@
 (function () {
   "use strict";
   var B = window.BWAlbum, $ = function (id) { return document.getElementById(id); };
-  var FORMATOS = { "9:16": [1080, 1920], "16:9": [1920, 1080], "1:1": [1080, 1080], "4:5": [1080, 1350], "4k-v": [2160, 3840], "4k-h": [3840, 2160] };
+  var FORMATOS = { "9:16": [1080, 1920], "16:9": [1920, 1080], "1:1": [1080, 1080], "4:5": [1080, 1350], "4k-v": [2160, 3840], "4k-h": [3840, 2160], "21:9": [2560, 1080] };
+  /* 22/11: tamanho da TELA deste aparelho (preenche monitor/celular/telão inteiro) e PERSONALIZADO (largura × altura livres, 240–4096 px) */
+  function telaAqui() { var r = window.devicePixelRatio || 1, w = Math.round(screen.width * r), h = Math.round(screen.height * r), k = Math.min(1, 4096 / Math.max(w, h)); return [Math.round(w * k / 2) * 2, Math.round(h * k / 2) * 2]; }
   var P = null, MID = {}, ORDEM = [], TEMPO = 0, TOCANDO = false, HIST = [], FUT = [], SALVAR_T = 0, HIST_T = 0, SOM = null, BATIDA = 0, CAT = "todos", PREVIA = null, FIXA = null;
   var CACHE = {}, ESC = 0.5;
 
@@ -200,13 +202,14 @@
       return '<div class="al-linha" style="margin:4px 0;align-items:center"><span style="flex:1 1 auto;min-width:0;font:700 12px Inter,sans-serif;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + (p.id === P.id ? "▶ " : "") + esc(p.nome || "Sem nome") + '</span><button class="al-bt mini" type="button" data-pabrir="' + esc(p.id) + '" style="flex:none">ABRIR</button><button class="al-bt mini perigo" type="button" data-papagar="' + esc(p.id) + '" style="flex:none" aria-label="Apagar projeto">✕</button></div>';
     }).join("");
   }
+  function livreVisivel() { var l = $("alLivre"); if (l) l.hidden = !(P && P.formato === "livre"); }
   function novoProjeto(f) { var t = FORMATOS[f] || FORMATOS["9:16"]; return { v: 1, id: uid(), nome: "Meu álbum 3D", formato: f || "9:16", w: t[0], h: t[1], modelo: "anel", tp: null, cartao: "auto", borda: "nenhuma", bordaCor: "#B6FF3B", cantos: 0.06, sombra: true, verso: "", fundo: "escuro", fundoCor: "#0B0E14", fundoCor2: "#3B1D6B", numeros: true, titulo: "", sub: "", tituloQuando: "ambos", tituloPos: "topo", tituloCor: "#FFFFFF", musica: { id: "", nome: "", volume: 0.8, inicio: 0 }, ordem: [] }; }
   async function abrirProjeto(reg) {
     salvarJa(); P = reg.projeto; ORDEM = (P.ordem || []).filter(function (id) { return MID[id]; });
     SOM = null; BATIDA = 0; if (P.musica && P.musica.id) { var r = await op("midias", "readonly", function (s) { return s.get(P.musica.id); }).catch(function () { return null; }); if (r) await abrirSom(r.blob); }
     TEMPO = 0; HIST = [foto()]; FUT = []; limparCache(); desenharTudo();
   }
-  function desenharTudo() { $("alNome").value = P.nome || ""; $("alFmt").value = P.formato; medir(); desenharMidias(); desenharMusica(); desenharVisual(); desenharTitulo(); desenharCats(); desenharModelos(); desenharProjetos(); info(); relogio(); ver(TEMPO); }
+  function desenharTudo() { $("alNome").value = P.nome || ""; $("alFmt").value = P.formato; if (P.formato === "livre") { $("alLarg").value = P.w; $("alAlt").value = P.h; } livreVisivel(); medir(); desenharMidias(); desenharMusica(); desenharVisual(); desenharTitulo(); desenharCats(); desenharModelos(); desenharProjetos(); info(); relogio(); ver(TEMPO); }
 
   /* ---------- gerar vídeo ---------- */
   var EXP = { parar: false, url: "", arquivo: null };
@@ -218,7 +221,7 @@
   }
   async function qualidades() {
     var menor = Math.min(P.w, P.h), sel = $("alQual"), ops = [], vistos = {};
-    [["Rápida", 720], ["Alta", 1080], ["Tamanho real", menor]].forEach(function (q) { var h = Math.min(P.h, Math.round(P.h * q[1] / menor / 2) * 2); if (!vistos[h]) { vistos[h] = 1; ops.push([q[0], h]); } });
+    [["Rápida", 720], ["Alta", 1080], ["Tamanho real", menor], ["4K", 2160]].forEach(function (q) { var h = Math.round(P.h * q[1] / menor / 2) * 2; if (Math.max(h, P.w * h / P.h) > 4096) return; if (!vistos[h]) { vistos[h] = 1; ops.push([q[0], h]); } });
     sel.innerHTML = ops.map(function (q) { var w = Math.round(P.w * q[1] / P.h / 2) * 2; return '<option value="' + q[1] + '">' + q[0] + " (" + w + "×" + q[1] + ")</option>"; }).join("");
     sel.value = String(ops[innerWidth <= 1100 ? 0 : Math.min(1, ops.length - 1)][1]);
     if (window.BWReelsCelular && BWReelsCelular.cabe) for (var i = 0; i < sel.options.length; i++) { var o = sel.options[i], h = +o.value, w = Math.round(P.w * h / P.h / 2) * 2;
@@ -233,7 +236,8 @@
     var cx = {};
     try {
       $("alProgTxt").textContent = "Preparando o som…"; var som = await somDoVideo(d);
-      var res = await BWReelsCelular.gerar({ largura: P.w, altura: P.h, fps: 30, duracao: d, som: som, audioCtx: actx, alturaSaida: Number($("alQual").value),
+      var hq = Number($("alQual").value), wq = Math.round(P.w * hq / P.h / 2) * 2;
+      var res = await BWReelsCelular.gerar({ largura: wq, altura: hq, fps: 30, duracao: d, som: som, audioCtx: actx, alturaSaida: Number($("alQual").value),
         desenhar: async function (t, ctx, w, h) { await videosNoTempo(t); B.desenhar(ctx, P, t, w, h, viva, { nMidias: ORDEM.length, cache: cx, chave: chave, textura: 1024 }); },
         cancelar: function () { return EXP.parar; }, aoProgredir: function (p) { $("alBarra").value = p.pct; $("alProgTxt").textContent = p.etapa + "… " + p.pct + "%"; } });
       if (EXP.url) URL.revokeObjectURL(EXP.url);
@@ -256,7 +260,7 @@
     var r = ult ? await op("projetos", "readonly", function (s) { return s.get(ult); }).catch(function () { return null; }) : null;
     if (r && r.projeto) await abrirProjeto(r); else { P = novoProjeto("9:16"); ORDEM = Object.keys(MID); P.ordem = ORDEM.slice(); HIST = [foto()]; desenharTudo(); }
     if (q.get("m") && B.POR[q.get("m")]) escolherModelo(q.get("m"), true);
-    var uw = parseInt(q.get("w"), 10), uh = parseInt(q.get("h"), 10); if (uw > 79 && uh > 79 && uw < 4097 && uh < 4097) { P.w = uw - uw % 2; P.h = uh - uh % 2; P.formato = "livre"; if (!$("alFmt").querySelector('[value="livre"]')) $("alFmt").insertAdjacentHTML("beforeend", '<option value="livre">' + P.w + "×" + P.h + "</option>"); $("alFmt").value = "livre"; medir(); mudou(); }
+    var uw = parseInt(q.get("w"), 10), uh = parseInt(q.get("h"), 10); if (uw > 79 && uh > 79 && uw < 4097 && uh < 4097) { P.w = uw - uw % 2; P.h = uh - uh % 2; P.formato = "livre"; $("alFmt").value = "livre"; $("alLarg").value = P.w; $("alAlt").value = P.h; livreVisivel(); medir(); mudou(); }
 
     if (window.BWFerr && BWFerr.previa) PREVIA = BWFerr.previa({ palco: document.querySelector(".al-palco"), alvo: $("alCv"), canvas: function () { return $("alCv"); }, nome: "album", zoom: true, aviso: aviso,
       api: { tocar: function () { if (!TOCANDO) tocar(); }, parar: function () { if (TOCANDO) tocar(); }, tocando: function () { return TOCANDO; }, irPara: function (t) { if (TOCANDO) tocar(); ver(t); }, T: function () { return TEMPO; }, total: dur, desfazer: desfazer, refazer: refazer },
@@ -316,7 +320,14 @@
       if (b.hasAttribute("data-pabrir")) { var r2 = await op("projetos", "readonly", function (s) { return s.get(b.getAttribute("data-pabrir")); }); if (r2) abrirProjeto(r2); }
       if (b.hasAttribute("data-papagar")) { var id = b.getAttribute("data-papagar"); if (!confirm("Apagar este projeto? As fotos e vídeos continuam no aparelho.")) return; await op("projetos", "readwrite", function (s) { return s.delete(id); }); if (id === P.id) { P = novoProjeto("9:16"); P.ordem = ORDEM.slice(); desenharTudo(); } else desenharProjetos(); } });
     $("alNome").addEventListener("input", function () { P.nome = this.value.slice(0, 40); mudou(); });
-    $("alFmt").addEventListener("change", function () { var f = FORMATOS[this.value]; if (f) { P.formato = this.value; P.w = f[0]; P.h = f[1]; } medir(); limparCache(); desenharModelos(); mudou(); });
+    $("alFmt").addEventListener("change", function () { var v = this.value, f = v === "tela" ? telaAqui() : FORMATOS[v];
+      if (f) { P.formato = v; P.w = f[0]; P.h = f[1]; }
+      if (v === "livre") { P.formato = "livre"; $("alLarg").value = P.w; $("alAlt").value = P.h; }
+      livreVisivel(); medir(); limparCache(); desenharModelos(); mudou();
+      if (v === "tela") aviso("Tamanho da sua tela: " + P.w + " × " + P.h + " px. Em tela cheia (⋯ da prévia) o vídeo preenche tudo."); });
+    function aplicarLivre() { var w = Math.max(240, Math.min(4096, parseInt($("alLarg").value, 10) || P.w)), h = Math.max(240, Math.min(4096, parseInt($("alAlt").value, 10) || P.h));
+      P.w = w - w % 2; P.h = h - h % 2; P.formato = "livre"; $("alLarg").value = P.w; $("alAlt").value = P.h; medir(); limparCache(); desenharModelos(); mudou(); }
+    $("alLarg").addEventListener("change", aplicarLivre); $("alAlt").addEventListener("change", aplicarLivre); livreVisivel();
     $("alTocar").onclick = tocar;
     $("alScrub").addEventListener("input", function () { if (TOCANDO) tocar(); ver(Number(this.value)); });
     $("alExportar").onclick = function () { if (TOCANDO) tocar(); $("alFolha").hidden = false; $("alProg").hidden = true; $("alPronto").hidden = true; qualidades();

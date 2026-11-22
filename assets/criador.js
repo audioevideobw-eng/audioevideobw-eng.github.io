@@ -1140,7 +1140,7 @@
     }).join("");
     chips("animTexto", [["suave", "SUAVE"], ["subir", "SUBINDO"], ["zoom", "ZOOM"], ["digitar", "DIGITANDO"], ["brilho", "BRILHO"], ["nenhuma", "SEM ANIMAÇÃO"]], an.texto, "animtx");
     chips("animDur", [[6, "6 s"], [8, "8 s"], [10, "10 s"], [15, "15 s"]].map(function (d) { return [String(d[0]), d[1]]; }), String(an.dur), "animdur");
-    chips("animQual", [["1280", "RÁPIDA (720p)"], ["1920", "ALTA (1080p)"]], String(U_QUAL), "animqual");
+    chips("animQual", [["1280", "RÁPIDA (720p)"], ["1920", "ALTA (1080p)"], ["3840", "4K"]], String(U_QUAL), "animqual");
     desenharSel();
   }
   var U_QUAL = (function () { try { return localStorage.getItem("ui_criador_qual") || (innerWidth < 900 ? "1280" : "1920"); } catch (e) { return "1280"; } })();
@@ -1195,28 +1195,37 @@
     src.start(0); var r = await ctx.startRendering(); return { L: r.getChannelData(0), R: r.getChannelData(1) };
   }
   function nomeVideo() { return nomeArq("png").replace(/\.png$/, ".mp4"); }
-  async function gerarVideo() {
-    if (!E.anim.ligado) { toast("Ligue ✨ ANIMADO para gerar o vídeo."); return null; }
+  /* 22/11: qualidade = lado MAIOR do vídeo (720p / 1080p / 4K), vale para story, post e paisagem; 4K cai para 1080p se o aparelho não aguentar */
+  function tamVideo(q) { var t = tamanho(), k = (+q || 1920) / Math.max(t.W, t.H); return { W: Math.round(t.W * k / 2) * 2, H: Math.round(t.H * k / 2) * 2 }; }
+  async function gerarVideo(op) {
+    op = op || {};
+    if (!E.anim.ligado) { E.anim.ligado = true; mudouAnim(); }   /* quem pede o vídeo já recebe a versão animada */
     if (!window.BWReelsCelular || !(await BWReelsCelular.suporta())) { toast("Este navegador não grava vídeo sozinho. Use o Chrome, Edge ou Safari atualizado."); return null; }
     var actx = null; try { actx = MUS ? new (window.AudioContext || window.webkitAudioContext)() : null; } catch (e) { actx = null; }   // nasce no toque (iPhone)
-    var t = tamanho(), d = +E.anim.dur || 8; VID.parar = false; GERANDO = true; ITEM_SEL = -1;
+    var q = U_QUAL, t = tamVideo(q), d = +E.anim.dur || 8; VID.parar = false; GERANDO = true; ITEM_SEL = -1;
     $("animProg").hidden = false; $("animPronto").hidden = true; $("animGerar").disabled = true; $("animBarra").value = 0; $("animProgTxt").textContent = "Preparando…";
     try {
       if (window.BWConviteAnim) { $("animProgTxt").textContent = "Carregando os objetos…"; await BWConviteAnim.pronto(E.anim.itens.map(function (q) { return q.id; })); }
       var som = await somDoVideo(d);
-      var res = await BWReelsCelular.gerar({ largura: t.W, altura: t.H, fps: 30, duracao: d, som: som, audioCtx: actx, alturaSaida: +U_QUAL,
+      if (+q > 1920 && !(await BWReelsCelular.cabe(t.W, t.H))) { q = "1920"; t = tamVideo(q); toast("Este aparelho não grava 4K — o vídeo sai em 1080p."); }
+      var res = await BWReelsCelular.gerar({ largura: t.W, altura: t.H, fps: 30, duracao: d, som: som, audioCtx: actx, alturaSaida: t.H,
         desenhar: function (tt, ctx, w, h) { var c = render(w, h, tt); ctx.drawImage(c, 0, 0); c.width = c.height = 1; },
         cancelar: function () { return VID.parar; }, aoProgredir: function (p) { $("animBarra").value = p.pct; $("animProgTxt").textContent = p.etapa + "… " + p.pct + "%"; } });
       if (VID.url) URL.revokeObjectURL(VID.url);
       VID.arquivo = new File([res.blob], nomeVideo(), { type: "video/mp4" }); VID.url = URL.createObjectURL(res.blob);
       $("animVideo").src = VID.url; $("animBaixar").href = VID.url; $("animBaixar").download = VID.arquivo.name; $("animPronto").hidden = false;
+      if (op.baixar !== false) baixar(res.blob, VID.arquivo.name);   /* download direto, sem precisar procurar o botão */
       if (window.BWCriacoes) BWCriacoes.aoLado("animBaixar", { ferramenta: "criador", tipo: "video", arquivo: function () { return VID.arquivo; }, nome: function () { var dd = dados(); return dd.nome || dd.titulo || "Convite animado"; } });
       $("animProgTxt").textContent = "✓ Vídeo pronto (" + res.largura + "×" + res.altura + ", " + d + " s" + (MUS ? res.comSom ? ", com música" : ", sem som — este aparelho não gravou o áudio" : "") + ").";
       return res;
     } catch (e) { $("animProgTxt").textContent = /cancelado/.test(e.message) ? "Cancelado." : "Não deu certo: " + (e.message || e); return null; }
     finally { GERANDO = false; $("animGerar").disabled = false; if (actx) actx.close().catch(function () { }); agendar(); }
   }
-  $("animGerar").onclick = gerarVideo;
+  $("animGerar").onclick = function () { gerarVideo(); };
+  $("btnVideo").onclick = function () {   /* SALVAR E ENVIAR → vídeo animado (liga a animação, mostra o progresso e baixa sozinho) */
+    var c = $("animCard"); if (c) { c.hidden = false; var pr = $("animProg"); setTimeout(function () { (pr || c).scrollIntoView({ behavior: "smooth", block: "center" }); }, 60); }
+    gerarVideo();
+  };
   $("animCancelar").onclick = function () { VID.parar = true; };
   $("animShare").onclick = async function () { if (!VID.arquivo) return; if (navigator.canShare && navigator.canShare({ files: [VID.arquivo] })) { try { await navigator.share({ files: [VID.arquivo], title: "Convite" }); return; } catch (e) { if (e && e.name === "AbortError") return; } } baixar(VID.arquivo, VID.arquivo.name); };
   document.addEventListener("visibilitychange", function () { if (!document.hidden) agendar(); });

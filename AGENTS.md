@@ -2071,8 +2071,15 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   realistas (37), 👤 meus personagens, ✨ minhas criações e 😀 emojis — tocar põe na tela animado, como imagem em data:. teste_motion_biblio (novo,
   0 falhas × 1280/390), teste_motion, motion_ferramentas, motion_app, criacoes 0 falhas; vigia ✅ (7.8k). App BW 1.9.30 (motor igual, cópia sem
   internet, tutorial, novidades) e manual 62 p. motion-motor v4, motion.js v12, motion-biblio v1, sw v188. PENTE FINO 179.
+- 22/11/2026 17:20 · Claude (dono: "difícil exportar o convite em vídeo — só tinha PACOTE REDES e LINHA DO TEMPO; link direto e 4K" + "álbum com tamanhos
+  personalizados que preencham a tela"): CRIADOR › SALVAR E ENVIAR ganhou 🎬 BAIXAR VÍDEO ANIMADO (MP4): liga a animação sozinho, mostra o progresso
+  e BAIXA o arquivo direto (o GERAR VÍDEO da seção animada também baixa sozinho); qualidade RÁPIDA 720p / ALTA 1080p / 4K pelo lado MAIOR (story,
+  post e paisagem; antes a paisagem saía sempre 1080p) e 4K cai para 1080p com aviso se o aparelho não grava. ÁLBUM 3D: formatos 21:9, 📺 TELA DESTE
+  APARELHO (resolução real da tela, preenche monitor/telão) e ✎ PERSONALIZADO (largura × altura 240–4096) + opção 4K no GERAR VÍDEO (o vídeo agora
+  sai na qualidade escolhida, não preso ao tamanho do projeto). teste_convites/teste_album 0 falhas. BW-Setup.exe 1.9.30 gerado pelo dono e publicado.
+  criador.js v12, album.js v3, sw v189.
 ## Pendências (dono)
-- [ ] (22/11) MOTION: dono abrir Marketing → Estúdio de motion, testar os itens novos e a BIBLIOTECA INTEGRADA (personagens, objetos, desenhos); BW-Setup.exe 1.9.30 depende do PC.
+- [ ] (22/11) MOTION: dono abrir Marketing → Estúdio de motion, testar os itens novos e a BIBLIOTECA INTEGRADA (personagens, objetos, desenhos). BW-Setup.exe 1.9.30: publicado 17:10.
 - [x] (22/11 17:05) BW-Setup.exe 1.9.29 gerado pelo dono e publicado (8,5 MB, versão conferida dentro do .exe).
 - [ ] (22/11) CONVITES: dono abrir Criador IA → CONVITE no celular e no PC, escolher um modelo da 📚 BIBLIOTECA, ligar ✨ ANIMADO, arrastar um bichinho e GERAR VÍDEO; dizer quais bichinhos/temas faltam. Próximas bibliotecas: posts, flyers, Reels, Motion, Telas ("todas as ferramentas").
 - [x] (22/11 15:38) BW-Setup.exe 1.9.27 gerado pelo dono e publicado (8,5 MB, versão conferida dentro do .exe).

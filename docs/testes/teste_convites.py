@@ -85,8 +85,12 @@ with sync_playwright() as p:
         dl = d.value; dl.save_as(f"{TMP}/c{W}.png"); ok(os.path.getsize(f"{TMP}/c{W}.png") > 50000, "PNG do convite baixado")
         # VÍDEO (curto e rápido no teste)
         pg.locator("[data-k=animdur][data-v='6']").click(); pg.locator("[data-k=animqual][data-v='1280']").click()
-        pg.locator("#animGerar").scroll_into_view_if_needed(); pg.locator("#animGerar").click()
-        pg.wait_for_selector("#animPronto:not([hidden])", timeout=240000)
+        ok(pg.locator("[data-k=animqual][data-v='3840']").count() == 1, "opção 4K no vídeo")
+        pg.evaluate("window.__criador.anim().ligado=false")   # SALVAR E ENVIAR liga a animação sozinho
+        with pg.expect_download(timeout=240000) as dv:
+            pg.locator("#btnVideo").scroll_into_view_if_needed(); pg.locator("#btnVideo").click()
+            pg.wait_for_selector("#animPronto:not([hidden])", timeout=240000)
+        ok(dv.value.suggested_filename.endswith(".mp4"), "🎬 BAIXAR VÍDEO ANIMADO baixa o MP4 direto (" + dv.value.suggested_filename + ")")
         txt = pg.locator("#animProgTxt").inner_text(); ok("pronto" in txt.lower(), "vídeo pronto: " + txt)
         mp4 = pg.evaluate("""(async()=>{const b=await (await fetch(document.getElementById('animBaixar').href)).arrayBuffer();return Array.from(new Uint8Array(b))})()""")
         open(f"{TMP}/v{W}.mp4", "wb").write(bytes(mp4))
