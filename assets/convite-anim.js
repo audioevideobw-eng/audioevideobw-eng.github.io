@@ -413,6 +413,14 @@
     fumaca: { nome: "Fumaça de palco", camada: "fundo", f: function (x, W, H, t) {
       var m = Math.min(W, H); for (var i = 0; i < 10; i++) { var px = rolar(h(i + 131) + t * 0.02 * (h(i) - 0.5)) * W, py = H * (0.65 + 0.35 * h(i + 132)) + Math.sin(t * 0.5 + i) * m * 0.03, r = m * (0.2 + h(i + 133) * 0.2), g = x.createRadialGradient(px, py, 0, px, py, r);
         g.addColorStop(0, "rgba(220,220,235,.10)"); g.addColorStop(1, "rgba(220,220,235,0)"); x.fillStyle = g; x.beginPath(); x.arc(px, py, r, 0, TAU); x.fill(); } } },
+    luzquente: { nome: "Luz de cinema", camada: "frente", f: function (x, W, H, t) {
+      var m = Math.min(W, H); x.save(); x.globalCompositeOperation = "screen";
+      for (var i = 0; i < 3; i++) { var px = W * (0.5 + 0.6 * Math.sin(t * (0.25 + i * 0.1) + i * 2)), py = H * (0.3 + 0.5 * Math.cos(t * (0.2 + i * 0.07) + i)), r = m * (0.5 + 0.2 * i), g = x.createRadialGradient(px, py, 0, px, py, r);
+        g.addColorStop(0, ["rgba(255,150,60,.35)", "rgba(255,90,120,.25)", "rgba(255,220,150,.25)"][i]); g.addColorStop(1, "rgba(0,0,0,0)"); x.fillStyle = g; x.fillRect(0, 0, W, H); } x.restore(); } },
+    faiscas: { nome: "Faíscas", camada: "frente", f: function (x, W, H, t) {
+      var m = Math.min(W, H); x.save(); x.globalCompositeOperation = "lighter";
+      for (var i = 0; i < 70; i++) { var u = rolar(h(i + 141) + t * (0.12 + h(i) * 0.15)), ox = W * (0.1 + 0.8 * h(i + 142)), px = ox + (h(i + 143) - 0.5) * m * 0.4 * u, py = H * (0.95 - 0.9 * u) + u * u * m * 0.2;
+        x.globalAlpha = (1 - u) * 0.9; circ(x, px, py, m * 0.0035 * (1.5 - u), i % 3 ? "#ffcf6b" : "#fff3c4"); x.globalAlpha = (1 - u) * 0.3; circ(x, px, py, m * 0.012, "#ff9a3c"); } x.restore(); } },
     bandeirinhas: { nome: "Bandeirinhas", camada: "frente", f: function (x, W, H, t) {
       var m = Math.min(W, H); [0.04, 0.12].forEach(function (b, k) { var n = 11, pts = [];
         for (var i = 0; i <= n; i++) { var u = i / n; pts.push([u * W, H * b + Math.sin(u * Math.PI) * H * 0.04]); }
@@ -422,8 +430,56 @@
       }); } }
   };
 
+  /* ===== OBJETOS REALISTAS (22/11): fotos de estúdio criadas pela IA criativa da plataforma (objetos inventados, sem marca), fundo
+     recortado, na biblioteca oficial (bucket público "trends", pasta obj/). Cada um anima com um movimento próprio e sombra suave. ===== */
+  var BASE_OBJ = "https://zdtnetplvdonogmdvarx.supabase.co/storage/v1/object/public/trends/objetos/";
+  var FOTOS = [
+    ["tacas-champanhe", "Taças de champanhe", "brinde", 1], ["garrafa-champanhe", "Champanhe", "balancar", 1], ["balao-dourado", "Balão dourado", "flutuar", 1],
+    ["baloes", "Balões", "flutuar", 0], ["presente", "Presente", "pular", 1], ["bolo", "Bolo de festa", "flutuar", 1], ["rosas", "Buquê de rosas", "balancar", 0],
+    ["aliancas", "Alianças", "girar", 1], ["bola-futebol", "Bola de futebol", "quicar", 0], ["bola-basquete", "Bola de basquete", "quicar", 0],
+    ["controle", "Controle de game", "flutuar", 1], ["fone", "Fone gamer", "pulsar", 0], ["microfone", "Microfone", "balancar", 1], ["violao", "Violão", "balancar", 0],
+    ["vinil", "Disco de vinil", "rodar", 0], ["chope", "Chope", "brinde", 0], ["vinho", "Taça de vinho", "balancar", 1], ["drink", "Drinque", "flutuar", 0],
+    ["pipoca", "Pipoca", "pular", 0], ["coroa", "Coroa", "flutuar", 1], ["capelo", "Capelo", "flutuar", 0], ["diploma", "Diploma", "flutuar", 0],
+    ["coracao", "Coração 3D", "pulsar", 1], ["estrela", "Estrela 3D", "girar", 1], ["ursinho", "Ursinho de pelúcia", "balancar", 0], ["borboleta", "Borboleta", "voar", 0],
+    ["globo-espelhado", "Globo espelhado", "rodar", 1], ["chapeu-vaqueiro", "Chapéu", "balancar", 0], ["haltere", "Haltere", "pular", 0], ["sapatinho", "Sapatinhos de bebê", "balancar", 0],
+    ["patinho", "Patinho de borracha", "boiar", 0], ["abobora", "Abóbora", "flutuar", 0], ["bola-natal", "Bola de Natal", "balancar", 1], ["claquete", "Claquete", "flutuar", 0],
+    ["fogos", "Vela faísca", "flutuar", 1], ["oculos-festa", "Óculos de festa", "flutuar", 1], ["trofeu", "Troféu", "flutuar", 1]
+  ];
+  var IMG = {};
+  function carregar(id) {
+    if (IMG[id]) return IMG[id].p;
+    var im = new Image(); im.crossOrigin = "anonymous"; IMG[id] = { im: im, ok: false };
+    IMG[id].p = new Promise(function (ok) {
+      im.onload = function () { IMG[id].ok = true; try { window.dispatchEvent(new CustomEvent("bw-conv-img", { detail: id })); } catch (e) { } ok(true); };
+      im.onerror = function () { ok(false); };
+    });
+    im.src = BASE_OBJ + id + ".png?v=1"; return IMG[id].p;
+  }
+  function movimento(x, mov, t) {
+    if (mov === "flutuar") { x.translate(0, Math.sin(t * 1.8) * 5); x.rotate(Math.sin(t * 1.2) * 0.05); }
+    else if (mov === "balancar") { x.translate(0, -48); x.rotate(Math.sin(t * 2) * 0.12); x.translate(0, 48); }
+    else if (mov === "girar") { var k = Math.cos(t * 1.6); x.scale(Math.sign(k || 1) * Math.max(0.12, Math.abs(k)), 1); }
+    else if (mov === "rodar") x.rotate(t * 1.5);
+    else if (mov === "pulsar") { var p = Math.pow(Math.max(0, Math.sin(t * 5)), 6); x.scale(1 + p * 0.1, 1 + p * 0.1); }
+    else if (mov === "pular") { var c = t % 2, j = c < 0.4 ? Math.sin(c / 0.4 * Math.PI) : 0; x.translate(0, -j * 12); x.rotate(Math.sin(t * 4) * 0.03); }
+    else if (mov === "quicar") { var q = t % 1.2, y = -Math.abs(Math.sin(q / 1.2 * Math.PI)) * 20; x.translate(0, y); x.rotate(t * 2.2); }
+    else if (mov === "brinde") { var b = (t % 2.6) / 2.6, s = b < 0.35 ? Math.sin(b / 0.35 * Math.PI) : 0; x.rotate(-s * 0.2); x.translate(0, -s * 4); }
+    else if (mov === "voar") { x.translate(Math.sin(t * 0.9) * 12, Math.sin(t * 1.7) * 8); x.scale(0.55 + 0.45 * Math.abs(Math.cos(t * 7)), 1); }
+    else if (mov === "boiar") { x.translate(0, Math.sin(t * 2) * 3); x.rotate(Math.sin(t * 2) * 0.08); }
+  }
+  FOTOS.forEach(function (o) {
+    ITENS["r-" + o[0]] = { nome: o[1], cat: "real", foto: BASE_OBJ + o[0] + ".png?v=1", mov: o[2], f: function (x, t) {
+      var I = IMG[o[0]]; if (!I) { carregar(o[0]); return; } if (!I.ok) return;
+      var im = I.im, k = 96 / Math.max(im.naturalWidth, im.naturalHeight), w = im.naturalWidth * k, hh = im.naturalHeight * k;
+      x.save(); movimento(x, o[2], t); x.shadowColor = "rgba(0,0,0,.38)"; x.shadowBlur = 9; x.shadowOffsetY = 5; x.drawImage(im, -w / 2, -hh / 2, w, hh); x.restore();
+      if (o[3]) for (var i = 0; i < 3; i++) { var a = Math.max(0, Math.sin(t * 2.2 + i * 2.1)); if (a > 0.05) brilho(x, Math.cos(i * 2.4 + 0.6) * w * 0.38, Math.sin(i * 2.4 + 0.6) * hh * 0.38, 7, a, "#fff"); }
+    } };
+  });
+  function pronto(ids) { return Promise.all((ids || []).filter(function (id) { return /^r-/.test(id); }).map(function (id) { return carregar(id.slice(2)); })); }
+
   /* miniatura de um item (para os botões) */
   function mini(id, px) {
+    if (ITENS[id] && ITENS[id].foto) return ITENS[id].foto;
     var c = document.createElement("canvas"); c.width = c.height = px || 64; var x = c.getContext("2d"), it = ITENS[id];
     x.translate(c.width / 2, c.height / 2); var s = c.width / 110; x.scale(s, s); try { it.f(x, 0.4); } catch (e) { } return c.toDataURL();
   }
@@ -437,5 +493,5 @@
     var def = ITENS[it.id]; if (!def) return; var m = Math.min(W, H), px = (it.s || 0.22) * m;
     x.save(); x.translate(it.x * W, it.y * H); if (it.esp) x.scale(-1, 1); x.scale(px / 100, px / 100); try { def.f(x, t + (it.f || 0)); } catch (e) { } x.restore();
   }
-  window.BWConviteAnim = { ITENS: ITENS, EFEITOS: EFEITOS, mini: mini, miniEfeito: miniEfeito, desenharItem: desenharItem };
+  window.BWConviteAnim = { ITENS: ITENS, EFEITOS: EFEITOS, mini: mini, miniEfeito: miniEfeito, desenharItem: desenharItem, pronto: pronto, carregar: carregar };
 })();

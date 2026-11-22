@@ -712,6 +712,13 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
      Modelo de fundo claro não usa o degradê escuro padrão (rodapé ficava "sujo"): tabela CAIXA_ESTILO (nenhum/vidro). Arrastar item na
      prévia só tira o toque da página (touch-action:none) quando há item para arrastar. Vídeo = BWReelsCelular.gerar com desenhar(t)
      (auto: teste_convites.py confere o MP4 no ffprobe e quadros diferentes; vigia 7.8j).
+178. OBJETOS REALISTAS (convite): desenho em código sempre fica "ilustração" — realismo = foto de estúdio criada pela IA da plataforma (conta ADM, modo
+     pers, "isolated on plain pure white/black background", sem marca), fundo tirado NO NAVEGADOR (cor da borda + flood fill + borda des-misturada) e
+     uma 2ª passada para sombra clara de chão e miolos fechados (alianças); fundo BRANCO para objeto escuro, PRETO para objeto branco/cromado (bolo,
+     globo). Fica em trends/objetos/ (upsert:false, regra 103: versão nova = pasta nova). Imagem de fora no canvas = crossOrigin "anonymous" (senão o
+     vídeo "suja"); antes de gerar o vídeo, esperar BWConviteAnim.pronto(); a prévia e as miniaturas se refazem no evento bw-conv-img. Vigia 7.8j: o
+     arquivo só pode LER dessa pasta. Pacotes de terceiros no Drive do dono (templates de After Effects, fontes de outros autores, programas .rar)
+     NÃO entram na plataforma: licença é de quem comprou, não para redistribuir a todos os usuários — fazer o equivalente próprio.
 
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
@@ -2033,6 +2040,13 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   (assets/convite-anim.js): 27 bichinhos/objetos animados (arrastar na prévia, maior/menor/virar/tirar), 14 efeitos de tela, 5 entradas de texto,
   6–15 s, música própria opcional e 🎬 GERAR VÍDEO MP4 no aparelho (+ ➜ linha do tempo). teste_convites.py (novo, 0 falhas × 1280/390),
   teste_criador/teste_criacoes 0 falhas, vigia ✅ (7.8j). Manual 60 → 61 p. criador.js v7, convite-anim.js v1, sw v183. PENTE FINO 177.
+- 22/11/2026 16:45 · Claude (dono: "mercado adulto por nichos — gamers, futebol, música…" + "não só infantil, objetos com realismo" + "use todo o potencial"):
+  CONVITES — 4 tipos novos (festa, show, campeonato, jogo no telão), 13 estilos adultos (gamer, futebol, basquete, fitness, velocidade, rock, sertanejo,
+  samba, eletrônica, anos 80, vinho, luau, cinema), 4 pares de fontes livres (Russo One, Bungee, Permanent Marker, Rye), 18 objetos desenhados adultos e
+  9 efeitos (equalizador, notas, pixels, holofotes, laser, flashes, fumaça, luz de cinema, faíscas); 37 OBJETOS REALISTAS (fotos de estúdio criadas pela
+  bw-ia-imagem na conta ADM, fundo recortado no navegador, trends/objetos/) com movimento, sombra e brilho; LETRAS 3D (relevo, ouro, cromado, balão
+  metálico, neon); biblioteca 48 → 96 modelos com filtros 🎮 ⚽ 🎵 🍻 📸. Os packs do Drive (logos animadas, letras 3D, compartilhados) NÃO foram usados:
+  são de terceiros. teste_convites/teste_criador 0 falhas, vigia ✅. Manual 62 p. criador.js v9, convite-anim.js v3, sw v185. PENTE FINO 178.
 ## Pendências (dono)
 - [ ] (22/11) CONVITES: dono abrir Criador IA → CONVITE no celular e no PC, escolher um modelo da 📚 BIBLIOTECA, ligar ✨ ANIMADO, arrastar um bichinho e GERAR VÍDEO; dizer quais bichinhos/temas faltam. Próximas bibliotecas: posts, flyers, Reels, Motion, Telas ("todas as ferramentas").
 - [x] (22/11 15:38) BW-Setup.exe 1.9.27 gerado pelo dono e publicado (8,5 MB, versão conferida dentro do .exe).

@@ -308,7 +308,10 @@ _mh = open("motion.html", encoding="utf-8").read() if os.path.exists("motion.htm
 if _mh and ("assets/mo-app.js" not in _mh or _mh.find("assets/mo-app.js") > _mh.find("assets/motion.js")): problemas.append("motion.html: assets/mo-app.js precisa vir ANTES do assets/motion.js")
 if os.path.exists("assets/bw-ferramentas.js") and re.search(r"fetch\(|XMLHttpRequest|supabase\.|BWSync|localStorage|indexedDB|\.upload\(", ler("assets/bw-ferramentas.js")): problemas.append("assets/bw-ferramentas.js: as ferramentas dos editores não podem usar rede, conta nem armazenamento")
 # 7.8j CONVITE ANIMADO (22/11): bichinhos e efeitos só desenham (sem rede, conta nem armazenamento); a música e o vídeo ficam no aparelho
-if os.path.exists("assets/convite-anim.js") and re.search(r"fetch\(|XMLHttpRequest|supabase|BWSync|localStorage|indexedDB|\.upload\(|https?://", ler("assets/convite-anim.js")): problemas.append("assets/convite-anim.js: os bichinhos e efeitos do convite só podem desenhar (sem rede, conta nem armazenamento)")
+if os.path.exists("assets/convite-anim.js"):
+    _ca = ler("assets/convite-anim.js")
+    if re.search(r"fetch\(|XMLHttpRequest|createClient|BWSync|localStorage|indexedDB|\.upload\(", _ca) or [u for u in re.findall(r"https?://[^\"' ]+", _ca) if not u.startswith("https://zdtnetplvdonogmdvarx.supabase.co/storage/v1/object/public/trends/objetos/")]:
+        problemas.append("assets/convite-anim.js: os bichinhos e efeitos do convite só podem desenhar e LER as imagens da biblioteca oficial (trends/objetos) — sem enviar nada")
 if os.path.exists("criador.html") and "assets/convite-anim.js" not in ler("criador.html"): problemas.append("criador.html: falta assets/convite-anim.js (convite animado)")
 # ESTÚDIO 3D (20/11): modelo, logo e foto ficam no aparelho; o site não chama nenhuma IA de 3D
 if os.path.exists("assets/bw3d-motor.js") and re.search(r"fetch\(|XMLHttpRequest|supabase\.|BWSync|localStorage|indexedDB|\.upload\(|https?://", ler("assets/bw3d-motor.js")):

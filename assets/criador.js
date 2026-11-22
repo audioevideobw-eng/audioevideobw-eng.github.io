@@ -165,8 +165,8 @@
   function lerUi() { try { return JSON.parse(localStorage.getItem("ui_criador") || "{}") || {}; } catch (e) { return {}; } }
   var U = lerUi();
   var E = Object.assign({ tipo: "convite", sub: "aniversario", dados: {}, estilo: "festa", paleta: "", formato: "story", desc: "", fotoModo: "ia",
-    aj: { pos: "", caixa: "degrade", par: "", cor: "auto", destaque: "", tam: 100, alinh: "centro", escurecer: 0, logo: false, logoId: "", qr: "", moldura: "circulo" } }, U);
-  E.aj = Object.assign({ pos: "", caixa: "degrade", par: "", cor: "auto", destaque: "", tam: 100, alinh: "centro", escurecer: 0, logo: false, logoId: "", qr: "", moldura: "circulo" }, U.aj || {});
+    aj: { pos: "", caixa: "degrade", par: "", cor: "auto", destaque: "", tam: 100, alinh: "centro", escurecer: 0, logo: false, logoId: "", qr: "", moldura: "circulo", letra: "normal" } }, U);
+  E.aj = Object.assign({ pos: "", caixa: "degrade", par: "", cor: "auto", destaque: "", tam: 100, alinh: "centro", escurecer: 0, logo: false, logoId: "", qr: "", moldura: "circulo", letra: "normal" }, U.aj || {});
   /* 22/11 — CONVITE ANIMADO: bichinhos/objetos (itens, posição em fração), efeitos de tela, entrada do texto e duração */
   E.anim = Object.assign({ ligado: false, itens: [], over: [], texto: "suave", dur: 8 }, U.anim || {});
   var tGravar = 0;
@@ -239,6 +239,7 @@
     h += lin("Posição do texto", [["topo", "EM CIMA"], ["centro", "NO MEIO"], ["baixo", "EMBAIXO"]], "pos", posTexto());
     h += lin("Fundo do texto", [["degrade", "DEGRADÊ"], ["vidro", "VIDRO"], ["solido", "FAIXA"], ["nenhum", "SÓ SOMBRA"]], "caixa", a.caixa);
     h += lin("Fontes", Object.keys(PARES).map(function (k) { return [k, PARES[k].nome]; }), "par", E.aj.par || estiloAtual()[3], function (x) { return '<span style="font-family:\'' + PARES[x[0]].d[0] + '\'">' + esc(x[1]) + "</span>"; });
+    h += lin("Letras do nome (3D)", [["normal", "NORMAL"], ["relevo", "RELEVO 3D"], ["ouro", "OURO 3D"], ["cromo", "CROMADO"], ["balao", "BALÃO METÁLICO"], ["neon", "NEON"]], "letra", a.letra || "normal");
     h += lin("Cor do texto", [["auto", "AUTOMÁTICA"], ["claro", "CLARA"], ["escuro", "ESCURA"]], "cor", a.cor);
     var dest = [["", "Da paleta"]].concat(["#E8C26A", "#FFB547", "#FF4F9A", "#4FC3F7", "#3DDC97", "#FFFFFF", "#111111"].map(function (c) { return [c, ""]; })).concat((KIT.cores || []).map(function (c) { return [c, ""]; }));
     h += lin("Cor de destaque", dest, "destaque", a.destaque, function (x) { return x[0] ? sw(x[0]) : "DA PALETA"; });
@@ -627,8 +628,31 @@
       x.fillStyle = cor;
       var resta = an.f < 1 ? Math.round(it.linhas.join("").length * an.f) : 1e9;
       it.linhas.forEach(function (l, j) { if (resta <= 0) return; var lt = l.length > resta ? l.slice(0, resta) : l; resta -= l.length;
-        x.fillText(lt, it.p.r === "contato" ? bx + it.fs * 0.85 : cx, y + j * it.lh); });
+        var LX = it.p.r === "contato" ? bx + it.fs * 0.85 : cx, LY = y + j * it.lh;
+        if (a.letra && a.letra !== "normal" && /^(nome|script|destaque|preco|quote)$/.test(it.p.r)) letra3d(lt, LX, LY, it.fs, cor); else x.fillText(lt, LX, LY); });
       x.restore();
+    }
+    /* 22/11 — LETRAS 3D: desenhadas aqui com as fontes livres da página (relevo, ouro, cromo, neon, balão metálico) */
+    function letra3d(t, X, Y, fs, cor) {
+      var tipo = a.letra, prof = Math.max(3, Math.round(fs * 0.09)), g;
+      x.save(); x.shadowColor = "transparent"; x.lineJoin = "round";
+      function grad(cs) { var gg = x.createLinearGradient(0, Y, 0, Y + fs * 1.05); cs.forEach(function (c, i) { gg.addColorStop(i / (cs.length - 1), c); }); return gg; }
+      if (tipo === "neon") {
+        x.strokeStyle = dest; x.lineWidth = Math.max(2, fs * 0.05); x.shadowColor = dest; x.shadowBlur = fs * 0.5; x.strokeText(t, X, Y); x.shadowBlur = fs * 0.2; x.strokeText(t, X, Y);
+        x.shadowBlur = 0; x.fillStyle = "#ffffff"; x.globalAlpha *= 0.95; x.fillText(t, X, Y); x.restore(); return;
+      }
+      if (tipo === "balao") {
+        x.lineWidth = fs * 0.16; x.strokeStyle = grad(["#fff6cc", "#e8b84a", "#b8862a", "#f7d77a"]); x.shadowColor = "rgba(0,0,0,.45)"; x.shadowBlur = fs * 0.12; x.shadowOffsetY = fs * 0.05; x.strokeText(t, X, Y);
+        x.shadowColor = "transparent"; x.fillStyle = grad(["#fff3c4", "#f2c75c", "#c99632", "#f5d580"]); x.fillText(t, X, Y);
+        x.globalAlpha *= 0.55; x.lineWidth = fs * 0.03; x.strokeStyle = "#ffffff"; x.strokeText(t, X - fs * 0.02, Y - fs * 0.03); x.restore(); return;
+      }
+      var lado = tipo === "ouro" ? ["#5a3a10", "#3a2408"] : tipo === "cromo" ? ["#3c4048", "#1c1f24"] : null, frente;
+      if (tipo === "ouro") frente = grad(["#fff3c4", "#f2c75c", "#a8761a", "#e8c26a", "#fff0b0"]);
+      else if (tipo === "cromo") frente = grad(["#ffffff", "#c9ced8", "#5c6270", "#e9edf3", "#9aa1ae"]);
+      else { frente = cor; var c0 = String(dest || "#333"); lado = [c0, "rgba(0,0,0,.85)"]; }
+      for (var i = prof; i >= 1; i--) { x.fillStyle = i > prof / 2 ? lado[1] : lado[0]; x.fillText(t, X + i * 0.6, Y + i); }
+      x.shadowColor = "rgba(0,0,0,.35)"; x.shadowBlur = fs * 0.15; x.shadowOffsetY = fs * 0.06; x.fillStyle = frente; x.fillText(t, X, Y);
+      x.shadowColor = "transparent"; x.lineWidth = Math.max(1, fs * 0.012); x.strokeStyle = "rgba(255,255,255,.5)"; x.strokeText(t, X, Y); x.restore();
     }
     x.letterSpacing = "0px";
     camadaAnim(x, W, H, t, "frente", cs);
@@ -877,11 +901,11 @@
   /* ================= 22/11 — BIBLIOTECA DE CONVITES + CONVITE ANIMADO =================
      Modelos ORIGINAIS (inspirados nas ocasiões mais pedidas, nada copiado de site de terceiros): cada um é só uma
      combinação de modelo + estilo + cores + fontes + animação. Miniaturas desenhadas aqui mesmo, com dados de exemplo. */
-  var BIB_CATS = [["", "Todos"], ["anim", "✨ Animados"], ["gamer", "🎮 Gamer"], ["esporte", "⚽ Esporte"], ["musica", "🎵 Música"], ["adulto", "🍻 Festas adultas"], ["aniv", "Aniversário"], ["inf", "Infantil"], ["quinze", "15 anos"], ["amor", "Casamento e amor"], ["bebe", "Bebê e família"], ["empresa", "Formatura e empresa"], ["datas", "Datas e festas"]];
+  var BIB_CATS = [["", "Todos"], ["anim", "✨ Animados"], ["gamer", "🎮 Gamer"], ["esporte", "⚽ Esporte"], ["musica", "🎵 Música"], ["adulto", "🍻 Festas adultas"], ["real", "📸 Realistas"], ["aniv", "Aniversário"], ["inf", "Infantil"], ["quinze", "15 anos"], ["amor", "Casamento e amor"], ["bebe", "Bebê e família"], ["empresa", "Formatura e empresa"], ["datas", "Datas e festas"]];
   function M(id, nome, cat, sub, estilo, paleta, par, an, aj) { return { id: id, nome: nome, cat: cat, sub: sub, estilo: estilo, paleta: paleta || "", par: par || "", anim: an || null, aj: aj || {} }; }
   var MODELOS_CONVITE = [
-    M("an-neon", "Neon party", "aniv", "aniversario", "neon", "", "neon", { o: ["luzes"], tx: "zoom" }),
-    M("an-ouro", "Preto e dourado", "aniv", "aniversario", "luxo", "", "elegante", { o: ["glitter"], tx: "brilho" }),
+    M("an-neon", "Neon party", "aniv", "aniversario", "neon", "", "neon", { o: ["luzes"], tx: "zoom" }, { letra: "neon" }),
+    M("an-ouro", "Preto e dourado", "aniv", "aniversario", "luxo", "", "elegante", { o: ["glitter"], tx: "brilho" }, { letra: "ouro" }),
     M("an-baloes", "Balões e confete", "aniv", "aniversario", "festa", "", "festa", { i: ["balao", "bolo"], o: ["confete"], tx: "subir" }),
     M("an-boteco", "Boteco", "aniv", "aniversario", "rustico", "", "manuscrito", { i: ["tacas"], o: ["cordao"], tx: "suave" }),
     M("an-brinde", "Brinde chique", "aniv", "aniversario", "elegante", "", "", { i: ["tacas"], o: ["glitter"], tx: "brilho" }),
@@ -894,14 +918,14 @@
     M("in-mar", "Fundo do mar", "inf", "infantil", "mar", "", "divertido", { i: ["peixe"], o: ["bolhas"], tx: "subir" }),
     M("in-espaco", "Astronauta", "inf", "infantil", "espacial", "", "divertido", { i: ["foguete"], o: ["estrelas"], tx: "zoom" }),
     M("in-unicornio", "Unicórnio", "inf", "infantil", "infantil", "rosa", "divertido", { i: ["unicornio"], o: ["glitter", "estrelas"], tx: "brilho" }),
-    M("in-circo", "Circo", "inf", "infantil", "circo", "", "divertido", { i: ["balao"], o: ["confete"], tx: "zoom" }),
+    M("in-circo", "Circo", "inf", "infantil", "circo", "", "divertido", { i: ["balao"], o: ["confete"], tx: "zoom" }, { letra: "relevo" }),
     M("in-jardim", "Jardim encantado", "inf", "infantil", "floral", "", "divertido", { i: ["joaninha", "abelha"], o: ["borboletas"], tx: "subir" }),
     M("in-coelho", "Coelhinho", "inf", "infantil", "bebe", "pastel", "divertido", { i: ["coelho"], o: ["coracoes"], tx: "subir" }),
     M("in-fazenda", "Bichinhos", "inf", "infantil", "infantil", "", "divertido", { i: ["patinho", "gato", "cachorro"], tx: "subir" }),
-    M("q-luxo", "15 anos luxo", "quinze", "quinze", "luxo", "", "elegante", { i: ["coroa"], o: ["glitter"], tx: "brilho" }),
+    M("q-luxo", "15 anos luxo", "quinze", "quinze", "luxo", "", "elegante", { i: ["coroa"], o: ["glitter"], tx: "brilho" }, { letra: "ouro" }),
     M("q-rose", "Rosé e mármore", "quinze", "quinze", "marmore", "rosa", "classico", { o: ["petalas"], tx: "suave" }),
     M("q-neon", "Baile neon", "quinze", "quinze", "neon", "", "neon", { o: ["luzes", "estrelas"], tx: "zoom" }),
-    M("ca-classico", "Clássico dourado", "amor", "casamento", "luxo", "", "elegante", { i: ["aliancas"], o: ["glitter"], tx: "brilho" }),
+    M("ca-classico", "Clássico dourado", "amor", "casamento", "luxo", "", "elegante", { i: ["aliancas"], o: ["glitter"], tx: "brilho" }, { letra: "ouro" }),
     M("ca-floral", "Floral", "amor", "casamento", "floral", "", "classico", { o: ["petalas"], tx: "suave" }),
     M("ca-marmore", "Mármore", "amor", "casamento", "marmore", "", "classico", { tx: "suave" }),
     M("ca-rustico", "Rústico", "amor", "casamento", "rustico", "", "manuscrito", { o: ["cordao"], tx: "suave" }),
@@ -928,17 +952,17 @@
     M("da-reveillon", "Réveillon", "datas", "reveillon", "espacial", "ouro", "elegante", { o: ["fogos", "glitter"], tx: "brilho" }),
     M("da-despedida", "Despedida", "datas", "despedida", "neon", "", "neon", { i: ["tacas"], o: ["luzes"], tx: "zoom" }),
     M("da-lousa", "Lousa", "datas", "aniversario", "lousa", "", "manuscrito", { i: ["estrela"], tx: "digitar" }),
-    M("ga-setup", "Setup gamer", "gamer", "aniversario", "gamer", "", "gamer", { i: ["controle"], o: ["pixels"], tx: "zoom" }),
+    M("ga-setup", "Setup gamer", "gamer", "aniversario", "gamer", "", "gamer", { i: ["controle"], o: ["pixels"], tx: "zoom" }, { letra: "neon" }),
     M("ga-camp", "Campeonato", "gamer", "campeonato", "gamer", "", "gamer", { i: ["trofeu", "controle"], o: ["laser"], tx: "subir" }),
     M("ga-lan", "Noite de jogos", "gamer", "festa", "gamer", "", "gamer", { i: ["fone"], o: ["pixels"], tx: "digitar" }),
     M("ga-retro", "Fliperama 80", "gamer", "aniversario", "retro80", "", "gamer", { i: ["controle"], o: ["estrelas"], tx: "zoom" }),
-    M("es-gramado", "Gramado", "esporte", "aniversario", "futebol", "", "esporte", { i: ["bolafut"], o: ["confete"], tx: "zoom" }),
+    M("es-gramado", "Gramado", "esporte", "aniversario", "futebol", "", "esporte", { i: ["bolafut"], o: ["confete"], tx: "zoom" }, { letra: "relevo" }),
     M("es-telao", "Jogo no telão", "esporte", "jogo", "futebol", "", "esporte", { i: ["bolafut", "chopp"], o: ["flashes"], tx: "subir" }),
-    M("es-campeao", "Campeão", "esporte", "campeonato", "futebol", "ouro", "esporte", { i: ["trofeu"], o: ["confete", "flashes"], tx: "zoom" }),
+    M("es-campeao", "Campeão", "esporte", "campeonato", "futebol", "ouro", "esporte", { i: ["trofeu"], o: ["confete", "flashes"], tx: "zoom" }, { letra: "ouro" }),
     M("es-quadra", "Quadra", "esporte", "campeonato", "basquete", "", "esporte", { i: ["bolabasq"], o: ["holofotes"], tx: "zoom" }),
     M("es-treino", "Fitness", "esporte", "aniversario", "fitness", "", "esporte", { i: ["haltere"], tx: "subir" }),
     M("es-corrida", "Velocidade", "esporte", "aniversario", "corrida", "", "esporte", { i: ["carro"], o: ["confete"], tx: "zoom" }),
-    M("mu-rock", "Rock", "musica", "show", "rock", "", "rock", { i: ["violao"], o: ["holofotes", "fumaca"], tx: "zoom" }),
+    M("mu-rock", "Rock", "musica", "show", "rock", "", "rock", { i: ["violao"], o: ["holofotes", "fumaca"], tx: "zoom" }, { letra: "relevo" }),
     M("mu-sertanejo", "Sertanejo", "musica", "aniversario", "sertanejo", "", "country", { i: ["chapeu", "violao"], o: ["cordao"], tx: "subir" }),
     M("mu-pagode", "Samba e pagode", "musica", "aniversario", "samba", "", "festa", { i: ["pandeiro"], o: ["notas"], tx: "subir" }),
     M("mu-eletronica", "Eletrônica", "musica", "festa", "eletronica", "", "neon", { i: ["fone"], o: ["laser", "equalizador"], tx: "zoom" }),
@@ -947,20 +971,52 @@
     M("mu-show", "Show ao vivo", "musica", "show", "palco", "", "impacto", { i: ["microfone"], o: ["holofotes", "fumaca", "flashes"], tx: "zoom" }),
     M("ad-cerveja", "Cervejada", "adulto", "festa", "rustico", "", "manuscrito", { i: ["chopp"], o: ["cordao"], tx: "subir" }),
     M("ad-vinho", "Noite do vinho", "adulto", "aniversario", "vinho", "", "elegante", { i: ["vinho"], o: ["glitter"], tx: "brilho" }),
-    M("ad-blacktie", "Black tie", "adulto", "festa", "luxo", "pb", "elegante", { i: ["tacas"], o: ["glitter"], tx: "brilho" }),
+    M("ad-blacktie", "Black tie", "adulto", "festa", "luxo", "pb", "elegante", { i: ["tacas"], o: ["glitter"], tx: "brilho" }, { letra: "cromo" }),
     M("ad-luau", "Luau", "adulto", "festa", "luau", "", "manuscrito", { o: ["estrelas"], tx: "suave" }),
     M("ad-cinema", "Sessão de cinema", "adulto", "festa", "cinema", "", "impacto", { i: ["pipoca", "claquete"], o: ["holofotes"], tx: "zoom" }),
     M("ad-anos80", "Festa anos 80", "adulto", "festa", "retro80", "", "neon", { i: ["vinil"], o: ["laser"], tx: "zoom" }),
-    M("ad-balada", "Balada", "adulto", "aniversario", "eletronica", "", "neon", { i: ["caixasom"], o: ["laser", "equalizador"], tx: "zoom" })
+    M("ad-balada", "Balada", "adulto", "aniversario", "eletronica", "", "neon", { i: ["caixasom"], o: ["laser", "equalizador"], tx: "zoom" }),
+    /* 22/11 — REALISTAS: objetos fotográficos (biblioteca oficial, IA da plataforma) com movimento e sombra */
+    M("re-brinde", "Brinde realista", "adulto", "aniversario", "luxo", "", "elegante", { i: ["r-tacas-champanhe", "r-garrafa-champanhe"], o: ["glitter", "faiscas"], tx: "brilho" }, { letra: "ouro" }),
+    M("re-30", "Balões dourados", "aniv", "aniversario", "elegante", "", "elegante", { i: ["r-balao-dourado", "r-baloes"], o: ["glitter"], tx: "subir" }, { letra: "balao" }),
+    M("re-bolo", "Bolo e velas", "aniv", "aniversario", "vinho", "", "classico", { i: ["r-bolo", "r-presente"], o: ["luzquente", "faiscas"], tx: "suave" }),
+    M("re-casamento", "Casamento realista", "amor", "casamento", "marmore", "", "classico", { i: ["r-aliancas", "r-rosas"], o: ["petalas"], tx: "suave" }),
+    M("re-amor", "Coração e rosas", "amor", "noivado", "vinho", "", "classico", { i: ["r-coracao", "r-rosas"], o: ["coracoes"], tx: "brilho" }),
+    M("re-15", "Coroa e brilho", "quinze", "quinze", "luxo", "rosa", "elegante", { i: ["r-coroa", "r-oculos-festa"], o: ["glitter", "luzquente"], tx: "brilho" }, { letra: "balao" }),
+    M("re-formatura", "Formatura realista", "empresa", "formatura", "luxo", "", "elegante", { i: ["r-capelo", "r-diploma"], o: ["confete", "flashes"], tx: "zoom" }, { letra: "ouro" }),
+    M("re-campeao", "Taça de campeão", "esporte", "campeonato", "futebol", "", "esporte", { i: ["r-trofeu", "r-bola-futebol"], o: ["confete", "flashes"], tx: "zoom" }, { letra: "ouro" }),
+    M("re-basquete", "Basquete realista", "esporte", "campeonato", "basquete", "", "esporte", { i: ["r-bola-basquete"], o: ["holofotes"], tx: "zoom" }),
+    M("re-gamer", "Setup realista", "gamer", "festa", "gamer", "", "gamer", { i: ["r-controle", "r-fone"], o: ["laser", "pixels"], tx: "zoom" }, { letra: "cromo" }),
+    M("re-show", "Microfone no palco", "musica", "show", "palco", "", "impacto", { i: ["r-microfone"], o: ["holofotes", "fumaca", "flashes"], tx: "zoom" }),
+    M("re-acustico", "Noite acústica", "musica", "aniversario", "sertanejo", "", "country", { i: ["r-violao", "r-chapeu-vaqueiro"], o: ["cordao"], tx: "subir" }),
+    M("re-disco", "Festa disco", "musica", "festa", "retro80", "", "neon", { i: ["r-globo-espelhado", "r-vinil"], o: ["laser", "luzes"], tx: "zoom" }, { letra: "cromo" }),
+    M("re-chope", "Chope gelado", "adulto", "festa", "rustico", "", "manuscrito", { i: ["r-chope"], o: ["cordao"], tx: "subir" }),
+    M("re-vinho", "Taça de vinho", "adulto", "aniversario", "vinho", "", "elegante", { i: ["r-vinho"], o: ["luzquente"], tx: "brilho" }),
+    M("re-drink", "Drinques", "adulto", "happyhour", "luau", "", "manuscrito", { i: ["r-drink"], o: ["luzes"], tx: "subir" }),
+    M("re-cinema", "Cinema realista", "adulto", "festa", "cinema", "", "impacto", { i: ["r-pipoca", "r-claquete"], o: ["holofotes"], tx: "zoom" }),
+    M("re-reveillon", "Réveillon realista", "datas", "reveillon", "espacial", "ouro", "elegante", { i: ["r-garrafa-champanhe", "r-fogos"], o: ["fogos", "faiscas"], tx: "brilho" }, { letra: "ouro" }),
+    M("re-bebe", "Chá de bebê realista", "bebe", "cha", "bebe", "", "divertido", { i: ["r-ursinho", "r-sapatinho"], o: ["estrelas"], tx: "suave" }),
+    M("re-patinho", "Patinho na banheira", "bebe", "chafraldas", "aquarela", "azul", "divertido", { i: ["r-patinho"], o: ["bolhas"], tx: "subir" }),
+    M("re-jardim", "Borboletas reais", "inf", "aniversario", "floral", "", "classico", { i: ["r-borboleta", "r-rosas"], o: [], tx: "suave" }),
+    M("re-natal", "Natal realista", "datas", "natal", "natal", "", "classico", { i: ["r-bola-natal", "r-presente"], o: ["neve"], tx: "suave" }),
+    M("re-halloween", "Halloween realista", "datas", "halloween", "halloween", "", "impacto", { i: ["r-abobora"], o: ["fumaca"], tx: "zoom" }),
+    M("re-fitness", "Fitness realista", "esporte", "aniversario", "fitness", "", "esporte", { i: ["r-haltere"], o: [], tx: "subir" })
   ];
+  MODELOS_CONVITE.forEach(function (m) { m.real = !!(m.anim && (m.anim.i || []).some(function (id) { return /^r-/.test(id); })); });
+  /* imagem realista chegou da internet: refaz a prévia e as miniaturas que usam aquele objeto */
+  var tMinis = 0;
+  window.addEventListener("bw-conv-img", function (ev) {
+    var id = "r-" + ev.detail; MODELOS_CONVITE.forEach(function (m) { if (m.anim && (m.anim.i || []).indexOf(id) >= 0) delete MINIS[m.id]; });
+    agendar(); clearTimeout(tMinis); tMinis = setTimeout(function () { if (!$("bibCard").hidden) desenharBib(); if (E.anim.ligado && $("animItens")) desenharAnim(); }, 500);
+  });
   var CAIXA_ESTILO = { marmore: "nenhum", aquarela: "nenhum", vintage: "nenhum", minimal: "nenhum", bebe: "nenhum", floral: "vidro", infantil: "vidro", safari: "vidro", circo: "vidro", praia: "vidro" };
   var VAGAS = [[0.18, 0.13], [0.82, 0.13], [0.84, 0.36], [0.16, 0.36], [0.5, 0.09], [0.2, 0.92], [0.8, 0.92]];
-  function itensDe(ids) { return (ids || []).map(function (id, i) { var v = VAGAS[i % VAGAS.length]; return { id: id, x: v[0], y: v[1], s: 0.22, f: i * 0.7, esp: v[0] > 0.6 && /ursinho|coelho|gato|cachorro|passarinho|dino|patinho|pomba|leao/.test(id) }; }); }
+  function itensDe(ids) { return (ids || []).map(function (id, i) { var v = VAGAS[i % VAGAS.length]; return { id: id, x: v[0], y: v[1], s: 0.22, f: i * 0.7, esp: v[0] > 0.6 && /^(ursinho|coelho|gato|cachorro|passarinho|dino|patinho|pomba|leao)$/.test(id) }; }); }
   var BIB_CAT = "", MOD_ON = "", MINIS = {};
   function amostra(t, s) { var d = padrao(t, s); campos(t, s).forEach(function (c) { if (d[c[0]] == null && c[3] && c[2] !== "textarea" && !/rsvp|endereco|traje/.test(c[0])) d[c[0]] = c[3]; }); d.data = "2026-12-12"; d.hora = "19:00"; return d; }
   function estadoModelo(m) {
     return { tipo: "convite", sub: m.sub, estilo: m.estilo, paleta: m.paleta, formato: "story", fotoModo: "ia", desc: "",
-      aj: Object.assign({}, E.aj, { pos: "", caixa: CAIXA_ESTILO[m.estilo] || "degrade", cor: "auto", par: m.par, destaque: "", logo: false, qr: "" }, m.aj),
+      aj: Object.assign({}, E.aj, { pos: "", caixa: CAIXA_ESTILO[m.estilo] || "degrade", cor: "auto", par: m.par, destaque: "", logo: false, qr: "", letra: "normal" }, m.aj),
       anim: { ligado: !!m.anim, itens: itensDe(m.anim && m.anim.i), over: (m.anim && m.anim.o || []).slice(), texto: (m.anim && m.anim.tx) || "suave", dur: E.anim.dur || 8 } };
   }
   function miniModelo(m) {   /* desenha a miniatura com dados de exemplo e devolve o canvas */
@@ -971,7 +1027,7 @@
   function desenharBib() {
     var card = $("bibCard"); if (!card) return; card.hidden = E.tipo !== "convite"; if (card.hidden) return;
     chips("bibCats", BIB_CATS, BIB_CAT, "bibcat");
-    var lista = MODELOS_CONVITE.filter(function (m) { return !BIB_CAT || (BIB_CAT === "anim" ? !!m.anim : m.cat === BIB_CAT); });
+    var lista = MODELOS_CONVITE.filter(function (m) { return !BIB_CAT || (BIB_CAT === "anim" ? !!m.anim : BIB_CAT === "real" ? m.real : m.cat === BIB_CAT); });
     $("bib").innerHTML = lista.map(function (m) { return '<button type="button" role="listitem" class="cr-mod' + (m.id === MOD_ON ? " on" : "") + '" data-mod="' + m.id + '"><span class="ph" data-mini="' + m.id + '"></span><span>' + esc(m.nome) + (m.anim ? "<b>✨</b>" : "") + "</span></button>"; }).join("");
     pintarMinis();
   }
@@ -993,7 +1049,9 @@
   }
 
   /* ----- painel do convite animado ----- */
-  var ITEM_ORDEM = ["controle", "bolafut", "trofeu", "violao", "microfone", "nota", "vinil", "fone", "caixasom", "chopp", "vinho", "pipoca", "claquete", "haltere", "bolabasq", "carro", "pandeiro", "chapeu", "ursinho", "coelho", "gato", "cachorro", "passarinho", "borboleta", "peixe", "joaninha", "abelha", "dino", "unicornio", "leao", "patinho", "pomba", "foguete", "coracao", "estrela", "balao", "bolo", "tacas", "presente", "coroa", "aliancas", "capelo", "lua", "abobora", "arvore"];
+  var ITEM_ORDEM = ["r-tacas-champanhe", "r-garrafa-champanhe", "r-balao-dourado", "r-baloes", "r-presente", "r-bolo", "r-rosas", "r-aliancas", "r-coracao", "r-estrela", "r-coroa", "r-trofeu",
+    "r-bola-futebol", "r-bola-basquete", "r-controle", "r-fone", "r-microfone", "r-violao", "r-vinil", "r-globo-espelhado", "r-chope", "r-vinho", "r-drink", "r-pipoca", "r-claquete",
+    "r-capelo", "r-diploma", "r-ursinho", "r-borboleta", "r-sapatinho", "r-patinho", "r-chapeu-vaqueiro", "r-haltere", "r-oculos-festa", "r-fogos", "r-abobora", "r-bola-natal", "controle", "bolafut", "trofeu", "violao", "microfone", "nota", "vinil", "fone", "caixasom", "chopp", "vinho", "pipoca", "claquete", "haltere", "bolabasq", "carro", "pandeiro", "chapeu", "ursinho", "coelho", "gato", "cachorro", "passarinho", "borboleta", "peixe", "joaninha", "abelha", "dino", "unicornio", "leao", "patinho", "pomba", "foguete", "coracao", "estrela", "balao", "bolo", "tacas", "presente", "coroa", "aliancas", "capelo", "lua", "abobora", "arvore"];
   var MINI_IT = {}, MINI_EF = {};
   function desenharAnim() {
     var A = window.BWConviteAnim, card = $("animCard"); if (!card) return; if (!A) { card.hidden = true; return; }
@@ -1073,6 +1131,7 @@
     var t = tamanho(), d = +E.anim.dur || 8; VID.parar = false; GERANDO = true; ITEM_SEL = -1;
     $("animProg").hidden = false; $("animPronto").hidden = true; $("animGerar").disabled = true; $("animBarra").value = 0; $("animProgTxt").textContent = "Preparando…";
     try {
+      if (window.BWConviteAnim) { $("animProgTxt").textContent = "Carregando os objetos…"; await BWConviteAnim.pronto(E.anim.itens.map(function (q) { return q.id; })); }
       var som = await somDoVideo(d);
       var res = await BWReelsCelular.gerar({ largura: t.W, altura: t.H, fps: 30, duracao: d, som: som, audioCtx: actx, alturaSaida: +U_QUAL,
         desenhar: function (tt, ctx, w, h) { var c = render(w, h, tt); ctx.drawImage(c, 0, 0); c.width = c.height = 1; },
