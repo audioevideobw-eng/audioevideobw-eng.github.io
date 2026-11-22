@@ -702,6 +702,7 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
      erro de rede. O pip avisa "hy3dgen requires transformers>=4.48" e mesmo assim FUNCIONA (o aviso é do metadado; o código roda com 4.46.3) —
      não "consertar" esse aviso subindo a versão sem testar no PC. Lição geral: instalador de IA de terceiros = etapas que retomam, log real
      na tela, faixa de versão, pinos em grupo, e o teste de prova no fim é o que decide; testar só simulado aqui e o REAL no PC do dono.
+     Log da instalação que deu certo: docs/gerador3d/log-acerto-2026-11-22.txt (pinos aplicados, 11 arquivos do modelo, prova OK).
 
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.

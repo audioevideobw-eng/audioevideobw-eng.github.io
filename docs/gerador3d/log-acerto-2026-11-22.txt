@@ -1,0 +1,80 @@
+Successfully uninstalled hy3dgen-2.0.2
+Successfully installed Pillow-12.3.0 diffusers-0.39.0 gradio-6.17.3 gradio-client-2.5.0 hy3dgen-2.0.2
+[notice] A new release of pip is available:
+25.0.1 -> 26.3
+[notice] To update, run: C:\Users\audio\.bw-reels\3d\venv\Scripts\python.exe -m pip install --upgrade pip
+Requirement already satisfied: huggingface_hub in c:\users\audio\.bw-reels\3d\venv\lib\site-packages (0.36.2)
+Requirement already satisfied: trimesh in c:\users\audio\.bw-reels\3d\venv\lib\site-packages (5.2.1)
+Requirement already satisfied: pillow in c:\users\audio\.bw-reels\3d\venv\lib\site-packages (12.3.0)
+Requirement already satisfied: filelock in c:\users\audio\.bw-reels\3d\venv\lib\site-packages (from huggingface_hub) (4.2.4)
+Requirement already satisfied: requests in c:\users\audio\.bw-reels\3d\venv\lib\site-packages (from huggingface_hub) (2.34.2)
+Requirement already satisfied: tqdm>=4.42.1 in c:\users\audio\.bw-reels\3d\venv\lib\site-packages (from huggingface_hub) (4.70.1)
+Requirement already satisfied: typing-extensions>=3.7.4.3 in c:\users\audio\.bw-reels\3d\venv\lib\site-packages (from huggingface_hub) (4.16.0)
+Requirement already satisfied: numpy>=1.21 in c:\users\audio\.bw-reels\3d\venv\lib\site-packages (from trimesh) (2.5.4)
+Requirement already satisfied: colorama in c:\users\audio\.bw-reels\3d\venv\lib\site-packages (from tqdm>=4.42.1->huggingface_hub) (0.4.6)
+Requirement already satisfied: charset_normalizer<4,>=2 in c:\users\audio\.bw-reels\3d\venv\lib\site-packages (from requests->huggingface_hub) (3.5.2)
+Requirement already satisfied: idna<4,>=2.5 in c:\users\audio\.bw-reels\3d\venv\lib\site-packages (from requests->huggingface_hub) (3.20)
+Requirement already satisfied: urllib3<3,>=1.26 in c:\users\audio\.bw-reels\3d\venv\lib\site-packages (from requests->huggingface_hub) (2.8.0)
+Requirement already satisfied: certifi>=2023.5.7 in c:\users\audio\.bw-reels\3d\venv\lib\site-packages (from requests->huggingface_hub) (2026.11.20)
+[notice] A new release of pip is available: 25.0.1 ->
+26.3
+[notice] To update, run: C:\Users\audio\.bw-reels\3d\venv\Scripts\python.exe -m pip install --upgrade pip
+fixando transformers==4.46.3 + diffusers==0.31.0 — transformers 5.x renomeia a atenção do DINOv2 (o modelo não carrega: Missing key main_image_encoder); e rebaixar o transformers rebaixa o huggingface_hub, então o diffusers tem de vir na versão da mesma época — senão dá ImportError resolve_revision. Os dois num comando só: o pip resolve o conjunto. Conferido em 21/11/2026
+Collecting transformers==4.46.3
+Downloading transformers-4.46.3-py3-none-any.whl.metadata (44 kB)
+Collecting diffusers==0.31.0
+Downloading diffusers-0.31.0-py3-none-any.whl.metadata (18 kB)
+Requirement already satisfied: filelock in c:\users\audio\.bw-reels\3d\venv\lib\site-packages (from transformers==4.46.3) (4.2.4)
+Requirement already satisfied: huggingface-hub<1.0,>=0.23.2 in c:\users\audio\.bw-reels\3d\venv\lib\site-packages (from transformers==4.46.3) (0.36.2)
+Requirement already satisfied: pyyaml>=5.1 in c:\users\audio\.bw-reels\3d\venv\lib\site-packages (from transformers==4.46.3) (6.0.4)
+Requirement already satisfied: regex!=2019.12.17 in c:\users\audio\.bw-reels\3d\venv\lib\site-packages (from transformers==4.46.3) (2026.11.19)
+Requirement already satisfied: requests in c:\users\audio\.bw-reels\3d\venv\lib\site-packages (from transformers==4.46.3) (2.34.2)
+Collecting tokenizers<0.21,>=0.20 (from transformers==4.46.3)
+Downloading tokenizers-0.20.3-cp312-none-win_amd64.whl.metadata (6.9 kB)
+Requirement already satisfied: safetensors>=0.4.1 in c:\users\audio\.bw-reels\3d\venv\lib\site-packages (from transformers==4.46.3) (0.8.0)
+Requirement already satisfied: tqdm>=4.27 in c:\users\audio\.bw-reels\3d\venv\lib\site-packages (from transformers==4.46.3) (4.70.1)
+Requirement already satisfied: importlib-metadata in c:\users\audio\.bw-reels\3d\venv\lib\site-packages (from diffusers==0.31.0) (10.2.0)
+Requirement already satisfied: Pillow in c:\users\audio\.bw-reels\3d\venv\lib\site-packages (from diffusers==0.31.0) (12.3.0)
+Requirement already satisfied: fsspec>=2023.5.0 in c:\users\audio\.bw-reels\3d\venv\lib\site-packages (from huggingface-hub<1.0,>=0.23.2->transformers==4.46.3) (2026.9.0)
+Requirement already satisfied: typing-extensions>=3.7.4.3 in c:\users\audio\.bw-reels\3d\venv\lib\site-packages (from huggingface-hub<1.0,>=0.23.2->transformers==4.46.3) (4.16.0)
+Requirement already satisfied: colorama in c:\users\audio\.bw-reels\3d\venv\lib\site-packages (from tqdm>=4.27->transformers==4.46.3) (0.4.6)
+Requirement already satisfied: zipp>=3.20 in c:\users\audio\.bw-reels\3d\venv\lib\site-packages (from importlib-metadata->diffusers==0.31.0) (4.1.2)
+Requirement already satisfied: lazy-importer>=0.1 in c:\users\audio\.bw-reels\3d\venv\lib\site-packages (from importlib-metadata->diffusers==0.31.0) (0.1.0)
+Requirement already satisfied: charset_normalizer<4,>=2 in c:\users\audio\.bw-reels\3d\venv\lib\site-packages (from requests->transformers==4.46.3) (3.5.2)
+Requirement already satisfied: idna<4,>=2.5 in c:\users\audio\.bw-reels\3d\venv\lib\site-packages (from requests->transformers==4.46.3) (3.20)
+Requirement already satisfied: urllib3<3,>=1.26 in c:\users\audio\.bw-reels\3d\venv\lib\site-packages (from requests->transformers==4.46.3) (2.8.0)
+Requirement already satisfied: certifi>=2023.5.7 in c:\users\audio\.bw-reels\3d\venv\lib\site-packages (from requests->transformers==4.46.3) (2026.11.20)
+Downloading transformers-4.46.3-py3-none-any.whl (10.0 MB)
+----------------------------------------
+10.0/10.0 MB 44.8 MB/s eta 0:00:00
+Downloading diffusers-0.31.0-py3-none-any.whl (2.9 MB)
+---------------------------------------- 2.9/2.9 MB
+84.2 MB/s eta 0:00:00
+Downloading tokenizers-0.20.3-cp312-none-win_amd64.whl (2.4 MB)
+----------------------------------------
+2.4/2.4 MB 68.3 MB/s eta 0:00:00
+Installing collected packages: tokenizers, diffusers, transformers
+Attempting uninstall: tokenizers
+Found existing installation: tokenizers 0.22.2
+Uninstalling tokenizers-0.22.2:
+Successfully uninstalled tokenizers-0.22.2
+Attempting uninstall: diffusers
+Found existing installation: diffusers 0.39.0
+Uninstalling diffusers-0.39.0:
+Successfully uninstalled diffusers-0.39.0
+Attempting uninstall: transformers
+Found existing installation: transformers 4.57.6
+Uninstalling transformers-4.57.6:
+Successfully uninstalled transformers-4.57.6
+ERROR: pip's dependency resolver does not currently take into account all the packages that are installed. This behaviour is the source of the following dependency conflicts.
+hy3dgen 2.0.2 requires transformers>=4.48.0, but you have transformers 4.46.3 which is incompatible.
+Successfully installed diffusers-0.31.0 tokenizers-0.20.3 transformers-4.46.3
+[notice] A new release of pip is available: 25.0.1 -> 26.3
+[notice
+] To update, run: C:\Users\audio\.bw-reels\3d\venv\Scripts\python.exe -m pip install --upgrade pip
+Baixando o modelo Hunyuan3D 2 mini (~3 GB)
+Fetching 11 files:   0%|          | 0/11 [00:00<?, ?it/s]
+Fetching 11 files: 100%|##########| 11/11 [00:00<00:00, 255.90it/s]
+C:\Users\audio\.bw-reels\3d\modelos\tencent\Hunyuan3D-2mini
+Escrevendo o programa que gera a malha
+Testando com uma imagem de prova
