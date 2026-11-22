@@ -293,6 +293,9 @@ for _f in ("assets/telas-motor.js", "assets/telas.js"):
     if os.path.exists(_f) and re.search(r"fetch\(|XMLHttpRequest|supabase\.|BWSync\.(?!cliente)|\.upload\(|https?://", ler(_f)): problemas.append(_f + ": Telas em movimento não envia nada (sem fetch, upload, conta nem endereço de fora)")
 # ESTÚDIO DE MOTION (20/11): o motor só desenha (nada de rede); o editor só fala com a IA Brightway (bw-ia) e nunca grava na conta
 # 20/11: ferramentas/atalhos comuns dos editores — só interface; nada de rede, conta ou armazenamento
+# 7.8g CONTROLE PELO CELULAR (21/11): só comando e tempo pelo canal de aviso (broadcast) — nada de banco, upload nem mídia
+_bc = _arq("assets/bw-controle.js") if "_arq" in dir() else (open("assets/bw-controle.js",encoding="utf-8").read() if os.path.exists("assets/bw-controle.js") else "")
+if _bc and re.search(r"fetch\(|XMLHttpRequest|\.from\(|\.upload\(|\.rpc\(|localStorage|indexedDB|captureStream|toDataURL\(\)|getImageData", _bc): problemas.append("assets/bw-controle.js: o controle pelo celular só pode mandar comando e tempo pelo canal (nada de banco, arquivo, imagem ou mídia)")
 if os.path.exists("assets/bw-ferramentas.js") and re.search(r"fetch\(|XMLHttpRequest|supabase\.|BWSync|localStorage|indexedDB|\.upload\(", ler("assets/bw-ferramentas.js")): problemas.append("assets/bw-ferramentas.js: as ferramentas dos editores não podem usar rede, conta nem armazenamento")
 # ESTÚDIO 3D (20/11): modelo, logo e foto ficam no aparelho; o site não chama nenhuma IA de 3D
 if os.path.exists("assets/bw3d-motor.js") and re.search(r"fetch\(|XMLHttpRequest|supabase\.|BWSync|localStorage|indexedDB|\.upload\(|https?://", ler("assets/bw3d-motor.js")):
@@ -408,7 +411,7 @@ if 'data-k="linha"' not in _arq("assets/fotos.js"):
     problemas.append("assets/fotos.js: sem o ➜ LINHA DO TEMPO na aba SALVAR")
 
 # 7.9 páginas com o visual novo (menu lateral) — exceto as de propósito
-SEM_MENU = {"login.html", "cadastro.html", "pedido.html", "baixar.html", "privacidade.html", "termos.html", "financeiro-painel.html", "investimentos-painel.html", "app.html", "financeiro.html", "fluxo.html", "custos.html"}
+SEM_MENU = {"controle.html", "login.html", "cadastro.html", "pedido.html", "baixar.html", "privacidade.html", "termos.html", "financeiro-painel.html", "investimentos-painel.html", "app.html", "financeiro.html", "fluxo.html", "custos.html"}
 for p, t in todos.items():
     if p not in SEM_MENU and "assets/layout.js" not in t:
         problemas.append(f"{p}: sem o visual novo (não carrega assets/layout.js)")

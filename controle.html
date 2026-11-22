@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Controle do editor — Brightway</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#06080D">
+<link rel="icon" type="image/png" href="icons/favicon-64.png">
+<script src="assets/modos.js?v=5"></script>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:radial-gradient(120% 70% at 50% 0%,#141a27 0%,#06080D 60%);color:#F5F1EA;font-family:Inter,system-ui,sans-serif;min-height:100vh;touch-action:manipulation}
+.pag{max-width:520px;margin:0 auto;padding:24px 18px 40px}
+h1{margin:0 0 4px;font:800 15px Inter,sans-serif;letter-spacing:.14em}
+.sub{margin:0 0 18px;color:#9aa3b2;font-size:13.5px;line-height:1.45}
+.cx{background:rgba(255,255,255,.035);border:1px solid rgba(245,241,234,.1);border-radius:20px;padding:18px}
+.cod{display:flex;gap:8px}.cod input{flex:1;min-height:52px;border-radius:14px;border:1px solid rgba(245,241,234,.2);background:#0b0e14;color:#fff;font:800 24px Inter,monospace;letter-spacing:.3em;text-align:center;text-transform:uppercase}
+.bt{min-height:56px;border-radius:16px;border:1px solid rgba(245,241,234,.16);background:#12151c;color:#F5F1EA;font:800 13px Inter,sans-serif;letter-spacing:.08em;cursor:pointer;touch-action:manipulation}
+.bt:active{transform:scale(.97)}.bt.pri{background:#FFB547;border-color:#FFB547;color:#17120a}.bt.roxo{background:#7C5CFF;border-color:#7C5CFF;color:#fff}
+.estado{display:flex;align-items:center;gap:8px;margin:0 0 14px;font:700 12px Inter,sans-serif;letter-spacing:.08em;color:#9aa3b2}
+.estado i{width:10px;height:10px;border-radius:50%;background:#555}.estado.ok i{background:#12B76A;box-shadow:0 0 10px #12B76A}.estado.erro i{background:#FF6B6B}
+.tempo{font:800 30px Inter,monospace;text-align:center;margin:6px 0 10px;font-variant-numeric:tabular-nums}
+input[type=range]{width:100%;height:36px;accent-color:#FFB547}
+.grade{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:12px}
+.grade .larga{grid-column:span 4;min-height:84px;font-size:18px}
+.dois{grid-column:span 2}
+.nota{color:#8d95a3;font-size:12px;line-height:1.45;margin:14px 0 0}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<div class="pag">
+  <h1>📱 CONTROLE DO EDITOR</h1>
+  <p class="sub">Comande o editor de vídeo aberto no computador: tocar, pausar, andar e cortar. No PC, toque em 📱 no editor para ver o código.</p>
+  <div class="cx" id="cxCodigo">
+    <div class="cod"><input id="codigo" maxlength="6" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="CÓDIGO" aria-label="Código de 6 letras que aparece no PC"><button class="bt pri" id="ligar" type="button" style="padding:0 18px">LIGAR</button></div>
+    <p class="nota">O código aparece no PC quando você toca em 📱 CONTROLE PELO CELULAR, no editor de vídeo.</p>
+  </div>
+  <div class="cx" id="cxControle" hidden>
+    <div class="estado" id="estado"><i></i><span id="estadoTxt">PROCURANDO O EDITOR…</span></div>
+    <div class="tempo" id="tempo">0:00,0 / 0:00,0</div>
+    <input type="range" id="agulha" min="0" max="1" step="0.01" value="0" aria-label="Agulha da linha do tempo">
+    <div class="grade">
+      <button class="bt pri larga" id="tocar" type="button">▶ TOCAR</button>
+      <button class="bt" type="button" data-c="inicio" aria-label="Voltar ao início">⏮</button>
+      <button class="bt" type="button" data-c="passo" data-d="-1" aria-label="Voltar 1 segundo">−1 s</button>
+      <button class="bt" type="button" data-c="passo" data-d="1" aria-label="Avançar 1 segundo">+1 s</button>
+      <button class="bt" type="button" data-c="passo" data-d="5" aria-label="Avançar 5 segundos">+5 s</button>
+      <button class="bt" type="button" data-c="passo" data-d="-0.0333" aria-label="Um quadro para trás">◂ quadro</button>
+      <button class="bt" type="button" data-c="passo" data-d="0.0333" aria-label="Um quadro para frente">quadro ▸</button>
+      <button class="bt roxo dois" type="button" data-c="dividir">✂ CORTAR AQUI</button>
+      <button class="bt dois" type="button" data-c="desfazer">↶ DESFAZER</button>
+      <button class="bt dois" type="button" data-c="refazer">↷ REFAZER</button>
+    </div>
+    <p class="nota">Vai pela internet só o comando e o tempo — o vídeo não sai do computador. O código vale enquanto o controle estiver ligado no PC.</p>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="assets/bw-sync.js"></script>
+<script src="assets/bw-controle.js?v=1"></script>
+<script>
+(function () {
+  var $ = function (i) { return document.getElementById(i); }, ctl = null, total = 0, tocando = false, mexendo = false;
+  function fmt(t) { t = Math.max(0, t || 0); var m = Math.floor(t / 60), s = t - m * 60; return m + ":" + (s < 10 ? "0" : "") + s.toFixed(1).replace(".", ","); }
+  function estado(st) { var e = $("estado"); e.className = "estado" + (st === "conectado" ? " ok" : st === "erro" ? " erro" : ""); $("estadoTxt").textContent = st === "conectado" ? "LIGADO AO EDITOR" : st === "erro" ? "SEM CONEXÃO — confira a internet" : "PROCURANDO O EDITOR… (o código ainda está ligado no PC?)"; }
+  function ligar() { var c = $("codigo").value.trim().toUpperCase(); if (!window.BWControle) return; ctl = BWControle.celular(c, function (p) { total = +p.total || 0; tocando = !!p.tocando; $("tempo").textContent = fmt(p.t) + " / " + fmt(total);
+      if (!mexendo) { $("agulha").max = Math.max(0.1, total); $("agulha").value = p.t || 0; } $("tocar").textContent = tocando ? "⏸ PAUSAR" : "▶ TOCAR"; }, estado);
+    if (!ctl) { $("codigo").focus(); $("codigo").style.borderColor = "#FF6B6B"; return; }
+    $("cxCodigo").hidden = true; $("cxControle").hidden = false; estado("procurando"); try { history.replaceState(null, "", "controle.html?c=" + c); } catch (e) {} }
+  $("ligar").onclick = ligar; $("codigo").addEventListener("keydown", function (e) { if (e.key === "Enter") ligar(); });
+  $("tocar").onclick = function () { if (ctl) ctl.enviar("alternar"); if (navigator.vibrate) navigator.vibrate(15); };
+  document.querySelector(".grade").addEventListener("click", function (e) { var b = e.target.closest("[data-c]"); if (!b || !ctl) return; ctl.enviar(b.dataset.c, b.dataset.d ? {d: +b.dataset.d} : null); if (navigator.vibrate) navigator.vibrate(10); });
+  var ag = $("agulha"); ag.addEventListener("input", function () { mexendo = true; if (ctl) ctl.enviar("ir", {t: +ag.value}); }); ag.addEventListener("change", function () { mexendo = false; });
+  var q = new URLSearchParams(location.search).get("c"); if (q) { $("codigo").value = q; ligar(); }
+})();
+</script>
+</body>
+</html>

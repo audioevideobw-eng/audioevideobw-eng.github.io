@@ -1724,7 +1724,21 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   a bateria inteira rodada. NÃO testado: filmagem real de verde (calibrar os níveis), dois monitores de verdade, iPhone/Android reais.
   layout.js v65, bw-ferramentas v2, video-editor v6, fotos v16, motion v6, telas v6, bw3d v11, bw-chroma v1, bw-cor v1, sw v165. PENTE FINO 142–148.
 
+- 21/11/2026 23:30 · Claude (dono: "máscara como a do CapCut/Evoto, texto atrás da pessoa, modelos prontos de aftermovie, duas telas"): EDITOR DE VÍDEO —
+  (1) PESSOA E FUNDO (IA) por take (assets/bw-mascara.js, MediaPipe Selfie Multiclass no aparelho, CPU): 🧠 ANALISAR acha a pessoa quadro a quadro (a
+  máscara segue a pessoa — é o "traquear"), guarda no IndexedDB bw_mascaras; PESSOA NA FRENTE (texto e camadas passam por TRÁS dela), fundo desfocado/
+  P&B/escuro/claro/cor/sem fundo, contorno de luz. Textos ganharam MOVIMENTO (subir, descer, zoom, pulsar, letreiro, máquina de escrever e ANEL girando em
+  volta da pessoa, metade atrás e metade na frente). (2) 🎬 MODELOS (assets/ve-modelos.js): 12 EDIÇÕES PRONTAS (aftermovie 30/60 s, corporativo, reels,
+  casamento, show, contagem, antes/depois, depoimento, top 3, telão, abertura com o nome atrás da pessoa) com prévia animada, espaços TAKE N para trocar
+  pelos takes, ⚡ PREENCHER SOZINHO, campos de texto e trilha da casa; 9 modelos COM A PESSOA; MEUS MODELOS (salvar o projeto, exportar/importar .json).
+  (3) DUAS TELAS: 🖥 abre a prévia já no outro monitor (Window Management API, quando o navegador deixa) e as teclas lá comandam o editor; 📱 CONTROLE PELO
+  CELULAR (assets/bw-controle.js + controle.html): QR/código de 6 letras, o celular toca/pausa/anda/corta/desfaz — vai só o comando e o tempo pelo canal de
+  aviso do Supabase Realtime (nada gravado, vídeo não sai do PC; vigia 7.8g). Testes novos teste_mascara e teste_controle (0 falhas × 1280/390) + bateria
+  do editor 0 falhas; vigia ✅. NÃO testado: o modelo real do MediaPipe (testar no ar), dois monitores e o celular de verdade. video-editor v7, sw v166.
+
 ## Pendências (dono)
+- [ ] (21/11) MÁSCARA E MODELOS: dono abrir o editor de vídeo no PC, pôr um take com uma pessoa, 🧠 ANALISAR e testar o texto atrás dela e o ANEL; abrir
+      🎬 MODELOS, escolher um aftermovie e trocar os espaços pelos takes dele. DUAS TELAS: testar o 🖥 com o segundo monitor e o 📱 com o celular.
 - [ ] (21/11) EDITOR DE VÍDEO NOVO: dono abrir no PC e no celular; testar o CHROMA com uma filmagem REAL de fundo verde (dizer em que nível
       ficou bom, para calibrar os níveis), a COR (um look + ajuste fino + APLICAR EM TODOS), o SOM (normalizar e reduzir ruído numa fala real),
       o botão direito no take, esconder/descolar os painéis e a 🖥 PRÉVIA EM OUTRA TELA no segundo monitor.
