@@ -1211,7 +1211,13 @@
     camSel: function (v) { PINTA = null; if (v === "foto") { CAM = "foto"; ADS = null; painel(); return; } if (v === "logo") { irAba("logo"); return; } if (v.indexOf("t:") === 0) { TXT = v.slice(2); irAba("texto"); return; } CAM = v; ADS = v.slice(2); painel(); },
     camVer: function (v) { var f = fotoAtual(); f.ocultos = f.ocultos || {}; if (f.ocultos[v]) delete f.ocultos[v]; else f.ocultos[v] = 1; painel(); },
     camCima: function (v) { moverCamada(v, 1); painel(); }, camBaixo: function (v) { moverCamada(v, -1); painel(); },
-    camImg: function () { var inp = document.createElement("input"); inp.type = "file"; inp.accept = "image/*"; inp.onchange = function () { if (inp.files && inp.files[0]) addImagemCamada(inp.files[0]); }; inp.click(); },
+    /* 22/11 (dono: "camadas não acrescenta a foto"): no iPhone um <input type=file> SOLTO (fora da página) abre a galeria mas não avisa
+       a escolha (change não dispara). O seletor fica DENTRO do editor, escondido, e só sai depois que a foto entrou. */
+    camImg: function () { var velho = document.getElementById("camArq"); if (velho) velho.remove();
+      var inp = document.createElement("input"); inp.type = "file"; inp.id = "camArq"; inp.accept = "image/*,.heic,.heif"; inp.setAttribute("aria-hidden", "true");
+      inp.style.cssText = "position:fixed;left:-9999px;top:0;width:1px;height:1px;opacity:0"; ($("ed") || document.body).appendChild(inp);
+      inp.addEventListener("change", async function () { var a = inp.files && inp.files[0]; if (a) { toast("Pondo a imagem…"); var r = await addImagemCamada(a); if (r) toast("✓ Imagem na camada — arraste na foto."); } setTimeout(function () { inp.remove(); }, 0); });
+      inp.click(); },
     camTxt: function () { ACOES.novoTxt(); irAba("texto"); }, camAds: function () { irAba("adesivos"); },
     camForma: function (v) { var f = fotoAtual(), cor = (KIT.cores && KIT.cores[0]) || "#FFB547", a = { id: uid("ad"), forma: v, cor: cor, cx: 0.5, cy: 0.5, tam: v === "linha" ? 60 : 30, alt: v === "linha" ? 3 : 100, rot: 0, op: 100 }; f.adesivos = (f.adesivos || []).concat([a]); ADS = a.id; CAM = "a:" + a.id; painel(); },
     mForma: function (v) { var m = mascAlvo(); if (m) { m.forma = v; painel(); } }, mInv: function () { var m = mascAlvo(); if (m) { m.inv = !m.inv; painel(); } },

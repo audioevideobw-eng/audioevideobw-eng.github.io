@@ -1,24 +1,19 @@
 {
- "versao": "1.9.33",
+ "versao": "1.9.34",
  "data": "22/11/2026",
  "pacote": "downloads/BW-Reels-Studio.zip",
- "sha256": "831473195196673e70d1161b8c323aaf4af3c3f786b557cec76cabd5c5aee136",
- "bytes": 41687464,
+ "sha256": "2ca79055ab849b1f934c01b1a8faa86a205bca3f7e376344e077983936bd5ec0",
+ "bytes": 41693439,
  "novidades": [
   {
-   "titulo": "Proxy e exportação profissional",
-   "texto": "⚡ FAZER PROXY deixa a edição leve; EXPORTAR abre a janela com YouTube 4K/Full HD, Instagram, só o áudio, sequência de imagens e personalizado.",
+   "titulo": "Proxy com som",
+   "texto": "O som dos takes de câmera (Sony, Canon e outras, até arquivos grandes) agora vai para o proxy; se faltar, o aviso diz o motivo.",
    "abrir": "video"
   },
   {
-   "titulo": "A tela é o assunto",
-   "texto": "Painel escondido vira uma borda fina; ⛶ SÓ A TELA (Tab) esconde todos.",
-   "abrir": "video"
-  },
-  {
-   "titulo": "Criador IA e Editor de fotos",
-   "texto": "Criador com setas, arte grande e segurar para ver opções; fotos com entrada nova e biblioteca.",
-   "abrir": "criador"
+   "titulo": "Camadas no editor de fotos",
+   "texto": "＋ IMAGEM na aba CAMADAS volta a acrescentar a foto (no iPhone não fazia nada).",
+   "abrir": "fotos"
   }
  ]
 }

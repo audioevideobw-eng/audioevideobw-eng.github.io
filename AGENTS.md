@@ -766,6 +766,18 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
      Foto reaberta da biblioteca não entra de novo nas recentes (flag durante o adicionar — o MutationObserver chega antes do fim). Safari do
      iPhone novo (vidro "Liquid Glass") desfoca uma faixa maior: barra do editor desce 48 px + bloco liso da mesma cor por trás.
 
+**Aprendidos em 22/11 à noite (som do proxy e camadas no iPhone)**
+188. SOM DE TAKE DE CÂMERA (dono: "o proxy avisou que não teria áudio"): nunca decodeAudioData no ARQUIVO INTEIRO de vídeo — take de 1–2,5 GB
+     estoura a memória ou é pulado. bw-proxy.js lê o ÍNDICE do MP4/MOV (moov → stsd/stsz/stsc/stco|co64 + elst) e só os pedaços de SOM por blob.slice:
+     PCM de câmera (Sony XAVC = "twos" 16 bits big-endian; "sowt", "in24/in32" com caixa enda, "fl32", "ipcm" com pcmC, QuickTime v0 com stsz=1 por
+     QUADRO) vira número direto; AAC vai pelo AudioDecoder com o ASC do esds; elst manda pular o aquecimento do AAC (~1024 amostras = 21 ms). Leitura
+     em blocos que só juntam pedaços a < 64 KB um do outro (ffmpeg intercala som a cada quadro: com 4 MB de folga lia o arquivo todo). O aviso diz o
+     MOTIVO (formato, sem índice, sem faixa). Prova: take REAL do dono (CASSIO7460.MP4, 200 MB) → leu 1 MB, amostras iguais às do ffmpeg, proxy com som
+     no mesmo volume (−30,6 dB) (auto: docs/testes/teste_proxy_som.py com Google Chrome).
+189. iPhone: <input type=file> criado no JS e NÃO posto na página abre a galeria mas o change não dispara ("camadas não acrescenta a foto"). Todo
+     seletor de arquivo vai DENTRO da página (escondido fora da tela) e sai depois do change. Teste clica no BOTÃO de verdade (expect_file_chooser),
+     não só chama a função.
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -2144,6 +2156,13 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   fundo liso (NÃO testado em iPhone real). Testes: teste_video_proxy (novo), teste_fotos_inicio (novo), teste_criador (+11), paineis, video_layout,
   video, video_app, fotos, convites, motion*, telas, 3d, album, previa, layout 0 falhas; vigia ✅. layout.js v72, brightway.css v36, bw-ferramentas v5,
   video-editor v18, criador v13, fotos v17, sw v194. PENTE FINO 182–187.
+
+- 22/11/2026 20:25 · Claude (dono: "ao fazer o proxy deu aviso que não teria áudio porque não conseguiu ler" + "o sistema de camadas não acrescenta a
+  foto"): PROXY COM SOM — o som agora é lido pelo índice do MP4/MOV, só os pedaços de som (PCM das câmeras Sony/Canon e AAC), sem carregar o vídeo
+  inteiro na memória; testado com um take REAL do dono (Sony 4K 60p, PCM twos): leu 1 MB de 200 MB e o proxy saiu com som no mesmo volume. Se
+  ainda faltar som, o aviso diz o motivo. CAMADAS (editor de fotos): ＋ IMAGEM não fazia nada no iPhone (seletor fora da página) → corrigido.
+  Desfoque no topo do iPhone: ainda sem conserto — aguarda print do dono. teste_proxy_som (novo), teste_video_proxy, teste_video_midia, teste_fotos (+2)
+  0 falhas; vigia ✅. bw-proxy v2, video-editor v19, fotos v18, sw v195. App BW 1.9.34. PENTE FINO 188–189.
 
 ## Pendências (dono)
 - [ ] (22/11) iPhone: abrir o EDITOR DE FOTOS no Safari e dizer se o desfoque de cima sumiu; testar ⚡ FAZER PROXY e a JANELA DE EXPORTAR no PC com takes reais.

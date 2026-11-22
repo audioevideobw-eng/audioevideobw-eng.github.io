@@ -1152,7 +1152,7 @@
           $("veCpB1").style.width = (p.pct || 0).toFixed(1) + "%"; $("veCpI1").textContent = Math.floor(p.pct || 0) + "% · " + (p.etapa || "") + (p.falta != null ? " · faltam " + tempoTxt(p.falta) : "") + (p.ow ? " · " + p.ow + "×" + p.oh : "");
           $("veCpB2").style.width = (proc / totSeg * 100).toFixed(1) + "%"; $("veCpI2").textContent = Math.floor(proc / totSeg * 100) + "% · " + feitos + " pronto" + (feitos === 1 ? "" : "s") + " · tempo esperado até concluir: " + tempoTxt(falta); }});
         await guardarProxy(m.id, r); feitos++; recarregarEls(m.id); desenharLib(); medir();
-        if (!r.comSom) aviso("⚡ " + m.nome + ": proxy pronto SEM SOM (o som do arquivo não foi lido) — na prévia este take fica mudo; a exportação tem o som do original.", true);
+        if (!r.comSom && !r.semFaixa) aviso("⚡ " + m.nome + ": proxy pronto SEM SOM" + (r.motivoSom ? " (" + r.motivoSom + ")" : "") + " — na prévia este take fica mudo; a exportação tem o som do original.", true);
       } catch (e) { if (!FILA.cancelado) falhas.push(m.nome + " (" + (e && e.message || e) + ")"); }
       feitoSeg += dm;
     }

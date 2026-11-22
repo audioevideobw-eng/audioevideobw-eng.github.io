@@ -544,3 +544,10 @@ Tamanho > 0 e sem erro = o pdfmake montou o arquivo. Localmente (T1) confira o `
   ABRIR/FECHAR TUDO; caixa redesenhada por innerHTML → `data-seta-livre` e `BWDobras.aplicar(caixa)` depois de desenhar.
 - Tela fixa + painéis: `BWFerr.telaFixa({wrap, grade, palco, rola:[], painelLer, painelGravar, aoMedir})`; dar `data-bwf-nome` ao painel; aoMedir ajusta o canvas pela
   altura do palco. O painel escondido já vira BORDA e há ⛶ SÓ A TELA (Tab).
+
+## Ler o som de um vídeo grande sem carregar o arquivo (22/11/2026)
+- MP4/MOV: achar o `moov` pulando caixas pelo cabeçalho (16 bytes por blob.slice), ler só o moov; na trak com hdlr "soun": stsd (formato, canais,
+  bits, taxa; v1 +16 bytes, v2 com taxa float64 e flags), stsz/stsc/stco|co64 → lista de pedaços (início, bytes); elst → pular o aquecimento.
+- PCM: DataView com a ordem certa (twos/in24/in32/fl32 = big-endian salvo caixa enda; sowt = little; ipcm = pcmC). QuickTime v0 com stsz=1 → bytes =
+  quadros × bytes por quadro. AAC: AudioDecoder com description = ASC do esds (tag 5), um EncodedAudioChunk por amostra.
+- Ler em blocos juntando só pedaços quase colados (< 64 KB); conferir contra `ffmpeg -f f32le` (mesmas amostras) e medir quanto do arquivo foi lido.
