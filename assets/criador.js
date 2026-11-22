@@ -21,7 +21,7 @@
     cartao: '<rect x="2" y="5" width="20" height="14" rx="2"/><circle cx="8" cy="11" r="2.2"/><path d="M5 16c.8-1.6 2-2.4 3-2.4s2.2.8 3 2.4M14 10h5M14 13h4"/>'
   };
   var TIPOS = {
-    convite: { nome: "CONVITE", fmt: "story", pos: "baixo", subs: [["aniversario", "Aniversário"], ["infantil", "Infantil"], ["quinze", "15 anos"], ["casamento", "Casamento"], ["cha", "Chá de bebê"], ["revelacao", "Chá revelação"], ["formatura", "Formatura"], ["savethedate", "Save the date"], ["batizado", "Batizado"], ["confra", "Confraternização"], ["noivado", "Noivado"], ["bodas", "Bodas"], ["chafraldas", "Chá de fraldas"], ["chacozinha", "Chá de cozinha"], ["comunhao", "1ª comunhão"], ["churrasco", "Churrasco"], ["happyhour", "Happy hour"], ["inauguracao", "Inauguração"], ["lancamento", "Lançamento"], ["junina", "Festa junina"], ["halloween", "Halloween"], ["natal", "Natal"], ["reveillon", "Réveillon"], ["despedida", "Despedida"]] },
+    convite: { nome: "CONVITE", fmt: "story", pos: "baixo", subs: [["aniversario", "Aniversário"], ["infantil", "Infantil"], ["quinze", "15 anos"], ["casamento", "Casamento"], ["cha", "Chá de bebê"], ["revelacao", "Chá revelação"], ["formatura", "Formatura"], ["savethedate", "Save the date"], ["batizado", "Batizado"], ["confra", "Confraternização"], ["noivado", "Noivado"], ["bodas", "Bodas"], ["chafraldas", "Chá de fraldas"], ["chacozinha", "Chá de cozinha"], ["comunhao", "1ª comunhão"], ["churrasco", "Churrasco"], ["happyhour", "Happy hour"], ["inauguracao", "Inauguração"], ["lancamento", "Lançamento"], ["junina", "Festa junina"], ["halloween", "Halloween"], ["natal", "Natal"], ["reveillon", "Réveillon"], ["despedida", "Despedida"], ["festa", "Festa"], ["show", "Show / apresentação"], ["campeonato", "Campeonato / torneio"], ["jogo", "Jogo no telão"]] },
     post: { nome: "POST", fmt: "post", pos: "baixo", subs: [["evento", "Divulgar evento"], ["promo", "Promoção"], ["obrigado", "Agradecimento"], ["bastidores", "Bastidores"], ["depoimento", "Depoimento"], ["novidade", "Novidade / aviso"], ["data", "Data comemorativa"]] },
     flyer: { nome: "FLYER", fmt: "a4", pos: "baixo", subs: [["evento", "Evento / show"], ["curso", "Curso / palestra"], ["promo", "Promoção / loja"], ["servico", "Serviço"]] },
     cartao: { nome: "CARTÃO", fmt: "cartao", pos: "centro", subs: [["classico", "Clássico"], ["moderno", "Moderno"], ["criativo", "Criativo"]] }
@@ -52,7 +52,11 @@
       halloween: { pre: "Se tiver coragem, venha!", titulo: "Halloween", en: "spooky cute halloween party, pumpkins and moon" },
       natal: { pre: "Celebre o Natal com a gente", titulo: "Natal", en: "christmas party, warm and festive" },
       reveillon: { pre: "Vamos virar o ano juntos", titulo: "Réveillon", en: "new year's eve party, fireworks, gold" },
-      despedida: { pre: "Última noite de solteiro(a)!", titulo: "Despedida", en: "bachelor party, fun night out" }
+      despedida: { pre: "Última noite de solteiro(a)!", titulo: "Despedida", en: "bachelor party, fun night out" },
+      festa: { pre: "Você está na lista", titulo: "Festa", en: "adult party night, lights and music" },
+      show: { pre: "Ao vivo", titulo: "Show", en: "live music show on stage, concert lights" },
+      campeonato: { pre: "Inscrições abertas", titulo: "Campeonato", en: "tournament competition, trophy, energy" },
+      jogo: { pre: "Vamos assistir juntos", titulo: "Jogo no telão", en: "watching the match together on a big screen, sports bar" }
     },
     post: {
       evento: { pre: "Vem aí", cta: "Garanta sua vaga", en: "event announcement social media post" },
@@ -74,7 +78,7 @@
   /* campos de cada tipo: [chave, rótulo, tipo do campo, exemplo, largo?] */
   function campos(t, s) {
     if (t === "convite") {
-      var c = [["pre", "Frase de abertura", "text", "Você está convidado", 1], ["titulo", "Título", "text", "Aniversário de"], ["nome", /casamento|noivado|bodas|savethedate/.test(s) ? "Nomes do casal" : /confra|inauguracao|lancamento|happyhour/.test(s) ? "Empresa / grupo" : "Nome", "text", /casamento|noivado|bodas|savethedate/.test(s) ? "Ana & Pedro" : /confra|inauguracao|lancamento|happyhour/.test(s) ? "Produtora Exemplo" : "Marina"]];
+      var c = [["pre", "Frase de abertura", "text", "Você está convidado", 1], ["titulo", "Título", "text", "Aniversário de"], ["nome", /casamento|noivado|bodas|savethedate/.test(s) ? "Nomes do casal" : /confra|inauguracao|lancamento|happyhour|campeonato/.test(s) ? "Empresa / grupo" : "Nome", "text", /casamento|noivado|bodas|savethedate/.test(s) ? "Ana & Pedro" : /confra|inauguracao|lancamento|happyhour/.test(s) ? "Produtora Exemplo" : "Marina"]];
       if (s === "aniversario" || s === "infantil" || s === "quinze") c.push(["idade", "Idade", "text", "30"]);
       c.push(["data", "Data", "date"], ["hora", "Horário", "time"], ["local", "Local", "text", "Espaço Jardim"], ["endereco", "Endereço", "text", "Rua das Flores, 120 — BH", 1],
         ["traje", "Traje (opcional)", "text", "Esporte fino"], ["rsvp", "WhatsApp para confirmar", "tel", "(31) 99999-0000"], ["mensagem", "Mensagem (opcional)", "textarea", "Sua presença é o nosso melhor presente!", 1]);
@@ -121,7 +125,20 @@
     ["halloween", "Halloween", "cute spooky halloween night, big moon, bats, pumpkins", "impacto", ["#120A1F", "#3A1B4E", "#FF8A1F"]],
     ["bebe", "Bebê", "soft baby nursery, pastel clouds and little stars", "divertido", ["#EAF4FF", "#FDEAF2", "#7FB3E8"]],
     ["circo", "Circo", "circus tent stripes, red and cream, playful", "divertido", ["#B3122E", "#F4E9D8", "#FFD23F"]],
-    ["safari", "Safári", "jungle safari, tropical leaves, warm sand tones", "divertido", ["#E9D9B0", "#C9A46A", "#2E6B3A"]]
+    ["safari", "Safári", "jungle safari, tropical leaves, warm sand tones", "divertido", ["#E9D9B0", "#C9A46A", "#2E6B3A"]],
+    ["gamer", "Gamer", "gamer setup, dark room with neon RGB lights, futuristic HUD lines", "gamer", ["#07071A", "#1A0B3A", "#00F0FF"]],
+    ["futebol", "Futebol", "soccer field at night, green grass, stadium lights", "esporte", ["#0B3D1E", "#1E7A3A", "#FFD23F"]],
+    ["basquete", "Basquete", "basketball court, wood floor, arena lights", "esporte", ["#3A1D0A", "#B5651D", "#FF8A1F"]],
+    ["fitness", "Fitness", "gym energy, bold diagonal shapes, dynamic", "esporte", ["#0B0B0F", "#2A2A33", "#C6FF00"]],
+    ["corrida", "Velocidade", "racing, checkered flag, speed lines, asphalt", "esporte", ["#101114", "#2B2E36", "#E53935"]],
+    ["rock", "Rock", "rock concert, grunge texture, red stage light", "rock", ["#0A0A0A", "#2A0A0A", "#E53935"]],
+    ["sertanejo", "Sertanejo", "country music night, wood, warm lights, stars", "country", ["#2B1A0E", "#6B3F1D", "#F2C57C"]],
+    ["samba", "Samba e pagode", "brazilian samba night, vibrant colors, warm", "festa", ["#3A0B2E", "#C2185B", "#FFD23F"]],
+    ["eletronica", "Eletrônica", "electronic music party, DJ, lasers, neon", "neon", ["#05030F", "#24104A", "#FF2FB9"]],
+    ["retro80", "Anos 80", "retro synthwave sunset, neon grid, eighties", "neon", ["#12052B", "#3B0B5A", "#FF6EC7"]],
+    ["vinho", "Vinho", "elegant wine night, burgundy, warm candlelight", "elegante", ["#1E0710", "#5A0F25", "#E8C26A"]],
+    ["luau", "Luau", "beach luau at night, moon over the sea, torches", "manuscrito", ["#06142B", "#0E3B5A", "#FFB547"]],
+    ["cinema", "Cinema", "movie theater, red curtain, spotlights, film", "impacto", ["#140405", "#5A0A10", "#FFD23F"]]
   ];
   var PALETAS = [["", "Do estilo"], ["marca", "Minha marca"], ["ouro", "Dourado e preto", ["#0b0b0f", "#2a2218", "#E8C26A"], "gold and black"], ["rosa", "Rosa e lilás", ["#ffd1e6", "#c9a7ff", "#FF4F9A"], "pink and lilac"],
     ["azul", "Azul e branco", ["#0b2a5b", "#3f7fd6", "#ffffff"], "blue and white"], ["verde", "Verde", ["#0b3d2e", "#2fa36b", "#d7f5c8"], "green tones"], ["vermelho", "Vermelho", ["#3b0606", "#c62828", "#ffcc80"], "red and warm"],
@@ -134,7 +151,11 @@
     divertido: { nome: "Divertido", s: ["Lobster", 400], d: ["Fredoka", 600], b: ["Inter", 600] },
     impacto: { nome: "Impacto", s: ["Anton", 400], d: ["Anton", 400], b: ["Inter", 700] },
     manuscrito: { nome: "Manuscrito", s: ["Dancing Script", 700], d: ["Caveat", 700], b: ["Inter", 600] },
-    neon: { nome: "Neon", s: ["Righteous", 400], d: ["Michroma", 400], b: ["Inter", 600] }
+    neon: { nome: "Neon", s: ["Righteous", 400], d: ["Michroma", 400], b: ["Inter", 600] },
+    gamer: { nome: "Gamer", s: ["Russo One", 400], d: ["Bungee", 400], b: ["Inter", 700] },
+    esporte: { nome: "Esporte", s: ["Bungee", 400], d: ["Russo One", 400], b: ["Inter", 700] },
+    rock: { nome: "Rock", s: ["Permanent Marker", 400], d: ["Anton", 400], b: ["Inter", 700] },
+    country: { nome: "Country", s: ["Rye", 400], d: ["Rye", 400], b: ["Inter", 600] }
   };
   var FORMATOS = [["story", "STORY 9:16", 1080, 1920], ["post", "POST 4:5", 1080, 1350], ["quadrado", "QUADRADO", 1080, 1080], ["paisagem", "PAISAGEM 16:9", 1920, 1080],
     ["a5", "A5 IMPRIMIR", 1748, 2480], ["a4", "A4 IMPRIMIR", 2480, 3508], ["cartao", "CARTÃO 9×5", 1063, 591]];
@@ -346,6 +367,81 @@
     }
     x.globalAlpha = 1; fundoNovo(x, W, H, m, cs, r, est); x.globalAlpha = 1; x.globalCompositeOperation = "source-over"; void claro; return c;
   }
+  /* 22/11 — nichos adultos (gamer, esporte, música, festas): desenho próprio, sem marca, time, jogo ou artista de verdade */
+  function fundoAdulto(x, W, H, m, cs, r, est) {
+    var i, k;
+    if (est === "gamer") {
+      x.globalAlpha = 0.25; x.strokeStyle = cs[2]; x.lineWidth = Math.max(1, m * 0.0015);
+      for (i = 0; i <= 14; i++) { var yy = H * 0.62 + Math.pow(i / 14, 2) * H * 0.38; x.beginPath(); x.moveTo(0, yy); x.lineTo(W, yy); x.stroke(); }
+      for (i = -12; i <= 12; i++) { x.beginPath(); x.moveTo(W / 2 + i * m * 0.02, H * 0.62); x.lineTo(W / 2 + i * m * 0.2, H); x.stroke(); }
+      x.globalAlpha = 0.8; x.lineWidth = Math.max(1.5, m * 0.004); var mg = m * 0.05, c = m * 0.08;
+      [[mg, mg, 1, 1], [W - mg, mg, -1, 1], [W - mg, H - mg, -1, -1], [mg, H - mg, 1, -1]].forEach(function (q, j) { x.strokeStyle = j % 2 ? "#FF2FB9" : cs[2]; x.beginPath(); x.moveTo(q[0], q[1] + q[3] * c); x.lineTo(q[0], q[1]); x.lineTo(q[0] + q[2] * c, q[1]); x.stroke(); });
+      for (i = 0; i < 40; i++) { x.globalAlpha = 0.5; x.fillStyle = i % 2 ? cs[2] : "#FF2FB9"; var q2 = m * 0.008; x.fillRect(Math.floor(r() * W / q2) * q2, Math.floor(r() * H * 0.6 / q2) * q2, q2, q2); }
+      return true;
+    }
+    if (est === "futebol" || est === "basquete") {
+      if (est === "futebol") { for (i = 0; i < 10; i++) { x.globalAlpha = 0.12; x.fillStyle = i % 2 ? "#ffffff" : "#000000"; x.fillRect(0, H * i / 10, W, H / 10); } }
+      else { for (i = 0; i < 30; i++) { x.globalAlpha = 0.07; x.fillStyle = i % 2 ? "#000" : "#fff"; x.fillRect(W * i / 30, 0, W / 30, H); } }
+      x.globalAlpha = 0.6; x.strokeStyle = "#fff"; x.lineWidth = Math.max(2, m * 0.006); x.beginPath(); x.moveTo(0, H / 2); x.lineTo(W, H / 2); x.stroke(); x.beginPath(); x.arc(W / 2, H / 2, m * 0.2, 0, 7); x.stroke();
+      x.strokeRect(W * 0.22, -2, W * 0.56, H * 0.14); x.strokeRect(W * 0.22, H * 0.86, W * 0.56, H * 0.15);
+      for (i = 0; i < 4; i++) { var lx = W * (i < 2 ? 0.05 : 0.95), ly = H * (i % 2 ? 0.02 : 0.98), lg = x.createRadialGradient(lx, ly, 0, lx, ly, m * 0.6); lg.addColorStop(0, "rgba(255,255,230,.35)"); lg.addColorStop(1, "rgba(255,255,230,0)"); x.globalAlpha = 1; x.fillStyle = lg; x.fillRect(0, 0, W, H); }
+      return true;
+    }
+    if (est === "fitness" || est === "corrida") {
+      for (i = 0; i < 6; i++) { x.globalAlpha = 0.18 + i * 0.03; x.fillStyle = i % 2 ? cs[2] : "#ffffff"; x.beginPath(); var o = W * (i * 0.22 - 0.3); x.moveTo(o, H); x.lineTo(o + W * 0.12, H); x.lineTo(o + W * 0.62, 0); x.lineTo(o + W * 0.5, 0); x.fill(); }
+      if (est === "corrida") { var q = m * 0.04; for (i = 0; i < Math.ceil(W / q); i++) for (k = 0; k < 2; k++) { x.globalAlpha = 0.9; x.fillStyle = (i + k) % 2 ? "#fff" : "#111"; x.fillRect(i * q, k * q, q, q); x.fillRect(i * q, H - (k + 1) * q, q, q); } }
+      return true;
+    }
+    if (est === "rock") {
+      for (i = 0; i < 1800; i++) { x.globalAlpha = 0.06 + r() * 0.08; x.fillStyle = r() < 0.5 ? "#fff" : "#000"; x.fillRect(r() * W, r() * H, m * 0.004, m * 0.004); }
+      var lr = x.createRadialGradient(W / 2, -H * 0.1, 0, W / 2, -H * 0.1, H); lr.addColorStop(0, "rgba(229,57,53,.55)"); lr.addColorStop(1, "rgba(229,57,53,0)"); x.globalAlpha = 1; x.fillStyle = lr; x.fillRect(0, 0, W, H);
+      x.globalAlpha = 0.6; x.strokeStyle = "#fff"; x.lineWidth = m * 0.004; for (i = 0; i < 4; i++) { x.beginPath(); var sx = r() * W, sy = r() * H * 0.5; x.moveTo(sx, sy); for (k = 0; k < 4; k++) x.lineTo(sx + (r() - 0.5) * m * 0.1, sy + k * m * 0.03); x.stroke(); }
+      return true;
+    }
+    if (est === "sertanejo") {
+      for (i = 0; i < 12; i++) { x.globalAlpha = 0.18; x.fillStyle = i % 2 ? "#000" : "#fff"; x.fillRect(0, H * (0.55 + i * 0.04), W, H * 0.02); }
+      for (i = 0; i < 80; i++) { x.globalAlpha = 0.4 + r() * 0.6; x.fillStyle = "#fff8e1"; x.beginPath(); x.arc(r() * W, r() * H * 0.5, m * (0.001 + r() * 0.003), 0, 7); x.fill(); }
+      x.globalAlpha = 0.9; x.fillStyle = "#1a0f08"; x.beginPath(); x.moveTo(0, H * 0.55); for (i = 0; i <= 10; i++) x.lineTo(W * i / 10, H * (0.5 + r() * 0.05)); x.lineTo(W, H * 0.6); x.lineTo(0, H * 0.6); x.fill();
+      return true;
+    }
+    if (est === "samba") {
+      for (i = 0; i < 30; i++) { x.globalAlpha = 0.2; x.strokeStyle = ["#ffd23f", "#5ccf7a", "#ff4f7b", "#4fc3f7"][i % 4]; x.lineWidth = m * 0.01; x.beginPath(); var y0 = r() * H; x.moveTo(-10, y0); x.bezierCurveTo(W * 0.3, y0 - m * 0.2, W * 0.7, y0 + m * 0.2, W + 10, y0 - m * 0.1); x.stroke(); }
+      for (i = 0; i < 18; i++) { x.globalAlpha = 0.5; circ2(x, r() * W, r() * H, m * (0.01 + r() * 0.02), ["#ffd23f", "#fff", "#ff4f7b"][i % 3]); }
+      return true;
+    }
+    if (est === "eletronica") {
+      x.globalCompositeOperation = "lighter"; for (i = 0; i < 14; i++) { x.globalAlpha = 0.25; x.strokeStyle = ["#00f0ff", "#ff2fb9", "#b388ff"][i % 3]; x.lineWidth = Math.max(1, m * 0.003); x.beginPath(); x.moveTo(W / 2, H * 0.35); var a = Math.PI * 2 * i / 14 + r() * 0.2; x.lineTo(W / 2 + Math.cos(a) * W * 1.4, H * 0.35 + Math.sin(a) * W * 1.4); x.stroke(); }
+      x.globalCompositeOperation = "source-over"; var n = 30, bw = W / n; for (i = 0; i < n; i++) { var hh = H * (0.04 + r() * 0.16); x.globalAlpha = 0.55; x.fillStyle = i % 2 ? cs[2] : "#00f0ff"; x.fillRect(i * bw + bw * 0.2, H - hh, bw * 0.6, hh); }
+      return true;
+    }
+    if (est === "retro80") {
+      var sy0 = H * 0.42, sr = m * 0.3, sg = x.createLinearGradient(0, sy0 - sr, 0, sy0 + sr); sg.addColorStop(0, "#ffd23f"); sg.addColorStop(1, "#ff2fb9");
+      x.save(); x.beginPath(); x.arc(W / 2, sy0, sr, 0, 7); x.clip(); x.fillStyle = sg; x.fillRect(0, 0, W, H); x.fillStyle = cs[0]; for (i = 0; i < 6; i++) x.fillRect(0, sy0 + sr * (0.1 + i * 0.16), W, sr * 0.04 + i * sr * 0.015); x.restore();
+      x.fillStyle = cs[0]; x.globalAlpha = 1; x.fillRect(0, H * 0.6, W, H * 0.4); x.strokeStyle = cs[2]; x.globalAlpha = 0.7; x.lineWidth = Math.max(1, m * 0.003);
+      for (i = 0; i <= 12; i++) { var yy2 = H * 0.6 + Math.pow(i / 12, 2) * H * 0.4; x.beginPath(); x.moveTo(0, yy2); x.lineTo(W, yy2); x.stroke(); }
+      for (i = -10; i <= 10; i++) { x.beginPath(); x.moveTo(W / 2 + i * m * 0.03, H * 0.6); x.lineTo(W / 2 + i * m * 0.25, H); x.stroke(); }
+      return true;
+    }
+    if (est === "vinho") {
+      for (i = 0; i < 16; i++) { var cx = r() * W, cy = r() * H, rr = m * (0.04 + r() * 0.1), g = x.createRadialGradient(cx, cy, 0, cx, cy, rr); g.addColorStop(0, "rgba(255,190,120,.35)"); g.addColorStop(1, "rgba(255,190,120,0)"); x.globalAlpha = 1; x.fillStyle = g; x.beginPath(); x.arc(cx, cy, rr, 0, 7); x.fill(); }
+      x.globalAlpha = 0.7; x.strokeStyle = cs[2]; x.lineWidth = Math.max(1, m * 0.0025); var mv = m * 0.05; x.strokeRect(mv, mv, W - 2 * mv, H - 2 * mv);
+      return true;
+    }
+    if (est === "luau") {
+      var lua = x.createRadialGradient(W * 0.5, H * 0.22, 0, W * 0.5, H * 0.22, m * 0.25); lua.addColorStop(0, "#fff8e1"); lua.addColorStop(0.35, "#ffe6a8"); lua.addColorStop(0.38, "rgba(255,230,170,.25)"); lua.addColorStop(1, "rgba(255,230,170,0)"); x.globalAlpha = 1; x.fillStyle = lua; x.fillRect(0, 0, W, H);
+      x.fillStyle = "#06142B"; x.fillRect(0, H * 0.55, W, H * 0.45); x.globalAlpha = 0.5; x.strokeStyle = "#ffe6a8"; x.lineWidth = Math.max(1, m * 0.003); for (i = 0; i < 12; i++) { var wy = H * (0.57 + i * 0.03), ww = m * (0.3 - i * 0.015); x.beginPath(); x.moveTo(W / 2 - ww, wy); x.lineTo(W / 2 + ww, wy); x.stroke(); }
+      [0.1, 0.9].forEach(function (fx) { var tx = W * fx, ty = H * 0.62; x.globalAlpha = 1; x.fillStyle = "#4a2a14"; x.fillRect(tx - m * 0.006, ty, m * 0.012, H * 0.3); var fg = x.createRadialGradient(tx, ty, 0, tx, ty, m * 0.08); fg.addColorStop(0, "rgba(255,180,70,.9)"); fg.addColorStop(1, "rgba(255,120,30,0)"); x.fillStyle = fg; x.beginPath(); x.arc(tx, ty, m * 0.08, 0, 7); x.fill(); });
+      return true;
+    }
+    if (est === "cinema") {
+      [0, 1].forEach(function (s) { for (i = 0; i < 8; i++) { var cx2 = s ? W - W * 0.04 * i : W * 0.04 * i, g2 = x.createLinearGradient(cx2 - W * 0.02, 0, cx2 + W * 0.02, 0); g2.addColorStop(0, "#3a0508"); g2.addColorStop(0.5, "#a3141f"); g2.addColorStop(1, "#3a0508"); x.globalAlpha = 1; x.fillStyle = g2; x.fillRect(cx2 - W * 0.02, 0, W * 0.04, H); } });
+      x.fillStyle = "#7a0c14"; x.beginPath(); x.moveTo(0, 0); x.lineTo(W, 0); x.lineTo(W, H * 0.06); for (i = 10; i >= 0; i--) x.quadraticCurveTo(W * (i + 0.5) / 10, H * 0.1, W * i / 10, H * 0.06); x.fill();
+      var sp = x.createRadialGradient(W / 2, H * 0.45, 0, W / 2, H * 0.45, m * 0.5); sp.addColorStop(0, "rgba(255,240,200,.25)"); sp.addColorStop(1, "rgba(255,240,200,0)"); x.fillStyle = sp; x.fillRect(0, 0, W, H);
+      return true;
+    }
+    return false;
+  }
+  function circ2(x, cx, cy, r, c) { x.fillStyle = c; x.beginPath(); x.arc(cx, cy, r, 0, 7); x.fill(); }
   /* 22/11 — estilos novos (desenho próprio, nada de arte de terceiros) */
   function fundoNovo(x, W, H, m, cs, r, est) {
     var i, n, k;
@@ -408,6 +504,7 @@
       var nr = 24; for (i = 0; i < nr; i++) { x.globalAlpha = 1; x.fillStyle = i % 2 ? "#B3122E" : "#F4E9D8"; x.beginPath(); x.moveTo(W / 2, -H * 0.1); var a5 = Math.PI * i / nr, a6 = Math.PI * (i + 1) / nr; x.lineTo(W / 2 + Math.cos(a5) * Math.max(W, H) * 1.5, -H * 0.1 + Math.sin(a5) * Math.max(W, H) * 1.5); x.lineTo(W / 2 + Math.cos(a6) * Math.max(W, H) * 1.5, -H * 0.1 + Math.sin(a6) * Math.max(W, H) * 1.5); x.fill(); }
       x.fillStyle = "#B3122E"; var ns = 9; for (i = 0; i < ns; i++) { x.beginPath(); x.arc(W * (i + 0.5) / ns, 0, W / ns / 2, 0, Math.PI); x.fill(); }
       x.fillStyle = cs[2]; for (i = 0; i < ns; i++) { x.beginPath(); x.arc(W * (i + 0.5) / ns, W / ns / 2, m * 0.01, 0, 7); x.fill(); }
+    } else if (fundoAdulto(x, W, H, m, cs, r, est)) {
     } else if (est === "safari") {
       var solS = x.createRadialGradient(W * 0.75, H * 0.2, 0, W * 0.75, H * 0.2, m * 0.25); solS.addColorStop(0, "rgba(255,220,120,.9)"); solS.addColorStop(1, "rgba(255,200,100,0)"); x.fillStyle = solS; x.fillRect(0, 0, W, H);
       for (i = 0; i < 22; i++) folha(x, (i % 2 ? W : 0) + (r() - 0.5) * W * 0.25, (i < 11 ? r() * H * 0.3 : H - r() * H * 0.3), m * (0.15 + r() * 0.12), (i % 2 ? Math.PI : 0) + (r() - 0.5) * 1.4, ["#2E6B3A", "#3f8f4e", "#5aa85f", "#1f5a2e"][i % 4]);
@@ -780,7 +877,7 @@
   /* ================= 22/11 — BIBLIOTECA DE CONVITES + CONVITE ANIMADO =================
      Modelos ORIGINAIS (inspirados nas ocasiões mais pedidas, nada copiado de site de terceiros): cada um é só uma
      combinação de modelo + estilo + cores + fontes + animação. Miniaturas desenhadas aqui mesmo, com dados de exemplo. */
-  var BIB_CATS = [["", "Todos"], ["anim", "✨ Animados"], ["aniv", "Aniversário"], ["inf", "Infantil"], ["quinze", "15 anos"], ["amor", "Casamento e amor"], ["bebe", "Bebê e família"], ["empresa", "Formatura e empresa"], ["datas", "Datas e festas"]];
+  var BIB_CATS = [["", "Todos"], ["anim", "✨ Animados"], ["gamer", "🎮 Gamer"], ["esporte", "⚽ Esporte"], ["musica", "🎵 Música"], ["adulto", "🍻 Festas adultas"], ["aniv", "Aniversário"], ["inf", "Infantil"], ["quinze", "15 anos"], ["amor", "Casamento e amor"], ["bebe", "Bebê e família"], ["empresa", "Formatura e empresa"], ["datas", "Datas e festas"]];
   function M(id, nome, cat, sub, estilo, paleta, par, an, aj) { return { id: id, nome: nome, cat: cat, sub: sub, estilo: estilo, paleta: paleta || "", par: par || "", anim: an || null, aj: aj || {} }; }
   var MODELOS_CONVITE = [
     M("an-neon", "Neon party", "aniv", "aniversario", "neon", "", "neon", { o: ["luzes"], tx: "zoom" }),
@@ -830,7 +927,31 @@
     M("da-natal", "Natal", "datas", "natal", "natal", "", "classico", { i: ["arvore"], o: ["neve"], tx: "suave" }),
     M("da-reveillon", "Réveillon", "datas", "reveillon", "espacial", "ouro", "elegante", { o: ["fogos", "glitter"], tx: "brilho" }),
     M("da-despedida", "Despedida", "datas", "despedida", "neon", "", "neon", { i: ["tacas"], o: ["luzes"], tx: "zoom" }),
-    M("da-lousa", "Lousa", "datas", "aniversario", "lousa", "", "manuscrito", { i: ["estrela"], tx: "digitar" })
+    M("da-lousa", "Lousa", "datas", "aniversario", "lousa", "", "manuscrito", { i: ["estrela"], tx: "digitar" }),
+    M("ga-setup", "Setup gamer", "gamer", "aniversario", "gamer", "", "gamer", { i: ["controle"], o: ["pixels"], tx: "zoom" }),
+    M("ga-camp", "Campeonato", "gamer", "campeonato", "gamer", "", "gamer", { i: ["trofeu", "controle"], o: ["laser"], tx: "subir" }),
+    M("ga-lan", "Noite de jogos", "gamer", "festa", "gamer", "", "gamer", { i: ["fone"], o: ["pixels"], tx: "digitar" }),
+    M("ga-retro", "Fliperama 80", "gamer", "aniversario", "retro80", "", "gamer", { i: ["controle"], o: ["estrelas"], tx: "zoom" }),
+    M("es-gramado", "Gramado", "esporte", "aniversario", "futebol", "", "esporte", { i: ["bolafut"], o: ["confete"], tx: "zoom" }),
+    M("es-telao", "Jogo no telão", "esporte", "jogo", "futebol", "", "esporte", { i: ["bolafut", "chopp"], o: ["flashes"], tx: "subir" }),
+    M("es-campeao", "Campeão", "esporte", "campeonato", "futebol", "ouro", "esporte", { i: ["trofeu"], o: ["confete", "flashes"], tx: "zoom" }),
+    M("es-quadra", "Quadra", "esporte", "campeonato", "basquete", "", "esporte", { i: ["bolabasq"], o: ["holofotes"], tx: "zoom" }),
+    M("es-treino", "Fitness", "esporte", "aniversario", "fitness", "", "esporte", { i: ["haltere"], tx: "subir" }),
+    M("es-corrida", "Velocidade", "esporte", "aniversario", "corrida", "", "esporte", { i: ["carro"], o: ["confete"], tx: "zoom" }),
+    M("mu-rock", "Rock", "musica", "show", "rock", "", "rock", { i: ["violao"], o: ["holofotes", "fumaca"], tx: "zoom" }),
+    M("mu-sertanejo", "Sertanejo", "musica", "aniversario", "sertanejo", "", "country", { i: ["chapeu", "violao"], o: ["cordao"], tx: "subir" }),
+    M("mu-pagode", "Samba e pagode", "musica", "aniversario", "samba", "", "festa", { i: ["pandeiro"], o: ["notas"], tx: "subir" }),
+    M("mu-eletronica", "Eletrônica", "musica", "festa", "eletronica", "", "neon", { i: ["fone"], o: ["laser", "equalizador"], tx: "zoom" }),
+    M("mu-karaoke", "Karaokê", "musica", "aniversario", "palco", "", "neon", { i: ["microfone"], o: ["notas", "holofotes"], tx: "brilho" }),
+    M("mu-vinil", "Vinil", "musica", "aniversario", "vintage", "", "classico", { i: ["vinil"], o: ["notas"], tx: "digitar" }),
+    M("mu-show", "Show ao vivo", "musica", "show", "palco", "", "impacto", { i: ["microfone"], o: ["holofotes", "fumaca", "flashes"], tx: "zoom" }),
+    M("ad-cerveja", "Cervejada", "adulto", "festa", "rustico", "", "manuscrito", { i: ["chopp"], o: ["cordao"], tx: "subir" }),
+    M("ad-vinho", "Noite do vinho", "adulto", "aniversario", "vinho", "", "elegante", { i: ["vinho"], o: ["glitter"], tx: "brilho" }),
+    M("ad-blacktie", "Black tie", "adulto", "festa", "luxo", "pb", "elegante", { i: ["tacas"], o: ["glitter"], tx: "brilho" }),
+    M("ad-luau", "Luau", "adulto", "festa", "luau", "", "manuscrito", { o: ["estrelas"], tx: "suave" }),
+    M("ad-cinema", "Sessão de cinema", "adulto", "festa", "cinema", "", "impacto", { i: ["pipoca", "claquete"], o: ["holofotes"], tx: "zoom" }),
+    M("ad-anos80", "Festa anos 80", "adulto", "festa", "retro80", "", "neon", { i: ["vinil"], o: ["laser"], tx: "zoom" }),
+    M("ad-balada", "Balada", "adulto", "aniversario", "eletronica", "", "neon", { i: ["caixasom"], o: ["laser", "equalizador"], tx: "zoom" })
   ];
   var CAIXA_ESTILO = { marmore: "nenhum", aquarela: "nenhum", vintage: "nenhum", minimal: "nenhum", bebe: "nenhum", floral: "vidro", infantil: "vidro", safari: "vidro", circo: "vidro", praia: "vidro" };
   var VAGAS = [[0.18, 0.13], [0.82, 0.13], [0.84, 0.36], [0.16, 0.36], [0.5, 0.09], [0.2, 0.92], [0.8, 0.92]];
@@ -872,7 +993,7 @@
   }
 
   /* ----- painel do convite animado ----- */
-  var ITEM_ORDEM = ["ursinho", "coelho", "gato", "cachorro", "passarinho", "borboleta", "peixe", "joaninha", "abelha", "dino", "unicornio", "leao", "patinho", "pomba", "foguete", "coracao", "estrela", "balao", "bolo", "tacas", "presente", "coroa", "aliancas", "capelo", "lua", "abobora", "arvore"];
+  var ITEM_ORDEM = ["controle", "bolafut", "trofeu", "violao", "microfone", "nota", "vinil", "fone", "caixasom", "chopp", "vinho", "pipoca", "claquete", "haltere", "bolabasq", "carro", "pandeiro", "chapeu", "ursinho", "coelho", "gato", "cachorro", "passarinho", "borboleta", "peixe", "joaninha", "abelha", "dino", "unicornio", "leao", "patinho", "pomba", "foguete", "coracao", "estrela", "balao", "bolo", "tacas", "presente", "coroa", "aliancas", "capelo", "lua", "abobora", "arvore"];
   var MINI_IT = {}, MINI_EF = {};
   function desenharAnim() {
     var A = window.BWConviteAnim, card = $("animCard"); if (!card) return; if (!A) { card.hidden = true; return; }

@@ -226,6 +226,114 @@
       [-12, 12].forEach(function (cx) { x.beginPath(); x.moveTo(cx - 7, 2); x.lineTo(cx, -8); x.lineTo(cx + 7, 2); x.fill(); });
       x.beginPath(); x.moveTo(-16, 14); x.lineTo(-8, 20); x.lineTo(0, 14); x.lineTo(8, 20); x.lineTo(16, 14); x.lineTo(12, 24); x.lineTo(-12, 24); x.fill(); x.restore();
     } },
+    controle: { nome: "Controle de game", cat: "adulto", f: function (x, t) {
+      x.translate(0, Math.sin(t * 3) * 3); x.rotate(Math.sin(t * 1.5) * 0.08);
+      x.fillStyle = "#2b2f3a"; x.beginPath(); x.moveTo(-30, -16); x.lineTo(30, -16); x.quadraticCurveTo(46, -16, 48, 6); x.quadraticCurveTo(50, 28, 36, 28); x.quadraticCurveTo(26, 28, 20, 14); x.lineTo(-20, 14); x.quadraticCurveTo(-26, 28, -36, 28); x.quadraticCurveTo(-50, 28, -48, 6); x.quadraticCurveTo(-46, -16, -30, -16); x.fill(); borda(x, "rgba(0,0,0,.4)");
+      x.fillStyle = "#8a93a8"; x.fillRect(-34, -3, 16, 5); x.fillRect(-28.5, -8.5, 5, 16);
+      [[30, -6, "#4fc3f7"], [38, 1, "#ff4f7b"], [22, 1, "#5ccf7a"], [30, 8, "#ffd23f"]].forEach(function (b, i) { var on = Math.floor(t * 4) % 4 === i; circ(x, b[0], b[1], on ? 4.6 : 3.8, b[2]); if (on) brilho(x, b[0], b[1] - 9, 4, 1, b[2]); });
+      circ(x, -9, 6, 5, "#1c1f27"); circ(x, 9, 6, 5, "#1c1f27"); x.fillStyle = "#00f0ff"; x.globalAlpha *= 0.5 + 0.5 * Math.sin(t * 4); x.fillRect(-6, -11, 12, 3);
+    } },
+    bolafut: { nome: "Bola de futebol", cat: "adulto", f: function (x, t) {
+      var c = t % 1.4, y = -Math.abs(Math.sin(c / 1.4 * Math.PI)) * 22; elip(x, 0, 36, 22 - (-y) * 0.4, 4, "rgba(0,0,0,.25)");
+      x.translate(0, y + 6); x.rotate(t * 3); circB(x, 0, 0, 28, "#fff");
+      x.fillStyle = "#1d1d1d"; var pent = function (cx, cy, r, a0) { x.beginPath(); for (var i = 0; i < 5; i++) { var a = a0 + TAU * i / 5; x.lineTo(cx + Math.cos(a) * r, cy + Math.sin(a) * r); } x.closePath(); x.fill(); };
+      pent(0, 0, 9, -Math.PI / 2); for (var i = 0; i < 5; i++) { var a = -Math.PI / 2 + TAU * i / 5; x.save(); x.beginPath(); x.arc(0, 0, 28, 0, TAU); x.clip(); pent(Math.cos(a) * 24, Math.sin(a) * 24, 8, a + Math.PI / 5); x.restore(); x.strokeStyle = "#1d1d1d"; x.lineWidth = 1.5; x.beginPath(); x.moveTo(Math.cos(a) * 9, Math.sin(a) * 9); x.lineTo(Math.cos(a) * 17, Math.sin(a) * 17); x.stroke(); }
+    } },
+    trofeu: { nome: "Troféu", cat: "adulto", f: function (x, t) {
+      x.translate(0, Math.sin(t * 2) * 2); var g = x.createLinearGradient(-26, 0, 26, 0); g.addColorStop(0, "#d9a12c"); g.addColorStop(0.5, "#ffe79a"); g.addColorStop(1, "#c08a1e");
+      x.strokeStyle = "#d9a12c"; x.lineWidth = 5; [-1, 1].forEach(function (s) { x.beginPath(); x.arc(s * 24, -14, 10, s > 0 ? -Math.PI / 2 : Math.PI / 2, s > 0 ? Math.PI / 2 : Math.PI * 1.5, s < 0); x.stroke(); });
+      x.fillStyle = g; x.beginPath(); x.moveTo(-24, -32); x.lineTo(24, -32); x.quadraticCurveTo(24, 6, 0, 10); x.quadraticCurveTo(-24, 6, -24, -32); x.fill(); x.fillRect(-4, 8, 8, 14); x.fillRect(-16, 22, 32, 8); x.fillStyle = "#6b4a2b"; x.fillRect(-20, 30, 40, 8);
+      x.save(); x.beginPath(); x.moveTo(-24, -32); x.lineTo(24, -32); x.quadraticCurveTo(24, 6, 0, 10); x.quadraticCurveTo(-24, 6, -24, -32); x.clip(); var p = ((t % 2) / 2) * 90 - 45; x.fillStyle = "rgba(255,255,255,.6)"; x.fillRect(p, -34, 7, 50); x.restore();
+      estrelaPath(x, 0, -14, 8, 5, 0.45); x.fillStyle = "#fff3c4"; x.fill(); brilho(x, 30, -38, 6, Math.abs(Math.sin(t * 3)), "#fff");
+    } },
+    violao: { nome: "Violão", cat: "adulto", f: function (x, t) {
+      x.rotate(-0.6 + Math.sin(t * 2) * 0.06);
+      x.fillStyle = "#6b3f1d"; x.fillRect(-4, -46, 8, 40); x.fillStyle = "#3a2214"; x.fillRect(-6, -54, 12, 10);
+      elip(x, 0, 2, 18, 16, "#d98a3c"); elip(x, 0, 24, 24, 20, "#d98a3c"); x.beginPath(); x.ellipse(0, 24, 24, 20, 0, 0, TAU); borda(x, "#8a4f1d");
+      circ(x, 0, 8, 6.5, "#3a2214"); x.fillStyle = "#3a2214"; x.fillRect(-9, 32, 18, 4);
+      x.strokeStyle = "rgba(255,255,255,.8)"; x.lineWidth = 0.8; for (var i = -2; i <= 2; i++) { var v = Math.sin(t * 40 + i) * (Math.sin(t * 2) > 0.6 ? 1.2 : 0); x.beginPath(); x.moveTo(i * 1.5, -50); x.quadraticCurveTo(i * 1.5 + v, -10, i * 1.5, 33); x.stroke(); }
+    } },
+    microfone: { nome: "Microfone", cat: "adulto", f: function (x, t) {
+      x.rotate(0.35 + Math.sin(t * 2.5) * 0.08);
+      x.fillStyle = "#2b2f3a"; x.beginPath(); x.moveTo(-8, 4); x.lineTo(8, 4); x.lineTo(5, 46); x.lineTo(-5, 46); x.fill();
+      var g = x.createRadialGradient(-5, -22, 2, 0, -14, 20); g.addColorStop(0, "#f5f7fb"); g.addColorStop(1, "#8a93a8"); circ(x, 0, -14, 19, "#8a93a8"); x.fillStyle = g; x.beginPath(); x.arc(0, -14, 19, 0, TAU); x.fill();
+      x.strokeStyle = "rgba(40,45,60,.45)"; x.lineWidth = 1; for (var i = -2; i <= 2; i++) { x.beginPath(); x.moveTo(-18, -14 + i * 6); x.lineTo(18, -14 + i * 6); x.stroke(); x.beginPath(); x.moveTo(i * 6, -32); x.lineTo(i * 6, 4); x.stroke(); }
+      x.fillStyle = "#ffd23f"; x.fillRect(-10, 3, 20, 5);
+      for (var k = 0; k < 3; k++) { var p = (t * 0.9 + k / 3) % 1; x.save(); x.globalAlpha *= 1 - p; x.strokeStyle = "#ffd23f"; x.lineWidth = 2; x.beginPath(); x.arc(0, -14, 22 + p * 22, -0.6, 0.6); x.stroke(); x.restore(); }
+    } },
+    nota: { nome: "Notas musicais", cat: "adulto", f: function (x, t) {
+      [[-14, 6, 0, "#ff4f7b"], [16, -4, 1.3, "#4fc3f7"]].forEach(function (n) { x.save(); x.translate(n[0], n[1] + Math.sin(t * 2.5 + n[2]) * 6); x.rotate(Math.sin(t * 2 + n[2]) * 0.15);
+        elip(x, 0, 18, 9, 7, n[3], -0.4); x.fillStyle = n[3]; x.fillRect(6, -22, 4, 40); x.beginPath(); x.moveTo(10, -22); x.quadraticCurveTo(26, -14, 22, 0); x.quadraticCurveTo(22, -10, 10, -12); x.fill(); x.restore(); });
+    } },
+    vinil: { nome: "Disco de vinil", cat: "adulto", f: function (x, t) {
+      x.save(); x.rotate(t * 3); circ(x, 0, 0, 38, "#141418"); x.strokeStyle = "rgba(255,255,255,.12)"; x.lineWidth = 1; for (var r = 14; r < 37; r += 3) { x.beginPath(); x.arc(0, 0, r, 0, TAU); x.stroke(); }
+      x.strokeStyle = "rgba(255,255,255,.35)"; x.lineWidth = 2; x.beginPath(); x.arc(0, 0, 30, -0.8, -0.2); x.stroke(); circ(x, 0, 0, 12, "#ff4f7b"); circ(x, 0, -6, 2, "#fff"); circ(x, 0, 0, 2.5, "#141418"); x.restore();
+    } },
+    fone: { nome: "Fone de ouvido", cat: "adulto", f: function (x, t) {
+      var p = 1 + Math.max(0, Math.sin(t * 8)) * 0.05; x.scale(p, p);
+      x.strokeStyle = "#2b2f3a"; x.lineWidth = 7; x.lineCap = "round"; x.beginPath(); x.arc(0, 4, 32, Math.PI * 1.05, Math.PI * 1.95); x.stroke();
+      [-1, 1].forEach(function (s) { x.fillStyle = "#2b2f3a"; x.beginPath(); x.ellipse(s * 32, 10, 11, 17, 0, 0, TAU); x.fill(); elip(x, s * 32, 10, 6, 11, "#00f0ff"); });
+      for (var i = 0; i < 3; i++) { var q = (t * 1.2 + i / 3) % 1; x.save(); x.globalAlpha *= 1 - q; x.strokeStyle = "#00f0ff"; x.lineWidth = 2; [-1, 1].forEach(function (s) { x.beginPath(); x.arc(s * 32, 10, 18 + q * 14, s > 0 ? -0.7 : Math.PI - 0.7, s > 0 ? 0.7 : Math.PI + 0.7); x.stroke(); }); x.restore(); }
+    } },
+    caixasom: { nome: "Caixa de som", cat: "adulto", f: function (x, t) {
+      var b = Math.pow(Math.max(0, Math.sin(t * 7.5)), 4); x.fillStyle = "#23262f"; x.fillRect(-26, -40, 52, 80); x.strokeStyle = "rgba(255,255,255,.15)"; x.lineWidth = 2; x.strokeRect(-26, -40, 52, 80);
+      circ(x, 0, -22, 9, "#3a3f4b"); circ(x, 0, -22, 4, "#111"); circ(x, 0, 14, 18 + b * 3, "#3a3f4b"); circ(x, 0, 14, 10 + b * 2, "#111"); circ(x, 0, 14, 4, "#555");
+      x.save(); x.globalAlpha *= b; x.strokeStyle = "#b388ff"; x.lineWidth = 2; x.beginPath(); x.arc(0, 14, 26, 0, TAU); x.stroke(); x.restore();
+    } },
+    chopp: { nome: "Caneca de chope", cat: "adulto", f: function (x, t) {
+      var c = (t % 2.6) / 2.6, k = c < 0.35 ? Math.sin(c / 0.35 * Math.PI) : 0; x.rotate(-k * 0.3);
+      x.strokeStyle = "rgba(255,255,255,.85)"; x.lineWidth = 6; x.beginPath(); x.moveTo(22, -16); x.quadraticCurveTo(40, -14, 38, 6); x.quadraticCurveTo(36, 20, 22, 18); x.stroke();
+      x.fillStyle = "#f5b020"; x.fillRect(-22, -20, 44, 52); x.fillStyle = "rgba(255,255,255,.3)"; x.fillRect(-16, -14, 5, 40);
+      for (var i = 0; i < 5; i++) { var q = (t * 0.7 + i / 5) % 1; circ(x, -14 + i * 7, 28 - q * 44, 1.6, "rgba(255,255,255,.8)"); }
+      x.fillStyle = "#fff"; [-16, -6, 4, 14].forEach(function (cx, i) { circ(x, cx, -22 + Math.sin(t * 2 + i) * 1.2, 9, "#fff"); });
+      x.strokeStyle = "rgba(0,0,0,.2)"; x.lineWidth = 2; x.strokeRect(-22, -20, 44, 52);
+    } },
+    vinho: { nome: "Taça de vinho", cat: "adulto", f: function (x, t) {
+      x.rotate(Math.sin(t * 1.4) * 0.08);
+      x.save(); x.beginPath(); x.moveTo(-20, -40); x.quadraticCurveTo(-24, -6, 0, 0); x.quadraticCurveTo(24, -6, 20, -40); x.clip(); var o = Math.sin(t * 2.5) * 3; x.fillStyle = "#8b1538"; x.beginPath(); x.moveTo(-26, -18 + o); x.quadraticCurveTo(0, -24 - o, 26, -18 + o); x.lineTo(26, 4); x.lineTo(-26, 4); x.fill(); x.restore();
+      x.strokeStyle = "rgba(255,255,255,.9)"; x.lineWidth = 2.2; x.beginPath(); x.moveTo(-20, -40); x.quadraticCurveTo(-24, -6, 0, 0); x.quadraticCurveTo(24, -6, 20, -40); x.stroke();
+      x.beginPath(); x.moveTo(0, 0); x.lineTo(0, 34); x.moveTo(-14, 36); x.quadraticCurveTo(0, 30, 14, 36); x.stroke(); brilho(x, -10, -30, 5, 0.5 + 0.5 * Math.sin(t * 3), "#fff");
+    } },
+    pipoca: { nome: "Pipoca", cat: "adulto", f: function (x, t) {
+      for (var i = 0; i < 3; i++) { var c = (t * 0.8 + i / 3) % 1, h0 = Math.sin(c * Math.PI) * 30; if (c < 0.9) circ(x, -14 + i * 14 + c * 8, -30 - h0, 6, "#fff8e1"); }
+      [-16, -6, 4, 14, -10, 0, 10].forEach(function (cx, i) { circ(x, cx, -20 - (i > 3 ? 8 : 0), 9, i % 2 ? "#fff8e1" : "#ffecb3"); });
+      x.save(); x.beginPath(); x.moveTo(-26, -18); x.lineTo(26, -18); x.lineTo(20, 40); x.lineTo(-20, 40); x.closePath(); x.clip(); x.fillStyle = "#fff"; x.fillRect(-30, -20, 60, 62);
+      x.fillStyle = "#e53935"; for (var k = -3; k <= 3; k += 2) { x.beginPath(); x.moveTo(k * 7 - 3.5, -20); x.lineTo(k * 7 + 3.5, -20); x.lineTo(k * 6 + 3, 42); x.lineTo(k * 6 - 3, 42); x.fill(); } x.restore();
+    } },
+    claquete: { nome: "Claquete", cat: "adulto", f: function (x, t) {
+      var c = (t % 2) / 2, a = c < 0.15 ? -0.5 * (1 - c / 0.15) : c < 0.25 ? 0 : -0.5 * Math.min(1, (c - 0.25) / 0.5);
+      x.fillStyle = "#23262f"; x.fillRect(-34, -10, 68, 44); x.fillStyle = "#fff"; x.fillRect(-28, 2, 56, 2); x.fillRect(-28, 14, 56, 2);
+      x.save(); x.translate(-34, -10); x.rotate(a); x.fillStyle = "#23262f"; x.fillRect(0, -12, 68, 12); x.fillStyle = "#fff"; for (var i = 0; i < 4; i++) { x.beginPath(); x.moveTo(6 + i * 16, -12); x.lineTo(14 + i * 16, -12); x.lineTo(8 + i * 16, 0); x.lineTo(0 + i * 16, 0); x.fill(); } x.restore();
+      if (c > 0.15 && c < 0.3) for (var k = 0; k < 4; k++) brilho(x, -30 + k * 20, -24, 5, 1, "#ffd23f");
+    } },
+    haltere: { nome: "Haltere", cat: "adulto", f: function (x, t) {
+      var u = Math.sin(t * 3) * 10; x.translate(0, u); x.fillStyle = "#8a93a8"; x.fillRect(-30, -3, 60, 6);
+      [-1, 1].forEach(function (s) { x.fillStyle = "#2b2f3a"; x.fillRect(s * 22 - 4, -18, 8, 36); x.fillRect(s * 32 - 4, -13, 8, 26); });
+      if (u < -8) for (var i = 0; i < 2; i++) brilho(x, -40 + i * 80, -24, 6, 1, "#ffd23f");
+    } },
+    bolabasq: { nome: "Bola de basquete", cat: "adulto", f: function (x, t) {
+      var c = t % 1, y = -Math.abs(Math.cos(c * Math.PI)) * 18; elip(x, 0, 36, 18, 3.5, "rgba(0,0,0,.25)"); x.translate(0, y); x.rotate(t);
+      circB(x, 0, 0, 27, "#e8743a"); x.strokeStyle = "#3a1d0a"; x.lineWidth = 2; x.beginPath(); x.moveTo(-27, 0); x.lineTo(27, 0); x.moveTo(0, -27); x.lineTo(0, 27); x.stroke();
+      x.beginPath(); x.arc(-34, 0, 22, -0.9, 0.9); x.stroke(); x.beginPath(); x.arc(34, 0, 22, Math.PI - 0.9, Math.PI + 0.9); x.stroke();
+    } },
+    carro: { nome: "Carrinho de corrida", cat: "adulto", f: function (x, t) {
+      x.translate(Math.sin(t * 2) * 4, Math.abs(Math.sin(t * 12)) * -1.5);
+      for (var i = 0; i < 3; i++) { x.strokeStyle = "rgba(255,255,255,.6)"; x.lineWidth = 2; var q = (t * 3 + i / 3) % 1; x.beginPath(); x.moveTo(-40 - q * 10, -2 + i * 8); x.lineTo(-30 - q * 10 + 10, -2 + i * 8); x.stroke(); }
+      x.fillStyle = "#e53935"; x.beginPath(); x.moveTo(-38, 10); x.lineTo(-34, -4); x.lineTo(-12, -6); x.lineTo(-2, -18); x.lineTo(16, -18); x.lineTo(24, -6); x.lineTo(40, -2); x.lineTo(40, 10); x.closePath(); x.fill(); borda(x);
+      x.fillStyle = "#4fc3f7"; x.beginPath(); x.moveTo(0, -15); x.lineTo(14, -15); x.lineTo(19, -7); x.lineTo(-6, -7); x.fill(); x.fillStyle = "#fff"; x.fillRect(-26, -2, 10, 8);
+      [-22, 26].forEach(function (cx) { x.save(); x.translate(cx, 12); x.rotate(t * 12); circ(x, 0, 0, 9, "#1d1d1d"); circ(x, 0, 0, 4, "#bbb"); x.fillStyle = "#1d1d1d"; x.fillRect(-1, -4, 2, 8); x.restore(); });
+    } },
+    pandeiro: { nome: "Pandeiro", cat: "adulto", f: function (x, t) {
+      var c = (t % 0.9) / 0.9, k = c < 0.2 ? Math.sin(c / 0.2 * Math.PI) : 0; x.rotate(-0.2 + k * 0.15); x.scale(1 + k * 0.05, 1 + k * 0.05);
+      circ(x, 0, 0, 32, "#d9a12c"); circ(x, 0, 0, 26, "#fff3e0"); x.strokeStyle = "#a8761a"; x.lineWidth = 2; x.beginPath(); x.arc(0, 0, 32, 0, TAU); x.stroke();
+      for (var i = 0; i < 6; i++) { var a = TAU * i / 6; x.save(); x.translate(Math.cos(a) * 29, Math.sin(a) * 29); x.rotate(a); x.fillStyle = "#c0c6d4"; x.fillRect(-3, -6 + k * 2, 6, 3); x.fillRect(-3, 3 - k * 2, 6, 3); x.restore(); }
+      if (k > 0.5) for (var j = 0; j < 3; j++) brilho(x, Math.cos(j * 2) * 40, Math.sin(j * 2) * 40, 6, k, "#ffd23f");
+    } },
+    chapeu: { nome: "Chapéu de vaqueiro", cat: "adulto", f: function (x, t) {
+      x.rotate(Math.sin(t * 2) * 0.1); x.translate(0, Math.sin(t * 2) * 2);
+      elip(x, 0, 12, 46, 11, "#8a5a2b"); x.fillStyle = "#a86f35"; x.beginPath(); x.moveTo(-22, 10); x.quadraticCurveTo(-26, -26, -10, -24); x.quadraticCurveTo(0, -18, 10, -24); x.quadraticCurveTo(26, -26, 22, 10); x.closePath(); x.fill(); borda(x, "#5a3a1a");
+      x.fillStyle = "#3a2214"; x.fillRect(-22, 0, 44, 6); estrelaPath(x, 0, 3, 5, 5, 0.45); x.fillStyle = "#ffd23f"; x.fill();
+    } },
     arvore: { nome: "Árvore de Natal", cat: "objeto", f: function (x, t) {
       x.fillStyle = "#7a4a2a"; x.fillRect(-6, 30, 12, 12);
       [[-34, 34, 0, 6], [-28, 14, 0, -14], [-20, -6, 0, -32]].forEach(function (c) { x.fillStyle = "#2e9e5a"; x.beginPath(); x.moveTo(c[0], c[1]); x.lineTo(-c[0], c[1]); x.lineTo(c[2], c[3] - 10); x.fill(); });
@@ -284,6 +392,27 @@
     folhas: { nome: "Folhas caindo", camada: "frente", f: function (x, W, H, t) {
       var m = Math.min(W, H); for (var i = 0; i < 22; i++) { var y = (rolar(h(i + 91) + t * (0.04 + h(i) * 0.04)) * 1.1 - 0.05) * H, xx = h(i + 92) * W + Math.sin(t * 1.2 + i) * m * 0.06;
         x.save(); x.translate(xx, y); x.rotate(t * 1.2 + i); x.globalAlpha = 0.9; x.fillStyle = ["#5ccf7a", "#3aa95a", "#ffb547", "#e8743a"][i % 4]; var s = m * (0.02 + h(i + 93) * 0.015); x.beginPath(); x.moveTo(-s, 0); x.quadraticCurveTo(0, -s * 0.7, s, 0); x.quadraticCurveTo(0, s * 0.7, -s, 0); x.fill(); x.restore(); } } },
+    equalizador: { nome: "Equalizador", camada: "frente", f: function (x, W, H, t, cs) {
+      var m = Math.min(W, H), n = 24, bw = W / n; for (var i = 0; i < n; i++) { var v = 0.25 + 0.75 * Math.abs(Math.sin(t * (3 + h(i) * 4) + i * 0.7)) * (0.5 + 0.5 * Math.sin(t * 7.5 + i)), hh = v * H * 0.14;
+        var g = x.createLinearGradient(0, H - hh, 0, H); g.addColorStop(0, cs[2] || "#00f0ff"); g.addColorStop(1, "#ff2fb9"); x.globalAlpha = 0.75; x.fillStyle = g; x.fillRect(i * bw + bw * 0.15, H - hh, bw * 0.7, hh); } x.globalAlpha = 1; void m; } },
+    notas: { nome: "Notas flutuando", camada: "frente", f: function (x, W, H, t) {
+      var m = Math.min(W, H); for (var i = 0; i < 12; i++) { var u = rolar(h(i + 101) + t * (0.05 + h(i) * 0.05)), py = (1.05 - u * 1.15) * H, px = h(i + 102) * W + Math.sin(t * 2 + i) * m * 0.04, s = m * (0.05 + h(i + 103) * 0.03) / 50;
+        x.save(); x.globalAlpha = Math.min(1, u * 5) * (1 - u); x.translate(px, py); x.scale(s, s); x.rotate(Math.sin(t + i) * 0.3); var c = ["#ff4f7b", "#4fc3f7", "#ffd23f", "#b388ff"][i % 4]; elip(x, 0, 18, 9, 7, c, -0.4); x.fillStyle = c; x.fillRect(6, -22, 4, 40); x.restore(); } } },
+    pixels: { nome: "Pixels caindo", camada: "frente", f: function (x, W, H, t) {
+      var m = Math.min(W, H), q = Math.max(3, Math.round(m * 0.014)); for (var i = 0; i < 60; i++) { var y = Math.floor(rolar(h(i + 111) + t * (0.05 + h(i) * 0.07)) * H / q) * q, xx = Math.floor(h(i + 112) * W / q) * q;
+        x.globalAlpha = 0.85; x.fillStyle = ["#00f0ff", "#ff2fb9", "#ffd23f", "#5ccf7a", "#b388ff"][i % 5]; x.fillRect(xx, y, q, q); x.globalAlpha = 0.35; x.fillRect(xx, y - q, q, q); } x.globalAlpha = 1; } },
+    holofotes: { nome: "Holofotes", camada: "fundo", f: function (x, W, H, t, cs) {
+      x.save(); x.globalCompositeOperation = "screen"; for (var i = 0; i < 4; i++) { var bx = W * (0.1 + i * 0.27), ang = Math.sin(t * (0.6 + i * 0.15) + i * 1.7) * 0.45, L = H * 1.2, w0 = Math.min(W, H) * 0.2;
+        x.save(); x.translate(bx, -10); x.rotate(ang); var g = x.createLinearGradient(0, 0, 0, L); g.addColorStop(0, i % 2 ? (cs[2] || "#fff") : "#ffffff"); g.addColorStop(1, "rgba(0,0,0,0)"); x.globalAlpha = 0.22; x.fillStyle = g; x.beginPath(); x.moveTo(-w0 * 0.08, 0); x.lineTo(w0 * 0.08, 0); x.lineTo(w0, L); x.lineTo(-w0, L); x.fill(); x.restore(); } x.restore(); } },
+    laser: { nome: "Laser", camada: "fundo", f: function (x, W, H, t) {
+      x.save(); x.globalCompositeOperation = "lighter"; var m = Math.min(W, H); for (var i = 0; i < 9; i++) { var ox = i % 2 ? 0 : W, oy = H * 0.15, ang = (i % 2 ? 0.2 : Math.PI - 0.2) + Math.sin(t * (1 + h(i)) + i) * 0.5 * (i % 2 ? 1 : -1);
+        x.strokeStyle = ["#00f0ff", "#ff2fb9", "#5ccf7a"][i % 3]; x.globalAlpha = 0.35 + 0.3 * Math.sin(t * 6 + i); x.lineWidth = Math.max(1, m * 0.003); x.beginPath(); x.moveTo(ox, oy); x.lineTo(ox + Math.cos(ang) * W * 1.5, oy + Math.sin(ang) * W * 1.5); x.stroke(); } x.restore(); } },
+    flashes: { nome: "Flashes de câmera", camada: "frente", f: function (x, W, H, t) {
+      var m = Math.min(W, H); for (var i = 0; i < 6; i++) { var P = 1.6 + h(i) * 1.6, c = rolar((t + h(i + 1) * P) / P) * P; if (c > 0.18) continue; var a = 1 - c / 0.18, px = h(i + 121 + Math.floor((t + h(i + 1) * P) / P)) * W, py = H * (0.2 + 0.6 * h(i + 122));
+        var g = x.createRadialGradient(px, py, 0, px, py, m * 0.12); g.addColorStop(0, "rgba(255,255,255," + a + ")"); g.addColorStop(1, "rgba(255,255,255,0)"); x.fillStyle = g; x.beginPath(); x.arc(px, py, m * 0.12, 0, TAU); x.fill(); brilho(x, px, py, m * 0.05, a, "#fff"); } } },
+    fumaca: { nome: "Fumaça de palco", camada: "fundo", f: function (x, W, H, t) {
+      var m = Math.min(W, H); for (var i = 0; i < 10; i++) { var px = rolar(h(i + 131) + t * 0.02 * (h(i) - 0.5)) * W, py = H * (0.65 + 0.35 * h(i + 132)) + Math.sin(t * 0.5 + i) * m * 0.03, r = m * (0.2 + h(i + 133) * 0.2), g = x.createRadialGradient(px, py, 0, px, py, r);
+        g.addColorStop(0, "rgba(220,220,235,.10)"); g.addColorStop(1, "rgba(220,220,235,0)"); x.fillStyle = g; x.beginPath(); x.arc(px, py, r, 0, TAU); x.fill(); } } },
     bandeirinhas: { nome: "Bandeirinhas", camada: "frente", f: function (x, W, H, t) {
       var m = Math.min(W, H); [0.04, 0.12].forEach(function (b, k) { var n = 11, pts = [];
         for (var i = 0; i <= n; i++) { var u = i / n; pts.push([u * W, H * b + Math.sin(u * Math.PI) * H * 0.04]); }
