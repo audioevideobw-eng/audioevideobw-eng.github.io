@@ -1,13 +1,13 @@
 {
- "versao": "1.9.18",
+ "versao": "1.9.19",
  "data": "22/11/2026",
  "pacote": "downloads/BW-Reels-Studio.zip",
- "sha256": "bae0ed4b0ad72d6c58949ec62e8ff4462cbec6fe3fe9517780aca29a26dc6e06",
- "bytes": 43877594,
+ "sha256": "3c6bcfa0abbede5c246e66a2d79a2bb14435f7aeacd24de960d9207195aa1f88",
+ "bytes": 44301964,
  "novidades": [
   {
-   "titulo": "Abertura MUNDO em branco e cinza",
-   "texto": "Terceira opção na chave ABERTURA: o mundo desenhado em branco e cinza, com os sinais das conexões passando em amarelo e azul. Reage ao mouse; clique para o toque de luz."
+   "titulo": "Abertura com a imagem nova",
+   "texto": "A abertura padrão agora é FOTO + MUNDO com a imagem em alta das mãos e do cérebro de luz, animada por cima (anéis, rede e a faísca no toque). As outras opções continuam na chave ABERTURA."
   }
  ]
 }

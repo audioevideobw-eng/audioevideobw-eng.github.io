@@ -1817,6 +1817,9 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   ABERTURA: MUNDO (o mundo desenhado em canvas sobre fundo branco e cinza; arcos cinza e sinais com rastro em amarelo #F2B200 e azul #1880FF;
   feixes amarelo/azul no toque; letreiro cinza com brilho amarelo-azul; html .nucleo.claro). No fundo claro a soma de luz ('lighter') some:
   o modo claro desenha com 'source-over'. teste-app 107 ✓.
+- 22/11/2026 00:40 · Claude (dono mandou uma imagem dele em alta — mãos humana e de robô, cérebro de luz no centro): APP BW 1.9.19 — app/abertura-foto.jpg
+  trocada por ela (2730×1536) e FOTO + MUNDO virou a abertura padrão; a animação (anéis, rede com sinais, faísca no toque, partículas) se alinha
+  ao cérebro pela conta do object-fit:cover usando o tamanho real da imagem. Paleta da animação ciano/lilás para combinar com a imagem.
 ## Pendências (dono)
 - [ ] (22/11) ABERTURA DO APP: dono atualizar para 1.9.17 e escolher VÍDEO, FOTO + MUNDO ou MUNDO (chave no alto); conferir o ENTRAR e o menu escondido. BW-Setup.exe 1.9.16 depende do PC (o do site atualiza sozinho).
 - [ ] (22/11) EDITOR NO CELULAR: dono abrir o editor de vídeo no celular e dizer o que ainda falta para ficar como o CapCut (tempo do "segurar"
