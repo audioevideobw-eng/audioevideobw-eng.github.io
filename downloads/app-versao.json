@@ -1,18 +1,13 @@
 {
- "versao": "1.9.28",
+ "versao": "1.9.29",
  "data": "22/11/2026",
  "pacote": "downloads/BW-Reels-Studio.zip",
- "sha256": "9a1602b59739cca0c591c0286fb1ca98b0df6de77995b2fc6e93e91b8e5be6f0",
- "bytes": 41609654,
+ "sha256": "68048019c7724aa4e9654b2c09a8f6982530a53b171d4910d1b2ca60ff2a650c",
+ "bytes": 41645955,
  "novidades": [
   {
-   "titulo": "Biblioteca de convites",
-   "texto": "No Criador IA › CONVITE: 48 convites prontos (aniversário, infantil, 15 anos, casamento, bebê, empresa, datas e festas) e 12 estilos novos. Toque num modelo e ponha os seus dados.",
-   "abrir": "criador"
-  },
-  {
-   "titulo": "Convite animado",
-   "texto": "Bichinhos e objetos que se mexem (ursinho piscando, borboletas, coelhinho, bolo com velas…), efeitos na tela e o texto entrando. Gera um vídeo MP4 no próprio aparelho.",
+   "titulo": "Convites adultos e realistas",
+   "texto": "Convites por nicho (gamer, futebol, música, festas), 37 objetos realistas que se mexem e letras 3D (ouro, cromado, balão, neon). 96 modelos prontos.",
    "abrir": "criador"
   }
  ]

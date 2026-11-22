@@ -2046,7 +2046,9 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   9 efeitos (equalizador, notas, pixels, holofotes, laser, flashes, fumaça, luz de cinema, faíscas); 37 OBJETOS REALISTAS (fotos de estúdio criadas pela
   bw-ia-imagem na conta ADM, fundo recortado no navegador, trends/objetos/) com movimento, sombra e brilho; LETRAS 3D (relevo, ouro, cromado, balão
   metálico, neon); biblioteca 48 → 96 modelos com filtros 🎮 ⚽ 🎵 🍻 📸. Os packs do Drive (logos animadas, letras 3D, compartilhados) NÃO foram usados:
-  são de terceiros. teste_convites/teste_criador 0 falhas, vigia ✅. Manual 62 p. criador.js v9, convite-anim.js v3, sw v185. PENTE FINO 178.
+  são de terceiros. teste_convites/teste_criador 0 falhas, vigia ✅. Manual 62 p. criador.js v10, convite-anim.js v3, sw v186. App BW 1.9.29. PENTE FINO 178.
+  Pastas do Drive conferidas (logos animadas Studios Monkey, LETRAS 3D, Café, Anime Ultra Pack, compartilhados): nenhuma traz licença para
+  redistribuir (o PDF "Recomendações" só explica download; há personagens de anime e programas .rar) → nada delas entrou, decisão do dono: "só o que não nos comprometa".
 ## Pendências (dono)
 - [ ] (22/11) CONVITES: dono abrir Criador IA → CONVITE no celular e no PC, escolher um modelo da 📚 BIBLIOTECA, ligar ✨ ANIMADO, arrastar um bichinho e GERAR VÍDEO; dizer quais bichinhos/temas faltam. Próximas bibliotecas: posts, flyers, Reels, Motion, Telas ("todas as ferramentas").
 - [x] (22/11 15:38) BW-Setup.exe 1.9.27 gerado pelo dono e publicado (8,5 MB, versão conferida dentro do .exe).

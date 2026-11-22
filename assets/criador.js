@@ -1011,7 +1011,8 @@
   });
   var CAIXA_ESTILO = { marmore: "nenhum", aquarela: "nenhum", vintage: "nenhum", minimal: "nenhum", bebe: "nenhum", floral: "vidro", infantil: "vidro", safari: "vidro", circo: "vidro", praia: "vidro" };
   var VAGAS = [[0.18, 0.13], [0.82, 0.13], [0.84, 0.36], [0.16, 0.36], [0.5, 0.09], [0.2, 0.92], [0.8, 0.92]];
-  function itensDe(ids) { return (ids || []).map(function (id, i) { var v = VAGAS[i % VAGAS.length]; return { id: id, x: v[0], y: v[1], s: 0.22, f: i * 0.7, esp: v[0] > 0.6 && /^(ursinho|coelho|gato|cachorro|passarinho|dino|patinho|pomba|leao)$/.test(id) }; }); }
+  var VAGAS_R = [[0.3, 0.27], [0.72, 0.29], [0.5, 0.16]];
+  function itensDe(ids) { var nr = 0, nd = 0; return (ids || []).map(function (id, i) { var real = /^r-/.test(id), v = real ? VAGAS_R[nr++ % 3] : VAGAS[nd++ % VAGAS.length]; return { id: id, x: v[0], y: v[1], s: real ? 0.36 : 0.22, f: i * 0.7, esp: v[0] > 0.6 && /^(ursinho|coelho|gato|cachorro|passarinho|dino|patinho|pomba|leao)$/.test(id) }; }); }
   var BIB_CAT = "", MOD_ON = "", MINIS = {};
   function amostra(t, s) { var d = padrao(t, s); campos(t, s).forEach(function (c) { if (d[c[0]] == null && c[3] && c[2] !== "textarea" && !/rsvp|endereco|traje/.test(c[0])) d[c[0]] = c[3]; }); d.data = "2026-12-12"; d.hora = "19:00"; return d; }
   function estadoModelo(m) {
