@@ -1720,7 +1720,7 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   duplicar, apagar). (6) LAYOUT: prévia no centro (o layout antigo punha a prévia numa coluna de 290 px), camadas só com conteúdo, ✦ CRIAR
   guardado num botão, ▾ LINHA DO TEMPO recolhe, ⛶ tela grande, 🖥 PRÉVIA EM OUTRA TELA (janela para o 2º monitor). (7) MODO FOCO nas 8
   ferramentas de criação (sem menu nem topo, só ‹) e PAINÉIS LIVRES (esconder, esticar, descolar e mover) no vídeo, motion, telas, 3D e fotos.
-  Testes novos: teste_chroma (40), teste_cor (66), teste_som (≈46), teste_video_layout (99), teste_paineis (43), teste_fotos_paineis (13) — 0 falhas;
+  Testes novos: teste_chroma (40), teste_cor (66), teste_som (34), teste_video_layout (99), teste_paineis (43), teste_fotos_paineis (13) — 0 falhas;
   a bateria inteira rodada. NÃO testado: filmagem real de verde (calibrar os níveis), dois monitores de verdade, iPhone/Android reais.
   layout.js v65, bw-ferramentas v2, video-editor v6, fotos v16, motion v6, telas v6, bw3d v11, bw-chroma v1, bw-cor v1, sw v165. PENTE FINO 142–148.
 
