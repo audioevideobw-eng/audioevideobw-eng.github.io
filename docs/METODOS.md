@@ -510,3 +510,11 @@ Tamanho > 0 e sem erro = o pdfmake montou o arquivo. Localmente (T1) confira o `
 - Laço da prévia em requestAnimationFrame, pausado com a aba escondida e durante a geração do vídeo; nada de gravar() por quadro.
 - Vídeo: `BWReelsCelular.gerar({desenhar(t, ctx, w, h){ ctx.drawImage(render(w,h,t),0,0) }})`; teste confere ffprobe + 2 quadros diferentes.
 - Revisão no olho: folha com TODOS os itens/efeitos e TODAS as miniaturas antes de publicar (achou a lua com contorno de círculo inteiro e o rodapé escuro nos modelos claros).
+
+
+## Biblioteca integrada entre ferramentas (22/11)
+- Uma ferramenta que reaproveita o acervo das outras (personagens, objetos, desenhos) lê pelas APIs já existentes (BWPersonagensProntos,
+  BWConviteAnim, BWPersonagens, BWCriacoes) e copia a imagem para data: no aparelho (canvas; crossOrigin "anonymous" nas do Supabase).
+  Assim o projeto não depende de endereço de fora (vídeo no aparelho e app do PC sem internet).
+- A aba inicial não pode carregar nada de fora; teste com as imagens do Supabase SIMULADAS (PNG local com Access-Control-Allow-Origin).
+- Item animado novo: teste que monta, vai a t=0,05 e t=1,6 e compara o innerHTML (parado = erro) + folha de quadros para conferir o desenho.

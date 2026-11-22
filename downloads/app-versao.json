@@ -1,13 +1,18 @@
 {
- "versao": "1.9.29",
+ "versao": "1.9.30",
  "data": "22/11/2026",
  "pacote": "downloads/BW-Reels-Studio.zip",
- "sha256": "68048019c7724aa4e9654b2c09a8f6982530a53b171d4910d1b2ca60ff2a650c",
- "bytes": 41645955,
+ "sha256": "c302bff30b20f0f916511a2b6def907481202da49c48b01fa86e2ca56167d533",
+ "bytes": 41649567,
  "novidades": [
   {
-   "titulo": "Convites adultos e realistas",
-   "texto": "Convites por nicho (gamer, futebol, música, festas), 37 objetos realistas que se mexem e letras 3D (ouro, cromado, balão, neon). 96 modelos prontos.",
+   "titulo": "Biblioteca do motion",
+   "texto": "20 itens novos (gráficos, legenda que acende, botão com clique, post, confete…) e a biblioteca integrada com personagens, objetos e desenhos das outras ferramentas.",
+   "abrir": "motion"
+  },
+  {
+   "titulo": "Convites de herói e anime",
+   "texto": "12 convites com personagens próprios: herói e heroína de máscara e capa, chibis, gatinho da sorte, POW! e sakura.",
    "abrir": "criador"
   }
  ]

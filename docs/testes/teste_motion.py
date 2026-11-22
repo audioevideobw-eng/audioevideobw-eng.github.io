@@ -41,7 +41,7 @@ with sync_playwright() as p:
         ok(pg.evaluate(f"{P}.itens.length") == 5 and pg.locator("#moCena [data-item]").count() == 5, "abre com o modelo VITRINE DE PROMPTS (5 itens na tela)")
         ok(pg.evaluate(SEM) <= 0, f"sem estouro na largura ({pg.evaluate(SEM)})")
         ok(pg.evaluate("[...document.querySelectorAll('button')].filter(b => b.offsetParent && !(b.textContent.trim() || b.getAttribute('aria-label') || b.title)).length") == 0, "todo botão tem nome")
-        ok(pg.locator("#moLib [data-add]").count() == 14, "BIBLIOTECA com 14 itens")
+        ok(pg.locator("#moLib [data-add]").count() >= 34, "BIBLIOTECA com 34+ itens")
         tela = pg.locator("#moTela").bounding_box()
         ok(tela["height"] <= (altura * 0.37 if cel else max(300, altura - 420)) + 2, f"a tela de prévia cabe ({int(tela['height'])} px)")
         # tocar

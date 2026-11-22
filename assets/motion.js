@@ -10,17 +10,18 @@
   var NO_APP = !!(window.BW_APP && window.bwNode);
   var APP = document.documentElement.classList.contains("mo-app");   /* 22/11: layout de app no celular (assets/mo-app.js) */
   var P = null, MONT = null, T = 0, SEL = null, KSEL = null, TOCANDO = false, GRAVAR = false, ZOOM = 1, SC = 0.3, HIST = [], FUT = [], SALVAR_T = 0, HIST_T = 0;
-  var CORES_GRUPO = { Textos: "#7C5CFF", Interface: "#2E9BFF", Imagens: "#FF8A3D", Enfeites: "#22C58B" };
+  var CORES_GRUPO = { Textos: "#7C5CFF", Interface: "#2E9BFF", Imagens: "#FF8A3D", Enfeites: "#22C58B" };   /* grupos dos itens nativos */
   var GRAD = ["linear-gradient(135deg,#7C5CFF,#C04CFF)", "linear-gradient(135deg,#2E9BFF,#22D3EE)", "linear-gradient(135deg,#FF8A3D,#FF4D6D)", "linear-gradient(135deg,#22C58B,#B6FF3B)",
     "linear-gradient(135deg,#F43F5E,#FB923C)", "linear-gradient(135deg,#0EA5E9,#6366F1)", "linear-gradient(135deg,#EAB308,#F97316)"];
   var ROT = { texto: "Texto", estilo: "Estilo", fonte: "Fonte", tamanho: "Tamanho", cor: "Cor", destaque: "Cor do *destaque*", larg: "Largura", alt: "Altura", alinhar: "Alinhar",
     titulo: "Título", nome: "Nome", comando: "Comando digitado", src: "Imagem", src2: "Imagem depois", raio: "Cantos", borda: "Borda", legenda: "Legenda", zoom: "Zoom",
     de: "Começa em", ate: "Termina em", prefixo: "Antes do número", sufixo: "Depois do número", casas: "Casas decimais", pontos: "Valores (vírgula)", icone: "Ícone", emoji: "Emoji",
-    forma: "Forma", contorno: "Só contorno", espessura: "Espessura", velocidade: "Velocidade" };
+    forma: "Forma", contorno: "Só contorno", espessura: "Espessura", velocidade: "Velocidade",
+    cargo: "Cargo", autor: "Autor", rotulos: "Rótulos (vírgula)", valor: "Valor (%)", curtidas: "Curtidas", nota: "Nota (1 a 5)", encaixe: "Encaixe", semFundo: "Sem fundo (objeto recortado)" };
   var OPCOES = { estilo: [["neon", "Neon"], ["branco", "Simples"], ["etiqueta", "Etiqueta"], ["contorno", "Contorno"], ["sombra", "Com sombra"]],
     fonte: [["titulo", "Título (condensada)"], ["texto", "Moderna"], ["mono", "Código"], ["mao", "Escrita à mão"], ["serif", "Elegante"]],
-    alinhar: [["center", "Centro"], ["left", "Esquerda"], ["right", "Direita"]], forma: [["circulo", "Círculo"], ["ret", "Retângulo"], ["linha", "Linha"], ["seta", "Seta"]] };
-  var FAIXAS = { tamanho: [20, 400, 2], larg: [100, 2000, 10], alt: [100, 2000, 10], raio: [0, 200, 2], zoom: [1.2, 5, 0.1], casas: [0, 3, 1], espessura: [2, 60, 1], velocidade: [0, 4, 0.1] };
+    alinhar: [["center", "Centro"], ["left", "Esquerda"], ["right", "Direita"]], forma: [["circulo", "Círculo"], ["ret", "Retângulo"], ["linha", "Linha"], ["seta", "Seta"]], encaixe: [["cobrir", "Preencher (corta)"], ["inteira", "Imagem inteira"]] };
+  var FAIXAS = { tamanho: [20, 400, 2], larg: [100, 2000, 10], alt: [100, 2000, 10], raio: [0, 200, 2], zoom: [1.2, 5, 0.1], casas: [0, 3, 1], espessura: [2, 60, 1], velocidade: [0, 4, 0.1], valor: [0, 100, 1], nota: [1, 5, 1] };
 
   function livre() { var l = P.formato === "livre"; $("moLivre").hidden = !l; if (l) { $("moLargura").value = P.w; $("moAltura").value = P.h; } }
   // 20/11: qualidades conforme o tamanho (Rápida ~720p, Alta ~1080p, Tamanho real — telão, 4K); marca o que o aparelho não aguenta
@@ -177,6 +178,16 @@
     if (/foto|antesdepois|lupa/.test(tipo)) escolherImagem(it.id, "src");
     if (innerWidth <= 1100) abaCel("item");
   }
+  /* BIBLIOTECA INTEGRADA (22/11): imagem vinda de outra ferramenta (já em data:) entra como item de foto, inteira e animada */
+  function adicionarImagem(src, op) {
+    op = op || {}; var it = M.novoItem("foto", P, T >= P.dur - 0.5 ? 0 : T), lado = 620, pr = Math.max(0.3, Math.min(2.4, +op.prop || 1));
+    it.props.src = src; it.props.encaixe = "inteira"; it.props.semFundo = !!op.semFundo; it.props.raio = op.semFundo ? 0 : 28;
+    it.props.larg = pr > 1 ? Math.round(lado / pr) : lado; it.props.alt = pr > 1 ? lado : Math.round(lado * pr);
+    it.nome = String(op.nome || "Imagem").slice(0, 40); it.entrada = { efeito: op.entrada || "pulo", dur: 0.6 }; it.loop = { efeito: op.loop || "flutuar", forca: 0.7 };
+    P.itens.push(it); SEL = it.id; KSEL = null; mudou({ painel: true }); aviso("＋ " + it.nome + " entrou em " + fmt(it.ini) + " s. Arraste na tela para posicionar.");
+    if (innerWidth <= 1100) abaCel("item");
+  }
+  function adicionarEmoji(e) { adicionar("emoji"); var it = item(SEL); if (it) { it.props.emoji = e; mudou({ painel: true }); } }
   function desenharFundo() {
     var f = P.fundo, h = '<label class="um">Tipo<select data-fundo="tipo">' + Object.keys(M.FUNDOS).map(function (k) { return '<option value="' + k + '"' + (f.tipo === k ? " selected" : "") + ">" + esc(M.FUNDOS[k]) + "</option>"; }).join("") + "</select></label>";
     if (/escuro|cor|degrade|grade/.test(f.tipo)) h += '<label class="um">Cor 1<input type="color" data-fundo="cor1" value="' + esc(f.cor1 || "#0B1A0B") + '"></label>';
@@ -746,7 +757,7 @@
       cortar: function (id) { cortarItem(id, T); }, duplicar: duplicarItem, apagar: apagarItem, aparar: aparar, desativar: desativar, ordem: ordemItem, aviso: aviso,
       menu: menuItem, desfazer: desfazer, refazer: refazer, zoom: function (f) { ZOOM = Math.max(1, Math.min(8, ZOOM * f)); desenharTimeline(); ver(T); },
       keyPos: function () { var it = SEL && item(SEL); if (!it) return; porKey(it, "x", T, valorEm(it, "x", T)); porKey(it, "y", T, valorEm(it, "y", T)); KSEL = { id: it.id, t: +T.toFixed(3) }; mudou({ remontar: false, painel: true }); aviso("◆ Keyframe de posição marcado em " + fmt(T, 2) + " s."); },
-      menuPrevia: menuPrevia };
+      menuPrevia: menuPrevia, adicionarImagem: adicionarImagem, adicionarEmoji: adicionarEmoji, adicionar: adicionar };
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", iniciar); else iniciar();
 })();

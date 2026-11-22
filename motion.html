@@ -132,6 +132,10 @@
 .mo-ef:hover{border-color:#B6FF3B}.mo-ef .pv{width:44px;height:30px;border-radius:7px;background:#0b0d12;display:grid;place-items:center;overflow:hidden;pointer-events:none}.mo-ef .pv i{width:14px;height:14px;border-radius:4px;background:linear-gradient(135deg,#B6FF3B,#3bd6ff);display:block}
 .mo-fantasma{position:fixed;z-index:9500;pointer-events:none;max-width:220px;padding:7px 10px;border-radius:10px;background:#B6FF3B;color:#0a120a;font:800 11px Inter,sans-serif;box-shadow:0 10px 30px rgba(0,0,0,.55)}.mo-fantasma::after{content:attr(data-dica);display:block;margin-top:3px;font:700 9.5px Inter,sans-serif;opacity:.8}
 .mo-alvo{outline:2px dashed #B6FF3B!important;outline-offset:2px}
+.mo-bib-abas{margin:0 0 8px}.mo-bib{display:grid;grid-template-columns:repeat(auto-fill,minmax(74px,1fr));gap:6px;max-height:330px;overflow:auto;padding-right:2px}
+.mo-bib button{display:flex;flex-direction:column;align-items:center;gap:3px;min-width:0;padding:5px 3px;border-radius:12px;border:1px solid rgba(245,241,234,.14);background:rgba(255,255,255,.05);color:#F5F1EA;cursor:pointer;font:600 10px/1.15 Inter,system-ui,sans-serif;text-align:center}
+.mo-bib button:hover{border-color:#B6FF3B;background:rgba(182,255,59,.1)}.mo-bib img{width:58px;height:58px;object-fit:contain;border-radius:8px;background:rgba(255,255,255,.06)}
+.mo-bib .emo{font-size:38px;line-height:58px;height:58px}.mo-bib span{display:block;width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 </style>
 <link rel="stylesheet" href="assets/mo-app.css?v=2">
 <script>/* 22/11: decide o layout de app ANTES de desenhar (senão a tela antiga aparecia por um instante) */(function(){var q=new URLSearchParams(location.search).get("layout")||"";if(q==="app"||(q!=="classico"&&(innerWidth<=900||(matchMedia("(pointer:coarse)").matches&&innerWidth<=1180))))document.documentElement.classList.add("app-cedo")})()</script>
@@ -156,6 +160,7 @@
   <div class="mo-grade" id="moGrade" data-aba="lib">
     <aside class="mo-cx mo-lado" id="moEsq" data-bwf-nome="ITENS">
       <div class="mo-g"><h4 data-seta="mo_lib">BIBLIOTECA DE ITENS</h4><div id="moLib"></div><p class="mo-dica">Toque num item: ele entra no tempo da agulha, no meio da tela, já com um efeito. Arraste na tela para posicionar.</p></div>
+      <div class="mo-g"><h4 data-seta="mo_bib">BIBLIOTECA INTEGRADA</h4><div id="moBib"></div><p class="mo-dica">O que já existe nas outras ferramentas: personagens prontos, objetos realistas e desenhos dos convites, os seus personagens e criações, e emojis. Tocar = entra na tela, já animado.</p></div>
       <div class="mo-g"><h4 data-seta="mo_efs">EFEITOS</h4><div id="moEfs"></div><p class="mo-dica">Passe o mouse para ver. ARRASTE até um item: na linha do tempo, a metade da esquerda da barra = entrada, a da direita = saída. Tocar aplica no item escolhido.</p></div>
       <div class="mo-g"><h4 data-seta="mo_fundo">FUNDO</h4><div class="mo-prop" id="moFundo"></div></div>
       <div class="mo-g"><h4 data-seta="mo_modelos">MODELOS PRONTOS</h4><div class="mo-mod" id="moModelos"></div></div>
@@ -215,12 +220,16 @@
 <script src="assets/layout.js?v=71"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="assets/bw-sync.js?v=20261122"></script>
-<script src="assets/motion-motor.js?v=3"></script>
+<script src="assets/motion-motor.js?v=4"></script>
 <script src="assets/reels-celular.js?v=5"></script>
 <script src="assets/bw-ferramentas.js?v=4"></script>
 <script src="assets/bw-criacoes.js?v=2"></script>
 <script src="assets/bw-controle.js?v=1"></script>
 <script src="assets/mo-app.js?v=3"></script>
-<script src="assets/motion.js?v=11"></script>
+<script src="assets/personagens-prontos.js?v=1"></script>
+<script src="assets/bw-personagens.js?v=3"></script>
+<script src="assets/convite-anim.js?v=4"></script>
+<script src="assets/motion.js?v=12"></script>
+<script src="assets/motion-biblio.js?v=1"></script>
 </body>
 </html>

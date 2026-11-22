@@ -720,6 +720,13 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
      arquivo só pode LER dessa pasta. Pacotes de terceiros no Drive do dono (templates de After Effects, fontes de outros autores, programas .rar)
      NÃO entram na plataforma: licença é de quem comprou, não para redistribuir a todos os usuários — fazer o equivalente próprio.
 
+**Aprendidos em 22/11 (BIBLIOTECA DO MOTION e biblioteca integrada)**
+179. BIBLIOTECA INTEGRADA (assets/motion-biblio.js): o que existe nas outras ferramentas entra no motion como IMAGEM em data: (canvas no aparelho,
+     crossOrigin "anonymous" para as do Supabase) — endereço https dentro do projeto não carrega no vídeo feito no aparelho (foreignObject, regra 82)
+     nem no app do PC sem internet. O arquivo só LÊ (vigia 7.8k) e começa numa aba SEM rede (desenhos): abrir a página não pode buscar imagem de
+     fora sozinha (o teste "nada sai do aparelho" pegou as 60 fotos dos personagens carregando no 1º desenho). Item novo do motor = DESENHO + VIVO
+     (só de lt), conferido numa folha de quadros; motor do site e do app IGUAIS (copiar para motor/motion-motor.js na mesma entrega).
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -2056,7 +2063,16 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   (cidade com holofote, quadrinho, céu de sakura, cidade neon sem letreiro), fontes Bangers e Mochiy Pop One, 12 modelos (biblioteca 96 → 108).
   Personagens dos temas entram grandes como os realistas (GRANDES em itensDe). teste_convites/teste_criador 0 falhas; vigia ✅. criador.js v11,
   convite-anim.js v4, sw v187.
+- 22/11/2026 17:10 · Claude (dono: "estúdio de motion com poucos elementos; coloque opções e conecte o que dá das outras ferramentas, tipo uma
+  biblioteca integrada"): ESTÚDIO DE MOTION — 20 itens novos no motor (nome e cargo, legenda que acende palavra por palavra, citação, marca-texto,
+  botão com clique, lista com ✓, gráfico de barras, rosca, barra de progresso, pesquisa digitando, post com curtidas contando, estrelas, pino de
+  local, onda de áudio, brilhos, raios de luz, confete, círculo e seta desenhados à mão, cantos de mira) → 34 itens; foto ganhou ENCAIXE e SEM
+  FUNDO. Nova BIBLIOTECA INTEGRADA (assets/motion-biblio.js): 🎨 desenhos dos convites (57), 🧍 personagens prontos (12 × 5 ângulos), 📸 objetos
+  realistas (37), 👤 meus personagens, ✨ minhas criações e 😀 emojis — tocar põe na tela animado, como imagem em data:. teste_motion_biblio (novo,
+  0 falhas × 1280/390), teste_motion, motion_ferramentas, motion_app, criacoes 0 falhas; vigia ✅ (7.8k). App BW 1.9.30 (motor igual, cópia sem
+  internet, tutorial, novidades) e manual 62 p. motion-motor v4, motion.js v12, motion-biblio v1, sw v188. PENTE FINO 179.
 ## Pendências (dono)
+- [ ] (22/11) MOTION: dono abrir Marketing → Estúdio de motion, testar os itens novos e a BIBLIOTECA INTEGRADA (personagens, objetos, desenhos); BW-Setup.exe 1.9.30 depende do PC.
 - [x] (22/11 17:05) BW-Setup.exe 1.9.29 gerado pelo dono e publicado (8,5 MB, versão conferida dentro do .exe).
 - [ ] (22/11) CONVITES: dono abrir Criador IA → CONVITE no celular e no PC, escolher um modelo da 📚 BIBLIOTECA, ligar ✨ ANIMADO, arrastar um bichinho e GERAR VÍDEO; dizer quais bichinhos/temas faltam. Próximas bibliotecas: posts, flyers, Reels, Motion, Telas ("todas as ferramentas").
 - [x] (22/11 15:38) BW-Setup.exe 1.9.27 gerado pelo dono e publicado (8,5 MB, versão conferida dentro do .exe).
