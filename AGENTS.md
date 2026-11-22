@@ -2001,7 +2001,7 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   (+3) 0 falhas; teste-app 0; vigia ✅. App BW 1.9.27 publicado (cópia sem internet, tutorial, novidades) e arquivos no PC. Manual 59 → 60 p.
   reels.js v18, reels-modelos v4, album-motor v2, album.js v2, sw v182. PENTE FINO 174–175.
 ## Pendências (dono)
-- [ ] (22/11) BW-Setup.exe 1.9.27: os arquivos novos já estão em Vídeos\\bw-reels-studio — dois cliques em "5 - GERAR INSTALADOR EXE" e avisar (quem tem o app atualiza sozinho).
+- [x] (22/11 15:38) BW-Setup.exe 1.9.27 gerado pelo dono e publicado (8,5 MB, versão conferida dentro do .exe).
 - [ ] (22/11) REELS QUE ENSINAM e FOTOLIVROS: dono abrir no celular e no PC, usar um modelo com fotos/textos reais e dizer o que ajustar.
 - [ ] (22/11) ARRASTAR: dono testar no PC e no celular — encostar um take no outro, cobrir mais da metade e escolher, e aplicar transição com a agulha na emenda.
 - [ ] (22/11) ÁLBUM 3D: dono abrir Marketing → Álbum 3D e efeitos no celular e no PC, pôr fotos de um evento real, trocar de modelos e gerar um vídeo; dizer quais modelos quer a mais (e o BW-Setup.exe 1.9.25: dois cliques em "5 - GERAR INSTALADOR EXE").
