@@ -1938,7 +1938,6 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   Motion); Telas com ⋯ em cada cena/mídia. video, telas, video_app, motion_app 0 falhas. ve-app v4, mo-app v3, telas v10, sw v178. PENTE FINO 170.
 ## Pendências (dono)
 - [x] (22/11 08:43) BW-Setup.exe 1.9.24 gerado pelo dono e publicado (8,3 MB, versão conferida dentro do .exe).
-      (2 tentativas, o .exe não mudou). Dono: dois cliques nele e avisar o Claude, que traz o .exe. Quem já tem o app atualiza sozinho para a 1.9.23.
 - [ ] (22/11) MOTION NO CELULAR + ⋯ NAS TELAS E NO 3D: dono testar o Motion no celular (tocar num item, folhas, segurar) e os ⋯ das Telas/3D no PC (2º monitor).
 - [ ] (22/11) CAIXA DO TIO CLÁUDIO: dono testar no PC e no celular, logado — pedir algo pela caixa, trocar BW Smart / Rápido / Inteligente e usar a ✨ varinha.
 - [ ] (22/11) ESTÚDIO DE MOTION: dono testar no PC — arrastar efeito até a barra, barra em cima de outra camada, COR, rodinha na prévia, 🖥 2º monitor e 📱 celular. Dizer se quer também o layout de app no celular.
