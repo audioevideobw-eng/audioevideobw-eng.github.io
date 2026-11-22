@@ -177,6 +177,9 @@
       ".bw-foco-barra{display:none}html.bw-foco .bw-foco-barra{display:flex;align-items:center;gap:8px;height:30px;padding:4px 10px 0;font:700 11px Inter,sans-serif;letter-spacing:.12em;color:#8d95a3;text-transform:uppercase}" +
       ".bw-foco-barra button{width:30px;height:28px;border-radius:9px;border:1px solid rgba(245,241,234,.14);background:transparent;color:#cfd5de;font:800 15px Inter,sans-serif;cursor:pointer;padding:0;line-height:1}" +
       ".bw-foco-barra button:hover{border-color:rgba(245,241,234,.4);color:#fff}" +
+      /* 22/11 (dono, print do iPhone): ao rolar, o título passava por baixo do relógio/vidro do Safari e ficava BORRADO. A barrinha fica PRESA
+         no topo com fundo liso (e o espaço do relógio por cima): o que rola some atrás dela, e o vidro do iPhone só borra a cor lisa. */
+      "html.bw-foco .bw-foco-barra{position:sticky;top:0;z-index:60;background:var(--bw-noite,#0B0E14);height:calc(30px + env(safe-area-inset-top));padding:calc(env(safe-area-inset-top) + 4px) 10px 0}" +
       "@media(max-width:899px){html.bw-foco .bw-pagina{padding:4px 10px 24px}}" +
       /* 22/11 (dono): ao rolar as faixas de ferramentas para o lado, a tela inteira andava junto "como bloco" (a rolagem vazava para a página e o
          navegador puxava a página para o lado, como o "puxar para atualizar"). Página de edição fica PARADA: nada vaza, nada anda para o lado. */

@@ -44,7 +44,7 @@ html.ed-safari .ed{background:#090c12}
 @media (max-width:420px){.ed-b:not(.pri) .rot{display:none}}
 .ed-corpo{flex:1;min-height:0;display:flex;flex-direction:column}
 .ed-palco{flex:1;min-height:0;position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;
-  background:repeating-conic-gradient(#10131a 0 25%,#0b0e14 0 50%) 0 0/22px 22px;touch-action:none}
+  background:#0b0e14;touch-action:none}
 .ed-palco canvas{display:block;touch-action:none;box-shadow:0 10px 40px rgba(0,0,0,.45)}
 .ed-dica{transition:opacity .4s;position:absolute;left:50%;top:8px;transform:translateX(-50%);background:rgba(6,8,13,.78);color:#cfcac2;font-size:11.5px;padding:6px 12px;border-radius:999px;pointer-events:none;white-space:nowrap;max-width:92%;overflow:hidden;text-overflow:ellipsis}
 .ed-dica:empty{display:none}
@@ -181,7 +181,7 @@ textarea.c-campo{min-height:56px;resize:vertical}
 .toast{position:fixed;left:50%;bottom:120px;transform:translateX(-50%);z-index:99;background:#1a1f2b;border:1px solid rgba(95,224,160,.4);color:#E9FFF3;padding:10px 16px;border-radius:12px;font-size:13.5px;box-shadow:0 10px 30px rgba(0,0,0,.4);max-width:90vw;text-align:center}
 
 /* 16/11: folha de opções (toque num anexo), emojis, selos e acabamento mais moderno */
-.ed-folha{position:fixed;inset:0;z-index:97;background:rgba(3,5,9,.55);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);display:flex;align-items:flex-end;justify-content:center;animation:edFade .18s ease}
+.ed-folha{position:fixed;inset:0;z-index:97;background:rgba(3,5,9,.7);display:flex;align-items:flex-end;justify-content:center;animation:edFade .18s ease}
 .ed-folha-cx{width:100%;max-width:460px;margin:0 10px calc(10px + env(safe-area-inset-bottom));background:linear-gradient(180deg,#151a24,#0e1219);border:1px solid rgba(245,241,234,.12);border-radius:22px;padding:8px;display:flex;flex-direction:column;gap:4px;box-shadow:0 20px 60px rgba(0,0,0,.5);animation:edSobe .22s cubic-bezier(.2,.9,.3,1)}
 .ed-folha-tit{font:700 11px var(--bw-font-texto);letter-spacing:.12em;color:var(--bw-texto-3);text-align:center;padding:10px 8px 8px;text-transform:uppercase;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ed-folha button{min-height:48px;border-radius:14px;border:0;background:rgba(255,255,255,.04);color:var(--bw-marfim);font:600 14px var(--bw-font-texto);text-align:left;padding:0 16px;cursor:pointer;transition:background .15s}
@@ -213,7 +213,7 @@ textarea.c-campo{min-height:56px;resize:vertical}
 /* 22/11 — TELA DE ENTRADA com BIBLIOTECA (assets/fotos-inicio.js): a foto é o assunto — palco grande + biblioteca ao lado (embaixo no celular) */
 .fi-casca{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,340px);gap:16px;min-height:calc(100vh - 70px)}
 @media (max-width:900px){.fi-casca{grid-template-columns:minmax(0,1fr);min-height:0}}
-.fi-palco{min-width:0;border-radius:20px;border:1px solid rgba(245,241,234,.08);background:radial-gradient(120% 90% at 50% 0%,rgba(255,181,71,.07),transparent 60%),repeating-conic-gradient(#10141b 0 25%,#0b0e14 0 50%) 0 0/24px 24px;display:flex}
+.fi-palco{min-width:0;border-radius:20px;border:1px solid rgba(245,241,234,.08);background:#0d1017;display:flex}
 .fi-palco-in{flex:1;display:flex;flex-direction:column;gap:14px;padding:clamp(14px,3vw,30px);min-width:0}
 .fi-tit{display:flex;flex-direction:column;gap:4px}.fi-tit b{font:800 15px Inter,sans-serif;letter-spacing:.14em;color:#F5F1EA}.fi-tit span{font-size:13px;color:rgba(245,241,234,.6)}
 .fi-solta-slot{flex:1;display:flex;min-height:220px}
@@ -289,7 +289,7 @@ textarea.c-campo{min-height:56px;resize:vertical}
 <input type="file" id="arqKit" accept="application/json,.json" hidden>
 <input type="file" id="arqTroca" accept="image/*,.heic,.heif" hidden>
 
-<script src="assets/layout.js?v=72"></script>
+<script src="assets/layout.js?v=73"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="assets/bw-sync.js?v=20261122"></script>
 <script src="assets/fotos-nuvem.js?v=3"></script>
