@@ -21,7 +21,7 @@
     cartao: '<rect x="2" y="5" width="20" height="14" rx="2"/><circle cx="8" cy="11" r="2.2"/><path d="M5 16c.8-1.6 2-2.4 3-2.4s2.2.8 3 2.4M14 10h5M14 13h4"/>'
   };
   var TIPOS = {
-    convite: { nome: "CONVITE", fmt: "story", pos: "baixo", subs: [["aniversario", "Aniversário"], ["infantil", "Infantil"], ["quinze", "15 anos"], ["casamento", "Casamento"], ["cha", "Chá de bebê"], ["revelacao", "Chá revelação"], ["formatura", "Formatura"], ["savethedate", "Save the date"], ["batizado", "Batizado"], ["confra", "Confraternização"]] },
+    convite: { nome: "CONVITE", fmt: "story", pos: "baixo", subs: [["aniversario", "Aniversário"], ["infantil", "Infantil"], ["quinze", "15 anos"], ["casamento", "Casamento"], ["cha", "Chá de bebê"], ["revelacao", "Chá revelação"], ["formatura", "Formatura"], ["savethedate", "Save the date"], ["batizado", "Batizado"], ["confra", "Confraternização"], ["noivado", "Noivado"], ["bodas", "Bodas"], ["chafraldas", "Chá de fraldas"], ["chacozinha", "Chá de cozinha"], ["comunhao", "1ª comunhão"], ["churrasco", "Churrasco"], ["happyhour", "Happy hour"], ["inauguracao", "Inauguração"], ["lancamento", "Lançamento"], ["junina", "Festa junina"], ["halloween", "Halloween"], ["natal", "Natal"], ["reveillon", "Réveillon"], ["despedida", "Despedida"]] },
     post: { nome: "POST", fmt: "post", pos: "baixo", subs: [["evento", "Divulgar evento"], ["promo", "Promoção"], ["obrigado", "Agradecimento"], ["bastidores", "Bastidores"], ["depoimento", "Depoimento"], ["novidade", "Novidade / aviso"], ["data", "Data comemorativa"]] },
     flyer: { nome: "FLYER", fmt: "a4", pos: "baixo", subs: [["evento", "Evento / show"], ["curso", "Curso / palestra"], ["promo", "Promoção / loja"], ["servico", "Serviço"]] },
     cartao: { nome: "CARTÃO", fmt: "cartao", pos: "centro", subs: [["classico", "Clássico"], ["moderno", "Moderno"], ["criativo", "Criativo"]] }
@@ -38,7 +38,21 @@
       formatura: { pre: "Celebre comigo esta conquista", titulo: "Formatura", en: "graduation celebration, caps in the air" },
       savethedate: { pre: "Reserve esta data", titulo: "Save the date", en: "save the date announcement, romantic" },
       batizado: { pre: "Venha celebrar o batizado de", titulo: "Batizado", en: "christening ceremony, delicate and serene" },
-      confra: { pre: "É hora de celebrar juntos", titulo: "Confraternização", en: "end of year company party celebration" }
+      confra: { pre: "É hora de celebrar juntos", titulo: "Confraternização", en: "end of year company party celebration" },
+      noivado: { pre: "Dissemos sim!", titulo: "Noivado", en: "romantic engagement party, rings and flowers" },
+      bodas: { pre: "Celebrando uma história de amor", titulo: "Bodas", en: "wedding anniversary celebration, elegant and warm" },
+      chafraldas: { pre: "Venha conhecer", titulo: "Chá de fraldas", en: "diaper shower, soft baby theme" },
+      chacozinha: { pre: "Casa nova, cozinha nova!", titulo: "Chá de cozinha", en: "bridal kitchen shower, cozy kitchen utensils" },
+      comunhao: { pre: "Com alegria convidamos para a", titulo: "Primeira Comunhão", en: "first communion, white, light and serene" },
+      churrasco: { pre: "Bora pro", titulo: "Churrasco", en: "backyard barbecue party, warm string lights" },
+      happyhour: { pre: "Sextou!", titulo: "Happy hour", en: "after work happy hour, drinks and city lights" },
+      inauguracao: { pre: "Venha celebrar com a gente", titulo: "Inauguração", en: "store grand opening, ribbon and balloons" },
+      lancamento: { pre: "Você é nosso convidado para o", titulo: "Lançamento", en: "product launch event, stage lights" },
+      junina: { pre: "Arraiá do", titulo: "Festa Junina", en: "brazilian festa junina, colorful flags, bonfire" },
+      halloween: { pre: "Se tiver coragem, venha!", titulo: "Halloween", en: "spooky cute halloween party, pumpkins and moon" },
+      natal: { pre: "Celebre o Natal com a gente", titulo: "Natal", en: "christmas party, warm and festive" },
+      reveillon: { pre: "Vamos virar o ano juntos", titulo: "Réveillon", en: "new year's eve party, fireworks, gold" },
+      despedida: { pre: "Última noite de solteiro(a)!", titulo: "Despedida", en: "bachelor party, fun night out" }
     },
     post: {
       evento: { pre: "Vem aí", cta: "Garanta sua vaga", en: "event announcement social media post" },
@@ -60,7 +74,7 @@
   /* campos de cada tipo: [chave, rótulo, tipo do campo, exemplo, largo?] */
   function campos(t, s) {
     if (t === "convite") {
-      var c = [["pre", "Frase de abertura", "text", "Você está convidado", 1], ["titulo", "Título", "text", "Aniversário de"], ["nome", s === "casamento" ? "Nomes do casal" : s === "confra" ? "Empresa / grupo" : "Nome", "text", s === "casamento" ? "Ana & Pedro" : "Marina"]];
+      var c = [["pre", "Frase de abertura", "text", "Você está convidado", 1], ["titulo", "Título", "text", "Aniversário de"], ["nome", /casamento|noivado|bodas|savethedate/.test(s) ? "Nomes do casal" : /confra|inauguracao|lancamento|happyhour/.test(s) ? "Empresa / grupo" : "Nome", "text", /casamento|noivado|bodas|savethedate/.test(s) ? "Ana & Pedro" : /confra|inauguracao|lancamento|happyhour/.test(s) ? "Produtora Exemplo" : "Marina"]];
       if (s === "aniversario" || s === "infantil" || s === "quinze") c.push(["idade", "Idade", "text", "30"]);
       c.push(["data", "Data", "date"], ["hora", "Horário", "time"], ["local", "Local", "text", "Espaço Jardim"], ["endereco", "Endereço", "text", "Rua das Flores, 120 — BH", 1],
         ["traje", "Traje (opcional)", "text", "Esporte fino"], ["rsvp", "WhatsApp para confirmar", "tel", "(31) 99999-0000"], ["mensagem", "Mensagem (opcional)", "textarea", "Sua presença é o nosso melhor presente!", 1]);
@@ -95,7 +109,19 @@
     ["corporativo", "Corporativo", "modern corporate style, deep blue, stage lights, sleek abstract lines", "moderno", ["#06122B", "#0B3D91", "#4FC3F7"]],
     ["palco", "Palco / show", "concert stage, dramatic stage lights, haze, crowd silhouettes", "impacto", ["#050507", "#1A0F2E", "#FF6B2C"]],
     ["praia", "Praia", "beach at golden hour, sea, sand, warm sunset sky", "manuscrito", ["#FF9A62", "#FFD3A5", "#1E88E5"]],
-    ["natal", "Natal", "christmas, festive red and gold, warm lights, ornaments", "classico", ["#3E0A0A", "#8B1A1A", "#E8C26A"]]
+    ["natal", "Natal", "christmas, festive red and gold, warm lights, ornaments", "classico", ["#3E0A0A", "#8B1A1A", "#E8C26A"]],
+    ["luxo", "Luxo art déco", "luxury art deco, black and gold geometric ornaments, symmetrical frame", "elegante", ["#0B0B0D", "#1E1A14", "#D9B36A"]],
+    ["marmore", "Mármore", "white marble texture with thin gold veins, elegant and clean", "classico", ["#F4F1EC", "#E3DDD3", "#B8925A"]],
+    ["aquarela", "Aquarela", "soft watercolor washes and painted flowers, delicate", "classico", ["#FFF8F2", "#FBE3E8", "#D86A8A"]],
+    ["vintage", "Vintage", "vintage parchment paper, ornamental frame, retro", "classico", ["#E9DCC0", "#D4C09A", "#6B4A2B"]],
+    ["lousa", "Lousa", "chalkboard with chalk drawings, hand lettering", "manuscrito", ["#1F2B24", "#2C3A32", "#F2EFE6"]],
+    ["espacial", "Espacial", "outer space, galaxy, planets and stars, astronaut", "neon", ["#05061A", "#1B1446", "#9AD7FF"]],
+    ["mar", "Fundo do mar", "under the sea, light rays, bubbles, seaweed, cute fish", "divertido", ["#0B4F7A", "#1FA2C7", "#FFE08A"]],
+    ["junina", "Junina", "brazilian festa junina, colorful little flags, bonfire, straw", "festa", ["#7A1E12", "#C4501C", "#FFD23F"]],
+    ["halloween", "Halloween", "cute spooky halloween night, big moon, bats, pumpkins", "impacto", ["#120A1F", "#3A1B4E", "#FF8A1F"]],
+    ["bebe", "Bebê", "soft baby nursery, pastel clouds and little stars", "divertido", ["#EAF4FF", "#FDEAF2", "#7FB3E8"]],
+    ["circo", "Circo", "circus tent stripes, red and cream, playful", "divertido", ["#B3122E", "#F4E9D8", "#FFD23F"]],
+    ["safari", "Safári", "jungle safari, tropical leaves, warm sand tones", "divertido", ["#E9D9B0", "#C9A46A", "#2E6B3A"]]
   ];
   var PALETAS = [["", "Do estilo"], ["marca", "Minha marca"], ["ouro", "Dourado e preto", ["#0b0b0f", "#2a2218", "#E8C26A"], "gold and black"], ["rosa", "Rosa e lilás", ["#ffd1e6", "#c9a7ff", "#FF4F9A"], "pink and lilac"],
     ["azul", "Azul e branco", ["#0b2a5b", "#3f7fd6", "#ffffff"], "blue and white"], ["verde", "Verde", ["#0b3d2e", "#2fa36b", "#d7f5c8"], "green tones"], ["vermelho", "Vermelho", ["#3b0606", "#c62828", "#ffcc80"], "red and warm"],
@@ -120,6 +146,8 @@
   var E = Object.assign({ tipo: "convite", sub: "aniversario", dados: {}, estilo: "festa", paleta: "", formato: "story", desc: "", fotoModo: "ia",
     aj: { pos: "", caixa: "degrade", par: "", cor: "auto", destaque: "", tam: 100, alinh: "centro", escurecer: 0, logo: false, logoId: "", qr: "", moldura: "circulo" } }, U);
   E.aj = Object.assign({ pos: "", caixa: "degrade", par: "", cor: "auto", destaque: "", tam: 100, alinh: "centro", escurecer: 0, logo: false, logoId: "", qr: "", moldura: "circulo" }, U.aj || {});
+  /* 22/11 — CONVITE ANIMADO: bichinhos/objetos (itens, posição em fração), efeitos de tela, entrada do texto e duração */
+  E.anim = Object.assign({ ligado: false, itens: [], over: [], texto: "suave", dur: 8 }, U.anim || {});
   var tGravar = 0;
   function gravar() { clearTimeout(tGravar); tGravar = setTimeout(function () { try { localStorage.setItem("ui_criador", JSON.stringify(E)); } catch (e) { } }, 300); }
   function dados() { var k = E.tipo + "|" + E.sub; return E.dados[k] || (E.dados[k] = padrao(E.tipo, E.sub)); }
@@ -208,7 +236,7 @@
     else o.push(["zap", "WHATSAPP"], ["insta", "INSTAGRAM"], ["mapa", "COMO CHEGAR"]);
     void d; return o;
   }
-  function tudo() { desenharTopo(); desenharCampos(); desenharEstilo(); desenharAjustes(); desenharOps(); agendar(); }
+  function tudo() { desenharTopo(); desenharCampos(); desenharEstilo(); desenharAjustes(); desenharOps(); desenharBib(); desenharAnim(); agendar(); }
 
   /* ================= TEXTOS ================= */
   var SEM = ["domingo", "segunda-feira", "terça-feira", "quarta-feira", "quinta-feira", "sexta-feira", "sábado"], MES = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
@@ -316,7 +344,74 @@
       x.globalAlpha = 0.85; x.fillStyle = cs[2]; x.fillRect(0, H * 0.52, W, H * 0.2); x.fillStyle = "#F2D3A3"; x.beginPath(); x.moveTo(0, H * 0.72); x.quadraticCurveTo(W * 0.5, H * 0.66, W, H * 0.7); x.lineTo(W, H); x.lineTo(0, H); x.fill();
       x.globalAlpha = 0.5; x.strokeStyle = "#fff"; x.lineWidth = Math.max(1, m * 0.004); for (i = 0; i < 6; i++) { x.beginPath(); var yy = H * (0.55 + i * 0.028); x.moveTo(0, yy); for (n = 0; n <= 10; n++) x.lineTo(W * n / 10, yy + Math.sin(n + i) * m * 0.006); x.stroke(); }
     }
-    x.globalAlpha = 1; void claro; return c;
+    x.globalAlpha = 1; fundoNovo(x, W, H, m, cs, r, est); x.globalAlpha = 1; x.globalCompositeOperation = "source-over"; void claro; return c;
+  }
+  /* 22/11 — estilos novos (desenho próprio, nada de arte de terceiros) */
+  function fundoNovo(x, W, H, m, cs, r, est) {
+    var i, n, k;
+    if (est === "luxo") {
+      x.strokeStyle = cs[2]; x.globalAlpha = 0.9; var mg = m * 0.045;
+      x.lineWidth = Math.max(1.5, m * 0.004); x.strokeRect(mg, mg, W - 2 * mg, H - 2 * mg); x.lineWidth = Math.max(1, m * 0.0015); x.strokeRect(mg * 1.6, mg * 1.6, W - 3.2 * mg, H - 3.2 * mg);
+      [[mg, mg, 0], [W - mg, mg, 1], [W - mg, H - mg, 2], [mg, H - mg, 3]].forEach(function (q) {   // leques art déco nos cantos
+        x.save(); x.translate(q[0], q[1]); x.rotate(q[2] * Math.PI / 2); x.lineWidth = Math.max(1, m * 0.002);
+        for (k = 1; k <= 4; k++) { x.beginPath(); x.arc(0, 0, m * 0.035 * k, 0, Math.PI / 2); x.stroke(); }
+        for (k = 0; k <= 6; k++) { var a = Math.PI / 2 * k / 6; x.beginPath(); x.moveTo(0, 0); x.lineTo(Math.cos(a) * m * 0.14, Math.sin(a) * m * 0.14); x.stroke(); } x.restore();
+      });
+      x.globalAlpha = 0.25; x.lineWidth = Math.max(1, m * 0.0015);   // raios do sol no alto
+      for (i = 0; i < 25; i++) { var ang = Math.PI * (0.1 + 0.8 * i / 24); x.beginPath(); x.moveTo(W / 2, H * 0.02); x.lineTo(W / 2 + Math.cos(ang) * m * 0.5, H * 0.02 + Math.sin(ang) * m * 0.5); x.stroke(); }
+      x.globalAlpha = 0.9; x.beginPath(); x.moveTo(W / 2, H * 0.06); x.lineTo(W / 2 + m * 0.03, H * 0.06 + m * 0.03); x.lineTo(W / 2, H * 0.06 + m * 0.06); x.lineTo(W / 2 - m * 0.03, H * 0.06 + m * 0.03); x.closePath(); x.stroke();
+    } else if (est === "marmore") {
+      for (i = 0; i < 14; i++) {
+        x.globalAlpha = 0.06 + r() * 0.12; x.strokeStyle = i % 4 ? "#7d7468" : cs[2]; x.lineWidth = m * (0.001 + r() * 0.004);
+        var y0 = r() * H; x.beginPath(); x.moveTo(-10, y0); for (k = 1; k <= 8; k++) x.quadraticCurveTo(W * (k - 0.5) / 8 + (r() - 0.5) * m * 0.1, y0 + (r() - 0.5) * m * 0.25, W * k / 8, y0 + (r() - 0.5) * m * 0.2 + k * m * 0.02); x.stroke();
+      }
+      x.globalAlpha = 0.85; x.strokeStyle = cs[2]; x.lineWidth = Math.max(1.5, m * 0.003); var mm = m * 0.05; x.strokeRect(mm, mm, W - 2 * mm, H - 2 * mm);
+    } else if (est === "aquarela") {
+      var tintas = [cs[2], "#F7B7A3", "#A8D5BA", "#F3C5D8", "#C9B6E4"];
+      for (i = 0; i < 26; i++) { var cxx = (r() < 0.5 ? r() * 0.3 : 1 - r() * 0.3) * W, cyy = (r() < 0.5 ? r() * 0.28 : 1 - r() * 0.28) * H, rr0 = m * (0.06 + r() * 0.14);
+        x.globalAlpha = 0.08 + r() * 0.1; x.fillStyle = tintas[i % 5]; x.beginPath(); for (k = 0; k <= 18; k++) { var aa = Math.PI * 2 * k / 18, rv = rr0 * (0.75 + r() * 0.5); x.lineTo(cxx + Math.cos(aa) * rv, cyy + Math.sin(aa) * rv); } x.fill(); }
+      for (i = 0; i < 8; i++) flor(x, (i % 2 ? W - r() * W * 0.2 : r() * W * 0.2), (i < 4 ? r() * H * 0.2 : H - r() * H * 0.2), m * (0.035 + r() * 0.04), tintas[i % 5]);
+    } else if (est === "vintage") {
+      for (i = 0; i < 2600; i++) { x.globalAlpha = 0.05 + r() * 0.08; x.fillStyle = r() < 0.5 ? "#6b4a2b" : "#fff"; x.fillRect(r() * W, r() * H, m * 0.003, m * 0.003); }
+      var vg = x.createRadialGradient(W / 2, H / 2, m * 0.3, W / 2, H / 2, Math.max(W, H) * 0.75); vg.addColorStop(0, "rgba(0,0,0,0)"); vg.addColorStop(1, "rgba(80,50,20,.45)"); x.globalAlpha = 1; x.fillStyle = vg; x.fillRect(0, 0, W, H);
+      x.strokeStyle = cs[2]; x.globalAlpha = 0.75; var mv = m * 0.05; x.lineWidth = Math.max(1.5, m * 0.004); x.strokeRect(mv, mv, W - 2 * mv, H - 2 * mv); x.lineWidth = Math.max(1, m * 0.0015); x.setLineDash([m * 0.01, m * 0.008]); x.strokeRect(mv * 1.5, mv * 1.5, W - 3 * mv, H - 3 * mv); x.setLineDash([]);
+      [[mv, mv], [W - mv, mv], [W - mv, H - mv], [mv, H - mv]].forEach(function (q) { x.beginPath(); x.arc(q[0], q[1], m * 0.022, 0, 7); x.stroke(); x.beginPath(); x.arc(q[0], q[1], m * 0.01, 0, 7); x.fillStyle = cs[2]; x.fill(); });
+    } else if (est === "lousa") {
+      for (i = 0; i < 40; i++) { x.globalAlpha = 0.03 + r() * 0.05; x.strokeStyle = "#fff"; x.lineWidth = m * (0.02 + r() * 0.05); x.beginPath(); var lx = r() * W, ly = r() * H; x.moveTo(lx, ly); x.lineTo(lx + (r() - 0.5) * m * 0.4, ly + (r() - 0.5) * m * 0.15); x.stroke(); }
+      x.globalAlpha = 0.6; x.strokeStyle = "#f2efe6"; x.lineWidth = Math.max(1.5, m * 0.003); x.setLineDash([m * 0.03, m * 0.012]); var ml = m * 0.05; x.strokeRect(ml, ml, W - 2 * ml, H - 2 * ml); x.setLineDash([]);
+      for (i = 0; i < 10; i++) { x.globalAlpha = 0.5; x.lineWidth = Math.max(1, m * 0.002); var sx = (i % 2 ? W - ml * 2.2 : ml * 2.2) + (r() - 0.5) * m * 0.05, sy = H * (0.1 + 0.8 * i / 9); x.beginPath(); for (k = 0; k < 10; k++) { var a2 = Math.PI / 5 * k - Math.PI / 2, rr2 = k % 2 ? m * 0.008 : m * 0.02; x.lineTo(sx + Math.cos(a2) * rr2, sy + Math.sin(a2) * rr2); } x.closePath(); x.stroke(); }
+    } else if (est === "espacial") {
+      [["#6a2bd9", 0.25, 0.3], ["#1e6fd9", 0.75, 0.65], ["#d92b8a", 0.4, 0.85]].forEach(function (nb) { var gx = x.createRadialGradient(W * nb[1], H * nb[2], 0, W * nb[1], H * nb[2], m * 0.55); gx.addColorStop(0, nb[0]); gx.addColorStop(1, "rgba(0,0,0,0)"); x.globalAlpha = 0.35; x.fillStyle = gx; x.fillRect(0, 0, W, H); });
+      for (i = 0; i < 260; i++) { x.globalAlpha = 0.3 + r() * 0.7; x.fillStyle = "#fff"; x.beginPath(); x.arc(r() * W, r() * H, m * (0.001 + r() * 0.0035), 0, 7); x.fill(); }
+      var px0 = W * 0.82, py0 = H * 0.14, pr = m * 0.1, pg = x.createRadialGradient(px0 - pr * 0.4, py0 - pr * 0.4, pr * 0.1, px0, py0, pr); pg.addColorStop(0, "#ffd9a0"); pg.addColorStop(1, "#d9772b"); x.globalAlpha = 1; x.fillStyle = pg; x.beginPath(); x.arc(px0, py0, pr, 0, 7); x.fill();
+      x.strokeStyle = "rgba(255,230,190,.8)"; x.lineWidth = m * 0.008; x.beginPath(); x.ellipse(px0, py0, pr * 1.7, pr * 0.4, -0.35, 0, 7); x.stroke();
+    } else if (est === "mar") {
+      for (i = 0; i < 7; i++) { x.save(); x.globalAlpha = 0.12; x.fillStyle = "#fff"; var rx = W * (0.05 + i * 0.16); x.beginPath(); x.moveTo(rx, 0); x.lineTo(rx + m * 0.06, 0); x.lineTo(rx + m * 0.2, H * 0.8); x.lineTo(rx + m * 0.05, H * 0.8); x.fill(); x.restore(); }
+      for (i = 0; i < 30; i++) { x.globalAlpha = 0.35; x.strokeStyle = "#fff"; x.lineWidth = Math.max(1, m * 0.0025); x.beginPath(); x.arc(r() * W, r() * H, m * (0.006 + r() * 0.018), 0, 7); x.stroke(); }
+      x.globalAlpha = 1; x.fillStyle = "#e8cf8f"; x.beginPath(); x.moveTo(0, H * 0.9); x.quadraticCurveTo(W * 0.5, H * 0.84, W, H * 0.9); x.lineTo(W, H); x.lineTo(0, H); x.fill();
+      for (i = 0; i < 9; i++) { var bxx = r() * W, alg = m * (0.12 + r() * 0.15); x.strokeStyle = ["#2e9e5a", "#3fbf6f", "#1f7a45"][i % 3]; x.lineWidth = m * 0.012; x.lineCap = "round"; x.beginPath(); x.moveTo(bxx, H * 0.92); x.bezierCurveTo(bxx - m * 0.04, H * 0.92 - alg * 0.33, bxx + m * 0.04, H * 0.92 - alg * 0.66, bxx, H * 0.92 - alg); x.stroke(); }
+    } else if (est === "junina") {
+      for (i = 0; i < 3; i++) { var by0 = H * (0.04 + i * 0.07), nb = 12; for (k = 0; k < nb; k++) { var ax = W * k / nb, cx2 = W * (k + 1) / nb, ay = by0 + Math.sin(k / nb * Math.PI) * H * 0.03, cy2 = by0 + Math.sin((k + 1) / nb * Math.PI) * H * 0.03;
+        x.globalAlpha = 0.95; x.fillStyle = ["#e53935", "#ffd23f", "#1e88e5", "#5ccf7a", "#ff7ab6", "#ff9a3c"][(k + i * 2) % 6]; x.beginPath(); x.moveTo(ax, ay); x.lineTo(cx2, cy2); x.lineTo((ax + cx2) / 2, (ay + cy2) / 2 + m * 0.06); x.closePath(); x.fill(); } }
+      var fog = x.createRadialGradient(W / 2, H, 0, W / 2, H, m * 0.6); fog.addColorStop(0, "rgba(255,200,80,.55)"); fog.addColorStop(1, "rgba(255,120,40,0)"); x.globalAlpha = 1; x.fillStyle = fog; x.fillRect(0, 0, W, H);
+      for (i = 0; i < 1200; i++) { x.globalAlpha = 0.06; x.fillStyle = "#ffe9a8"; x.fillRect(r() * W, r() * H, m * 0.012, m * 0.002); }
+    } else if (est === "halloween") {
+      var lua = x.createRadialGradient(W * 0.7, H * 0.2, 0, W * 0.7, H * 0.2, m * 0.32); lua.addColorStop(0, "#fff3c4"); lua.addColorStop(0.45, "#ffd27a"); lua.addColorStop(0.47, "rgba(255,180,80,.35)"); lua.addColorStop(1, "rgba(255,150,60,0)"); x.globalAlpha = 1; x.fillStyle = lua; x.fillRect(0, 0, W, H);
+      for (i = 0; i < 7; i++) { var bx2 = W * (0.15 + r() * 0.75), by2 = H * (0.08 + r() * 0.3), bs = m * (0.03 + r() * 0.03); x.fillStyle = "#120a1f"; x.globalAlpha = 0.9; x.beginPath(); x.moveTo(bx2, by2); x.quadraticCurveTo(bx2 - bs, by2 - bs * 0.8, bx2 - bs * 2, by2); x.quadraticCurveTo(bx2 - bs * 1.4, by2 - bs * 0.1, bx2 - bs, by2 + bs * 0.3); x.quadraticCurveTo(bx2 - bs * 0.3, by2 + bs * 0.1, bx2, by2 + bs * 0.4); x.quadraticCurveTo(bx2 + bs * 0.3, by2 + bs * 0.1, bx2 + bs, by2 + bs * 0.3); x.quadraticCurveTo(bx2 + bs * 1.4, by2 - bs * 0.1, bx2 + bs * 2, by2); x.quadraticCurveTo(bx2 + bs, by2 - bs * 0.8, bx2, by2); x.fill(); }
+      x.globalAlpha = 0.35; x.strokeStyle = "#cfc6e8"; x.lineWidth = Math.max(1, m * 0.0015); for (k = 0; k < 6; k++) { var a3 = Math.PI / 2 * k / 5; x.beginPath(); x.moveTo(0, 0); x.lineTo(Math.cos(a3) * m * 0.3, Math.sin(a3) * m * 0.3); x.stroke(); }
+      for (k = 1; k <= 4; k++) { x.beginPath(); for (n = 0; n <= 5; n++) { var a4 = Math.PI / 2 * n / 5; x.lineTo(Math.cos(a4) * m * 0.07 * k, Math.sin(a4) * m * 0.07 * k); } x.stroke(); }
+    } else if (est === "bebe") {
+      for (i = 0; i < 6; i++) nuvem(x, r() * W, r() * H, m * (0.06 + r() * 0.05));
+      for (i = 0; i < 30; i++) estrela(x, r() * W, r() * H, m * (0.008 + r() * 0.014), ["#ffd86f", "#ffffff", "#ffb3c7", "#9ccfff"][i % 4], 0.8);
+      for (i = 0; i < 40; i++) { x.globalAlpha = 0.25; x.fillStyle = cs[2]; x.beginPath(); x.arc(r() * W, r() * H, m * 0.006, 0, 7); x.fill(); }
+    } else if (est === "circo") {
+      var nr = 24; for (i = 0; i < nr; i++) { x.globalAlpha = 1; x.fillStyle = i % 2 ? "#B3122E" : "#F4E9D8"; x.beginPath(); x.moveTo(W / 2, -H * 0.1); var a5 = Math.PI * i / nr, a6 = Math.PI * (i + 1) / nr; x.lineTo(W / 2 + Math.cos(a5) * Math.max(W, H) * 1.5, -H * 0.1 + Math.sin(a5) * Math.max(W, H) * 1.5); x.lineTo(W / 2 + Math.cos(a6) * Math.max(W, H) * 1.5, -H * 0.1 + Math.sin(a6) * Math.max(W, H) * 1.5); x.fill(); }
+      x.fillStyle = "#B3122E"; var ns = 9; for (i = 0; i < ns; i++) { x.beginPath(); x.arc(W * (i + 0.5) / ns, 0, W / ns / 2, 0, Math.PI); x.fill(); }
+      x.fillStyle = cs[2]; for (i = 0; i < ns; i++) { x.beginPath(); x.arc(W * (i + 0.5) / ns, W / ns / 2, m * 0.01, 0, 7); x.fill(); }
+    } else if (est === "safari") {
+      var solS = x.createRadialGradient(W * 0.75, H * 0.2, 0, W * 0.75, H * 0.2, m * 0.25); solS.addColorStop(0, "rgba(255,220,120,.9)"); solS.addColorStop(1, "rgba(255,200,100,0)"); x.fillStyle = solS; x.fillRect(0, 0, W, H);
+      for (i = 0; i < 22; i++) folha(x, (i % 2 ? W : 0) + (r() - 0.5) * W * 0.25, (i < 11 ? r() * H * 0.3 : H - r() * H * 0.3), m * (0.15 + r() * 0.12), (i % 2 ? Math.PI : 0) + (r() - 0.5) * 1.4, ["#2E6B3A", "#3f8f4e", "#5aa85f", "#1f5a2e"][i % 4]);
+    }
   }
   function estrela(x, cx, cy, r, cor, a) { x.save(); x.globalAlpha = a; x.fillStyle = cor; x.beginPath(); for (var i = 0; i < 10; i++) { var ang = Math.PI / 5 * i - Math.PI / 2, rr = i % 2 ? r * 0.45 : r; x.lineTo(cx + Math.cos(ang) * rr, cy + Math.sin(ang) * rr); } x.closePath(); x.fill(); x.restore(); }
   function nuvem(x, cx, cy, r) { x.save(); x.globalAlpha = 0.75; x.fillStyle = "#fff"; [[0, 0, 1], [0.9, 0.15, 0.75], [-0.9, 0.18, 0.7], [0.4, -0.35, 0.7]].forEach(function (k) { x.beginPath(); x.arc(cx + k[0] * r, cy + k[1] * r, r * k[2], 0, 7); x.fill(); }); x.restore(); }
@@ -334,14 +429,42 @@
   }
   function rr(x, X, Y, W, H, r) { x.beginPath(); x.moveTo(X + r, Y); x.arcTo(X + W, Y, X + W, Y + H, r); x.arcTo(X + W, Y + H, X, Y + H, r); x.arcTo(X, Y + H, X, Y, r); x.arcTo(X, Y, X + W, Y, r); x.closePath(); }
   function desfocado(c, W, H, k) { var p = document.createElement("canvas"); p.width = Math.max(1, Math.round(W / k)); p.height = Math.max(1, Math.round(H / k)); p.getContext("2d").drawImage(c, 0, 0, p.width, p.height); return p; }
-  function render(W, H) {
+  var FUNDO_CACHE = { k: "", c: null };
+  function fundoCache(W, H) {
+    var k = W + "x" + H + "|" + E.estilo + "|" + E.paleta + "|" + cores().join(",");
+    if (FUNDO_CACHE.k !== k) { if (FUNDO_CACHE.c) FUNDO_CACHE.c.width = 1; FUNDO_CACHE = { k: k, c: fundoPronto(W, H, 0) }; }
+    return FUNDO_CACHE.c;
+  }
+  function animOn(t) { return t != null && E.anim && E.anim.ligado; }
+  function txAnim(i, t) {   /* como o bloco i do texto entra no tempo t */
+    if (!animOn(t) || E.anim.texto === "nenhuma") return { a: 1, dy: 0, sc: 1, f: 1 };
+    var m = E.anim.texto, p = lim((t - 0.35 - i * 0.17) / 0.7, 0, 1), e = 1 - Math.pow(1 - p, 3);
+    if (m === "subir") return { a: e, dy: (1 - e) * 0.07, sc: 1, f: 1 };
+    if (m === "zoom") return { a: e, dy: 0, sc: 0.55 + 0.45 * e + (p > 0 && p < 1 ? Math.sin(p * Math.PI) * 0.07 : 0), f: 1 };
+    if (m === "digitar") { var q = lim((t - 0.35 - i * 0.32) / 0.8, 0, 1); return { a: q > 0 ? 1 : 0, dy: 0, sc: 1, f: q }; }
+    if (m === "brilho") return { a: e, dy: (1 - e) * 0.02, sc: 1, f: 1, br: 0.5 + 0.5 * Math.sin(t * 3 - i) };
+    return { a: e, dy: (1 - e) * 0.02, sc: 1, f: 1 };   // suave
+  }
+  function camadaAnim(x, W, H, t, camada, cs) {
+    var A = window.BWConviteAnim; if (!A || !E.anim || !E.anim.ligado && t != null) return;
+    if (!E.anim.ligado) return;
+    var tt = t == null ? 1.3 : t;
+    (E.anim.over || []).forEach(function (id) { var ef = A.EFEITOS[id]; if (ef && ef.camada === camada) { x.save(); try { ef.f(x, W, H, tt, cs); } catch (e) { } x.restore(); } });
+    if (camada === "frente") (E.anim.itens || []).forEach(function (it, i) {
+      x.save(); A.desenharItem(x, it, W, H, tt); x.restore();
+      if (i === ITEM_SEL && t != null && !GERANDO) { var m = Math.min(W, H), r0 = (it.s || 0.22) * m * 0.58; x.save(); x.strokeStyle = "#FFB547"; x.lineWidth = Math.max(2, m * 0.004); x.setLineDash([m * 0.015, m * 0.01]); x.strokeRect(it.x * W - r0, it.y * H - r0, r0 * 2, r0 * 2); x.restore(); }
+    });
+  }
+  var ITEM_SEL = -1, GERANDO = false;
+  function render(W, H, t) {
     var c = document.createElement("canvas"); c.width = W; c.height = H; var x = c.getContext("2d", { willReadFrequently: true }); x.imageSmoothingQuality = "high";
     var a = E.aj, m = Math.min(W, H), cs = cores(), dest = a.destaque || cs[2] || "#E8C26A", pos = posTexto(), cartaoH = E.tipo === "cartao" && W / H > 1.25;
     /* 1. fundo */
     if (FOTO && E.fotoModo === "fundo") capa(x, FOTO, 0, 0, W, H);
     else if (SEL >= 0 && OPS[SEL]) capa(x, OPS[SEL], 0, 0, W, H);
-    else { var fp = fundoPronto(Math.round(W / 2), Math.round(H / 2), 0); x.drawImage(fp, 0, 0, W, H); fp.width = fp.height = 1; }
+    else x.drawImage(fundoCache(Math.round(W / 2), Math.round(H / 2)), 0, 0, W, H);
     if (a.escurecer) { x.fillStyle = "rgba(0,0,0," + a.escurecer / 100 + ")"; x.fillRect(0, 0, W, H); }
+    camadaAnim(x, W, H, t, "fundo", cs);
     /* 2. área do texto (e foto em moldura) */
     var mx = W * (cartaoH ? 0.07 : 0.08), area = { x: mx, w: W - 2 * mx, y: H * 0.06, h: H * 0.88 };
     if (cartaoH) area.w = W * 0.56;
@@ -383,24 +506,35 @@
     /* 5. texto */
     var y = y0; x.textBaseline = "top"; x.textAlign = esq ? "left" : "center";
     var cx = esq ? bx : W / 2;
-    med.itens.forEach(function (it) {
-      var P = PAPEL[it.p.r] || {}, cor = P.cor === "dest" ? dest : corT;
-      if (it.p.r === "linha") { x.fillStyle = dest; var lw2 = Math.min(larg * 0.32, base * 0.22); x.fillRect(esq ? bx : W / 2 - lw2 / 2, y + it.h * 0.42, lw2, Math.max(2, base * 0.004)); y += it.h; return; }
+    med.itens.forEach(function (it, ix) {
+      var P = PAPEL[it.p.r] || {}, cor = P.cor === "dest" ? dest : corT, an = txAnim(ix, t);
+      if (an.a <= 0.001) { y += it.h + (it.gap || 0); return; }
+      x.save(); x.globalAlpha *= an.a; if (an.dy) x.translate(0, an.dy * H);
+      if (an.sc !== 1) { var pcx = esq ? bx : W / 2, pcy = y + it.h / 2; x.translate(pcx, pcy); x.scale(an.sc, an.sc); x.translate(-pcx, -pcy); }
+      try { desenharBloco(it, P, cor, an); } finally { x.restore(); }
+      y += it.h + (it.gap || 0);
+    });
+    function desenharBloco(it, P, cor, an) {
+      if (it.p.r === "linha") { x.fillStyle = dest; var lw2 = Math.min(larg * 0.32, base * 0.22) * an.f; x.fillRect(esq ? bx : W / 2 - lw2 / 2, y + it.h * 0.42, lw2, Math.max(2, base * 0.004)); return; }
       x.font = fonte(it.p, it.fs); x.letterSpacing = P.esp ? Math.round(it.fs * P.esp) + "px" : "0px";
       if (it.p.r === "cta") {
         var tw = x.measureText(it.linhas.join(" ")).width, bw = tw + it.fs * 2.2, bh = it.fs * 2.05, bxx = esq ? bx : W / 2 - bw / 2;
         x.save(); x.shadowColor = "rgba(0,0,0,.3)"; x.shadowBlur = it.fs * 0.6; x.fillStyle = dest; rr(x, bxx, y + it.fs * 0.1, bw, bh, bh / 2); x.fill(); x.restore();
         x.fillStyle = corContraste(dest); x.textAlign = "center"; x.fillText(it.linhas.join(" "), bxx + bw / 2, y + it.fs * 0.1 + (bh - it.fs) / 2 - it.fs * 0.04); x.textAlign = esq ? "left" : "center";
-        y += it.h + it.gap; return;
+        return;
       }
       if (it.p.r === "contato") { x.fillStyle = dest; x.beginPath(); x.arc(bx + it.fs * 0.32, y + it.fs * 0.58, it.fs * 0.2, 0, 7); x.fill(); }
       x.save();
       if (a.caixa === "nenhum" || a.caixa === "degrade") { x.shadowColor = claro ? "rgba(0,0,0,.55)" : "rgba(255,255,255,.5)"; x.shadowBlur = it.fs * 0.18; x.shadowOffsetY = it.fs * 0.03; }
+      if (an.br != null && P.cor === "dest") { x.shadowColor = dest; x.shadowBlur = it.fs * (0.2 + 0.5 * an.br); x.shadowOffsetY = 0; }
       x.fillStyle = cor;
-      it.linhas.forEach(function (l, j) { x.fillText(l, it.p.r === "contato" ? bx + it.fs * 0.85 : cx, y + j * it.lh); });
-      x.restore(); y += it.h + it.gap;
-    });
+      var resta = an.f < 1 ? Math.round(it.linhas.join("").length * an.f) : 1e9;
+      it.linhas.forEach(function (l, j) { if (resta <= 0) return; var lt = l.length > resta ? l.slice(0, resta) : l; resta -= l.length;
+        x.fillText(lt, it.p.r === "contato" ? bx + it.fs * 0.85 : cx, y + j * it.lh); });
+      x.restore();
+    }
     x.letterSpacing = "0px";
+    camadaAnim(x, W, H, t, "frente", cs);
     /* 6. logo e QR */
     var LG = a.logo && LOGOS[a.logoId || (KIT.logos[0] && KIT.logos[0].id)];
     if (LG) {
@@ -451,12 +585,19 @@
 
   /* ================= PRÉVIA ================= */
   function tamanho() { var f = FORMATOS.filter(function (x) { return x[0] === E.formato; })[0] || FORMATOS[0]; return { W: f[2], H: f[3] }; }
-  var pedido = 0;
-  function agendar() { if (pedido) return; pedido = requestAnimationFrame(function () { pedido = 0; previa(); }); }
+  var pedido = 0, LACO = 0, T0 = performance.now();
+  function agendar() {
+    gravar();
+    if (E.anim && E.anim.ligado) { if (!LACO) LACO = requestAnimationFrame(laco); return; }
+    if (pedido) return; pedido = requestAnimationFrame(function () { pedido = 0; previa(); });
+  }
+  function laco() { LACO = 0; if (!E.anim || !E.anim.ligado) { previa(); return; } if (!document.hidden && !GERANDO) previa(); LACO = requestAnimationFrame(laco); }
+  function tempoAnim() { var d = +E.anim.dur || 8, t = (performance.now() - T0) / 1000; return t < 0 ? 0 : t % d; }
   var fontesOk = false;
   function previa() {
-    var t = tamanho(), k = 1100 / Math.max(t.W, t.H), W = Math.round(t.W * k), H = Math.round(t.H * k), c = render(W, H), cv = $("cv");
-    cv.width = W; cv.height = H; cv.getContext("2d").drawImage(c, 0, 0); c.width = c.height = 1; gravar();
+    var an = E.anim && E.anim.ligado, t = tamanho(), k = (an ? 720 : 1100) / Math.max(t.W, t.H), W = Math.round(t.W * k), H = Math.round(t.H * k), c = render(W, H, an ? tempoAnim() : undefined), cv = $("cv");
+    if (cv.width !== W || cv.height !== H) { cv.width = W; cv.height = H; }
+    cv.getContext("2d").drawImage(c, 0, 0); c.width = c.height = 1;
     if (!fontesOk && document.fonts) { fontesOk = true; carregarFontes().then(agendar); }
   }
   function carregarFontes() {
@@ -590,7 +731,7 @@
     var b = ev.target.closest("[data-k]"); if (b && b.tagName === "BUTTON") {
       var k = b.dataset.k, v = b.dataset.v;
       if (k === "tipo") { E.tipo = v; E.sub = TIPOS[v].subs[0][0]; E.formato = TIPOS[v].fmt; E.aj.pos = ""; if (E.aj.qr && !qrOpcoes().some(function (o) { return o[0] === E.aj.qr; })) E.aj.qr = ""; OPS = [null, null, null]; SEL = -1; OP_MODO = ""; tudo(); return; }
-      if (k === "sub") { E.sub = v; desenharTopo(); desenharCampos(); desenharAjustes(); agendar(); return; }
+      if (k === "sub") { E.sub = v; MOD_ON = ""; desenharTopo(); desenharCampos(); desenharAjustes(); desenharBib(); agendar(); return; }
       if (k === "estilo") { E.estilo = v; E.aj.par = ""; desenharEstilo(); desenharAjustes(); if (OP_MODO === "prontos") prontos(); else agendar(); return; }
       if (k === "paleta") { E.paleta = v; E.aj.destaque = ""; desenharEstilo(); desenharAjustes(); if (OP_MODO === "prontos") prontos(); else agendar(); return; }
       if (k === "formato") { E.formato = v; desenharEstilo(); if (OP_MODO === "prontos") prontos(); else agendar(); if (OP_MODO === "ia") msg("Dica: para o melhor resultado, crie as opções com IA de novo neste formato."); return; }
@@ -635,9 +776,203 @@
   (async function () { var el = $("userBox"); if (!el) return; var s = await sessaoOk(); var u = s && s.user;
     el.innerHTML = u ? '<a href="login.html" class="bw-logado" title="Conta: ' + esc(u.email) + '"><i></i>LOGADO</a>' : '<a href="login.html" class="bw-btn bw-btn--vidro" style="min-height:34px;padding:0 14px;font-size:12px">LOGIN</a>'; })();
 
+
+  /* ================= 22/11 — BIBLIOTECA DE CONVITES + CONVITE ANIMADO =================
+     Modelos ORIGINAIS (inspirados nas ocasiões mais pedidas, nada copiado de site de terceiros): cada um é só uma
+     combinação de modelo + estilo + cores + fontes + animação. Miniaturas desenhadas aqui mesmo, com dados de exemplo. */
+  var BIB_CATS = [["", "Todos"], ["anim", "✨ Animados"], ["aniv", "Aniversário"], ["inf", "Infantil"], ["quinze", "15 anos"], ["amor", "Casamento e amor"], ["bebe", "Bebê e família"], ["empresa", "Formatura e empresa"], ["datas", "Datas e festas"]];
+  function M(id, nome, cat, sub, estilo, paleta, par, an, aj) { return { id: id, nome: nome, cat: cat, sub: sub, estilo: estilo, paleta: paleta || "", par: par || "", anim: an || null, aj: aj || {} }; }
+  var MODELOS_CONVITE = [
+    M("an-neon", "Neon party", "aniv", "aniversario", "neon", "", "neon", { o: ["luzes"], tx: "zoom" }),
+    M("an-ouro", "Preto e dourado", "aniv", "aniversario", "luxo", "", "elegante", { o: ["glitter"], tx: "brilho" }),
+    M("an-baloes", "Balões e confete", "aniv", "aniversario", "festa", "", "festa", { i: ["balao", "bolo"], o: ["confete"], tx: "subir" }),
+    M("an-boteco", "Boteco", "aniv", "aniversario", "rustico", "", "manuscrito", { i: ["tacas"], o: ["cordao"], tx: "suave" }),
+    M("an-brinde", "Brinde chique", "aniv", "aniversario", "elegante", "", "", { i: ["tacas"], o: ["glitter"], tx: "brilho" }),
+    M("an-tropical", "Tropical", "aniv", "aniversario", "tropical", "", "festa"),
+    M("an-minimal", "Minimalista", "aniv", "aniversario", "minimal", "", "moderno"),
+    M("an-aquarela", "Aquarela", "aniv", "aniversario", "aquarela", "", "classico", { i: ["borboleta"], tx: "suave" }),
+    M("in-ursinho", "Ursinho", "inf", "infantil", "bebe", "", "divertido", { i: ["ursinho", "balao"], o: ["estrelas"], tx: "subir" }),
+    M("in-safari", "Safári", "inf", "infantil", "safari", "", "divertido", { i: ["leao"], o: ["folhas"], tx: "zoom" }),
+    M("in-dino", "Dinossauros", "inf", "infantil", "safari", "verde", "divertido", { i: ["dino"], o: ["folhas"], tx: "subir" }),
+    M("in-mar", "Fundo do mar", "inf", "infantil", "mar", "", "divertido", { i: ["peixe"], o: ["bolhas"], tx: "subir" }),
+    M("in-espaco", "Astronauta", "inf", "infantil", "espacial", "", "divertido", { i: ["foguete"], o: ["estrelas"], tx: "zoom" }),
+    M("in-unicornio", "Unicórnio", "inf", "infantil", "infantil", "rosa", "divertido", { i: ["unicornio"], o: ["glitter", "estrelas"], tx: "brilho" }),
+    M("in-circo", "Circo", "inf", "infantil", "circo", "", "divertido", { i: ["balao"], o: ["confete"], tx: "zoom" }),
+    M("in-jardim", "Jardim encantado", "inf", "infantil", "floral", "", "divertido", { i: ["joaninha", "abelha"], o: ["borboletas"], tx: "subir" }),
+    M("in-coelho", "Coelhinho", "inf", "infantil", "bebe", "pastel", "divertido", { i: ["coelho"], o: ["coracoes"], tx: "subir" }),
+    M("in-fazenda", "Bichinhos", "inf", "infantil", "infantil", "", "divertido", { i: ["patinho", "gato", "cachorro"], tx: "subir" }),
+    M("q-luxo", "15 anos luxo", "quinze", "quinze", "luxo", "", "elegante", { i: ["coroa"], o: ["glitter"], tx: "brilho" }),
+    M("q-rose", "Rosé e mármore", "quinze", "quinze", "marmore", "rosa", "classico", { o: ["petalas"], tx: "suave" }),
+    M("q-neon", "Baile neon", "quinze", "quinze", "neon", "", "neon", { o: ["luzes", "estrelas"], tx: "zoom" }),
+    M("ca-classico", "Clássico dourado", "amor", "casamento", "luxo", "", "elegante", { i: ["aliancas"], o: ["glitter"], tx: "brilho" }),
+    M("ca-floral", "Floral", "amor", "casamento", "floral", "", "classico", { o: ["petalas"], tx: "suave" }),
+    M("ca-marmore", "Mármore", "amor", "casamento", "marmore", "", "classico", { tx: "suave" }),
+    M("ca-rustico", "Rústico", "amor", "casamento", "rustico", "", "manuscrito", { o: ["cordao"], tx: "suave" }),
+    M("ca-praia", "Pé na areia", "amor", "casamento", "praia", "", "manuscrito"),
+    M("ca-save", "Save the date", "amor", "savethedate", "minimal", "", "classico", { i: ["coracao"], tx: "digitar" }),
+    M("ca-noivado", "Noivado", "amor", "noivado", "elegante", "", "classico", { i: ["aliancas"], o: ["coracoes"], tx: "suave" }),
+    M("ca-bodas", "Bodas", "amor", "bodas", "vintage", "", "classico", { i: ["coracao"], tx: "digitar" }),
+    M("be-nuvens", "Nuvens", "bebe", "cha", "bebe", "", "divertido", { i: ["lua"], o: ["estrelas"], tx: "suave" }),
+    M("be-urso", "Ursinho dormindo", "bebe", "cha", "aquarela", "pastel", "divertido", { i: ["ursinho"], o: ["bolhas"], tx: "suave" }),
+    M("be-revela", "Menino ou menina?", "bebe", "revelacao", "festa", "pastel", "festa", { i: ["balao"], o: ["confete"], tx: "zoom" }),
+    M("be-fraldas", "Chá de fraldas", "bebe", "chafraldas", "aquarela", "", "divertido", { i: ["patinho"], tx: "subir" }),
+    M("be-cozinha", "Chá de cozinha", "bebe", "chacozinha", "vintage", "", "manuscrito", { tx: "digitar" }),
+    M("be-batizado", "Batizado", "bebe", "batizado", "aquarela", "azul", "classico", { i: ["pomba"], tx: "suave" }),
+    M("be-comunhao", "1ª comunhão", "bebe", "comunhao", "minimal", "", "classico", { i: ["pomba"], o: ["estrelas"], tx: "suave" }),
+    M("em-formatura", "Formatura", "empresa", "formatura", "luxo", "", "elegante", { i: ["capelo"], o: ["confete"], tx: "zoom" }),
+    M("em-confra", "Confraternização", "empresa", "confra", "corporativo", "", "moderno", { o: ["luzes"], tx: "subir" }),
+    M("em-inaug", "Inauguração", "empresa", "inauguracao", "corporativo", "", "moderno", { i: ["presente"], o: ["confete"], tx: "zoom" }),
+    M("em-lanc", "Lançamento", "empresa", "lancamento", "palco", "", "impacto", { o: ["luzes"], tx: "subir" }),
+    M("em-happy", "Happy hour", "empresa", "happyhour", "neon", "", "neon", { i: ["tacas"], tx: "zoom" }),
+    M("em-churras", "Churrasco", "empresa", "churrasco", "rustico", "", "manuscrito", { o: ["cordao"], tx: "subir" }),
+    M("da-junina", "Arraiá", "datas", "junina", "junina", "", "festa", { o: ["bandeirinhas"], tx: "subir" }),
+    M("da-halloween", "Halloween", "datas", "halloween", "halloween", "", "impacto", { i: ["abobora"], tx: "zoom" }),
+    M("da-natal", "Natal", "datas", "natal", "natal", "", "classico", { i: ["arvore"], o: ["neve"], tx: "suave" }),
+    M("da-reveillon", "Réveillon", "datas", "reveillon", "espacial", "ouro", "elegante", { o: ["fogos", "glitter"], tx: "brilho" }),
+    M("da-despedida", "Despedida", "datas", "despedida", "neon", "", "neon", { i: ["tacas"], o: ["luzes"], tx: "zoom" }),
+    M("da-lousa", "Lousa", "datas", "aniversario", "lousa", "", "manuscrito", { i: ["estrela"], tx: "digitar" })
+  ];
+  var CAIXA_ESTILO = { marmore: "nenhum", aquarela: "nenhum", vintage: "nenhum", minimal: "nenhum", bebe: "nenhum", floral: "vidro", infantil: "vidro", safari: "vidro", circo: "vidro", praia: "vidro" };
+  var VAGAS = [[0.18, 0.13], [0.82, 0.13], [0.84, 0.36], [0.16, 0.36], [0.5, 0.09], [0.2, 0.92], [0.8, 0.92]];
+  function itensDe(ids) { return (ids || []).map(function (id, i) { var v = VAGAS[i % VAGAS.length]; return { id: id, x: v[0], y: v[1], s: 0.22, f: i * 0.7, esp: v[0] > 0.6 && /ursinho|coelho|gato|cachorro|passarinho|dino|patinho|pomba|leao/.test(id) }; }); }
+  var BIB_CAT = "", MOD_ON = "", MINIS = {};
+  function amostra(t, s) { var d = padrao(t, s); campos(t, s).forEach(function (c) { if (d[c[0]] == null && c[3] && c[2] !== "textarea" && !/rsvp|endereco|traje/.test(c[0])) d[c[0]] = c[3]; }); d.data = "2026-12-12"; d.hora = "19:00"; return d; }
+  function estadoModelo(m) {
+    return { tipo: "convite", sub: m.sub, estilo: m.estilo, paleta: m.paleta, formato: "story", fotoModo: "ia", desc: "",
+      aj: Object.assign({}, E.aj, { pos: "", caixa: CAIXA_ESTILO[m.estilo] || "degrade", cor: "auto", par: m.par, destaque: "", logo: false, qr: "" }, m.aj),
+      anim: { ligado: !!m.anim, itens: itensDe(m.anim && m.anim.i), over: (m.anim && m.anim.o || []).slice(), texto: (m.anim && m.anim.tx) || "suave", dur: E.anim.dur || 8 } };
+  }
+  function miniModelo(m) {   /* desenha a miniatura com dados de exemplo e devolve o canvas */
+    var salvo = E, salvoSel = SEL, salvoFoto = FOTO;
+    try { E = Object.assign({ dados: {} }, estadoModelo(m)); E.dados["convite|" + m.sub] = amostra("convite", m.sub); SEL = -1; FOTO = null; return render(232, 412, m.anim ? 2.6 : undefined); }
+    finally { E = salvo; SEL = salvoSel; FOTO = salvoFoto; }
+  }
+  function desenharBib() {
+    var card = $("bibCard"); if (!card) return; card.hidden = E.tipo !== "convite"; if (card.hidden) return;
+    chips("bibCats", BIB_CATS, BIB_CAT, "bibcat");
+    var lista = MODELOS_CONVITE.filter(function (m) { return !BIB_CAT || (BIB_CAT === "anim" ? !!m.anim : m.cat === BIB_CAT); });
+    $("bib").innerHTML = lista.map(function (m) { return '<button type="button" role="listitem" class="cr-mod' + (m.id === MOD_ON ? " on" : "") + '" data-mod="' + m.id + '"><span class="ph" data-mini="' + m.id + '"></span><span>' + esc(m.nome) + (m.anim ? "<b>✨</b>" : "") + "</span></button>"; }).join("");
+    pintarMinis();
+  }
+  var pintando = 0;
+  function pintarMinis() {
+    clearTimeout(pintando);
+    var fila = [].slice.call(document.querySelectorAll("[data-mini]"));
+    (function passo() {
+      var el = fila.shift(); if (!el) return; var id = el.dataset.mini, m = MODELOS_CONVITE.filter(function (q) { return q.id === id; })[0];
+      if (m) { var c = MINIS[id]; if (!c) { c = MINIS[id] = miniModelo(m); } var cl = document.createElement("canvas"); cl.width = c.width; cl.height = c.height; cl.getContext("2d").drawImage(c, 0, 0); cl.setAttribute("aria-hidden", "true"); el.replaceWith(cl); }
+      pintando = setTimeout(passo, 8);
+    })();
+  }
+  function aplicarModelo(id) {
+    var m = MODELOS_CONVITE.filter(function (q) { return q.id === id; })[0]; if (!m) return;
+    var st = estadoModelo(m); E.tipo = "convite"; E.sub = st.sub; E.estilo = st.estilo; E.paleta = st.paleta; E.aj = st.aj; E.anim = st.anim; E.formato = TIPOS.convite.fmt;
+    OPS = [null, null, null]; SEL = -1; OP_MODO = ""; MOD_ON = id; ITEM_SEL = -1; T0 = performance.now();
+    tudo(); toast("✓ Modelo " + m.nome + (m.anim ? " (animado)" : "") + ". Agora é só pôr os seus dados.");
+  }
+
+  /* ----- painel do convite animado ----- */
+  var ITEM_ORDEM = ["ursinho", "coelho", "gato", "cachorro", "passarinho", "borboleta", "peixe", "joaninha", "abelha", "dino", "unicornio", "leao", "patinho", "pomba", "foguete", "coracao", "estrela", "balao", "bolo", "tacas", "presente", "coroa", "aliancas", "capelo", "lua", "abobora", "arvore"];
+  var MINI_IT = {}, MINI_EF = {};
+  function desenharAnim() {
+    var A = window.BWConviteAnim, card = $("animCard"); if (!card) return; if (!A) { card.hidden = true; return; }
+    var an = E.anim; chips("animLiga", [["sim", "✨ ANIMADO"], ["nao", "PARADO (IMAGEM)"]], an.ligado ? "sim" : "nao", "animliga");
+    $("animCorpo").hidden = !an.ligado;
+    $("cv").style.touchAction = an.ligado && an.itens.length ? "none" : "";
+    if (!an.ligado) return;
+    $("animItens").innerHTML = ITEM_ORDEM.filter(function (id) { return A.ITENS[id]; }).map(function (id) {
+      var n = an.itens.filter(function (q) { return q.id === id; }).length; MINI_IT[id] = MINI_IT[id] || A.mini(id, 92);
+      return '<button type="button" class="cr-it' + (n ? " on" : "") + '" data-ait="' + id + '" title="' + esc(A.ITENS[id].nome) + '"><img alt="" src="' + MINI_IT[id] + '">' + esc(A.ITENS[id].nome) + (n ? '<span class="n">' + n + "</span>" : "") + "</button>";
+    }).join("");
+    $("animOver").innerHTML = Object.keys(A.EFEITOS).map(function (id) {
+      MINI_EF[id] = MINI_EF[id] || A.miniEfeito(id, 92); var on = an.over.indexOf(id) >= 0;
+      return '<button type="button" class="cr-it' + (on ? " on" : "") + '" data-aef="' + id + '" aria-pressed="' + on + '"><img alt="" src="' + MINI_EF[id] + '">' + esc(A.EFEITOS[id].nome) + "</button>";
+    }).join("");
+    chips("animTexto", [["suave", "SUAVE"], ["subir", "SUBINDO"], ["zoom", "ZOOM"], ["digitar", "DIGITANDO"], ["brilho", "BRILHO"], ["nenhuma", "SEM ANIMAÇÃO"]], an.texto, "animtx");
+    chips("animDur", [[6, "6 s"], [8, "8 s"], [10, "10 s"], [15, "15 s"]].map(function (d) { return [String(d[0]), d[1]]; }), String(an.dur), "animdur");
+    chips("animQual", [["1280", "RÁPIDA (720p)"], ["1920", "ALTA (1080p)"]], String(U_QUAL), "animqual");
+    desenharSel();
+  }
+  var U_QUAL = (function () { try { return localStorage.getItem("ui_criador_qual") || (innerWidth < 900 ? "1280" : "1920"); } catch (e) { return "1280"; } })();
+  function desenharSel() {
+    var b = $("animSel"), it = E.anim.itens[ITEM_SEL]; if (!b) return; b.hidden = !it; if (!it) return;
+    b.innerHTML = "<span>" + esc(window.BWConviteAnim.ITENS[it.id].nome) + ":</span>" + [["menor", "− MENOR"], ["maior", "＋ MAIOR"], ["virar", "⇋ VIRAR"], ["tirar", "✕ TIRAR"], ["ok", "✓ PRONTO"]].map(function (q) { return '<button type="button" class="cr-chip" data-asel="' + q[0] + '">' + q[1] + "</button>"; }).join("");
+  }
+  function mudouAnim() { MOD_ON = MOD_ON && E.anim ? MOD_ON : ""; desenharAnim(); agendar(); }
+  document.addEventListener("click", function (ev) {
+    var b = ev.target.closest("[data-mod],[data-ait],[data-aef],[data-asel],[data-k='bibcat'],[data-k='animliga'],[data-k='animtx'],[data-k='animdur'],[data-k='animqual']"); if (!b) return;
+    var an = E.anim, k = b.dataset.k, v = b.dataset.v;
+    if (b.dataset.mod) return aplicarModelo(b.dataset.mod);
+    if (k === "bibcat") { BIB_CAT = v; desenharBib(); return; }
+    if (k === "animliga") { an.ligado = v === "sim"; T0 = performance.now(); ITEM_SEL = -1; if (an.ligado && !an.itens.length && !an.over.length) an.over = ["estrelas"]; mudouAnim(); return; }
+    if (k === "animtx") { an.texto = v; T0 = performance.now(); mudouAnim(); return; }
+    if (k === "animdur") { an.dur = +v; mudouAnim(); return; }
+    if (k === "animqual") { U_QUAL = v; try { localStorage.setItem("ui_criador_qual", v); } catch (e) { } desenharAnim(); return; }
+    if (b.dataset.ait) { var vg = VAGAS[an.itens.length % VAGAS.length]; an.itens.push({ id: b.dataset.ait, x: vg[0], y: vg[1], s: 0.22, f: an.itens.length * 0.7 }); ITEM_SEL = an.itens.length - 1; mudouAnim(); toast("Arraste o " + window.BWConviteAnim.ITENS[b.dataset.ait].nome.toLowerCase() + " na prévia para o lugar que quiser."); return; }
+    if (b.dataset.aef) { var i = an.over.indexOf(b.dataset.aef); if (i >= 0) an.over.splice(i, 1); else an.over.push(b.dataset.aef); mudouAnim(); return; }
+    if (b.dataset.asel) { var it = an.itens[ITEM_SEL]; if (!it) return; var q = b.dataset.asel;
+      if (q === "menor") it.s = Math.max(0.08, it.s - 0.04); else if (q === "maior") it.s = Math.min(0.6, it.s + 0.04); else if (q === "virar") it.esp = !it.esp;
+      else if (q === "tirar") { an.itens.splice(ITEM_SEL, 1); ITEM_SEL = -1; } else ITEM_SEL = -1; mudouAnim(); }
+  });
+  /* arrastar os bichinhos na prévia (medida em FRAÇÃO da tela — PENTE FINO 48) */
+  (function () {
+    var cv = $("cv"), pega = null;
+    function frac(ev) { var r = cv.getBoundingClientRect(); return { x: (ev.clientX - r.left) / r.width, y: (ev.clientY - r.top) / r.height, w: r.width, h: r.height }; }
+    cv.addEventListener("pointerdown", function (ev) {
+      if (!E.anim.ligado || !E.anim.itens.length) return; var f = frac(ev), m = Math.min(f.w, f.h), achou = -1;
+      for (var i = E.anim.itens.length - 1; i >= 0; i--) { var it = E.anim.itens[i], r0 = it.s * m * 0.6; if (Math.abs(f.x * f.w - it.x * f.w) < r0 && Math.abs(f.y * f.h - it.y * f.h) < r0) { achou = i; break; } }
+      ITEM_SEL = achou; desenharSel(); if (achou < 0) return;
+      pega = { i: achou, dx: E.anim.itens[achou].x - f.x, dy: E.anim.itens[achou].y - f.y }; try { cv.setPointerCapture(ev.pointerId); } catch (e) { } ev.preventDefault();
+    });
+    cv.addEventListener("pointermove", function (ev) { if (!pega) return; var f = frac(ev), it = E.anim.itens[pega.i]; if (!it) return; it.x = lim(f.x + pega.dx, 0, 1); it.y = lim(f.y + pega.dy, 0, 1); agendar(); });
+    function solta() { if (pega) { pega = null; gravar(); } }
+    cv.addEventListener("pointerup", solta); cv.addEventListener("pointercancel", solta);
+  })();
+
+  /* ----- música e vídeo (tudo no aparelho) ----- */
+  var MUS = null, VID = { parar: false, url: "", arquivo: null };
+  $("animMusBt").onclick = function () { $("animMus").click(); };
+  $("animMusTira").onclick = function () { MUS = null; $("animMusNome").textContent = ""; $("animMusTira").hidden = true; };
+  $("animMus").onchange = async function () {
+    var f = this.files && this.files[0]; this.value = ""; if (!f) return;
+    try { var ab = await f.arrayBuffer(), ac = new (window.AudioContext || window.webkitAudioContext)(), buf = await ac.decodeAudioData(ab.slice(0)); ac.close();
+      MUS = { buf: buf, nome: f.name }; $("animMusNome").textContent = "♪ " + f.name + " (" + Math.round(buf.duration) + " s)"; $("animMusTira").hidden = false; }
+    catch (e) { toast("Não deu para abrir essa música. Tente MP3 ou M4A."); }
+  };
+  async function somDoVideo(dur) {
+    if (!MUS) return null; var SR = 48000, ctx = new OfflineAudioContext(2, Math.round(dur * SR), SR), src = ctx.createBufferSource(), g = ctx.createGain();
+    src.buffer = MUS.buf; src.connect(g); g.connect(ctx.destination); g.gain.setValueAtTime(0, 0); g.gain.linearRampToValueAtTime(0.9, 0.4); g.gain.setValueAtTime(0.9, Math.max(0.5, dur - 1.2)); g.gain.linearRampToValueAtTime(0, dur);
+    src.start(0); var r = await ctx.startRendering(); return { L: r.getChannelData(0), R: r.getChannelData(1) };
+  }
+  function nomeVideo() { return nomeArq("png").replace(/\.png$/, ".mp4"); }
+  async function gerarVideo() {
+    if (!E.anim.ligado) { toast("Ligue ✨ ANIMADO para gerar o vídeo."); return null; }
+    if (!window.BWReelsCelular || !(await BWReelsCelular.suporta())) { toast("Este navegador não grava vídeo sozinho. Use o Chrome, Edge ou Safari atualizado."); return null; }
+    var actx = null; try { actx = MUS ? new (window.AudioContext || window.webkitAudioContext)() : null; } catch (e) { actx = null; }   // nasce no toque (iPhone)
+    var t = tamanho(), d = +E.anim.dur || 8; VID.parar = false; GERANDO = true; ITEM_SEL = -1;
+    $("animProg").hidden = false; $("animPronto").hidden = true; $("animGerar").disabled = true; $("animBarra").value = 0; $("animProgTxt").textContent = "Preparando…";
+    try {
+      var som = await somDoVideo(d);
+      var res = await BWReelsCelular.gerar({ largura: t.W, altura: t.H, fps: 30, duracao: d, som: som, audioCtx: actx, alturaSaida: +U_QUAL,
+        desenhar: function (tt, ctx, w, h) { var c = render(w, h, tt); ctx.drawImage(c, 0, 0); c.width = c.height = 1; },
+        cancelar: function () { return VID.parar; }, aoProgredir: function (p) { $("animBarra").value = p.pct; $("animProgTxt").textContent = p.etapa + "… " + p.pct + "%"; } });
+      if (VID.url) URL.revokeObjectURL(VID.url);
+      VID.arquivo = new File([res.blob], nomeVideo(), { type: "video/mp4" }); VID.url = URL.createObjectURL(res.blob);
+      $("animVideo").src = VID.url; $("animBaixar").href = VID.url; $("animBaixar").download = VID.arquivo.name; $("animPronto").hidden = false;
+      if (window.BWCriacoes) BWCriacoes.aoLado("animBaixar", { ferramenta: "criador", tipo: "video", arquivo: function () { return VID.arquivo; }, nome: function () { var dd = dados(); return dd.nome || dd.titulo || "Convite animado"; } });
+      $("animProgTxt").textContent = "✓ Vídeo pronto (" + res.largura + "×" + res.altura + ", " + d + " s" + (MUS ? res.comSom ? ", com música" : ", sem som — este aparelho não gravou o áudio" : "") + ").";
+      return res;
+    } catch (e) { $("animProgTxt").textContent = /cancelado/.test(e.message) ? "Cancelado." : "Não deu certo: " + (e.message || e); return null; }
+    finally { GERANDO = false; $("animGerar").disabled = false; if (actx) actx.close().catch(function () { }); agendar(); }
+  }
+  $("animGerar").onclick = gerarVideo;
+  $("animCancelar").onclick = function () { VID.parar = true; };
+  $("animShare").onclick = async function () { if (!VID.arquivo) return; if (navigator.canShare && navigator.canShare({ files: [VID.arquivo] })) { try { await navigator.share({ files: [VID.arquivo], title: "Convite" }); return; } catch (e) { if (e && e.name === "AbortError") return; } } baixar(VID.arquivo, VID.arquivo.name); };
+  document.addEventListener("visibilitychange", function () { if (!document.hidden) agendar(); });
   lerKit().then(function () { tudo(); carregarQr().then(agendar); });
   tudo();
   window.__criador = { E: function () { return E; }, render: render, prontos: prontos, criarIA: criarIA, png: png, pdf: pdf, compartilhar: compartilhar, textosIA: textosIA, legenda: legenda,
-    blocos: blocos, fmtData: fmtData, urlQr: urlQr, ops: function () { return OPS; }, sel: function () { return SEL; }, tudo: tudo, dados: dados, carregarQr: carregarQr };
+    blocos: blocos, fmtData: fmtData, urlQr: urlQr, ops: function () { return OPS; }, sel: function () { return SEL; }, tudo: tudo, dados: dados, carregarQr: carregarQr,
+    modelos: MODELOS_CONVITE, aplicarModelo: aplicarModelo, gerarVideo: gerarVideo, anim: function () { return E.anim; }, itemSel: function () { return ITEM_SEL; } };
   if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(function () { });
 })();

@@ -501,3 +501,12 @@ Tamanho > 0 e sem erro = o pdfmake montou o arquivo. Localmente (T1) confira o `
 4. Biblioteca que o projeto não fixa = PINOS em GRUPO num comando só, aplicados depois do `pip install -e .`; o TENTAR DE NOVO refaz a etapa dos pinos.
 5. Diagnóstico separa erro de VERSÃO (ImportError/cannot import name) de erro de REDE (ConnectionError, Max retries, Failed to resolve).
 6. Aviso de dependência do pip não é falha: o teste de prova no fim é quem decide.
+
+
+## Biblioteca de modelos + animação em canvas (convites, 22/11)
+- Modelo pronto = combinação de opções da própria ferramenta (sub, estilo, paleta, par de fontes, caixa, animação). Miniatura: trocar o estado global
+  por um instante, chamar o MESMO render com dados de exemplo e devolver no `finally`; pintar as miniaturas aos poucos (setTimeout entre uma e outra).
+- Animação: tudo depende só de t (pseudoaleatório por índice `h(i)`, nunca Math.random); camadas "fundo" (atrás do texto) e "frente".
+- Laço da prévia em requestAnimationFrame, pausado com a aba escondida e durante a geração do vídeo; nada de gravar() por quadro.
+- Vídeo: `BWReelsCelular.gerar({desenhar(t, ctx, w, h){ ctx.drawImage(render(w,h,t),0,0) }})`; teste confere ffprobe + 2 quadros diferentes.
+- Revisão no olho: folha com TODOS os itens/efeitos e TODAS as miniaturas antes de publicar (achou a lua com contorno de círculo inteiro e o rodapé escuro nos modelos claros).

@@ -1,19 +1,19 @@
 {
- "versao": "1.9.27",
+ "versao": "1.9.28",
  "data": "22/11/2026",
  "pacote": "downloads/BW-Reels-Studio.zip",
- "sha256": "6917cdfef17fbe23284c068594ae91956325388273bf2240569b801e5ed958ef",
- "bytes": 41566977,
+ "sha256": "9a1602b59739cca0c591c0286fb1ca98b0df6de77995b2fc6e93e91b8e5be6f0",
+ "bytes": 41609654,
  "novidades": [
   {
-   "titulo": "Reels que ensinam",
-   "texto": "No BW Reels Pro, 🎬 MODELOS ganhou 7 modelos: terminal digitando, passos com ícone que brilha, painel de números, medidor, catálogo numerado e o Comenta PALAVRA no fim.",
-   "abrir": "reels"
+   "titulo": "Biblioteca de convites",
+   "texto": "No Criador IA › CONVITE: 48 convites prontos (aniversário, infantil, 15 anos, casamento, bebê, empresa, datas e festas) e 12 estilos novos. Toque num modelo e ponha os seus dados.",
+   "abrir": "criador"
   },
   {
-   "titulo": "Fotolivros",
-   "texto": "No Álbum 3D e efeitos: um livro de fotos na mesa, com várias fotos por página e as páginas virando. Aberto, com capa, de cima e em close.",
-   "abrir": "album"
+   "titulo": "Convite animado",
+   "texto": "Bichinhos e objetos que se mexem (ursinho piscando, borboletas, coelhinho, bolo com velas…), efeitos na tela e o texto entrando. Gera um vídeo MP4 no próprio aparelho.",
+   "abrir": "criador"
   }
  ]
 }

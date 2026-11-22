@@ -704,6 +704,15 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
      na tela, faixa de versão, pinos em grupo, e o teste de prova no fim é o que decide; testar só simulado aqui e o REAL no PC do dono.
      Log da instalação que deu certo: docs/gerador3d/log-acerto-2026-11-22.txt (pinos aplicados, 11 arquivos do modelo, prova OK).
 
+**Aprendidos em 22/11 (BIBLIOTECA DE CONVITES e CONVITE ANIMADO)**
+177. Biblioteca de modelos = LISTA de combinações (modelo + estilo + cores + fontes + animação), nunca arte pronta: as miniaturas são desenhadas
+     pelo MESMO render() com dados de exemplo (troca E por um instante e devolve no finally). Animação em canvas = cada quadro só de t
+     (bichinhos e efeitos em assets/convite-anim.js, desenho próprio); o laço da prévia NÃO chama gravar() por quadro (o debounce nunca
+     terminava) — gravar fica no agendar(). Fundo pronto vai para um cache por tamanho+estilo+cores (redesenhar a cada quadro travava).
+     Modelo de fundo claro não usa o degradê escuro padrão (rodapé ficava "sujo"): tabela CAIXA_ESTILO (nenhum/vidro). Arrastar item na
+     prévia só tira o toque da página (touch-action:none) quando há item para arrastar. Vídeo = BWReelsCelular.gerar com desenhar(t)
+     (auto: teste_convites.py confere o MP4 no ffprobe e quadros diferentes; vigia 7.8j).
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -2016,7 +2025,16 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
 - 22/11/2026 15:50 · Dono (print): GERADOR 3D NO MEU PC instalado com as 9 etapas e o TESTE DE PROVA passando (1.9.11+, RTX 3050 6 GB). Fim da pendência
   aberta desde 20/11. O aviso do pip "hy3dgen requires transformers>=4.48" aparece mas não impede (registrado em PENTE FINO 176 com as 6 tentativas).
   Próximo passo do dono: 🧊 GERAR UMA PEÇA DE PROVA e depois usar no Estúdio 3D.
+- 22/11/2026 16:40 · Claude (dono: "alimentar a biblioteca, começando pelos convites; criar convites com animações — ursinho piscando, borboletas,
+  luzes, animais se mexendo"; referências conviter, Magnific e invideo só ANALISADAS — nada copiado): CRIADOR IA › CONVITE ganhou a 📚 BIBLIOTECA
+  (48 convites prontos em 8 filtros, miniaturas desenhadas no aparelho), 14 tipos novos de convite (24 no total: noivado, bodas, chá de fraldas/
+  cozinha, 1ª comunhão, churrasco, happy hour, inauguração, lançamento, junina, Halloween, Natal, Réveillon, despedida) e 12 estilos novos
+  (luxo art déco, mármore, aquarela, vintage, lousa, espacial, fundo do mar, junina, Halloween, bebê, circo, safári). ✨ CONVITE ANIMADO
+  (assets/convite-anim.js): 27 bichinhos/objetos animados (arrastar na prévia, maior/menor/virar/tirar), 14 efeitos de tela, 5 entradas de texto,
+  6–15 s, música própria opcional e 🎬 GERAR VÍDEO MP4 no aparelho (+ ➜ linha do tempo). teste_convites.py (novo, 0 falhas × 1280/390),
+  teste_criador/teste_criacoes 0 falhas, vigia ✅ (7.8j). Manual 60 → 61 p. criador.js v7, convite-anim.js v1, sw v183. PENTE FINO 177.
 ## Pendências (dono)
+- [ ] (22/11) CONVITES: dono abrir Criador IA → CONVITE no celular e no PC, escolher um modelo da 📚 BIBLIOTECA, ligar ✨ ANIMADO, arrastar um bichinho e GERAR VÍDEO; dizer quais bichinhos/temas faltam. Próximas bibliotecas: posts, flyers, Reels, Motion, Telas ("todas as ferramentas").
 - [x] (22/11 15:38) BW-Setup.exe 1.9.27 gerado pelo dono e publicado (8,5 MB, versão conferida dentro do .exe).
 - [ ] (22/11) REELS QUE ENSINAM e FOTOLIVROS: dono abrir no celular e no PC, usar um modelo com fotos/textos reais e dizer o que ajustar.
 - [ ] (22/11) ARRASTAR: dono testar no PC e no celular — encostar um take no outro, cobrir mais da metade e escolher, e aplicar transição com a agulha na emenda.

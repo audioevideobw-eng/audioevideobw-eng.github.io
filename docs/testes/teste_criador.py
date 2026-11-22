@@ -58,7 +58,7 @@ with sync_playwright() as p:
         pg.goto(BASE + "criador.html"); pg.wait_for_timeout(1500)
         ok(not erros, f"abre sem erro de JS {erros[:2]}")
         ok(pg.locator("#tipos .cr-tipo").count() == 4, "4 tipos: CONVITE, POST, FLYER, CARTÃO")
-        ok(pg.locator("#subtipos .cr-chip").count() == 10, "convite tem 10 modelos")
+        ok(pg.locator("#subtipos .cr-chip").count() == 24, "convite tem 24 modelos")
         # dados do convite
         for k, v in (("nome", "Marina"), ("idade", "30"), ("data", "2026-12-20"), ("hora", "19:00"), ("local", "Espaço Jardim"), ("rsvp", "(31) 98888-7777")):
             pg.fill(f'#campos [data-c="{k}"]', v)

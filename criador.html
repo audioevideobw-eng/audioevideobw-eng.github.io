@@ -69,6 +69,20 @@
 .cr-legenda{white-space:pre-wrap;background:rgba(6,8,13,.55);border:1px solid rgba(245,241,234,.14);border-radius:12px;padding:12px;font:400 14px/1.5 Inter,system-ui,sans-serif;color:#F5F1EA;margin-top:8px}
 .cr-ocup{position:fixed;inset:0;z-index:9000;background:rgba(6,8,13,.72);display:flex;align-items:center;justify-content:center;color:#F5F1EA;font:600 15px Inter,system-ui,sans-serif;text-align:center;padding:24px}
 .cr-ocup[hidden]{display:none}
+.cr-bib{display:grid;grid-auto-flow:column;grid-auto-columns:116px;gap:10px;overflow-x:auto;padding:6px 2px 10px;scroll-snap-type:x mandatory;overscroll-behavior-x:contain}
+.cr-bib::-webkit-scrollbar{height:6px}.cr-bib::-webkit-scrollbar-thumb{background:rgba(245,241,234,.2);border-radius:6px}
+.cr-mod{scroll-snap-align:start;display:flex;flex-direction:column;gap:5px;padding:0;border:0;background:none;color:#F5F1EA;cursor:pointer;text-align:left;font:600 11.5px/1.25 Inter,system-ui,sans-serif;min-width:0}
+.cr-mod canvas,.cr-mod .ph{width:116px;height:206px;border-radius:12px;display:block;border:2px solid rgba(245,241,234,.12);background:#11151d;object-fit:cover}
+.cr-mod.on canvas{border-color:#FFB547;box-shadow:0 0 0 2px rgba(255,181,71,.35)}
+.cr-mod span{position:relative}.cr-mod b{display:inline-block;margin-left:3px;color:#FFB547}
+.cr-itens{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:8px;margin:6px 0}
+.cr-it{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 2px;border-radius:12px;border:1px solid rgba(245,241,234,.14);background:rgba(255,255,255,.04);color:#F5F1EA;cursor:pointer;font:600 10.5px/1.15 Inter,system-ui,sans-serif;text-align:center;min-width:0}
+.cr-it img{width:46px;height:46px;border-radius:8px}
+.cr-it.on{border-color:#FFB547;background:rgba(255,181,71,.16)}
+.cr-it .n{min-width:18px;height:18px;border-radius:9px;background:#FFB547;color:#06080D;font:800 11px/18px Inter,sans-serif}
+.cr-selbar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:8px;border-radius:12px;background:rgba(255,181,71,.1);border:1px solid rgba(255,181,71,.35);font:600 12.5px Inter,system-ui,sans-serif;color:#F5F1EA}
+.cr-selbar[hidden]{display:none}
+#animCorpo[hidden]{display:none}
 .cr-toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);z-index:9100;background:#151a23;border:1px solid rgba(245,241,234,.18);color:#F5F1EA;padding:11px 16px;border-radius:12px;font:500 14px Inter,system-ui,sans-serif;max-width:min(90vw,460px);text-align:center;box-shadow:0 10px 30px rgba(0,0,0,.5)}
 </style>
 <script src="assets/modos.js?v=6"></script>
@@ -81,6 +95,12 @@
     <p class="tf-sub">Escolha o que criar, preencha os dados e a IA faz a arte. Os textos entram por cima com fontes de verdade (sem erro de letra) e você ajusta tudo antes de baixar.</p>
     <div class="cr-tipos" id="tipos" role="group" aria-label="O que criar"></div>
     <div class="cr-tit">Modelo</div><div class="cr-chips" id="subtipos"></div>
+  </div>
+  <div class="tf-card" id="bibCard">
+    <div class="cr-tit">📚 Biblioteca de convites prontos</div>
+    <p class="tf-nota" style="margin:0 0 6px">Toque num modelo: ele entra com o estilo, as cores e as animações. Depois é só pôr os seus dados. Os ✨ já vêm animados.</p>
+    <div class="cr-chips" id="bibCats"></div>
+    <div class="cr-bib" id="bib" role="list"></div>
   </div>
 
   <div class="cr-grade">
@@ -105,6 +125,29 @@
           <button type="button" class="bw-btn bw-btn--vidro" id="btnProntos">FUNDOS PRONTOS (SEM IA)</button>
         </div>
         <p class="tf-nota" id="notaIA">IA: precisa estar logado (cada opção usa 1 das 15 imagens do dia). Fundos prontos: grátis, sem limite, sem internet.</p>
+      </div>
+      <div class="tf-card" id="animCard">
+        <div class="cr-tit">✨ Convite animado</div>
+        <p class="tf-nota" style="margin:0 0 6px">Bichinhos e objetos que se mexem, efeitos na tela e o texto entrando. Vira vídeo (MP4) feito aqui no aparelho, pronto para o WhatsApp e o Instagram.</p>
+        <div class="cr-chips" id="animLiga"></div>
+        <div id="animCorpo">
+          <div class="cr-tit">Bichinhos e objetos <span style="text-transform:none;letter-spacing:0;font-weight:500;color:rgba(245,241,234,.6)">— toque para pôr; arraste na prévia</span></div>
+          <div class="cr-itens" id="animItens"></div>
+          <div class="cr-selbar" id="animSel" hidden></div>
+          <div class="cr-tit">Efeitos na tela</div><div class="cr-itens cr-efs" id="animOver"></div>
+          <div class="cr-tit">Como o texto entra</div><div class="cr-chips" id="animTexto"></div>
+          <div class="cr-tit">Duração</div><div class="cr-chips" id="animDur"></div>
+          <div class="cr-tit">Música (opcional)</div>
+          <div class="cr-foto"><button type="button" class="bw-btn bw-btn--vidro" id="animMusBt">♪ ESCOLHER MÚSICA</button><span id="animMusNome" class="tf-nota" style="margin:0"></span><button type="button" class="bw-btn bw-btn--vidro" id="animMusTira" hidden>✕</button>
+            <input type="file" id="animMus" accept="audio/*" hidden></div>
+          <p class="tf-nota">Use só música que você pode usar (sua, comprada ou livre). Ela fica no aparelho e entra só no vídeo.</p>
+          <div class="cr-tit">Gerar o vídeo</div>
+          <div class="cr-chips" id="animQual"></div>
+          <div class="cr-criar"><button type="button" class="bw-btn" id="animGerar">🎬 GERAR VÍDEO ANIMADO (MP4)</button></div>
+          <div id="animProg" hidden><progress id="animBarra" max="100" value="0" style="width:100%"></progress><div class="cr-msg" id="animProgTxt"></div><button type="button" class="bw-btn bw-btn--vidro" id="animCancelar">CANCELAR</button></div>
+          <div id="animPronto" hidden><video id="animVideo" controls playsinline loop style="width:100%;max-height:60vh;border-radius:12px;margin-top:8px;background:#000"></video>
+            <div class="cr-saida"><a class="bw-btn" id="animBaixar" download="convite.mp4">⇩ BAIXAR VÍDEO</a><button type="button" class="bw-btn bw-btn--vidro" id="animShare">COMPARTILHAR</button></div></div>
+        </div>
       </div>
       <div class="tf-card"><div class="cr-tit">Ajustes do texto e da arte</div><div id="ajustes"></div></div>
       <div class="tf-card"><div class="cr-tit">Salvar e enviar</div>
@@ -137,7 +180,9 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="assets/bw-sync.js?v=20261122"></script>
 <script src="assets/fotos-nuvem.js?v=3"></script>
+<script src="assets/convite-anim.js?v=1"></script>
+<script src="assets/reels-celular.js?v=5"></script>
 <script src="assets/bw-criacoes.js?v=2"></script>
-<script src="assets/criador.js?v=6"></script>
+<script src="assets/criador.js?v=7"></script>
 </body>
 </html>

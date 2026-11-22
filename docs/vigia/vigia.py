@@ -307,6 +307,9 @@ if os.path.exists("assets/mo-app.js") and re.search(r"fetch\(|XMLHttpRequest|sup
 _mh = open("motion.html", encoding="utf-8").read() if os.path.exists("motion.html") else ""
 if _mh and ("assets/mo-app.js" not in _mh or _mh.find("assets/mo-app.js") > _mh.find("assets/motion.js")): problemas.append("motion.html: assets/mo-app.js precisa vir ANTES do assets/motion.js")
 if os.path.exists("assets/bw-ferramentas.js") and re.search(r"fetch\(|XMLHttpRequest|supabase\.|BWSync|localStorage|indexedDB|\.upload\(", ler("assets/bw-ferramentas.js")): problemas.append("assets/bw-ferramentas.js: as ferramentas dos editores não podem usar rede, conta nem armazenamento")
+# 7.8j CONVITE ANIMADO (22/11): bichinhos e efeitos só desenham (sem rede, conta nem armazenamento); a música e o vídeo ficam no aparelho
+if os.path.exists("assets/convite-anim.js") and re.search(r"fetch\(|XMLHttpRequest|supabase|BWSync|localStorage|indexedDB|\.upload\(|https?://", ler("assets/convite-anim.js")): problemas.append("assets/convite-anim.js: os bichinhos e efeitos do convite só podem desenhar (sem rede, conta nem armazenamento)")
+if os.path.exists("criador.html") and "assets/convite-anim.js" not in ler("criador.html"): problemas.append("criador.html: falta assets/convite-anim.js (convite animado)")
 # ESTÚDIO 3D (20/11): modelo, logo e foto ficam no aparelho; o site não chama nenhuma IA de 3D
 if os.path.exists("assets/bw3d-motor.js") and re.search(r"fetch\(|XMLHttpRequest|supabase\.|BWSync|localStorage|indexedDB|\.upload\(|https?://", ler("assets/bw3d-motor.js")):
     problemas.append("assets/bw3d-motor.js: o motor 3D só desenha (sem rede, conta nem armazenamento)")
