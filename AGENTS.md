@@ -1820,6 +1820,10 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
 - 22/11/2026 00:40 · Claude (dono mandou uma imagem dele em alta — mãos humana e de robô, cérebro de luz no centro): APP BW 1.9.19 — app/abertura-foto.jpg
   trocada por ela (2730×1536) e FOTO + MUNDO virou a abertura padrão; a animação (anéis, rede com sinais, faísca no toque, partículas) se alinha
   ao cérebro pela conta do object-fit:cover usando o tamanho real da imagem. Paleta da animação ciano/lilás para combinar com a imagem.
+- 22/11/2026 01:00 · Claude (dono: "aprenda com os cursos" da Adapta, conta dele): lidos os resumos em texto de ~240 aulas (157 com texto) dos
+  cursos Maestro, Adapta ONE, Assistentes, Vídeo, Imagem, Automação, Marketing, Vendas, Conteúdo e Masterizando IA. Método e frameworks
+  (tarefa → skill → automação; 4Is; expert de 8 partes; memória em 2 camadas; 2P2C; ordem do vídeo com IA) + lista de ideias para a Brightway
+  em docs/APRENDIZADOS-ADAPTA.md (com palavras próprias). Nada foi alterado na conta do dono (só fechei pesquisa de nota e convite do WhatsApp).
 ## Pendências (dono)
 - [ ] (22/11) ABERTURA DO APP: dono atualizar para 1.9.17 e escolher VÍDEO, FOTO + MUNDO ou MUNDO (chave no alto); conferir o ENTRAR e o menu escondido. BW-Setup.exe 1.9.16 depende do PC (o do site atualiza sozinho).
 - [ ] (22/11) EDITOR NO CELULAR: dono abrir o editor de vídeo no celular e dizer o que ainda falta para ficar como o CapCut (tempo do "segurar"
