@@ -58,7 +58,7 @@
       '<div class="va-ctrl"><button type="button" class="va-ic" id="vaCheia" aria-label="Tela grande">' + svg("cheia") + '</button><span class="va-tempo" id="vaTempo"></span>' +
       '<button type="button" class="va-play" id="vaPlay" aria-label="Tocar ou pausar"></button><span class="va-sp"></span>' +
       '<button type="button" class="va-ic" id="vaDesf" aria-label="Desfazer">' + svg("desf") + '</button><button type="button" class="va-ic" id="vaRef" aria-label="Refazer">' + svg("ref") + '</button></div>' +
-      '<div class="va-tl" id="vaTl"><i class="va-agulha" aria-hidden="true"></i><button type="button" class="va-add" id="vaAdd" aria-label="Pôr mídia na linha do tempo">＋</button></div>' +
+      '<div class="va-tl" id="vaTl"><i class="va-agulha" aria-hidden="true"></i><div role="button" tabindex="0" class="va-add" id="vaAdd" aria-label="Pôr mídia na linha do tempo">＋</div></div>' +
       '<div class="va-faixa" id="vaFaixa" role="toolbar" aria-label="Ferramentas"></div>' +
       '<div class="va-sheet" id="vaSheet" hidden role="dialog" aria-modal="false"><div class="va-sheet-cab"><span class="va-alca" aria-hidden="true"></span><b id="vaSheetTit"></b><span class="va-sp"></span>' +
       '<button type="button" class="va-ic" id="vaSheetOk" aria-label="Pronto">' + svg("ok") + '</button></div><div class="va-sheet-corpo" id="vaSheetCorpo"></div></div>';
@@ -114,7 +114,12 @@
     $("vaCheia").onclick = function () { H.classList.toggle("va-grande"); medir(); };
     $("vaPlay").onclick = function () { clicar("vePlay"); };
     $("vaDesf").onclick = function () { clicar("veDesf"); }; $("vaRef").onclick = function () { clicar("veRef"); };
-    $("vaAdd").onclick = function () { abrir("midia"); };
+    $("vaAdd").onclick = function (e) { if (e.target && e.target.id === "vaArq") return; abrir("midia"); };
+    /* 23/11 (dono, iPhone: "aperto no ＋ e não abre a janela de importação"): com a biblioteca VAZIA o ＋ é o próprio seletor de arquivos (input por cima do
+       botão — no iPhone o seletor só abre com o dedo direto nele); com mídia na biblioteca, o ＋ abre a folha MÍDIA como antes. */
+    (function () { var inp = document.createElement("input"); inp.type = "file"; inp.id = "vaArq"; inp.accept = "video/*,image/*,audio/*"; inp.multiple = true; inp.setAttribute("aria-label", "Importar vídeos, fotos ou sons"); $("vaAdd").appendChild(inp);
+      inp.onchange = function () { var fs = [].slice.call(inp.files || []); inp.value = ""; var v = V(); if (fs.length && v && v.importar) { abrir("midia"); v.importar(fs); } };
+      var ver = function () { var v = V(), vazio = !v || !v.MID || !Object.keys(v.MID).length; inp.hidden = !vazio; }; ver(); setInterval(ver, 600); })();
     $("vaSheetOk").onclick = fechar;
     $("vaMais").onclick = function (e) { if (!window.BWFerr) return; var r = e.currentTarget.getBoundingClientRect();
       BWFerr.menu(r.right - 220, r.bottom + 4, [{icone: "＋", rot: "Projeto novo", fn: function () { clicar("veNovo"); }}, {icone: "🎬", rot: "Modelos prontos", fn: function () { if (window.VEModelos) VEModelos.abrir(); }},
@@ -131,7 +136,7 @@
   function ferramentas() {
     var v = V(), c = v && v.selAtual();
     if (!c) {
-      if (SUB === "audio") return [["voltar", "Voltar", function () { SUB = ""; faixa(); }, "volta"], ["sons", "Sons e trilhas", function () { clicar("veSons"); abrir("midia", "SONS E TRILHAS"); }], ["importar", "Importar som", function () { clicar("veImportar"); }], ["extrair", "Extrair áudio", function () { aviso("Toque no take de vídeo e depois em EXTRAIR ÁUDIO."); }]];
+      if (SUB === "audio") return [["voltar", "Voltar", function () { SUB = ""; faixa(); }, "volta"], ["sons", "Sons e trilhas", function () { clicar("veSons"); abrir("midia", "SONS E TRILHAS"); }], ["importar", "Importar som", function () { abrir("midia", "IMPORTAR SOM — TOQUE EM ＋ IMPORTAR"); var b = document.querySelector('#veAbas [data-aba="audio"]'); if (b) b.click(); }], ["extrair", "Extrair áudio", function () { aviso("Toque no take de vídeo e depois em EXTRAIR ÁUDIO."); }]];
       if (SUB === "texto") return [["voltar", "Voltar", function () { SUB = ""; faixa(); }, "volta"], ["texto", "Adicionar texto", function () { clicar("veTexto"); setTimeout(function () { abrir("g:texto"); }, 60); }], ["pessoa", "Texto atrás da pessoa", function () { if (window.VEModelos) VEModelos.abrir("mascara"); }], ["modelos", "Modelos", function () { if (window.VEModelos) VEModelos.abrir(); }]];
       return [["mais", "Mídia", function () { abrir("midia"); }], ["audio", "Áudio", function () { SUB = "audio"; faixa(); }], ["texto", "Texto", function () { SUB = "texto"; faixa(); }], ["efe", "Elementos", function () { var v = V(); if (v && v.menuElementos) v.menuElementos(innerWidth / 2 - 90, innerHeight * 0.45); }],
         ["modelos", "Modelos", function () { if (window.VEModelos) VEModelos.abrir(); }], ["trans", "Transições", function () { abrir("trans"); }], ["efe", "Efeitos", function () { abrir("efe"); }],

@@ -105,7 +105,7 @@
   function refazer() { if (!FUT.length) { aviso("Nada para refazer."); return; } var s = FUT.pop(); HIST.push(s); P = JSON.parse(s); tudo(true); aviso("↷ Refeito."); }
   function guardar() { clearTimeout(tSalvar); tSalvar = setTimeout(function () { tx("estado", "readwrite", function (s) { return s.put({id: "atual", p: JSON.parse(JSON.stringify(P))}); }); if (typeof copiaProjeto === "function") copiaProjeto(); }, 400); }
   var AVISO_T = 0;
-  function aviso(t, erro) { var a = $("veAviso"); a.hidden = !t; a.className = "ve-aviso" + (erro ? " erro" : ""); a.textContent = t || ""; clearTimeout(AVISO_T); if (t && !/^⏳/.test(t)) AVISO_T = setTimeout(function () { a.hidden = true; }, erro ? 9000 : 3500); }   /* 22/11 (dono: "o aviso de importação fica parado em cima da linha do tempo"): some sozinho no PC também; o ⏳ de andamento fica até o próximo aviso */
+  function aviso(t, erro) { var a = $("veAviso"); a.hidden = !t; a.className = "ve-aviso" + (erro ? " erro" : ""); a.textContent = t || ""; a.title = t || ""; clearTimeout(AVISO_T); if (t && !/^⏳/.test(t)) AVISO_T = setTimeout(function () { a.hidden = true; }, erro ? 6000 : 3000); }   /* 23/11 (dono, PC: "mensagens enormes, verde/vermelha"): pílula pequena e neutra no alto, no máximo 2 linhas, só um pontinho de cor */   /* 22/11 (dono: "o aviso de importação fica parado em cima da linha do tempo"): some sozinho no PC também; o ⏳ de andamento fica até o próximo aviso */
   function fmtT(t) { t = Math.max(0, t); var m = Math.floor(t / 60), s = t - m * 60; return m + ":" + (s < 10 ? "0" : "") + s.toFixed(1).replace(".", ","); }
   function total() { return P.clips.reduce(function (m, c) { return Math.max(m, c.ini + c.dur); }, 0); }
 
@@ -119,13 +119,18 @@
   function abrirVideo(m, querCapa, prazo) { return new Promise(function (ok) {
     if (m.tipo === "imagem") { var im = new Image(); im.onload = function () { m.img = im; ok({ ok: true, dur: 4 }); }; im.onerror = function () { ok({ ok: false, dur: 4 }); }; im.src = m.url; return; }
     var e = document.createElement(m.tipo === "video" ? "video" : "audio"), feito = false, dur = 0;
-    e.muted = true; e.playsInline = true; e.preload = querCapa ? "auto" : "metadata";
+    e.muted = true; e.defaultMuted = true; e.playsInline = true; e.setAttribute("playsinline", ""); e.setAttribute("webkit-playsinline", ""); e.setAttribute("muted", ""); e.preload = querCapa ? "auto" : "metadata";
+    /* 23/11 (dono, iPhone: IMG_1585.MOV da própria câmera dava "não abre neste navegador"): o iPhone só carrega o 1º QUADRO de um <video> depois de play() —
+       loadeddata/seeked nunca chegavam, o prazo estourava e o arquivo era dado como ruim. Agora: metadados lidos → dá play() mudo para puxar o quadro; e, se o
+       quadro não vier no prazo mas o vídeo tem duração e tamanho, o arquivo ABRE (só fica sem miniatura). */
+    var puxou = false; function puxar() { if (puxou || feito || !querCapa || m.tipo !== "video") return; puxou = true; try { var pr = e.play(); if (pr && pr.catch) pr.catch(function () {}); } catch (x) {}
+      var ver = function () { if (feito) return; if (e.readyState >= 2 && e.videoWidth) { try { e.pause(); } catch (x) {} fim(true); } else setTimeout(ver, 120); }; setTimeout(ver, 200); }
     function fim(okk) { if (feito) return; feito = true; clearTimeout(tm); var r = { ok: okk, dur: isFinite(dur) && dur > 0 ? dur : 0, w: e.videoWidth || 0, h: e.videoHeight || 0 };
       if (okk && querCapa && m.tipo === "video" && e.videoWidth) { try { var c = document.createElement("canvas"); c.width = 160; c.height = Math.max(1, Math.round(160 * e.videoHeight / e.videoWidth)); c.getContext("2d").drawImage(e, 0, 0, c.width, c.height); r.capa = c.toDataURL("image/jpeg", 0.7); } catch (x) {} }
       soltarMidia(e); ok(r); }
-    var tm = setTimeout(function () { fim(dur > 0 && !querCapa); }, prazo || 15000);
+    var tm = setTimeout(function () { fim(dur > 0 && (!querCapa || m.tipo !== "video" || e.videoWidth > 0)); }, prazo || 15000);
     e.onerror = function () { fim(false); };
-    e.onloadedmetadata = function () { dur = e.duration; if (dur === Infinity) { e.currentTime = 1e7; e.ontimeupdate = function () { e.ontimeupdate = null; dur = e.duration; if (!querCapa || m.tipo !== "video") fim(true); }; return; } if (!querCapa || m.tipo !== "video") fim(true); };
+    e.onloadedmetadata = function () { dur = e.duration; if (dur === Infinity) { e.currentTime = 1e7; e.ontimeupdate = function () { e.ontimeupdate = null; dur = e.duration; if (!querCapa || m.tipo !== "video") fim(true); else setTimeout(puxar, 700); }; return; } if (!querCapa || m.tipo !== "video") fim(true); else setTimeout(puxar, 700); };
     e.onloadeddata = function () { if (!querCapa) return; try { e.currentTime = Math.min(0.3, (e.duration || 1) / 2); } catch (x) { fim(true); } };
     e.onseeked = function () { fim(true); };
     e.src = m.url; }); }
@@ -141,7 +146,7 @@
     var r = await abrirVideo(m, tipo === "video", 15000); if (r.w) { m.w = r.w; m.h = r.h; }
     if (!r.ok && tipo !== "imagem") { await new Promise(function (ok) { setTimeout(ok, 400); }); r = await abrirVideo(m, tipo === "video", 25000); }   /* 2ª tentativa, com mais prazo (4K pesado) */
     if (r.capa) m.capa = r.capa; m.dur = durFixa || r.dur || (tipo === "imagem" ? 4 : 5);
-    if (!r.ok || (tipo === "video" && !m.capa)) { m.ruim = true; if (tipo === "video") m.codec = await codecDe(blob); }
+    if (!r.ok) { m.ruim = true; if (tipo === "video") m.codec = await codecDe(blob); }
     MID[m.id] = m;
     if (!id) try { await tx("midias", "readwrite", function (s) { return s.put({id: m.id, nome: m.nome, tipo: m.tipo, blob: blob, dur: m.dur, capa: m.ruim ? "" : (m.capa || "")}); }); } catch (e) { m.soAgora = true; }   /* sem espaço no aparelho: fica só nesta sessão */
     return m;
@@ -265,13 +270,24 @@
   function dividir() { var c = sel(), alvos = c ? [c] : P.clips.filter(function (x) { return T > x.ini + 0.05 && T < x.ini + x.dur - 0.05; });
     var n = 0, ult = null; alvos.forEach(function (x) { var d = dividirEm(x, T); if (d) { n++; ult = d; } });
     if (!n) { aviso("Ponha a agulha no meio de um clipe para dividir (ou use a lâmina: tecla C e clique no clipe).", true); return; } if (ult) SEL = ult.id; tudo(); aviso("✂ Dividido" + (n > 1 ? " em " + n + " camadas" : "") + "."); }
-  function duplicar() { var c = sel(); if (!c) return; var d = JSON.parse(JSON.stringify(c)); d.id = uid(); d.ini = c.ini + c.dur; P.clips.push(d); SEL = d.id; tudo(); aviso("⧉ Duplicado."); }
-  function apagar(juntar) { var c = sel(); if (!c) return; soltarEl(c.id); P.clips = P.clips.filter(function (x) { return x !== c; });
+  function duplicar() { var g = grupo(); if (g.length) { var a0 = Math.min.apply(null, g.map(function (x) { return x.ini; })), a1 = Math.max.apply(null, g.map(function (x) { return x.ini + x.dur; })), nv = [];
+      g.forEach(function (x) { var d = JSON.parse(JSON.stringify(x)); d.id = uid(); d.ini = Math.round((x.ini + a1 - a0) * 20) / 20; P.clips.push(d); nv.push(d.id); }); GRUPO = nv; SEL = nv[0]; tudo(); aviso("⧉ " + nv.length + " takes duplicados."); return; }
+    var c = sel(); if (!c) return; var d = JSON.parse(JSON.stringify(c)); d.id = uid(); d.ini = c.ini + c.dur; P.clips.push(d); SEL = d.id; tudo(); aviso("⧉ Duplicado."); }
+  function apagar(juntar) { var g = grupo(); if (g.length) { g.forEach(function (x) { soltarEl(x.id); }); P.clips = P.clips.filter(function (x) { return g.indexOf(x) < 0; }); GRUPO = []; SEL = null; tudo(); aviso("🗑 " + g.length + " takes apagados."); return; }
+    var c = sel(); if (!c) return; soltarEl(c.id); P.clips = P.clips.filter(function (x) { return x !== c; });
     if (juntar) P.clips.forEach(function (x) { if (x.trilha === c.trilha && x.ini >= c.ini + c.dur - 0.01) x.ini = Math.max(0, Math.round((x.ini - c.dur) * 100) / 100); });
     SEL = null; tudo(); aviso(juntar ? "🗑 Apagado e o espaço fechado." : "🗑 Apagado."); }
+  /* SELEÇÃO DE VÁRIOS TAKES (dono, 23/11): no PC, clicar no vazio da linha do tempo e arrastar abre o LAÇO; Ctrl/Shift + clique põe/tira um take.
+     GRUPO = ids; SEL continua sendo "o take dos AJUSTES". Mover, apagar, duplicar e copiar valem para o grupo inteiro. */
+  var GRUPO = [];
+  function grupo() { GRUPO = GRUPO.filter(function (id) { return P.clips.some(function (x) { return x.id === id; }); }); return GRUPO.length > 1 ? P.clips.filter(function (x) { return GRUPO.indexOf(x.id) >= 0; }) : []; }
+  function limparGrupo() { if (!GRUPO.length) return; GRUPO = []; $("veFaixas").querySelectorAll(".ve-clip.multi").forEach(function (x) { x.classList.remove("multi"); }); }
+  function marcarGrupo() { $("veFaixas").querySelectorAll(".ve-clip").forEach(function (x) { x.classList.toggle("multi", GRUPO.length > 1 && GRUPO.indexOf(x.dataset.clip) >= 0); }); }
   var COPIA = null;
-  function copiar() { var c = sel(); if (!c) return false; COPIA = JSON.parse(JSON.stringify(c)); aviso("Copiado. Ctrl+V cola na agulha."); }
-  function colar() { if (!COPIA) { aviso("Nada copiado ainda (Ctrl+C num clipe).", true); return; } var d = JSON.parse(JSON.stringify(COPIA)); d.id = uid(); d.ini = Math.round(T * 20) / 20; P.clips.push(d); SEL = d.id; tudo(); aviso("Colado na agulha."); }
+  function copiar() { var g = grupo(); if (g.length) { COPIA = JSON.parse(JSON.stringify(g)); aviso(g.length + " takes copiados. Ctrl+V cola na agulha."); return; }
+    var c = sel(); if (!c) return false; COPIA = JSON.parse(JSON.stringify(c)); aviso("Copiado. Ctrl+V cola na agulha."); }
+  function colar() { if (!COPIA) { aviso("Nada copiado ainda (Ctrl+C num clipe).", true); return; } if (Array.isArray(COPIA)) { var b0 = Math.min.apply(null, COPIA.map(function (x) { return x.ini; })), nv = []; COPIA.forEach(function (x) { var k = JSON.parse(JSON.stringify(x)); k.id = uid(); k.ini = Math.round((T + x.ini - b0) * 20) / 20; P.clips.push(k); nv.push(k.id); }); GRUPO = nv; SEL = nv[0]; tudo(); aviso(nv.length + " takes colados na agulha."); return; }
+    var d = JSON.parse(JSON.stringify(COPIA)); d.id = uid(); d.ini = Math.round(T * 20) / 20; P.clips.push(d); SEL = d.id; tudo(); aviso("Colado na agulha."); }
   /* COPIAR E COLAR AJUSTES (atributos) de um take em outro: cada grupo só entra onde faz sentido (som em quem tem som, imagem em quem tem imagem) */
   var ATRIB = null, AT_VIS = ["ia", "grade", "op", "esc", "x", "y", "encaixe", "efeito", "efInt", "ck", "ckCor", "ckModo", "ckNivel", "ckInt", "ckSuave", "ckLimpa", "ckSombra"], AT_TXT = ["fonte", "tam", "cor", "fundo", "op"], AT_SOM = ["vol", "normG", "ruido", "voz"], AT_TEMPO = ["fin", "fout"];
   function temSom(c) { return c.tipo === "video" || c.tipo === "audio"; }
@@ -593,7 +609,7 @@
     for (var s = 0; s <= fim; s += passoR) h += '<i style="left:' + (s * PPS) + 'px">' + (s >= 60 ? Math.floor(s / 60) + ":" + (s % 60 < 10 ? "0" : "") + s % 60 : s + "s") + '</i>';
     h += "</div>";
     var TRILHAS = trilhas(); TRILHAS.forEach(function (tr) { var at = altTr(tr[0]); h += '<div class="ve-faixa' + (vaziaTr(tr[0]) ? " vazia" : "") + (at < 34 ? " baixa" : "") + '" data-trilha="' + tr[0] + '" style="width:' + larg + 'px;height:' + at + 'px">' + P.clips.filter(function (c) { return c.trilha === tr[0]; }).map(function (c) { var m = MID[c.mid], nome = c.tipo === "texto" ? String(c.txt || "Texto").split("\n")[0] : c.tipo === "elemento" ? (ELEMENTOS[c.el] || "Elemento") + (c.rastro ? " · ⌖" : "") : m ? m.nome : "arquivo que falta", mini = m && (m.tipo === "imagem" ? m.url : m.capa);
-        return '<div class="ve-clip' + (c.id === SEL ? " on" : "") + '" data-clip="' + c.id + '" style="--c:' + tr[2] + (c.off ? ";opacity:.35;filter:grayscale(1)" : "") + (mini && c.tipo !== "audio" ? ";--mini:url(" + mini + ")" : "") + ';left:' + (c.ini * PPS) + 'px;width:' + Math.max(18, c.dur * PPS) + 'px" title="' + esc(nome) + '"><i class="al e" data-al="e"></i>' + (mini ? '<img alt="" src="' + mini + '">' : "") + '<span>' + (c.tipo === "texto" ? "T · " : c.tipo === "audio" ? "♪ " : "") + esc(nome) + '</span>' + (vel(c) !== 1 ? '<b class="bd">' + String(vel(c)).replace(".", ",") + '×</b>' : "") + (c.efeito && EFEITOS[c.efeito] ? '<b class="bd" title="Efeito: ' + esc(EFEITOS[c.efeito]) + '">✦ ' + esc(EFEITOS[c.efeito]) + '</b>' : "") + (c.grade && window.BWCor && BWCor.ativo(c.grade) ? '<b class="bd" title="Cor ajustada">🎨</b>' : "") + (c.ia && window.BWMascara && BWMascara.tem(c.mid) ? '<b class="bd" title="Pessoa analisada (IA)">🧠</b>' : "") + (c.anima ? '<b class="bd" title="Texto com movimento">✦</b>' : "") + ondaHtml(c, m) + '<i class="al d" data-al="d"></i>' + (transDe(c) && anteriorDe(c) ? '<i class="tr" title="Transição: ' + esc(TRANS[c.trans.tipo]) + " · " + String(Math.round(transDe(c) * 10) / 10).replace(".", ",") + ' s" style="width:' + Math.max(10, transDe(c) * PPS) + 'px"><i class="trp" data-trp="' + c.id + '" title="Arraste para mudar o tempo da transição"></i></i>' : "") + '</div>'; }).join("") + juntas(tr[0]) + "</div>"; });
+        return '<div class="ve-clip' + (c.id === SEL ? " on" : "") + (GRUPO.length > 1 && GRUPO.indexOf(c.id) >= 0 ? " multi" : "") + '" data-clip="' + c.id + '" style="--c:' + tr[2] + (c.off ? ";opacity:.35;filter:grayscale(1)" : "") + (mini && c.tipo !== "audio" ? ";--mini:url(" + mini + ")" : "") + ';left:' + (c.ini * PPS) + 'px;width:' + Math.max(18, c.dur * PPS) + 'px" title="' + esc(nome) + '"><i class="al e" data-al="e"></i>' + (mini ? '<img alt="" src="' + mini + '">' : "") + '<span>' + (c.tipo === "texto" ? "T · " : c.tipo === "audio" ? "♪ " : "") + esc(nome) + '</span>' + (vel(c) !== 1 ? '<b class="bd">' + String(vel(c)).replace(".", ",") + '×</b>' : "") + (c.efeito && EFEITOS[c.efeito] ? '<b class="bd" title="Efeito: ' + esc(EFEITOS[c.efeito]) + '">✦ ' + esc(EFEITOS[c.efeito]) + '</b>' : "") + (c.grade && window.BWCor && BWCor.ativo(c.grade) ? '<b class="bd" title="Cor ajustada">🎨</b>' : "") + (c.ia && window.BWMascara && BWMascara.tem(c.mid) ? '<b class="bd" title="Pessoa analisada (IA)">🧠</b>' : "") + (c.anima ? '<b class="bd" title="Texto com movimento">✦</b>' : "") + ondaHtml(c, m) + '<i class="al d" data-al="d"></i>' + (transDe(c) && anteriorDe(c) ? '<i class="tr" title="Transição: ' + esc(TRANS[c.trans.tipo]) + " · " + String(Math.round(transDe(c) * 10) / 10).replace(".", ",") + ' s" style="width:' + Math.max(10, transDe(c) * PPS) + 'px"><i class="trp" data-trp="' + c.id + '" title="Arraste para mudar o tempo da transição"></i></i>' : "") + '</div>'; }).join("") + juntas(tr[0]) + "</div>"; });
     h += '<div class="ve-agulha" id="veAgulha" style="left:' + (T * PPS) + 'px"></div><i class="ve-lamina" id="veLamina" hidden></i>';
     $("veFaixas").innerHTML = h; $("veFaixas").style.width = larg + "px";
     $("veRot").innerHTML = "<div>TEMPO</div>" + TRILHAS.map(function (tr) { return '<div' + (vaziaTr(tr[0]) ? ' class="vazia"' : "") + ' data-rot="' + tr[0] + '" style="--c:' + tr[2] + ';height:' + altTr(tr[0]) + 'px" title="Alt + rodinha do mouse em cima da camada: mais alta ou mais baixa">' + tr[1] + "</div>"; }).join("");
@@ -771,7 +787,9 @@
   }
 
   /* ---------- ligações ---------- */
-  $("veImportar").onclick = function () { $("veArq").click(); };
+  /* 23/11 (dono, iPhone: "clica e não abre nada"): no iPhone o seletor só abre com toque DIRETO num <input file> ou no <label> dele — o click() por
+     código não abria. O ＋ IMPORTAR é um <label for="veArq"> (video.html) e o input mora dentro dele; aqui fica só o caminho do teclado. */
+  $("veImportar").addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); $("veArq").click(); } });
   $("veArq").onchange = function () { var fs = [].slice.call(this.files || []); this.value = ""; if (fs.length) importar(fs); };
   $("veCriacoes").onclick = criacoes;
   $("veArqTroca").onchange = function () { var f = (this.files || [])[0]; this.value = ""; substituirCom(f); };
@@ -894,8 +912,14 @@
       alvos.forEach(function (x) { var d = dividirEm(x, tc); if (d) ult = d; }); if (ult) { SEL = ult.id; tudo(); aviso("✂ Cortado em " + fmtT(tc) + (e.shiftKey ? " (todas as camadas)" : "") + ". Shift + clique corta todas as camadas."); } e.preventDefault(); return; }
     var jt = e.target.closest("[data-junta],[data-trp]"); if (jt) { var cj = P.clips.filter(function (x) { return x.id === (jt.dataset.junta || jt.dataset.trp); })[0]; if (!cj) return;
       if (SEL !== cj.id) { SEL = cj.id; desenharProp(); } arr = {tipo: "trans", c: cj, x0: e.clientX, y0: e.clientY, dur0: transDe(cj) || 0.6, tinha: !!cj.trans, moveu: false}; e.preventDefault(); return; }
-    var el = e.target.closest("[data-clip]"); if (!el) { if (toqueApp) return; if (SEL) { SEL = null; desenharTL(); desenharProp(); } return; }
+    var el = e.target.closest("[data-clip]"); if (!el) { if (toqueApp) return; if (e.pointerType === "mouse" && e.button === 0 && e.target.closest("[data-trilha],#veFaixas") && !e.target.closest("button")) { arr = {tipo: "laco", x0: e.clientX, y0: e.clientY, soma: e.shiftKey || e.ctrlKey || e.metaKey, antes: GRUPO.slice(), moveu: false}; e.preventDefault(); return; }
+      limparGrupo(); if (SEL) { SEL = null; desenharTL(); desenharProp(); } return; }
     var c = P.clips.filter(function (x) { return x.id === el.dataset.clip; })[0]; if (!c) return; var al = e.target.dataset.al || "";
+    if ((e.ctrlKey || e.metaKey || e.shiftKey) && e.pointerType === "mouse" && !al) { if (!GRUPO.length && SEL) GRUPO = [SEL]; var ig = GRUPO.indexOf(c.id); if (ig >= 0) GRUPO.splice(ig, 1); else GRUPO.push(c.id);
+      SEL = GRUPO.length ? GRUPO[GRUPO.length - 1] : null; desenharTL(); desenharProp(); if (GRUPO.length > 1) aviso(GRUPO.length + " takes escolhidos — arraste um deles para mover todos; Delete apaga, Ctrl+C copia."); e.preventDefault(); return; }
+    if (GRUPO.length > 1 && GRUPO.indexOf(c.id) >= 0 && !al && !toqueApp) { var gs = grupo(); SEL = c.id; $("veFaixas").querySelectorAll(".ve-clip").forEach(function (x) { x.classList.toggle("on", x === el); }); desenharProp();
+      arr = {tipo: "grupo", c: c, x0: e.clientX, y0: e.clientY, itens: gs.map(function (x) { return {c: x, ini: x.ini, el: $("veFaixas").querySelector('[data-clip="' + x.id + '"]')}; }), min: Math.min.apply(null, gs.map(function (x) { return x.ini; })), moveu: false}; e.preventDefault(); return; }
+    limparGrupo();
     /* no app, dedo em take NÃO escolhido rola a linha do tempo e o toque (click) escolhe — ve-app.js. 22/11 (dono): SEGURAR o dedo parado ~0,3 s
        PEGA o take e já arrasta (antes segurar abria o menu e atrapalhava o arraste; o menu ficou no ⋯ MAIS) */
     if (toqueApp && SEL !== c.id) { segurarPegar(e, el, c, al); return; }
@@ -908,6 +932,14 @@
     if (arr.tipo === "pan") { ZP.x = arr.zx + (e.clientX - arr.x0); ZP.y = arr.zy + (e.clientY - arr.y0); limitarZP(); aplicarZP(); return; }
     if (arr.tipo === "palco") { if (!arr.moveu && Math.hypot(e.clientX - arr.x0, e.clientY - arr.y0) < 5) return; if (!arr.c) { arr.moveu = true; return; } var cr = cv.getBoundingClientRect(), pc = arr.c; pc.x = Math.round(lim(arr.px + (e.clientX - arr.x0) / cr.width * 100, -100, 100)); pc.y = Math.round(lim(arr.py + (e.clientY - arr.y0) / cr.height * 100, -100, 100)); arr.moveu = true; desenhar(); return; }
     if (arr.tipo === "agulha") { irPara(arr.xDe(e) / PPS); return; }
+    if (arr.tipo === "laco") { if (!arr.moveu && Math.hypot(e.clientX - arr.x0, e.clientY - arr.y0) < 5) return; arr.moveu = true;
+      if (!arr.caixa) { arr.caixa = document.createElement("div"); arr.caixa.className = "ve-laco"; document.body.appendChild(arr.caixa); if (window.BWFerr) BWFerr.preso(true); }
+      var lx = Math.min(arr.x0, e.clientX), ly = Math.min(arr.y0, e.clientY), lw = Math.abs(e.clientX - arr.x0), lh = Math.abs(e.clientY - arr.y0); arr.caixa.style.cssText = "left:" + lx + "px;top:" + ly + "px;width:" + lw + "px;height:" + lh + "px";
+      var ids = arr.soma ? arr.antes.slice() : []; $("veFaixas").querySelectorAll(".ve-clip").forEach(function (x) { var q = x.getBoundingClientRect(); if (q.right > lx && q.left < lx + lw && q.bottom > ly && q.top < ly + lh && ids.indexOf(x.dataset.clip) < 0) ids.push(x.dataset.clip); });
+      arr.ids = ids; $("veFaixas").querySelectorAll(".ve-clip").forEach(function (x) { x.classList.toggle("multi", ids.indexOf(x.dataset.clip) >= 0); x.classList.remove("on"); });
+      var rr = $("veRolo").getBoundingClientRect(); if (e.clientX > rr.right - 30) { $("veRolo").scrollLeft += 12; arr.x0 -= 12; } else if (e.clientX < rr.left + 30 && $("veRolo").scrollLeft > 0) { $("veRolo").scrollLeft -= 12; arr.x0 += 12; } return; }
+    if (arr.tipo === "grupo") { if (!arr.moveu && Math.abs(e.clientX - arr.x0) < 4) return; arr.moveu = true; var dg = Math.max(-arr.min, (e.clientX - arr.x0) / PPS);
+      arr.itens.forEach(function (i) { i.c.ini = Math.max(0, Math.round((i.ini + dg) * 20) / 20); if (i.el) i.el.style.left = (i.c.ini * PPS) + "px"; }); if (!TOCANDO) desenhar(); return; }
     if (arr.tipo === "trans") { if (!arr.moveu && Math.abs(e.clientX - arr.x0) < 4) return; arr.moveu = true; var ct = arr.c, ant = anteriorDe(ct); if (!ct.trans) ct.trans = {tipo: "dissolver", dur: arr.dur0};
       ct.trans.dur = Math.round(lim(arr.dur0 + (e.clientX - arr.x0) / PPS, 0.1, Math.min(ct.dur, ant ? ant.dur : ct.dur) * 0.9) * 10) / 10;
       var fx2 = $("veFaixas").querySelector('[data-clip="' + ct.id + '"] .tr'); if (fx2) fx2.style.width = Math.max(10, ct.trans.dur * PPS) + "px"; var jj = $("veFaixas").querySelector('[data-junta="' + ct.id + '"]'); if (jj) { jj.classList.add("com"); jj.innerHTML = "<b>" + esc(TRANS[ct.trans.tipo]) + " · " + String(ct.trans.dur).replace(".", ",") + " s</b>"; }
@@ -946,6 +978,10 @@
   var ultimoXY = {x: 0, y: 0}; window.addEventListener("pointerup", function (e) { ultimoXY = {x: e.clientX, y: e.clientY}; }, true);
   window.addEventListener("pointerup", function () { if (SEG) { SEG = null; setTimeout(function () { window.__bwSegurando = false; }, 0); } if (!arr) return; var a = arr; arr = null; if (window.BWFerr) BWFerr.preso(false);
     dicaArr(null);
+    if (a.tipo === "laco") { if (a.caixa) a.caixa.remove(); if (!a.moveu) { limparGrupo(); if (SEL) { SEL = null; desenharTL(); desenharProp(); } return; }
+      GRUPO = a.ids || []; SEL = GRUPO.length ? GRUPO[0] : null; if (GRUPO.length < 2) GRUPO = []; desenharTL(); desenharProp();
+      if (GRUPO.length > 1) aviso("▭ " + GRUPO.length + " takes escolhidos — arraste um deles para mover todos; Delete apaga, Ctrl+C copia, Ctrl+Shift+D duplica. Ctrl + clique põe ou tira um take."); return; }
+    if (a.tipo === "grupo") { if (a.moveu) { tudo(); marcarGrupo(); aviso("↔ " + a.itens.length + " takes movidos juntos."); } return; }
     if (a.tipo === "mover" && a.moveu && a.vert) { camadaNova(a.c, a.vert); tudo(); marcar(a.c.id); aviso((a.vert === "cima" ? "⬆" : "⬇") + " Camada nova: " + infoTr(a.c.trilha)[0] + "."); return; }
     if (a.tipo === "mover" && a.moveu && a.troca) { tudo(true); escolherSobre(a, ultimoXY); return; }
     if (a.tipo === "mover" && a.moveu && a.encosta) encostar(a);
@@ -1079,13 +1115,14 @@
       "espaco, k": function () { $("vePlay").click(); }, "l": function () { if (!TOCANDO) tocar(); }, "j": function () { irPara(T - 1); },
       "arrowleft": function () { irPara(T - passoQ); }, "arrowright": function () { irPara(T + passoQ); }, "shift+arrowleft": function () { irPara(T - 1); }, "shift+arrowright": function () { irPara(T + 1); },
       "home": function () { irPara(0); $("veRolo").scrollLeft = 0; }, "end": function () { irPara(total()); },
-      "delete": function () { if (!SEL) return false; apagar(false); }, "shift+delete": function () { if (!SEL) return false; apagar(true); },
+      "delete": function () { if (!SEL && !GRUPO.length) return false; apagar(false); }, "shift+delete": function () { if (!SEL) return false; apagar(true); },
       "ctrl+k": function () { return dividir.apply(this, arguments); }, "ctrl+z": desfazer, "ctrl+shift+z, ctrl+y": refazer, "ctrl+c": function () { return copiar(); }, "ctrl+v": function () { return colar.apply(this, arguments); }, "ctrl+shift+c": function () { return copiarAtrib(); }, "ctrl+shift+v": function () { return colarAtrib(); },
       "q": function () { aparar("ini"); }, "w": function () { aparar("fim"); }, "shift+e": function () { return ligarDesligar(); },
       "ctrl+shift+/, ctrl+shift+d": function () { return duplicar.apply(this, arguments); }, "ctrl+d": function () { var c = sel(); if (!c || c.tipo === "audio" || c.tipo === "texto") return false; c.trans = {tipo: "dissolver", dur: 0.6}; tudo(); aviso("Ctrl+D: transição Dissolver no início do clipe" + (anteriorDe(c) ? "." : " (encoste-o no fim de outro clipe).")); },
       "=, shift+=, ctrl+=": function () { zoomEm(1.4); }, "-, ctrl+-": function () { zoomEm(1 / 1.4); }, "\\": encaixarTudo,
       "ctrl+s": function () { guardar(); aviso("✓ Salvo neste aparelho (o editor também salva sozinho)."); }, "ctrl+m, ctrl+e": exportar, "ctrl+i": function () { $("veArq").click(); },
-      "escape": function () { if (!SEL) return false; SEL = null; desenharTL(); desenharProp(); }
+      "ctrl+a": function () { if (!P.clips.length) return false; GRUPO = P.clips.map(function (x) { return x.id; }); SEL = GRUPO[0]; if (GRUPO.length < 2) GRUPO = []; desenharTL(); desenharProp(); aviso("▭ Todos os takes escolhidos (" + P.clips.length + ")."); },
+      "escape": function () { if (!SEL && !GRUPO.length) return false; limparGrupo(); SEL = null; desenharTL(); desenharProp(); }
     });
     BWFerr.ajuda("ATALHOS DO EDITOR DE VÍDEO", [["#", "TOCAR E NAVEGAR"], ["Espaço / K", "tocar / pausar"], ["L", "tocar"], ["J", "voltar 1 s"], ["← / →", "um quadro para trás / frente"], ["Shift+← / Shift+→", "1 segundo"], ["Home / End", "início / fim"],
       ["#", "EDITAR"], ["Ctrl+K", "cortar na agulha (o clipe escolhido, ou tudo o que está na agulha)"], ["Delete", "apagar o clipe"], ["Shift+Delete", "apagar e fechar o espaço"], ["Ctrl+C / Ctrl+V", "copiar / colar na agulha"], ["Ctrl+Shift+C / Ctrl+Shift+V", "copiar os AJUSTES de um take / colar em outro"], ["Q / W", "cortar o começo / o fim do take até a agulha"], ["Shift+E", "desativar / ativar o take"],

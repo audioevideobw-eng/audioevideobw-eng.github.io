@@ -839,6 +839,21 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
      nunca com `hidden`/display:none (iPhone): fora da tela com opacity 0. Casca de app espera o editor no máximo ~0,4 s; o TESTES E SOLUÇÕES espera a casca até 8 s
      antes de dizer "não montou" (o iPhone reabre as mídias guardadas devagar dentro do iframe).
 
+203. iPhone: SELETOR DE ARQUIVOS só abre com o dedo DIRETO num <input type=file> (ou no <label> dele) — click() por código a partir de outro botão "não abre nada"
+     (dono, 23/11, app instalado). Botão de importar = <label for> com o input transparente POR CIMA, do tamanho do botão (video.html .ve-imp); o teste confere com
+     elementFromPoint que o toque cai no INPUT e abre o seletor com toque de verdade (docs/testes/teste_video_laco.py). Atalho que levava ao seletor por código
+     (Importar som) abre a folha com o botão em vez de clicar por ele.
+204. SELEÇÃO DE VÁRIOS (editor de vídeo, PC): arrastar a partir do VAZIO da linha do tempo = LAÇO (GRUPO de ids; SEL segue sendo o take dos AJUSTES); Ctrl/Shift +
+     clique põe/tira; Ctrl+A todos; arrastar um do grupo move todos (trava no zero pelo mais à esquerda); Delete, Ctrl+C/V e duplicar valem para o grupo; clique simples
+     no vazio solta. Toda função que redesenha os takes repõe a classe .multi. AVISO de editor = pílula pequena e neutra no alto (2 linhas no máximo, pontinho verde/
+     vermelho), nunca caixa colorida grande.
+
+205. iPhone: <video> criado só para LER só entrega o 1º QUADRO depois de play() (mudo, playsinline) — sem isso loadeddata/seeked não chegam e o vídeo da
+     própria câmera (.MOV) era marcado "não abre neste navegador". Regra: "não abre" = sem metadados/sem tamanho de imagem; faltar a MINIATURA não é "não abre".
+     Opção que aceita função (nome da criação) é CHAMADA antes de virar texto (o take aparecia como "function () { return (E.campo…").
+206. Rebote da página no iPhone (app instalado): corpo position:fixed + touch-action:none na casca do app (só as folhas que rolam ficam pan-y). Com a biblioteca
+     vazia, o ＋ da linha do tempo é o próprio seletor de arquivos (input por cima; casca em <div role=button>, não <button>).
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -2264,7 +2279,16 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   importação de mídia"): a folha MÍDIA abria vazia quando a seção estava fechada pela seta (título escondido na folha) → setas sempre abertas dentro da folha;
   seletor de arquivo fora da tela em vez de hidden; casca de app monta em ~0,4 s; o teste do aparelho espera a casca até 8 s. teste_video_app (+1), video,
   midia, takes, testes 0 falhas. NÃO conferido em iPhone real — aguarda o dono. ve-app v9, testes.js v2, sw v204. PENTE FINO 202.
+- 23/11/2026 00:45 · Claude (dono: "a janela de importação não aparece, clica e não abre nada" no iPhone; "no PC, clicar e segurar na linha do tempo vazia abre uma
+  seleção de vários takes"; "mensagens enormes verdes/vermelhas na tela — deixe discreto no alto"): (1) ＋ IMPORTAR virou toque direto no seletor de arquivos
+  (label + input por cima), sem click por código; "Importar som" abre a folha com o botão. (2) LAÇO no PC: arrastar no vazio escolhe vários takes (todas as
+  camadas), Ctrl/Shift + clique, Ctrl+A; mover, apagar, copiar/colar e duplicar o grupo. (3) Avisos do editor: pílula pequena e neutra no alto. teste_video_laco
+  (4) iPhone: vídeo .MOV da câmera dava "não abre neste navegador" (o quadro só carrega com play) → corrigido; (5) ＋ com biblioteca vazia abre o seletor direto;
+  (6) rebote: corpo preso + sem gesto nativo na casca; (7) take vindo do Criador aparecia com nome "function () {…}" → corrigido.
+  teste_video_laco (novo) + bateria do editor 0 falhas. NÃO conferido em iPhone real — aguarda o dono. video-editor v23, ve-app v11, ve-app.css v10,
+  bw-criacoes v4, sw v205. PENTE FINO 203–206.
 ## Pendências (dono)
+- [ ] (23/11) iPhone: fechar e abrir o app, tocar em ＋ → ＋ IMPORTAR e dizer se a galeria abriu. PC: testar o laço na linha do tempo e os avisos pequenos.
 - [ ] (22/11) iPhone: abrir o EDITOR DE FOTOS no Safari e dizer se o desfoque de cima sumiu; testar ⚡ FAZER PROXY e a JANELA DE EXPORTAR no PC com takes reais.
 - [x] (22/11 21:03) BW-Setup.exe 1.9.34 gerado pelo dono e publicado (9,0 MB, versão conferida dentro do .exe).
 - [x] (22/11 19:54) BW-Setup.exe 1.9.33 gerado pelo dono e publicado (8,6 MB, versão conferida dentro do .exe).

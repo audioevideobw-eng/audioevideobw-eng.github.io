@@ -76,7 +76,7 @@
     var tipo = c.tipo || (/^video\//.test(c.blob.type) ? "video" : "imagem");
     var reg = {
       id: c.id || uid(),
-      nome: String(c.nome || (FERR[c.ferramenta] ? FERR[c.ferramenta].curto : "Criação")).slice(0, 70),
+      nome: String((typeof c.nome === "function" ? "" : c.nome) || (FERR[c.ferramenta] ? FERR[c.ferramenta].curto : "Criação")).slice(0, 70),
       tipo: tipo, blob: c.blob, bytes: c.blob.size,
       dur: c.dur || await duracaoDe(c.blob, tipo),
       capa: await capaDe(c.blob, tipo),
@@ -143,7 +143,7 @@
     var arq = typeof opts.arquivo === "function" ? await opts.arquivo() : opts.arquivo;
     if (!arq) { folha('<h3 style="color:var(--m-erro,#FF6B6B)">Nada para mandar</h3><p>Gere ou salve a criação primeiro e tente de novo.</p><button class="bwcr-bt" type="button" data-bwcr-fechar>Entendi</button>'); return null; }
     var blob = arq instanceof Blob ? arq : new Blob([arq]);
-    var nome = opts.nome || (arq.name ? String(arq.name).replace(/\.[a-z0-9]+$/i, "") : "");
+    var nome = (typeof opts.nome === "function" ? opts.nome() : opts.nome) || (arq.name ? String(arq.name).replace(/\.[a-z0-9]+$/i, "") : "");
     var reg;
     try {
       reg = await guardar({ id: volta && volta.criacao ? volta.criacao : null, blob: blob, nome: nome, tipo: opts.tipo, dur: opts.dur, ferramenta: opts.ferramenta, projeto: opts.projeto });

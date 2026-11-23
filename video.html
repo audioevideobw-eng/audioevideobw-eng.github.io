@@ -65,6 +65,8 @@
 .ve-regua i{position:absolute;top:4px;font-style:normal;padding-left:3px;border-left:1px solid rgba(245,241,234,.25);height:16px}
 .ve-faixa{height:52px;margin-bottom:6px;position:relative;border-radius:12px;background:rgba(255,255,255,.03)}
 .ve-clip{position:absolute;top:3px;bottom:3px;box-sizing:border-box;border-radius:12px;border:2px solid transparent;background:var(--c);color:#fff;font:700 11px Inter,sans-serif;overflow:hidden;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;display:flex;align-items:center;gap:6px;padding:0 12px}
+.ve-clip.multi{border-color:#FFD23F;box-shadow:0 0 0 2px rgba(255,210,63,.35)}.ve-laco{position:fixed;z-index:90;border:1px solid #FFD23F;background:rgba(255,210,63,.14);border-radius:3px;pointer-events:none}
+.ve-imp{position:relative;overflow:hidden;cursor:pointer;display:inline-flex;align-items:center;justify-content:center}.ve-imp input{position:absolute;inset:0;width:100%;height:100%;opacity:0;font-size:0;cursor:pointer}
 .ve-clip.on{border-color:#fff;box-shadow:0 0 0 2px rgba(255,255,255,.25),0 6px 18px rgba(0,0,0,.4)}
 .ve-clip img{flex:none;height:min(34px,calc(100% - 8px));width:auto;aspect-ratio:1;object-fit:cover;border-radius:7px;pointer-events:none}
 .ve-clip span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:none}
@@ -114,8 +116,9 @@
 .ve-clip .tr{position:absolute;left:0;top:0;bottom:0;pointer-events:none;background:linear-gradient(90deg,rgba(255,255,255,.55),rgba(255,255,255,0));border-right:2px dashed rgba(255,255,255,.7)}
 .ve-lamina{position:absolute;width:2px;background:#B6FF3B;box-shadow:0 0 8px #B6FF3B;pointer-events:none;z-index:4}.ve-lamina[hidden]{display:none}
 #veFerr{margin-right:6px}
-.ve-aviso{pointer-events:none;position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:80;width:max-content;max-width:min(620px,92vw);box-shadow:0 10px 28px rgba(0,0,0,.5);padding:9px 12px;border-radius:12px;font:600 12.5px/1.4 Inter,sans-serif;background:rgba(12,40,28,.94);border:1px solid rgba(62,207,142,.5);color:#9af0c4}
-.ve-aviso.erro{background:rgba(48,14,16,.95);border-color:rgba(242,104,107,.45);color:#ffb3b5}
+.ve-aviso{pointer-events:none;position:fixed;top:8px;left:50%;transform:translateX(-50%);z-index:80;width:max-content;max-width:min(440px,70vw);box-shadow:0 4px 14px rgba(0,0,0,.4);padding:5px 12px 5px 22px;border-radius:999px;font:500 11.5px/1.35 Inter,sans-serif;background:rgba(22,24,30,.92);border:1px solid rgba(255,255,255,.1);color:#cfd3da;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;opacity:.96}
+.ve-aviso::before{content:"";position:absolute;left:9px;top:11px;width:6px;height:6px;border-radius:50%;background:#3ecf8e}
+.ve-aviso.erro{color:#e9c9ca}.ve-aviso.erro::before{background:#f2686b}
 .ve-aviso[hidden]{display:none}
 .ve-ocup{position:fixed;inset:0;z-index:9000;background:rgba(6,8,13,.86);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:#F5F1EA;font:700 15px Inter,sans-serif;text-align:center;padding:24px}
 .ve-ocup[hidden]{display:none}
@@ -227,7 +230,7 @@
 @media (max-width:560px){.ve-jan{padding:0;align-items:flex-end}.ve-jan-c{border-radius:18px 18px 0 0;max-height:92vh}.ve-exp-cards{grid-template-columns:1fr 1fr}.ve-copia{right:8px;left:8px;width:auto;bottom:calc(70px + env(safe-area-inset-bottom))}}
 </style>
 <script src="assets/modos.js?v=7"></script>
-<link rel="stylesheet" href="assets/ve-app.css?v=8">
+<link rel="stylesheet" href="assets/ve-app.css?v=10">
 <script>/* 22/11: decide o layout de app ANTES de desenhar (senão a tela antiga aparecia por um instante) */(function(){var q=new URLSearchParams(location.search).get("layout")||"";if(q==="app"||(q!=="classico"&&(innerWidth<=900||(matchMedia("(pointer:coarse)").matches&&innerWidth<=1180))))document.documentElement.classList.add("app-cedo")})()</script>
 
 </head>
@@ -253,7 +256,7 @@
       <h3 data-seta="ve-midia">MÍDIA</h3>
       <div class="ve-abas" id="veAbas" role="group" aria-label="Tipo de mídia"></div>
       <div class="ve-lib" id="veLib"></div>
-      <div class="ve-linha"><button class="ve-bt" id="veCriarBt" type="button" aria-expanded="false" aria-controls="veCriar" title="Abre os atalhos das ferramentas de criação (motion, telas, 3D, fotos…)">✦ CRIAR</button><button class="ve-bt on" id="veImportar" type="button">＋ IMPORTAR</button><button class="ve-bt" id="veCriacoes" type="button">✨ MINHAS CRIAÇÕES</button></div>
+      <div class="ve-linha"><button class="ve-bt" id="veCriarBt" type="button" aria-expanded="false" aria-controls="veCriar" title="Abre os atalhos das ferramentas de criação (motion, telas, 3D, fotos…)">✦ CRIAR</button><label class="ve-bt on ve-imp" id="veImportar" for="veArq" role="button" tabindex="0">＋ IMPORTAR<input type="file" id="veArq" accept="video/*,image/*,audio/*" multiple tabindex="-1" aria-hidden="true"></label><button class="ve-bt" id="veCriacoes" type="button">✨ MINHAS CRIAÇÕES</button></div>
       <div class="ve-linha"><button class="ve-bt" id="veTexto" type="button">T TEXTO</button><button class="ve-bt" id="veElem" type="button">🔥 ELEMENTO</button><button class="ve-bt" id="veSons" type="button">🔊 EFEITOS E TRILHAS</button></div>
       <p class="ve-nota">Toque num item para colocar na linha do tempo. Aceita vídeos, imagens e áudios — inclusive o que você criou no Flux, Higgsfield, Gemini ou aqui no Quadro de História.</p>
     </div>
@@ -280,22 +283,21 @@
 </div>
 <div class="ve-ocup" id="veOcup" hidden><span id="veOcupTxt">Gravando o vídeo…</span><progress id="veProg" max="1" value="0"></progress><button class="ve-bt" id="veCancelar" type="button">CANCELAR</button></div>
 <div class="ve-ocup ve-saida" id="veSaida" hidden><span id="veSaidaTxt">Vídeo pronto</span><video id="veVideoPronto" controls playsinline></video><div class="ve-linha"><a class="ve-bt pri" id="veBaixar" download="video-brightway.mp4">⬇ SALVAR VÍDEO</a><button class="ve-bt" id="veCompartilhar" type="button">COMPARTILHAR</button><button class="ve-bt" id="veFecharSaida" type="button">FECHAR</button></div></div>
-<input type="file" id="veArq" accept="video/*,image/*,audio/*" multiple tabindex="-1" aria-hidden="true" style="position:fixed;left:-9999px;top:0;width:1px;height:1px;opacity:0">
 <input type="file" id="veArqTroca" accept="video/*,image/*,audio/*" tabindex="-1" aria-hidden="true" style="position:fixed;left:-9999px;top:0;width:1px;height:1px;opacity:0">
 <script src="assets/layout.js?v=75"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="assets/bw-sync.js?v=20261122"></script>
 <script src="assets/bw-personagens.js?v=3"></script>
 <script src="assets/bw-ferramentas.js?v=6"></script>
-<script src="assets/bw-criacoes.js?v=3"></script>
+<script src="assets/bw-criacoes.js?v=4"></script>
 <script src="assets/bw-chroma.js?v=1"></script>
 <script src="assets/bw-cor.js?v=1"></script>
 <script src="assets/bw-mascara.js?v=1"></script>
 <script src="assets/bw-rastreio.js?v=1"></script>
-<script src="assets/ve-app.js?v=9"></script>
+<script src="assets/ve-app.js?v=11"></script>
 <script src="assets/reels-celular.js?v=6"></script>
 <script src="assets/bw-proxy.js?v=2"></script>
-<script src="assets/video-editor.js?v=22"></script>
+<script src="assets/video-editor.js?v=23"></script>
 <script src="assets/ve-modelos.js?v=2"></script>
 <script src="assets/bw-controle.js?v=1"></script>
 </body>

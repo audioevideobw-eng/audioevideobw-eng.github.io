@@ -73,7 +73,7 @@ html.va-folha .va-faixa{visibility:hidden}
 .va-fmt{flex:none;width:76px;display:flex;flex-direction:column;align-items:center;gap:7px;padding:10px 4px;border:1px solid transparent;border-radius:12px;background:#22252d;color:#E8EAEE;font:600 10.5px/1.2 Inter,sans-serif;cursor:pointer}
 .va-fmt i{display:block;border:2px solid #cfd3da;border-radius:4px}
 .va-fmt.on{border-color:#fff;background:#2b2e38}
-html.ve-app .ve-aviso{position:fixed;left:12px;right:12px;transform:none;width:auto;max-width:none;top:calc(56px + env(safe-area-inset-top));z-index:70;margin:0;box-shadow:0 8px 24px rgba(0,0,0,.5);backdrop-filter:blur(6px)}
+html.ve-app .ve-aviso{max-width:calc(100vw - 24px);top:calc(52px + env(safe-area-inset-top));z-index:70;margin:0}
 html.ve-app .bwf-menu{z-index:9600}
 @media (min-width:700px){.va{grid-template-rows:56px minmax(0,1fr) 48px auto 84px}.va-tl{max-height:30vh}.va-f{min-width:80px}}
 .va .vm-faixa{position:absolute;left:8px;right:8px;top:calc(56px + env(safe-area-inset-top));z-index:8;margin:0;max-height:30vh;overflow:auto;box-shadow:0 8px 24px rgba(0,0,0,.5)}
@@ -88,3 +88,11 @@ html.app-cedo body{background:#0b0c10}
 html.app-cedo body>*{visibility:hidden}
 html.app-cedo body::after{content:"";position:fixed;left:50%;top:50%;width:28px;height:28px;margin:-14px 0 0 -14px;border-radius:50%;border:3px solid rgba(255,255,255,.15);border-top-color:#21D4E4;animation:appCedo .8s linear infinite;visibility:visible}
 @keyframes appCedo{to{transform:rotate(360deg)}}
+
+/* 23/11: ＋ com a biblioteca vazia = seletor de arquivos direto (input por cima) */
+.va-add{overflow:hidden;display:flex;align-items:center;justify-content:center;user-select:none;-webkit-user-select:none}.va-add input{position:absolute;inset:0;width:100%;height:100%;opacity:0;font-size:0;cursor:pointer}.va-add input[hidden]{display:none}
+/* 23/11 (dono: "no iPhone ainda persiste o rebote"): a página do app não existe para o dedo — corpo preso e nenhum gesto nativo fora das folhas que rolam */
+html.ve-app body{position:fixed;inset:0;width:100%}
+html.ve-app .va{touch-action:none}
+html.ve-app .va .va-sheet-corpo,html.ve-app .va .va-sheet-corpo *,html.ve-app .va [data-rola-livre],html.ve-app .va [data-rola-livre] *{touch-action:pan-y}
+html.ve-app .va .va-sheet-corpo .ve-clip.on,html.ve-app .va canvas{touch-action:none}
