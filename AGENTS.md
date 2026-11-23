@@ -2350,8 +2350,7 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   Manual p. 66 refeita. App BW 1.9.37. layout.js v78, brightway.css v38, sw v208. .exe: pendente (sem acesso à pasta do PC).
 
 ## Pendências (dono)
-- [ ] (23/11) APP BW 1.9.37 (segurança + página Segurança e seus dados): gerar o BW-Setup.exe no PC (Vídeos\bw-reels-studio → "5 - GERAR INSTALADOR EXE") — o Claude não teve
-      acesso à pasta. O app instalado já recebe a 1.9.37 pela ATUALIZAÇÃO automática.
+- [x] (23/11 09:58) BW-Setup.exe 1.9.37 gerado pelo dono e publicado (9,0 MB, versão conferida dentro do .exe).
 - [ ] (23/11) iPhone: fechar e abrir o app, tocar em ＋ → ＋ IMPORTAR e dizer se a galeria abriu. PC: testar o laço na linha do tempo e os avisos pequenos.
 - [ ] (23/11 00:37, dono: "depois terminamos, grave o que falta") FALTA: (a) dono testar no iPhone — ＋ IMPORTAR/＋ abrindo a galeria, .MOV da câmera sem ⚠
       (importar de novo), rebote (dizer em qual parte ainda quica), folha MÍDIA vazia, pinça na prévia, layout de app, rastreio com mão/corpo reais;
