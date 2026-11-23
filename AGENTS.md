@@ -826,6 +826,14 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
      por cima dos textos; borda suave por reduzir/ampliar (vale no iPhone). Teste confere o PIXEL (docs/testes/teste_video_selecao.py). Nome de função
      novo: procurar antes (uma `var visual` local escondia a função visual() e derrubou o editor).
 
+201. RASTREIO (assets/bw-rastreio.js; dono: "fogo seguindo a mão; automático com modelos"): MÃO = MediaPipe Hand Landmarker, CORPO = Pose Landmarker lite (CPU,
+     modo VIDEO com carimbo sempre crescente), PONTO ESCOLHIDO = correlação normalizada em cinza com busca em volta e modelo que se atualiza devagar (para frente
+     e para trás do quadro escolhido). Quadro perdido = reta entre vizinhos; suavização na hora de desenhar. c.rastro guarda o caminho em FRAÇÃO da imagem do
+     take seguido; o item = ponto + c.x/c.y (arrastar ajusta o deslocamento); comRastro() embrulha o clipe com Object.create (desenharMidia, desenharTexto,
+     elemento). Teste com vídeo sintético (quadradinho andando) + detector FALSO para a mão e o rastreador DE VERDADE no ponto escolhido
+     (docs/testes/teste_video_rastreio.py); o modelo real só no aparelho (aqui não baixa). ELEMENTOS ANIMADOS (tipo "elemento": fogo, faíscas, brilho,
+     fumaça, corações, raio, bolhas, estrelas) = desenho próprio, cada quadro só de t; grupos de take com c.mid não aparecem para eles.
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -2242,6 +2250,11 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   cinco e nova MÁSCARA POR SELEÇÃO (retângulo, elipse, mão livre; objeto na frente dos textos / só a área / esconder; borda suave; inverter). Pinça com dois
   dedos estica SÓ o take (texto: tamanho da letra). teste_video_app (+8), teste_video_selecao (novo) e a bateria do editor 0 falhas. video-editor v21,
   ve-app v6, ve-app.css v8, ve-modelos v2, bw-ferramentas v6, sw v202. PENTE FINO 197–200. Rastreamento (fogo na mão) em andamento.
+- 23/11/2026 00:20 · Claude (dono: "rastreamento — fogo em overlay seguindo a mão; pesquise e faça o melhor, automático com modelos, como nos textos"):
+  EDITOR DE VÍDEO ganhou 🔥 ELEMENTO (8 elementos animados próprios) e SEGUIR UM PONTO para elemento, foto, vídeo ou texto por cima de um take: ✋ MÃO (IA:
+  palma, indicador, polegar, dedo médio, pulso; qualquer / esquerda / direita), 🧍 CORPO (cabeça, ombros, mãos, peito, quadril, pés) e 🎯 PONTO QUE EU ESCOLHO
+  (objeto/luz/logo); suavizar, acompanhar o tamanho, centralizar, parar de seguir. Tudo no aparelho. teste_video_rastreio (novo) e a bateria do editor 0 falhas.
+  NÃO testado com os modelos reais da Google (só baixam no aparelho). video-editor v22, ve-app v7, bw-rastreio v1, sw v203. PENTE FINO 201.
 ## Pendências (dono)
 - [ ] (22/11) iPhone: abrir o EDITOR DE FOTOS no Safari e dizer se o desfoque de cima sumiu; testar ⚡ FAZER PROXY e a JANELA DE EXPORTAR no PC com takes reais.
 - [x] (22/11 21:03) BW-Setup.exe 1.9.34 gerado pelo dono e publicado (9,0 MB, versão conferida dentro do .exe).

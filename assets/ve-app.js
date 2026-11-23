@@ -27,6 +27,7 @@
     camadas: '<path d="M12 3l9 5-9 5-9-5z"/><path d="M3 13l9 5 9-5"/>', dividir: '<path d="M8 4v16M16 4v16"/><path d="M4 8l4 4-4 4M20 8l-4 4 4 4"/>',
     volume: '<path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16 9a4 4 0 010 6M18.5 6.5a8 8 0 010 11"/>', vel: '<path d="M4 15a8 8 0 1116 0"/><path d="M12 15l4-5"/>',
     cor: '<path d="M12 3c3 4 6 7 6 11a6 6 0 01-12 0c0-4 3-7 6-11z"/>', pessoa: '<circle cx="12" cy="7" r="3.5"/><path d="M5 21c0-4 3-7 7-7s7 3 7 7"/><path d="M3 3h4M17 3h4M3 3v4M21 3v4"/>',
+    rastro: '<circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="8"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4"/>',
     masc: '<path d="M4 5h16v14H4z" stroke-dasharray="3 2"/><path d="M8 15l3-4 2 2 3-4"/>',
     chroma: '<rect x="3" y="4" width="18" height="14" rx="2"/><path d="M3 14l5-4 4 3 3-2 6 5"/>', pos: '<path d="M12 3v18M3 12h18"/><path d="M9 6l3-3 3 3M9 18l3 3 3-3M6 9l-3 3 3 3M18 9l3 3-3 3"/>',
     anima: '<circle cx="12" cy="12" r="9"/><path d="M10 8l6 4-6 4z"/>', duplicar: '<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M4 16V4h12"/>',
@@ -132,7 +133,7 @@
     if (!c) {
       if (SUB === "audio") return [["voltar", "Voltar", function () { SUB = ""; faixa(); }, "volta"], ["sons", "Sons e trilhas", function () { clicar("veSons"); abrir("midia", "SONS E TRILHAS"); }], ["importar", "Importar som", function () { clicar("veImportar"); }], ["extrair", "Extrair áudio", function () { aviso("Toque no take de vídeo e depois em EXTRAIR ÁUDIO."); }]];
       if (SUB === "texto") return [["voltar", "Voltar", function () { SUB = ""; faixa(); }, "volta"], ["texto", "Adicionar texto", function () { clicar("veTexto"); setTimeout(function () { abrir("g:texto"); }, 60); }], ["pessoa", "Texto atrás da pessoa", function () { if (window.VEModelos) VEModelos.abrir("mascara"); }], ["modelos", "Modelos", function () { if (window.VEModelos) VEModelos.abrir(); }]];
-      return [["mais", "Mídia", function () { abrir("midia"); }], ["audio", "Áudio", function () { SUB = "audio"; faixa(); }], ["texto", "Texto", function () { SUB = "texto"; faixa(); }],
+      return [["mais", "Mídia", function () { abrir("midia"); }], ["audio", "Áudio", function () { SUB = "audio"; faixa(); }], ["texto", "Texto", function () { SUB = "texto"; faixa(); }], ["efe", "Elementos", function () { var v = V(); if (v && v.menuElementos) v.menuElementos(innerWidth / 2 - 90, innerHeight * 0.45); }],
         ["modelos", "Modelos", function () { if (window.VEModelos) VEModelos.abrir(); }], ["trans", "Transições", function () { abrir("trans"); }], ["efe", "Efeitos", function () { abrir("efe"); }],
         ["criar", "Criar", function () { abrir("criar"); }], ["prop", "Formato", function () { abrir("prop"); }], ["camadas", "Camadas", function () { clicar("veTlMin"); }],
         ["tela", "Outra tela", function () { clicar("veSegunda"); }], ["cel", "Controle", function () { clicar("veCelular"); }]];
@@ -141,10 +142,11 @@
     if (c.ph) L.push(["trocar", "Trocar pelo meu take", function () { abrir("midia", "ESCOLHA O TAKE"); }, "destaque"]);
     if (c.phMusica) L.push(["audio", "Trocar a música", function () { abrir("midia", "ESCOLHA A MÚSICA"); var b = document.querySelector('#veAbas [data-aba="audio"]'); if (b) b.click(); }, "destaque"]);
     var g = function (k, ic, rot) { if (tem(k)) L.push([ic, rot, function () { abrir("g:" + k); }]); };
-    if (c.tipo === "texto") { g("texto", "editar", "Editar texto"); L.push(["dividir", "Dividir", function () { clicar("veCortar"); }]); g("pos", "pos", "Posição"); g("tempo", "anima", "Tempo"); }
+    if (c.tipo === "texto") { g("texto", "editar", "Editar texto"); L.push(["dividir", "Dividir", function () { clicar("veCortar"); }]); g("pos", "pos", "Posição"); g("rastro", "rastro", "Seguir ponto"); g("tempo", "anima", "Tempo"); }
     else {
+      g("elem", "efe", "Elemento");
       L.push(["dividir", "Dividir", function () { clicar("veCortar"); }]); g("som", "volume", c.tipo === "audio" ? "Volume e limpeza" : "Volume"); g("vel", "vel", "Velocidade");
-      if (c.tipo !== "audio") { g("cor", "cor", "Cor"); g("efeito", "efe", "Efeitos"); g("trans", "trans", "Transição"); g("ia", "pessoa", "Pessoa (IA)"); g("selm", "masc", "Máscara"); g("chroma", "chroma", "Chroma"); g("pos", "pos", "Ajustar"); }
+      if (c.tipo !== "audio") { g("cor", "cor", "Cor"); g("efeito", "efe", "Efeitos"); g("trans", "trans", "Transição"); g("ia", "pessoa", "Pessoa (IA)"); g("selm", "masc", "Máscara"); g("rastro", "rastro", "Seguir ponto"); g("chroma", "chroma", "Chroma"); g("pos", "pos", "Ajustar"); }
       g("tempo", "anima", "Animação"); L.push(["apIni", "Aparar início", function () { clicar("veApIni"); }], ["apFim", "Aparar fim", function () { clicar("veApFim"); }]);
     }
     L.push(["duplicar", "Duplicar", function () { clicar("veDuplicar"); }], ["mais3", "Mais", function () { opcoes(c); }], ["excluir", "Excluir", function () { clicar("veApagar"); }, "perigo"]);
@@ -161,7 +163,7 @@
   document.addEventListener("click", function (e) { var b = e.target.closest && e.target.closest("#vaFaixa .va-f"); if (!b || !FAIXA._L) return; var it = FAIXA._L[+b.dataset.i]; if (it) it[2](); });
 
   /* ---------- folhas que sobem de baixo ---------- */
-  var NOMES = {texto: "TEXTO", pos: "TAMANHO E POSIÇÃO", som: "SOM", vel: "VELOCIDADE", trans: "TRANSIÇÃO DE ENTRADA", efeito: "EFEITO", cor: "COR", ia: "PESSOA E FUNDO (IA)", selm: "MÁSCARA POR SELEÇÃO", chroma: "CHROMA KEY", tempo: "TEMPO E CAMADA"};
+  var NOMES = {texto: "TEXTO", pos: "TAMANHO E POSIÇÃO", som: "SOM", vel: "VELOCIDADE", trans: "TRANSIÇÃO DE ENTRADA", efeito: "EFEITO", cor: "COR", ia: "PESSOA E FUNDO (IA)", selm: "MÁSCARA POR SELEÇÃO", rastro: "SEGUIR UM PONTO", elem: "ELEMENTO ANIMADO", chroma: "CHROMA KEY", tempo: "TEMPO E CAMADA"};
   function guardar() { [].slice.call(CORPO.children).forEach(function (x) { MOLHO.appendChild(x); }); CORPO.innerHTML = ""; SHEET.removeAttribute("data-g"); }
   function filtrarGrupo(g) { document.querySelectorAll("#vePropCorpo .ve-g").forEach(function (x) { x.classList.toggle("va-fora", x.getAttribute("data-g") !== g); }); }
   function abrir(o, titulo) {
