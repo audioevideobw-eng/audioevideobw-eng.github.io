@@ -83,20 +83,28 @@
         if (!t || !t.closest || !t.closest(".va") || t.closest(".va-sheet-corpo,[data-rola-livre],input,textarea,select")) return; e.preventDefault(); }, {passive: false});
       ["gesturestart", "gesturechange"].forEach(function (ev) { document.addEventListener(ev, function (e) { if (e.target && e.target.closest && e.target.closest(".va")) e.preventDefault(); }, {passive: false}); });
       BWFerr.faixaFirme(FAIXA, {setas: true, pai: APP, esq: function () { var v = FAIXA.querySelector(".va-f.volta"); return v ? v.offsetWidth + 8 : 0; }});
-      BWFerr.faixaFirme($("veRolo"), {vertical: $("veRolo").closest(".ve-tl-corpo"), aoRolar: function () { rolando = Date.now(); }, parar: function () { return !!window.__bwSegurando; }, pular: function (t) { return !!(t.closest && t.closest(".ve-clip.on,.al,[data-junta],[data-trp]")); }});
+      BWFerr.faixaFirme($("veRolo"), {max: fimPx, vertical: $("veRolo").closest(".ve-tl-corpo"), aoRolar: function () { rolando = Date.now(); }, parar: function () { return !!window.__bwSegurando; }, pular: function (t) { return !!(t.closest && t.closest(".ve-clip.on,.al,[data-junta],[data-trp]")); }});
     }
   }
 
   /* ---------- agulha parada no meio: rolar a linha do tempo = andar no vídeo ---------- */
-  var rolando = 0, prog = false, ultT = -1;
+  /* 23/11 (dono, iPhone: "o vídeo na linha do tempo fica travando e bugado, ainda tem rebote"; no Android estava bom):
+     (1) cada movimento do dedo pulava o vídeo na hora, antes do pulo anterior terminar → o iPhone engasgava. Agora o arraste guarda só o
+         último ponto e pula UMA vez por quadro (raspar), e o editor não empilha pulos enquanto o vídeo ainda está pulando (__veRaspa);
+     (2) a linha do tempo deixava rolar além do fim do vídeo e o laço puxava de volta (o "quique") → a ponta da rolagem é o fim do vídeo;
+     (3) a marca "essa rolagem fui eu" ficava presa quando o valor não mudava e engolia o próximo movimento → compara o VALOR, não uma marca. */
+  var rolando = 0, progV = -1, raspaT = null, raspaRaf = 0;
   function medir() { var ro = $("veRolo"); if (!ro) return; APP.style.setProperty("--va-meio", Math.round(ro.clientWidth / 2) + "px"); }
-  function seguir() { var v = V(), ro = $("veRolo"); if (v && ro && !rolando) { var alvo = v.T() * v.pps(); if (Math.abs(ro.scrollLeft - alvo) > 1) { prog = true; ro.scrollLeft = alvo; } } requestAnimationFrame(seguir); }
+  function fimPx() { var v = V(); return v ? Math.max(0, Math.round(v.total() * v.pps())) : null; }
+  function seguir() { var v = V(), ro = $("veRolo"); if (v && ro && !rolando && raspaT == null) { var alvo = Math.min(v.T() * v.pps(), Math.max(0, ro.scrollWidth - ro.clientWidth)); if (Math.abs(ro.scrollLeft - alvo) > 1) { ro.scrollLeft = alvo; progV = ro.scrollLeft; } } requestAnimationFrame(seguir); }
+  function raspar(t) { raspaT = t; window.__veRaspa = true; if (raspaRaf) return; raspaRaf = requestAnimationFrame(function () { raspaRaf = 0; var v = V(); if (v && raspaT != null) { if (v.tocando()) clicar("vePlay"); v.irPara(raspaT); } }); }
+  function soltarRaspa() { if (!window.__veRaspa) return; window.__veRaspa = false; raspaT = null; var v = V(); if (v && !v.tocando()) v.irPara(v.T()); }   /* no fim, o quadro exato */
   function ligar() {
     var ro = $("veRolo"), v = V();
     var pega = function () { rolando = Date.now(); };
     ["touchstart", "wheel", "pointerdown"].forEach(function (t) { ro.addEventListener(t, function (e) { if (t === "pointerdown" && e.pointerType === "mouse" && !e.target.closest("#veRegua")) return; pega(); }, {passive: true}); });
-    ro.addEventListener("scroll", function () { if (prog) { prog = false; return; } if (!rolando) return; rolando = Date.now(); var v2 = V(); if (v2) { var t = ro.scrollLeft / v2.pps(); if (v2.tocando()) clicar("vePlay"); v2.irPara(t); } });
-    setInterval(function () { if (rolando && Date.now() - rolando > 260) rolando = 0; }, 120);
+    ro.addEventListener("scroll", function () { if (!rolando && Math.abs(ro.scrollLeft - progV) < 1.5) return; if (!rolando) return; rolando = Date.now(); var v2 = V(); if (v2) { var f = fimPx(); if (f != null && ro.scrollLeft > f + 1) { ro.scrollLeft = f; } raspar(Math.min(ro.scrollLeft, f == null ? ro.scrollLeft : f) / v2.pps()); } }, {passive: true});
+    setInterval(function () { if (rolando && Date.now() - rolando > 260) { rolando = 0; soltarRaspa(); } }, 120);
     /* pinça com dois dedos = mais ou menos tempo na tela */
     var pin = null;
     ro.addEventListener("touchstart", function (e) { if (e.touches && e.touches.length === 2) pin = Math.abs(e.touches[0].clientX - e.touches[1].clientX); }, {passive: true});

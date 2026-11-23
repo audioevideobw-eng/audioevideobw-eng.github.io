@@ -170,7 +170,7 @@
       prog({ etapa: "Lendo o som", pct: 0, ow: ow, oh: oh, dur: dur });
       var avisoSom = {}, som = await lerSom(blob, avisoSom); if (cancelar()) throw new Error("cancelado");
       var cfgV = await BWReelsCelular.configVideo(ow, oh, 30); if (!cfgV) throw new Error("este aparelho não comprime vídeo em " + ow + "×" + oh);
-      cfgV.bitrate = Math.round(Math.max(1.5e6, Math.min(8e6, 4e6 * (ow * oh) / (1280 * 720))));
+      cfgV.bitrate = Math.round(Math.max(2e6, Math.min(11e6, 5.5e6 * (ow * oh) / (1280 * 720))));   /* +~40% para os quadros-chave mais frequentes */
       var am = [], avcC = null, erro = null;
       var enc = new VideoEncoder({ output: function (ch, meta) { if (meta && meta.decoderConfig && meta.decoderConfig.description) avcC = meta.decoderConfig.description; var d = new Uint8Array(ch.byteLength); ch.copyTo(d); am.push({ dados: d, ts: ch.timestamp, chave: ch.type === "key" }); }, error: function (x) { erro = x; } });
       enc.configure(cfgV);
@@ -188,7 +188,7 @@
           var ts = meta && meta.mediaTime != null ? meta.mediaTime : v.currentTime;
           if (ts > ult + 1e-4) {
             ult = ts; ultQ = performance.now(); cx.drawImage(v, 0, 0, ow, oh);
-            var kf = chave < 0 || ts - chave >= 0.5; if (kf) chave = ts;
+            var kf = chave < 0 || ts - chave >= 0.2; if (kf) chave = ts;   /* 23/11: quadro-chave a cada 0,2 s (perto do "intra-frame" do ProRes Proxy/DNxHR): pular na linha do tempo decodifica no máx. ~6 quadros */
             var vf = new VideoFrame(cv, { timestamp: Math.round(ts * 1e6) }); enc.encode(vf, { keyFrame: kf }); vf.close(); quadros++;
             var pct = Math.min(99, ts / dur * 100), gasto = (performance.now() - t0) / 1000;
             prog({ etapa: "Copiando os quadros", pct: pct, falta: pct > 1 ? gasto * (100 - pct) / pct : null, ow: ow, oh: oh, dur: dur });

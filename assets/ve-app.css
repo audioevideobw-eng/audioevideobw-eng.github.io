@@ -96,3 +96,10 @@ html.ve-app body{position:fixed;inset:0;width:100%}
 html.ve-app .va{touch-action:none}
 html.ve-app .va .va-sheet-corpo,html.ve-app .va .va-sheet-corpo *,html.ve-app .va [data-rola-livre],html.ve-app .va [data-rola-livre] *{touch-action:pan-y}
 html.ve-app .va .va-sheet-corpo .ve-clip.on,html.ve-app .va canvas{touch-action:none}
+/* 23/11 (dono, iPhone: "ainda tem rebote"; no Android não): overscroll-behavior "contain" só impede passar a rolagem para a página — no iPhone a
+   própria área continua QUICANDO nas pontas (o Android não quica). Folha e camadas da linha do tempo: "none" (sem quique). */
+.va-sheet-corpo,.va .ve-tl-corpo,html.ve-app #veRolo{overscroll-behavior:none}
+/* 23/11: na folha MÍDIA do celular a linha do ＋ IMPORTAR vem PRIMEIRO (ficava depois da biblioteca e da barra de proxy, no limite da folha) */
+.va-sheet-corpo #veMidia{display:flex;flex-direction:column}
+.va-sheet-corpo #veMidia>.ve-linha:has(#veImportar){order:-2;margin:0 0 8px}
+.va-sheet-corpo #veMidia>#veAbas{order:-1}

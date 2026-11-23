@@ -211,3 +211,27 @@
   aplicar(ler("ui_modo", PADRAO), true);
   window.addEventListener("storage", function (e) { if (e.key === "ui_modo" || e.key === "ui_modos_meus" || e.key === "ui_modo_fx") aplicar(ler("ui_modo", PADRAO), true); });   /* outra aba trocou o modo */
 })();
+
+/* 23/11/2026 (dono, iPhone 13 Pro com o app instalado: "ainda aparece a névoa branca na parte superior; no Android não"): desde o iOS 26.1 o app da
+   tela de início ganha um desfoque "Liquid Glass" no topo, por cima da página — theme-color e apple-mobile-web-app-status-bar-style não desligam.
+   O WebKit (LocalFrameView::fixedContainerEdges) só pinta o topo de cor SÓLIDA quando acha ali uma caixa fixa, opaca, sem backdrop-filter, com
+   ≥ 90% da largura e > 10 px de altura. Então: no iPhone/iPad instalado, uma faixa fixa e opaca no topo, na cor do fundo da página (toque passa direto). */
+(function () {
+  var R = document.documentElement, ua = navigator.userAgent || "";
+  var ios = /iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
+  var inst = navigator.standalone === true || (window.matchMedia && (matchMedia("(display-mode: standalone)").matches || matchMedia("(display-mode: fullscreen)").matches));
+  if (!(ios && inst) && !/[?&]iosapp=1/.test(location.search)) return;   /* ?iosapp=1 só para o teste automático */
+  R.classList.add("ios-app");
+  var st = document.createElement("style");
+  st.textContent = "#bwTopoIos{position:fixed;top:0;left:0;right:0;height:calc(env(safe-area-inset-top,0px) + 12px);z-index:2147483000;pointer-events:none;background:#0b0c10}" +
+    "html.ios-app .va,html.ios-app .ma{padding-top:calc(env(safe-area-inset-top,0px) + 12px)}html.ios-app body{padding-top:12px}html.ios-app.bw-foco .bw-foco-barra{top:12px}";
+  (document.head || R).appendChild(st);
+  function cor() { var b = document.body; if (!b) return "#0b0c10"; var c = getComputedStyle(b).backgroundColor;
+    if (!c || /rgba\(.*,\s*0\)$|transparent/.test(c)) c = getComputedStyle(R).backgroundColor; if (!c || /rgba\(.*,\s*0\)$|transparent/.test(c)) c = "#0b0c10";
+    return c.replace(/rgba\(([^,]+),([^,]+),([^,]+),[^)]+\)/, "rgb($1,$2,$3)"); }   /* sempre opaca — com transparência o iPhone volta a desfocar */
+  function por() { if (!document.body) return; var f = document.getElementById("bwTopoIos"); if (!f) { f = document.createElement("div"); f.id = "bwTopoIos"; f.setAttribute("aria-hidden", "true"); document.body.appendChild(f); }
+    var c = cor(); if (f.style.background !== c) f.style.background = c; }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", por); else por();
+  try { new MutationObserver(function () { clearTimeout(por._t); por._t = setTimeout(por, 60); }).observe(R, {attributes: true, attributeFilter: ["class", "data-modo"]}); } catch (e) {}
+  setTimeout(por, 1500);
+})();

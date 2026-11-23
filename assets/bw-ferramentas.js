@@ -351,7 +351,7 @@
   function faixaFirme(el, o) {
     o = o || {}; if (!el || el.__firme) return el && el.__firme; el.classList.add("bwf-firme");
     var st = null, vel = 0, anim = 0, moveu = false;
-    function max() { return Math.max(0, el.scrollWidth - el.clientWidth); }
+    function max() { var m = Math.max(0, el.scrollWidth - el.clientWidth); if (o.max) { var m2 = o.max(); if (m2 != null && m2 >= 0) m = Math.min(m, m2); } return m; }   /* 23/11: o.max limita a ponta (linha do tempo não passa do fim do vídeo — sem rebote) */
     function por(x) { var a = el.scrollLeft; el.scrollLeft = Math.max(0, Math.min(max(), x)); if (el.scrollLeft !== a && o.aoRolar) o.aoRolar(); setas(); }
     el.addEventListener("touchstart", function (e) { cancelAnimationFrame(anim); moveu = false; if (!e.touches || e.touches.length !== 1 || (o.pular && o.pular(e.target))) { st = null; return; }
       var t = e.touches[0]; st = {x: t.clientX, y: t.clientY, sl: el.scrollLeft, vt: o.vertical ? o.vertical.scrollTop : 0, lx: t.clientX, lt: performance.now(), dir: ""}; vel = 0; }, {passive: true});

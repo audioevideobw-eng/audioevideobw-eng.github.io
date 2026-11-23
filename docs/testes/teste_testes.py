@@ -12,7 +12,7 @@ RAIZ = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")); POR
 os.chdir(RAIZ)
 RUIM = "zz_diag_ruim.html"
 open(RUIM, "w").write("""<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<script src="assets/modos.js?v=7"></script><style>html,body{margin:0;height:100%;overflow:hidden}.fora{height:100%;overflow:auto}
+<script src="assets/modos.js?v=8"></script><style>html,body{margin:0;height:100%;overflow:hidden}.fora{height:100%;overflow:auto}
 .dentro{height:200px;overflow:auto;overscroll-behavior:contain}</style></head><body><div style="width:2000px;height:20px;background:red"></div><div class="fora"><h1>Página com defeito de propósito</h1><div class="dentro"><div style="height:205px">lista</div></div><div style="height:2000px">fim</div></div>
 <script>naoExiste();</script></body></html>""")
 STUB = "window.supabase={createClient:function(){return {auth:{getSession:async()=>({data:{session:null}}),getUser:async()=>({data:{user:null}}),onAuthStateChange(){return {data:{subscription:{unsubscribe(){}}}}}},from(){const q={select(){return q},eq(){return q},neq(){return q},order(){return q},limit(){return q},in(){return q},insert(){return q},then(r){return Promise.resolve({data:[],error:null}).then(r)}};return q},rpc:async()=>({data:null,error:null}),channel(){const c={on(){return c},subscribe(){return c},send(){}};return c},storage:{from(){return {}}}}}};"

@@ -2348,6 +2348,21 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   em icons/selo-seguranca.svg; ESCUDO (bw-escudo) ao lado do LOGADO no topo de todas as páginas e na conta do menu (layout.js). Vigia: página
   obrigatória + escudo e item no menu. Testes: página e escudo em 1280/390 (0 erro, 0 estouro, 0 bloqueio de CSP), layout e rolagem 0 falhas.
   Manual p. 66 refeita. App BW 1.9.37. layout.js v78, brightway.css v38, sw v208. .exe: pendente (sem acesso à pasta do PC).
+- 23/11/2026 20:45 · Claude (dono, iPhone 13 Pro: "linha do tempo travando e bugada, rebote, play bugado, névoa branca no topo; no Android está bom" + pedidos
+  do PC ao longo da noite): EDITOR DE VÍDEO. (1) iPhone: arraste com um pulo por quadro e sem empilhar pulos (__veRaspa), ponta da rolagem = fim do
+  vídeo (faixaFirme o.max), áreas que rolam com overscroll none; play: o relógio ESPERA o take ficar pronto (até 1,5 s). (2) PROXY AUTOMÁTICO ao
+  importar vídeo pesado (> Full HD, > 12 Mbps ou HEVC), minimizado, opção em ⚡; proxy com quadro-chave a cada 0,2 s. (3) NÉVOA do iPhone = desfoque do
+  iOS 26.1 no app instalado → faixa fixa e opaca no topo (modos.js, todas as páginas). (4) PC: botão direito no VAZIO da camada (encostar no anterior,
+  fechar o espaço puxando os seguintes, nova camada, colar aqui). (5) CAMADAS no padrão Premiere/DaVinci: vídeo/foto e texto numa PILHA só (P.pilha),
+  camada nova sempre ACIMA; só o som fica embaixo. (6) APARAR: área de pegar maior e cursor de COLCHETE vermelho. (7) BOTÕES das ferramentas compactos
+  no PC (30 px, quase planos) — brightway.css. (8) COR na ordem do colorista: ✦ CORREÇÃO AUTOMÁTICA (branco, exposição, preto/branco; guardada à parte
+  em c.corr), REALCE DE COR em 4 níveis, ESTILO, AJUSTE FINO. (9) TRANSIÇÃO no padrão CapCut: faixa translúcida com ⋈ sobre os dois takes + botão
+  ◧ TRANSIÇÕES E EFEITOS na barra (abre a biblioteca; pegar, arrastar e soltar). (10) App BW: janela pede a placa de ALTO DESEMPENHO e decodificação
+  por hardware (ARGS_GPU, 1.9.38 — pacote ainda NÃO publicado). Teste novo docs/testes/teste_video_fluidez.py (PC, toque por CDP, cor no pixel, proxy,
+  faixa, memória: 24 takes = 1 player, 3,0 → 3,1 MB) 0 falhas; bateria do editor 0 falhas novas (teste_video_app segue com a falha antiga do pontinho
+  de carregamento). NÃO conferido em iPhone real (no Chromium a versão antiga do arraste também passava) — aguarda o dono. NÃO feito: manual, pacote
+  do app, .exe, biblioteca de terceiros (E:\ADOBE ARQUIVOS — regra 178), layout novo estilo CapCut. video-editor v25, ve-app v12, ve-app.css v11,
+  bw-ferramentas v7, bw-proxy v3, bw-cor v2, modos v8, mo-app.css v4, brightway.css v39, sw v210.
 
 ## Pendências (dono)
 - [x] (23/11 09:58) BW-Setup.exe 1.9.37 gerado pelo dono e publicado (9,0 MB, versão conferida dentro do .exe).

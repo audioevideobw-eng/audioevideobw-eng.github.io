@@ -858,3 +858,18 @@ html.bw-foco :is(.bw-btn,.ve-bt,.mo-bt,.tl-bt,.d3-bt,.al-bt,.rl-bt,.pg-bt)[disab
 .bw-escudo:focus-visible{outline:2px solid #2FD08A;outline-offset:2px}
 .bw-escudo--menu{width:34px;height:34px}
 @media (max-width:480px){.bw-topo .acoes > a.bw-escudo{max-width:34px;width:34px;height:34px}}
+
+/* 23/11/2026 (dono: "os botões de todas as ferramentas, pelo menos no PC, estão muito grandes e ocupam muito espaço; a preferência é a tela poder
+   crescer e o painel o mais limpo possível — modernizar"): no COMPUTADOR (mouse, tela ≥ 901 px) o botão de ferramenta fica COMPACTO — 30 px de
+   altura (era 42–44), cantos de 8 px, letra mais leve, relevo discreto (quase plano; acende no hover). No toque/celular nada muda: o dedo precisa
+   de 42 px. Vale para as mesmas classes da regra 185 — botão novo continua usando uma delas. */
+@media (hover:hover) and (pointer:fine) and (min-width:901px){
+  html.bw-foco :is(.bw-btn,.ve-bt,.mo-bt,.tl-bt,.d3-bt,.al-bt,.rl-bt,.pg-bt){min-height:30px;padding:0 10px;border-radius:8px;font-weight:600;font-size:11px;letter-spacing:.03em;gap:5px}
+  html.bw-foco :is(.bw-btn,.ve-bt,.mo-bt,.tl-bt,.d3-bt,.al-bt,.rl-bt,.pg-bt):not(.on):not(.perigo):not([aria-pressed="true"]){
+    background:rgba(255,255,255,.055);border-color:rgba(255,255,255,.09);box-shadow:none}
+  html.bw-foco :is(.bw-btn,.ve-bt,.mo-bt,.tl-bt,.d3-bt,.al-bt,.rl-bt,.pg-bt):not(.on):not(.perigo):not([disabled]):hover{transform:none;background:rgba(255,255,255,.11);box-shadow:none}
+  html.bw-foco :is(.ve-bt,.mo-bt,.tl-bt,.d3-bt,.al-bt,.rl-bt,.pg-bt).ic{flex:0 0 30px;min-width:30px;height:30px;padding:0}
+  html.bw-foco :is(.ve-linha,.mo-linha,.tl-linha,.d3-linha,.al-linha){gap:6px}
+  html.bw-foco .bwf-bt{width:30px;height:30px;border-radius:8px;font-size:13px}
+  html.bw-foco :is(.ve-sel,.mo-sel,.tl-sel,.d3-sel,.al-sel){min-height:30px;border-radius:8px;font-weight:600;font-size:12px}
+}

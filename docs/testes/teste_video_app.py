@@ -213,7 +213,8 @@ with sync_playwright() as p:
         tr1 = levar(c1, -70); ok(tr1[0] == "v" and int(tr1[1:]) > int(tr0[1:]) and pg.evaluate(f"{CL}.length") == n0, f"take levado PARA CIMA vai para uma camada NOVA acima ({tr0} → {tr1})")
         pg.evaluate("__video.irPara(0)"); pg.wait_for_timeout(300)
         tr2 = levar(c1, 140); outros = pg.evaluate(f"{CL}.filter(c=>c.id!=='{c1}'&&c.trilha[0]==='v').map(c=>c.trilha)")
-        ok(tr2 == "v1" and "v1" not in outros, f"take levado PARA BAIXO de tudo vira a camada de baixo (os outros sobem: {outros})")
+        # 23/11 (dono: "camadas de mídia e texto sempre criadas ACIMA, padrão Premiere/DaVinci; só o áudio embaixo"): levar para baixo de tudo NÃO cria camada embaixo
+        ok(tr2[0] == "v" and "v1" in outros + [tr2] and len(set(outros + [tr2])) <= len(set(outros)) + 1, f"take levado PARA BAIXO de tudo não cria camada nova embaixo ({tr2}; outros: {outros})")
         pg.evaluate("__video.desfazer && __video.desfazer()"); pg.wait_for_timeout(500)
         ok(pg.evaluate(f"{CL}.find(c=>c.id==='{c1}').trilha") == tr1, "DESFAZER volta o take para onde estava")
         # (b) texto atrás da pessoa SEM o take escolhido (no celular o submenu de texto larga a seleção) usa o take da agulha

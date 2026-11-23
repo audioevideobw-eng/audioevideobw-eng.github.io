@@ -10,7 +10,7 @@
   var CAMPOS = [
     ["LUZ", "expo", "Exposição"], ["LUZ", "cont", "Contraste"], ["LUZ", "realce", "Realces"], ["LUZ", "sombra", "Sombras"],
     ["LUZ", "branco", "Brancos"], ["LUZ", "preto", "Pretos"], ["LUZ", "brilho", "Brilho"],
-    ["COR", "temp", "Temperatura"], ["COR", "matiz", "Matiz"], ["COR", "sat", "Saturação"], ["COR", "vib", "Vibração"],
+    ["COR", "temp", "Temperatura"], ["COR", "matiz", "Matiz"], ["COR", "sat", "Saturação"], ["COR", "vib", "Realce de cor"],
     ["ACABAMENTO", "nit", "Nitidez"], ["ACABAMENTO", "fade", "Desbotar"], ["ACABAMENTO", "vinheta", "Vinheta"]];
   var CHAVES = CAMPOS.map(function (c) { return c[1]; });
   /* pontos de partida (o usuário ajusta depois); nomes próprios, sem marca de ninguém */
@@ -103,5 +103,26 @@
     try { if (!so2d && iniciar()) { var md = medida(fw, fh, MAX); return porGL(fonte, md[0], md[1], g); } } catch (e) { GL = null; FALHOU = true; }
     try { var m2 = medida(fw, fh, MAX2D); return por2D(fonte, m2[0], m2[1], g); } catch (e2) { return null; }
   }
-  window.BWCor = {CAMPOS: CAMPOS, CHAVES: CHAVES, LOOKS: LOOKS, ativo: ativo, aplicar: aplicar, motor: function () { return iniciar() ? "webgl" : "2d"; }, _2d: function (f, w, h, g) { return aplicar(f, w, h, g, true); }};
+  /* 23/11/2026 (dono: "um sistema de cor parecido com o DaVinci, mais fácil: clicou, mudou, mas com profissionalismo, nada com cara de filtro"):
+     CORREÇÃO AUTOMÁTICA = lê o quadro (cópia de 96 px, no aparelho) e devolve só CORREÇÕES, na ordem do colorista: balanço de branco (média dos
+     tons neutros de luz média → temperatura/matiz), exposição (mediana da luz para ~0,45, só se estiver fora de 0,36–0,58) e pontos de preto e de
+     branco (1% e 99% da luz). Usa as MESMAS constantes da conta acima; nunca mexe em saturação, estilo ou vinheta. null = não deu para ler. */
+  function auto(fonte, fw, fh) {
+    try { var k = Math.min(1, 96 / Math.max(fw, fh)), w = Math.max(2, Math.round(fw * k)), h = Math.max(2, Math.round(fh * k)), cvA = document.createElement("canvas"); cvA.width = w; cvA.height = h;
+      var cxA = cvA.getContext("2d", {willReadFrequently: true}); cxA.drawImage(fonte, 0, 0, w, h); var d = cxA.getImageData(0, 0, w, h).data, n = w * h, Ls = [], sr = 0, sg = 0, sb = 0, nn = 0, ar = 0, ag = 0, ab = 0, na = 0;
+      for (var i = 0; i < n; i++) { var r = d[i * 4] / 255, g = d[i * 4 + 1] / 255, b = d[i * 4 + 2] / 255; if (d[i * 4 + 3] < 8) continue; var L = 0.2126 * r + 0.7152 * g + 0.0722 * b; Ls.push(L);
+        if (L > 0.2 && L < 0.85) { ar += r; ag += g; ab += b; na++; var mx = Math.max(r, g, b); if ((mx - Math.min(r, g, b)) / (mx + 0.001) < 0.45) { sr += r; sg += g; sb += b; nn++; } } }   /* neutro = pouca cor EM RELAÇÃO à luz (uma dominante forte ainda conta como neutro tingido) */
+      if (Ls.length < 50) return null; Ls.sort(function (a, b2) { return a - b2; }); var q = function (f) { return Ls[Math.min(Ls.length - 1, Math.floor(Ls.length * f))]; };
+      var G = {}, forca = 0.85; if (nn < Ls.length * 0.05) { sr = ar; sg = ag; sb = ab; nn = na; forca = 0.4; }   /* poucos tons neutros: corrige com metade da força */
+      var med = q(0.5), ganho = 1; if (med > 0.005 && (med < 0.36 || med > 0.58)) { G.expo = lim(Math.log(0.45 / med) / Math.LN2 / 1.5 * 0.8, -0.6, 0.6); ganho = Math.pow(2, G.expo * 1.5); }
+      if (nn > 20) { sr = sr / nn * ganho; sg = sg / nn * ganho; sb = sb / nn * ganho; var m = (sr + sg + sb) / 3, dr = m - sr, dg = m - sg, db = m - sb; G.temp = lim((dr - db) / 0.2 * forca, -0.7, 0.7); G.matiz = lim(-dg / 0.07 * forca, -0.6, 0.6); }   /* a exposição vem antes na conta: a dominante cresce com o ganho */
+      var p1 = lim(q(0.01) * ganho, 0, 1), p99 = lim(q(0.99) * ganho, 0, 1);
+      if (p1 > 0.06) G.preto = lim(-(p1 - 0.03) / 0.18, -0.8, 0); if (p99 < 0.9) G.branco = lim((0.94 - p99) / 0.18, 0, 0.8);
+      if (p99 - p1 < 0.5) G.cont = 0.12;
+      var o = {}, tem = false; Object.keys(G).forEach(function (kk) { var v = Math.round(G[kk] * 100); if (Math.abs(v) >= 3) { o[kk] = v; tem = true; } }); return tem ? o : {};
+    } catch (e) { return null; }
+  }
+  /* REALCE DE COR (o "Color Boost"): níveis prontos da barra de realce — aviva o que está apagado e poupa pele e cores já fortes. Só mexe em vib. */
+  var REALCE = [["Desligado", 0], ["Leve", 22], ["Médio", 42], ["Forte", 64]];
+  window.BWCor = {auto: auto, REALCE: REALCE, CORRECAO: ["temp", "matiz", "expo", "preto", "branco", "cont"], CAMPOS: CAMPOS, CHAVES: CHAVES, LOOKS: LOOKS, ativo: ativo, aplicar: aplicar, motor: function () { return iniciar() ? "webgl" : "2d"; }, _2d: function (f, w, h, g) { return aplicar(f, w, h, g, true); }};
 })();
