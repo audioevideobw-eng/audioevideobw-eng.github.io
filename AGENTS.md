@@ -2289,6 +2289,11 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   bw-criacoes v4, sw v205. PENTE FINO 203–206.
 ## Pendências (dono)
 - [ ] (23/11) iPhone: fechar e abrir o app, tocar em ＋ → ＋ IMPORTAR e dizer se a galeria abriu. PC: testar o laço na linha do tempo e os avisos pequenos.
+- [ ] (23/11 00:37, dono: "depois terminamos, grave o que falta") FALTA: (a) dono testar no iPhone — ＋ IMPORTAR/＋ abrindo a galeria, .MOV da câmera sem ⚠
+      (importar de novo), rebote (dizer em qual parte ainda quica), folha MÍDIA vazia, pinça na prévia, layout de app, rastreio com mão/corpo reais;
+      (b) dono testar no PC — laço de vários takes e avisos pequenos; (c) Claude — manual do usuário (Testes e soluções, editor de fotos no dedo, máscara por
+      seleção, rastreio/elementos, laço), METODOS.md, pacote do app BW (VERSAO, cópia sem internet, novidades, tutorial) e, depois, o dono gera o .exe;
+      (d) rodar docs/testes/teste_testes.py e teste_video_app.py inteiros (não terminaram na última rodada).
 - [ ] (22/11) iPhone: abrir o EDITOR DE FOTOS no Safari e dizer se o desfoque de cima sumiu; testar ⚡ FAZER PROXY e a JANELA DE EXPORTAR no PC com takes reais.
 - [x] (22/11 21:03) BW-Setup.exe 1.9.34 gerado pelo dono e publicado (9,0 MB, versão conferida dentro do .exe).
 - [x] (22/11 19:54) BW-Setup.exe 1.9.33 gerado pelo dono e publicado (8,6 MB, versão conferida dentro do .exe).
