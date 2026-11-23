@@ -13,7 +13,7 @@
 
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
   function fmt(n, c) { return Number(n).toLocaleString("pt-BR", { minimumFractionDigits: c === undefined ? 1 : c, maximumFractionDigits: c === undefined ? 1 : c }); }
-  function aviso(txt, erro) { var a = $("alAviso"); a.textContent = txt; a.className = "al-aviso" + (erro ? " erro" : ""); a.hidden = false; clearTimeout(aviso.t); aviso.t = setTimeout(function () { a.hidden = true; }, 5500); }
+  function aviso(txt, erro) { if (window.BWAviso) BWAviso(txt, erro ? "erro" : ""); }   /* 23/11: aviso único */
   function uid() { return "a" + Math.random().toString(36).slice(2, 9); }
 
   /* ---------- banco do aparelho ---------- */
@@ -229,7 +229,7 @@
   }
   async function gerar() {
     var d = dur();
-    if (!window.BWReelsCelular || !(await BWReelsCelular.suporta())) return aviso("Este navegador não grava vídeo sozinho. Use o Chrome, Edge ou Safari atualizado (no computador, o app BW).", true);
+    if (!window.BWReelsCelular || !(await BWReelsCelular.suporta())) return aviso("Este navegador não grava vídeo — use o Chrome ou o app BW", true);
     if (TOCANDO) tocar();
     var actx = null; try { actx = SOM ? new (window.AudioContext || window.webkitAudioContext)() : null; } catch (e) { actx = null; }   // nasce no toque (iPhone)
     EXP.parar = false; $("alProg").hidden = false; $("alPronto").hidden = true; $("alGerar").disabled = true;

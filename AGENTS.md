@@ -854,6 +854,21 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
 206. Rebote da página no iPhone (app instalado): corpo position:fixed + touch-action:none na casca do app (só as folhas que rolam ficam pan-y). Com a biblioteca
      vazia, o ＋ da linha do tempo é o próprio seletor de arquivos (input por cima; casca em <div role=button>, não <button>).
 
+**Aprendidos em 23/11 (UM PADRÃO SÓ — regra do dono)**
+207. UM AVISO SÓ NO ECOSSISTEMA (dono, 23/11, com print do editor de vídeo: "esta notificação enorme que aparece como um tutorial…
+     um escrito simples no meio da tela e some em seguida. Padronizar a partir de agora como regra. Cada elemento, aviso, botão novo
+     segue o mesmo padrão… o ecossistema deve ser um só, assim o usuário tem familiaridade"): todo AVISO DE AÇÃO (salvou, não deu,
+     andamento, onde entrou) passa pelo **BWAviso** do layout.js — `BWAviso(texto)`, `BWAviso.erro(t)`, `BWAviso(t, "", 0)` para ficar
+     até trocar (o "⏳" também fica), `BWAviso.fechar()`. Ele desenha UMA caixa (#bwAviso + .bw-av no brightway.css) no MEIO da tela,
+     com pointer-events:none, e some sozinho (1,9 s; erro 3,6 s). Ferramenta NUNCA desenha o seu próprio toast num canto: antes de hoje
+     havia 8 (ve-aviso no topo; ag-toast/cr-toast/pr-toast/crm-toast/toast/d3-aviso/al-aviso embaixo à esquerda; mo-aviso no topo do app)
+     e cada ferramenta parecia outro aplicativo. A função local `aviso()`/`toast()` da ferramenta continua existindo, mas só delega.
+     O aviso é FRASE CURTA (até 85 letras): explicação vai na própria tela e no manual — texto comprido sai cortado na tela.
+     MENSAGEM DE FORMULÁRIO (a que fica ao lado do campo e não some) é outro elemento: classe **.bw-msg** (brightway.css); campo novo usa
+     ela, nunca uma classe nova. Botão de ferramenta: regra 185 (.bw-btn e as variantes). Elemento novo de qualquer tipo = procurar o
+     padrão que já existe ANTES de criar classe/componente (auto: vigia 7.8g recusa toast próprio e aviso comprido;
+     docs/testes/teste_aviso.py mede que fica no centro, não bloqueia o toque e some).
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -2287,6 +2302,18 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   (6) rebote: corpo preso + sem gesto nativo na casca; (7) take vindo do Criador aparecia com nome "function () {…}" → corrigido.
   teste_video_laco (novo) + bateria do editor 0 falhas. NÃO conferido em iPhone real — aguarda o dono. video-editor v23, ve-app v11, ve-app.css v10,
   bw-criacoes v4, sw v205. PENTE FINO 203–206.
+- 23/11/2026 08:40 · Claude (dono, print do editor de vídeo: "esta notificação enorme que aparece como um tutorial. Quero um escrito simples no
+  meio da tela que some em seguida. Padronizar a partir de agora como regra — cada elemento, aviso e botão novo no mesmo padrão; o ecossistema
+  deve ser um só"): UM AVISO SÓ. Havia OITO avisos diferentes, cada um num canto (editor de vídeo no topo; agenda, criador, orçamentos, CRM,
+  editor de fotos, Estúdio 3D e Álbum embaixo à esquerda; Motion no topo do app) — agora todas as ferramentas usam o mesmo: um escrito simples
+  no MEIO da tela, que não bloqueia o toque e some sozinho (erro fica mais tempo; o "⏳ andamento" fica até o próximo aviso). Os 21 avisos
+  compridos viraram frase curta (o do print saía cortado: "▭ N takes escolhidos — arraste um deles… Ctrl+Shift+D duplica…" → "▭ N takes
+  escolhidos"). Mensagem de formulário (a que fica ao lado do campo) ganhou o padrão .bw-msg. Regra 207 do PENTE FINO + vigia 7.8g (recusa
+  toast próprio e aviso comprido) + docs/testes/teste_aviso.py (novo: mede centro, toque passando, sumir sozinho, 1280 e 390 px).
+  layout.js v76, brightway.css v37, sw v206. Também: ＋ IMPORTAR usava a classe de ESTADO (.on, verde de "ligado") e NOVO usava
+  .perigo (vermelho) só para destacar — agora .pri e botão comum. App BW 1.9.35 (cópia sem internet refeita com o site de hoje,
+  novidades publicadas). Manual 63 → 66 p. (Editor de fotos no dedo · Máscara, elementos e seguir um ponto · Testes e soluções).
+
 ## Pendências (dono)
 - [ ] (23/11) iPhone: fechar e abrir o app, tocar em ＋ → ＋ IMPORTAR e dizer se a galeria abriu. PC: testar o laço na linha do tempo e os avisos pequenos.
 - [ ] (23/11 00:37, dono: "depois terminamos, grave o que falta") FALTA: (a) dono testar no iPhone — ＋ IMPORTAR/＋ abrindo a galeria, .MOV da câmera sem ⚠

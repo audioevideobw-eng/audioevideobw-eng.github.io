@@ -411,6 +411,26 @@ if re.search(r"fetch\(|XMLHttpRequest|\.upload\(|\.from\(", _cj):
     problemas.append("assets/config.js: a imagem da marca é lida no aparelho — a página não envia nem grava nada na conta")
 if 'href="config.html"' not in lay or not os.path.exists("assets/modos.css") or 'id="cfgModos"' not in todos.get("config.html", ""):
     problemas.append("CONFIGURAÇÕES: falta a engrenagem no layout.js, o assets/modos.css ou a lista de modos em config.html")
+# 7.8g AVISO ÚNICO DO ECOSSISTEMA (23/11/2026, regra do dono): "um escrito simples no meio da tela,
+# que some em seguida" — a MESMA caixa em todas as ferramentas (BWAviso do layout.js). Aviso de ação
+# nunca é desenhado pela própria ferramenta, e nunca vira tutorial.
+_lay = _arq("assets/layout.js")
+if "window.BWAviso = mostrar" not in _lay:
+    problemas.append("assets/layout.js: sem o BWAviso (o aviso único que todas as ferramentas usam)")
+_bcss = _arq("assets/brightway.css")
+if "#bwAviso" not in _bcss or ".bw-msg" not in _bcss:
+    problemas.append("assets/brightway.css: sem o estilo do aviso único (#bwAviso) ou da mensagem de formulário (.bw-msg)")
+for _f in sorted(glob.glob(os.path.join(RAIZ, "assets", "*.js")) + glob.glob(os.path.join(RAIZ, "*.html"))):
+    _rel = os.path.relpath(_f, RAIZ); _s = _arq(_rel)
+    for _m in re.finditer(r"function (aviso|toast|avisoPP)\((.*?)\) \{(.*?)\n", _s, re.S):
+        _c = _m.group(3)
+        if "BWAviso" in _c or ".aviso(" in _c: continue
+        _some = "setTimeout" in _c and ("hidden = true" in _c or ".remove()" in _c or 'remove("vis")' in _c)
+        if _some or ("createElement" in _c and "appendChild" in _c):
+            problemas.append(f"{_rel}: aviso próprio em function {_m.group(1)}() — todo aviso de ação passa pelo BWAviso (regra 207)")
+    for _m in re.finditer(r'(?:aviso|toast)\("([^"]{86,})"', _s):
+        problemas.append(f'{_rel}: aviso comprido demais ("{_m.group(1)[:40]}…") — o aviso é uma frase curta, não um tutorial')
+
 # 7.8f AMBIENTE ÚNICO (20/11/2026): a LINHA DO TEMPO é o centro; a biblioteca de criações nunca sai do aparelho
 _bc = _arq("assets/bw-criacoes.js")
 if re.search(r"fetch\(|XMLHttpRequest|supabase|BWSync|\.upload\(|\.from\(", _bc):

@@ -14,7 +14,7 @@
 
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
   function fmt(n, c) { return Number(n).toLocaleString("pt-BR", { minimumFractionDigits: c === undefined ? 1 : c, maximumFractionDigits: c === undefined ? 1 : c }); }
-  function aviso(txt, erro) { var a = $("tlAviso"); a.textContent = txt; a.className = "tl-aviso" + (erro ? " erro" : ""); a.hidden = false; clearTimeout(aviso.t); aviso.t = setTimeout(function () { a.hidden = true; }, 5500); }
+  function aviso(txt, erro) { if (window.BWAviso) BWAviso(txt, erro ? "erro" : ""); }   /* 23/11: aviso único */
   function uid() { return "m" + Math.random().toString(36).slice(2, 9); }
   var dorme = function (ms) { return new Promise(function (r) { setTimeout(r, ms); }); };
 
@@ -212,7 +212,7 @@
   // aplica um efeito (t:trans | l:layout) a uma cena
   function aplicarEfx(tipo, k, i, comoTrans) {
     var c = P.cenas[i]; if (!c) return;
-    if (tipo === "t") { if (i === 0) return aviso("A 1ª cena abre o vídeo e não tem transição. Solte na 2ª cena em diante (ou na etiqueta entre duas cenas).", true);
+    if (tipo === "t") { if (i === 0) return aviso("A 1ª cena abre o vídeo — solte da 2ª em diante", true);
       c.trans = k; c.transDur = c.transDur || 0.6; aviso("✓ Transição “" + T.TRANS[k].nome + "” na cena " + (i + 1) + "."); }
     else { c.layout = k; var n = T.LAYOUTS[k].n, base = ORDEM.indexOf(c.midias[0]); c.midias = (c.midias || []).slice(0, Math.max(n, 1));
       while (c.midias.length < n) c.midias.push(ORDEM[(base + c.midias.length) % Math.max(1, ORDEM.length)] || "");
@@ -439,7 +439,7 @@
   }
   async function gerar() {
     var d = T.duracao(P); if (!d) return aviso("Monte as cenas primeiro.", true);
-    if (!window.BWReelsCelular || !(await BWReelsCelular.suporta())) return aviso("Este navegador não grava vídeo sozinho. Use o Chrome, Edge ou Safari atualizado (no computador, o app BW).", true);
+    if (!window.BWReelsCelular || !(await BWReelsCelular.suporta())) return aviso("Este navegador não grava vídeo — use o Chrome ou o app BW", true);
     if (TOCANDO) tocar();
     var actx = null; try { actx = SOM ? new (window.AudioContext || window.webkitAudioContext)() : null; } catch (e) { actx = null; }   // nasce no toque (iPhone)
     EXP.parar = false; $("tlProg").hidden = false; $("tlPronto").hidden = true; $("tlGerar").disabled = true;

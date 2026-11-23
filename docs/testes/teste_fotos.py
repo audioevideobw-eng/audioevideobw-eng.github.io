@@ -328,7 +328,7 @@ with sync_playwright() as p:
             tecla("e"); ok(pg.evaluate("__fotos.cam().PINTA.modo") == "volta", "E = borracha (TRAZER DE VOLTA)")
             r0 = pg.evaluate("__fotos.cam().PINTA.r"); tecla("]"); ok(pg.evaluate("__fotos.cam().PINTA.r") == r0 + 1, "] aumenta o pincel")
             tecla("i"); cb = pg.locator("#cv").bounding_box(); pg.mouse.click(cb["x"] + cb["width"] / 2, cb["y"] + cb["height"] / 2); pg.wait_for_timeout(250)
-            ok("Cor #" in pg.evaluate("[...document.querySelectorAll('.toast')].map(t => t.textContent).join(' ')"), "I = conta-gotas: clicar na foto pega a cor")
+            ok("Cor #" in pg.evaluate("[...document.querySelectorAll('#bwAviso .bw-av')].map(t => t.textContent).join(' ')"), "I = conta-gotas: clicar na foto pega a cor")
             tecla("v"); ok(aba_on() == "camadas" and not pg.evaluate("__fotos.cam().PINTA"), "V = mover (aba CAMADAS, sem pintar)")
             pg.evaluate("__fotos.acao('aAdd', '🎉')"); pg.wait_for_timeout(250); n_a = pg.evaluate("__fotos.FOTOS[0].adesivos.length")
             tecla("Control+j"); ok(pg.evaluate("__fotos.FOTOS[0].adesivos.length") == n_a + 1, "Ctrl+J duplica a camada")

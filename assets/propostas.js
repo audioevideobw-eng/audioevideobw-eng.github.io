@@ -254,7 +254,7 @@
   }
 
   /* ================= TELA ================= */
-  function toast(t) { var d = document.createElement("div"); d.className = "pr-toast"; d.textContent = t; document.body.appendChild(d); setTimeout(function () { d.remove(); }, 3800); }
+  function toast(t) { if (window.BWAviso) BWAviso(t); }   /* 23/11: aviso único */
   function ocupado(t) { $("ocup").textContent = t || ""; $("ocup").hidden = !t; }
   function carregar(nome) {
     if ((nome === "pdf" && window.pdfMake && pdfMake.vfs) || (nome === "qr" && window.qrcode) || (nome === "zip" && window.JSZip) || (nome === "docx" && window.docx)) return Promise.resolve();
@@ -928,7 +928,7 @@
       case "logoEnviar": $("arqLogo").click(); break;
       case "logoKit": var u = await lerKitLogo(); if (!u) { toast("Nenhuma logo em ★ MINHA MARCA (Editor de fotos) neste aparelho."); break; } var bl = await (await fetch(u)).blob(); await receberLogo(bl); abrirEmpresa(); if (DOC) previa(); break;
       case "logoTirar": salvarCfg("logo", ""); salvarCfg("logoOrig", ""); abrirEmpresa(); if (DOC) previa(); break;
-      case "logoFundo": { var base = cfg("logoOrig", "") || cfg("logo", ""); if (!base) break; var sf = await logoSemFundo(base, v === "tudo"); if (!sf) { toast("Não achei fundo liso para tirar nesta logo (ou levaria a logo junto). Ela continua como estava."); break; } if (!cfg("logoOrig", "")) salvarCfg("logoOrig", base); salvarCfg("logo", sf); abrirEmpresa(); if (DOC) previa(); toast("✓ Fundo tirado — a logo agora é PNG transparente."); break; }
+      case "logoFundo": { var base = cfg("logoOrig", "") || cfg("logo", ""); if (!base) break; var sf = await logoSemFundo(base, v === "tudo"); if (!sf) { toast("Não achei fundo liso para tirar nesta logo"); break; } if (!cfg("logoOrig", "")) salvarCfg("logoOrig", base); salvarCfg("logo", sf); abrirEmpresa(); if (DOC) previa(); toast("✓ Fundo tirado — a logo agora é PNG transparente."); break; }
       case "logoOriginal": { var o = cfg("logoOrig", ""); if (!o) break; salvarCfg("logo", o); salvarCfg("logoOrig", ""); abrirEmpresa(); if (DOC) previa(); toast("Logo original de volta."); break; }
       case "bSobe": if (i > 0) { var lb2 = botoes().slice(), t2 = lb2[i - 1]; lb2[i - 1] = lb2[i]; lb2[i] = t2; salvarBotoes(lb2); abrirBotoes(); } break;
       case "bTira": var lb3 = botoes().slice(); if (confirm("Excluir o botão " + lb3[i].nome + "?")) { lb3.splice(i, 1); salvarBotoes(lb3.length ? lb3 : []); abrirBotoes(); } break;

@@ -78,7 +78,7 @@ with sync_playwright() as p:
         ok(r["borda"] > 0 and r["halo"] <= r["borda"] * 0.05, f"borda das letras sem halo branco ({r['halo']} claros em {r['borda']} de borda)")
         ok(r["clarosOpacos"] > 50, "miolo do 'O' continua (TIRAR FUNDO simples só tira o fundo de fora)")
         ok(orig.startswith("data:image/png") and orig != url, "original guardada para VOLTAR AO ORIGINAL")
-        ok(any("Logo sem fundo" in t for t in pg.locator(".pr-toast").all_inner_texts()), "aviso '✓ Logo sem fundo' na tela")
+        ok(any("Logo sem fundo" in t for t in pg.locator("#bwAviso .bw-av").all_inner_texts()), "aviso '✓ Logo sem fundo' na tela")
 
         # 2) MINHA EMPRESA: botões e quadriculado
         pg.click("#btnEmpresa")

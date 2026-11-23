@@ -1,19 +1,19 @@
 {
- "versao": "1.9.34",
- "data": "22/11/2026",
+ "versao": "1.9.35",
+ "data": "23/11/2026",
  "pacote": "downloads/BW-Reels-Studio.zip",
- "sha256": "2ca79055ab849b1f934c01b1a8faa86a205bca3f7e376344e077983936bd5ec0",
- "bytes": 41693439,
+ "sha256": "92e001be1727a7691c36206fb5705592f1ea639bc3bafe318cbb216c4cb328fe",
+ "bytes": 41718330,
  "novidades": [
   {
-   "titulo": "Proxy com som",
-   "texto": "O som dos takes de câmera (Sony, Canon e outras, até arquivos grandes) agora vai para o proxy; se faltar, o aviso diz o motivo.",
+   "titulo": "Um aviso só, no meio da tela",
+   "texto": "Todas as ferramentas avisam do mesmo jeito: um escrito simples no meio da tela, que não atrapalha o toque e some sozinho. Antes cada ferramenta tinha o seu, num canto diferente.",
    "abrir": "video"
   },
   {
-   "titulo": "Camadas no editor de fotos",
-   "texto": "＋ IMAGEM na aba CAMADAS volta a acrescentar a foto (no iPhone não fazia nada).",
-   "abrir": "fotos"
+   "titulo": "Avisos curtos",
+   "texto": "Os avisos viraram uma frase curta, sem virar tutorial no meio do trabalho.",
+   "abrir": "motion"
   }
  ]
 }

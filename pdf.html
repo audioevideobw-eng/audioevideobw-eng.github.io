@@ -12,7 +12,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="apple-mobile-web-app-title" content="Brightway">
-<link rel="stylesheet" href="assets/brightway.css?v=36">
+<link rel="stylesheet" href="assets/brightway.css?v=37">
 <style>
 .wrap{max-width:1100px;margin:0 auto;padding:0 20px 90px}
 .lado{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
@@ -112,7 +112,7 @@
   </div>
 </div>
 
-<script src="assets/layout.js?v=75"></script>
+<script src="assets/layout.js?v=76"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="assets/bw-sync.js?v=20261122"></script>
 <script src="assets/bw-assinar.js?v=1"></script>
@@ -316,7 +316,7 @@
   /* ---------- FOTOS → PDF ---------- */
   var fFs = [];
   function fDes() { lista($("fLista"), fFs, fDes); }
-  aoEscolher.fArq = function (fs) { fFs = fFs.concat(fs.filter(function (f) { return /^image\//.test(f.type); })); fDes(); if (fs.some(function (f) { return /heic|heif/i.test(f.type + f.name); })) aviso("Fotos HEIC do iPhone não são aceitas aqui — use JPG (Ajustes › Câmera › Formatos › Mais compatível)."); };
+  aoEscolher.fArq = function (fs) { fFs = fFs.concat(fs.filter(function (f) { return /^image\//.test(f.type); })); fDes(); if (fs.some(function (f) { return /heic|heif/i.test(f.type + f.name); })) aviso("Foto HEIC do iPhone não abre aqui — use JPG"); };
   function paraJpeg(f) {
     return new Promise(function (ok, erro) {
       var img = new Image(), url = URL.createObjectURL(f);

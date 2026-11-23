@@ -537,11 +537,7 @@
       document.body.appendChild(p); (function (q) { setTimeout(function () { q.remove(); }, 950); })(p);
     }
   }
-  function aviso(t, volta) {
-    var el = document.querySelector(".ag-toast"); if (!el) { el = document.createElement("div"); el.className = "ag-toast"; document.body.appendChild(el); }
-    el.textContent = t; el.classList.toggle("volta", !!volta); el.classList.add("vis");
-    clearTimeout(el._t); el._t = setTimeout(function () { el.classList.remove("vis"); }, 2200);
-  }
+  function aviso(t, volta) { if (window.BWAviso) BWAviso(t, volta ? "erro" : "ok"); }   /* 23/11: o texto usa o aviso único; o confete e o cartão verde continuam */
   function acender(id, x, y, volta) {
     var cls = volta ? "bw-vira-volta" : "bw-vira-verde";
     /* espera o redesenho da lista (síncrono, mas algumas telas redesenham no próximo quadro) */
@@ -623,4 +619,45 @@
     aplicar(raiz); }
   function todas(raiz, abrir) { var est = ler(); (raiz || document).querySelectorAll("[data-seta]").forEach(function (t) { est[t.getAttribute("data-seta")] = abrir ? 1 : 0; }); try { localStorage.setItem("ui_dobras", JSON.stringify(est)); } catch (e) {} aplicar(raiz); }
   window.BWDobras = {aplicar: aplicar, agrupar: agrupar, todas: todas, slug: slug};
+})();
+
+/* ============================================================================
+   AVISO ÚNICO DO ECOSSISTEMA (23/11/2026 — regra do dono)
+   Toda ferramenta avisa do MESMO jeito: um escrito simples no meio da tela,
+   que aparece e some sozinho. Nada de toast próprio em cada canto.
+   Uso:  BWAviso("✓ salvo")      BWAviso.erro("não deu para abrir")
+         BWAviso("⏳ gerando…", "", 0)   (0 = fica até trocar)   BWAviso.fechar()
+   ============================================================================ */
+(function () {
+  "use strict";
+  var EL = null, CX = null, T = null, SAI = null;
+  function montar() {
+    if (EL) return EL;
+    EL = document.createElement("div"); EL.id = "bwAviso"; EL.hidden = true;
+    EL.setAttribute("aria-live", "polite");
+    CX = document.createElement("div"); CX.className = "bw-av";
+    EL.appendChild(CX); (document.body || document.documentElement).appendChild(EL);
+    return EL;
+  }
+  function fechar() {
+    clearTimeout(T); clearTimeout(SAI);
+    if (!EL || EL.hidden) return;
+    CX.classList.add("sai");
+    SAI = setTimeout(function () { EL.hidden = true; CX.classList.remove("sai"); }, 220);
+  }
+  function mostrar(texto, tipo, ms) {
+    if (!texto) return fechar();
+    montar(); clearTimeout(T); clearTimeout(SAI);
+    CX.className = "bw-av" + (tipo ? " " + tipo : "");
+    CX.textContent = String(texto);
+    EL.hidden = false;
+    /* reinicia a animação de entrada mesmo com o aviso já na tela */
+    CX.style.animation = "none"; void CX.offsetWidth; CX.style.animation = "";
+    var tempo = ms === undefined || ms === null ? (tipo === "erro" ? 3600 : 1900) : ms;
+    if (tempo > 0 && !/^⏳/.test(texto)) T = setTimeout(fechar, tempo);
+  }
+  window.BWAviso = mostrar;
+  window.BWAviso.erro = function (t, ms) { mostrar(t, "erro", ms); };
+  window.BWAviso.ok = function (t, ms) { mostrar(t, "ok", ms); };
+  window.BWAviso.fechar = fechar;
 })();

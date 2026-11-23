@@ -12,7 +12,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="apple-mobile-web-app-title" content="Brightway">
-<link rel="stylesheet" href="assets/brightway.css?v=36">
+<link rel="stylesheet" href="assets/brightway.css?v=37">
 <style>
 .wrap{max-width:1500px;margin:0 auto;padding:0 16px 110px}
 .ve-topo{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px}
@@ -241,7 +241,7 @@
     <h1>EDITOR DE VÍDEO</h1>
     <select class="ve-sel" id="veFmt" aria-label="Formato do vídeo"><option value="9:16">9:16 Reels</option><option value="16:9">16:9 YouTube</option><option value="1:1">1:1 Quadrado</option><option value="4:5">4:5 Feed</option><option value="4k-v">4K vertical</option><option value="4k-h">4K paisagem</option><option value="livre">Personalizado (px)…</option></select>
     <span class="ve-livre" id="veLivre" hidden><input class="ve-sel" id="veLargura" type="number" min="240" max="4096" step="2" aria-label="Largura em pixels">×<input class="ve-sel" id="veAltura" type="number" min="240" max="4096" step="2" aria-label="Altura em pixels"><small>px</small></span>
-    <button class="ve-bt perigo" id="veNovo" type="button">NOVO</button>
+    <button class="ve-bt" id="veNovo" type="button">NOVO</button>
     <button class="ve-bt pri" id="veExportar" type="button">⬇ EXPORTAR VÍDEO</button>
   </div>
   <div class="ve-grade" id="veGrade">
@@ -256,7 +256,7 @@
       <h3 data-seta="ve-midia">MÍDIA</h3>
       <div class="ve-abas" id="veAbas" role="group" aria-label="Tipo de mídia"></div>
       <div class="ve-lib" id="veLib"></div>
-      <div class="ve-linha"><button class="ve-bt" id="veCriarBt" type="button" aria-expanded="false" aria-controls="veCriar" title="Abre os atalhos das ferramentas de criação (motion, telas, 3D, fotos…)">✦ CRIAR</button><label class="ve-bt on ve-imp" id="veImportar" for="veArq" role="button" tabindex="0">＋ IMPORTAR<input type="file" id="veArq" accept="video/*,image/*,audio/*" multiple tabindex="-1" aria-hidden="true"></label><button class="ve-bt" id="veCriacoes" type="button">✨ MINHAS CRIAÇÕES</button></div>
+      <div class="ve-linha"><button class="ve-bt" id="veCriarBt" type="button" aria-expanded="false" aria-controls="veCriar" title="Abre os atalhos das ferramentas de criação (motion, telas, 3D, fotos…)">✦ CRIAR</button><label class="ve-bt pri ve-imp" id="veImportar" for="veArq" role="button" tabindex="0">＋ IMPORTAR<input type="file" id="veArq" accept="video/*,image/*,audio/*" multiple tabindex="-1" aria-hidden="true"></label><button class="ve-bt" id="veCriacoes" type="button">✨ MINHAS CRIAÇÕES</button></div>
       <div class="ve-linha"><button class="ve-bt" id="veTexto" type="button">T TEXTO</button><button class="ve-bt" id="veElem" type="button">🔥 ELEMENTO</button><button class="ve-bt" id="veSons" type="button">🔊 EFEITOS E TRILHAS</button></div>
       <p class="ve-nota">Toque num item para colocar na linha do tempo. Aceita vídeos, imagens e áudios — inclusive o que você criou no Flux, Higgsfield, Gemini ou aqui no Quadro de História.</p>
     </div>
@@ -284,7 +284,7 @@
 <div class="ve-ocup" id="veOcup" hidden><span id="veOcupTxt">Gravando o vídeo…</span><progress id="veProg" max="1" value="0"></progress><button class="ve-bt" id="veCancelar" type="button">CANCELAR</button></div>
 <div class="ve-ocup ve-saida" id="veSaida" hidden><span id="veSaidaTxt">Vídeo pronto</span><video id="veVideoPronto" controls playsinline></video><div class="ve-linha"><a class="ve-bt pri" id="veBaixar" download="video-brightway.mp4">⬇ SALVAR VÍDEO</a><button class="ve-bt" id="veCompartilhar" type="button">COMPARTILHAR</button><button class="ve-bt" id="veFecharSaida" type="button">FECHAR</button></div></div>
 <input type="file" id="veArqTroca" accept="video/*,image/*,audio/*" tabindex="-1" aria-hidden="true" style="position:fixed;left:-9999px;top:0;width:1px;height:1px;opacity:0">
-<script src="assets/layout.js?v=75"></script>
+<script src="assets/layout.js?v=76"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="assets/bw-sync.js?v=20261122"></script>
 <script src="assets/bw-personagens.js?v=3"></script>
@@ -297,8 +297,8 @@
 <script src="assets/ve-app.js?v=11"></script>
 <script src="assets/reels-celular.js?v=6"></script>
 <script src="assets/bw-proxy.js?v=2"></script>
-<script src="assets/video-editor.js?v=23"></script>
-<script src="assets/ve-modelos.js?v=2"></script>
+<script src="assets/video-editor.js?v=24"></script>
+<script src="assets/ve-modelos.js?v=3"></script>
 <script src="assets/bw-controle.js?v=1"></script>
 </body>
 </html>

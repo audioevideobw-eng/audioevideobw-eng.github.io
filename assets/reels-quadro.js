@@ -220,7 +220,7 @@
   async function criarImagens() {
     if (OCUPADO) return;
     aviso("");
-    if (!(await sessao())) { aviso("Entre na sua conta Brightway para a IA criar as imagens (15 por dia). Sem login dá para MONTAR O VÍDEO com o personagem animado.", true); return; }
+    if (!(await sessao())) { aviso("Entre na sua conta para a IA criar as imagens", true); return; }
     var p = await preparar(); if (!p) return;
     var fig = await figura(p.h), usaFoto = !!fig || p.cenas.some(function (c) { return c.refImg; });
     if (usaFoto && !$("qdAutor").checked) { aviso("Marque que as imagens são suas ou que você tem autorização de quem aparece nelas.", true); return; }
@@ -282,7 +282,7 @@
     if (!$("folhaQuadro")) return;
     $("btQuadro").onclick = abrir; $("qdFechar").onclick = fechar;
     $("qdMaisCena").onclick = function () { addBloco("cena"); };
-    $("qdMaisRef").onclick = function () { addBloco("ref"); aviso("Referência criada. Arraste a bolinha dela até cada cena onde ela vale (ou até o personagem, para valer em todas)."); };
+    $("qdMaisRef").onclick = function () { addBloco("ref"); aviso("✓ Referência criada — arraste a bolinha dela até as cenas"); };
     $("qdCentro").onclick = function () { centralizar(true); };
     $("qdZoomMais").onclick = function () { VISTA.z = Math.min(1.4, VISTA.z * 1.2); aplicarVista(); };
     $("qdZoomMenos").onclick = function () { VISTA.z = Math.max(0.3, VISTA.z / 1.2); aplicarVista(); };

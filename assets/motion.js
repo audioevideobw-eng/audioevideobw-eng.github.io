@@ -35,7 +35,7 @@
   }
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
   function fmt(n, c) { return Number(n).toLocaleString("pt-BR", { minimumFractionDigits: c === undefined ? 1 : c, maximumFractionDigits: c === undefined ? 1 : c }); }
-  function aviso(txt, erro) { var a = $("moAviso"); a.textContent = txt; a.className = "mo-aviso" + (erro ? " erro" : ""); a.hidden = false; clearTimeout(aviso.t); aviso.t = setTimeout(function () { a.hidden = true; }, 5000); }
+  function aviso(txt, erro) { if (window.BWAviso) BWAviso(txt, erro ? "erro" : ""); }   /* 23/11: aviso único */
   function item(id) { return P.itens.filter(function (i) { return i.id === id; })[0] || null; }
 
   /* ---------- guardar (IndexedDB, só neste aparelho) ---------- */
@@ -222,7 +222,7 @@
     if (P.itens.length && !confirm("Começar um projeto NOVO com este modelo? O atual continua salvo em MEUS PROJETOS.")) return;
     var fmtAt = P.formato; P = M.novoProjeto(fmtAt); P.id = M.uid(); P.nome = MODELOS[k].nome.replace(/^[^A-ZÀ-Ú]+/, "").slice(0, 30);
     P.itens = MODELOS[k].f(P); T = 0; SEL = null; HIST = []; FUT = []; depoisDeTrocar(); mudou();
-    aviso("Modelo pronto: troque os textos tocando nos itens, mude os efeitos ou toque em ▶ TOCAR.");
+    aviso("✓ Modelo pronto — toque nos itens para trocar os textos");
   }
 
   /* ---------- projetos ---------- */
@@ -655,7 +655,7 @@
   /* 20/11 — AMBIENTE ÚNICO: a criação vai para a LINHA DO TEMPO do editor de vídeo (assets/bw-criacoes.js) */
   function paraLinha() { if (window.BWCriacoes) BWCriacoes.aoLado("moExpBaixar", { ferramenta: "motion", arquivo: function () { return EXP.arquivo; }, nome: function () { return P.nome; }, projeto: function () { return P.id; }, tipo: "video" }); }
   async function gerarAqui() {
-    if (!window.BWReelsCelular || !(await BWReelsCelular.suporta())) return aviso("Este navegador não grava vídeo sozinho. Use o app BW no computador, ou o Chrome/Safari atualizado.", true);
+    if (!window.BWReelsCelular || !(await BWReelsCelular.suporta())) return aviso("Este navegador não grava vídeo — use o Chrome ou o app BW", true);
     var rec = $("moExpFundo").value; EXP.parar = false; $("moExpProg").hidden = false; $("moExpPronto").hidden = true;
     try {
       var res = await BWReelsCelular.gerar({ html: M.html(P, { src: urlMotor(), recorte: rec }), largura: P.w, altura: P.h, fps: P.fps || 30, duracao: P.dur, som: null, alturaSaida: Number($("moExpQual").value),
@@ -671,8 +671,8 @@
   function gerarPC() {
     var rec = $("moExpFundo").value || "normal", nome = nomeArq() + "." + rec + ".bwmotion.json";
     baixar(new Blob([JSON.stringify(P)], { type: "application/json" }), nome);
-    if (NO_APP) aviso("💻 Pedido enviado ao app BW: o vídeo é feito no computador e abre sozinho quando ficar pronto.");
-    else aviso("Este botão faz o vídeo pelo app BW do computador: abra esta página DENTRO do app BW e toque de novo. O arquivo baixado (" + nome + ") é o seu projeto — dá para abrir aqui em ⇪ ABRIR PROJETO.");
+    if (NO_APP) aviso("💻 Enviado ao app BW — abre sozinho quando ficar pronto");
+    else aviso("Abra esta página dentro do app BW e toque de novo. O arquivo baixado (" + nome + ") é o seu projeto — dá para abrir aqui em ⇪ ABRIR PROJETO.");
   }
 
   /* ---------- abas do celular ---------- */

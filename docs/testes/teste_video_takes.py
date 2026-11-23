@@ -39,7 +39,7 @@ with sync_playwright() as p:
     ok(maxEl <= 8, f"andando pela linha do tempo, no máximo {maxEl} vídeos abertos ao mesmo tempo (antes: todos)")
     # ↻ tentar de novo
     pg.locator('#veLib [data-retry]').first.click(); pg.wait_for_timeout(2500)
-    ok("continua sem abrir" in pg.inner_text("#veAviso") or "abriu" in pg.inner_text("#veAviso"), f"↻ tenta de novo e diz o resultado ({pg.inner_text('#veAviso')[:60]})")
+    ok("continua sem abrir" in pg.inner_text("#bwAviso") or "abriu" in pg.inner_text("#bwAviso"), f"↻ tenta de novo e diz o resultado ({pg.inner_text('#veAviso')[:60]})")
     ok(not er, f"sem erro de JS {er[:2]}")
     b.close()
 srv.shutdown()

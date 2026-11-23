@@ -9,7 +9,7 @@
   function gravarUi(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e) { return false; } }
   function lim(v, a, b) { return Math.max(a, Math.min(b, v)); }
   function uid(p) { return (p || "i") + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
-  function toast(msg) { var t = document.createElement("div"); t.className = "toast"; t.setAttribute("role", "status"); t.textContent = msg; document.body.appendChild(t); setTimeout(function () { t.remove(); }, 2600); }
+  function toast(msg) { if (window.BWAviso) BWAviso(msg); }   /* 23/11: aviso único */
 
   (async function () {   // selo LOGADO no topo
     var el = $("userBox"); if (!el) return;
@@ -706,7 +706,7 @@
         lista[i].seg = await segmentar(lista[i]);
       }
       $("ocup").hidden = true; painel(); agendar();
-      var s = fotoAtual().seg; if (s && s.achou.cab < 0.003 && s.achou.pele < 0.003) toast("A IA quase não achou pessoa nesta foto — funciona melhor com 1 a 3 pessoas perto da câmera.");
+      var s = fotoAtual().seg; if (s && s.achou.cab < 0.003 && s.achou.pele < 0.003) toast("Quase não achei pessoa nesta foto");
       else toast("✨ Pronto: escolha a cor do cabelo, da roupa, a pele e o fundo.");
     } catch (er) { $("ocup").hidden = true; painel(); toast("Não deu para usar a IA de retoque agora (" + String(er && er.message || er).slice(0, 60) + ")."); }
     analisando = false;

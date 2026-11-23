@@ -372,10 +372,7 @@ function festa(el) {
     document.body.appendChild(p); setTimeout(() => p.remove(), 950);
   }
 }
-function toast(t) {
-  let el = document.querySelector(".ag-toast"); if (!el) { el = document.createElement("div"); el.className = "ag-toast"; document.body.appendChild(el); }
-  el.textContent = t; el.classList.add("vis"); clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove("vis"), 2200);
-}
+function toast(t) { if (window.BWAviso) BWAviso(t, "ok"); }   /* 23/11: aviso único */
 
 /* ---------- BARRA MÁGICA: escreva do seu jeito ("dentista sexta 15h", "pagar luz 180 dia 20") ---------- */
 const DIAS_SEM = [["domingo", "dom"], ["segunda", "seg"], ["terça", "terca", "ter"], ["quarta", "qua"], ["quinta", "qui"], ["sexta", "sex"], ["sábado", "sabado", "sab", "sáb"]];

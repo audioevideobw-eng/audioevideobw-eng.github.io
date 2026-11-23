@@ -17,10 +17,7 @@
   function num(v, d) { v = parseFloat(String(v).replace(",", ".")); return isFinite(v) ? v : d; }
   function nm(v) { return (Math.round(v * 100) / 100).toLocaleString("pt-BR") + " m"; }
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
-  function aviso(t, erro) {
-    var a = $("d3Aviso"); a.textContent = t; a.hidden = false; a.setAttribute("data-erro", erro ? "1" : "0");
-    clearTimeout(aviso._t); aviso._t = setTimeout(function () { a.hidden = true; }, erro ? 7000 : 3600);
-  }
+  function aviso(t, erro) { if (window.BWAviso) BWAviso(t, erro ? "erro" : ""); }   /* 23/11: aviso único do ecossistema */
 
   /* ---------- guardar no aparelho (IndexedDB bw_3d) ---------- */
   function db() {
@@ -660,7 +657,7 @@
   }
   async function gerar() {
     var t = tamanhoExp(), dur = Math.max(2, num($("d3Dur").value, 8)), qual = num($("d3Qual").value, 1280);
-    if (!window.BWReelsCelular || !(await BWReelsCelular.suporta())) return aviso("Este navegador não grava vídeo sozinho. Use o Chrome, o Edge ou o Safari atualizado (no computador, o app BW).", true);
+    if (!window.BWReelsCelular || !(await BWReelsCelular.suporta())) return aviso("Este navegador não grava vídeo — use o Chrome ou o app BW", true);
     FORCA = $("d3ExpFundo").value || "";
     EXP.parar = false; $("d3Prog").hidden = false; $("d3Pronto").hidden = true; $("d3Gerar").disabled = true; $("d3Parar").hidden = false;
     var giro = P.giro.liga, seg = P.giro.seg; P.giro.liga = true; P.giro.seg = dur;

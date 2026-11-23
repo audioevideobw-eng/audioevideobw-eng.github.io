@@ -105,7 +105,7 @@
   function refazer() { if (!FUT.length) { aviso("Nada para refazer."); return; } var s = FUT.pop(); HIST.push(s); P = JSON.parse(s); tudo(true); aviso("↷ Refeito."); }
   function guardar() { clearTimeout(tSalvar); tSalvar = setTimeout(function () { tx("estado", "readwrite", function (s) { return s.put({id: "atual", p: JSON.parse(JSON.stringify(P))}); }); if (typeof copiaProjeto === "function") copiaProjeto(); }, 400); }
   var AVISO_T = 0;
-  function aviso(t, erro) { var a = $("veAviso"); a.hidden = !t; a.className = "ve-aviso" + (erro ? " erro" : ""); a.textContent = t || ""; a.title = t || ""; clearTimeout(AVISO_T); if (t && !/^⏳/.test(t)) AVISO_T = setTimeout(function () { a.hidden = true; }, erro ? 6000 : 3000); }   /* 23/11 (dono, PC: "mensagens enormes, verde/vermelha"): pílula pequena e neutra no alto, no máximo 2 linhas, só um pontinho de cor */   /* 22/11 (dono: "o aviso de importação fica parado em cima da linha do tempo"): some sozinho no PC também; o ⏳ de andamento fica até o próximo aviso */
+  function aviso(t, erro) { if (window.BWAviso) BWAviso(t, erro ? "erro" : "", /^⏳/.test(t || "") ? 0 : undefined); }   /* 23/11: aviso único do ecossistema (layout.js BWAviso) */
   function fmtT(t) { t = Math.max(0, t); var m = Math.floor(t / 60), s = t - m * 60; return m + ":" + (s < 10 ? "0" : "") + s.toFixed(1).replace(".", ","); }
   function total() { return P.clips.reduce(function (m, c) { return Math.max(m, c.ini + c.dur); }, 0); }
 
@@ -269,7 +269,7 @@
     var d = JSON.parse(JSON.stringify(c)); d.id = uid(); d.ini = t; d.dur = Math.round((c.ini + c.dur - t) * 100) / 100; if (c.tipo !== "texto" && c.tipo !== "imagem") d.corte = (c.corte || 0) + (t - c.ini) * vel(c); d.fin = 0; d.trans = null; c.dur = Math.round((t - c.ini) * 100) / 100; c.fout = 0; P.clips.push(d); return d; }
   function dividir() { var c = sel(), alvos = c ? [c] : P.clips.filter(function (x) { return T > x.ini + 0.05 && T < x.ini + x.dur - 0.05; });
     var n = 0, ult = null; alvos.forEach(function (x) { var d = dividirEm(x, T); if (d) { n++; ult = d; } });
-    if (!n) { aviso("Ponha a agulha no meio de um clipe para dividir (ou use a lâmina: tecla C e clique no clipe).", true); return; } if (ult) SEL = ult.id; tudo(); aviso("✂ Dividido" + (n > 1 ? " em " + n + " camadas" : "") + "."); }
+    if (!n) { aviso("Ponha a agulha em cima de um clipe para dividir", true); return; } if (ult) SEL = ult.id; tudo(); aviso("✂ Dividido" + (n > 1 ? " em " + n + " camadas" : "") + "."); }
   function duplicar() { var g = grupo(); if (g.length) { var a0 = Math.min.apply(null, g.map(function (x) { return x.ini; })), a1 = Math.max.apply(null, g.map(function (x) { return x.ini + x.dur; })), nv = [];
       g.forEach(function (x) { var d = JSON.parse(JSON.stringify(x)); d.id = uid(); d.ini = Math.round((x.ini + a1 - a0) * 20) / 20; P.clips.push(d); nv.push(d.id); }); GRUPO = nv; SEL = nv[0]; tudo(); aviso("⧉ " + nv.length + " takes duplicados."); return; }
     var c = sel(); if (!c) return; var d = JSON.parse(JSON.stringify(c)); d.id = uid(); d.ini = c.ini + c.dur; P.clips.push(d); SEL = d.id; tudo(); aviso("⧉ Duplicado."); }
@@ -374,7 +374,7 @@
     tudo(); if (!semAviso) aviso(prox ? "✓ Take colocado. Agora o espaço " + prox.ph + " (" + (prox.rot || "") + ") — toque em outro vídeo ou foto." : "✓ Todos os espaços do modelo preenchidos!"); if (window.VEModelos) VEModelos.faixa(); }
   function preencherSozinho() { var vazios = P.clips.filter(function (x) { return x.ph; }).sort(function (a, b) { return a.ini - b.ini; });
     var meus = Object.keys(MID).map(function (k) { return MID[k]; }).filter(function (m) { return (m.tipo === "video" || m.tipo === "imagem") && !m.ph && m.id.indexOf("ph-") !== 0; });
-    if (!vazios.length) { aviso("Não há espaços vazios no projeto."); return 0; } if (!meus.length) { aviso("Importe seus vídeos e fotos primeiro (＋ IMPORTAR) — depois toque em PREENCHER SOZINHO.", true); return 0; }
+    if (!vazios.length) { aviso("Não há espaços vazios no projeto."); return 0; } if (!meus.length) { aviso("Importe seus vídeos e fotos primeiro (＋ IMPORTAR)", true); return 0; }
     var uso = {}; vazios.forEach(function (c, i) { var m = meus[i % meus.length]; uso[m.id] = (uso[m.id] || 0); trocarEspaco(c, m, uso[m.id]++, true); });
     SEL = null; tudo(); aviso("⚡ " + vazios.length + " espaços preenchidos com " + meus.length + " arquivo(s). Toque num take para trocar por outro."); if (window.VEModelos) VEModelos.faixa(); return vazios.length; }
   var ANALISANDO = {};
@@ -382,7 +382,7 @@
   async function analisarPessoa(c) { var m = MID[c.mid]; if (!m || !window.BWMascara) return; if (ANALISANDO[m.id] != null) return;
     ANALISANDO[m.id] = 0; desenharProp(); aviso("🧠 Analisando a pessoa no take (no aparelho)…");
     try { await BWMascara.analisar(m, {aoAndar: function (p) { ANALISANDO[m.id] = p; var e = $("veIaProg"); if (e) e.textContent = Math.round(p * 100) + "%"; }});
-      delete ANALISANDO[m.id]; c.ia = c.ia || {}; if (c.ia.frente == null) c.ia.frente = true; tudo(); aviso("✓ Pessoa encontrada em todo o take. Agora é só pôr texto atrás dela (ou escolher um MODELO COM A PESSOA)."); }
+      delete ANALISANDO[m.id]; c.ia = c.ia || {}; if (c.ia.frente == null) c.ia.frente = true; tudo(); aviso("✓ Pessoa encontrada — já pode pôr texto atrás dela"); }
     catch (e) { delete ANALISANDO[m.id]; desenharProp(); aviso(/cancel/.test(String(e && e.message)) ? "Análise cancelada." : "Não consegui analisar este take" + (navigator.onLine ? "" : " (sem internet: a 1ª vez precisa baixar o modelo)") + ".", true); } }
   function ganhoTake(c) { return (c.vol == null ? 100 : c.vol) / 100 * (+c.normG > 0 ? +c.normG : 1); }
   function elDe(c) { var o = EL[c.id]; if (o) return o; var m = MID[c.mid]; if (!m) return null; var e = document.createElement(c.tipo === "video" ? "video" : "audio"); e.preload = "auto"; e.playsInline = true; e.crossOrigin = "anonymous"; e.src = urlDe(m); e.addEventListener("seeked", function () { if (!TOCANDO) desenhar(); }); e.addEventListener("loadeddata", function () { if (!TOCANDO) desenhar(); }); o = EL[c.id] = {e: e, g: null, px: e.src !== m.url}; ligarSom(o); return o; }
@@ -742,7 +742,7 @@
     op = op || {};
     if (!P.clips.length) { aviso("A linha do tempo está vazia.", true); return; }
     var soAudio = !!op.audio, tipo = op.mime || (soAudio ? "" : tipoGravacao());
-    if (!soAudio && (!tipo || !cv.captureStream)) { aviso("Este navegador não grava vídeo por aqui. Use o Chrome, o Edge ou o Safari atualizados.", true); return; }
+    if (!soAudio && (!tipo || !cv.captureStream)) { aviso("Este navegador não grava vídeo — use o Chrome ou o app BW", true); return; }
     parar(); var a = audioCtx(); if (a && a.state === "suspended") a.resume();
     usarOriginais(true); if (!soAudio) tamanhoReal(true, op.saida);   /* tamanho de saída, nunca o da prévia leve */
     var fps = op.fps || 30, fluxo = null, mr = null, partes = [], wav = null, cancelado = false;
@@ -804,7 +804,7 @@
     var fxb = e.target.closest("[data-arr]"); if (fxb) { var kk = fxb.dataset.arr;
       if (kk.charAt(0) === "t") { var em = emendaNaAgulha(); if (em) { aplicarFx(em, "t", kk.slice(2), true); aviso("◧ Transição “" + TRANS[kk.slice(2)] + "” na emenda da agulha — arraste o ◆ para mudar o tempo."); verTransicao(em); return; }
         var s0 = sel(); if (s0 && anteriorDe(s0)) { aplicarFx(s0, "t", kk.slice(2)); return; }
-        aviso("Ponha a AGULHA na emenda entre dois takes (o ◆ acende) e toque na transição — ou arraste a transição até a emenda.", true); return; }
+        aviso("Ponha a agulha na emenda entre dois takes (o ◆ acende)", true); return; }
       aplicarFx(sel(), kk.charAt(0), kk.slice(2)); return; }
     var rt = e.target.closest("[data-retry]"); if (rt) { e.stopPropagation(); var mr = MID[rt.dataset.retry]; if (!mr) return; aviso("⏳ Tentando abrir " + mr.nome + " de novo…");
       var r2 = await abrirVideo(mr, mr.tipo === "video", 30000); if (r2.ok && (mr.tipo !== "video" || r2.capa)) { mr.ruim = false; mr.capa = r2.capa || mr.capa; if (r2.dur) mr.dur = r2.dur; aviso("✓ " + mr.nome + " abriu."); } else aviso("⚠ " + mr.nome + " continua sem abrir neste navegador" + (mr.codec === "hevc" ? " (é HEVC/H.265)." : "."), true); desenharLib(); tudo(); return; }
@@ -980,7 +980,7 @@
     dicaArr(null);
     if (a.tipo === "laco") { if (a.caixa) a.caixa.remove(); if (!a.moveu) { limparGrupo(); if (SEL) { SEL = null; desenharTL(); desenharProp(); } return; }
       GRUPO = a.ids || []; SEL = GRUPO.length ? GRUPO[0] : null; if (GRUPO.length < 2) GRUPO = []; desenharTL(); desenharProp();
-      if (GRUPO.length > 1) aviso("▭ " + GRUPO.length + " takes escolhidos — arraste um deles para mover todos; Delete apaga, Ctrl+C copia, Ctrl+Shift+D duplica. Ctrl + clique põe ou tira um take."); return; }
+      if (GRUPO.length > 1) aviso("▭ " + GRUPO.length + " takes escolhidos"); return; }
     if (a.tipo === "grupo") { if (a.moveu) { tudo(); marcarGrupo(); aviso("↔ " + a.itens.length + " takes movidos juntos."); } return; }
     if (a.tipo === "mover" && a.moveu && a.vert) { camadaNova(a.c, a.vert); tudo(); marcar(a.c.id); aviso((a.vert === "cima" ? "⬆" : "⬇") + " Camada nova: " + infoTr(a.c.trilha)[0] + "."); return; }
     if (a.tipo === "mover" && a.moveu && a.troca) { tudo(true); escolherSobre(a, ultimoXY); return; }
@@ -1047,7 +1047,7 @@
     if (DESENHO.c.selm.forma === "livre") { var u = p[p.length - 1]; if (Math.hypot(q[0] - u[0], q[1] - u[1]) > 0.006) p.push(q); } else p[1] = q; desenhar(); }, true);
   window.addEventListener("pointerup", function (e) { if (!DESENHO || e.pointerId !== DESENHO.id) return; e.stopImmediatePropagation(); var c = DESENHO.c; DESENHO = null; var p = c.selm.pts;
     var ok = p.length > 2 || (p.length === 2 && Math.abs(p[0][0] - p[1][0]) > 0.02 && Math.abs(p[0][1] - p[1][1]) > 0.02); if (!ok) { delete c.selm.pts; desenhar(); aviso("Área muito pequena — arraste mais.", true); return; }
-    c.selm.modo = c.selm.modo || "frente"; SELDES = null; tudo(); aviso("✓ Área marcada: objeto NA FRENTE dos textos. Troque em MÁSCARA POR SELEÇÃO (só a área, esconder, inverter, borda)."); }, true);
+    c.selm.modo = c.selm.modo || "frente"; SELDES = null; tudo(); aviso("✓ Área marcada — o objeto fica na frente dos textos"); }, true);
   var DEDOS = {}; cv.style.touchAction = "none";
   ["gesturestart", "gesturechange", "gestureend"].forEach(function (ev) { cv.addEventListener(ev, function (e) { e.preventDefault(); }, {passive: false}); });
   function pinca() { var ids = Object.keys(DEDOS); if (ids.length < 2) return null; var a = DEDOS[ids[0]], b = DEDOS[ids[1]]; return {d: Math.max(10, Math.hypot(a.x - b.x, a.y - b.y)), mx: (a.x + b.x) / 2, my: (a.y + b.y) / 2}; }
@@ -1328,7 +1328,7 @@
 
   /* ---------- FAZER PROXY: escolher os vídeos → barra de cópia ---------- */
   function abrirProxy() {
-    if (!window.BWProxy || !BWProxy.suporta()) { aviso("Este navegador não faz proxy. Use o Chrome ou o Edge atualizados (no PC ou no app BW).", true); return; }
+    if (!window.BWProxy || !BWProxy.suporta()) { aviso("Este navegador não faz proxy — use o Chrome ou o app BW", true); return; }
     var vs = Object.keys(MID).map(function (k) { return MID[k]; }).filter(function (m) { return m.tipo === "video" && !m.ph; });
     if (!vs.length) { aviso("Importe vídeos primeiro: o proxy é feito dos vídeos da biblioteca.", true); return; }
     vs.sort(function (a, b) { return (b.blob ? b.blob.size : 0) - (a.blob ? a.blob.size : 0); });

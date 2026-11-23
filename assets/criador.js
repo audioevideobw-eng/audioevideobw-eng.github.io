@@ -207,7 +207,7 @@
   function imgDe(url) { return new Promise(function (ok, erro) { var im = new Image(); im.onload = function () { ok(im); }; im.onerror = erro; im.src = url; }); }
 
   /* ================= TELA ================= */
-  function toast(t) { var d = document.createElement("div"); d.className = "cr-toast"; d.textContent = t; document.body.appendChild(d); setTimeout(function () { d.remove(); }, 3600); }
+  function toast(t) { if (window.BWAviso) BWAviso(t); }   /* 23/11: aviso único */
   function msg(t) { $("msg").textContent = t || ""; }
   function chips(box, lista, atual, k, fmt) {
     $(box).innerHTML = lista.map(function (x) { return '<button type="button" class="cr-chip' + (x[0] === atual ? " on" : "") + '" data-k="' + k + '" data-v="' + esc(x[0]) + '">' + (fmt ? fmt(x) : esc(x[1])) + "</button>"; }).join("");

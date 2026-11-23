@@ -817,3 +817,35 @@ html.bw-foco :is(.bw-btn,.ve-bt,.mo-bt,.tl-bt,.d3-bt,.al-bt,.rl-bt,.pg-bt):not(.
 html.bw-foco :is(.bw-btn,.ve-bt,.mo-bt,.tl-bt,.d3-bt,.al-bt,.rl-bt,.pg-bt):not([disabled]):active{transform:translateY(1px)!important;box-shadow:inset 0 2px 5px rgba(0,0,0,.55),0 1px 2px rgba(0,0,0,.4)!important;filter:brightness(.96)}
 html.bw-foco :is(.bw-btn,.ve-bt,.mo-bt,.tl-bt,.d3-bt,.al-bt,.rl-bt,.pg-bt):focus-visible{outline:2px solid #FFB547;outline-offset:2px}
 html.bw-foco :is(.bw-btn,.ve-bt,.mo-bt,.tl-bt,.d3-bt,.al-bt,.rl-bt,.pg-bt)[disabled]{opacity:.45;transform:none;filter:none;cursor:not-allowed}
+
+/* ===== AVISO ÚNICO DO ECOSSISTEMA (23/11/2026 — regra do dono) =============
+   Um escrito simples no meio da tela, que aparece e some. Vale para TODAS as
+   ferramentas: ninguém mais desenha o seu próprio aviso num canto diferente. */
+#bwAviso{position:fixed;inset:0;z-index:9000;display:flex;align-items:center;justify-content:center;padding:24px;pointer-events:none}
+#bwAviso[hidden]{display:none}
+#bwAviso .bw-av{
+  max-width:min(520px,86vw);padding:14px 24px;border-radius:16px;text-align:center;
+  font:600 15px/1.45 Inter,system-ui,sans-serif;letter-spacing:.01em;
+  color:var(--m-txt,var(--txt,#EAF0FF));
+  background:color-mix(in srgb,var(--m-card,#0E1320) 88%,transparent);
+  border:1px solid color-mix(in srgb,var(--m-txt,#EAF0FF) 14%,transparent);
+  box-shadow:0 18px 50px rgba(0,0,0,.45);
+  -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+  animation:bwAvIn .18s cubic-bezier(.2,.8,.3,1)
+}
+#bwAviso .bw-av.ok{border-color:color-mix(in srgb,var(--m-ok,#2FD08A) 55%,transparent)}
+#bwAviso .bw-av.erro{border-color:color-mix(in srgb,var(--m-erro,#FF6B6B) 55%,transparent);color:var(--m-erro,#FFD9DA)}
+#bwAviso .bw-av.sai{animation:bwAvOut .2s ease-in forwards}
+@keyframes bwAvIn{from{opacity:0;transform:translateY(8px) scale(.98)}to{opacity:1;transform:none}}
+@keyframes bwAvOut{to{opacity:0;transform:translateY(-5px) scale(.99)}}
+@media (max-width:480px){#bwAviso .bw-av{font-size:14px;padding:12px 18px}}
+@media (prefers-reduced-motion:reduce){#bwAviso .bw-av,#bwAviso .bw-av.sai{animation:none}}
+
+/* Mensagem de FORMULÁRIO (fica ao lado do campo, não é aviso de ação): padrão para
+   todo campo novo. Aviso de ação (salvou, não deu, andamento) usa o BWAviso acima. */
+.bw-msg{margin-top:8px;padding:9px 12px;border-radius:12px;font:600 12.5px/1.4 Inter,system-ui,sans-serif;
+  color:var(--m-txt,#EAF0FF);background:color-mix(in srgb,var(--m-ok,#2FD08A) 14%,transparent);
+  border:1px solid color-mix(in srgb,var(--m-ok,#2FD08A) 38%,transparent)}
+.bw-msg.erro{color:var(--m-erro,#FFD9DA);background:color-mix(in srgb,var(--m-erro,#FF6B6B) 13%,transparent);
+  border-color:color-mix(in srgb,var(--m-erro,#FF6B6B) 40%,transparent)}
+.bw-msg[hidden]{display:none}

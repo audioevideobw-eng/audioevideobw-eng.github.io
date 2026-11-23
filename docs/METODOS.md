@@ -567,3 +567,29 @@ Tamanho > 0 e sem erro = o pdfmake montou o arquivo. Localmente (T1) confira o `
   Problema, texto começando com "[TESTES E SOLUÇÕES]"). Para checar uma página nova lá dentro: entrar na lista FERR do assets/testes.js.
 - Gancho de erro: modos.js (1º script de toda página) avisa window.parent.__bwDiag quando a página está num iframe da teste.html.
 - Validar a própria página: docs/testes/teste_testes.py cria uma página com defeito de propósito (zz_diag_ruim.html) e confere que tudo é acusado.
+
+## Um componente só para o ecossistema (23/11/2026)
+
+Quando o dono diz "padroniza isto em tudo", a receita que funcionou:
+
+1. **Contar quantos existem hoje.** `grep -oh "\.[a-z0-9-]*aviso[a-z0-9-]*\|\.[a-z0-9-]*toast[a-z0-9-]*" *.html assets/*.css | sort -u`
+   achou 18 classes; depois, um script que lê o CSS e marca quais são `position:fixed` separou os 8 **flutuantes**
+   (aviso de ação) das 10 **mensagens de formulário** (ficam ao lado do campo). São coisas diferentes: só os flutuantes
+   viram componente único; as mensagens ganham uma classe padrão (`.bw-msg`) para quem for escrever campo novo.
+2. **Escrever o componente num arquivo que TODA página já carrega** (layout.js + brightway.css), com API curta
+   (`BWAviso(t)`, `.erro(t)`, `.fechar()`, `ms = 0` para ficar). Cores pelas variáveis dos modos (`--m-card`, `--m-txt`,
+   `--m-ok`, `--m-erro`) — senão o componente não acompanha os 28 modos de aparência.
+3. **Não apagar a função local da ferramenta: fazê-la delegar.** `function aviso(t, erro) { BWAviso(t, erro ? "erro" : ""); }`
+   em uma linha. Nenhuma chamada muda de lugar, o risco é mínimo e o teste confere que o corpo chama o BWAviso.
+4. **Caçar o conteúdo ruim junto com a forma.** O print do dono mostrava o texto cortado: 21 avisos passavam de 85 letras
+   (um tinha 150). `re.finditer(r'(?:aviso|toast)\("([^"]{86,})"', s)` acha todos; cada um virou frase curta.
+5. **Travar com o vigia E com teste.** Vigia: recusa `function aviso/toast` que crie elemento ou se esconda por setTimeout
+   sem passar pelo BWAviso, e recusa aviso com mais de 85 letras — e a prova de que o vigia pega: estragar o arquivo de
+   propósito, rodar, conferir a reclamação e restaurar. Teste (`docs/testes/teste_aviso.py`): mede no navegador que a caixa
+   fica a menos de 40 px do centro, que `elementFromPoint` no meio dela NÃO devolve o aviso (não bloqueia o toque),
+   que some sozinho, que o `⏳` fica, e que nenhuma ferramenta mostra o aviso antigo.
+6. **Consertar os testes que liam o elemento antigo**: `grep -l "ve-aviso\|ag-toast\|…" docs/testes/*.py` — quatro testes
+   apontavam para o id/classe velhos; trocar por `#bwAviso` no mesmo commit (regra 193).
+
+Armadilha: classe de ESTADO não serve para destacar botão. `＋ IMPORTAR` usava `.on` (verde de "ligado") e `NOVO` usava
+`.perigo` (vermelho) só para chamar atenção — no meio dos botões grafite pareciam outro aplicativo. O destaque é `.pri`.

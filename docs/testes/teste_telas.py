@@ -152,7 +152,7 @@ with sync_playwright() as p:
         arrastar('#tlEfx [data-arr="t:xis"]', '#tlFila .tl-tr[data-tr="1"]')
         ok(pg.evaluate(f"{P}.cenas[1].trans") == "xis", "soltar a transição na etiqueta entre duas cenas troca aquela transição")
         t0 = pg.evaluate(f"{P}.cenas[0].trans"); arrastar('#tlEfx [data-arr="t:zoom"]', '#tlFila .tl-cena >> nth=0')
-        ok(pg.evaluate(f"{P}.cenas[0].trans") == t0 and "1ª cena" in pg.inner_text("#tlAviso"), "a 1ª cena recusa transição e explica")
+        ok(pg.evaluate(f"{P}.cenas[0].trans") == t0 and "1ª cena" in pg.inner_text("#bwAviso"), "a 1ª cena recusa transição e explica")
         pg.click('[data-efxaba="div"]'); pg.wait_for_timeout(150)
         ok(pg.locator("#tlEfx [data-arr^='l:']").count() == 6, "aba DIVISÕES mostra as 6 divisões")
         arrastar('#tlEfx [data-arr="l:quatro"]', '#tlFila .tl-cena >> nth=1')
