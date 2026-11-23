@@ -834,6 +834,11 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
      (docs/testes/teste_video_rastreio.py); o modelo real só no aparelho (aqui não baixa). ELEMENTOS ANIMADOS (tipo "elemento": fogo, faíscas, brilho,
      fumaça, corações, raio, bolhas, estrelas) = desenho próprio, cada quadro só de t; grupos de take com c.mid não aparecem para eles.
 
+202. FOLHA DO APP QUE "ABRE VAZIA" (dono, iPhone, 23/11: "não abre a área de importação de mídia"): seção com seta (data-seta) FECHADA no aparelho (ui_dobras) +
+     título escondido dentro da folha = conteúdo some sem ter como abrir. Dentro da folha do app toda seta fica forçada aberta (data-seta-forcar). Seletor de arquivo
+     nunca com `hidden`/display:none (iPhone): fora da tela com opacity 0. Casca de app espera o editor no máximo ~0,4 s; o TESTES E SOLUÇÕES espera a casca até 8 s
+     antes de dizer "não montou" (o iPhone reabre as mídias guardadas devagar dentro do iframe).
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -2255,6 +2260,10 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   palma, indicador, polegar, dedo médio, pulso; qualquer / esquerda / direita), 🧍 CORPO (cabeça, ombros, mãos, peito, quadril, pés) e 🎯 PONTO QUE EU ESCOLHO
   (objeto/luz/logo); suavizar, acompanhar o tamanho, centralizar, parar de seguir. Tudo no aparelho. teste_video_rastreio (novo) e a bateria do editor 0 falhas.
   NÃO testado com os modelos reais da Google (só baixam no aparelho). video-editor v22, ve-app v7, bw-rastreio v1, sw v203. PENTE FINO 201.
+- 23/11/2026 00:10 · Claude (dono, iPhone: relatório do TESTES E SOLUÇÕES com "editor de vídeo: a tela de app não montou / abriu vazia" + "não abre a área de
+  importação de mídia"): a folha MÍDIA abria vazia quando a seção estava fechada pela seta (título escondido na folha) → setas sempre abertas dentro da folha;
+  seletor de arquivo fora da tela em vez de hidden; casca de app monta em ~0,4 s; o teste do aparelho espera a casca até 8 s. teste_video_app (+1), video,
+  midia, takes, testes 0 falhas. NÃO conferido em iPhone real — aguarda o dono. ve-app v9, testes.js v2, sw v204. PENTE FINO 202.
 ## Pendências (dono)
 - [ ] (22/11) iPhone: abrir o EDITOR DE FOTOS no Safari e dizer se o desfoque de cima sumiu; testar ⚡ FAZER PROXY e a JANELA DE EXPORTAR no PC com takes reais.
 - [x] (22/11 21:03) BW-Setup.exe 1.9.34 gerado pelo dono e publicado (9,0 MB, versão conferida dentro do .exe).

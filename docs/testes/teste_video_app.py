@@ -186,6 +186,11 @@ with sync_playwright() as p:
         pg.evaluate("__video.irPara(0)"); pg.wait_for_timeout(300)
         rr = pg.evaluate("document.getElementById('veRolo').getBoundingClientRect()"); toque(rr["x"] + 20, r[1] + r[2] / 2); pg.wait_for_timeout(250)
         ok(pg.evaluate("!__video.selAtual()"), "tocar no vazio da linha do tempo LARGA o take (volta ao projeto)")
+        # 23/11 (dono, iPhone): a seção MÍDIA FECHADA pela seta deixava a folha vazia (o título com a seta fica escondido na folha)
+        pg.evaluate("localStorage.setItem('ui_dobras',JSON.stringify({'ve-midia':0}));BWDobras&&BWDobras.aplicar&&BWDobras.aplicar()"); pg.wait_for_timeout(200)
+        tocar_el("#vaAdd"); pg.wait_for_timeout(500)
+        ok(visivel(pg, "#veImportar") and visivel(pg, "#veLib"), "com a seção MÍDIA fechada pela seta, a folha abre COM a biblioteca e o ＋ IMPORTAR")
+        tocar_el("#vaSheetOk"); pg.evaluate("localStorage.removeItem('ui_dobras')"); pg.wait_for_timeout(300)
         # 22/11 (dono): (a) o espaço VAZIO abaixo dos takes também anda o tempo
         tl = pg.evaluate("(()=>{const a=document.getElementById('vaTl').getBoundingClientRect(),r=document.getElementById('veRolo').getBoundingClientRect();return [a.bottom,r.bottom,r.left+r.width/2]})()")
         ok(tl[1] >= tl[0] - 2, f"a área que arrasta o tempo vai até o fim da linha do tempo ({tl[1]:.0f} × {tl[0]:.0f})")

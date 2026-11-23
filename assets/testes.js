@@ -163,6 +163,8 @@
       var r = await prazo(carregou, 25000), ms = Math.round(performance.now() - t0);
       if (r === "__prazo") { add(G, "er", nome, "não terminou de abrir em 25 s", "lento"); fr.remove(); await espera(400); continue; }
       await espera(2800);
+      /* 23/11: no iPhone o editor reabre as mídias guardadas e a casca de app pode levar uns segundos — espera até 8 s antes de julgar */
+      for (var w = 0; w < 26; w++) { var cedo = false; try { cedo = fr.contentWindow.document.documentElement.classList.contains("app-cedo"); } catch (e) {} if (!cedo) break; await espera(200); }
       var m = null; try { m = fr.contentWindow.eval(MEDE); } catch (e) { m = null; }
       var errs = DIAG.slice(0, 3).map(function (e) { return e.msg + (e.onde ? " @ " + e.onde : ""); });
       var probs = [];

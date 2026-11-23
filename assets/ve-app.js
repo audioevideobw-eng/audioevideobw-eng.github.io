@@ -73,7 +73,7 @@
     var av = $("veAviso"); if (av) APP.appendChild(av);
     wrap.classList.add("va-escondido");
     ligar(); faixa(); medir(); setInterval(espelhar, 250); requestAnimationFrame(seguir);
-    try { new MutationObserver(function () { if (!SHEET.hidden && SHEET.dataset.g) filtrarGrupo(SHEET.dataset.g); clearTimeout(MOLHO._t); MOLHO._t = setTimeout(faixa, 30); }).observe($("vePropCorpo"), {childList: true}); } catch (e) {}
+    try { new MutationObserver(function () { if (!SHEET.hidden && SHEET.dataset.g) filtrarGrupo(SHEET.dataset.g); if (!SHEET.hidden) abrirSetas(); clearTimeout(MOLHO._t); MOLHO._t = setTimeout(faixa, 30); }).observe($("vePropCorpo"), {childList: true}); } catch (e) {}
     try { new ResizeObserver(medir).observe($("veRolo")); } catch (e) { addEventListener("resize", medir); }
     /* 22/11 (dono: "a tela descola para o lado"): faixa de ferramentas e linha do tempo com rolagem PRÓPRIA, presa nas pontas (sem o elástico do
        navegador) + setinhas ‹ › discretas na faixa de ferramentas (toque anda, segurar anda direto) — BWFerr.faixaFirme */
@@ -166,6 +166,9 @@
   var NOMES = {texto: "TEXTO", pos: "TAMANHO E POSIÇÃO", som: "SOM", vel: "VELOCIDADE", trans: "TRANSIÇÃO DE ENTRADA", efeito: "EFEITO", cor: "COR", ia: "PESSOA E FUNDO (IA)", selm: "MÁSCARA POR SELEÇÃO", rastro: "SEGUIR UM PONTO", elem: "ELEMENTO ANIMADO", chroma: "CHROMA KEY", tempo: "TEMPO E CAMADA"};
   function guardar() { [].slice.call(CORPO.children).forEach(function (x) { MOLHO.appendChild(x); }); CORPO.innerHTML = ""; SHEET.removeAttribute("data-g"); }
   function filtrarGrupo(g) { document.querySelectorAll("#vePropCorpo .ve-g").forEach(function (x) { x.classList.toggle("va-fora", x.getAttribute("data-g") !== g); }); }
+  /* 23/11 (dono, iPhone: "não abre a área de importação de mídia"): a seção MÍDIA tinha sido FECHADA pela seta (ui_dobras, vale no PC também) e, na folha,
+     o título com a seta fica escondido — a folha abria vazia, sem a biblioteca nem o ＋ IMPORTAR. Dentro da folha nada fica fechado (sem gravar a escolha). */
+  function abrirSetas() { CORPO.querySelectorAll("[data-seta]").forEach(function (t) { if (t.getAttribute("data-seta-forcar") !== "aberta") t.setAttribute("data-seta-forcar", "aberta"); if (t.classList.contains("fechada")) { t.classList.remove("fechada"); t.setAttribute("aria-expanded", "true"); } }); }
   function abrir(o, titulo) {
     guardar(); var tt = "";
     if (o.indexOf("g:") === 0) { var g = o.slice(2); SHEET.dataset.g = g; CORPO.appendChild($("veProp")); filtrarGrupo(g); tt = NOMES[g] || g.toUpperCase(); }
@@ -173,7 +176,7 @@
       tt = titulo || (o === "trans" ? "TRANSIÇÕES" : o === "efe" ? "EFEITOS" : "MÍDIA"); }
     else if (o === "criar") { CORPO.appendChild($("veCriar")); $("veCriar").hidden = false; tt = "CRIAR PARA A LINHA DO TEMPO"; }
     else if (o === "prop") { tt = "FORMATO"; CORPO.appendChild(formatos()); }
-    TIT.textContent = tt; SHEET.hidden = false; SHEET.dataset.o = o; H.classList.add("va-folha"); CORPO.scrollTop = 0;
+    abrirSetas();     TIT.textContent = tt; SHEET.hidden = false; SHEET.dataset.o = o; H.classList.add("va-folha"); CORPO.scrollTop = 0;
   }
   function fechar() { SHEET.hidden = true; guardar(); SHEET.removeAttribute("data-o"); H.classList.remove("va-folha"); }
   function formatos() { var f = $("veFmt"), box = el("div", "va-fmts"); if (!f) return box;
@@ -186,7 +189,7 @@
   /* 22/11 (dono, print do iPhone: abria o layout ANTIGO e a tela ficava travada): antes, se o editor demorasse > 10 s para reabrir as
      mídias guardadas, o app desistia e mostrava o layout do PC. Agora monta assim que o editor existe (no máx. 3 s de espera pelo
      "pronto") e NUNCA cai no layout antigo no celular — o que ainda estiver carregando aparece sozinho depois. */
-  var tent = 0; (function esperar() { if (window.__video && (window.__veProntoOk || tent > 60)) { try { montar(); } catch (e) { console.warn("casca do app", e); H.classList.remove("app-cedo"); } }
+  var tent = 0; (function esperar() { if (window.__video && (window.__veProntoOk || tent > 8)) { try { montar(); } catch (e) { console.warn("casca do app", e); H.classList.remove("app-cedo"); } }
     else if (tent++ < 400) setTimeout(esperar, 50); else H.classList.remove("app-cedo"); })();
   window.VEApp = {ligado: true, abrir: function (o) { abrir(o); }, fechar: fechar, faixa: function () { ASS = ""; faixa(); }, aberta: function () { return SHEET && !SHEET.hidden ? SHEET.dataset.o : ""; }};
 })();
