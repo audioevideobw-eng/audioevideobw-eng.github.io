@@ -27,6 +27,7 @@
     camadas: '<path d="M12 3l9 5-9 5-9-5z"/><path d="M3 13l9 5 9-5"/>', dividir: '<path d="M8 4v16M16 4v16"/><path d="M4 8l4 4-4 4M20 8l-4 4 4 4"/>',
     volume: '<path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16 9a4 4 0 010 6M18.5 6.5a8 8 0 010 11"/>', vel: '<path d="M4 15a8 8 0 1116 0"/><path d="M12 15l4-5"/>',
     cor: '<path d="M12 3c3 4 6 7 6 11a6 6 0 01-12 0c0-4 3-7 6-11z"/>', pessoa: '<circle cx="12" cy="7" r="3.5"/><path d="M5 21c0-4 3-7 7-7s7 3 7 7"/><path d="M3 3h4M17 3h4M3 3v4M21 3v4"/>',
+    masc: '<path d="M4 5h16v14H4z" stroke-dasharray="3 2"/><path d="M8 15l3-4 2 2 3-4"/>',
     chroma: '<rect x="3" y="4" width="18" height="14" rx="2"/><path d="M3 14l5-4 4 3 3-2 6 5"/>', pos: '<path d="M12 3v18M3 12h18"/><path d="M9 6l3-3 3 3M9 18l3 3 3-3M6 9l-3 3 3 3M18 9l3 3-3 3"/>',
     anima: '<circle cx="12" cy="12" r="9"/><path d="M10 8l6 4-6 4z"/>', duplicar: '<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M4 16V4h12"/>',
     trocar: '<path d="M4 9h13l-4-4M20 15H7l4 4"/>', apIni: '<path d="M4 4v16"/><path d="M20 12H8M12 8l-4 4 4 4"/>', apFim: '<path d="M20 4v16"/><path d="M4 12h12M12 8l4 4-4 4"/>',
@@ -76,8 +77,12 @@
     /* 22/11 (dono: "a tela descola para o lado"): faixa de ferramentas e linha do tempo com rolagem PRÓPRIA, presa nas pontas (sem o elástico do
        navegador) + setinhas ‹ › discretas na faixa de ferramentas (toque anda, segurar anda direto) — BWFerr.faixaFirme */
     if (window.BWFerr && BWFerr.faixaFirme) {
+      /* iPhone: nada fora das áreas que rolam (folhas) mexe a página — sem o "quique" da tela inteira */
+      document.addEventListener("touchmove", function (e) { if (!e.cancelable) return; var t = e.target;
+        if (!t || !t.closest || !t.closest(".va") || t.closest(".va-sheet-corpo,[data-rola-livre],input,textarea,select")) return; e.preventDefault(); }, {passive: false});
+      ["gesturestart", "gesturechange"].forEach(function (ev) { document.addEventListener(ev, function (e) { if (e.target && e.target.closest && e.target.closest(".va")) e.preventDefault(); }, {passive: false}); });
       BWFerr.faixaFirme(FAIXA, {setas: true, pai: APP, esq: function () { var v = FAIXA.querySelector(".va-f.volta"); return v ? v.offsetWidth + 8 : 0; }});
-      BWFerr.faixaFirme($("veRolo"), {aoRolar: function () { rolando = Date.now(); }, parar: function () { return !!window.__bwSegurando; }, pular: function (t) { return !!(t.closest && t.closest(".ve-clip.on,.al,[data-junta],[data-trp]")); }});
+      BWFerr.faixaFirme($("veRolo"), {vertical: $("veRolo").closest(".ve-tl-corpo"), aoRolar: function () { rolando = Date.now(); }, parar: function () { return !!window.__bwSegurando; }, pular: function (t) { return !!(t.closest && t.closest(".ve-clip.on,.al,[data-junta],[data-trp]")); }});
     }
   }
 
@@ -139,7 +144,7 @@
     if (c.tipo === "texto") { g("texto", "editar", "Editar texto"); L.push(["dividir", "Dividir", function () { clicar("veCortar"); }]); g("pos", "pos", "Posição"); g("tempo", "anima", "Tempo"); }
     else {
       L.push(["dividir", "Dividir", function () { clicar("veCortar"); }]); g("som", "volume", c.tipo === "audio" ? "Volume e limpeza" : "Volume"); g("vel", "vel", "Velocidade");
-      if (c.tipo !== "audio") { g("cor", "cor", "Cor"); g("efeito", "efe", "Efeitos"); g("trans", "trans", "Transição"); g("ia", "pessoa", "Pessoa (IA)"); g("chroma", "chroma", "Chroma"); g("pos", "pos", "Ajustar"); }
+      if (c.tipo !== "audio") { g("cor", "cor", "Cor"); g("efeito", "efe", "Efeitos"); g("trans", "trans", "Transição"); g("ia", "pessoa", "Pessoa (IA)"); g("selm", "masc", "Máscara"); g("chroma", "chroma", "Chroma"); g("pos", "pos", "Ajustar"); }
       g("tempo", "anima", "Animação"); L.push(["apIni", "Aparar início", function () { clicar("veApIni"); }], ["apFim", "Aparar fim", function () { clicar("veApFim"); }]);
     }
     L.push(["duplicar", "Duplicar", function () { clicar("veDuplicar"); }], ["mais3", "Mais", function () { opcoes(c); }], ["excluir", "Excluir", function () { clicar("veApagar"); }, "perigo"]);
@@ -156,7 +161,7 @@
   document.addEventListener("click", function (e) { var b = e.target.closest && e.target.closest("#vaFaixa .va-f"); if (!b || !FAIXA._L) return; var it = FAIXA._L[+b.dataset.i]; if (it) it[2](); });
 
   /* ---------- folhas que sobem de baixo ---------- */
-  var NOMES = {texto: "TEXTO", pos: "TAMANHO E POSIÇÃO", som: "SOM", vel: "VELOCIDADE", trans: "TRANSIÇÃO DE ENTRADA", efeito: "EFEITO", cor: "COR", ia: "PESSOA E FUNDO (IA)", chroma: "CHROMA KEY", tempo: "TEMPO E CAMADA"};
+  var NOMES = {texto: "TEXTO", pos: "TAMANHO E POSIÇÃO", som: "SOM", vel: "VELOCIDADE", trans: "TRANSIÇÃO DE ENTRADA", efeito: "EFEITO", cor: "COR", ia: "PESSOA E FUNDO (IA)", selm: "MÁSCARA POR SELEÇÃO", chroma: "CHROMA KEY", tempo: "TEMPO E CAMADA"};
   function guardar() { [].slice.call(CORPO.children).forEach(function (x) { MOLHO.appendChild(x); }); CORPO.innerHTML = ""; SHEET.removeAttribute("data-g"); }
   function filtrarGrupo(g) { document.querySelectorAll("#vePropCorpo .ve-g").forEach(function (x) { x.classList.toggle("va-fora", x.getAttribute("data-g") !== g); }); }
   function abrir(o, titulo) {

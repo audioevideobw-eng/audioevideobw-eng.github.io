@@ -21,7 +21,9 @@ html.ve-app #veCv{max-width:100%!important;max-height:100%!important;width:auto;
 .va-play.on::before{width:14px;height:18px;border:0;border-left:4px solid #fff;border-right:4px solid #fff;box-sizing:border-box;transform:none}
 .va-tl{position:relative;background:#111318;border-top:1px solid rgba(255,255,255,.06);max-height:34vh;min-height:118px;overflow:hidden;display:flex;flex-direction:column}
 html.va-grande .va{grid-template-rows:52px minmax(0,1fr) 46px 0 0}html.va-grande .va-tl,html.va-grande .va-faixa{display:none}
-.va-tl .ve-tl-corpo{display:block!important;flex:1;min-height:0;overflow-y:auto;overflow-x:hidden}
+.va-tl .ve-tl-corpo{display:flex!important;flex-direction:column;flex:1;min-height:0;overflow-y:auto;overflow-x:hidden}
+/* 22/11 (dono): o espaço vazio ABAIXO dos takes também arrasta o tempo — o #veRolo ocupa a altura toda da linha do tempo */
+html.ve-app .va-tl #veRolo{flex:1 0 auto;min-height:100%;box-sizing:border-box}
 html.ve-app .ve-rot{display:none!important}
 html.ve-app #veRolo{overflow-x:auto;overflow-y:hidden;overscroll-behavior:none;padding:0 var(--va-meio,50%);scrollbar-width:none;-webkit-overflow-scrolling:touch;touch-action:pan-x pan-y}
 html.ve-app #veRolo::-webkit-scrollbar{display:none}

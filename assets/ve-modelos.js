@@ -129,7 +129,7 @@
   }
   /* aplicar um modelo COM A PESSOA no take escolhido */
   async function aplicarMascara(tm, valor) {
-    var v = V(), c = v.selAtual(); if (!c || (c.tipo !== "video" && c.tipo !== "imagem")) { v.aviso("Escolha primeiro um TAKE de vídeo ou foto com uma pessoa (toque nele na linha do tempo).", true); return false; }
+    var v = V(), c = v.takeAlvo ? v.takeAlvo() : v.selAtual(); if (!c || (c.tipo !== "video" && c.tipo !== "imagem")) { v.aviso("Ponha primeiro um TAKE de vídeo ou foto com uma pessoa na linha do tempo.", true); return false; }
     c.ia = Object.assign({}, c.ia || {}, JSON.parse(JSON.stringify(tm.ia || {})));
     if (tm.sobrepor && c.trilha === "v1") c.trilha = "v2";
     (tm.textos || []).forEach(function (x) { v.P().clips.push({id: uid(), trilha: "tx", tipo: "texto", ini: c.ini, dur: Math.max(0.5, Math.min(c.dur, 8)), txt: preencher(x.txt, {TEXTO: valor || tm.padrao}), molde: x.txt, fonte: x.fonte || "Montserrat", tam: x.tam || 8, cor: x.cor || "#ffffff", fundo: x.fundo || "",
@@ -243,7 +243,7 @@
     if (b.tagName === "CANVAS") { var t0 = LISTA[+b.dataset.prev]; if (t0 && b.dataset.tipo !== "mascara") usar(t0, {}, true); return; }
     if (b.dataset.ver) { var tv = acharModelo(b.dataset.ver); if (tv) usar(tv, V().P().campos || {}, true); return; }
     if (b.dataset.usar) { var tu = acharModelo(b.dataset.usar); if (tu) { PEND = tu; formCampos(tu, "edicao", b.dataset.usar); } return; }
-    if (b.dataset.usarmasc != null) { var tm = MASCARAS[+b.dataset.usarmasc], c = V().selAtual(); if (!c || (c.tipo !== "video" && c.tipo !== "imagem")) { V().aviso("Escolha primeiro um TAKE de vídeo ou foto com uma pessoa (feche os modelos e toque nele na linha do tempo).", true); return; } PEND = tm; formCampos(tm, "mascara", b.dataset.usarmasc); return; }
+    if (b.dataset.usarmasc != null) { var tm = MASCARAS[+b.dataset.usarmasc], c = V().takeAlvo ? V().takeAlvo() : V().selAtual(); if (!c || (c.tipo !== "video" && c.tipo !== "imagem")) { V().aviso("Ponha primeiro um TAKE de vídeo ou foto com uma pessoa na linha do tempo.", true); return; } PEND = tm; formCampos(tm, "mascara", b.dataset.usarmasc); return; }
     if (b.dataset.confirmar != null) { var vals = valoresForm(); if (b.dataset.tipo === "mascara") aplicarMascara(PEND, vals.TEXTO); else usar(PEND, vals, false); return; }
     if (b.dataset.baixar) { var tb = acharModelo(b.dataset.baixar); if (!tb) return; var bl = new Blob([JSON.stringify(Object.assign({}, tb, {meu: undefined}), null, 1)], {type: "application/json"}), a = document.createElement("a"); a.href = URL.createObjectURL(bl); a.download = "modelo-" + tb.nome.toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 40) + ".json"; document.body.appendChild(a); a.click(); a.remove(); return; }
     if (b.dataset.apagar) { if (!confirm("Apagar este modelo seu?")) return; guardarMeus(meus().filter(function (t) { return t.id !== b.dataset.apagar; })); desenhar(); } }

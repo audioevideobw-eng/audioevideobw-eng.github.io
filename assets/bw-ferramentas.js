@@ -354,11 +354,13 @@
     function max() { return Math.max(0, el.scrollWidth - el.clientWidth); }
     function por(x) { var a = el.scrollLeft; el.scrollLeft = Math.max(0, Math.min(max(), x)); if (el.scrollLeft !== a && o.aoRolar) o.aoRolar(); setas(); }
     el.addEventListener("touchstart", function (e) { cancelAnimationFrame(anim); moveu = false; if (!e.touches || e.touches.length !== 1 || (o.pular && o.pular(e.target))) { st = null; return; }
-      var t = e.touches[0]; st = {x: t.clientX, y: t.clientY, sl: el.scrollLeft, lx: t.clientX, lt: performance.now(), dir: ""}; vel = 0; }, {passive: true});
+      var t = e.touches[0]; st = {x: t.clientX, y: t.clientY, sl: el.scrollLeft, vt: o.vertical ? o.vertical.scrollTop : 0, lx: t.clientX, lt: performance.now(), dir: ""}; vel = 0; }, {passive: true});
     el.addEventListener("touchmove", function (e) { if (o.parar && o.parar()) { if (e.cancelable) e.preventDefault(); st = null; moveu = true; return; }   /* o editor pegou o item (segurar e arrastar): nada de rolar */
       if (!st || !e.touches || e.touches.length !== 1) { st = null; return; } var t = e.touches[0], dx = t.clientX - st.x, dy = t.clientY - st.y;
-      if (!st.dir) { if (Math.abs(dx) < 6 && Math.abs(dy) < 6) return; st.dir = Math.abs(dx) > Math.abs(dy) ? "x" : "y"; }
-      if (st.dir !== "x") return; if (e.cancelable) e.preventDefault(); moveu = true;
+      /* 22/11 23:11 (dono, iPhone: "persiste o rebote"): o iPhone decide a rolagem nativa no 1º movimento — se ele passa sem preventDefault, a tela
+         inteira quica e o preventDefault depois já não vale. Então o começo é sempre nosso; na vertical, quem rola é o JS (o.vertical) */
+      if (!st.dir) { if (e.cancelable) e.preventDefault(); if (Math.abs(dx) < 6 && Math.abs(dy) < 6) return; st.dir = Math.abs(dx) > Math.abs(dy) ? "x" : "y"; }
+      if (st.dir !== "x") { if (e.cancelable) e.preventDefault(); if (o.vertical) o.vertical.scrollTop = st.vt - dy; return; } if (e.cancelable) e.preventDefault(); moveu = true;
       var agora = performance.now(), dt = Math.max(1, agora - st.lt); vel = 0.8 * ((t.clientX - st.lx) / dt) + 0.2 * vel; st.lx = t.clientX; st.lt = agora; por(st.sl - dx); }, {passive: false});
     el.addEventListener("touchend", function () { if (moveu) setTimeout(function () { moveu = false; }, 450); if (!st) return; var d = st.dir, parado = performance.now() - st.lt > 90; st = null; if (d !== "x" || parado) return;
       var v = -vel * 16; (function inercia() { if (Math.abs(v) < 0.5) return; var a = el.scrollLeft; por(a + v); if (el.scrollLeft === a) return; v *= 0.93; anim = requestAnimationFrame(inercia); })(); });

@@ -813,6 +813,19 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
      rolagem presa, app que não montou) + testes com a pessoa (dedo, segurar, bip, voz, topo). Cada problema traz a SOLUÇÃO; ↻ ATUALIZAR apaga só
      os caches de ARQUIVOS. Relatório → ENVIAR (bw_feedback, tipo Problema) ou COPIAR. Bug conhecido novo = SOLUÇÃO nova na tabela SOL (auto: teste_testes.py).
 
+**Aprendidos em 22/11 à noite (linha do tempo, camadas e máscara por seleção)**
+197. iPhone decide a rolagem nativa no PRIMEIRO touchmove: rolagem própria (faixaFirme) faz preventDefault desde o começo do gesto e, na vertical, rola
+     por JS (opção `vertical`) — senão a tela inteira "quica" e o preventDefault depois já não vale (cancelable false). Página-app trava o resto
+     (touchmove fora das folhas + gesturestart) para não ampliar com dois dedos. Segurar e arrastar take: touchmove com preventDefault enquanto pego,
+     senão subir/descer vira rolagem e o navegador cancela o arraste (pointercancel).
+198. Take levado ACIMA ou ABAIXO das camadas da família (vídeo/foto, texto, som) = camada nova ao SOLTAR (vertNova/camadaNova); "abaixo de tudo" renumera
+     a família e P.alt. Arraste só vertical também conta como mover. Área que arrasta o tempo (#veRolo) ocupa a altura toda da linha do tempo.
+199. Ação que precisa de "um take" (texto atrás da pessoa) usa takeAlvo(): escolhido → último escolhido → o da agulha → o primeiro — no celular abrir um submenu
+     larga a seleção. Cópia do arquivo na memória no iPhone só até 300 MB e com try/catch (antes falhava calado como "não é vídeo").
+200. MÁSCARA POR SELEÇÃO (c.selm {forma ret|elipse|livre, pts em fração do take, modo frente|so|esconder, borda, inv}): desenhada na prévia; "frente" redesenha a área
+     por cima dos textos; borda suave por reduzir/ampliar (vale no iPhone). Teste confere o PIXEL (docs/testes/teste_video_selecao.py). Nome de função
+     novo: procurar antes (uma `var visual` local escondia a função visual() e derrubou o editor).
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -2224,6 +2237,11 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   testes no aparelho da pessoa e mostra a solução de cada problema; relatório para a equipe. O motor do Safari para os testes daqui foi bloqueado pela rede.
   teste_fotos (+12), teste_video_app (+2), teste_testes (novo, 0 falhas × 1280/390), vídeo/fotos/layout/ambientes/modos/rolagem 0 falhas; vigia ✅.
   modos.js v7, layout.js v75, fotos.js v22, ve-app v5, video-editor v20, testes.js v1, sw v201. PENTE FINO 194–196.
+- 22/11/2026 23:40 · Claude (dono, celular: espaço vazio abaixo dos takes não andava o tempo; take arrastado para cima/baixo não criava camada; texto com máscara pedia
+  o take; iPhone: bug ao importar mídia e rebote ao rolar as ferramentas; pinça na prévia ampliava o app; "máscara por seleção, também objetos"): corrigidos os
+  cinco e nova MÁSCARA POR SELEÇÃO (retângulo, elipse, mão livre; objeto na frente dos textos / só a área / esconder; borda suave; inverter). Pinça com dois
+  dedos estica SÓ o take (texto: tamanho da letra). teste_video_app (+8), teste_video_selecao (novo) e a bateria do editor 0 falhas. video-editor v21,
+  ve-app v6, ve-app.css v8, ve-modelos v2, bw-ferramentas v6, sw v202. PENTE FINO 197–200. Rastreamento (fogo na mão) em andamento.
 ## Pendências (dono)
 - [ ] (22/11) iPhone: abrir o EDITOR DE FOTOS no Safari e dizer se o desfoque de cima sumiu; testar ⚡ FAZER PROXY e a JANELA DE EXPORTAR no PC com takes reais.
 - [x] (22/11 21:03) BW-Setup.exe 1.9.34 gerado pelo dono e publicado (9,0 MB, versão conferida dentro do .exe).

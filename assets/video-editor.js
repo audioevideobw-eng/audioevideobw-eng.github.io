@@ -22,6 +22,19 @@
     var l = Object.keys(ids), ord = {v: 0, t: 1, a: 2}; l.sort(function (a, b) { var fa = fam(a), fb = fam(b); if (fa !== fb) return ord[fa] - ord[fb]; return fa === "a" ? numTr(a) - numTr(b) : numTr(b) - numTr(a); });
     return l.map(function (id) { var i = infoTr(id); return [id, i[0], i[1]]; }); }
   function novaTrilha(f) { var n = 1; P.clips.forEach(function (c) { if (fam(c.trilha) === f) n = Math.max(n, numTr(c.trilha)); }); if (f !== "t") n = Math.max(n, 2); return idTr(f, n + 1); }
+  /* 22/11 (dono): take levado PARA CIMA ou PARA BAIXO, além das camadas da família dele (vídeo/foto, texto ou som) = camada nova ao soltar.
+     Visualmente: vídeo e texto têm o número MAIOR em cima; som tem o MENOR em cima. "Embaixo de tudo" renumera a família (e as alturas P.alt). */
+  function vertNova(c, e) { var f = famDoClip(c), fx = $("veFaixas"); if (!fx) return null;
+    var ls = [].slice.call(fx.querySelectorAll("[data-trilha]")).filter(function (x) { return fam(x.dataset.trilha) === f && x.getClientRects().length && x.getBoundingClientRect().height > 2; });
+    if (!ls.length) return null; var top = Infinity, bot = -Infinity; ls.forEach(function (x) { var r = x.getBoundingClientRect(); top = Math.min(top, r.top); bot = Math.max(bot, r.bottom); });
+    var so = P.clips.filter(function (x) { return x !== c && x.trilha === c.trilha; }).length === 0, minha = c.trilha, nums = P.clips.filter(function (x) { return fam(x.trilha) === f; }).map(function (x) { return numTr(x.trilha); }),
+      noTopo = f === "a" ? numTr(minha) <= Math.min.apply(null, nums) : numTr(minha) >= Math.max.apply(null, nums), noFundo = f === "a" ? numTr(minha) >= Math.max.apply(null, nums) : numTr(minha) <= Math.min.apply(null, nums);
+    if (e.clientY < top - 8) return so && noTopo ? null : "cima"; if (e.clientY > bot + 8) return so && noFundo ? null : "baixo"; return null; }
+  function camadaNova(c, lado) { var f = famDoClip(c), cimaMaior = f !== "a", novoMaior = (lado === "cima") === cimaMaior;
+    if (novoMaior) { c.trilha = "__x"; c.trilha = novaTrilha(f); return; }
+    var alt = {}; P.clips.forEach(function (x) { if (x !== c && fam(x.trilha) === f) x.trilha = idTr(f, numTr(x.trilha) + 1); });
+    if (P.alt) { Object.keys(P.alt).forEach(function (k) { alt[fam(k) === f ? idTr(f, numTr(k) + 1) : k] = P.alt[k]; }); P.alt = alt; }
+    c.trilha = idTr(f, 1); }
   /* aviso flutuante do arrastar (22/11): as duas escolhas, a ativa acesa */
   function dicaArr(e, modo, txt) {
     var d = document.getElementById("veDicaArr");
@@ -97,7 +110,7 @@
   function total() { return P.clips.reduce(function (m, c) { return Math.max(m, c.ini + c.dur); }, 0); }
 
   /* ---------- mídia ---------- */
-  function tipoDe(f) { var t = f.type || ""; if (/^video\//.test(t)) return "video"; if (/^audio\//.test(t)) return "audio"; if (/^image\//.test(t)) return "imagem"; var n = (f.name || "").toLowerCase(); return /\.(mp4|mov|webm|m4v)$/.test(n) ? "video" : /\.(mp3|wav|m4a|ogg|aac)$/.test(n) ? "audio" : /\.(png|jpe?g|webp|gif)$/.test(n) ? "imagem" : ""; }
+  function tipoDe(f) { var t = f.type || ""; if (/^video\//.test(t)) return "video"; if (/^audio\//.test(t)) return "audio"; if (/^image\//.test(t)) return "imagem"; var n = (f.name || "").toLowerCase(); return /\.(mp4|mov|webm|m4v)$/.test(n) ? "video" : /\.(mp3|wav|m4a|ogg|aac)$/.test(n) ? "audio" : /\.(png|jpe?g|webp|gif|heic|heif)$/.test(n) ? "imagem" : ""; }
   /* 22/11 (dono: "26 takes não abriram"): cada arquivo abria um <video> escondido para a duração e outro para a capa e NUNCA soltava —
      o navegador aguenta ~20–30 players ao mesmo tempo e, dali em diante, todo arquivo "não abria" (parecia HEVC sem ser). Agora: UM elemento
      por vez, solto no fim (soltarMidia), prazos maiores para 4K, nova tentativa antes de desistir e o motivo de verdade (HEVC só se o
@@ -136,17 +149,21 @@
   var IOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1);
   /* o iPhone invalida o arquivo escolhido depois (PENTE FINO 47): lá a cópia vai para a memória; no PC/Android o próprio arquivo serve —
      copiar 37 takes 4K inteiros para a memória é o que fazia a página travar */
-  async function copiaSegura(f) { return IOS || f.size < 80e6 ? new Blob([await f.arrayBuffer()], { type: f.type }) : f; }
+  /* 22/11 23:11 (dono: "no iPhone um bug ao importar mídia"): copiar um vídeo GRANDE inteiro para a memória do iPhone falha (ou derruba a página) e o
+     erro caía em "não é vídeo, imagem nem áudio". Agora: no iPhone copia até 300 MB; maior que isso, ou se a cópia falhar, usa o próprio arquivo. */
+  async function copiaSegura(f) { if (!(IOS ? f.size < 300e6 : f.size < 80e6)) return f;
+    try { return new Blob([await f.arrayBuffer()], { type: f.type || ({mov: "video/quicktime", mp4: "video/mp4", m4v: "video/mp4", heic: "image/heic"})[String(f.name).split(".").pop().toLowerCase()] || "" }); } catch (e) { return f; } }
   async function importar(files) {
-    var n = 0, fora = 0, ruins = [];
+    var n = 0, fora = 0, ruins = [], falhou = [];
     for (var i = 0; i < files.length; i++) { var f = files[i], t = tipoDe(f); if (!t) { fora++; continue; }
       if (files.length > 1) aviso("⏳ Trazendo " + (i + 1) + " de " + files.length + ": " + String(f.name).slice(0, 40) + "…");
-      try { var mm = await porMidia(await copiaSegura(f), f.name, t); n++; if (mm.ruim) ruins.push(mm.nome); desenharLib(); } catch (e) { fora++; } }   /* cópia na memória na hora (o iPhone invalida o original); a biblioteca aparece arquivo a arquivo */
+      try { var mm = await porMidia(await copiaSegura(f), f.name, t); n++; if (mm.ruim) ruins.push(mm.nome); desenharLib(); } catch (e) { console.warn("importar", f.name, e); falhou.push(String(f.name).slice(0, 30) + " (" + ((e && (e.name || e.message)) || "erro") + ")"); } }   /* cópia na memória na hora (o iPhone invalida o original); a biblioteca aparece arquivo a arquivo */
     desenharLib();
     /* 22/11 (dono: "bugs ao adicionar mídia"): arquivo que o navegador NÃO consegue abrir (vídeo HEVC/H.265 ou foto HEIC do iPhone, codec raro) entrava calado,
        com 5 s e tela preta. Agora fica marcado com ⚠ na biblioteca e o aviso diz o que fazer. */
     var hevc = ruins.filter(function (nm) { return Object.keys(MID).some(function (k) { return MID[k].nome === nm && MID[k].codec === "hevc"; }); }).length;
     if (ruins.length) aviso("⚠ " + ruins.length + " arquivo(s) não abriram (" + ruins.slice(0, 2).join(", ") + (ruins.length > 2 ? "…" : "") + "). " + (hevc ? hevc + " são HEVC/H.265. " : "") + "Vídeo HEVC ou foto HEIC do iPhone: Ajustes → Câmera → Formatos → MAIS COMPATÍVEL; no PC, o Chrome/Edge com a extensão HEVC do Windows abre. Toque em ↻ no arquivo para tentar de novo.", true);
+    else if (falhou.length) aviso("⚠ " + falhou.length + " arquivo(s) não entraram: " + falhou.slice(0, 2).join(", ") + ". Tente de novo com menos arquivos de uma vez" + (IOS ? " (no iPhone, vídeos muito longos pesam na memória)." : "."), true);
     else aviso(n ? n + " arquivo(s) na biblioteca. Toque neles para pôr na linha do tempo." + (fora ? " " + fora + " não é vídeo, imagem nem áudio." : "") : "Esse arquivo não é vídeo, imagem nem áudio.", !n);
   }
   async function criacoes() {   /* imagens criadas no QUADRO DE HISTÓRIA e os personagens com imagem (mesmo aparelho) */
@@ -394,11 +411,26 @@
     return EF;
   }
   // mod (transições): a = opacidade extra, dx/dy (fração da tela), k = escala, r = giro, recorte(ctx, W, H)
+  var SELDES = null, SMC = {};
+  function caminhoSel(x, sm, w, h) { var p = sm.pts; x.beginPath();
+    if ((sm.forma || "ret") === "livre") { p.forEach(function (q, i) { if (i) x.lineTo(q[0] * w, q[1] * h); else x.moveTo(q[0] * w, q[1] * h); }); x.closePath(); return; }
+    var x0 = Math.min(p[0][0], p[p.length - 1][0]) * w, y0 = Math.min(p[0][1], p[p.length - 1][1]) * h, x1 = Math.max(p[0][0], p[p.length - 1][0]) * w, y1 = Math.max(p[0][1], p[p.length - 1][1]) * h;
+    if (sm.forma === "elipse") x.ellipse((x0 + x1) / 2, (y0 + y1) / 2, Math.max(1, (x1 - x0) / 2), Math.max(1, (y1 - y0) / 2), 0, 0, Math.PI * 2); else x.rect(x0, y0, x1 - x0, y1 - y0); }
+  function compSel(fonte, fw, fh, sm, modo) { var k = Math.min(1, 1280 / Math.max(fw, fh)), w = Math.max(2, Math.round(fw * k)), h = Math.max(2, Math.round(fh * k));
+    var b = sm.borda == null ? 20 : sm.borda, red = 1 + b / 12, mw = Math.max(2, Math.round(w / red)), mh = Math.max(2, Math.round(h / red));
+    var mc = SMC.m || (SMC.m = document.createElement("canvas")); mc.width = mw; mc.height = mh; var mx = mc.getContext("2d"); mx.clearRect(0, 0, mw, mh); mx.fillStyle = "#fff";
+    caminhoSel(mx, sm, mw, mh); mx.fill(); if (sm.inv) { mx.globalCompositeOperation = "xor"; mx.fillRect(0, 0, mw, mh); mx.globalCompositeOperation = "source-over"; }
+    var oc = SMC["o" + modo] || (SMC["o" + modo] = document.createElement("canvas")); oc.width = w; oc.height = h; var ox = oc.getContext("2d"); ox.clearRect(0, 0, w, h); ox.drawImage(fonte, 0, 0, w, h);
+    ox.globalCompositeOperation = modo === "esconder" ? "destination-out" : "destination-in"; ox.imageSmoothingEnabled = true; ox.drawImage(mc, 0, 0, w, h); ox.globalCompositeOperation = "source-over"; return oc; }
+  /* onde o take está na tela (para desenhar a seleção na prévia) */
+  function caixaTake(c) { var f = fonteDe(c, T, true); if (!f || !f.w) return null; var W = cv.width, H = cv.height, s = (c.encaixe === "caber" ? Math.min : Math.max)(W / f.w, H / f.h) * (c.esc || 100) / 100, w = f.w * s, h = f.h * s;
+    return {x: (W - w) / 2 + (c.x || 0) / 100 * W, y: (H - h) / 2 + (c.y || 0) / 100 * H, w: w, h: h}; }
   function desenharMidia(fonte, fw, fh, c, t, mod) {
     if (!fw || !fh) return; mod = mod || {}; if (c.ck && !SEM_CK && window.BWChroma) { var semFundo = BWChroma.aplicar(fonte, fw, fh, c); if (semFundo) fonte = semFundo; }   /* chroma key: o fundo some antes de tudo */
     if (c.grade && !SEM_CK && window.BWCor && BWCor.ativo(c.grade)) { var comCor = BWCor.aplicar(fonte, fw, fh, c.grade); if (comCor) fonte = comCor; }   /* cor do take (BWCor), depois do recorte */
     if (c.ia && window.BWMascara && BWMascara.tem(c.mid) && (mod.soPessoa || (c.ia.fundo || ""))) { var mk = BWMascara.mascara(c.mid, c.tipo === "video" ? (c.corte || 0) + (t - c.ini) * vel(c) : 0);
       if (mk) fonte = BWMascara.compor(fonte, fw, fh, mk, c.ia, !!mod.soPessoa); }   /* pessoa e fundo (IA, no aparelho) */
+    if (c.selm && c.selm.pts && c.selm.pts.length > 1 && SELDES !== c.id && (mod.soSel || (c.selm.modo && c.selm.modo !== "frente"))) fonte = compSel(fonte, fw, fh, c.selm, mod.soSel ? "so" : c.selm.modo);
     var W = cv.width, H = cv.height, s = (c.encaixe === "caber" ? Math.min : Math.max)(W / fw, H / fh) * (c.esc || 100) / 100, w = fw * s, h = fh * s;
     var a = (c.op == null ? 100 : c.op) / 100 * fade(c, t) * (mod.a == null ? 1 : mod.a); if (a <= 0.001) return;
     var x = (W - w) / 2 + (c.x || 0) / 100 * W, y = (H - h) / 2 + (c.y || 0) / 100 * H;
@@ -479,7 +511,12 @@
     /* PESSOA NA FRENTE: o take com a pessoa é desenhado de novo, só a pessoa, por cima de tudo o que ficou "atrás dela" */
     if (window.BWMascara) P.clips.forEach(function (c) { if (fam(c.trilha) !== "v" || !c.ia || !c.ia.frente || !(t >= c.ini && t < c.ini + c.dur) || !BWMascara.tem(c.mid)) return;
       var f = fonteDe(c, t, true); if (f) desenharMidia(f.el, f.w, f.h, c, t, {soPessoa: true}); });
+    /* OBJETO NA FRENTE (máscara por seleção): a área do take é desenhada de novo por cima dos textos */
+    var frenteSel = P.clips.filter(function (c) { return fam(c.trilha) === "v" && c.selm && c.selm.pts && c.selm.pts.length > 1 && (c.selm.modo || "frente") === "frente" && SELDES !== c.id && t >= c.ini && t < c.ini + c.dur; });
     frente.forEach(function (c) { desenharTexto(c, t, c.anima === "anel" ? "frente" : ""); });
+    frenteSel.forEach(function (c) { var f = fonteDe(c, t, true); if (f) desenharMidia(f.el, f.w, f.h, c, t, {soSel: true}); });
+    if (SELDES && !GRAV) { var cs = P.clips.filter(function (x) { return x.id === SELDES; })[0], bx = cs && caixaTake(cs); if (bx) { cx.save(); cx.strokeStyle = "#FFD21F"; cx.lineWidth = Math.max(2, cv.width / 300); cx.setLineDash([cx.lineWidth * 4, cx.lineWidth * 3]);
+      cx.strokeRect(bx.x, bx.y, bx.w, bx.h); if (cs.selm && cs.selm.pts && cs.selm.pts.length > 1) { cx.translate(bx.x, bx.y); caminhoSel(cx, cs.selm, bx.w, bx.h); cx.fillStyle = "rgba(255,210,31,.22)"; cx.fill(); cx.setLineDash([]); cx.stroke(); } cx.restore(); } }
     $("veTempo").textContent = fmtT(T) + " / " + fmtT(total()); var ag = $("veAgulha"); if (ag) ag.style.left = (T * PPS) + "px"; if (!TOCANDO) marcarEmenda();
   }
   var t0 = 0, p0 = 0, raf = 0;
@@ -534,7 +571,16 @@
   function faixaR(k, rot, min, max, v, suf, passo) { return '<label><span>' + rot + '</span><input type="range" data-p="' + k + '" min="' + min + '" max="' + max + '" step="' + (passo || 1) + '" value="' + v + '"><output>' + v + (suf || "") + '</output></label>'; }
   var ANIMAS = [["", "Parado"], ["subir", "Sobe (por trás dos ombros)"], ["descer", "Desce"], ["zoom", "Zoom de entrada"], ["pulsar", "Pulsar"], ["letreiro", "Letreiro passando"], ["maquina", "Máquina de escrever"], ["anel", "Anel girando em volta"]];
   var ULT_SEL = null;
+  /* 22/11 (dono): "texto atrás da pessoa" pedia o take mesmo com ele escolhido — no celular, abrir o submenu de texto LARGA a seleção.
+     takeAlvo = o take escolhido; senão o último take de vídeo/foto escolhido; senão o que está na agulha; senão o primeiro. */
+  var ULTV = null;
+  function ehVisual(c) { return c && (c.tipo === "video" || c.tipo === "imagem"); }
+  function takeAlvo() { var c = sel(); if (ehVisual(c)) return c;
+    c = P.clips.filter(function (x) { return x.id === ULTV && ehVisual(x); })[0]; if (c) return c;
+    var naAg = P.clips.filter(function (x) { return ehVisual(x) && !x.off && x.ini <= T + 0.001 && x.ini + x.dur > T; }).sort(function (x, y) { return numTr(y.trilha) - numTr(x.trilha); })[0]; if (naAg) return naAg;
+    return P.clips.filter(ehVisual).sort(function (x, y) { return x.ini - y.ini; })[0] || null; }
   function desenharProp() {
+    if (ehVisual(sel())) ULTV = SEL;
     var c = sel(), b = $("vePropCorpo"); if (!c) { var nC = P.clips.length, f0 = FMT[P.fmt] || [P.w || cv.width, P.h || cv.height];
       b.innerHTML = '<div class="ve-g"><h4>O PROJETO</h4><p class="ve-nota" style="margin:0 0 4px">Tamanho: <b>' + tamReal()[0] + " × " + tamReal()[1] + ' px</b>' + (escalaPrev() < 1 ? '<br><span style="opacity:.75">Prévia leve: ' + cv.width + ' × ' + cv.height + ' (o vídeo sai no tamanho real)</span>' : '') + '<br><label style="display:flex;gap:6px;align-items:center;margin-top:4px;text-transform:none"><input type="checkbox" id="vePreviaCheia"' + (CHEIA ? ' checked' : '') + '> Prévia em tamanho cheio (mais pesado)</label><br>Duração: <b>' + fmtT(total()) + '</b><br>Clipes: <b>' + nC + '</b></p></div><p class="ve-nota" style="margin:0">Toque num clipe da linha do tempo: este painel mostra os ajustes daquele tipo de clipe (vídeo e foto, som ou texto).</p>'; return; }
     if (c.id !== ULT_SEL) { ULT_SEL = c.id; if (window.__veVista) window.__veVista.aoSelecionar(); }
@@ -573,6 +619,15 @@
           faixaR("ia:suave", "Borda suave", 0, 100, ia.suave == null ? 30 : ia.suave, "%") +
           '<div class="ve-linha" style="flex-wrap:wrap"><button class="ve-bt" type="button" data-acao="iaModelos">✨ MODELOS COM A PESSOA</button><button class="ve-bt" type="button" data-acao="iaAnalisar">↺ ANALISAR DE NOVO</button></div>' +
           '<p class="ve-nota" style="margin:6px 0 0">' + (function () { var i2 = BWMascara.info(c.mid); return i2 ? (i2.fps ? i2.quadros + " quadros analisados (" + i2.fps + " por segundo)" : "foto analisada") : ""; })() + '. Cabelo solto e mão na frente do rosto podem deixar a borda imperfeita.</p>'), !tem); }
+    /* 22/11 23:23 (dono: "máscara por SELEÇÃO, não só o automático nas pessoas — às vezes queremos mascarar objetos"): a pessoa desenha a área
+       na prévia (retângulo, elipse ou à mão livre) e escolhe: objeto NA FRENTE dos textos, mostrar SÓ a área ou ESCONDER a área. Pontos guardados em
+       fração do take (acompanham tamanho e posição dele). */
+    if (visual && c.tipo !== "texto") { var sm = c.selm || {}, temSm = sm.pts && sm.pts.length > 1, formas = [["ret", "▭ Retângulo"], ["elipse", "◯ Elipse"], ["livre", "✎ À mão livre"]], modos = [["frente", "Objeto na frente dos textos"], ["so", "Mostrar só a área"], ["esconder", "Esconder a área"]];
+      h += g("selm", "MÁSCARA POR SELEÇÃO (OBJETOS)", '<p class="ve-nota" style="margin:0 0 6px">Para um objeto, uma placa, o palco… Escolha a forma e desenhe com o dedo/mouse na prévia.</p>' +
+        '<div class="ve-chips">' + formas.map(function (f) { return '<button type="button" data-smforma="' + f[0] + '"' + ((sm.forma || "ret") === f[0] ? ' class="on"' : "") + '>' + f[1] + '</button>'; }).join("") + '</div>' +
+        '<div class="ve-linha"><button class="ve-bt' + (SELDES === c.id ? " on" : " pri") + '" type="button" data-acao="smDesenhar">' + (SELDES === c.id ? "✓ PRONTO (parar de desenhar)" : (temSm ? "✎ DESENHAR DE NOVO" : "✎ DESENHAR NA PRÉVIA")) + '</button>' + (temSm ? '<button class="ve-bt" type="button" data-acao="smLimpar">✕ TIRAR</button>' : "") + '</div>' +
+        (temSm ? '<p class="ve-sub">O QUE FAZER COM A ÁREA</p><div class="ve-chips">' + modos.map(function (m) { return '<button type="button" data-smmodo="' + m[0] + '"' + ((sm.modo || "frente") === m[0] ? ' class="on"' : "") + '>' + m[1] + '</button>'; }).join("") + '</div>' +
+          faixaR("sm:borda", "Borda suave", 0, 100, sm.borda == null ? 20 : sm.borda, "%") + '<div class="ve-chips"><button type="button" data-sminv="1"' + (sm.inv ? ' class="on"' : "") + '>⇄ Inverter a área</button></div>' : ""), !temSm && SELDES !== c.id); }
     if (visual && c.tipo !== "texto") h += g("chroma", "CHROMA KEY (TIRAR FUNDO VERDE)", '<div class="ve-chips"><button type="button" data-ck="0"' + (!c.ck ? ' class="on"' : "") + '>Desligado</button><button type="button" data-ck="1"' + (c.ck ? ' class="on"' : "") + '>Ligado</button></div>' +
       (c.ck ? '<div class="ve-chips"><button type="button" data-ckmodo="auto"' + (c.ckModo !== "manual" ? ' class="on"' : "") + '>⚡ Automático</button><button type="button" data-ckmodo="manual"' + (c.ckModo === "manual" ? ' class="on"' : "") + '>🎚 Manual</button></div>' +
         '<label class="um"><span>Cor do fundo</span><input type="color" data-p="ckCor" value="' + esc(c.ckCor || "#00d000") + '" aria-label="Cor do fundo a tirar"></label><div class="ve-linha"><button class="ve-bt" type="button" data-acao="ckPegar">🎯 ESCOLHER NA TELA</button><button class="ve-bt" type="button" data-acao="ckAuto">✦ ACHAR SOZINHO</button></div>' +
@@ -688,6 +743,7 @@
   $("veFecharSaida").onclick = function () { $("veSaida").hidden = true; try { $("veVideoPronto").pause(); } catch (e) {} };
   $("veCompartilhar").onclick = async function () { var s = $("veSaida"), f = new File([s._blob], s._nome, {type: s._blob.type}); try { if (navigator.canShare && navigator.canShare({files: [f]})) await navigator.share({files: [f]}); else $("veBaixar").click(); } catch (e) {} };
   $("vePropCorpo").addEventListener("input", function (e) { var el = e.target, k = el.dataset.p, c = sel(); if (!k || !c) return;
+    if (k.indexOf("sm:") === 0) { c.selm = c.selm || {}; c.selm[k.slice(3)] = +el.value; var o3 = el.nextElementSibling; if (o3) o3.textContent = el.value + "%"; desenhar(); guardar(); marcarHist(); return; }
     if (k.indexOf("ia:") === 0) { c.ia = c.ia || {}; c.ia[k.slice(3)] = el.type === "range" ? +el.value : el.value; if (el.type === "range") { var o2 = el.nextElementSibling; if (o2) o2.textContent = el.value + "%"; } desenhar(); guardar(); marcarHist(); return; }
     if (k === "volDb") { var db = +el.value; c.vol = db <= -40 ? 0 : Math.round(100 * Math.pow(10, db / 20)); var oo = el.nextElementSibling; if (oo) oo.textContent = db <= -40 ? "mudo" : String(db).replace(".", ",") + " dB"; desenharTL(); desenhar(); guardar(); marcarHist(); return; }
     if (k.indexOf("g:") === 0) { c.grade = c.grade || {}; c.grade[k.slice(2)] = +el.value; c.look = ""; var o0 = el.nextElementSibling; if (o0) o0.textContent = el.value; desenhar(); guardar(); marcarHist(); return; } var v = el.type === "range" ? +el.value : el.value;
@@ -713,6 +769,11 @@
     else if (b.dataset.acao === "iaAnalisar") analisarPessoa(c);
     else if (b.dataset.acao === "iaCancelar") { BWMascara.cancelar(); }
     else if (b.dataset.acao === "iaModelos") { if (window.VEModelos) VEModelos.abrir("mascara"); }
+    else if (b.hasAttribute("data-smforma")) { c.selm = c.selm || {}; c.selm.forma = b.dataset.smforma; SELDES = c.id; if (APP) { var fe2 = $("vaSheetOk"); if (fe2) fe2.click(); } desenharProp(); desenhar(); aviso("✎ Desenhe a área na prévia" + (c.selm.forma === "livre" ? " contornando o objeto." : " (arraste de um canto ao outro).")); }
+    else if (b.dataset.acao === "smDesenhar") { SELDES = SELDES === c.id ? null : c.id; if (SELDES && APP) { var fe = $("vaSheetOk"); if (fe) fe.click(); } if (SELDES) { c.selm = c.selm || {}; aviso("✎ Desenhe a área na prévia" + ((c.selm.forma || "ret") === "livre" ? " contornando o objeto." : " (arraste de um canto ao outro).")); } desenharProp(); desenhar(); }
+    else if (b.dataset.acao === "smLimpar") { delete c.selm; SELDES = null; tudo(); aviso("Máscara por seleção tirada."); }
+    else if (b.hasAttribute("data-smmodo")) { c.selm.modo = b.dataset.smmodo; tudo(); }
+    else if (b.hasAttribute("data-sminv")) { c.selm.inv = !c.selm.inv; tudo(); }
     else if (b.hasAttribute("data-iafrente")) { c.ia = c.ia || {}; c.ia.frente = b.dataset.iafrente === "1"; tudo(); }
     else if (b.hasAttribute("data-iafundo")) { c.ia = c.ia || {}; c.ia.fundo = b.dataset.iafundo; tudo(); }
     else if (b.hasAttribute("data-iacont")) { c.ia = c.ia || {}; c.ia.contorno = b.dataset.iacont === "1"; tudo(); }
@@ -759,7 +820,7 @@
        PEGA o take e já arrasta (antes segurar abria o menu e atrapalhava o arraste; o menu ficou no ⋯ MAIS) */
     if (toqueApp && SEL !== c.id) { segurarPegar(e, el, c, al); return; }
     if (SEL !== c.id) { SEL = c.id; $("veFaixas").querySelectorAll(".ve-clip").forEach(function (x) { x.classList.toggle("on", x === el); }); desenharProp(); }
-    arr = {tipo: al ? "al" + al : "mover", c: c, el: el, x0: e.clientX, ini: c.ini, dur: c.dur, corte: c.corte || 0, trOrig: c.trilha, moveu: false}; e.preventDefault();
+    arr = {tipo: al ? "al" + al : "mover", c: c, el: el, x0: e.clientX, y0: e.clientY, ini: c.ini, dur: c.dur, corte: c.corte || 0, trOrig: c.trilha, moveu: false}; e.preventDefault();
   });
   window.addEventListener("pointermove", function (e) {
     if (!arr) { lamina(e); return; }
@@ -771,19 +832,21 @@
       ct.trans.dur = Math.round(lim(arr.dur0 + (e.clientX - arr.x0) / PPS, 0.1, Math.min(ct.dur, ant ? ant.dur : ct.dur) * 0.9) * 10) / 10;
       var fx2 = $("veFaixas").querySelector('[data-clip="' + ct.id + '"] .tr'); if (fx2) fx2.style.width = Math.max(10, ct.trans.dur * PPS) + "px"; var jj = $("veFaixas").querySelector('[data-junta="' + ct.id + '"]'); if (jj) { jj.classList.add("com"); jj.innerHTML = "<b>" + esc(TRANS[ct.trans.tipo]) + " · " + String(ct.trans.dur).replace(".", ",") + " s</b>"; }
       if (!TOCANDO) { irPara(ct.ini + ct.trans.dur / 2); } return; }
-    var c = arr.c, d = (e.clientX - arr.x0) / PPS; if (Math.abs(e.clientX - arr.x0) > 3) arr.moveu = true; if (!arr.moveu) return;
+    var c = arr.c, d = (e.clientX - arr.x0) / PPS; if (Math.abs(e.clientX - arr.x0) > 3 || (arr.tipo === "mover" && Math.abs(e.clientY - arr.y0) > 6)) arr.moveu = true; if (!arr.moveu) return;
     var temFonte = c.tipo === "video" || c.tipo === "audio", r = function (v) { return Math.round(v * 20) / 20; };
     if (arr.tipo === "mover") { c.ini = Math.max(0, r(arr.ini + d)); var fx = document.elementFromPoint(e.clientX, e.clientY), fa = fx && fx.closest && fx.closest("[data-trilha]"); if (fa) { var tr = fa.dataset.trilha; if (fam(tr) === famDoClip(c) && tr !== c.trilha) { c.trilha = tr; fa.appendChild(arr.el); arr.el.style.setProperty("--c", corTr(tr)); } }
       /* 22/11 10:05 (dono): só é "em cima" quando o take cobre ao menos 60% do outro (e o dedo/mouse está sobre ele) — aí, ao soltar, aparece
          a ESCOLHA (trocar, substituir, pôr por cima ou cancelar) e nada muda até o toque. Menos que isso = ENCOSTAR: ao soltar ele encosta no vizinho. */
       var alvo = !livreEm(c.trilha, c.ini, c.dur, c) ? P.clips.filter(function (x) { return x !== c && x.trilha === c.trilha && x.ini < c.ini + c.dur - 0.02 && x.ini + x.dur > c.ini + 0.02; })
         .sort(function (x, y) { return Math.abs(x.ini + x.dur / 2 - c.ini - c.dur / 2) - Math.abs(y.ini + y.dur / 2 - c.ini - c.dur / 2); })[0] : null;
-      arr.troca = null; arr.encosta = null;
+      arr.troca = null; arr.encosta = null; arr.vert = vertNova(c, e);
+      if (arr.vert) { dicaArr(e, "", arr.vert === "cima" ? "⬆ SOLTE: CAMADA NOVA ACIMA" : "⬇ SOLTE: CAMADA NOVA ABAIXO"); arr.el.classList.add("nova"); arr.el.setAttribute("data-dica", arr.vert === "cima" ? "⬆ CAMADA NOVA" : "⬇ CAMADA NOVA"); }
+      else {
       if (alvo) { var ov = Math.min(c.ini + c.dur, alvo.ini + alvo.dur) - Math.max(c.ini, alvo.ini), tp = (e.clientX - $("veFaixas").getBoundingClientRect().left) / PPS, dentro = tp >= alvo.ini && tp <= alvo.ini + alvo.dur;
         if (ov / Math.min(c.dur, alvo.dur) >= 0.6 && dentro) { arr.troca = alvo; dicaArr(e, "", "Solte para escolher: trocar, substituir ou pôr por cima"); }
         else { arr.encosta = alvo; dicaArr(e, "", "⇤ ENCOSTAR no take ao lado (solte)"); } }
       else dicaArr(null);
-      arr.el.classList.toggle("nova", !!arr.troca); if (arr.troca) arr.el.setAttribute("data-dica", "SOLTE E ESCOLHA"); }
+      arr.el.classList.toggle("nova", !!arr.troca); if (arr.troca) arr.el.setAttribute("data-dica", "SOLTE E ESCOLHA"); } }
     else if (arr.tipo === "ale") { var dd = lim(d, temFonte ? -arr.corte / vel(c) : -arr.ini, arr.dur - 0.2); dd = Math.max(dd, -arr.ini); c.ini = r(arr.ini + dd); c.dur = r(arr.dur - dd); if (temFonte) c.corte = Math.max(0, arr.corte + dd * vel(c)); }
     else { c.dur = r(lim(arr.dur + d, 0.2, temFonte ? maxDur(c) : 600)); }
     arr.el.style.left = (c.ini * PPS) + "px"; arr.el.style.width = Math.max(18, c.dur * PPS) + "px"; if (!TOCANDO) desenhar();
@@ -791,8 +854,11 @@
   var SEG = null;
   function segurarPegar(e, el, c, al) { soltarSeg(); SEG = {x: e.clientX, y: e.clientY, x1: e.clientX, y1: e.clientY, t: setTimeout(function () { if (!SEG) return; var s0 = SEG;
       window.__bwSegurando = true; SEL = c.id; $("veFaixas").querySelectorAll(".ve-clip").forEach(function (x) { x.classList.toggle("on", x.dataset.clip === c.id); }); desenharProp();
-      arr = {tipo: al ? "al" + al : "mover", c: c, el: el, x0: s0.x1, ini: c.ini, dur: c.dur, corte: c.corte || 0, trOrig: c.trilha, moveu: false, segurou: true};
+      arr = {tipo: al ? "al" + al : "mover", c: c, el: el, x0: s0.x1, y0: s0.y1 || s0.y, ini: c.ini, dur: c.dur, corte: c.corte || 0, trOrig: c.trilha, moveu: false, segurou: true};
       if (navigator.vibrate) try { navigator.vibrate(12); } catch (x) {} aviso("✋ Take pego — arraste para o lugar e solte."); }, 320)}; }
+  /* 22/11 (dono: "jogo o take para cima/baixo e nada acontece"): depois de PEGAR o take segurando, o dedo que sobe/desce não pode virar rolagem
+     da linha do tempo (o navegador cancelava o arraste) — touchmove com preventDefault só enquanto o take está pego */
+  document.addEventListener("touchmove", function (e) { if ((arr && arr.c) || window.__bwSegurando) { if (e.cancelable) e.preventDefault(); } }, {passive: false, capture: true});
   function soltarSeg() { if (SEG) clearTimeout(SEG.t); SEG = null; window.__bwSegurando = false; }
   window.addEventListener("pointermove", function (e) { if (!SEG || arr) return; SEG.x1 = e.clientX; SEG.y1 = e.clientY; if (Math.hypot(e.clientX - SEG.x, e.clientY - SEG.y) > 8) soltarSeg(); }, true);
   window.addEventListener("pointercancel", function () { if (SEG && !arr) soltarSeg(); }, true);
@@ -800,6 +866,7 @@
   var ultimoXY = {x: 0, y: 0}; window.addEventListener("pointerup", function (e) { ultimoXY = {x: e.clientX, y: e.clientY}; }, true);
   window.addEventListener("pointerup", function () { if (SEG) { SEG = null; setTimeout(function () { window.__bwSegurando = false; }, 0); } if (!arr) return; var a = arr; arr = null; if (window.BWFerr) BWFerr.preso(false);
     dicaArr(null);
+    if (a.tipo === "mover" && a.moveu && a.vert) { camadaNova(a.c, a.vert); tudo(); marcar(a.c.id); aviso((a.vert === "cima" ? "⬆" : "⬇") + " Camada nova: " + infoTr(a.c.trilha)[0] + "."); return; }
     if (a.tipo === "mover" && a.moveu && a.troca) { tudo(true); escolherSobre(a, ultimoXY); return; }
     if (a.tipo === "mover" && a.moveu && a.encosta) encostar(a);
     if (a.tipo === "trans") { if (!a.moveu) { menuTrans(a.c, a.x0, a.y0); return; } tudo(); marcar(a.c.id); aviso("◧ Transição “" + TRANS[a.c.trans.tipo] + "” com " + String(a.c.trans.dur).replace(".", ",") + " s" + (a.tinha ? "." : " (Dissolver — toque no ◆ para trocar).")); return; }
@@ -846,6 +913,32 @@
     if (e.altKey && !e.ctrlKey) { var id = trilhaSob(e); if (!id) return; e.preventDefault(); alturaDe(id, e.deltaY < 0 ? 8 : -8); return; }
     if (e.ctrlKey) { e.preventDefault(); zoomEm(e.deltaY < 0 ? 1.25 : 0.8, e.clientX); } }, {passive: false}); });
   // PRÉVIA: V arrasta o clipe escolhido (ou o de cima) direto na tela; T cria um texto onde tocou; Z aproxima a linha do tempo
+  /* 22/11 23:23 (dono: "alterar a proporção do take com os dedos: o APLICATIVO vem e vai, não só o take"): DOIS DEDOS na prévia = esticar/encolher e
+     mover SÓ o take escolhido (texto: o tamanho da letra). A página não amplia (touch-action:none + gesture* no iPhone). */
+  var DESENHO = null;
+  cv.addEventListener("pointerdown", function (e) { if (!SELDES) return; var c = P.clips.filter(function (x) { return x.id === SELDES; })[0], bx = c && caixaTake(c); if (!bx) return;
+    e.stopImmediatePropagation(); e.preventDefault(); try { cv.setPointerCapture(e.pointerId); } catch (x) {}
+    var pt = function (ev) { var cr = cv.getBoundingClientRect(), px = (ev.clientX - cr.left) / cr.width * cv.width, py = (ev.clientY - cr.top) / cr.height * cv.height; return [Math.round(lim((px - bx.x) / bx.w, -0.2, 1.2) * 1000) / 1000, Math.round(lim((py - bx.y) / bx.h, -0.2, 1.2) * 1000) / 1000]; };
+    c.selm = c.selm || {}; c.selm.forma = c.selm.forma || "ret"; c.selm.pts = [pt(e)]; DESENHO = {c: c, pt: pt, id: e.pointerId}; desenhar(); }, true);
+  window.addEventListener("pointermove", function (e) { if (!DESENHO || e.pointerId !== DESENHO.id) return; e.stopImmediatePropagation(); var q = DESENHO.pt(e), p = DESENHO.c.selm.pts;
+    if (DESENHO.c.selm.forma === "livre") { var u = p[p.length - 1]; if (Math.hypot(q[0] - u[0], q[1] - u[1]) > 0.006) p.push(q); } else p[1] = q; desenhar(); }, true);
+  window.addEventListener("pointerup", function (e) { if (!DESENHO || e.pointerId !== DESENHO.id) return; e.stopImmediatePropagation(); var c = DESENHO.c; DESENHO = null; var p = c.selm.pts;
+    var ok = p.length > 2 || (p.length === 2 && Math.abs(p[0][0] - p[1][0]) > 0.02 && Math.abs(p[0][1] - p[1][1]) > 0.02); if (!ok) { delete c.selm.pts; desenhar(); aviso("Área muito pequena — arraste mais.", true); return; }
+    c.selm.modo = c.selm.modo || "frente"; SELDES = null; tudo(); aviso("✓ Área marcada: objeto NA FRENTE dos textos. Troque em MÁSCARA POR SELEÇÃO (só a área, esconder, inverter, borda)."); }, true);
+  var DEDOS = {}; cv.style.touchAction = "none";
+  ["gesturestart", "gesturechange", "gestureend"].forEach(function (ev) { cv.addEventListener(ev, function (e) { e.preventDefault(); }, {passive: false}); });
+  function pinca() { var ids = Object.keys(DEDOS); if (ids.length < 2) return null; var a = DEDOS[ids[0]], b = DEDOS[ids[1]]; return {d: Math.max(10, Math.hypot(a.x - b.x, a.y - b.y)), mx: (a.x + b.x) / 2, my: (a.y + b.y) / 2}; }
+  cv.addEventListener("pointerdown", function (e) { if (e.pointerType === "mouse") return; DEDOS[e.pointerId] = {x: e.clientX, y: e.clientY};
+    if (Object.keys(DEDOS).length !== 2) return; e.stopImmediatePropagation(); e.preventDefault();
+    var c = (arr && arr.c) || sel(); if (!c || c.tipo === "audio") { arr = null; return; } var pz = pinca();
+    if (arr && arr.tipo === "palco" && arr.moveu) { c.x = arr.px; c.y = arr.py; }
+    arr = {tipo: "pinca", c: c, d0: pz.d, mx: pz.mx, my: pz.my, esc0: c.esc || 100, tam0: c.tam || 8, px: c.x || 0, py: c.y || 0, moveu: false}; }, true);
+  window.addEventListener("pointermove", function (e) { if (!DEDOS[e.pointerId]) return; DEDOS[e.pointerId] = {x: e.clientX, y: e.clientY};
+    if (!arr || arr.tipo !== "pinca") return; e.stopImmediatePropagation(); var pz = pinca(); if (!pz) return; var k = pz.d / arr.d0, c = arr.c, cr = cv.getBoundingClientRect(); arr.moveu = true;
+    if (c.tipo === "texto") c.tam = Math.round(lim(arr.tam0 * k, 1, 60) * 10) / 10; else c.esc = Math.round(lim(arr.esc0 * k, 5, 800));
+    c.x = Math.round(lim(arr.px + (pz.mx - arr.mx) / cr.width * 100, -150, 150)); c.y = Math.round(lim(arr.py + (pz.my - arr.my) / cr.height * 100, -150, 150)); if (!TOCANDO) desenhar(); }, true);
+  function fimDedo(e) { if (!DEDOS[e.pointerId]) return; delete DEDOS[e.pointerId]; if (arr && arr.tipo === "pinca") { var a = arr; arr = null; if (a.moveu) { tudo(); aviso(a.c.tipo === "texto" ? "Tamanho do texto: " + a.c.tam : "Tamanho do take: " + a.c.esc + "%"); } } }
+  window.addEventListener("pointerup", fimDedo, true); window.addEventListener("pointercancel", fimDedo, true);
   cv.addEventListener("pointerdown", function (e) { if (e.button === 2) return; var F = window.BWFerr ? BWFerr.atual() : "v", cr = cv.getBoundingClientRect(), fx = (e.clientX - cr.left) / cr.width, fy = (e.clientY - cr.top) / cr.height;
     if (PEGAR_CK) { e.preventDefault(); pegarCor(fx, fy); return; }
     if ((F === "h" || e.button === 1) && ZP.z !== 1) { arr = {tipo: "pan", x0: e.clientX, y0: e.clientY, zx: ZP.x, zy: ZP.y}; e.preventDefault(); return; }
@@ -1339,7 +1432,7 @@
     trocarProjeto: function (np) { parar(); Object.keys(EL).forEach(soltarEl); P = np; SEL = null; T = 0; formato(); desenharLib(); tudo(); },
     backup: function () { return tx("estado", "readwrite", function (s) { return s.put({id: "anterior", p: JSON.parse(JSON.stringify(P))}); }); },
     anterior: function () { return new Promise(function (ok) { db().then(function (d) { var q = d.transaction("estado").objectStore("estado").get("anterior"); q.onsuccess = function () { ok(q.result && q.result.p); }; q.onerror = function () { ok(null); }; }); }); },
-    preencherSozinho: preencherSozinho, trocarEspaco: trocarEspaco, analisarPessoa: function (id) { var c = P.clips.filter(function (x) { return x.id === id; })[0]; return c ? analisarPessoa(c) : null; }, selAtual: function () { return sel(); }, aviso: aviso, cv: function () { return cv; },
+    preencherSozinho: preencherSozinho, trocarEspaco: trocarEspaco, analisarPessoa: function (id) { var c = P.clips.filter(function (x) { return x.id === id; })[0]; return c ? analisarPessoa(c) : null; }, selAtual: function () { return sel(); }, takeAlvo: function () { var c = takeAlvo(); if (c && SEL !== c.id) { SEL = c.id; desenharTL(); desenharProp(); } return c; }, aviso: aviso, cv: function () { return cv; },
     P: function () { return P; }, MID: MID, trazerCriacao: trazerCriacao, editarNaOrigem: editarNaOrigem, importar: importar, addClip: function () { return addClip.apply(this, arguments); }, addTexto: function () { return addTexto.apply(this, arguments); }, porSom: porSom, irPara: irPara, tocar: tocar, parar: parar, total: total, sel: function (id) { SEL = id; tudo(); }, exportar: exportar, tipoGravacao: tipoGravacao, T: function () { return T; }, tocando: function () { return TOCANDO; }, desenhar: desenhar, dividir: function () { return dividir.apply(this, arguments); }, sintetizar: sintetizar, congelar: congelar, mudarVel: mudarVel, desfazer: desfazer, refazer: refazer, pps: function () { return PPS; }, TRANS: TRANS, EFEITOS: EFEITOS};
   if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(function () { });
 })();

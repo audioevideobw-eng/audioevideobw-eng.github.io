@@ -186,6 +186,37 @@ with sync_playwright() as p:
         pg.evaluate("__video.irPara(0)"); pg.wait_for_timeout(300)
         rr = pg.evaluate("document.getElementById('veRolo').getBoundingClientRect()"); toque(rr["x"] + 20, r[1] + r[2] / 2); pg.wait_for_timeout(250)
         ok(pg.evaluate("!__video.selAtual()"), "tocar no vazio da linha do tempo LARGA o take (volta ao projeto)")
+        # 22/11 (dono): (a) o espaço VAZIO abaixo dos takes também anda o tempo
+        tl = pg.evaluate("(()=>{const a=document.getElementById('vaTl').getBoundingClientRect(),r=document.getElementById('veRolo').getBoundingClientRect();return [a.bottom,r.bottom,r.left+r.width/2]})()")
+        ok(tl[1] >= tl[0] - 2, f"a área que arrasta o tempo vai até o fim da linha do tempo ({tl[1]:.0f} × {tl[0]:.0f})")
+        sl0 = pg.evaluate("document.getElementById('veRolo').scrollLeft"); yv = tl[0] - 8
+        cdp.send("Input.dispatchTouchEvent", {"type": "touchStart", "touchPoints": [{"x": tl[2], "y": yv}]})
+        for k in range(1, 13): cdp.send("Input.dispatchTouchEvent", {"type": "touchMove", "touchPoints": [{"x": tl[2] - 10 * k, "y": yv}]}); pg.wait_for_timeout(16)
+        cdp.send("Input.dispatchTouchEvent", {"type": "touchEnd", "touchPoints": []}); pg.wait_for_timeout(600)
+        sl1 = pg.evaluate("document.getElementById('veRolo').scrollLeft"); ok(sl1 > sl0 + 40, f"arrastar o dedo no espaço vazio ABAIXO dos takes anda o tempo ({sl0:.0f} → {sl1:.0f} px)")
+        pg.evaluate("__video.irPara(0)"); pg.wait_for_timeout(400)
+        # (c) segurar o take e levar PARA CIMA / PARA BAIXO = camada nova (vídeo e som)
+        def levar(cid, dy):
+            pg.evaluate(f"(()=>{{const c={CL}.find(c=>c.id==='{cid}');__video.irPara(c.ini+c.dur/2)}})()"); pg.wait_for_timeout(500)
+            bx = pg.locator(f'[data-clip="{cid}"]').first.bounding_box(); lo = max(bx["x"], 0) + 10; hi = min(bx["x"] + bx["width"], vp[0] - 90) - 10; x = (lo + hi) / 2; y = bx["y"] + bx["height"] / 2
+            cdp.send("Input.dispatchTouchEvent", {"type": "touchStart", "touchPoints": [{"x": x, "y": y}]}); pg.wait_for_timeout(500)
+            for k in range(1, 13): cdp.send("Input.dispatchTouchEvent", {"type": "touchMove", "touchPoints": [{"x": x, "y": y + dy * k / 12}]}); pg.wait_for_timeout(18)
+            cdp.send("Input.dispatchTouchEvent", {"type": "touchEnd", "touchPoints": []}); pg.wait_for_timeout(700)
+            return pg.evaluate(f"{CL}.find(c=>c.id==='{cid}').trilha")
+        tr0 = pg.evaluate(f"{CL}.find(c=>c.id==='{c1}').trilha"); n0 = pg.evaluate(f"{CL}.length")
+        tr1 = levar(c1, -70); ok(tr1[0] == "v" and int(tr1[1:]) > int(tr0[1:]) and pg.evaluate(f"{CL}.length") == n0, f"take levado PARA CIMA vai para uma camada NOVA acima ({tr0} → {tr1})")
+        pg.evaluate("__video.irPara(0)"); pg.wait_for_timeout(300)
+        tr2 = levar(c1, 140); outros = pg.evaluate(f"{CL}.filter(c=>c.id!=='{c1}'&&c.trilha[0]==='v').map(c=>c.trilha)")
+        ok(tr2 == "v1" and "v1" not in outros, f"take levado PARA BAIXO de tudo vira a camada de baixo (os outros sobem: {outros})")
+        pg.evaluate("__video.desfazer && __video.desfazer()"); pg.wait_for_timeout(500)
+        ok(pg.evaluate(f"{CL}.find(c=>c.id==='{c1}').trilha") == tr1, "DESFAZER volta o take para onde estava")
+        # (b) texto atrás da pessoa SEM o take escolhido (no celular o submenu de texto larga a seleção) usa o take da agulha
+        pg.evaluate("__video.sel(null)"); pg.wait_for_timeout(200); nt = pg.evaluate(f"{CL}.filter(c=>c.tipo==='texto').length")
+        pg.evaluate("VEModelos.abrir('mascara')"); pg.wait_for_timeout(400)
+        pg.evaluate("document.querySelector('[data-usarmasc]').click()"); pg.wait_for_timeout(300)
+        pg.evaluate("(()=>{const b=document.querySelector('[data-confirmar]');if(b)b.click()})()"); pg.wait_for_timeout(900)
+        ok(pg.evaluate(f"{CL}.filter(c=>c.tipo==='texto').length") > nt and pg.evaluate("!!(__video.selAtual()&&__video.selAtual().ia)"), "TEXTO ATRÁS DA PESSOA sem take escolhido aplica no take da agulha (não pede para escolher)")
+        pg.evaluate("(()=>{const f=document.getElementById('vmFechar');if(f&&f.offsetParent)f.click()})()"); pg.evaluate("__video.sel(null)"); pg.wait_for_timeout(300)
         # modelo pronto: faixa "faltam N", tocar no espaço → Trocar pelo meu take → escolher o vídeo
         pg.evaluate("VEModelos.usar(VEModelos.EDICOES[0], {}, false)"); pg.wait_for_function("__video.P().clips.some(c=>c.ph)", timeout=15000); pg.wait_for_timeout(900)
         ok(visivel(pg, "#vmFaixa"), "MODELO aplicado: a faixa do modelo (faltam N takes, preencher sozinho) aparece no app")
