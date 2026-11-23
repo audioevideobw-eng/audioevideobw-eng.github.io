@@ -220,7 +220,7 @@ if lgx and ("bw_excluir_minha_conta" not in lgx or "lExportar" not in lgx):
     problemas.append("login.html: sem 'Baixar meus dados' / 'Excluir minha conta' (LGPD)")
 
 # 7.8 páginas públicas obrigatórias
-for p in ["baixar.html", "privacidade.html", "termos.html", "politica.html", "financeiro-painel.html", "investimentos-painel.html", "marketing.html", "assistente.html", "transcricao.html", "pdf.html",
+for p in ["baixar.html", "privacidade.html", "termos.html", "politica.html", "seguranca.html", "financeiro-painel.html", "investimentos-painel.html", "marketing.html", "assistente.html", "transcricao.html", "pdf.html",
           "crm.html", "captacao.html", "resultados.html", "fotos.html", "pedido.html"]:
     if p not in todos:
         problemas.append(f"{p} sumiu (link de instalação / política exigida pelo Google / painel financeiro)")
@@ -477,6 +477,10 @@ for p, t in _codigo.items():
     if "xlsx@0.18" in t: problemas.append(f"{p}: xlsx 0.18 tem falhas conhecidas (use o CDN do SheetJS 0.20.3+)")
 if "politica.html" not in ler("assets/layout.js") or "POLÍTICA DE USO" not in ler("assets/layout.js"):
     problemas.append("layout.js: POLÍTICA DE USO sumiu do menu")
+if "seguranca.html" not in ler("assets/layout.js") or "SEGURANÇA E DADOS" not in ler("assets/layout.js"):
+    problemas.append("layout.js: SEGURANÇA E DADOS sumiu do menu (página dedicada aos dados, compartilhamentos e testes)")
+if "bw-escudo--topo" not in ler("assets/layout.js") or "bw-escudo--menu" not in ler("assets/layout.js"):
+    problemas.append("layout.js: o ESCUDO de segurança ao lado do LOGADO (topo e menu) sumiu")
 
 # 7.9 páginas com o visual novo (menu lateral) — exceto as de propósito
 SEM_MENU = {"controle.html", "login.html", "cadastro.html", "pedido.html", "baixar.html", "privacidade.html", "termos.html", "politica.html", "financeiro-painel.html", "investimentos-painel.html", "app.html", "financeiro.html", "fluxo.html", "custos.html"}

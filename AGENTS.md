@@ -2339,10 +2339,19 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   agente_leitor, propostas, criador, crm, agenda, fotos, vídeo, motion, 3d, convites, ia_retoque, assinatura — 0 falhas. App BW 1.9.36
   (gsap fixo no motor, cdn.sheetjs.com no uso sem internet, cópia sem internet refeita, tutorial). .exe NÃO gerado (sem acesso à pasta do PC).
   layout.js v77, sw v207. PENTE FINO 208.
+- 23/11/2026 10:00 · Claude (dono: "uma página dedicada sobre a segurança e seus testes para o usuário entender seus dados e os compartilhamentos
+  permitidos" + "selo de segurança elegante, escudo animado, e o escudo ao lado do LOGADO no menu e no cabeçalho, como botão de acesso" + "não
+  citar a skill nem o autor, só os itens conferidos"): página SEGURANÇA E SEUS DADOS (seguranca.html, Conta → submenu e item do menu com ícone de
+  escudo): escudo animado no topo (flutua, brilho passando, anéis de luz, check que se desenha; parado com "reduzir movimento"), onde ficam os dados
+  (conta / pasta privada / só no aparelho), quem vê, COMPARTILHAMENTOS PERMITIDOS (pedido de orçamento, cadastro, presença, galeria, WhatsApp/e-mail,
+  avisos, controle pelo celular) e o que nunca acontece, IA, os 8 ataques com o resultado e as checagens de rotina, e "você no controle". Selo próprio
+  em icons/selo-seguranca.svg; ESCUDO (bw-escudo) ao lado do LOGADO no topo de todas as páginas e na conta do menu (layout.js). Vigia: página
+  obrigatória + escudo e item no menu. Testes: página e escudo em 1280/390 (0 erro, 0 estouro, 0 bloqueio de CSP), layout e rolagem 0 falhas.
+  Manual p. 66 refeita. App BW 1.9.37. layout.js v78, brightway.css v38, sw v208. .exe: pendente (sem acesso à pasta do PC).
 
 ## Pendências (dono)
-- [ ] (23/11) APP BW 1.9.36 (segurança): gerar o BW-Setup.exe no PC (Vídeos\bw-reels-studio → "5 - GERAR INSTALADOR EXE") — o Claude não teve
-      acesso à pasta. O app instalado já recebe a 1.9.36 pela ATUALIZAÇÃO automática.
+- [ ] (23/11) APP BW 1.9.37 (segurança + página Segurança e seus dados): gerar o BW-Setup.exe no PC (Vídeos\bw-reels-studio → "5 - GERAR INSTALADOR EXE") — o Claude não teve
+      acesso à pasta. O app instalado já recebe a 1.9.37 pela ATUALIZAÇÃO automática.
 - [ ] (23/11) iPhone: fechar e abrir o app, tocar em ＋ → ＋ IMPORTAR e dizer se a galeria abriu. PC: testar o laço na linha do tempo e os avisos pequenos.
 - [ ] (23/11 00:37, dono: "depois terminamos, grave o que falta") FALTA: (a) dono testar no iPhone — ＋ IMPORTAR/＋ abrindo a galeria, .MOV da câmera sem ⚠
       (importar de novo), rebote (dizer em qual parte ainda quica), folha MÍDIA vazia, pinça na prévia, layout de app, rastreio com mão/corpo reais;

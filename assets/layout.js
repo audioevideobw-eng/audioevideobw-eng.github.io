@@ -73,7 +73,7 @@
     crm: [["crm","Painel do CRM"],["captacao","Funil de clientes"],["resultados","Indicadores"]],
     mkt: [["marketing","Todas de marketing"],["promptia","Prompt IA"],["reels","BW Reels Pro"],["personagens","Personagens"],["video","Editor de vídeo"],["motion","Estúdio de motion"],["telas","Telas em movimento"],["album3d","Álbum 3D e efeitos"],["3d","Estúdio 3D"],["criador","Criador IA"],["fotos","Editor de fotos"],["assistente","Assistente de texto"],["transcricao","Transcrição e legendas"]],
     ferr: [["ferramentas","Todas as ferramentas"],["pdf","PDF"],["dados","Meus dados"]],
-    conta: [["config","Configurações e aparência"],["login","Acesso"],["configadm","Configuração (ADM)"]]
+    conta: [["config","Configurações e aparência"],["seguranca","Segurança e seus dados"],["login","Acesso"],["configadm","Configuração (ADM)"]]
   };
   function categoriaDe(p){
     if (p === "index") return "inicio";
@@ -87,7 +87,7 @@
     return "conta";
   }
   var CAT = categoriaDe(PAGINA);
-  var TITULOS = { index:"Início", ferramentas:"Ferramentas", negocio:"Minha empresa", eventos:"Eventos", evento:"Evento no exterior",
+  var TITULOS = { index:"Início", seguranca:"Segurança e seus dados", ferramentas:"Ferramentas", negocio:"Minha empresa", eventos:"Eventos", evento:"Evento no exterior",
     equipe:"Gestão de pessoas", "financeiro-painel":"Painel Financeiro", financeiro:"Financeiro de eventos", preco:"Calculadora de preço",
     lancamentos:"Lançamentos", fluxo:"Fluxo de caixa", custos:"Cachês e custos", orcamento:"Orçamento familiar", casa:"Minha casa", contas:"Contas a pagar",
     reserva:"Reserva de emergência", milhas:"Mercado de milhas", meta:"Meta de milhas",
@@ -114,6 +114,16 @@
     return html;
   }).join("");
 
+  /* 23/11 (pedido do dono): ESCUDO de segurança ao lado do LOGADO (topo e menu) → seguranca.html. Mesmo desenho de icons/selo-seguranca.svg. */
+  function bwEscudo(id) {
+    return '<svg class="bw-escudo-svg" viewBox="0 0 240 250" width="24" height="25" aria-hidden="true"><defs>' +
+      '<linearGradient id="' + id + 'o" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FBE7A1"/><stop offset=".45" stop-color="#D9AE4E"/><stop offset="1" stop-color="#F3D27C"/></linearGradient>' +
+      '<linearGradient id="' + id + 'v" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2FD08A"/><stop offset=".6" stop-color="#0E8F5F"/><stop offset="1" stop-color="#064E3B"/></linearGradient></defs>' +
+      '<path d="M120 12C150 30 182 38 214 40C214 120 200 190 120 248C40 190 26 120 26 40C58 38 90 30 120 12Z" fill="url(#' + id + 'o)"/>' +
+      '<path d="M120 30C147 45 175 53 199 55C197 123 184 178 120 228C56 178 43 123 41 55C65 53 93 45 120 30Z" fill="url(#' + id + 'v)"/>' +
+      '<path d="M78 128L109 159L165 101" fill="none" stroke="#fff" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  }
+  var ESCUDO_LINK = function (id, cls) { return '<a class="bw-escudo ' + cls + '" href="seguranca.html" title="Segurança e seus dados: onde ficam, o que pode ser compartilhado e os testes" aria-label="Segurança e seus dados">' + bwEscudo(id) + '</a>'; };
   var menu = '<aside class="bw-menu" id="bwMenu">' +
     '<div class="logo"><a href="./" aria-label="Brightway, início"><div role="img" aria-label="BRIGHTWAY" style="font-family:Michroma,sans-serif;font-size:17px;line-height:1;letter-spacing:.16em;color:#F5F1EA;white-space:nowrap;margin-right:-.16em">BRIGHTW<svg viewBox="0 0 80 72" aria-hidden="true" style="width:.8em;height:.72em;vertical-align:baseline;overflow:visible;margin-right:.16em"><defs><linearGradient id="rdM" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#FFB547" stop-opacity=".04"/><stop offset="1" stop-color="#FFB547" stop-opacity=".55"/></linearGradient></defs><path d="M4 72 L37 8 L43 8 L76 72 Z" fill="url(#rdM)"/><path d="M4.5 70 L37.5 8 M75.5 70 L42.5 8" stroke="#FFB547" stroke-width="8" stroke-linecap="square" fill="none"/><path d="M40 68 L40 24" stroke="#FFF4DC" stroke-width="3" stroke-dasharray="8 6"/><path d="M40 -16 L42.8 -.8 L58 2 L42.8 4.8 L40 20 L37.2 4.8 L22 2 L37.2 -.8 Z" fill="#FFF8EA"/></svg>Y</div></a></div>' +
     itens +
@@ -122,6 +132,8 @@
     '<a class="bw-fb-btn bw-cfg" href="config.html" title="Meus dados e modos de aparência"><svg width="17" height="17" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M12 2v3M12 19v3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M2 12h3M19 12h3M4.9 19.1 7 17M17 7l2.1-2.1"/></svg><span>CONFIGURAÇÕES</span></a>' +
     /* 15/11 (pedido do dono): baixar o Guia do usuário (PDF) direto do menu */
     '<a class="bw-fb-btn bw-manual" href="docs/Brightway-Guia-do-usuario.pdf" target="_blank" rel="noopener" download="Brightway-Guia-do-usuario.pdf" title="Guia do usuário em PDF"><svg width="17" height="17" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/><path d="M12 7v6M9.5 10.5 12 13l2.5-2.5"/></svg><span>MANUAL DO USUÁRIO</span></a>' +
+    /* 23/11 (pedido do dono): página dedicada à SEGURANÇA — dados, compartilhamentos permitidos e testes */
+    '<a class="bw-fb-btn bw-manual bw-seguranca" href="seguranca.html" title="Onde ficam os seus dados, o que pode ser compartilhado e como a plataforma é testada"><svg width="17" height="17" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5 4.5 5.3v6.1c0 4.7 3.2 8.9 7.5 10.1 4.3-1.2 7.5-5.4 7.5-10.1V5.3z"/><path d="m8.6 12.2 2.4 2.4 4.6-4.8"/></svg><span>SEGURANÇA E DADOS</span></a>' +
     /* 23/11 (pedido do dono, junto da análise de segurança): POLÍTICA DE USO sempre à vista no menu */
     '<a class="bw-fb-btn bw-manual bw-politica" href="politica.html" title="Regras de uso e como protegemos os seus dados"><svg width="17" height="17" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 4 5v6c0 5 3.4 9.4 8 11 4.6-1.6 8-6 8-11V5z"/><path d="m9 12 2 2 4-4"/></svg><span>POLÍTICA DE USO</span></a>' +
     '<div class="sync-card">' +
@@ -130,6 +142,7 @@
       '<a href="#" class="so-web" onclick="window.bwInstalarApp();return false">Instalar no celular</a>' +
     '</div>' +
     '<div class="bw-menu-conta"><div data-slot="userBox" style="font-size:11px;color:var(--txt2)"></div>' +
+      ESCUDO_LINK("bwEscM", "bw-escudo--menu") +
       '<button type="button" class="bw-atualizar" onclick="window.bwAtualizar(this)" title="Atualizar a página (sincroniza e recarrega)" aria-label="Atualizar"><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/></svg><span>ATUALIZAR</span></button></div>' +
     '</aside>';
 
@@ -264,6 +277,8 @@
     at.onclick = function(){ window.bwAtualizar(at); };
     var sl = acoes.querySelector(".bw-topo-logado");
     acoes.insertBefore(at, sl ? sl.nextSibling : acoes.firstChild);
+    var esc0 = document.createElement("span"); esc0.innerHTML = ESCUDO_LINK("bwEscT", "bw-escudo--topo");
+    acoes.insertBefore(esc0.firstChild, sl ? sl.nextSibling : acoes.firstChild);
   }
   var vb = document.getElementById("btnVoltar");
   if (vb) vb.onclick = function(){ history.back(); };

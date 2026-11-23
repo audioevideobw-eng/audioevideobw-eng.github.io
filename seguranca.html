@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' blob: https://cdn.jsdelivr.net https://cdn.sheetjs.com; worker-src 'self' blob: https://cdn.jsdelivr.net; connect-src 'self' data: blob: https://zdtnetplvdonogmdvarx.supabase.co wss://zdtnetplvdonogmdvarx.supabase.co https://cdn.jsdelivr.net https://cdn.sheetjs.com https://open.er-api.com https://olinda.bcb.gov.br https://raw.githubusercontent.com https://storage.googleapis.com https://huggingface.co https://*.huggingface.co https://*.hf.co https://tessdata.projectnaptha.com https://fonts.googleapis.com https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' data: blob: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; font-src 'self' data: https://fonts.gstatic.com https://cdn.jsdelivr.net; frame-src 'self' blob: data: https://docs.google.com; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Segurança e seus dados — Brightway</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#06080D">
+<link rel="icon" type="image/png" href="icons/favicon-64.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="Brightway">
+<link rel="stylesheet" href="assets/brightway.css?v=38">
+<style>
+.wrap{max-width:1100px;margin:0 auto;padding:0 16px 120px}
+.sg-cx{min-width:0;margin-bottom:16px;padding:18px;border-radius:20px;background:var(--bw-card-bg);border:1px solid var(--bw-card-borda)}
+.sg-cx>h2{margin:0 0 4px;font:800 13px Inter,sans-serif;letter-spacing:.14em;color:var(--bw-marfim)}
+.sg-cx>p,.sg-p{margin:0 0 12px;font:500 14px/1.6 Inter,sans-serif;color:var(--bw-texto-3)}
+.sg-cx b{color:var(--bw-marfim)}
+.sg-grade{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px}
+.sg-card{min-width:0;padding:14px;border-radius:16px;border:1px solid var(--bw-card-borda);background:rgba(127,127,127,.06)}
+.sg-card h3{margin:0 0 6px;font:800 14px/1.3 Inter,sans-serif;color:var(--bw-marfim)}
+.sg-card p{margin:0;font:500 13.5px/1.55 Inter,sans-serif;color:var(--bw-texto-3)}
+.sg-card .ve{margin-top:8px;font:600 12.5px/1.45 Inter,sans-serif;color:var(--bw-texto-2)}
+.sg-tag{display:inline-block;margin:0 0 8px;padding:3px 9px;border-radius:999px;font:800 10px Inter,sans-serif;letter-spacing:.1em}
+.sg-tag.nuvem{background:rgba(76,141,255,.16);color:#7fb0ff}
+.sg-tag.apar{background:rgba(47,208,138,.16);color:#4fe0a0}
+.sg-tag.priv{background:rgba(255,181,71,.16);color:#ffc56b}
+.sg-tab{width:100%;border-collapse:collapse;font:500 13.5px/1.5 Inter,sans-serif}
+.sg-tab th,.sg-tab td{padding:10px 8px;border-bottom:1px solid var(--bw-card-borda);text-align:left;vertical-align:top;color:var(--bw-texto-2)}
+.sg-tab th{font:800 11px Inter,sans-serif;letter-spacing:.1em;color:var(--bw-texto-3)}
+.sg-tab td:first-child{color:var(--bw-marfim);font-weight:700}
+.sg-ok{display:inline-block;padding:3px 9px;border-radius:999px;background:rgba(34,197,94,.15);color:#22c55e;font:800 10.5px Inter,sans-serif;letter-spacing:.08em;white-space:nowrap}
+.sg-nao{margin:0;padding-left:18px;font:500 14px/1.7 Inter,sans-serif;color:var(--bw-texto-3)}
+.sg-linha{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+.sg-bt{min-height:46px;padding:0 16px;border-radius:13px;border:1px solid var(--bw-card-borda);background:rgba(127,127,127,.1);color:var(--bw-marfim);font:800 12px Inter,sans-serif;letter-spacing:.07em;display:inline-flex;align-items:center;justify-content:center;text-decoration:none}
+.sg-bt.pri{background:var(--bw-ambar);border-color:var(--bw-ambar);color:var(--bw-noite)}
+.sg-hero{position:relative;text-align:center;padding:26px 16px 22px;margin-bottom:16px;border-radius:24px;overflow:hidden;
+  background:radial-gradient(ellipse at 50% 30%,rgba(47,208,138,.16),rgba(47,208,138,0) 60%),var(--bw-card-bg);border:1px solid var(--bw-card-borda)}
+.sg-palco{position:relative;width:220px;height:240px;margin:0 auto 6px;display:flex;align-items:center;justify-content:center}
+.sg-escudo{position:relative;z-index:2;width:190px;height:auto;filter:drop-shadow(0 14px 24px rgba(0,0,0,.55)) drop-shadow(0 0 22px rgba(47,208,138,.28));animation:sgFlutua 5s ease-in-out infinite}
+.sg-anel{position:absolute;left:50%;top:46%;width:150px;height:150px;margin:-75px 0 0 -75px;border-radius:50%;border:2px solid rgba(47,208,138,.55);opacity:0;animation:sgAnel 3.6s ease-out infinite}
+.sg-anel.a2{animation-delay:1.2s;border-color:rgba(243,210,124,.5)}.sg-anel.a3{animation-delay:2.4s}
+.sg-luz{animation:sgLuz 4.2s ease-in-out infinite}
+.sg-check{stroke-dasharray:140;stroke-dashoffset:140;animation:sgCheck .9s .35s cubic-bezier(.6,0,.2,1) forwards}
+@keyframes sgFlutua{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+@keyframes sgAnel{0%{transform:scale(.7);opacity:.7}100%{transform:scale(1.7);opacity:0}}
+@keyframes sgLuz{0%{transform:rotate(18deg) translateX(-40px)}55%,100%{transform:rotate(18deg) translateX(300px)}}
+@keyframes sgCheck{to{stroke-dashoffset:0}}
+@media (prefers-reduced-motion:reduce){.sg-escudo,.sg-anel,.sg-luz{animation:none}.sg-anel{display:none}.sg-check{animation:none;stroke-dashoffset:0}}
+.sg-hero h1{margin:4px 0 8px;font:800 clamp(24px,4vw,32px)/1.2 Inter,sans-serif;color:var(--bw-marfim)}
+.sg-sub{max-width:640px;margin:0 auto 14px;font:500 15px/1.6 Inter,sans-serif;color:var(--bw-texto-3)}
+.sg-chips{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.sg-chips span{padding:8px 14px;border-radius:999px;background:rgba(47,208,138,.1);border:1px solid rgba(47,208,138,.3);font:600 12.5px Inter,sans-serif;color:var(--bw-texto-2)}
+.sg-chips b{color:#2FD08A}
+.sg-hero .sg-indice{justify-content:center}
+.sg-indice{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.sg-indice a{padding:7px 12px;border-radius:999px;border:1px solid var(--bw-card-borda);color:var(--bw-texto-2);font:700 12px Inter,sans-serif;text-decoration:none}
+@media (max-width:600px){.sg-tab thead{display:none}.sg-tab tr{display:block;padding:10px 0;border-bottom:1px solid var(--bw-card-borda)}.sg-tab td{display:block;border:0;padding:2px 0}}
+</style>
+<script src="assets/modos.js?v=7"></script>
+</head>
+<body>
+<header><div class="hd"><button id="btnVoltar" type="button" title="Voltar">‹</button><div id="userBox"></div></div></header>
+<div class="wrap">
+
+  <section class="sg-hero" aria-labelledby="sgTit">
+    <div class="sg-palco" aria-hidden="true">
+      <span class="sg-anel"></span><span class="sg-anel a2"></span><span class="sg-anel a3"></span>
+      <svg class="sg-escudo" viewBox="0 0 240 280">
+        <defs>
+          <linearGradient id="hOuro" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FBE7A1"/><stop offset=".35" stop-color="#E2B95A"/><stop offset=".6" stop-color="#B8892F"/><stop offset="1" stop-color="#F3D27C"/></linearGradient>
+          <linearGradient id="hVerde" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2FD08A"/><stop offset=".55" stop-color="#0E8F5F"/><stop offset="1" stop-color="#064E3B"/></linearGradient>
+          <linearGradient id="hBrilho" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".45"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+          <linearGradient id="hFaixa" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".55"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+          <linearGradient id="hFita" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1B2433"/><stop offset="1" stop-color="#0B1018"/></linearGradient>
+          <clipPath id="hCorte"><path d="M120 12 C150 30 182 38 214 40 C214 120 200 190 120 248 C40 190 26 120 26 40 C58 38 90 30 120 12 Z"/></clipPath>
+        </defs>
+        <path d="M120 12 C150 30 182 38 214 40 C214 120 200 190 120 248 C40 190 26 120 26 40 C58 38 90 30 120 12 Z" fill="url(#hOuro)"/>
+        <path d="M120 26 C147 42 176 50 202 52 C200 122 186 180 120 232 C54 180 40 122 38 52 C64 50 93 42 120 26 Z" fill="url(#hVerde)"/>
+        <path d="M120 38 C144 52 168 59 190 61 C188 124 175 172 120 216 C65 172 52 124 50 61 C72 59 96 52 120 38 Z" fill="none" stroke="#F3D27C" stroke-opacity=".55" stroke-width="2"/>
+        <path d="M120 26 C147 42 176 50 202 52 C201 80 197 104 190 124 C160 104 92 96 46 118 C41 99 39 77 38 52 C64 50 93 42 120 26 Z" fill="url(#hBrilho)"/>
+        <g clip-path="url(#hCorte)"><rect class="sg-luz" x="-60" y="-20" width="70" height="320" fill="url(#hFaixa)" transform="rotate(18 120 140)"/></g>
+        <path class="sg-check" d="M80 128 L109 157 L163 101" fill="none" stroke="#fff" stroke-width="17" stroke-linecap="round" stroke-linejoin="round"/>
+        <rect x="34" y="202" width="172" height="40" rx="7" fill="url(#hFita)" stroke="url(#hOuro)" stroke-width="2.5"/>
+        <text x="120" y="228.5" text-anchor="middle" font-family="Inter, Montserrat, sans-serif" font-size="17" font-weight="800" letter-spacing="4" fill="#F3D27C">PROTEGIDO</text>
+      </svg>
+    </div>
+    <h1 id="sgTit">Seus dados protegidos</h1>
+    <p class="sg-sub">Onde ficam os seus dados, quem consegue ver, o que pode ser compartilhado e como a plataforma é testada — em palavras simples.</p>
+    <div class="sg-chips">
+      <span><b>8 de 8</b> ataques comuns bloqueados</span>
+      <span><b>Cada conta</b> só vê o que é dela</span>
+      <span>Última análise <b>23/11/2026</b></span>
+    </div>
+    <nav class="sg-indice" aria-label="Nesta página">
+      <a href="#onde">Onde ficam</a><a href="#quem">Quem vê</a><a href="#compartilhar">Compartilhamentos</a><a href="#ia">IA</a><a href="#testes">Testes</a><a href="#controle">Você no controle</a>
+    </nav>
+  </section>
+
+  <section class="sg-cx" id="onde">
+    <h2>ONDE FICAM OS SEUS DADOS</h2>
+    <p>A plataforma guarda cada coisa no lugar mais seguro para ela. Muita coisa nem sai do seu aparelho.</p>
+    <div class="sg-grade">
+      <div class="sg-card"><span class="sg-tag nuvem">NA SUA CONTA (NUVEM)</span><h3>O que sincroniza entre celular e PC</h3>
+        <p>Lançamentos, contas, eventos, equipe, agenda, orçamentos, funil de clientes, investimentos e os roteiros do BW Reels.</p>
+        <p class="ve">Protegido no próprio banco de dados: cada conta só lê e altera as próprias linhas.</p></div>
+      <div class="sg-card"><span class="sg-tag priv">PASTA PRIVADA</span><h3>Documentos e fotos de eventos</h3>
+        <p>Contratos, notas fiscais, comprovantes, PDFs da equipe e fotos dos eventos.</p>
+        <p class="ve">Não têm endereço público: abrem só por link temporário, gerado na hora para quem tem permissão.</p></div>
+      <div class="sg-card"><span class="sg-tag apar">SÓ NO SEU APARELHO</span><h3>O que nunca vai para a internet</h3>
+        <p>Fotos no editor, projetos de vídeo, motion, telas, álbum e 3D, o kit da sua marca, o certificado digital e a senha dele, e o modo de aparência escolhido.</p>
+        <p class="ve">Ficam no armazenamento do navegador ou do app BW neste aparelho.</p></div>
+    </div>
+  </section>
+
+  <section class="sg-cx" id="quem">
+    <h2>QUEM CONSEGUE VER</h2>
+    <div class="sg-grade">
+      <div class="sg-card"><h3>Você</h3><p>Tudo o que é da sua conta, em qualquer aparelho em que entrar com o seu e-mail ou Google.</p></div>
+      <div class="sg-card"><h3>Outras contas</h3><p>Nada. Nem por erro, nem tentando: a regra fica no banco de dados, não só na tela. Isso foi conferido ao vivo, tabela por tabela.</p></div>
+      <div class="sg-card"><h3>Visitantes (sem conta)</h3><p>Nada dos seus dados. Só conseguem usar os links que você mandar, e cada link faz uma coisa só (veja abaixo).</p></div>
+      <div class="sg-card"><h3>A equipe BW</h3><p>Pela plataforma, só o que você envia para ela, como o <b>ENVIAR FEEDBACK</b>. O acesso direto ao servidor existe apenas para manutenção técnica. Seus dados nunca são vendidos nem usados para anúncios.</p></div>
+    </div>
+  </section>
+
+  <section class="sg-cx" id="compartilhar">
+    <h2>COMPARTILHAMENTOS PERMITIDOS</h2>
+    <p>Estas são as únicas formas de algo seu chegar a outra pessoa — e sempre porque <b>você</b> gerou o link ou tocou para enviar.</p>
+    <table class="sg-tab">
+      <thead><tr><th>O que você compartilha</th><th>O que a outra pessoa pode fazer</th><th>Proteção</th></tr></thead>
+      <tbody>
+        <tr><td>Link PEDIR ORÇAMENTO</td><td>Preencher e enviar um pedido para você. Não vê nada da sua conta nem os pedidos de outros.</td><td>Só funciona com link registrado; limite de envios por hora.</td></tr>
+        <tr><td>Link de CADASTRO de colaborador ou cliente</td><td>Enviar os próprios dados (nome, contatos, CPF/CNH). Só você recebe e lê.</td><td>O banco recusa link que não é seu; limite por hora.</td></tr>
+        <tr><td>Link de PRESENÇA no evento</td><td>Confirmar se vai, não vai ou talvez. Vê só o nome do evento.</td><td>Só para eventos registrados na sua conta.</td></tr>
+        <tr><td>GALERIA do cliente</td><td>Ver e baixar as fotos daquele evento.</td><td>Link secreto; os endereços das fotos valem 1 hora; contratos, notas e comprovantes ficam de fora.</td></tr>
+        <tr><td>WhatsApp e e-mail</td><td>Receber a mensagem que você revisou.</td><td>A plataforma só abre o aplicativo com o texto pronto — quem envia é você.</td></tr>
+        <tr><td>E-mail automático de avisos</td><td>A equipe recebe o lembrete da véspera; você, o resumo do dia.</td><td>Só se você ligar em AVISOS; cada aviso sai uma vez.</td></tr>
+        <tr><td>Controle pelo celular</td><td>O seu celular toca, pausa e corta no editor do PC.</td><td>Vai só o comando; o vídeo não sai do computador e nada é gravado.</td></tr>
+      </tbody>
+    </table>
+    <p class="sg-p" style="margin-top:14px"><b>Nunca acontece:</b></p>
+    <ul class="sg-nao">
+      <li>outra conta ver ou alterar os seus dados;</li>
+      <li>um link mostrar a sua lista de clientes, lançamentos ou documentos;</li>
+      <li>mensagem, e-mail ou foto sair sem você tocar para enviar;</li>
+      <li>seus dados irem para anunciantes ou outras empresas.</li>
+    </ul>
+  </section>
+
+  <section class="sg-cx" id="ia">
+    <h2>QUANDO VOCÊ USA A IA</h2>
+    <div class="sg-grade">
+      <div class="sg-card"><h3>IA de texto (Tio Cláudio, roteiros, orçamentos)</h3><p>Recebe só o pedido e o mínimo para entender (ex.: nomes dos próximos eventos). Perguntas como "quanto gastei" são calculadas no seu aparelho. Limite de 60 pedidos por dia.</p></div>
+      <div class="sg-card"><h3>IA de imagem</h3><p>Uma foto só sai do aparelho depois que você confirma, em cópia pequena, e não fica guardada. Limite de 15 imagens por dia.</p></div>
+      <div class="sg-card"><h3>Leitor de contas</h3><p>A imagem fica no aparelho. Se a IA ajudar a organizar, vai só o texto, com CPF, CNPJ, e-mail e telefone tapados.</p></div>
+      <div class="sg-card"><h3>Nada é lançado sozinho</h3><p>O que a IA entende vira um cartão para você conferir e tocar em ✓ LANÇAR. Nenhuma chave de IA fica no site.</p></div>
+    </div>
+  </section>
+
+  <section class="sg-cx" id="testes">
+    <h2>COMO A PLATAFORMA É TESTADA</h2>
+    <p>Análise de 23/11/2026 contra os 8 ataques mais comuns em sites e sistemas feitos com IA:</p>
+    <table class="sg-tab">
+      <thead><tr><th>Ataque</th><th>Em palavras simples</th><th>Resultado</th></tr></thead>
+      <tbody>
+        <tr><td>Código injetado na página (XSS)</td><td>Alguém escrever um texto que vira comando na tela de outra pessoa.</td><td><span class="sg-ok">PROTEGIDO</span></td></tr>
+        <tr><td>Rotas expostas (IDOR)</td><td>Trocar um número no endereço e abrir dados de outra conta.</td><td><span class="sg-ok">PROTEGIDO</span></td></tr>
+        <tr><td>Chave exposta</td><td>Senha ou chave secreta esquecida no código.</td><td><span class="sg-ok">PROTEGIDO</span></td></tr>
+        <tr><td>Banco de dados aberto</td><td>Ler a lista de dados sem estar logado.</td><td><span class="sg-ok">PROTEGIDO</span></td></tr>
+        <tr><td>SQL injection</td><td>Digitar um comando num campo e mexer no banco.</td><td><span class="sg-ok">PROTEGIDO</span></td></tr>
+        <tr><td>Sem limite de tentativas</td><td>Robô tentando senhas ou mandando formulários sem parar.</td><td><span class="sg-ok">PROTEGIDO</span></td></tr>
+        <tr><td>Prompt injection</td><td>Um texto escondido "mandar" na IA para ela agir sozinha.</td><td><span class="sg-ok">PROTEGIDO</span></td></tr>
+        <tr><td>Pacotes inventados ou com falha</td><td>Biblioteca falsa, abandonada ou com falha conhecida.</td><td><span class="sg-ok">PROTEGIDO</span></td></tr>
+      </tbody>
+    </table>
+    <p class="sg-p" style="margin-top:14px"><b>E todo dia, a cada atualização:</b></p>
+    <div class="sg-grade">
+      <div class="sg-card"><h3>Vigia automático</h3><p>Antes de publicar, um conferente recusa a versão se achar chave secreta no código, página sem proteção do navegador ou biblioteca com falha conhecida.</p></div>
+      <div class="sg-card"><h3>Testes das ferramentas</h3><p>Mais de 60 testes automáticos usam cada ferramenta como uma pessoa usaria, no computador e no celular, e conferem que nada sai do aparelho quando não deve.</p></div>
+      <div class="sg-card"><h3>Proteção do navegador</h3><p>As páginas só carregam código de endereços conhecidos, conferem a "impressão digital" de cada biblioteca externa e não conseguem mandar dados para servidores fora da lista.</p></div>
+      <div class="sg-card"><h3>Banco conferido ao vivo</h3><p>As regras de acesso de cada tabela foram lidas direto no servidor, e um visitante sem conta enxerga zero registros dos usuários.</p></div>
+    </div>
+  </section>
+
+  <section class="sg-cx" id="controle">
+    <h2>VOCÊ NO CONTROLE</h2>
+    <p>Baixe uma cópia dos seus dados quando quiser, exclua a conta junto com os dados dela ou teste a plataforma no seu próprio aparelho.</p>
+    <div class="sg-linha">
+      <a class="sg-bt pri" href="login.html#dados">BAIXAR MEUS DADOS / EXCLUIR CONTA</a>
+      <a class="sg-bt" href="teste.html">🩺 TESTES E SOLUÇÕES</a>
+      <a class="sg-bt" href="#" onclick="window.bwFeedback && window.bwFeedback(); return false;">RELATAR UM PROBLEMA</a>
+    </div>
+    <div class="sg-linha">
+      <a class="sg-bt" href="politica.html">POLÍTICA DE USO</a>
+      <a class="sg-bt" href="privacidade.html">PRIVACIDADE</a>
+      <a class="sg-bt" href="termos.html">TERMOS DE USO</a>
+    </div>
+    <p class="sg-p" style="margin-top:14px">Achou algo estranho? Não teste em contas de outras pessoas — conte o que viu pelo <b>ENVIAR FEEDBACK</b> (tipo "Problema") ou pelo e-mail <a href="mailto:audioevideobw@gmail.com" style="color:var(--bw-ambar)">audioevideobw@gmail.com</a>.</p>
+  </section>
+</div>
+<script src="assets/layout.js?v=78"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.2/dist/umd/supabase.js" integrity="sha384-A97u3Qnt9GZHURO9YJZRe7VQgGUeFzcv6I1oIGnUTxQrCxnpQMwR0/G8F2zt9abZ" crossorigin="anonymous"></script>
+<script src="assets/bw-sync.js?v=20261122"></script>
+<script>
+(function () {
+  "use strict";
+  /* SEGURANÇA E SEUS DADOS (23/11/2026, Claude — pedido do dono): página só de leitura; não lê nem grava dados. */
+  var $ = function (id) { return document.getElementById(id); };
+  var esc = function (s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return {"&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;"}[c]; }); };
+  var vb = $("btnVoltar"); if (vb) vb.onclick = function () { if (history.length > 1) history.back(); else location.href = "./"; };
+  (async function () {
+    var el = $("userBox"); if (!el) return;
+    try {
+      var sb = window.BWSync && BWSync.cliente(); var s = sb ? await sb.auth.getSession() : null;
+      var u = s && s.data && s.data.session && s.data.session.user;
+      el.innerHTML = u ? '<a href="login.html" class="bw-logado" title="Conta: ' + esc(u.email) + '"><i></i>LOGADO</a>'
+                       : '<a href="login.html" class="bw-btn bw-btn--vidro" style="min-height:34px;padding:0 14px;font-size:12px">LOGIN</a>';
+    } catch (e) { }
+  })();
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(function () { });
+})();
+</script>
+</body>
+</html>

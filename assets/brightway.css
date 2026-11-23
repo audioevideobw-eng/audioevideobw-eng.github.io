@@ -849,3 +849,12 @@ html.bw-foco :is(.bw-btn,.ve-bt,.mo-bt,.tl-bt,.d3-bt,.al-bt,.rl-bt,.pg-bt)[disab
 .bw-msg.erro{color:var(--m-erro,#FFD9DA);background:color-mix(in srgb,var(--m-erro,#FF6B6B) 13%,transparent);
   border-color:color-mix(in srgb,var(--m-erro,#FF6B6B) 40%,transparent)}
 .bw-msg[hidden]{display:none}
+
+/* ===== ESCUDO DE SEGURANÇA (23/11/2026, pedido do dono): ao lado do LOGADO no topo e no menu → seguranca.html ===== */
+.bw-escudo{display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:12px;text-decoration:none;flex:none;
+  background:radial-gradient(circle at 50% 40%,rgba(47,208,138,.18),rgba(47,208,138,0) 70%);transition:transform .2s ease,filter .2s ease}
+.bw-escudo .bw-escudo-svg{width:24px;height:25px;filter:drop-shadow(0 2px 4px rgba(0,0,0,.45)) drop-shadow(0 0 6px rgba(47,208,138,.35))}
+.bw-escudo:hover{transform:translateY(-1px) scale(1.06);filter:brightness(1.08)}
+.bw-escudo:focus-visible{outline:2px solid #2FD08A;outline-offset:2px}
+.bw-escudo--menu{width:34px;height:34px}
+@media (max-width:480px){.bw-topo .acoes > a.bw-escudo{max-width:34px;width:34px;height:34px}}

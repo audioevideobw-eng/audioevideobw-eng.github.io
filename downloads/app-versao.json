@@ -1,18 +1,13 @@
 {
- "versao": "1.9.36",
+ "versao": "1.9.37",
  "data": "23/11/2026",
  "pacote": "downloads/BW-Reels-Studio.zip",
- "sha256": "b7d8e794456086edeb69f86bbf073dac66399d75ebbbcd577e1248636e6ab906",
- "bytes": 41741705,
+ "sha256": "26ff8d5e811514825bcd8cd82ac52e8b7d08b8c063d10fc0297474f170d412c7",
+ "bytes": 41752896,
  "novidades": [
   {
-   "titulo": "Mais segurança",
-   "texto": "A ferramenta de PDF, a assinatura com certificado digital e a leitura de planilhas usam versões novas, sem falhas conhecidas. As páginas só carregam código de endereços conhecidos e conferem cada biblioteca antes de usar.",
-   "abrir": "pdf"
-  },
-  {
-   "titulo": "Política de uso no menu",
-   "texto": "As regras de uso e as proteções da plataforma ficam no menu: ☰ → POLÍTICA DE USO."
+   "titulo": "Segurança e seus dados",
+   "texto": "Um escudo verde ao lado do selo LOGADO abre a página que explica onde ficam os seus dados, quem consegue ver, o que pode ser compartilhado e os testes de segurança."
   }
  ]
 }
