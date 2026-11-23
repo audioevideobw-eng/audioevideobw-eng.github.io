@@ -789,6 +789,15 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
      depois, substituir, desfazer). Ouvir o PALCO inteiro, não só o canvas: o 2º dedo cai fora da foto. O "segurar para ver o antes" saiu (fica no
      botão ANTES). Teste: toque pelo CDP com 1 e 2 dedos (teste_fotos.py, seção iPhone).
 
+192. ROLAGEM DENTRO DE ROLAGEM (dono, 22/11: "entro no editor de vídeo e a tela fica travada, não rola"): lista com overflow:auto + overscroll-behavior:
+     contain DENTRO de outra que rola prende o dedo/rodinha — a de dentro não tem para onde ir e a de fora não anda (biblioteca de efeitos/transições na
+     folha do celular; corpo da linha do tempo do Motion na tela fixa, que escondia as últimas camadas). Dentro de folha/painel que rola, só UM rola:
+     o de dentro fica overflow:visible (ou o de fora vira flex com overflow:hidden e o de dentro flex:1/min-height:0). Teste geral:
+     docs/testes/teste_rolagem.py (todas as páginas × 1280 rodinha / 390 dedo: erro ao abrir, conteúdo fora da tela sem rolagem, rolagem aninhada com
+     contain, caixa que não rola). Folha que só aparece depois de um toque não entra na varredura → teste da própria ferramenta (teste_video_app).
+193. Mudou o FLUXO de um botão (EXPORTAR passou a abrir a janela de exportação): procurar em TODOS os testes quem clica nele (grep do id) e atualizar no
+     mesmo commit — teste_cor, teste_mascara e teste_som ficaram esperando o vídeo que não vinha (só o teste_video tinha sido atualizado).
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -2185,6 +2194,13 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   MARKETING · MAIS. Embaçado: todas as ferramentas de edição conferidas em iPhone 13 — topo fixo e liso em todas; tirado o desfoque dos avisos do editor
   de vídeo e do Motion. teste_fotos (+5 toque), layout, ambientes, fotos_inicio, fotos_paineis 0 falhas; vigia ✅. fotos.js v19, layout.js v74, sw v198. PENTE FINO 191.
 
+- 22/11/2026 21:55 · Claude (dono: "revise a navegação do editor de vídeo: a tela fica travada e não rola" + "revise todas as ferramentas do app e faça testes"):
+  causa achada — no celular, a biblioteca de EFEITOS/TRANSIÇÕES tinha rolagem própria com 'contain' dentro da folha que rola: o dedo em cima das
+  miniaturas prendia e nada andava (no tablet e no PC rolava). Mesmo defeito no ESTÚDIO DE MOTION do PC: a linha do tempo tinha duas rolagens, uma
+  dentro da outra, e a rodinha prendia na de dentro (as últimas camadas ficavam escondidas). Corrigidos os dois. Nova varredura docs/testes/teste_rolagem.py
+  (57 páginas × PC e celular: erro de JS, conteúdo fora da tela sem rolagem, rolagem presa) — 0 falhas. Bateria inteira rodada: 54 testes do site + 5 do
+  app BW (app, assistente, gerador 3D, legendas, recorte) — 0 falhas; 3 testes (cor, máscara, som) estavam desatualizados desde a janela de exportar e foram
+  acertados. ve-app.css v7, sw v199. PENTE FINO 192–193. App BW: nada do PC mudou (a cópia sem internet entra no próximo pacote).
 ## Pendências (dono)
 - [ ] (22/11) iPhone: abrir o EDITOR DE FOTOS no Safari e dizer se o desfoque de cima sumiu; testar ⚡ FAZER PROXY e a JANELA DE EXPORTAR no PC com takes reais.
 - [x] (22/11 21:03) BW-Setup.exe 1.9.34 gerado pelo dono e publicado (9,0 MB, versão conferida dentro do .exe).

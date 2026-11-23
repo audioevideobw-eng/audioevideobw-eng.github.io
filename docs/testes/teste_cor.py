@@ -116,7 +116,7 @@ with sync_playwright() as p:
         if largura > 500:
             # EXPORTAR: a cor sai no vídeo (só a faixa vermelha em preto e branco)
             pg.evaluate("(()=>{const P=__video.P();P.clips=P.clips.filter(c=>c.tipo==='imagem').slice(0,1);P.clips[0].grade={sat:-100};P.clips[0].dur=1.2;__video.sel(null)})()"); pg.wait_for_timeout(300)
-            pg.evaluate("document.getElementById('veExportar') ? document.getElementById('veExportar').click() : null"); pg.wait_for_selector("#veSaida:not([hidden])", timeout=30000)
+            pg.click("#veExportar"); pg.wait_for_selector("#veJanExp", timeout=3000); pg.click('[data-exaba="prontos"]'); pg.click('[data-pronto="master"]'); pg.click("#veExIr"); pg.wait_for_selector("#veSaida:not([hidden])", timeout=30000)
             dados = pg.evaluate("(async()=>{const b=window.__veSaida.blob;const a=new Uint8Array(await b.arrayBuffer());let s='';for(let i=0;i<a.length;i+=32768)s+=String.fromCharCode.apply(null,a.subarray(i,i+32768));return [btoa(s),window.__veSaida.nome]})()")
             import base64
             arq = f"{TMP}/saida." + dados[1].split(".")[-1]; open(arq, "wb").write(base64.b64decode(dados[0]))

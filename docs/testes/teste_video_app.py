@@ -162,6 +162,15 @@ with sync_playwright() as p:
         tocar_el("#vaSheetOk")
         # transições e efeitos pela raiz
         ferr("Transições").click(); pg.wait_for_timeout(300); ok(pg.locator("#veLib [data-arr^='t:']").count() == 11, "TRANSIÇÕES abre as 11 transições")
+        # 22/11 (dono: "a tela fica travada e não rola"): arrastar o dedo EM CIMA das miniaturas rola a folha (antes a biblioteca, com 'contain', prendia o dedo)
+        cb = pg.evaluate("(()=>{const c=document.getElementById('vaSheetCorpo'),r=c.getBoundingClientRect();return [r.left+r.width/2,r.top+c.clientHeight*0.75,c.clientHeight,c.scrollHeight-c.clientHeight]})()")
+        if cb[3] > 20:
+            yb = cb[1]; d = min(200, cb[2] * 0.5)
+            cdp.send("Input.dispatchTouchEvent", {"type": "touchStart", "touchPoints": [{"x": cb[0], "y": yb}]})
+            for k in range(1, 11): cdp.send("Input.dispatchTouchEvent", {"type": "touchMove", "touchPoints": [{"x": cb[0], "y": yb - d * k / 10}]}); pg.wait_for_timeout(16)
+            cdp.send("Input.dispatchTouchEvent", {"type": "touchEnd", "touchPoints": []}); pg.wait_for_timeout(500)
+            ok(pg.evaluate("document.getElementById('vaSheetCorpo').scrollTop") > 20 and pg.locator(".ve-fantasma").count() == 0, "arrastar o dedo em cima das transições ROLA a folha (não fica travada)")
+            pg.evaluate("document.getElementById('vaSheetCorpo').scrollTop=0")
         tocar_el("#vaSheetOk")
         # tocar no vazio larga o take
         pg.evaluate(f"__video.sel('{c1}')"); pg.wait_for_timeout(200)

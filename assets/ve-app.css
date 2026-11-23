@@ -62,7 +62,9 @@ html.ve-app #veAgulha{display:none}
 .va-sheet-corpo .ve-g>h4{display:none!important}
 .va-sheet-corpo .ve-g>h4 ~ *{display:block!important}
 .va-sheet-corpo .ve-g{border:0;padding:0;margin:0}
-.va-sheet-corpo .ve-lib{grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;max-height:none}
+.va-sheet-corpo .ve-lib{grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;max-height:none;overflow:visible;overscroll-behavior:auto}
+/* 22/11: dentro da folha só o CORPO rola — rolagem aninhada com 'contain' prendia o dedo e a folha não andava */
+.va-sheet-corpo *{overscroll-behavior:auto}
 .va-sheet-corpo input,.va-sheet-corpo select,.va-sheet-corpo textarea{font-size:16px}
 html.va-folha .va-faixa{visibility:hidden}
 .va-fmts{display:flex;gap:10px;overflow-x:auto;padding:6px 2px 10px;flex-wrap:wrap}

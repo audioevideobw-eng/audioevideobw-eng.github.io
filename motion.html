@@ -71,6 +71,8 @@
 .mo-tl-barra{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:8px}
 .mo-tl-barra .titulo{font:800 11px Inter,sans-serif;letter-spacing:.14em;color:#B9C0CC;margin-right:auto}
 .mo-tl-corpo{display:grid;grid-template-columns:130px minmax(0,1fr);max-height:230px;overflow:auto;overscroll-behavior:contain}
+/* 22/11: tela fixa — só o CORPO da linha do tempo rola (duas rolagens uma dentro da outra prendiam a rodinha e escondiam as últimas camadas) */
+.bwf-fixo>.mo-tl.bwf-rola{display:flex;flex-direction:column;overflow:hidden}.bwf-fixo>.mo-tl.bwf-rola>.mo-tl-corpo{flex:1 1 auto;min-height:0;max-height:none}
 .mo-rot div{height:var(--mo-alt,38px);margin-bottom:4px;display:flex;align-items:center;gap:6px;font:700 11px Inter,sans-serif;color:#d7dce4;padding:0 6px;border-radius:8px;cursor:pointer;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
 .mo-rot div:first-child{height:22px;color:#8d95a3;cursor:default;font-size:10px}
 .mo-rot div.on{background:rgba(182,255,59,.12);color:#fff}

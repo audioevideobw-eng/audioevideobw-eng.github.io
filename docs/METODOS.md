@@ -551,3 +551,13 @@ Tamanho > 0 e sem erro = o pdfmake montou o arquivo. Localmente (T1) confira o `
 - PCM: DataView com a ordem certa (twos/in24/in32/fl32 = big-endian salvo caixa enda; sowt = little; ipcm = pcmC). QuickTime v0 com stsz=1 → bytes =
   quadros × bytes por quadro. AAC: AudioDecoder com description = ASC do esds (tag 5), um EncodedAudioChunk por amostra.
 - Ler em blocos juntando só pedaços quase colados (< 64 KB); conferir contra `ffmpeg -f f32le` (mesmas amostras) e medir quanto do arquivo foi lido.
+
+
+## Rolagem presa e conteúdo inalcançável (22/11)
+- `python3 docs/testes/teste_rolagem.py [paginas...]` — todas as páginas em 1280 (rodinha) e 390 (dedo pelo CDP). Acusa: erro ao abrir, elemento visível
+  abaixo da tela sem rolagem que chegue nele, lista com overscroll 'contain' dentro de outra que rola, caixa que não anda com o gesto no MEIO dela.
+- Conta se o gesto funcionou somando o scrollTop de TODOS os elementos + scrollY (uma folha/modal por cima da página também conta como "rolou").
+- Validar o detector: rodar com o arquivo ANTIGO (`git show HEAD:arquivo > zz_antigo.html`) e ver a falha aparecer; apagar o zz_ depois.
+- Folhas/menus que só abrem com toque não aparecem na varredura: o teste da ferramenta abre a folha e arrasta o dedo EM CIMA das miniaturas.
+- Bateria inteira: um teste por vez (vários usam a mesma PORTA); o app BW precisa de `ln -s /opt/npm-tools/node_modules/playwright-core node_modules/`
+  no pacote (teste_motion usa o motor do pacote) e, no fim, apagar node_modules e projetos/motion-*.

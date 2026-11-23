@@ -33,7 +33,7 @@ def nivel(arq, filtro):
     r = subprocess.run(["ffmpeg", "-i", arq, "-vn", "-af", filtro + ",volumedetect", "-f", "null", "-"], capture_output=True, text=True).stderr
     m = re.search(r"mean_volume: (-?[\d.]+)", r); return float(m.group(1)) if m else -99
 def exportar(pg, nome):
-    pg.click("#veExportar"); pg.wait_for_selector("#veSaida:not([hidden])", timeout=40000)
+    pg.click("#veExportar"); pg.wait_for_selector("#veJanExp", timeout=3000); pg.click('[data-exaba="prontos"]'); pg.click('[data-pronto="master"]'); pg.click("#veExIr"); pg.wait_for_selector("#veSaida:not([hidden])", timeout=40000)
     d = pg.evaluate("(async()=>{const b=window.__veSaida.blob;const a=new Uint8Array(await b.arrayBuffer());let s='';for(let i=0;i<a.length;i+=32768)s+=String.fromCharCode.apply(null,a.subarray(i,i+32768));return [btoa(s),window.__veSaida.nome]})()")
     arq = f"{TMP}/{nome}." + d[1].split(".")[-1]; open(arq, "wb").write(base64.b64decode(d[0]))
     pg.evaluate("document.getElementById('veSaida').hidden=true"); return arq

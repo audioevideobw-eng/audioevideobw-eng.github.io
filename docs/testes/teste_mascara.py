@@ -84,7 +84,7 @@ with sync_playwright() as p:
         # EXPORTAR com texto atrás
         if not cel:
             pg.evaluate("(()=>{const P=__video.P();P.clips=P.clips.filter(c=>c.id!=='tx2');P.clips.push({id:'tx3',trilha:'tx',tipo:'texto',ini:0,dur:1.6,txt:'MMMMMM',fonte:'Inter',tam:14,cor:'#ffffff',fundo:'',x:0,y:0,op:100,fin:0,fout:0});__video.sel(null)})()"); pg.wait_for_timeout(300)
-            pg.click("#veExportar"); pg.wait_for_selector("#veSaida:not([hidden])", timeout=40000)
+            pg.click("#veExportar"); pg.wait_for_selector("#veJanExp", timeout=3000); pg.click('[data-exaba="prontos"]'); pg.click('[data-pronto="master"]'); pg.click("#veExIr"); pg.wait_for_selector("#veSaida:not([hidden])", timeout=40000)
             d = pg.evaluate("(async()=>{const b=window.__veSaida.blob;const a=new Uint8Array(await b.arrayBuffer());let s='';for(let i=0;i<a.length;i+=32768)s+=String.fromCharCode.apply(null,a.subarray(i,i+32768));return [btoa(s),window.__veSaida.nome]})()")
             arq = f"{TMP}/saida." + d[1].split(".")[-1]; open(arq, "wb").write(base64.b64decode(d[0])); pg.evaluate("document.getElementById('veSaida').hidden=true")
             subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-ss", "0.8", "-i", arq, "-frames:v", "1", f"{TMP}/q.png"])
