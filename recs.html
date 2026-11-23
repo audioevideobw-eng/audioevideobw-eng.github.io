@@ -2,6 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' blob: https://cdn.jsdelivr.net https://cdn.sheetjs.com; worker-src 'self' blob: https://cdn.jsdelivr.net; connect-src 'self' data: blob: https://zdtnetplvdonogmdvarx.supabase.co wss://zdtnetplvdonogmdvarx.supabase.co https://cdn.jsdelivr.net https://cdn.sheetjs.com https://open.er-api.com https://olinda.bcb.gov.br https://raw.githubusercontent.com https://storage.googleapis.com https://huggingface.co https://*.huggingface.co https://*.hf.co https://tessdata.projectnaptha.com https://fonts.googleapis.com https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' data: blob: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; font-src 'self' data: https://fonts.gstatic.com https://cdn.jsdelivr.net; frame-src 'self' blob: data: https://docs.google.com; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Recomendações — Brightway</title>
 <link rel="manifest" href="manifest.json">
@@ -335,7 +336,7 @@ nota &lt; 24  → NÃO COMPRAR
   </footer>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.2/dist/umd/supabase.js" integrity="sha384-A97u3Qnt9GZHURO9YJZRe7VQgGUeFzcv6I1oIGnUTxQrCxnpQMwR0/G8F2zt9abZ" crossorigin="anonymous"></script>
 <script src="assets/bw-sync.js?v=20261122"></script>
 <script>
 /* selo LOGADO + sincronia da carteira (15/11, Claude) */
@@ -1026,7 +1027,7 @@ function handleFile(file) {
   const fr = new FileReader();
   fr.onload = () => {
     const script = document.createElement("script");
-    script.src = "https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js";
+    script.src = "https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"; script.integrity = "sha384-EnyY0/GSHQGSxSgMwaIPzSESbqoOLSexfnSMN2AP+39Ckmn92stwABZynq1JyzdT"; script.crossOrigin = "anonymous";   /* 23/11: 0.18.5 tinha falhas conhecidas (CVE-2023-30533/CVE-2024-22363) */
     script.onload = () => {
       try {
         const wb = XLSX.read(new Uint8Array(fr.result), { type: "array" });
@@ -1127,6 +1128,6 @@ refresh();   /* 15/11: ao abrir já busca a cotação do dia (antes ficava a cot
 })();
 window.addEventListener("resize", () => {});
 </script>
-<script src="assets/layout.js?v=76"></script>
+<script src="assets/layout.js?v=77"></script>
 </body>
 </html>

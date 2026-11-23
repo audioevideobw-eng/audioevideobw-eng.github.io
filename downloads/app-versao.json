@@ -1,19 +1,18 @@
 {
- "versao": "1.9.35",
+ "versao": "1.9.36",
  "data": "23/11/2026",
  "pacote": "downloads/BW-Reels-Studio.zip",
- "sha256": "92e001be1727a7691c36206fb5705592f1ea639bc3bafe318cbb216c4cb328fe",
- "bytes": 41718330,
+ "sha256": "b7d8e794456086edeb69f86bbf073dac66399d75ebbbcd577e1248636e6ab906",
+ "bytes": 41741705,
  "novidades": [
   {
-   "titulo": "Um aviso só, no meio da tela",
-   "texto": "Todas as ferramentas avisam do mesmo jeito: um escrito simples no meio da tela, que não atrapalha o toque e some sozinho. Antes cada ferramenta tinha o seu, num canto diferente.",
-   "abrir": "video"
+   "titulo": "Mais segurança",
+   "texto": "A ferramenta de PDF, a assinatura com certificado digital e a leitura de planilhas usam versões novas, sem falhas conhecidas. As páginas só carregam código de endereços conhecidos e conferem cada biblioteca antes de usar.",
+   "abrir": "pdf"
   },
   {
-   "titulo": "Avisos curtos",
-   "texto": "Os avisos viraram uma frase curta, sem virar tutorial no meio do trabalho.",
-   "abrir": "motion"
+   "titulo": "Política de uso no menu",
+   "texto": "As regras de uso e as proteções da plataforma ficam no menu: ☰ → POLÍTICA DE USO."
   }
  ]
 }

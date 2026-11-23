@@ -5,6 +5,7 @@
 import base64, http.server, io, os, socketserver, threading, json
 from PIL import Image
 from playwright.sync_api import sync_playwright
+import os as _o, sys as _s; _s.path.insert(0, _o.path.dirname(_o.path.abspath(__file__))); import _sem_sri  # noqa: selo SRI fora só no servidor de teste (23/11)
 
 RAIZ = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 PORTA = 8818; TMP = "/tmp/teste_criador"; os.makedirs(TMP, exist_ok=True)

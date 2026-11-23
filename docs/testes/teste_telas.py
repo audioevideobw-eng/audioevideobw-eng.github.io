@@ -6,6 +6,7 @@ certo — prova de que a mídia certa está na tela certa) e nada sai do aparelh
 Uso (na raiz): python3 docs/testes/teste_telas.py   (arquivos de teste em /tmp/teste_telas — o script cria se faltar)"""
 import base64, re, http.server, os, socketserver, subprocess, threading, tempfile
 from playwright.sync_api import sync_playwright
+import os as _o, sys as _s; _s.path.insert(0, _o.path.dirname(_o.path.abspath(__file__))); import _sem_sri  # noqa: selo SRI fora só no servidor de teste (23/11)
 RAIZ = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")); PORTA = 8861; TMP = "/tmp/teste_telas"
 if not os.path.exists(f"{TMP}/musica.wav"):
     os.makedirs(TMP, exist_ok=True)

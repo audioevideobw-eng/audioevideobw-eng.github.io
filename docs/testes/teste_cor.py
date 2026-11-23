@@ -10,6 +10,7 @@ from playwright.sync_api import sync_playwright
 RAIZ = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")); TMP = "/tmp/teste_cor"; PORTA = 8863
 os.makedirs(TMP, exist_ok=True)
 from PIL import Image, ImageDraw
+import os as _o, sys as _s; _s.path.insert(0, _o.path.dirname(_o.path.abspath(__file__))); import _sem_sri  # noqa: selo SRI fora só no servidor de teste (23/11)
 if not os.path.exists(f"{TMP}/faixas.png"):
     im = Image.new("RGB", (720, 1280), (128, 128, 128)); d = ImageDraw.Draw(im)
     d.rectangle([0, 0, 719, 255], fill=(128, 128, 128)); d.rectangle([0, 256, 719, 511], fill=(200, 40, 40)); d.rectangle([0, 512, 719, 767], fill=(235, 235, 235))

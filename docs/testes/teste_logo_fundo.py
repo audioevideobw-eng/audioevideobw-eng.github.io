@@ -8,6 +8,7 @@ Uso (na raiz):  python3 docs/testes/teste_logo_fundo.py"""
 import http.server, os, socketserver, threading, sys
 sys.path.insert(0, os.path.dirname(__file__))
 from playwright.sync_api import sync_playwright
+import os as _o, sys as _s; _s.path.insert(0, _o.path.dirname(_o.path.abspath(__file__))); import _sem_sri  # noqa: selo SRI fora só no servidor de teste (23/11)
 
 RAIZ = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 PORTA = 8831

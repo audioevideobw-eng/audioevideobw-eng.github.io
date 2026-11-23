@@ -5,6 +5,7 @@ ids repetidos, botões sem texto/rótulo e imagens quebradas. Depois clica em ca
 Uso (na raiz): python3 docs/testes/varredura.py  → relatório em /tmp/varredura.txt"""
 import glob, http.server, json, os, re, socketserver, sys, threading
 from playwright.sync_api import sync_playwright
+import os as _o, sys as _s; _s.path.insert(0, _o.path.dirname(_o.path.abspath(__file__))); import _sem_sri  # noqa: selo SRI fora só no servidor de teste (23/11)
 RAIZ = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 os.chdir(RAIZ); PORTA = 8820
 STUB_SB = """window.supabase={createClient:function(){const q={select(){return q},eq(){return q},neq(){return q},in(){return q},is(){return q},gte(){return q},lte(){return q},lt(){return q},gt(){return q},not(){return q},or(){return q},ilike(){return q},match(){return q},

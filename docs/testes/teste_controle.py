@@ -6,6 +6,7 @@ anda e corta; o PC devolve o tempo; ✕ DESLIGAR fecha; controle.html abre sem e
 1280 e 390 px.   Uso (na raiz): python3 docs/testes/teste_controle.py"""
 import http.server, os, socketserver, threading
 from playwright.sync_api import sync_playwright
+import os as _o, sys as _s; _s.path.insert(0, _o.path.dirname(_o.path.abspath(__file__))); import _sem_sri  # noqa: selo SRI fora só no servidor de teste (23/11)
 RAIZ = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")); PORTA = 8867
 STUB = "window.supabase={createClient:function(){return {auth:{getSession:async()=>({data:{session:null}}),getUser:async()=>({data:{user:null}}),onAuthStateChange(){return {data:{subscription:{unsubscribe(){}}}}}},from(){const q={select(){return q},eq(){return q},then(r){return Promise.resolve({data:[],error:null}).then(r)}};return q},rpc:async()=>({data:null,error:null}),storage:{from(){return {}}}}}};"
 BUS = """window.__bus={};window.__BWControleCliente={channel(n){const ch={n,h:{},on(t,f,cb){ch.h[f.event]=cb;return ch},subscribe(cb){(__bus[n]=__bus[n]||[]).push(ch);cb&&cb('SUBSCRIBED');return ch},

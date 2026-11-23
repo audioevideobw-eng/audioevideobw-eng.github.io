@@ -5,6 +5,7 @@ imagem em data: (vale no vídeo do aparelho e no app do PC). As imagens do Supab
 Uso (na raiz): python3 docs/testes/teste_motion_biblio.py"""
 import http.server, os, socketserver, threading, base64, io
 from playwright.sync_api import sync_playwright
+import os as _o, sys as _s; _s.path.insert(0, _o.path.dirname(_o.path.abspath(__file__))); import _sem_sri  # noqa: selo SRI fora só no servidor de teste (23/11)
 RAIZ = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")); PORTA = 8861
 STUB = "window.supabase={createClient:function(){const ch={on(){return ch},subscribe(f){f&&f('SUBSCRIBED');return ch},send(){},unsubscribe(){}};return {auth:{getSession:async()=>({data:{session:null}}),getUser:async()=>({data:{user:null}}),onAuthStateChange(){return {data:{subscription:{unsubscribe(){}}}}}},from(){const q={select(){return q},eq(){return q},then(r){return Promise.resolve({data:[],error:null}).then(r)}};return q},rpc:async()=>({data:null,error:null}),channel(){return ch},removeChannel(){}}}};"
 PNG = base64.b64decode("iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAFklEQVR4nGP4z8Dwn4GBgYGJgYEBAA0bAQFzNH7BAAAAAElFTkSuQmCC")

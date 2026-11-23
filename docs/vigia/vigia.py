@@ -220,7 +220,7 @@ if lgx and ("bw_excluir_minha_conta" not in lgx or "lExportar" not in lgx):
     problemas.append("login.html: sem 'Baixar meus dados' / 'Excluir minha conta' (LGPD)")
 
 # 7.8 páginas públicas obrigatórias
-for p in ["baixar.html", "privacidade.html", "termos.html", "financeiro-painel.html", "investimentos-painel.html", "marketing.html", "assistente.html", "transcricao.html", "pdf.html",
+for p in ["baixar.html", "privacidade.html", "termos.html", "politica.html", "financeiro-painel.html", "investimentos-painel.html", "marketing.html", "assistente.html", "transcricao.html", "pdf.html",
           "crm.html", "captacao.html", "resultados.html", "fotos.html", "pedido.html"]:
     if p not in todos:
         problemas.append(f"{p} sumiu (link de instalação / política exigida pelo Google / painel financeiro)")
@@ -452,8 +452,34 @@ for _a, _id in (("assets/motion.js", "moExpBaixar"), ("assets/telas.js", "tlBaix
 if 'data-k="linha"' not in _arq("assets/fotos.js"):
     problemas.append("assets/fotos.js: sem o ➜ LINHA DO TEMPO na aba SALVAR")
 
+# 7.10 SEGURANÇA DAS PÁGINAS (23/11/2026, análise de segurança pedida pelo dono — docs/automacoes/seguranca-paginas.py)
+#   a) toda página com a CSP (meta logo depois do charset); b) <script> de CDN com versão EXATA e selo integrity;
+#   c) nenhuma biblioteca com falha conhecida (pdf.js < 4.2.67 → CVE-2024-4367; node-forge < 1.3.2; xlsx 0.18.x);
+#   d) POLÍTICA DE USO no menu (layout.js) e a página existe.
+for p, t in todos.items():
+    if 'http-equiv="Content-Security-Policy"' not in t:
+        problemas.append(f"{p}: sem CSP (rode python3 docs/automacoes/seguranca-paginas.py)")
+    for tag in re.findall(r'<script\b[^>]*\bsrc="https://[^"]+"[^>]*>', t):
+        if "integrity=" not in tag:
+            problemas.append(f"{p}: biblioteca do CDN sem selo integrity: {tag[:90]}")
+_codigo = {p: t for p, t in todos.items()}
+for raiz, _, arqs in os.walk("assets"):
+    for a in arqs:
+        if a.endswith(".js"):
+            _codigo[os.path.join(raiz, a)] = open(os.path.join(raiz, a), encoding="utf8", errors="replace").read()
+for p, t in _codigo.items():
+    for m in re.findall(r'cdn\.jsdelivr\.net/npm/((?:@[\w.-]+/)?[\w.-]+)@(\d+)/', t):
+        problemas.append(f"{p}: biblioteca sem versão exata ({m[0]}@{m[1]}) — fixe a versão (x.y.z)")
+    for v in re.findall(r'pdfjs-dist@(\d+)\.(\d+)\.(\d+)', t):
+        if tuple(map(int, v)) < (4, 2, 67): problemas.append(f"{p}: pdf.js {'.'.join(v)} tem a falha CVE-2024-4367 (use ≥ 4.2.67)")
+    for v in re.findall(r'node-forge@(\d+)\.(\d+)\.(\d+)', t):
+        if tuple(map(int, v)) < (1, 3, 2): problemas.append(f"{p}: node-forge {'.'.join(v)} tem falhas conhecidas (use ≥ 1.3.2)")
+    if "xlsx@0.18" in t: problemas.append(f"{p}: xlsx 0.18 tem falhas conhecidas (use o CDN do SheetJS 0.20.3+)")
+if "politica.html" not in ler("assets/layout.js") or "POLÍTICA DE USO" not in ler("assets/layout.js"):
+    problemas.append("layout.js: POLÍTICA DE USO sumiu do menu")
+
 # 7.9 páginas com o visual novo (menu lateral) — exceto as de propósito
-SEM_MENU = {"controle.html", "login.html", "cadastro.html", "pedido.html", "baixar.html", "privacidade.html", "termos.html", "financeiro-painel.html", "investimentos-painel.html", "app.html", "financeiro.html", "fluxo.html", "custos.html"}
+SEM_MENU = {"controle.html", "login.html", "cadastro.html", "pedido.html", "baixar.html", "privacidade.html", "termos.html", "politica.html", "financeiro-painel.html", "investimentos-painel.html", "app.html", "financeiro.html", "fluxo.html", "custos.html"}
 for p, t in todos.items():
     if p not in SEM_MENU and "assets/layout.js" not in t:
         problemas.append(f"{p}: sem o visual novo (não carrega assets/layout.js)")

@@ -25,6 +25,7 @@ os.chdir(RAIZ); socketserver.TCPServer.allow_reuse_address = True
 srv = socketserver.TCPServer(("127.0.0.1", PORTA), Q); threading.Thread(target=srv.serve_forever, daemon=True).start()
 BASE = f"http://127.0.0.1:{PORTA}/"
 import base64, io as _io
+import os as _o, sys as _s; _s.path.insert(0, _o.path.dirname(_o.path.abspath(__file__))); import _sem_sri  # noqa: selo SRI fora só no servidor de teste (23/11)
 _b = _io.BytesIO(); Image.new("RGB", (640, 800), (230, 60, 160)).save(_b, "JPEG"); FAKE = base64.b64encode(_b.getvalue()).decode()
 PEDIDOS = []
 def rota(r):

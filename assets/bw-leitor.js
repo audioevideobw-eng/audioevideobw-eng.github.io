@@ -16,8 +16,8 @@
   var PUB = "sb_publishable_qJ2mIx1hcn_ZH75-yxJiDA_OI-EHyIU";
   var LIB_PDF = "https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.min.mjs";
   var LIB_PDF_W = "https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.worker.min.mjs";
-  var LIB_ZX = "https://cdn.jsdelivr.net/npm/zxing-wasm@2/dist/iife/reader/index.js";
-  var LIB_TESS = "https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js";
+  var LIB_ZX = "https://cdn.jsdelivr.net/npm/zxing-wasm@2.2.4/dist/iife/reader/index.js";
+  var LIB_TESS = "https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js";
 
   function $(id) { return document.getElementById(id); }
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
@@ -171,7 +171,7 @@
     var out = { texto: "", codigos: [], origem: "" };
     if (/pdf/i.test(f.type) || /\.pdf$/i.test(f.name || "")) {
       passo("Abrindo o PDF…");
-      var P = await comTempo(pdfLib(), 25000, "sem internet para abrir PDF"), doc = await P.getDocument({ data: new Uint8Array(await f.arrayBuffer()) }).promise, partes = [];
+      var P = await comTempo(pdfLib(), 25000, "sem internet para abrir PDF"), doc = await P.getDocument({ data: new Uint8Array(await f.arrayBuffer()), isEvalSupported: false }).promise, partes = [];
       for (var i = 1; i <= Math.min(doc.numPages, 6); i++) {
         var pg = await doc.getPage(i), tc = await pg.getTextContent(), linhas = {}, ys = [];
         tc.items.forEach(function (it) { var y = Math.round(it.transform[5] / 3); if (!linhas[y]) { linhas[y] = []; ys.push(y); } linhas[y].push([it.transform[4], it.str]); });

@@ -5,6 +5,7 @@ escolher um clipe, escolha guardada no aparelho; no celular nada disso aparece e
 Telas: 1534×816 (a do dono: 1920×1020 a 125%), 1280×900 e 390×844.   Uso (na raiz): python3 docs/testes/teste_video_layout.py"""
 import http.server, os, socketserver, subprocess, threading
 from playwright.sync_api import sync_playwright
+import os as _o, sys as _s; _s.path.insert(0, _o.path.dirname(_o.path.abspath(__file__))); import _sem_sri  # noqa: selo SRI fora só no servidor de teste (23/11)
 RAIZ = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")); TMP = "/tmp/teste_video"; PORTA = 8855
 if not os.path.exists(f"{TMP}/clipe.webm"):
     os.makedirs(TMP, exist_ok=True)

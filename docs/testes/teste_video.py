@@ -5,6 +5,7 @@ vídeo + áudio, duração e volume), projeto volta ao recarregar, nada sai do a
 Uso (na raiz): python3 docs/testes/teste_video.py   (precisa dos arquivos de /tmp/teste_video: clipe.webm, musica.wav, foto.png)"""
 import base64, http.server, json, os, re, socketserver, subprocess, threading
 from playwright.sync_api import sync_playwright
+import os as _o, sys as _s; _s.path.insert(0, _o.path.dirname(_o.path.abspath(__file__))); import _sem_sri  # noqa: selo SRI fora só no servidor de teste (23/11)
 RAIZ = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")); TMP = "/tmp/teste_video"; PORTA = 8851
 if not os.path.exists(f"{TMP}/clipe.webm"):
     os.makedirs(TMP, exist_ok=True)

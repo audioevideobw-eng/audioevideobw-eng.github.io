@@ -5,6 +5,7 @@ Confere: frequência certa nos dois lados (440/880 Hz), amostras iguais às do f
 lê só uma fração do arquivo num take com vídeo pesado. Usa o Google Chrome (tem AAC).  Uso (na raiz): python3 docs/testes/teste_proxy_som.py"""
 import http.server, threading, functools, os, subprocess, json, struct, shutil
 from playwright.sync_api import sync_playwright
+import os as _o, sys as _s; _s.path.insert(0, _o.path.dirname(_o.path.abspath(__file__))); import _sem_sri  # noqa: selo SRI fora só no servidor de teste (23/11)
 RAIZ = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")); T = "/tmp/teste_proxy_som"; os.makedirs(T, exist_ok=True)
 shutil.copy(f"{RAIZ}/assets/bw-proxy.js", f"{T}/bw-proxy.js"); open(f"{T}/i.html", "w").write("<html><body></body></html>")
 CASOS = {"twos.mp4": ["-f", "mp4", "-c:a", "pcm_s16be"], "sowt.mov": ["-f", "mov", "-c:a", "pcm_s16le"], "in24le.mov": ["-f", "mov", "-c:a", "pcm_s24le"],

@@ -1405,7 +1405,7 @@ ${fx.vinheta ? '<div id="vinheta" class="global"></div>' : ''}
 ${fx.grao ? '<div id="grao" class="global"></div>' : ''}
 ${fx.barraProgresso ? '<div id="progresso"></div>' : ''}
 ${plano.marca?.handle ? `<div id="marca">${plano.marca.handle}</div>` : ''}
-${sabor === 'hyperframes' ? '<script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/gsap.min.js"></script>' : ''}
+${sabor === 'hyperframes' ? '<script src="https://cdn.jsdelivr.net/npm/gsap@3.15.1/dist/gsap.min.js"></script>' : ''}
 <script>window.__PLANO = ${JSON.stringify(dados)}; window.__DUR = ${plano.duracao}; window.__W = ${plano.largura}; window.__H = ${plano.altura}; window.__FPS = ${plano.fps};</script>
 <script>${RUNTIME(sabor)}</script>
 </div></body></html>`;

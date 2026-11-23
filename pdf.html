@@ -2,6 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' blob: https://cdn.jsdelivr.net https://cdn.sheetjs.com; worker-src 'self' blob: https://cdn.jsdelivr.net; connect-src 'self' data: blob: https://zdtnetplvdonogmdvarx.supabase.co wss://zdtnetplvdonogmdvarx.supabase.co https://cdn.jsdelivr.net https://cdn.sheetjs.com https://open.er-api.com https://olinda.bcb.gov.br https://raw.githubusercontent.com https://storage.googleapis.com https://huggingface.co https://*.huggingface.co https://*.hf.co https://tessdata.projectnaptha.com https://fonts.googleapis.com https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' data: blob: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; font-src 'self' data: https://fonts.gstatic.com https://cdn.jsdelivr.net; frame-src 'self' blob: data: https://docs.google.com; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Ferramentas de PDF — Brightway</title>
 <link rel="manifest" href="manifest.json">
@@ -112,8 +113,8 @@
   </div>
 </div>
 
-<script src="assets/layout.js?v=76"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="assets/layout.js?v=77"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.2/dist/umd/supabase.js" integrity="sha384-A97u3Qnt9GZHURO9YJZRe7VQgGUeFzcv6I1oIGnUTxQrCxnpQMwR0/G8F2zt9abZ" crossorigin="anonymous"></script>
 <script src="assets/bw-sync.js?v=20261122"></script>
 <script src="assets/bw-assinar.js?v=1"></script>
 <script>
@@ -124,7 +125,7 @@
   var $ = function (id) { return document.getElementById(id); };
   var esc = function (s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return {"&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;"}[c]; }); };
   var LIB = "https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js";
-  var PDFJS = "https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/";
+  var PDFJS = "https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/";   /* 23/11: 3.11 tinha a falha CVE-2024-4367 (PDF malicioso rodava código) */
 
   (async function () {
     var el = $("userBox"); if (!el) return;
@@ -258,12 +259,13 @@
     var c = document.createElement("canvas"); c.width = x1 - x0; c.height = y1 - y0; c.getContext("2d").drawImage(pad, x0, y0, c.width, c.height, 0, 0, c.width, c.height);
     return c;
   }
-  async function pdfjs() { await script(PDFJS + "pdf.min.js"); window.pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS + "pdf.worker.min.js"; return window.pdfjsLib; }
+  var _pdfjs = null;
+  async function pdfjs() { if (!_pdfjs) { _pdfjs = await import(PDFJS + "pdf.min.mjs"); _pdfjs.GlobalWorkerOptions.workerSrc = PDFJS + "pdf.worker.min.mjs"; } return _pdfjs; }
   var aSeq = 0;   /* se outro PDF for escolhido no meio do carregamento, só o último vale */
   aoEscolher.aArq = async function (fs) {
     var meu = ++aSeq, f = fs[0]; aPos = null; aviso("Abrindo…");
     try {
-      var J = await pdfjs(), doc = await J.getDocument({data: new Uint8Array(await f.arrayBuffer())}).promise;
+      var J = await pdfjs(), doc = await J.getDocument({data: new Uint8Array(await f.arrayBuffer()), isEvalSupported: false}).promise;
       if (meu !== aSeq) return;
       aF = f; aDoc = doc;
       $("aPagina").innerHTML = ""; for (var i = 1; i <= aDoc.numPages; i++) { var o = document.createElement("option"); o.value = i; o.textContent = "Página " + i + " de " + aDoc.numPages; $("aPagina").appendChild(o); }

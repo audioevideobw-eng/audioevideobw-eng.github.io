@@ -5,6 +5,7 @@ Confere o ARQUIVO: o .glb é lido de volta pelo próprio motor (contagem de vér
 e o .obj/.mtl pelo texto. 1280 e 390 px. Uso (na raiz): python3 docs/testes/teste_3d_foto.py"""
 import os, re, zipfile, http.server, socketserver, tempfile, threading
 from playwright.sync_api import sync_playwright
+import os as _o, sys as _s; _s.path.insert(0, _o.path.dirname(_o.path.abspath(__file__))); import _sem_sri  # noqa: selo SRI fora só no servidor de teste (23/11)
 
 RAIZ = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")); PORTA = 8866; TMP = "/tmp/teste_3d"
 if not os.path.exists(f"{TMP}/av-frente.png"):

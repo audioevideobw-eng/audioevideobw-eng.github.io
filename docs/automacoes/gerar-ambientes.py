@@ -6,7 +6,7 @@ Mudou ferramenta ou molde? Rode na raiz:  python3 docs/automacoes/gerar-ambiente
 import html, json, os
 AQUI = os.path.dirname(os.path.abspath(__file__)); RAIZ = os.path.abspath(os.path.join(AQUI, "..", ".."))
 CART = json.load(open(os.path.join(AQUI, "cartoes.json"), encoding="utf8"))
-V_CSS, V_LAYOUT, V_AGENDA, V_AMB = 36, 75, 1, 1
+V_CSS, V_LAYOUT, V_AGENDA, V_AMB = 37, 77, 2, 1   # 23/11: estavam velhos (36, 75, 1) — conferir com o index.html antes de gerar
 
 I_EMP = '<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M3 12h18"/>'
 I_CASA = '<path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M9 21v-6h6v6"/>'
@@ -52,6 +52,7 @@ MOLDE = '''<!DOCTYPE html>
 <html lang="pt-BR" data-amb="{amb}">
 <head>
 <meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' blob: https://cdn.jsdelivr.net https://cdn.sheetjs.com; worker-src 'self' blob: https://cdn.jsdelivr.net; connect-src 'self' data: blob: https://zdtnetplvdonogmdvarx.supabase.co wss://zdtnetplvdonogmdvarx.supabase.co https://cdn.jsdelivr.net https://cdn.sheetjs.com https://open.er-api.com https://olinda.bcb.gov.br https://raw.githubusercontent.com https://storage.googleapis.com https://huggingface.co https://*.huggingface.co https://*.hf.co https://tessdata.projectnaptha.com https://fonts.googleapis.com https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' data: blob: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; font-src 'self' data: https://fonts.gstatic.com https://cdn.jsdelivr.net; frame-src 'self' blob: data: https://docs.google.com; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{titulo}</title>
 <link rel="manifest" href="manifest.json">
@@ -85,7 +86,7 @@ MOLDE = '''<!DOCTYPE html>
 {secoes}
 </div>
 <script src="assets/layout.js?v={v_layout}"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.2/dist/umd/supabase.js" integrity="sha384-A97u3Qnt9GZHURO9YJZRe7VQgGUeFzcv6I1oIGnUTxQrCxnpQMwR0/G8F2zt9abZ" crossorigin="anonymous"></script>
 <script src="assets/bw-sync.js?v=20261122"></script>
 <script src="assets/agenda.js?v={v_agenda}"></script>
 <script src="assets/ambiente.js?v={v_amb}"></script>

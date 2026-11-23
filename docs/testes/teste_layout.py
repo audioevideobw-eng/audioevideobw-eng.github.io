@@ -2,6 +2,7 @@
 """Teste local (16/11): botão MENU no topo, título único da página e seções da tela inicial com seta. Uso (na raiz): python3 docs/testes/teste_layout.py"""
 import http.server, os, socketserver, sys, threading
 from playwright.sync_api import sync_playwright
+import os as _o, sys as _s; _s.path.insert(0, _o.path.dirname(_o.path.abspath(__file__))); import _sem_sri  # noqa: selo SRI fora só no servidor de teste (23/11)
 os.chdir(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 class Q(http.server.SimpleHTTPRequestHandler):
     def log_message(self, *a): pass

@@ -7,6 +7,7 @@ os testes com a pessoa (arrastar a lista, segurar 0,5 s, bip SIM/NÃO) entram no
 Uso (na raiz): python3 docs/testes/teste_testes.py"""
 import http.server, os, socketserver, threading
 from playwright.sync_api import sync_playwright
+import os as _o, sys as _s; _s.path.insert(0, _o.path.dirname(_o.path.abspath(__file__))); import _sem_sri  # noqa: selo SRI fora só no servidor de teste (23/11)
 RAIZ = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")); PORTA = 8877
 os.chdir(RAIZ)
 RUIM = "zz_diag_ruim.html"

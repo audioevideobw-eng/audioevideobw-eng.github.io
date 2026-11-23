@@ -7,7 +7,7 @@
    do arquivo; o Acrobat e o validador do ITI reconhecem. Carimbo visível opcional na última página. */
 (function () {
   "use strict";
-  var LIB_FORGE = "https://cdn.jsdelivr.net/npm/node-forge@1.3.1/dist/forge.min.js";
+  var LIB_FORGE = "https://cdn.jsdelivr.net/npm/node-forge@1.4.4/dist/forge.min.js";
   var LIB_PDF = "https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js";
   var ESPACO = 24576; /* bytes reservados para a assinatura (cadeia ICP-Brasil cabe com folga) */
 

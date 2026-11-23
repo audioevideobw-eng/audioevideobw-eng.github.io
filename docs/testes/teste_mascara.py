@@ -9,6 +9,7 @@ tocar no espaço e depois num vídeo troca, ⚡ PREENCHER SOZINHO, campos de tex
 modelo COM A PESSOA aplicado no take; nada sai do aparelho. 1280 e 390 px.   Uso (na raiz): python3 docs/testes/teste_mascara.py"""
 import base64, http.server, json, os, socketserver, subprocess, threading
 from playwright.sync_api import sync_playwright
+import os as _o, sys as _s; _s.path.insert(0, _o.path.dirname(_o.path.abspath(__file__))); import _sem_sri  # noqa: selo SRI fora só no servidor de teste (23/11)
 RAIZ = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")); TMP = "/tmp/teste_mascara"; PORTA = 8866
 os.makedirs(TMP, exist_ok=True)
 if not os.path.exists(f"{TMP}/pessoa.webm"):

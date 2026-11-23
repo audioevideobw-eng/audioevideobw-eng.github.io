@@ -2,6 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' blob: https://cdn.jsdelivr.net https://cdn.sheetjs.com; worker-src 'self' blob: https://cdn.jsdelivr.net; connect-src 'self' data: blob: https://zdtnetplvdonogmdvarx.supabase.co wss://zdtnetplvdonogmdvarx.supabase.co https://cdn.jsdelivr.net https://cdn.sheetjs.com https://open.er-api.com https://olinda.bcb.gov.br https://raw.githubusercontent.com https://storage.googleapis.com https://huggingface.co https://*.huggingface.co https://*.hf.co https://tessdata.projectnaptha.com https://fonts.googleapis.com https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' data: blob: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; font-src 'self' data: https://fonts.gstatic.com https://cdn.jsdelivr.net; frame-src 'self' blob: data: https://docs.google.com; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Cadastro — BW Audiovisual</title>
 <style>
@@ -51,7 +52,7 @@ button:disabled{opacity:.6;cursor:wait}
     <div class="msg" id="fMsg"></div>
   </div>
   <div class="rodape">BW Audiovisual · seus dados são usados apenas para a organização das equipes de eventos.</div>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.2/dist/umd/supabase.js" integrity="sha384-A97u3Qnt9GZHURO9YJZRe7VQgGUeFzcv6I1oIGnUTxQrCxnpQMwR0/G8F2zt9abZ" crossorigin="anonymous"></script>
 <script src="assets/bw-sync.js?v=20261122"></script>
 <script>
 (function(){

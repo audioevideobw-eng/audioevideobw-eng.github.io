@@ -5,6 +5,7 @@ Uso (na raiz):  python3 docs/testes/teste_fotos.py   — servidor local + stubs 
 import http.server, io, os, socketserver, threading, sys, zipfile
 from PIL import Image, ImageDraw
 from playwright.sync_api import sync_playwright
+import os as _o, sys as _s; _s.path.insert(0, _o.path.dirname(_o.path.abspath(__file__))); import _sem_sri  # noqa: selo SRI fora só no servidor de teste (23/11)
 
 RAIZ = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 PORTA = 8814

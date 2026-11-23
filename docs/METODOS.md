@@ -593,3 +593,18 @@ Quando o dono diz "padroniza isto em tudo", a receita que funcionou:
 
 Armadilha: classe de ESTADO não serve para destacar botão. `＋ IMPORTAR` usava `.on` (verde de "ligado") e `NOVO` usava
 `.perigo` (vermelho) só para chamar atenção — no meio dos botões grafite pareciam outro aplicativo. O destaque é `.pri`.
+
+## Análise de segurança — CSP, selo de integridade e bibliotecas (23/11/2026)
+1. **Achar bibliotecas com falha**: listar todo `cdn.jsdelivr.net/npm/<pacote>@<versão>` do site; para cada uma, procurar o CVE da versão (pdf.js,
+   node-forge, xlsx eram os pontos fracos). `npm i` das versões novas numa pasta de trabalho + `npm audit` = 0.
+2. **Selo (SRI)**: sha384 do arquivo do TARBALL do npm (`base64(sha384)`); no navegador do dono, `fetch` do endereço do CDN + `crypto.subtle.digest`
+   para provar que é o MESMO arquivo e que vem com `access-control-allow-origin: *`. Arquivo `.min.js` que não existe no pacote é gerado pelo jsDelivr
+   (bytes podem mudar) → usar o que existe. Fixar `@2` numa versão exata: comparar o hash de `@2` com o da versão exata (iguais = nada muda hoje).
+3. **CSP**: levantar os hosts de fetch/import/worker/modelos (grep de `https://` em fetch/import/src + modelAssetPath/langPath + o que as bibliotecas
+   buscam sozinhas: Transformers.js → huggingface.co e *.hf.co; Tesseract 5 → tessdata.projectnaptha.com; MediaPipe → storage.googleapis.com).
+   Testar com `document.addEventListener('securitypolicyviolation', …)` no add_init_script em TODAS as páginas (o bloqueio acontece antes da rota
+   do Playwright, então dá para ver mesmo com a rede abortada) + a varredura + os testes das ferramentas com mais recursos de fora.
+4. **Banco ao vivo (dono logado no navegador do app)**: SQL Editor do Supabase → `setValue` no monaco + Run; conferência de RLS de todas as
+   tabelas (pg_class.relrowsecurity + pg_policies). Teste de visitante: fetch cru só com a chave publishable em página SEM sessão.
+5. Pacote do app: só os arquivos que mudaram + site-offline.zip; o teste do motor do PC precisa de BW_STUDIO apontando para a cópia com
+   node_modules (symlink do playwright de /opt/npm-tools — o npm baixa uma versão cujo navegador não está instalado aqui).

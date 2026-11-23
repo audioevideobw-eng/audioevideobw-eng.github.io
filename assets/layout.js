@@ -122,6 +122,8 @@
     '<a class="bw-fb-btn bw-cfg" href="config.html" title="Meus dados e modos de aparência"><svg width="17" height="17" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M12 2v3M12 19v3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M2 12h3M19 12h3M4.9 19.1 7 17M17 7l2.1-2.1"/></svg><span>CONFIGURAÇÕES</span></a>' +
     /* 15/11 (pedido do dono): baixar o Guia do usuário (PDF) direto do menu */
     '<a class="bw-fb-btn bw-manual" href="docs/Brightway-Guia-do-usuario.pdf" target="_blank" rel="noopener" download="Brightway-Guia-do-usuario.pdf" title="Guia do usuário em PDF"><svg width="17" height="17" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/><path d="M12 7v6M9.5 10.5 12 13l2.5-2.5"/></svg><span>MANUAL DO USUÁRIO</span></a>' +
+    /* 23/11 (pedido do dono, junto da análise de segurança): POLÍTICA DE USO sempre à vista no menu */
+    '<a class="bw-fb-btn bw-manual bw-politica" href="politica.html" title="Regras de uso e como protegemos os seus dados"><svg width="17" height="17" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 4 5v6c0 5 3.4 9.4 8 11 4.6-1.6 8-6 8-11V5z"/><path d="m9 12 2 2 4-4"/></svg><span>POLÍTICA DE USO</span></a>' +
     '<div class="sync-card">' +
       '<div class="linha"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/></svg><span data-slot="menuSync">Sincronizado</span></div>' +
       '<div class="info">Celular e PC atualizados — automático ao abrir e ao salvar.</div>' +

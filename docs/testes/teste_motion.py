@@ -6,6 +6,7 @@ ffprobe + pixel do fundo), pedido para o app BW (.verde.bwmotion.json) e HTML da
 1280 e 390 px. Nada sai do aparelho. Uso (na raiz): python3 docs/testes/teste_motion.py"""
 import base64, http.server, json, os, socketserver, subprocess, threading, tempfile
 from playwright.sync_api import sync_playwright
+import os as _o, sys as _s; _s.path.insert(0, _o.path.dirname(_o.path.abspath(__file__))); import _sem_sri  # noqa: selo SRI fora só no servidor de teste (23/11)
 RAIZ = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")); PORTA = 8857
 STUDIO = os.environ.get("BW_STUDIO", "/home/claude/app-bw/pacote/bw-reels-studio")
 STUB = "window.supabase={createClient:function(){return {auth:{getSession:async()=>({data:{session:null}}),getUser:async()=>({data:{user:null}}),onAuthStateChange(){return {data:{subscription:{unsubscribe(){}}}}}},from(){const q={select(){return q},eq(){return q},then(r){return Promise.resolve({data:[],error:null}).then(r)}};return q},rpc:async()=>({data:null,error:null})}}};"

@@ -6,6 +6,7 @@ A prova de independência: lançar num ambiente NÃO muda nenhuma chave do outro
 Uso (na raiz): python3 docs/testes/teste_ambientes.py"""
 import http.server, json, os, socketserver, threading, datetime
 from playwright.sync_api import sync_playwright
+import os as _o, sys as _s; _s.path.insert(0, _o.path.dirname(_o.path.abspath(__file__))); import _sem_sri  # noqa: selo SRI fora só no servidor de teste (23/11)
 RAIZ = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")); PORTA = 8893
 Q = "from(){const q={select(){return q},eq(){return q},order(){return q},range(){return q},maybeSingle(){return Promise.resolve({data:null,error:null})},then(r){return Promise.resolve({data:[],error:null}).then(r)}};return q},rpc:async()=>({data:null,error:null}),channel(){const c={on(){return c},subscribe(){return c}};return c}"
 STUB = "window.supabase={createClient:function(){return {auth:{getSession:async()=>({data:{session:null}}),getUser:async()=>({data:{user:null}}),onAuthStateChange(){return {data:{subscription:{unsubscribe(){}}}}}}," + Q + "}}};"

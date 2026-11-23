@@ -6,6 +6,7 @@ local (gera 1 página por relatório) para conferir que as páginas dos anexos e
 import http.server, io, json, os, socketserver, sys, threading
 from PIL import Image
 from playwright.sync_api import sync_playwright
+import os as _o, sys as _s; _s.path.insert(0, _o.path.dirname(_o.path.abspath(__file__))); import _sem_sri  # noqa: selo SRI fora só no servidor de teste (23/11)
 
 RAIZ = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 PORTA = 8816

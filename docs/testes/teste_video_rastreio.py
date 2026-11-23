@@ -8,6 +8,7 @@ segurar o dedo no take abre as opções; EXPORTAR chama a exportação; desfazer
 Uso (na raiz): python3 docs/testes/teste_video_app.py"""
 import http.server, os, socketserver, subprocess, threading
 from playwright.sync_api import sync_playwright
+import os as _o, sys as _s; _s.path.insert(0, _o.path.dirname(_o.path.abspath(__file__))); import _sem_sri  # noqa: selo SRI fora só no servidor de teste (23/11)
 RAIZ = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")); TMP = "/tmp/teste_video_app"; PORTA = 8876
 os.makedirs(TMP, exist_ok=True)
 for nome, cor in (("azul", "0x1e3cdc"), ("verde", "0x18b43c")):

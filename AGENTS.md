@@ -869,6 +869,18 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
      padrão que já existe ANTES de criar classe/componente (auto: vigia 7.8g recusa toast próprio e aviso comprido;
      docs/testes/teste_aviso.py mede que fica no centro, não bloqueia o toque e some).
 
+**Aprendidos em 23/11 (ANÁLISE DE SEGURANÇA — CSP, selo de integridade e bibliotecas com falha)**
+208. SEGURANÇA DAS PÁGINAS (docs/automacoes/seguranca-paginas.py, vigia 7.10): toda página tem a CSP em <meta> logo depois do charset (connect-src
+     só com os serviços da lista ORIGENS_DADOS; script-src só self + jsDelivr + SheetJS; object-src none; base-uri self). Endereço NOVO que o site
+     passe a buscar (API, CDN, modelo de IA) → entra em ORIGENS_DADOS e roda o script — senão a ferramenta para de buscar CALADA (só aparece
+     "Refused to connect" no console). Biblioteca do CDN: versão EXATA (nunca @2/@latest — o vigia recusa) + integrity sha384 do arquivo do npm
+     + crossorigin="anonymous"; conferir no navegador que o CDN entrega os MESMOS bytes (o jsDelivr GERA arquivos .min.js que não existem no
+     pacote — o chart.umd.min.js do Chart.js 4.4.1 era gerado na hora e o selo nunca bateria: usar o arquivo que existe no pacote). Molde de
+     página gerada (gerar-ambientes.py) recebe a CSP e o selo também. Teste local troca bibliotecas por simuladas: todo teste importa
+     docs/testes/_sem_sri.py (tira o selo SÓ no servidor 127.0.0.1). Bibliotecas com falha conhecida (vigia): pdf.js < 4.2.67 (CVE-2024-4367: PDF
+     malicioso roda código — e getDocument com isEvalSupported:false), node-forge < 1.3.2, xlsx 0.18 (o npm parou no 0.18.5; a versão boa vem
+     de cdn.sheetjs.com). O gerar-ambientes.py tinha as versões ?v= VELHAS (36/75/1): conferir V_* com o index.html antes de gerar.
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -2313,8 +2325,24 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   layout.js v76, brightway.css v37, sw v206. Também: ＋ IMPORTAR usava a classe de ESTADO (.on, verde de "ligado") e NOVO usava
   .perigo (vermelho) só para destacar — agora .pri e botão comum. App BW 1.9.35 (cópia sem internet refeita com o site de hoje,
   novidades publicadas). Manual 63 → 66 p. (Editor de fotos no dedo · Máscara, elementos e seguir um ponto · Testes e soluções).
+- 23/11/2026 09:40 · Claude (dono: "analisar conforme a skill o site BW e o app Brightway" → "faça todos os ajustes da segurança e deixe a política
+  de uso visível ao usuário no menu"): ANÁLISE DE SEGURANÇA (skill Análise de Site, 8 ataques): Brightway 7,5 → correções. (1) pdf.html usava
+  pdf.js 3.11.174 (CVE-2024-4367: um PDF preparado rodava código na conta) → 4.10.38 + isEvalSupported:false (também no leitor); (2) node-forge
+  1.3.1 → 1.4.4 (teste_assinatura 0 falhas, formato antigo 3DES/RC2 e moderno, pdfsig válido); (3) xlsx 0.18.5 → 0.20.3 do CDN do SheetJS
+  (financeiro-painel, investimentos-painel, recs; testado no navegador do dono); (4) versões fixas (supabase-js 2.119.2, tesseract 5.1.1, gsap
+  3.15.1, zxing-wasm 2.2.4, chart.umd.js) + selo integrity em 145 <script> (mesmos bytes que o CDN entrega hoje — conferido); (5) CSP em todas
+  as 61 páginas e no molde (docs/automacoes/seguranca-paginas.py); (6) POLÍTICA DE USO: página politica.html + item no menu (layout.js) + links em
+  termos/privacidade/login + manual (p. 66, "Política de uso e segurança"). Banco conferido ao vivo: 21 tabelas com RLS; user_data só do dono
+  (auth.uid() = user_id nas 4 operações); orcamentos só is_bw_admin. Site BW (repo bw-producoes): CSP, selo no supabase-js, página
+  privacidade.html (Privacidade e uso) no rodapé, migração 003 RODADA (formulário: 3/h e 5/dia por e-mail, 20/h e 60/dia no site; o 001 não
+  reabre mais a regra antiga). Vigia 7.10 novo; testes: varredura (61 páginas × 3 larguras, 0 bloqueio de CSP), layout, pedido, aviso, testes,
+  agente_leitor, propostas, criador, crm, agenda, fotos, vídeo, motion, 3d, convites, ia_retoque, assinatura — 0 falhas. App BW 1.9.36
+  (gsap fixo no motor, cdn.sheetjs.com no uso sem internet, cópia sem internet refeita, tutorial). .exe NÃO gerado (sem acesso à pasta do PC).
+  layout.js v77, sw v207. PENTE FINO 208.
 
 ## Pendências (dono)
+- [ ] (23/11) APP BW 1.9.36 (segurança): gerar o BW-Setup.exe no PC (Vídeos\bw-reels-studio → "5 - GERAR INSTALADOR EXE") — o Claude não teve
+      acesso à pasta. O app instalado já recebe a 1.9.36 pela ATUALIZAÇÃO automática.
 - [ ] (23/11) iPhone: fechar e abrir o app, tocar em ＋ → ＋ IMPORTAR e dizer se a galeria abriu. PC: testar o laço na linha do tempo e os avisos pequenos.
 - [ ] (23/11 00:37, dono: "depois terminamos, grave o que falta") FALTA: (a) dono testar no iPhone — ＋ IMPORTAR/＋ abrindo a galeria, .MOV da câmera sem ⚠
       (importar de novo), rebote (dizer em qual parte ainda quica), folha MÍDIA vazia, pinça na prévia, layout de app, rastreio com mão/corpo reais;
