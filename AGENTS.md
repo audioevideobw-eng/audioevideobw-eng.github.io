@@ -2187,6 +2187,7 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
 
 ## Pendências (dono)
 - [ ] (22/11) iPhone: abrir o EDITOR DE FOTOS no Safari e dizer se o desfoque de cima sumiu; testar ⚡ FAZER PROXY e a JANELA DE EXPORTAR no PC com takes reais.
+- [x] (22/11 21:03) BW-Setup.exe 1.9.34 gerado pelo dono e publicado (9,0 MB, versão conferida dentro do .exe).
 - [x] (22/11 19:54) BW-Setup.exe 1.9.33 gerado pelo dono e publicado (8,6 MB, versão conferida dentro do .exe).
 - [x] (22/11 18:16) BW-Setup.exe 1.9.31 gerado pelo dono e publicado (8,5 MB, versão conferida dentro do .exe).
 - [ ] (22/11) TAKES: dono importar de novo os takes do evento (os 26 que "não abriam") no editor de vídeo e dizer se abriram; decidir sobre o PROXY no app BW (ler qualquer formato de câmera).
