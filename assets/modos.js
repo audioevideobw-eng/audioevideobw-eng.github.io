@@ -1,3 +1,8 @@
+/* TESTES E SOLUÇÕES (22/11): quando esta página roda DENTRO da página teste.html (iframe da mesma origem), cada erro de JavaScript é
+   avisado à página de testes — modos.js é o 1º script de toda página, então pega até erro do começo do carregamento. Fora disso, não faz nada. */
+(function () { try { if (window.parent === window || !window.parent.__bwDiag) return; var avisa = window.parent.__bwDiag;
+  window.addEventListener("error", function (e) { avisa({ msg: e.message || "erro", onde: (e.filename || "").split("/").pop() + ":" + (e.lineno || 0) }); });
+  window.addEventListener("unhandledrejection", function (e) { var r = e.reason; avisa({ msg: "promessa: " + (r && r.message || String(r)).slice(0, 160), onde: "" }); }); } catch (x) {} })();
 /* MODOS DE APARÊNCIA (20/11/2026, Claude — pedido do dono: "o usuário escolhe o modo: dark, clean, futurista… natal, ano novo… ou com a marca
    do cliente; deixe fácil incluir modelos no futuro").
 

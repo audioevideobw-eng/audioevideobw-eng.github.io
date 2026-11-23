@@ -176,6 +176,10 @@
   function aviso(t) { var v = V(); if (v && v.aviso) v.aviso(t); }
 
   /* espera o editor ficar pronto */
-  var tent = 0; (function esperar() { if (window.__veProntoOk && window.__video) montar(); else if (tent++ < 200) setTimeout(esperar, 50); else H.classList.remove("app-cedo"); })();
+  /* 22/11 (dono, print do iPhone: abria o layout ANTIGO e a tela ficava travada): antes, se o editor demorasse > 10 s para reabrir as
+     mídias guardadas, o app desistia e mostrava o layout do PC. Agora monta assim que o editor existe (no máx. 3 s de espera pelo
+     "pronto") e NUNCA cai no layout antigo no celular — o que ainda estiver carregando aparece sozinho depois. */
+  var tent = 0; (function esperar() { if (window.__video && (window.__veProntoOk || tent > 60)) { try { montar(); } catch (e) { console.warn("casca do app", e); H.classList.remove("app-cedo"); } }
+    else if (tent++ < 400) setTimeout(esperar, 50); else H.classList.remove("app-cedo"); })();
   window.VEApp = {ligado: true, abrir: function (o) { abrir(o); }, fechar: fechar, faixa: function () { ASS = ""; faixa(); }, aberta: function () { return SHEET && !SHEET.hidden ? SHEET.dataset.o : ""; }};
 })();

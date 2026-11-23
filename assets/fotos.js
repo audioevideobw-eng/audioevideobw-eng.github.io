@@ -79,7 +79,7 @@
   function IA0() { return { cab: "", cabF: 75, roupa: "", roupaF: 75, pele: 0, fundo: "", fundoF: 100 }; }
   function fotoNova(file, im) {
     return { file: file, nome: file.name.replace(/\.[^.]+$/, ""), prev: reduzir(im, 1400), w: im.naturalWidth, h: im.naturalHeight,
-      rot: 0, incl: 0, esp: false, cx: 0, cy: 0, zoom: 100, aj: {}, filtro: null, fundo: { modo: "nenhum", cor: "#ffffff", blur: 18 }, mask: null, adesivos: [], ia: IA0(), seg: null, ordem: [], ocultos: {}, masc: null };
+      rot: 0, incl: 0, esp: false, cx: 0, cy: 0, zoom: 100, aj: {}, filtro: null, fundo: { modo: "nenhum", cor: "#ffffff", blur: 18 }, mask: null, adesivos: [], ia: IA0(), seg: null, ordem: [], ocultos: {}, travados: {}, masc: null };
   }
 
   /* ================= MINHA MARCA (IndexedDB do aparelho) ================= */
@@ -484,7 +484,7 @@
     if (a.mix && a.mix !== "source-over") ctx.globalCompositeOperation = a.mix;
     if (a.img) {
       var im = CAM_IMG[a.img]; if (!im) { ctx.restore(); return; }
-      h = s * im.height / im.width; var src = mascAtiva(a.masc) ? comMascara(im, a.masc, Math.round(w), Math.round(h)) : im;
+      h = s * im.height / im.width * (a.alt == null ? 100 : a.alt) / 100; var src = mascAtiva(a.masc) ? comMascara(im, a.masc, Math.round(w), Math.round(h)) : im;
       if (a.sombra) { ctx.shadowColor = "rgba(0,0,0,.45)"; ctx.shadowBlur = s * 0.05; ctx.shadowOffsetY = s * 0.015; }
       ctx.drawImage(src, -w / 2, -h / 2, w, h); if (src !== im) src.width = src.height = 1;
     } else if (a.forma) {
@@ -493,12 +493,15 @@
       caminhoForma(ctx, a.forma, -w / 2, -h / 2, w, h);
       if (a.vazado) { ctx.lineWidth = Math.max(2, s * 0.035); ctx.stroke(); } else ctx.fill();
     } else if (a.selo) {
+      var kS = (a.alt == null ? 100 : a.alt) / 100; if (kS !== 1) ctx.scale(1, kS);
       ctx.font = "800 " + Math.round(s * 0.42) + "px Montserrat, Inter, sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
       w = ctx.measureText(a.selo).width + s * 0.7; h = s * 0.78;
       ctx.shadowColor = "rgba(0,0,0,.35)"; ctx.shadowBlur = s * 0.12; ctx.fillStyle = a.cor; rr(ctx, -w / 2, -h / 2, w, h, h / 2); ctx.fill(); ctx.shadowColor = "transparent";
       if (a.selo === "AO VIVO") { ctx.fillStyle = a.tx; ctx.beginPath(); ctx.arc(-w / 2 + h * 0.48, 0, h * 0.14, 0, 7); ctx.fill(); ctx.fillText(a.selo, h * 0.16, h * 0.03); }
       else { ctx.fillStyle = a.tx; ctx.fillText(a.selo, 0, h * 0.03); }
+      h *= kS;
     } else {
+      var kE = (a.alt == null ? 100 : a.alt) / 100; if (kE !== 1) ctx.scale(1, kE); h = s * kE;
       ctx.font = Math.round(s) + 'px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif'; ctx.textAlign = "center"; ctx.textBaseline = "middle";
       if (a.sombra) { ctx.shadowColor = "rgba(0,0,0,.45)"; ctx.shadowBlur = s * 0.12; ctx.shadowOffsetY = s * 0.04; }
       ctx.fillText(a.e, 0, s * 0.04);
@@ -578,7 +581,7 @@
         else if (tipo === "lado") { a.cx = r.x + r.w * 0.85; a.cy = r.y; a.tam = r.w * 55; a.rot = 20; }
         else if (tipo === "orelhas") { a.cx = cx; a.cy = r.y + r.h * 0.35; a.tam = r.w * 150; }
         else { a.cx = cx; a.cy = r.y + r.h / 2; a.tam = r.w * 120; }
-        a.tam = lim(Math.round(a.tam * 10) / 10, 3, 80); a.cx = lim(a.cx, 0, 1); a.cy = lim(a.cy, 0, 1);
+        a.tam = lim(Math.round(a.tam * 10) / 10, 3, 80); a.cx = lim(a.cx, -1, 2); a.cy = lim(a.cy, -1, 2);
         f.adesivos = (f.adesivos || []).concat([a]); ADS = a.id;
       });
       painel(); agendar(); toast("✨ " + rostos.length + " rosto(s) — ajuste o tamanho se precisar");
@@ -921,8 +924,11 @@
      SEGURAR 0,5 s parado abre as OPÇÕES (frente, trás, duplicar, excluir…). O segundo dedo pode cair fora da foto: ouvimos o palco inteiro. */
   var SEL = null, palcoEl = $("palco");
   function caixaDe(k) { if (!LAY || !k) return null; if (k === "logo") return LAY.logo; var id = k.slice(2), l = k[0] === "t" ? LAY.textos : LAY.ades; return (l || []).filter(function (b) { return b.id === id; })[0]; }
-  function itemNoPonto(p) { var f = FOTOS[ATUAL], oc = f.ocultos || {}, its = itensDe(f).slice().reverse();
-    for (var i = 0; i < its.length; i++) { if (oc[its[i].k]) continue; if (dentro(p, caixaDe(its[i].k))) return its[i]; } return null; }
+  /* 22/11 (dono: "um cadeadinho: trancada, mesmo tocando nela não mexe nem se altera"): f.travados[k] = 1 — o toque passa direto por ela,
+     e a FOTO (base) trancada não arrasta nem dá zoom com os dedos. Só destrancando no 🔒 (lista de CAMADAS ou segurar o dedo). */
+  function trancada(f, k) { return !!(f && f.travados && f.travados[k]); }
+  function itemNoPonto(p) { var f = FOTOS[ATUAL], oc = f.ocultos || {}, tr = f.travados || {}, its = itensDe(f).slice().reverse();
+    for (var i = 0; i < its.length; i++) { if (oc[its[i].k] || tr[its[i].k]) continue; if (dentro(p, caixaDe(its[i].k))) return its[i]; } return null; }
   function selecionar(it) { SEL = it.k; var muda = false;
     if (it.tipo === "a" && ADS !== it.o.id) { ADS = it.o.id; CAM = it.k; muda = true; } else if (it.tipo === "t" && TXT !== it.o.id) { TXT = it.o.id; muda = true; }
     if (muda && (ABA === "camadas" || ABA === "adesivos" || ABA === "texto")) painel(); }
@@ -931,10 +937,20 @@
   function menuSegurar(x, y, it) {
     if (!window.BWFerr || !BWFerr.menu) return; try { navigator.vibrate && navigator.vibrate(12); } catch (e) {}
     var f = fotoAtual(), fim = function () { painel(); agendar(); gravarHist(); };
-    if (!it) { BWFerr.menu(x, y, [
-        { icone: "⛶", rot: "Ajustar o corte e o zoom", fn: function () { irAba("foto"); } }, { icone: "◐", rot: "Antes e depois", fn: function () { $("edComparar").click(); } },
-        { icone: "⇄", rot: "Substituir, duplicar ou excluir a foto…", fn: function () { opcoesFoto(ATUAL); } }, "-",
-        { icone: "↶", rot: "Desfazer", off: HPOS <= 0, fn: desfazer }, { icone: "↷", rot: "Refazer", off: HPOS >= HIST.length - 1, fn: refazer }, { icone: "⬇", rot: "Salvar…", fn: function () { irAba("salvar"); } }], "FOTO", true); return; }
+    /* 22/11 (dono: "segurar a foto abre opções — excluir, duplicar, aplicar efeito — como nos takes do vídeo"): menu completo da FOTO */
+    if (!it) { var i0 = ATUAL, trF = trancada(f, "foto"); BWFerr.menu(x, y, [
+        { icone: "✦", rot: "Melhorar sozinho (AUTO)", fn: function () { ACOES.auto1(); fim(); } },
+        { icone: "🎨", rot: "Aplicar filtro…", fn: function () { irAba("filtros"); } }, { icone: "☀", rot: "Luz e cor (ajustes)…", fn: function () { irAba("ajustes"); } },
+        { icone: "✨", rot: "Efeitos com IA…", fn: function () { irAba("fundo"); } }, { icone: "⛶", rot: "Corte e zoom…", fn: function () { irAba("foto"); } },
+        { icone: "◐", rot: "Antes e depois", fn: function () { $("edComparar").click(); } }, "-",
+        { icone: "⧉", rot: "Duplicar a foto", fn: function () { var c = Object.assign({}, f, { aj: clone(f.aj), fundo: clone(f.fundo), adesivos: clone(f.adesivos || []), ia: clone(f.ia || IA0()), ordem: clone(f.ordem || []), ocultos: clone(f.ocultos || {}), travados: clone(f.travados || {}), mini: f.mini }); FOTOS.splice(i0 + 1, 0, c); ATUAL = i0 + 1; atualizarTudo("Foto duplicada"); gravarHist(); } },
+        { icone: "🔁", rot: "Substituir a foto (mantém a edição)", fn: function () { substituirEm = i0; $("arqTroca").click(); } },
+        FOTOS.length > 1 ? { icone: "⇉", rot: "Copiar esta edição para todas", fn: function () { FOTOS.forEach(function (o) { if (o === f) return; o.aj = clone(f.aj); o.filtro = f.filtro; o.zoom = f.zoom; o.adesivos = clone(f.adesivos || []); o.ia = clone(f.ia || IA0()); }); atualizarTudo("Edição copiada para todas"); gravarHist(); } } : null,
+        { icone: trF ? "🔓" : "🔒", rot: trF ? "Destrancar a foto" : "Trancar a foto (não arrasta nem dá zoom)", fn: function () { ACOES.camTrava("foto"); } },
+        { icone: "⇩", rot: "Baixar só esta", fn: function () { exportar("uma"); } }, "-",
+        { icone: "↶", rot: "Desfazer", off: HPOS <= 0, fn: desfazer }, { icone: "↷", rot: "Refazer", off: HPOS >= HIST.length - 1, fn: refazer },
+        { icone: "🗑", rot: "Excluir a foto do editor", perigo: true, fn: function () { if (!confirm("Tirar esta foto do editor? (o arquivo no seu aparelho não é apagado)")) return; FOTOS.splice(i0, 1); ATUAL = Math.min(ATUAL, FOTOS.length - 1); if (!FOTOS.length) { fecharEditor(false); desenharLista(); return; } atualizarTudo("Foto removida"); } }
+      ].filter(Boolean), "FOTO", true); return; }
     var k = it.k, ponta = function (topo) { var ks = itensDe(f).map(function (z) { return z.k; }).filter(function (z) { return z !== k; }); f.ordem = topo ? ks.concat([k]) : [k].concat(ks); };
     var dup = function () { var c = clone(it.o); c.cx = lim(c.cx + 0.05, 0, 1); c.cy = lim(c.cy + 0.05, 0, 1);
       if (it.tipo === "a") { c.id = uid("ad"); f.adesivos.push(c); ADS = c.id; CAM = SEL = "a:" + c.id; } else { c.id = uid("t"); G.textos.push(c); TXT = c.id; SEL = "t:" + c.id; } fim(); };
@@ -946,8 +962,12 @@
       { icone: "↓", rot: "Descer uma camada", fn: function () { moverCamada(k, -1); fim(); } }, { icone: "⬇", rot: "Mandar para trás", fn: function () { ponta(false); fim(); } }, "-",
       { icone: "＋", rot: "Maior", fn: function () { porTam(it, it.o.tam * 1.15); fim(); } }, { icone: "−", rot: "Menor", fn: function () { porTam(it, it.o.tam / 1.15); fim(); } },
       it.tipo === "a" ? { icone: "⇋", rot: "Espelhar", fn: function () { it.o.esp = !it.o.esp; fim(); } } : null,
+      it.tipo === "a" ? { icone: "◑", rot: it.o.sombra ? "Tirar a sombra" : "Pôr sombra", fn: function () { it.o.sombra = !it.o.sombra; fim(); } } : null,
+      it.tipo === "a" ? { icone: "◐", rot: "Máscara, mistura e opacidade…", fn: function () { ADS = it.o.id; CAM = k; irAba("camadas"); } } : null,
+      it.tipo === "a" && it.o.alt != null && it.o.alt !== 100 && !it.o.forma ? { icone: "▭", rot: "Voltar à proporção original", fn: function () { it.o.alt = 100; sincSlider("aAlt", 100); fim(); } } : null,
       it.tipo !== "l" ? { icone: "⧉", rot: "Duplicar", fn: dup } : null,
       { icone: "👁", rot: "Esconder", fn: function () { f.ocultos = f.ocultos || {}; f.ocultos[k] = 1; SEL = null; fim(); } },
+      { icone: "🔒", rot: "Trancar (não mexe mais)", fn: function () { f.travados = f.travados || {}; f.travados[k] = 1; SEL = null; fim(); toast("🔒 Trancada — destranque no cadeado da lista de CAMADAS"); } },
       { icone: "✎", rot: "Editar", fn: function () { if (it.tipo === "t") { TXT = it.o.id; irAba("texto"); } else if (it.tipo === "l") irAba("logo"); else { ADS = it.o.id; CAM = k; irAba("camadas"); } } }, "-",
       { icone: "🗑", rot: "Excluir", perigo: true, fn: apaga }].filter(Boolean), nomeCamada(it)[1].toUpperCase(), true);
   }
@@ -962,13 +982,21 @@
     if (PINTA) { var uv = localDaPintura(p); if (uv) { var m0 = mascAlvo(); if (m0) { var tr = { m: PINTA.modo, r: PINTA.r / 100, p: [uv[0], uv[1]] }; m0.tracos = (m0.tracos || []).concat([tr]); gesto = { tipo: "pinta", t: tr }; agendar(true); } } return; }
     if (ids.length === 2) {   /* segundo dedo: esticar o item que o primeiro dedo pegou, ou zoom da foto */
       clearTimeout(tSegura); var a = ptrs[ids[0]], b = ptrs[ids[1]], d0 = Math.max(10, Math.hypot(a.x - b.x, a.y - b.y)), an0 = Math.atan2(b.y - a.y, b.x - a.x);
-      if (gesto && gesto.it) { gesto = { tipo: "pinca-it", it: gesto.it, d0: d0, an0: an0, tam0: gesto.it.o.tam, rot0: gesto.it.o.rot || 0 }; return; }
-      if (!COMPARAR) gesto = { tipo: "pinca", d0: d0, z0: f.zoom || 100 }; return;
+      if (gesto && gesto.it) { var r0 = (gesto.it.o.rot || 0) * Math.PI / 180, vx = b.x - a.x, vy = b.y - a.y;
+        gesto = { tipo: "pinca-it", it: gesto.it, d0: d0, an0: an0, tam0: gesto.it.o.tam, rot0: gesto.it.o.rot || 0, alt0: gesto.it.o.alt == null ? 100 : gesto.it.o.alt,
+          lx0: Math.abs(vx * Math.cos(r0) + vy * Math.sin(r0)), ly0: Math.abs(-vx * Math.sin(r0) + vy * Math.cos(r0)), modo: null }; return; }
+      if (!COMPARAR && !trancada(f, "foto")) gesto = { tipo: "pinca", d0: d0, z0: f.zoom || 100 }; return;
     }
     if (ids.length > 2) return;
     clearTimeout(tSegura); segura0 = { x: ev.clientX, y: ev.clientY };
     if (COMPARAR) { gesto = { tipo: "div" }; DIV = lim(p.x / cv.width, 0.02, 0.98); agendar(true); return; }
     var fe = window.BWFerr ? BWFerr.atual() : "v", it = (fe === "h" || fe === "c") ? null : itemNoPonto(p);
+    /* 22/11 (dono: "seleciono a camada na lista e quem mexe é a de baixo"): a camada ESCOLHIDA na lista manda — o dedo mexe ela mesmo
+       tocando fora dela (ou em cima de outra que a cobre); só troca de camada quem tocar numa OUTRA camada fora da escolhida. */
+    if (ABA === "camadas" && fe !== "h" && fe !== "c" && CAM && CAM !== "foto" && !(f.ocultos && f.ocultos[CAM]) && !trancada(f, CAM)) {
+      var esc0 = itensDe(f).filter(function (z) { return z.k === CAM; })[0];
+      if (esc0 && (!it || dentro(p, caixaDe(CAM)))) it = esc0;
+    }
     tSegura = setTimeout(function () { if (Object.keys(ptrs).length !== 1) return; var g = gesto; gesto = null; menuSegurar(segura0.x, segura0.y, g && g.it); }, 500);
     if (it) { selecionar(it); var P = LAY.P;
       if (it.tipo === "t") gesto = { tipo: "txt", t: it.o, it: it, p0: p, cx: it.o.cx, cy: it.o.cy };
@@ -976,6 +1004,7 @@
       else gesto = { tipo: "logo", it: it, p0: p, x: (LAY.logo.x + LAY.logo.w / 2 - P.x) / P.w, y: (LAY.logo.y + LAY.logo.h / 2 - P.y) / P.h };
       agendar(true); return; }
     if (SEL) { SEL = null; agendar(true); }
+    if (trancada(f, "foto")) { gesto = null; return; }
     gesto = { tipo: "pan", p0: p, cx: f.cx, cy: f.cy };
   });
   palcoEl.addEventListener("pointermove", function (ev) {
@@ -985,14 +1014,26 @@
     if (gesto.tipo === "pinta") { var uv = localDaPintura(p), q = gesto.t.p; if (uv && (Math.abs(uv[0] - q[q.length - 2]) + Math.abs(uv[1] - q[q.length - 1]) > 0.004)) { q.push(uv[0], uv[1]); agendar(true); } return; }
     if (gesto.tipo === "pinca" || gesto.tipo === "pinca-it") { var ids = Object.keys(ptrs); if (ids.length < 2) return; var a = ptrs[ids[0]], b = ptrs[ids[1]], esc = Math.hypot(a.x - b.x, a.y - b.y) / gesto.d0;
       if (gesto.tipo === "pinca") { f.zoom = Math.round(lim(gesto.z0 * esc, 100, 400)); sincSlider("zoom", f.zoom); agendar(true); return; }
+      /* 22/11 (dono: "para quem edita com os dedos é melhor esticar livre, sem manter a proporção"): nas CAMADAS/adesivos os dois dedos
+         esticam LARGURA e ALTURA separadas (no sentido do próprio item); se os dedos começarem GIRANDO, o gesto vira girar (tamanho proporcional).
+         Texto e logo continuam proporcionais (letra e marca não deformam). */
+      var dAng = (Math.atan2(b.y - a.y, b.x - a.x) - gesto.an0) * 180 / Math.PI; dAng = ((dAng + 540) % 360) - 180;
+      if (!gesto.modo && gesto.it.tipo === "a") { if (Math.abs(dAng) > 12) gesto.modo = "girar"; else if (Math.abs(esc - 1) > 0.05) gesto.modo = "esticar"; }
+      if (gesto.modo === "esticar") {
+        var rr0 = gesto.rot0 * Math.PI / 180, wx = b.x - a.x, wy = b.y - a.y, M = 30,
+          lx = Math.abs(wx * Math.cos(rr0) + wy * Math.sin(rr0)), ly = Math.abs(-wx * Math.sin(rr0) + wy * Math.cos(rr0)),
+          sx = (lx + M) / (gesto.lx0 + M), sy = (ly + M) / (gesto.ly0 + M);
+        porTam(gesto.it, gesto.tam0 * sx); var sxReal = gesto.it.o.tam / gesto.tam0;
+        gesto.it.o.alt = Math.round(lim(gesto.alt0 * sy / sxReal, gesto.it.o.forma ? 1 : 15, gesto.it.o.forma ? 300 : 400)); sincSlider("aAlt", gesto.it.o.alt);
+        agendar(true); return; }
       porTam(gesto.it, gesto.tam0 * esc);
-      if (gesto.it.tipo === "a") { var r = gesto.rot0 + (Math.atan2(b.y - a.y, b.x - a.x) - gesto.an0) * 180 / Math.PI; r = ((r + 540) % 360) - 180; gesto.it.o.rot = Math.round(r); sincSlider("aRot", gesto.it.o.rot); }
+      if (gesto.it.tipo === "a" && gesto.modo !== "esticar") { var r = gesto.rot0 + (Math.atan2(b.y - a.y, b.x - a.x) - gesto.an0) * 180 / Math.PI; r = ((r + 540) % 360) - 180; gesto.it.o.rot = Math.round(r); sincSlider("aRot", gesto.it.o.rot); }
       agendar(true); return; }
     if (gesto.tipo === "div") { DIV = lim(p.x / cv.width, 0.02, 0.98); agendar(true); return; }
     /* 16/11: o arraste mede em FRAÇÃO da tela — durante o arraste a prévia é refeita em resolução menor (mais rápida) e o
        canvas muda de tamanho; medir em pixels fazia o adesivo/texto "pular" para outro lugar */
     var dx = (p.fx - gesto.p0.fx) * cv.width, dy = (p.fy - gesto.p0.fy) * cv.height, P = LAY.P;
-    if (gesto.tipo === "ades") { gesto.a.cx = lim(gesto.cx + dx / P.w, 0, 1); gesto.a.cy = lim(gesto.cy + dy / P.h, 0, 1); agendar(true); return; }
+    if (gesto.tipo === "ades") { gesto.a.cx = lim(gesto.cx + dx / P.w, -1, 2); gesto.a.cy = lim(gesto.cy + dy / P.h, -1, 2);   /* 22/11: pode sair da foto até sumir */ agendar(true); return; }
     if (gesto.tipo === "txt") { gesto.t.cx = lim(gesto.cx + dx / P.w, 0, 1); gesto.t.cy = lim(gesto.cy + dy / P.h, 0, 1); agendar(true); }
     else if (gesto.tipo === "logo") { G.logo.x = lim(gesto.x + dx / P.w, 0, 1); G.logo.y = lim(gesto.y + dy / P.h, 0, 1); agendar(true); }
     else if (gesto.tipo === "pan") {
@@ -1019,7 +1060,7 @@
 
   /* ================= HISTÓRICO (desfazer / refazer) ================= */
   var HIST = [], HPOS = -1, tHist = 0;
-  function foto2(f) { return { rot: f.rot, incl: f.incl, esp: f.esp, cx: f.cx, cy: f.cy, zoom: f.zoom, aj: clone(f.aj), filtro: f.filtro, fundo: clone(f.fundo), adesivos: clone(f.adesivos || []), ia: clone(f.ia || IA0()), ordem: clone(f.ordem || []), ocultos: clone(f.ocultos || {}), masc: clone(f.masc || null) }; }
+  function foto2(f) { return { rot: f.rot, incl: f.incl, esp: f.esp, cx: f.cx, cy: f.cy, zoom: f.zoom, aj: clone(f.aj), filtro: f.filtro, fundo: clone(f.fundo), adesivos: clone(f.adesivos || []), ia: clone(f.ia || IA0()), ordem: clone(f.ordem || []), ocultos: clone(f.ocultos || {}), travados: clone(f.travados || {}), masc: clone(f.masc || null) }; }
   function snap() { return { g: JSON.stringify(G), f: JSON.stringify(FOTOS.map(foto2)), m: FOTOS.map(function (f) { return f.mask; }) }; }
   function igual(a, b) { return a && b && a.g === b.g && a.f === b.f && a.m.length === b.m.length && a.m.every(function (m, i) { return m === b.m[i]; }); }
   function marcarHist() { clearTimeout(tHist); tHist = setTimeout(gravarHist, 450); }
@@ -1122,7 +1163,7 @@
     } else if (ABA === "adesivos") {
       var a = (f.adesivos || []).filter(function (x) { return x.id === ADS; })[0];
       if (a) {
-        h += '<div class="c-tit">ADESIVO SELECIONADO</div>' + sl("aTam", "Tamanho", 3, 80, a.tam, "%") + sl("aRot", "Girar", -180, 180, a.rot || 0, "°") + sl("aOp", "Opacidade", 10, 100, a.op == null ? 100 : a.op, "%") +
+        h += '<div class="c-tit">ADESIVO SELECIONADO</div>' + sl("aTam", "Tamanho", 3, 80, a.tam, "%") + sl("aAlt", "Esticar na altura (100 = proporção original)", 15, 400, a.alt == null ? 100 : a.alt, "%") + sl("aRot", "Girar", -180, 180, a.rot || 0, "°") + sl("aOp", "Opacidade", 10, 100, a.op == null ? 100 : a.op, "%") +
           '<div class="c-linha"><button type="button" class="chip" data-k="aEsp">⇋ ESPELHAR</button><button type="button" class="chip" data-k="aSombra">' + (a.sombra ? "SEM SOMBRA" : "COM SOMBRA") + '</button><button type="button" class="chip" data-k="aDup">⧉ DUPLICAR</button><button type="button" class="chip" data-k="aTodas">EM TODAS AS FOTOS</button><button type="button" class="chip" data-k="aFrente">⬆ NA FRENTE</button><button type="button" class="chip perigo" data-k="aDel">🗑 APAGAR</button></div>';
       }
       h += '<div class="c-tit">✨ IA: ACESSÓRIO NO ROSTO</div><div class="c-emoji">' + ["🕶️", "👓", "🎩", "👑", "🎓", "🧢", "👒", "🎀", "🎧", "😎"].map(function (e) { return '<button type="button" data-k="aRosto" data-v="' + e + '" aria-label="Pôr ' + e + ' nos rostos com IA">' + e + "</button>"; }).join("") +
@@ -1135,11 +1176,12 @@
       var its = itensDe(f).slice().reverse(), selA = adsSel();
       if (CAM && CAM !== "foto" && !its.some(function (x) { return x.k === CAM; })) CAM = null;
       h += '<div class="c-tit">CAMADAS (A DE CIMA COBRE AS DE BAIXO)</div><div class="cam-lista" id="camLista">' + its.map(function (it, n) { var nm = nomeCamada(it), oc = f.ocultos && f.ocultos[it.k];
-        return '<div class="cam-l' + (CAM === it.k ? " on" : "") + (oc ? " oculta" : "") + '" data-cam="' + esc(it.k) + '"><button type="button" class="cam-o" data-k="camVer" data-v="' + esc(it.k) + '" aria-label="' + (oc ? "Mostrar" : "Esconder") + ' camada ' + esc(nm[1]) + '">' + (oc ? "🚫" : "👁") + '</button><button type="button" class="cam-n" data-k="camSel" data-v="' + esc(it.k) + '"><i>' + esc(nm[0]) + '</i><span>' + esc(nm[1]) + '</span></button><button type="button" class="cam-m" data-k="camCima" data-v="' + esc(it.k) + '" aria-label="Subir camada ' + esc(nm[1]) + '"' + (n === 0 ? " disabled" : "") + '>▲</button><button type="button" class="cam-m" data-k="camBaixo" data-v="' + esc(it.k) + '" aria-label="Descer camada ' + esc(nm[1]) + '"' + (n === its.length - 1 ? " disabled" : "") + '>▼</button></div>'; }).join("") +
-        '<div class="cam-l base' + (CAM === "foto" ? " on" : "") + '" data-cam="foto"><span class="cam-o" aria-hidden="true">🔒</span><button type="button" class="cam-n" data-k="camSel" data-v="foto"><i>📷</i><span>Foto (base)' + (mascAtiva(f.masc) ? " · com máscara" : "") + '</span></button></div></div>';
+        return '<div class="cam-l' + (CAM === it.k ? " on" : "") + (oc ? " oculta" : "") + '" data-cam="' + esc(it.k) + '"><button type="button" class="cam-o" data-k="camVer" data-v="' + esc(it.k) + '" aria-label="' + (oc ? "Mostrar" : "Esconder") + ' camada ' + esc(nm[1]) + '">' + (oc ? "🚫" : "👁") + '</button><button type="button" class="cam-o cam-tr' + (trancada(f, it.k) ? " on" : "") + '" data-k="camTrava" data-v="' + esc(it.k) + '" aria-label="' + (trancada(f, it.k) ? "Destrancar" : "Trancar") + ' camada ' + esc(nm[1]) + '">' + (trancada(f, it.k) ? "🔒" : "🔓") + '</button><button type="button" class="cam-n" data-k="camSel" data-v="' + esc(it.k) + '"><i>' + esc(nm[0]) + '</i><span>' + esc(nm[1]) + '</span></button><button type="button" class="cam-m" data-k="camCima" data-v="' + esc(it.k) + '" aria-label="Subir camada ' + esc(nm[1]) + '"' + (n === 0 ? " disabled" : "") + '>▲</button><button type="button" class="cam-m" data-k="camBaixo" data-v="' + esc(it.k) + '" aria-label="Descer camada ' + esc(nm[1]) + '"' + (n === its.length - 1 ? " disabled" : "") + '>▼</button></div>'; }).join("") +
+        '<div class="cam-l base' + (CAM === "foto" ? " on" : "") + '" data-cam="foto"><button type="button" class="cam-o cam-tr' + (trancada(f, "foto") ? " on" : "") + '" data-k="camTrava" data-v="foto" aria-label="' + (trancada(f, "foto") ? "Destrancar" : "Trancar") + ' a foto">' + (trancada(f, "foto") ? "🔒" : "🔓") + '</button><button type="button" class="cam-n" data-k="camSel" data-v="foto"><i>📷</i><span>Foto (base)' + (mascAtiva(f.masc) ? " · com máscara" : "") + '</span></button></div></div>';
       h += '<div class="c-tit">ACRESCENTAR</div><div class="c-linha"><button type="button" class="chip" data-k="camImg">＋ IMAGEM</button><button type="button" class="chip" data-k="camTxt">＋ TEXTO</button><button type="button" class="chip" data-k="camAds">＋ ADESIVO</button></div>' + chips("camForma", FORMAS, null);
-      if (selA && CAM === "a:" + selA.id) {
-        h += '<div class="c-tit">CAMADA SELECIONADA</div>' + sl("aTam", "Tamanho", 3, 150, selA.tam, "%") + (selA.forma ? sl("aAlt", "Altura", 1, 300, selA.alt == null ? 100 : selA.alt, "%") : "") + sl("aRot", "Girar", -180, 180, selA.rot || 0, "°") + sl("aOp", "Opacidade", 5, 100, selA.op == null ? 100 : selA.op, "%");
+      if (selA && CAM === "a:" + selA.id && trancada(f, CAM)) h += '<div class="c-tit">CAMADA SELECIONADA</div><p class="cam-trancada">🔒 Trancada — não mexe nem com o dedo nem com os controles. Toque no cadeado da lista para destrancar.</p>';
+      else if (selA && CAM === "a:" + selA.id) {
+        h += '<div class="c-tit">CAMADA SELECIONADA</div>' + sl("aTam", "Tamanho", 3, 150, selA.tam, "%") + sl("aAlt", selA.forma ? "Altura" : "Esticar na altura (100 = proporção original)", selA.forma ? 1 : 15, selA.forma ? 300 : 400, selA.alt == null ? 100 : selA.alt, "%") + sl("aRot", "Girar", -180, 180, selA.rot || 0, "°") + sl("aOp", "Opacidade", 5, 100, selA.op == null ? 100 : selA.op, "%");
         if (selA.forma) h += '<div class="c-tit">COR</div>' + coresHtml("aCor", selA.cor || "#FFB547") + '<div class="c-linha"><button type="button" class="chip' + (selA.vazado ? " on" : "") + '" data-k="aVazado">' + (selA.vazado ? "SÓ CONTORNO ✓" : "SÓ CONTORNO") + '</button></div>';
         h += '<div class="c-tit">MISTURA COM O QUE ESTÁ EMBAIXO</div>' + chips("aMix", MISTURAS, selA.mix || "source-over");
         h += '<div class="c-linha"><button type="button" class="chip" data-k="aEsp">⇋ ESPELHAR</button><button type="button" class="chip" data-k="aSombra">' + (selA.sombra ? "SEM SOMBRA" : "COM SOMBRA") + '</button><button type="button" class="chip" data-k="aDup">⧉ DUPLICAR</button><button type="button" class="chip" data-k="aTodas">EM TODAS AS FOTOS</button><button type="button" class="chip perigo" data-k="aDel">🗑 APAGAR</button></div>';
@@ -1252,6 +1294,8 @@
     aAlt: function (v) { var a = adsSel(); if (a) a.alt = +v; }, aCor: function (v) { var a = adsSel(); if (a) a.cor = v; }, aVazado: function () { var a = adsSel(); if (a) { a.vazado = !a.vazado; painel(); } },
     aMix: function (v) { var a = adsSel(); if (a) a.mix = v; },
     camSel: function (v) { PINTA = null; if (v === "foto") { CAM = "foto"; ADS = null; painel(); return; } if (v === "logo") { irAba("logo"); return; } if (v.indexOf("t:") === 0) { TXT = v.slice(2); irAba("texto"); return; } CAM = v; ADS = v.slice(2); painel(); },
+    camTrava: function (v) { var f = fotoAtual(); f.travados = f.travados || {}; if (f.travados[v]) delete f.travados[v]; else { f.travados[v] = 1; if (SEL === v) SEL = null; }
+      toast(f.travados[v] ? "🔒 Trancada: não mexe mais até destrancar" : "🔓 Destrancada"); painel(); agendar(true); gravarHist(); },
     camVer: function (v) { var f = fotoAtual(); f.ocultos = f.ocultos || {}; if (f.ocultos[v]) delete f.ocultos[v]; else f.ocultos[v] = 1; painel(); },
     camCima: function (v) { moverCamada(v, 1); painel(); }, camBaixo: function (v) { moverCamada(v, -1); painel(); },
     /* 22/11 (dono: "camadas não acrescenta a foto"): no iPhone um <input type=file> SOLTO (fora da página) abre a galeria mas não avisa
@@ -1660,6 +1704,20 @@
   window.addEventListener("popstate", function () { if (!$("mk").hidden) { fecharMarca(); if (!$("ed").hidden) history.pushState({ bwEd: 1 }, ""); return; } if (!$("ed").hidden) fecharEditor(true); });
   $("edFechar").onclick = function () { fecharEditor(false); };
   $("edDesfazer").onclick = desfazer; $("edRefazer").onclick = refazer;
+  /* 22/11 (dono: "segurar em cima da camada na área de CAMADAS também abre o menu — excluir, duplicar, ferramentas"): segurar 0,5 s uma linha
+     da lista abre o MESMO menu de segurar na foto (camada ou foto base). Mexer o dedo cancela (é rolagem); o clique que vem depois é engolido. */
+  (function segurarNaLista() {
+    var ctrl = $("ctrl"), t = 0, p0 = null, engole = false; if (!ctrl) return;
+    ctrl.addEventListener("pointerdown", function (e) { var l = e.target.closest(".cam-l"); if (!l || e.target.closest(".cam-o,.cam-m") || e.button > 0) return;
+      p0 = { x: e.clientX, y: e.clientY }; clearTimeout(t);
+      t = setTimeout(function () { var k = l.dataset.cam, f = fotoAtual(); if (!f) return; engole = true;
+        if (k === "foto") { CAM = "foto"; menuSegurar(p0.x, p0.y, null); return; }
+        var it = itensDe(f).filter(function (z) { return z.k === k; })[0]; if (it) { if (it.tipo === "a") { CAM = k; ADS = it.o.id; } menuSegurar(p0.x, p0.y, it); } }, 500); });
+    ctrl.addEventListener("pointermove", function (e) { if (p0 && Math.hypot(e.clientX - p0.x, e.clientY - p0.y) > 8) { clearTimeout(t); p0 = null; } });
+    ["pointerup", "pointercancel"].forEach(function (n) { ctrl.addEventListener(n, function () { clearTimeout(t); p0 = null; }); });
+    ctrl.addEventListener("click", function (e) { if (engole && e.target.closest(".cam-l")) { engole = false; e.stopPropagation(); e.preventDefault(); } }, true);
+    ctrl.addEventListener("contextmenu", function (e) { if (e.target.closest(".cam-l")) e.preventDefault(); });
+  })();
   $("edAuto").onclick = function () { if (!FOTOS[ATUAL]) return; ACOES.auto1(); agendar(); };
   if ($("faixa")) $("faixa").addEventListener("click", function (ev) { var b = ev.target.closest("[data-fx]"); if (!b || !FOTOS[ATUAL]) return; ACOES.filtro(b.dataset.fx); agendar(); });
   window.addEventListener("resize", function () { if (!$("ed").hidden) desenharFaixa(); });

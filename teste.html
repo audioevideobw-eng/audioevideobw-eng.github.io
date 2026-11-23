@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Testes e soluções — Brightway</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#06080D">
+<link rel="icon" type="image/png" href="icons/favicon-64.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="Brightway">
+<link rel="stylesheet" href="assets/brightway.css?v=36">
+<style>
+.wrap{max-width:980px;margin:0 auto;padding:0 16px 120px}
+.ts-cx{min-width:0;margin-bottom:16px;padding:18px;border-radius:20px;background:var(--bw-card-bg);border:1px solid var(--bw-card-borda)}
+.ts-cx>h2{margin:0 0 4px;font:800 13px Inter,sans-serif;letter-spacing:.14em;color:var(--bw-marfim)}
+.ts-cx>p{margin:0 0 14px;font:500 13.5px/1.5 Inter,sans-serif;color:var(--bw-texto-3)}
+.ts-linha{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+.ts-bt{min-height:46px;padding:0 16px;border-radius:13px;border:1px solid var(--bw-card-borda);background:rgba(127,127,127,.1);color:var(--bw-marfim);font:800 12px Inter,sans-serif;letter-spacing:.07em;cursor:pointer;touch-action:manipulation}
+.ts-bt.pri{background:var(--bw-ambar);border-color:var(--bw-ambar);color:var(--bw-noite)}
+.ts-bt:disabled{opacity:.5;cursor:default}
+.ts-placar{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:14px}
+.ts-placar div{min-width:0;padding:12px;border-radius:14px;background:rgba(127,127,127,.08);text-align:center}
+.ts-placar b{display:block;font:800 26px Inter,sans-serif}
+.ts-placar small{font:700 10.5px Inter,sans-serif;letter-spacing:.1em;color:var(--bw-texto-3)}
+.ts-ok b{color:#3ecf8e}.ts-av b{color:#ffb547}.ts-er b{color:#ff6b6b}
+.ts-barra{height:8px;margin-top:12px;border-radius:4px;background:rgba(127,127,127,.15);overflow:hidden}
+.ts-barra i{display:block;height:100%;width:0;background:linear-gradient(90deg,#4C8DFF,#3ecf8e);transition:width .3s}
+.ts-agora{margin-top:8px;font:600 12.5px Inter,sans-serif;color:var(--bw-texto-3);min-height:18px}
+.ts-grupo{margin:16px 0 8px;font:800 11px Inter,sans-serif;letter-spacing:.16em;color:var(--bw-texto-3)}
+.ts-it{display:grid;grid-template-columns:28px minmax(0,1fr);gap:10px;padding:11px 0;border-top:1px solid var(--bw-card-borda)}
+.ts-it .st{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font:800 13px Inter,sans-serif;color:#0b0d12}
+.ts-it.ok .st{background:#3ecf8e}.ts-it.av .st{background:#ffb547}.ts-it.er .st{background:#ff6b6b}.ts-it.in .st{background:#8a93a3}
+.ts-it b{display:block;font:700 14px/1.35 Inter,sans-serif;color:var(--bw-marfim);overflow-wrap:anywhere}
+.ts-it small{display:block;margin-top:2px;font:500 12.5px/1.45 Inter,sans-serif;color:var(--bw-texto-3);overflow-wrap:anywhere}
+.ts-sol{margin-top:7px;padding:9px 11px;border-radius:11px;font:600 12.5px/1.5 Inter,sans-serif;background:rgba(76,141,255,.12);border:1px solid rgba(76,141,255,.35);color:var(--bw-marfim)}
+.ts-sol::before{content:"SOLUÇÃO · ";font-weight:800;letter-spacing:.08em;color:#4C8DFF}
+.ts-sol button{margin:8px 8px 0 0}
+.ts-rola{height:150px;overflow-y:auto;border-radius:12px;border:1px dashed var(--bw-card-borda);padding:8px 12px;font:600 13px/2.2 Inter,sans-serif;color:var(--bw-texto-2);touch-action:pan-y}
+.ts-segura{display:flex;align-items:center;justify-content:center;height:90px;border-radius:14px;border:1px dashed var(--bw-card-borda);font:700 13px Inter,sans-serif;color:var(--bw-texto-2);user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;touch-action:manipulation}
+.ts-segura.on{background:rgba(62,207,142,.15);border-color:#3ecf8e;color:#3ecf8e}
+.ts-perg{display:none;gap:8px;margin-top:10px;align-items:center;font:600 13px Inter,sans-serif;color:var(--bw-marfim);flex-wrap:wrap}
+.ts-perg.on{display:flex}
+#tsQuadro{position:fixed;left:0;top:0;border:0;opacity:0;pointer-events:none;z-index:-1}
+.ts-rel{width:100%;min-height:120px;margin-top:10px;padding:10px;border-radius:12px;border:1px solid var(--bw-card-borda);background:rgba(127,127,127,.06);color:var(--bw-marfim);font:500 12px/1.45 ui-monospace,Menlo,monospace;resize:vertical;box-sizing:border-box}
+.ts-ferr{display:flex;flex-wrap:wrap;gap:8px}
+.ts-ferr label{display:flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;background:rgba(127,127,127,.1);font:600 12.5px Inter,sans-serif;color:var(--bw-marfim);cursor:pointer}
+@media (max-width:480px){.ts-placar b{font-size:22px}}
+</style>
+<script src="assets/modos.js?v=7"></script>
+</head>
+<body>
+<header><div class="hd"><button id="btnVoltar" type="button" title="Voltar">‹</button><div id="userBox"></div></div></header>
+<div class="wrap">
+  <section class="ts-cx">
+    <h2>🩺 TESTES E SOLUÇÕES</h2>
+    <p>Confere a plataforma NESTE aparelho (celular, tablet ou computador): o que ele consegue fazer, se cada ferramenta abre sem erro e sem rolagem presa — e mostra a solução de cada problema. Nada é apagado; o relatório só sai se você tocar em enviar.</p>
+    <div class="ts-linha" style="margin-top:0">
+      <button type="button" class="ts-bt pri" id="tsTudo">▶ TESTAR TUDO</button>
+      <button type="button" class="ts-bt" id="tsRapido">⚡ SÓ O APARELHO (rápido)</button>
+    </div>
+    <div class="ts-placar"><div class="ts-ok"><b id="tsNOk">–</b><small>CERTO</small></div><div class="ts-av"><b id="tsNAv">–</b><small>ATENÇÃO</small></div><div class="ts-er"><b id="tsNEr">–</b><small>PROBLEMA</small></div></div>
+    <div class="ts-barra"><i id="tsBarra"></i></div>
+    <div class="ts-agora" id="tsAgora" aria-live="polite"></div>
+  </section>
+
+  <section class="ts-cx">
+    <h2>FERRAMENTAS A ABRIR</h2>
+    <p>Cada uma abre escondida, uma de cada vez, no tamanho desta tela. Desmarque as que não quer testar agora.</p>
+    <div class="ts-ferr" id="tsFerr"></div>
+  </section>
+
+  <section class="ts-cx">
+    <h2>TESTES COM VOCÊ</h2>
+    <p>Algumas coisas só você consegue dizer (se o som saiu, se o dedo rolou). Faça os que quiser — entram no relatório.</p>
+    <div class="ts-grupo">1 · ARRASTE O DEDO NESTA LISTA PARA CIMA</div>
+    <div class="ts-rola" id="tsRola"></div>
+    <div class="ts-grupo">2 · SEGURE O DEDO AQUI POR MEIO SEGUNDO</div>
+    <div class="ts-segura" id="tsSegura">SEGURE AQUI</div>
+    <div class="ts-grupo">3 · SOM</div>
+    <div class="ts-linha" style="margin-top:0"><button type="button" class="ts-bt" id="tsBip">🔔 TOCAR UM BIP</button><button type="button" class="ts-bt" id="tsVoz">🗣 OUVIR A VOZ</button></div>
+    <div class="ts-perg" id="tsPergBip">Ouviu o bip? <button type="button" class="ts-bt" data-r="bip:sim">SIM</button><button type="button" class="ts-bt" data-r="bip:nao">NÃO</button></div>
+    <div class="ts-perg" id="tsPergVoz">Ouviu a voz? <button type="button" class="ts-bt" data-r="voz:sim">SIM</button><button type="button" class="ts-bt" data-r="voz:nao">NÃO</button></div>
+    <div class="ts-grupo">4 · O TOPO ESTÁ EMBAÇADO?</div>
+    <p style="margin:0;font:500 13px/1.5 Inter,sans-serif;color:var(--bw-texto-3)">Role esta página para cima e para baixo e olhe o alto da tela.</p>
+    <div class="ts-perg on"><button type="button" class="ts-bt" data-r="topo:liso">ESTÁ LISO</button><button type="button" class="ts-bt" data-r="topo:emb">FICA EMBAÇADO</button></div>
+  </section>
+
+  <section class="ts-cx">
+    <h2>RESULTADO</h2>
+    <div id="tsLista"><p style="margin:0;font:500 13px Inter,sans-serif;color:var(--bw-texto-3)">Toque em ▶ TESTAR TUDO.</p></div>
+  </section>
+
+  <section class="ts-cx">
+    <h2>RELATÓRIO</h2>
+    <p>Mande para a equipe Brightway (vai como feedback, com a sua conta) ou copie e cole na conversa.</p>
+    <div class="ts-linha" style="margin-top:0"><button type="button" class="ts-bt pri" id="tsEnviar">📨 ENVIAR À EQUIPE</button><button type="button" class="ts-bt" id="tsCopiar">⧉ COPIAR RELATÓRIO</button></div>
+    <div class="ts-agora" id="tsMsg" aria-live="polite"></div>
+    <textarea class="ts-rel" id="tsRel" readonly></textarea>
+  </section>
+</div>
+<script src="assets/layout.js?v=75"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="assets/bw-sync.js?v=20261122"></script>
+<script src="assets/testes.js?v=1"></script>
+</body>
+</html>

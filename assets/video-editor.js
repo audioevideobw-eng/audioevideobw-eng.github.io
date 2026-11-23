@@ -1313,6 +1313,9 @@
   }
   /* ---------- começo: volta o que estava aberto ---------- */
   (async function () {
+    /* 22/11 (iPhone mostrava o layout antigo, "travado"): reabrir as mídias/pastas/proxies guardadas pode demorar ou falhar no Safari —
+       nada disso pode impedir o editor de ficar PRONTO. Erro aqui só avisa; o editor abre do mesmo jeito. */
+    try {
     var ms = (await tx("midias", "readonly", function (s) { return s.getAll(); })) || [];
     for (var i = 0; i < ms.length; i++) { try { var mm = await porMidia(ms[i].blob, ms[i].nome, ms[i].tipo, ms[i].id, ms[i].dur, ms[i].capa); if (ms[i].cr) { mm.cr = ms[i].cr; mm.crCriado = ms[i].crCriado; mm.criacao = true; } } catch (e) {} }
     await carregarPastas(); await carregarProxies();
@@ -1320,6 +1323,7 @@
     if (st && st.p && Array.isArray(st.p.clips)) { P = st.p; for (var k = 0; k < P.clips.length; k++) { var c = P.clips[k]; if (c.mid && !MID[c.mid] && c.mid.indexOf("som-") === 0) { var ix = SONS.map(function (s) { return "som-" + s[1].toLowerCase().replace(/\s+/g, "-"); }).indexOf(c.mid); if (ix >= 0) await porSom(ix); } }
       if (window.VEModelos && VEModelos.garantir) { try { await VEModelos.garantir(P); } catch (e) {} }   /* espaços e música de modelo são refeitos (não ficam guardados) */
       P.clips = P.clips.filter(function (c) { return c.tipo === "texto" || MID[c.mid]; }); }
+    } catch (e0) { console.warn("começo do editor", e0); try { aviso("Parte do projeto guardado não abriu (" + (e0 && e0.message || e0) + ") — o editor segue.", true); } catch (x) {} }
     formato(); desenharFerramentas(); desenharLib(); montarCache(); desenharTL(); desenharProp(); desenhar(); window.__veProntoOk = true;
     if (window.BWMascara) BWMascara.carregar(Object.keys(MID)).then(function () { desenharProp(); desenhar(); });
     await chegouCriacao();

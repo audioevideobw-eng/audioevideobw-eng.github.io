@@ -34,6 +34,14 @@ CL = "__video.P().clips"
 def visivel(pg, sel): return pg.evaluate(f"(()=>{{const e=document.querySelector({sel!r});if(!e)return false;const r=e.getBoundingClientRect();return e.getClientRects().length>0&&r.width>0&&r.height>0&&r.bottom>0&&r.top<innerHeight&&getComputedStyle(e).visibility!=='hidden'}})()")
 with sync_playwright() as p:
     b = p.chromium.launch(args=["--no-sandbox", "--autoplay-policy=no-user-gesture-required"])
+    # 22/11 (print do iPhone: abria o layout ANTIGO e travado): o editor que demora a ficar "pronto" (mídias guardadas lentas) NÃO pode derrubar o app
+    ctx0 = b.new_context(viewport={"width": 390, "height": 844}, service_workers="block", has_touch=True, is_mobile=True); ctx0.route("**/*", rota)
+    pg0 = ctx0.new_page(); pg0.add_init_script("Object.defineProperty(window,'__veProntoOk',{get(){return false},set(v){},configurable:true})")
+    pg0.goto(BASE + "video.html"); pg0.wait_for_timeout(5000)
+    ok(pg0.evaluate("!!document.getElementById('veApp')&&document.documentElement.classList.contains('ve-app')&&!document.documentElement.classList.contains('app-cedo')"),
+       "editor que NUNCA avisa 'pronto' (iPhone lento): o layout de APP monta mesmo assim, não cai no layout antigo")
+    ok(visivel(pg0, "#vaFaixa") and not visivel(pg0, ".wrap"), "… com a faixa de ferramentas à vista e a tela antiga escondida")
+    ctx0.close()
     for nomeT, vp, url in (("celular 390", (390, 844), "video.html"), ("tablet 820", (820, 1180), "video.html")):
         print(f"\n=== {nomeT} ===")
         ctx = b.new_context(viewport={"width": vp[0], "height": vp[1]}, service_workers="block", has_touch=True, is_mobile=True); ctx.route("**/*", rota)

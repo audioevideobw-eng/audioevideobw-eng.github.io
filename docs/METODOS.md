@@ -561,3 +561,9 @@ Tamanho > 0 e sem erro = o pdfmake montou o arquivo. Localmente (T1) confira o `
 - Folhas/menus que só abrem com toque não aparecem na varredura: o teste da ferramenta abre a folha e arrasta o dedo EM CIMA das miniaturas.
 - Bateria inteira: um teste por vez (vários usam a mesma PORTA); o app BW precisa de `ln -s /opt/npm-tools/node_modules/playwright-core node_modules/`
   no pacote (teste_motion usa o motor do pacote) e, no fim, apagar node_modules e projetos/motion-*.
+
+## Testar no aparelho de verdade (22/11)
+- Mandar o dono abrir **Configurações → 🩺 TESTES E SOLUÇÕES** e tocar em ▶ TESTAR TUDO; ele copia o relatório (ou ENVIAR → aparece em bw_feedback, tipo
+  Problema, texto começando com "[TESTES E SOLUÇÕES]"). Para checar uma página nova lá dentro: entrar na lista FERR do assets/testes.js.
+- Gancho de erro: modos.js (1º script de toda página) avisa window.parent.__bwDiag quando a página está num iframe da teste.html.
+- Validar a própria página: docs/testes/teste_testes.py cria uma página com defeito de propósito (zz_diag_ruim.html) e confere que tudo é acusado.

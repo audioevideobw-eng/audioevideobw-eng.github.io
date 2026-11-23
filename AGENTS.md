@@ -797,6 +797,21 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
      contain, caixa que não rola). Folha que só aparece depois de um toque não entra na varredura → teste da própria ferramenta (teste_video_app).
 193. Mudou o FLUXO de um botão (EXPORTAR passou a abrir a janela de exportação): procurar em TODOS os testes quem clica nele (grep do id) e atualizar no
      mesmo commit — teste_cor, teste_mascara e teste_som ficaram esperando o vídeo que não vinha (só o teste_video tinha sido atualizado).
+194. LAYOUT DE APP QUE DEPENDE DO "PRONTO" DO EDITOR (dono, print do iPhone 22/11: o editor de vídeo abria no layout ANTIGO e travado; no Android
+     abria certo): o ve-app.js esperava window.__veProntoOk por 10 s e depois DESISTIA mostrando o layout do PC — e o "pronto" só chegava depois
+     de reabrir TODAS as mídias/pastas/proxies guardadas (lento no iPhone; e um erro no caminho deixava o "pronto" sem vir nunca). Casca de app
+     monta assim que o editor EXISTE (máx. 3 s esperando o pronto) e nunca cai no layout antigo no celular; o começo do editor fica em try/catch
+     e o "pronto" chega sempre (auto: teste_video_app.py simula um editor que nunca avisa pronto). Print com a tela "errada" → comparar com o
+     Android antes de culpar o cache.
+195. EDITOR DE FOTOS — camadas (dono, 22/11): dois dedos ESTICAM LIVRE (largura e altura separadas, no eixo do item; `alt` = % da altura natural,
+     100 = proporção original; dedos girando = modo girar), arrastar passa da foto até sumir (cx/cy −1…2), 🔒 CADEADO por camada e na foto
+     (f.travados: o toque passa direto, controles somem), a camada ESCOLHIDA na lista é a que o dedo mexe (aba CAMADAS), segurar a foto ou a linha
+     da lista abre o menu completo (filtro, ajustes, IA, duplicar, substituir, trancar, excluir…). Texto e logo continuam proporcionais (auto: teste_fotos.py).
+196. TESTES E SOLUÇÕES (teste.html + assets/testes.js): roda NO APARELHO da pessoa (o Chrome de Linux daqui não vê o iPhone; o WebKit da
+     Playwright é bloqueado pela rede daqui): aparelho, gravação de vídeo/som, HEVC, espaço, versão guardada × no ar, cada ferramenta aberta num
+     iframe escondido (erros chegam pelo gancho do modos.js → window.parent.__bwDiag; mede vazia, estouro, cortado à direita, fora da tela,
+     rolagem presa, app que não montou) + testes com a pessoa (dedo, segurar, bip, voz, topo). Cada problema traz a SOLUÇÃO; ↻ ATUALIZAR apaga só
+     os caches de ARQUIVOS. Relatório → ENVIAR (bw_feedback, tipo Problema) ou COPIAR. Bug conhecido novo = SOLUÇÃO nova na tabela SOL (auto: teste_testes.py).
 
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
@@ -2201,6 +2216,14 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   (57 páginas × PC e celular: erro de JS, conteúdo fora da tela sem rolagem, rolagem presa) — 0 falhas. Bateria inteira rodada: 54 testes do site + 5 do
   app BW (app, assistente, gerador 3D, legendas, recorte) — 0 falhas; 3 testes (cor, máscara, som) estavam desatualizados desde a janela de exportar e foram
   acertados. ve-app.css v7, sw v199. PENTE FINO 192–193. App BW: nada do PC mudou (a cópia sem internet entra no próximo pacote).
+- 22/11/2026 22:50 · Claude (dono: "sistema de testes e soluções" + 5 pedidos do editor de fotos + print do iPhone com o editor de vídeo no layout antigo):
+  (1) EDITOR DE VÍDEO no iPhone: abria no layout ANTIGO (travado) porque o app desistia depois de 10 s esperando o editor reabrir as mídias guardadas —
+  agora a cara de app monta sempre e o editor fica pronto mesmo se parte do projeto não abrir. (2) EDITOR DE FOTOS: dois dedos esticam LIVRE (sem manter a
+  proporção), arrastar até sair da foto, 🔒 cadeado em cada camada e na foto, a camada escolhida na lista é a que mexe, segurar a foto ou a camada da
+  lista abre o menu completo (filtro, ajustes, IA, duplicar, substituir, trancar, excluir). (3) Nova página 🩺 TESTES E SOLUÇÕES (Configurações): roda os
+  testes no aparelho da pessoa e mostra a solução de cada problema; relatório para a equipe. O motor do Safari para os testes daqui foi bloqueado pela rede.
+  teste_fotos (+12), teste_video_app (+2), teste_testes (novo, 0 falhas × 1280/390), vídeo/fotos/layout/ambientes/modos/rolagem 0 falhas; vigia ✅.
+  modos.js v7, layout.js v75, fotos.js v22, ve-app v5, video-editor v20, testes.js v1, sw v201. PENTE FINO 194–196.
 ## Pendências (dono)
 - [ ] (22/11) iPhone: abrir o EDITOR DE FOTOS no Safari e dizer se o desfoque de cima sumiu; testar ⚡ FAZER PROXY e a JANELA DE EXPORTAR no PC com takes reais.
 - [x] (22/11 21:03) BW-Setup.exe 1.9.34 gerado pelo dono e publicado (9,0 MB, versão conferida dentro do .exe).

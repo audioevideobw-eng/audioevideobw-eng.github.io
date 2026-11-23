@@ -95,7 +95,7 @@
     invest:"Simulador de rendimento", "investimentos-painel":"Painel de Investimentos", serie:"Série histórica", diario:"Diário de câmbio", calc:"Calculadora",
     viagem:"Conversor de viagem", leitor:"Leitor de contas", recs:"Recomendações",
     noticias:"Notícias", dados:"Meus dados", app:"App & sincronização", login:"Acesso",
-    configadm:"Configuração", config:"Configurações", marketing:"Marketing", assistente:"Assistente de texto", transcricao:"Transcrição e legendas", pdf:"Ferramentas de PDF",
+    configadm:"Configuração", config:"Configurações", teste:"Testes e soluções", marketing:"Marketing", assistente:"Assistente de texto", transcricao:"Transcrição e legendas", pdf:"Ferramentas de PDF",
     crm:"CRM", captacao:"Funil de clientes", resultados:"Indicadores", fotos:"Editor de fotos", criador:"Criador IA", reels:"BW Reels Pro", personagens:"Personagens", promptia:"Prompt IA", video:"Editor de vídeo", motion:"Estúdio de motion", telas:"Telas em movimento", album3d:"Álbum 3D e efeitos", "3d":"Estúdio 3D", propostas:"Gerador de orçamento" };
   var NOMES_CAT = {}; CATEGORIAS.forEach(function(c){ NOMES_CAT[c.id] = c.nome; });
 
