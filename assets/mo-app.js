@@ -65,6 +65,7 @@
     setTimeout(function () { var e = E(); if (e) e.medir(); }, 60);
     /* 22/11: faixa e linha do tempo com rolagem própria presa nas pontas (sem o elástico) + setinhas ‹ › — BWFerr.faixaFirme */
     if (window.BWFerr && BWFerr.faixaFirme) {
+      if (BWFerr.travarBorda) BWFerr.travarBorda({so: "mo-app"}); /* 24/11: gesto de voltar do Safari pela borda */
       BWFerr.faixaFirme(FAIXA, {setas: true, pai: APP, esq: function () { var v = FAIXA.querySelector(".ma-f.volta"); return v ? v.offsetWidth + 8 : 0; }});
       BWFerr.faixaFirme($("moPistas"), {aoRolar: function () { rolando = Date.now(); }, parar: function () { return !!window.__bwSegurando; }, pular: function (t) { return !!(t.closest && t.closest(".mo-barra.on,[data-kf],[data-al]")); }});
     }

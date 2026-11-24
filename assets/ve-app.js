@@ -82,6 +82,7 @@
       document.addEventListener("touchmove", function (e) { if (!e.cancelable) return; var t = e.target;
         if (!t || !t.closest || !t.closest(".va") || t.closest(".va-sheet-corpo,[data-rola-livre],input,textarea,select")) return; e.preventDefault(); }, {passive: false});
       ["gesturestart", "gesturechange"].forEach(function (ev) { document.addEventListener(ev, function (e) { if (e.target && e.target.closest && e.target.closest(".va")) e.preventDefault(); }, {passive: false}); });
+      if (BWFerr.travarBorda) BWFerr.travarBorda({so: "ve-app"}); /* 24/11: gesto de voltar do Safari pela borda */
       BWFerr.faixaFirme(FAIXA, {setas: true, pai: APP, esq: function () { var v = FAIXA.querySelector(".va-f.volta"); return v ? v.offsetWidth + 8 : 0; }});
       BWFerr.faixaFirme($("veRolo"), {max: fimPx, vertical: $("veRolo").closest(".ve-tl-corpo"), aoRolar: function () { rolando = Date.now(); }, parar: function () { return !!window.__bwSegurando; }, pular: function (t) { return !!(t.closest && t.closest(".ve-clip.on,.al,[data-junta],[data-trp]")); }});
     }

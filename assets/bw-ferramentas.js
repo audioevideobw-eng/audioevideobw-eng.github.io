@@ -397,7 +397,43 @@
     ".bwf-vz{position:absolute;z-index:6;height:26px;padding:0 10px;border-radius:999px;border:0;background:rgba(3,6,16,.7);color:#fff;font:800 11px Inter,system-ui,sans-serif;cursor:pointer}.bwf-vz[hidden]{display:none}";
   (document.head || document.documentElement).appendChild(css3);
 
-  window.BWFerr = { faixaFirme: faixaFirme, previa: previa, barra: barra, trocar: trocar, atalhos: atalhos, menu: menu, fecharMenu: fecharMenu, contexto: contexto, ajuda: ajuda, telaFixa: telaFixa, mostrarAjuda: mostrarAjuda, preso: preso, digitando: digitando,
+  /* 24/11 (dono, iPhone: "quando clica um pouco mais forte, ele puxa a tela para o lado, parece a função de fechar"): é o gesto de VOLTAR do
+     Safari, que nasce na BORDA da tela (esquerda volta, direita avança) e leva a página inteira junto. O Safari só desiste do gesto quando o
+     touchstart que começa na borda é cancelado (preventDefault, passive:false). Como cancelar o toque também cancela o clique, o toque curto
+     na borda vira clique por código no mesmo alvo. Campo de digitar e seletor de arquivo (iPhone: só abre com o dedo direto, regra 203) ficam de
+     fora. A barra de baixo do iPhone (ir para a tela de início) é do sistema: nenhuma página consegue travar — só o Acesso Guiado do iOS. */
+  var bordaLigada = false;
+  function travarBorda(o) {
+    if (bordaLigada) return; bordaLigada = true; o = o || {};
+    var BORDA = o.borda || 24, tq = null;
+    function dentro() { return !o.so || document.documentElement.classList.contains(o.so); }
+    document.addEventListener("touchstart", function (e) {
+      if (!e.cancelable || !e.touches || e.touches.length !== 1 || !dentro()) { tq = null; return; }
+      var p = e.touches[0], w = window.innerWidth || document.documentElement.clientWidth;
+      if (p.clientX > BORDA && p.clientX < w - BORDA) { tq = null; return; }
+      var t = e.target;
+      if (t && t.closest && t.closest("input,textarea,select,[contenteditable]")) { tq = null; return; }
+      e.preventDefault();
+      tq = {x: p.clientX, y: p.clientY, t: t, h: Date.now()};
+    }, {passive: false, capture: true});
+    document.addEventListener("touchend", function (e) {
+      var a = tq; tq = null; if (!a) return;
+      var c = e.changedTouches && e.changedTouches[0];
+      if (!c || Math.abs(c.clientX - a.x) > 12 || Math.abs(c.clientY - a.y) > 12 || Date.now() - a.h > 700 || window.__bwSegurando) return;
+      /* clique com a POSIÇÃO do dedo (quem confere "não andou" lê clientX/clientY do clique — o .click() vazio chegava em 0,0) */
+      var alvo = a.t; if (!alvo || alvo.isConnected === false || !alvo.dispatchEvent) return;
+      try { alvo.dispatchEvent(new MouseEvent("click", {bubbles: true, cancelable: true, view: window, clientX: c.clientX, clientY: c.clientY, screenX: c.screenX, screenY: c.screenY})); }
+      catch (er) { if (typeof alvo.click === "function") alvo.click(); }
+    }, {capture: true});
+    document.addEventListener("touchcancel", function () { tq = null; }, {capture: true});
+    /* toque firme/segurado não abre a lupa nem o menu de copiar do iPhone */
+    var s = document.createElement("style");
+    s.textContent = (o.so ? "html." + o.so + " " : "") + "body{-webkit-touch-callout:none}" +
+      (o.so ? "html." + o.so + " " : "") + "body :not(input):not(textarea):not([contenteditable]){-webkit-user-select:none;user-select:none}";
+    (document.head || document.documentElement).appendChild(s);
+  }
+
+  window.BWFerr = { faixaFirme: faixaFirme, travarBorda: travarBorda, previa: previa, barra: barra, trocar: trocar, atalhos: atalhos, menu: menu, fecharMenu: fecharMenu, contexto: contexto, ajuda: ajuda, telaFixa: telaFixa, mostrarAjuda: mostrarAjuda, preso: preso, digitando: digitando,
     atual: function () { return BARRA ? (BARRA.temp || BARRA.atual) : "v"; }, alt: function () { return !!(BARRA && BARRA.alt); },
     ICONES: { v: "➤", c: "✂", h: "✋", z: "🔍", t: "T", b: "🖌", e: "⌫", i: "💧", m: "⬚", r: "⟳", p: "✒" } };
 })();

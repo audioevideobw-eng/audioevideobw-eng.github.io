@@ -912,6 +912,12 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
      achava que estava tudo certo. Cada linha diz o NOME de quem faz (ex.: "pela Intel UHD (integrada)") e, se o PC tem dedicada parada, nada
      fica verde. Ajuste que depende do sistema operacional: o app BW faz com 1 toque (registro do usuário, sem administrador, confirm antes) e o
      site manda direto para a tela certa (ms-settings:); depois de mudar a placa, o navegador precisa ser REABERTO (auto: teste_video_placa.py).
+215. "CLICANDO MAIS FORTE A TELA VAI PARA O LADO" no iPhone (dono, 24/11) = gesto de VOLTAR/AVANÇAR do Safari, que nasce na BORDA da tela e leva a
+     página inteira junto (o overscroll-behavior e o corpo fixo NÃO pegam esse gesto). BWFerr.travarBorda({so:"ve-app"|"mo-app"}) cancela o touchstart que
+     começa a até 24 px da borda (capture, passive:false) e devolve o toque curto como clique COM a posição do dedo (MouseEvent com clientX/Y — quem confere
+     "não andou" lia 0,0 do .click() vazio e o "tocar no vazio larga o take" quebrou no teste); campo de digitar e input de arquivo ficam de fora (regra 203);
+     arrastar a partir da borda não vira clique; -webkit-touch-callout none (toque firme não abre lupa/menu de copiar). A barra de baixo do iPhone (tela de
+     início) é do SISTEMA: página nenhuma trava — só o Acesso Guiado (Ajustes → Acessibilidade). Teste: docs/testes/teste_borda.py (toque CDP na borda).
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -2464,9 +2470,17 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   NVIDIA GeForce RTX 3050 6GB Laptop GPU em prévia, Full HD, 4K e exportação. O botão ⚡ USAR A NVIDIA (app BW 1.9.39) funcionou no Windows de verdade.
 - 24/11/2026 00:10 · Claude (dono: "ligue a regra de gravar, aprender etc."): FECHAMENTO do dia — manual 66 → 69 p. (Controle de efeitos e Cor avançada;
   Qualidade, placa de vídeo e trecho), METODOS.md (efeitos, nós de cor, qualidade parado, placa de vídeo, trecho, atalhos) e PENTE FINO 214.
+- 24/11/2026 13:50 · Claude (dono, teste no iPhone: "ainda quando você clica um pouco mais forte, ele puxa a tela para o lado, parece a função de fechar…
+  dá para trancar a tela ou desligar essa função no momento do uso do app?"): é o gesto de voltar do Safari pela BORDA da tela. Novo BWFerr.travarBorda
+  (bw-ferramentas.js) ligado nos layouts de app do EDITOR DE VÍDEO e do MOTION: toque que começa a até 24 px da borda é cancelado (o Safari não puxa a
+  página), toque curto ali continua clicando, campos e o seletor de arquivo ficam livres; toque firme não abre lupa/menu de copiar. A barra de baixo do
+  iPhone é do sistema (não dá para travar pelo site) — para travar tudo, Acesso Guiado. PC: seleção pelo laço e avisos discretos APROVADOS pelo dono.
+  Teste novo docs/testes/teste_borda.py 0 falhas; teste_video_app (1 falha antiga e intermitente do "tela antiga escondida", igual sem a mudança) e
+  teste_motion_app 0 falhas; vigia ✅. NÃO testado em iPhone de verdade (o dono testa). bw-ferramentas v9, ve-app v15, mo-app v4, sw v220. PENTE FINO 215.
+
 ## Pendências (dono)
 - [x] (23/11 09:58) BW-Setup.exe 1.9.37 gerado pelo dono e publicado (9,0 MB, versão conferida dentro do .exe).
-- [ ] (23/11) iPhone: fechar e abrir o app, tocar em ＋ → ＋ IMPORTAR e dizer se a galeria abriu. PC: testar o laço na linha do tempo e os avisos pequenos.
+- [ ] (23/11) iPhone: fechar e abrir o app, tocar em ＋ → ＋ IMPORTAR e dizer se a galeria abriu. PC: laço e avisos pequenos APROVADOS (24/11). iPhone (24/11): conferir se a tela parou de ir para o lado com toque firme (trava-borda).
 - [ ] (23/11 00:37, dono: "depois terminamos, grave o que falta") FALTA: (a) dono testar no iPhone — ＋ IMPORTAR/＋ abrindo a galeria, .MOV da câmera sem ⚠
       (importar de novo), rebote (dizer em qual parte ainda quica), folha MÍDIA vazia, pinça na prévia, layout de app, rastreio com mão/corpo reais;
       (b) dono testar no PC — laço de vários takes e avisos pequenos; (c) Claude — manual do usuário (Testes e soluções, editor de fotos no dedo, máscara por

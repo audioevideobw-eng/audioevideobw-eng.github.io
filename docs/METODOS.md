@@ -626,3 +626,13 @@ Armadilha: classe de ESTADO não serve para destacar botão. `＋ IMPORTAR` usav
 5. **Trecho I/O na exportação**: uma função só (`trecho()`) devolve [entrada, saída] ou null e TODA saída (vídeo, áudio, imagens) usa ela.
    Teste confere o ARQUIVO no ffprobe (duração do trecho, cor certa no 1º e no último quadro).
 6. **Atalhos**: a lista do BWFerr.atalhos é separada por vírgula → vírgula e ponto se escrevem "virgula" e "ponto".
+
+## iPhone: travar o gesto de voltar pela borda (24/11/2026)
+- Sintoma: "clicando um pouco mais forte, a tela vai para o lado". É o gesto de voltar/avançar do Safari, que começa na borda. overscroll-behavior,
+  corpo fixo e touch-action não pegam esse gesto.
+- Receita: `BWFerr.travarBorda({so: "classe-do-html"})` na casca de app. touchstart em capture com passive:false; dedo a ≤ 24 px da borda →
+  preventDefault. Toque curto (≤ 12 px, ≤ 700 ms) volta como `new MouseEvent("click", {clientX, clientY, bubbles})` no alvo original (não use .click():
+  ele chega com 0,0 e quebra quem compara a posição). Deixe de fora input/textarea/select (o iPhone só abre o seletor de arquivo com o dedo direto).
+- Teste: toque CDP (Input.dispatchTouchEvent) a 6 px da borda e espiar `defaultPrevented` num ouvinte de window em bolha; botão de teste na borda
+  conta cliques (1 só); arrasto a partir da borda = 0 cliques; meio da tela e campo na borda = não cancelados (docs/testes/teste_borda.py).
+- Limite: a barra de baixo (ir para a tela de início) é do sistema. Para travar tudo durante uma gravação: Acesso Guiado do iOS.
