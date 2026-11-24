@@ -2392,6 +2392,14 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   épica (pico medido de cada um: nenhum mudo nem estourado). Sons CC0 de fora (Kenney, Freesound CC0) não deu para baixar daqui (rede bloqueada).
   Teste novo docs/testes/teste_video_pasta.py + bateria do editor 0 falhas; vigia ✅. NÃO feito: manual, pacote do app/.exe. video-editor v27, sw v212. PENTE FINO 209.
 
+- 23/11/2026 22:40 · Claude (dono testou a ★ Minha pasta: "o certo é o elemento entrar onde a agulha está" + "alto-falante para mutar a trilha" + "extrair o áudio
+  nas opções do take" + "duração em segundos sem mudar a velocidade, um ou vários, em sequência" + "excluir faixa no vazio"): EDITOR DE VÍDEO — (1) tocar num
+  item da biblioteca (mídia, som, Minha pasta) põe NA AGULHA; vídeo/foto levam a agulha para o fim dele (tocar em vários forma sequência). (2) 🔊 em cada
+  camada de vídeo/som (P.mudas; vale na prévia e na exportação; faixa apagada quando muda; também no botão direito). (3) Menu do take: 🎵 EXTRAIR O ÁUDIO e
+  ⏱ DURAÇÃO (1, 2, 3, 4, 5, 8 s ou outra; corta/estica sem mexer na velocidade; vários escolhidos viram sequência colada; o que vem depois na camada anda
+  junto; vídeo mais curto usa o que tem). (4) Botão direito no vazio da camada: 🗑 EXCLUIR ESTA CAMADA (confirma se tiver takes; números se fecham).
+  Teste novo docs/testes/teste_video_opcoes.py + bateria do editor 0 falhas (teste_video e teste_video_fluidez acertados à agulha nova); vigia ✅. video-editor v29, sw v214.
+
 ## Pendências (dono)
 - [x] (23/11 09:58) BW-Setup.exe 1.9.37 gerado pelo dono e publicado (9,0 MB, versão conferida dentro do .exe).
 - [ ] (23/11) iPhone: fechar e abrir o app, tocar em ＋ → ＋ IMPORTAR e dizer se a galeria abriu. PC: testar o laço na linha do tempo e os avisos pequenos.

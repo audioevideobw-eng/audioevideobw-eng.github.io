@@ -97,7 +97,7 @@ with sync_playwright() as p:
     pg.goto(BASE + "video.html"); pg.wait_for_function("window.__veProntoOk === true", timeout=15000); pg.wait_for_timeout(400)
     with pg.expect_file_chooser(timeout=5000) as fc: pg.click("#veImportar")
     fc.value.set_files([f"{TMP}/escura.png"]); pg.wait_for_function("Object.keys(__video.MID).length>=1", timeout=15000); pg.wait_for_timeout(300)
-    pg.evaluate("document.querySelector('#veLib [data-mid]').click()"); pg.wait_for_timeout(700)
+    pg.evaluate("document.querySelector('#veLib [data-mid]').click()"); pg.wait_for_timeout(700); pg.evaluate("__video.irPara(1)"); pg.wait_for_timeout(300)   # a agulha anda para o fim do take ao pôr (23/11)
     def media():   # média de R, G, B do meio da prévia
         return pg.evaluate("(()=>{const c=document.getElementById('veCv'),x=c.getContext('2d'),w=c.width,h=c.height,d=x.getImageData(Math.round(w*0.3),Math.round(h*0.4),Math.round(w*0.4),Math.round(h*0.2)).data;let r=0,g=0,b=0,n=d.length/4;for(let i=0;i<d.length;i+=4){r+=d[i];g+=d[i+1];b+=d[i+2]}return [r/n,g/n,b/n]})()")
     m0 = media(); pg.evaluate("document.querySelectorAll('[data-seta]').forEach(t=>{if(t.classList.contains('fechada'))t.click()})"); pg.wait_for_timeout(300)

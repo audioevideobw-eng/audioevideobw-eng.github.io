@@ -46,7 +46,7 @@ with sync_playwright() as p:
         for t in ("video", "imagem", "audio"):
             pg.evaluate(f"document.querySelector('#veLib [data-mid=\"' + Object.values(__video.MID).find(m => m.tipo === '{t}').id + '\"]').click()"); pg.wait_for_timeout(200)
         cl = pg.evaluate("__video.P().clips.map(c => [c.trilha, c.ini, c.dur])")
-        ok(cl == [["v1", 0, 3], ["v1", 3, 4], ["a1", 0, 2]], f"tocar no item põe na camada certa, um depois do outro {cl}")
+        ok(cl == [["v1", 0, 3], ["v1", 3, 4], ["a1", 7, 2]], f"tocar no item põe na camada certa, na agulha (que anda para o fim de cada vídeo/foto) {cl}")
         pg.click("#veTexto"); pg.wait_for_timeout(200)
         pg.fill('#vePropCorpo [data-p="txt"]', "OLÁ BW"); pg.wait_for_timeout(200)
         ok(pg.locator('.ve-faixa[data-trilha="tx"] .ve-clip').count() == 1 and "OLÁ BW" in pg.inner_text('.ve-faixa[data-trilha="tx"]'), "T TEXTO cria o clipe de texto e o que digito aparece na linha do tempo")
@@ -70,7 +70,7 @@ with sync_playwright() as p:
         livre = pg.evaluate("(()=>{const e=document.querySelector('[data-clip=\"%s\"]'),r=e.getBoundingClientRect(),t=document.elementFromPoint(r.left+r.width/2,r.top+20);return !!(t&&t.closest('[data-clip]'))})()" % ida)
         ok(livre, "o clipe rolado até a tela não fica escondido atrás da prévia presa nem das abas de baixo")
         pg.mouse.move(bb["x"] + bb["width"] / 2, bb["y"] + 20); pg.mouse.down(); pg.mouse.move(bb["x"] + bb["width"] / 2 + 60, bb["y"] + 20, steps=4); pg.mouse.up(); pg.wait_for_timeout(200)
-        ok(abs(pg.evaluate(f"__video.P().clips.find(c => c.id === '{ida}').ini") - 1) < 0.11, "arrastar o clipe de áudio 60 px = 1 s mais tarde")
+        ok(abs(pg.evaluate(f"__video.P().clips.find(c => c.id === '{ida}').ini") - 8) < 0.11, "arrastar o clipe de áudio 60 px = 1 s mais tarde")
         bb = pg.locator(f'[data-clip="{ida}"] .al.d').bounding_box()
         pg.mouse.move(bb["x"] + 6, bb["y"] + 20); pg.mouse.down(); pg.mouse.move(bb["x"] + 6 - 30, bb["y"] + 20, steps=4); pg.mouse.up(); pg.wait_for_timeout(200)
         ok(abs(pg.evaluate(f"__video.P().clips.find(c => c.id === '{ida}').dur") - 1.5) < 0.11, "puxar a alça da direita apara o clipe (2 s → 1,5 s)")
