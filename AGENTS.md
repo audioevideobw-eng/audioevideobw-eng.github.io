@@ -2456,6 +2456,8 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   (app simulado) e teste-app (+2) 0 falhas; vigia ✅. NÃO testado no Windows de verdade (aqui não há registro): o 1º toque do dono é o teste.
   BW-Setup.exe continua o 1.9.37 (atualiza sozinho). video-editor v34, sw v219.
 
+- 24/11/2026 00:02 · Dono (print do painel depois do toque e de reabrir o app): PLACA DE VÍDEO "TUDO OK" — o navegador passou a usar a
+  NVIDIA GeForce RTX 3050 6GB Laptop GPU em prévia, Full HD, 4K e exportação. O botão ⚡ USAR A NVIDIA (app BW 1.9.39) funcionou no Windows de verdade.
 ## Pendências (dono)
 - [x] (23/11 09:58) BW-Setup.exe 1.9.37 gerado pelo dono e publicado (9,0 MB, versão conferida dentro do .exe).
 - [ ] (23/11) iPhone: fechar e abrir o app, tocar em ＋ → ＋ IMPORTAR e dizer se a galeria abriu. PC: testar o laço na linha do tempo e os avisos pequenos.
