@@ -670,3 +670,13 @@ Armadilha: classe de ESTADO não serve para destacar botão. `＋ IMPORTAR` usav
 - Troca de principal sem quebrar ninguém: o atalho de sempre (BW-REELS.bat) abre `programa\BW.exe` quando existe; senão abre o antigo e monta o programa por trás.
   `--classico` abre o antigo. Ao conferir no PC do dono, procure o BW.exe pelo `computer_list_apps`/`resolve_access` (dá o caminho real) — ele estava em
   `Vídeos\bw-reels-studio\programa`, não na cópia instalada em AppData.
+
+
+## Integrar ferramentas no editor de vídeo de forma LEVE (24/11)
+- Regra: dentro da linha do tempo, tudo é DESENHO DIRETO NO CANVAS do editor, cada quadro só de t. Nunca montar HTML por quadro (foreignObject do
+  BW Reels é pesado) — o motion foi refeito em canvas (assets/ve-motions.js, ~0,5–0,8 ms por quadro em 540×960, medido no teste).
+- Item novo = tipo "elemento" com prefixo no `el` ("mo:", "cv:", "cvfx:", "emo:") → um ramo em desenharElemento + um cartão na biblioteca (data-arr "l:<el>").
+  Transição de outra ferramenta = chave nova em TRANS ("tl:<id>") que renderiza A e B em buffers trocando o `cx` por um instante.
+- Miniaturas: desenhadas UMA vez (cache em memória) — a biblioteca não anima à toa.
+- Folha de quadros de todos os modelos antes de publicar (pegou "1.500" virando "2" e etiquetas cortadas nas bordas).
+- Antes de criar id novo, grep no HTML da página (regra 96): alQtd já existia no Álbum 3D.

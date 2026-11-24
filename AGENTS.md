@@ -966,6 +966,10 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
      tamanho); combinação pronta = uma linha em AUTO. Camada de imagem leva folga de 25% (rastro e brilho passam da borda) e o resultado vai para o
      cache (chave = imagem + tamanho + efeitos + máscara). Teste roda TODOS os efeitos num canvas pequeno conferindo tamanho e que a imagem mudou
      (desfoque com raio < 1,6 px não mudava nada num canvas pequeno).
+223. INTEGRAR NO EDITOR DE VÍDEO (dono, 24/11: "integrar tudo… leve, render rápido"): o que vem de outra ferramenta entra como DESENHO EM CANVAS no mesmo
+     passo do quadro (tipo "elemento" + prefixo em `el`; transição = chave em TRANS) — nunca HTML/foreignObject por quadro. Motions do Reels refeitos em
+     assets/ve-motions.js (um item em M = um motion; vigia: sem rede/conta). Número digitado: "1.500" (grupos de 3 após o ponto) é milhar mesmo sem vírgula —
+     "1.500" virava "2" (a regra 174 só valia com vírgula). Teste mede o tempo por quadro e confere que todo motion desenha (teste_video_motions.py).
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -2614,6 +2618,11 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   1 espaço por foto), cartão ✎ LIVRE (largura × altura, vale a proporção) e TAMANHO DO MODELO (tamanho %, 🔒 proporcional; desligado = esticar X, Y e Z;
   mover X/Y; ↺ tamanho original — P.esc, aplicado no mundo antes da câmera, vale na prévia e no vídeo). Armadilha da regra 96 de novo: id "alQtd" já era o contador
   de modelos (→ alFotosN). Teste novo docs/testes/teste_album_tamanho.py + teste_album 0 falhas. album-motor v4, album.js v6, sw v229.
+- 24/11/2026 18:50 · Claude (dono: "os textos animados e gráficos do BW REELS PRO no editor de vídeo… integrar tudo… leve, render rápido e otimizado"):
+  EDITOR DE VÍDEO — nova aba ◆ MOTIONS com 27 motions em 5 grupos (textos animados, gráficos e números, eventos e marca, redes e chamadas, reels que ensinam),
+  desenhados direto no canvas (assets/ve-motions.js: ~0,5–0,8 ms por quadro, sem HTML por quadro como no Reels) — tocar põe na agulha, arrastar põe no tempo,
+  textos/números/cor em AJUSTES. Folha de quadros revisada (corrigidos "1.500" → "2", rótulos da linha do tempo cortados, faixa do cargo curta). Teste novo
+  teste_video_motions.py + bateria do editor 0 falhas; vigia 7.x (ve-motions sem rede). Manual 72 → 73 p. (Telas, Motions e elementos). video-editor v37, sw v230. PENTE FINO 223.
 ## Pendências (dono)
 - [ ] (24/11 15:05) GOOGLE PLAY: dono PEDIU o D-U-N-S (Dun & Bradstreet, grátis, 5–30 dias). Quando chegar: criar a conta de ORGANIZAÇÃO em
       play.google.com/console/signup (CNPJ + D-U-N-S, US$ 25) e avisar o Claude → gerar .aab + chave de assinatura fixa (segredos no GitHub) + ficha da loja.

@@ -239,6 +239,9 @@ fotosjs += ler("assets/fotos-inicio.js") if os.path.exists("assets/fotos-inicio.
 fotosjs += ler("assets/fotos-efeitos.js") if os.path.exists("assets/fotos-efeitos.js") else ""   # 24/11: efeitos desenhados no aparelho
 if "fotos.html" in todos and re.search(r"\.upload\(|from\(\"user_data\"\)|fetch\(|BWSync\.(antesDeSalvar|registrarAgora)", todos["fotos.html"] + fotosjs):
     problemas.append("fotos.html/assets/fotos.js: o editor não pode enviar fotos para a nuvem (regra 24)")
+# 24/11: MOTIONS do BW Reels no editor de vídeo (assets/ve-motions.js) — só desenho em canvas: nada de rede nem de conta
+if os.path.exists("assets/ve-motions.js") and re.search(r"fetch\(|XMLHttpRequest|localStorage|indexedDB|BWSync|supabase", ler("assets/ve-motions.js")):
+    problemas.append("assets/ve-motions.js: os motions do editor só desenham — sem rede, conta ou armazenamento")
 # 16/11: AGENTE (assets/bw-agente.js) e LEITOR DE CONTAS (assets/bw-leitor.js) — só falam com a IA Brightway (bw-ia);
 # o leitor manda à IA só o TEXTO tapado (tapar), nunca a imagem; o layout.js carrega o agente em todas as páginas
 for arq in ["assets/bw-agente.js", "assets/bw-leitor.js"]:

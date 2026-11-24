@@ -593,12 +593,15 @@
   function nomeEl(k) { k = k || "fogo"; if (ELEMENTOS[k]) return ELEMENTOS[k]; var C = window.BWConviteAnim;
     if (k.indexOf("cvfx:") === 0) return "✨ " + (C && C.EFEITOS[k.slice(5)] ? C.EFEITOS[k.slice(5)].nome : "Efeito de tela");
     if (k.indexOf("cv:") === 0) return "🎨 " + (C && C.ITENS[k.slice(3)] ? C.ITENS[k.slice(3)].nome : "Desenho");
-    if (k.indexOf("emo:") === 0) return k.slice(4) + " Emoji"; return k; }
+    if (k.indexOf("emo:") === 0) return k.slice(4) + " Emoji";
+    if (k.indexOf("mo:") === 0) { var MV = window.BWMotionsVE && BWMotionsVE.POR[k.slice(3)]; return "◆ " + (MV ? MV.nome : "Motion"); } return k; }
   function sem(i) { var x = Math.sin(i * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); }
   function desenharElemento(c0, t) { var c = comRastro(c0, t), W = cv.width, H = cv.height, a = (c.op == null ? 100 : c.op) / 100 * fade(c0, t); if (a <= 0.001) return;
     var X = W / 2 + (c.x || 0) / 100 * W, Y = H / 2 + (c.y || 0) / 100 * H, R = Math.min(W, H) * 0.12 * (c.esc || 100) / 100, k = c0.el || "fogo", rel = t - c0.ini, cor = c0.cor || "";
     cx.save(); cx.globalAlpha = a;
     if (k.indexOf("cvfx:") === 0) { var CE = window.BWConviteAnim && BWConviteAnim.EFEITOS[k.slice(5)]; if (CE) { try { CE.f(cx, W, H, rel, c0.cores || [cor || "#141826", "#2b2346", cor || "#ffd23f"]); } catch (x) {} } cx.restore(); return; }
+    /* MOTIONS do BW Reels (textos animados, gráficos, eventos…): desenho direto no canvas, leve, igual na prévia e no vídeo final */
+    if (k.indexOf("mo:") === 0) { if (window.BWMotionsVE) BWMotionsVE.desenhar(cx, k.slice(3), W, H, X, Y, (c.esc || 100) / 100, rel, c0.dur, c0.mo, c0.cor || "", ""); cx.restore(); return; }
     if (k.indexOf("cv:") === 0) { if (window.BWConviteAnim) BWConviteAnim.desenharItem(cx, {id: k.slice(3), x: X / W, y: Y / H, s: 0.3 * (c.esc || 100) / 100, esp: c0.esp}, W, H, rel); cx.restore(); return; }
     if (k.indexOf("emo:") === 0) { var em = k.slice(4), bob = Math.sin(rel * 3) * R * 0.08, gi = Math.sin(rel * 2) * 0.08, pul = 1 + 0.06 * Math.max(0, Math.sin(rel * 5));
       cx.translate(X, Y + bob); cx.rotate(gi); cx.scale(pul, pul); cx.font = Math.round(R * 1.7) + 'px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif'; cx.textAlign = "center"; cx.textBaseline = "middle";
@@ -643,6 +646,7 @@
   function coracao(x, y, s) { cx.beginPath(); cx.moveTo(x, y + s * 0.6); cx.bezierCurveTo(x - s * 1.2, y - s * 0.2, x - s * 0.5, y - s * 1.1, x, y - s * 0.4); cx.bezierCurveTo(x + s * 0.5, y - s * 1.1, x + s * 1.2, y - s * 0.2, x, y + s * 0.6); cx.fill(); }
   function addElemento(k, ini) { var c = {id: uid(), trilha: novaTrilha("v"), tipo: "elemento", el: k || "fogo", nome: nomeEl(k), ini: Math.round((ini == null ? T : ini) * 10) / 10, dur: 4, x: 0, y: 0, esc: 100, op: 100, fin: 0.2, fout: 0.3};
     var livre = trilhas().map(function (x) { return x[0]; }).filter(function (id) { return fam(id) === "v" && livreEm(id, c.ini, c.dur, null) && numTr(id) > 1; })[0]; if (livre) c.trilha = livre;
+    if (c.el.indexOf("mo:") === 0 && window.BWMotionsVE) { var mv = BWMotionsVE.POR[c.el.slice(3)]; if (mv) { c.dur = mv.dur; c.y = (mv.y || 0) * 50; c.mo = BWMotionsVE.padrao(mv.id); c.fin = 0.05; c.fout = 0.25; c.cor = "#FFC24A"; } }
     P.clips.push(c); SEL = c.id; tudo(); if (window.BWConviteAnim && c.el.indexOf("cv:r-") === 0) BWConviteAnim.pronto([c.el.slice(3)]).then(function () { desenhar(); });
     aviso(nomeEl(c.el) + " na linha do tempo"); return c; }
   var RASTREANDO = null, ESCOLHENDO_PT = null;
@@ -799,7 +803,7 @@
   function irPara(t) { var era = TOCANDO; if (era) parar(); T = lim(t, 0, Math.max(total(), 0)); desenhar(); }
 
   /* ---------- telas ---------- */
-  var CATS = [["tudo", "▣", "Mídia"], ["audio", "♪", "Áudio"], ["texto", "T", "Texto"], ["elem", "✺", "Elementos"], ["telas", "▦", "Telas"], ["efe", "✦", "Efeitos"], ["trans", "⋈", "Transições"]];
+  var CATS = [["tudo", "▣", "Mídia"], ["audio", "♪", "Áudio"], ["texto", "T", "Texto"], ["motion", "◆", "Motions"], ["elem", "✺", "Elementos"], ["telas", "▦", "Telas"], ["efe", "✦", "Efeitos"], ["trans", "⋈", "Transições"]];
   function desenharLib() {
     var cat = ABA === "video" || ABA === "imagem" || ABA === "pasta" ? "tudo" : ABA, lib = $("veLib");
     $("veAbas").innerHTML = '<div class="ve-cats" role="tablist">' + CATS.map(function (a) { return '<button type="button" role="tab" data-aba="' + a[0] + '" class="' + (cat === a[0] ? "on" : "") + '" aria-selected="' + (cat === a[0]) + '" aria-pressed="' + (cat === a[0]) + '"><i aria-hidden="true">' + a[1] + '</i><span>' + a[2] + '</span></button>'; }).join("") + '</div>' +
@@ -814,6 +818,7 @@
     if (ABA === "pasta") { desenharPasta(); return; }
     if (ABA === "texto") { lib.innerHTML = tit("Toque para pôr na agulha") + TEXTOS.map(function (t) { return '<div class="ve-item ve-tx" role="button" tabindex="0" data-texto="' + t[0] + '" aria-label="Pôr texto ' + esc(t[1]) + '"><span class="mini" aria-hidden="true"' + (t[2].fundo ? ' style="--tf:' + t[2].fundo + ";--tc:" + (t[2].cor || "#fff") + '"' : "") + '><b>' + esc(String(t[2].txt).split("\n")[0].slice(0, 14)) + '</b></span><span>' + esc(t[1]) + '</span></div>'; }).join(""); return; }
     if (ABA === "telas") { desenharTelasLib(lib, tit); return; }
+    if (ABA === "motion") { desenharMotionLib(lib, tit); return; }
     if (ABA === "elem" && ELSUB !== "anim") { desenharElemLib(lib, tit); return; }
     if (ABA === "elem") { lib.innerHTML = subsElem() + tit("Elementos animados") + Object.keys(ELEMENTOS).map(function (k) { var p = ELEMENTOS[k].split(" "); return '<div class="ve-item ve-el" role="button" tabindex="0" data-elem="' + esc(k) + '" aria-label="Pôr ' + esc(ELEMENTOS[k]) + '"><span class="mini" aria-hidden="true">' + p[0] + '</span><span>' + esc(p.slice(1).join(" ")) + '</span></div>'; }).join(""); return; }
     var sonsCasa = ""; if (ABA === "audio") { var gs = []; SONS.forEach(function (x) { if (gs.indexOf(x[3]) < 0) gs.push(x[3]); }); sonsCasa = gs.map(function (gn) { return tit(gn) + SONS.map(function (x, i) { return x[3] === gn ? somCartao(x, i) : ""; }).join(""); }).join("") + tit("Meus sons"); }
@@ -837,6 +842,12 @@
       ord.forEach(function (ct) { if (!cats[ct]) return; h += tit(nomes[ct] || ct) + cats[ct].map(function (k) { var u = MINI_CV[k] || (MINI_CV[k] = C.mini(k, 72)); return cartaoEl("cv:" + k, '<img alt="" loading="lazy" src="' + u + '">', C.ITENS[k].nome); }).join(""); }); }
     lib.innerHTML = h;
   }
+  /* MOTIONS do BW REELS PRO no editor (24/11): mesmas categorias do Reels, desenho próprio em canvas (assets/ve-motions.js) — miniatura feita uma vez */
+  function desenharMotionLib(lib, tit) { var MV = window.BWMotionsVE; if (!MV) { lib.innerHTML = '<p class="ve-nota" style="grid-column:1/-1">Os motions ainda estão carregando…</p>'; return; }
+    var h = '<p class="ve-nota" style="grid-column:1/-1;margin:0 0 4px">Os textos animados e gráficos do BW REELS PRO. Toque para pôr na agulha ou arraste até a linha do tempo; os textos e a cor mudam em AJUSTES.</p>';
+    MV.CATS.forEach(function (ct) { var ls = MV.LISTA.filter(function (m) { return m.cat === ct[0]; }); if (!ls.length) return;
+      h += tit(ct[1]) + ls.map(function (m) { return cartaoEl("mo:" + m.id, '<img alt="" loading="lazy" src="' + MV.mini(m.id, 64) + '">', m.nome); }).join(""); });
+    lib.innerHTML = h; }
   var TL_DESC = {cheia: "▢", dupla: "◫", tripla: "▥", quatro: "⊞", diagonal: "◩", janela: "▣"};
   /* miniatura da transição de tela: o motor das TELAS desenha a peça no meio do caminho (azul = take que sai, âmbar = take que entra) */
   function miniTela(k) { if (MINI_CV["tl" + k]) return MINI_CV["tl" + k]; var c = document.createElement("canvas"); c.width = c.height = 72; var x = c.getContext("2d"), sm = 7;
@@ -988,7 +999,11 @@
           faixaR("ia:suave", "Borda suave", 0, 100, ia.suave == null ? 30 : ia.suave, "%") +
           '<div class="ve-linha" style="flex-wrap:wrap"><button class="ve-bt" type="button" data-acao="iaModelos">✨ MODELOS COM A PESSOA</button><button class="ve-bt" type="button" data-acao="iaAnalisar">↺ ANALISAR DE NOVO</button></div>' +
           '<p class="ve-nota" style="margin:6px 0 0">' + (function () { var i2 = BWMascara.info(c.mid); return i2 ? (i2.fps ? i2.quadros + " quadros analisados (" + i2.fps + " por segundo)" : "foto analisada") : ""; })() + '. Cabelo solto e mão na frente do rosto podem deixar a borda imperfeita.</p>'), !tem); }
-    if (c.tipo === "elemento") h += g("elem", "ELEMENTO ANIMADO", '<div class="ve-chips">' + Object.keys(ELEMENTOS).map(function (k) { return '<button type="button" data-elk="' + k + '"' + (c.el === k ? ' class="on"' : "") + '>' + ELEMENTOS[k] + '</button>'; }).join("") + '</div>' +
+    if (c.tipo === "elemento" && String(c.el).indexOf("mo:") === 0 && window.BWMotionsVE) { var mvd = BWMotionsVE.POR[c.el.slice(3)], dd = c.mo || {};
+      h += g("elem", "◆ MOTION — " + esc(mvd ? mvd.nome.toUpperCase() : "TEXTO"), (mvd ? mvd.campos.map(function (cp) { var v = dd[cp[0]] == null ? cp[2] : dd[cp[0]], longo = /\n/.test(cp[2]) || /um por linha|uma por linha/.test(cp[1]);
+          return '<label class="um ve-mo-campo"><span>' + esc(cp[1]) + '</span>' + (longo ? '<textarea data-mo="' + cp[0] + '" rows="3" aria-label="' + esc(cp[1]) + '">' + esc(v) + '</textarea>' : '<input type="text" data-mo="' + cp[0] + '" value="' + esc(v) + '" aria-label="' + esc(cp[1]) + '">') + '</label>'; }).join("") : "") +
+        '<label class="um"><span>Cor de destaque</span><input type="color" data-p="cor" value="' + esc(c.cor || "#FFC24A") + '" aria-label="Cor de destaque"></label><p class="ve-nota" style="margin:4px 0 0">Tamanho e lugar: em TAMANHO E POSIÇÃO, ou arrastando na prévia.</p>'); }
+    else if (c.tipo === "elemento") h += g("elem", "ELEMENTO ANIMADO", '<div class="ve-chips">' + Object.keys(ELEMENTOS).map(function (k) { return '<button type="button" data-elk="' + k + '"' + (c.el === k ? ' class="on"' : "") + '>' + ELEMENTOS[k] + '</button>'; }).join("") + '</div>' +
       '<label class="um"><span>Cor (vazio = a do elemento)</span><input type="color" data-p="cor" value="' + esc(c.cor || "#ffb02e") + '" aria-label="Cor do elemento"></label><div class="ve-linha"><button class="ve-bt" type="button" data-acao="elCorZero">Cor original</button></div>');
     /* SEGUIR UM PONTO (rastreio): qualquer item por cima (elemento, foto, vídeo, texto) acompanha a mão, a cabeça, o corpo ou um ponto escolhido de outro take */
     if (visual) { var rs = c.rastro || {}, alvos = P.clips.filter(function (x) { return x !== c && (x.tipo === "video" || x.tipo === "imagem") && x.ini < c.ini + c.dur && x.ini + x.dur > c.ini; }),
@@ -1147,6 +1162,7 @@
   $("veExportar").onclick = function () { abrirExportar(); }; $("veCancelar").onclick = function () { if (GRAV) GRAV.cancelar(); };
   $("veFecharSaida").onclick = function () { $("veSaida").hidden = true; try { $("veVideoPronto").pause(); } catch (e) {} };
   $("veCompartilhar").onclick = async function () { var s = $("veSaida"), f = new File([s._blob], s._nome, {type: s._blob.type}); try { if (navigator.canShare && navigator.canShare({files: [f]})) await navigator.share({files: [f]}); else $("veBaixar").click(); } catch (e) {} };
+  $("vePropCorpo").addEventListener("input", function (e) { var mk = e.target.dataset && e.target.dataset.mo, cm = sel(); if (mk && cm) { cm.mo = cm.mo || {}; cm.mo[mk] = e.target.value; desenhar(); guardar(); marcarHist(); } });
   $("vePropCorpo").addEventListener("input", function (e) { var el = e.target, k = el.dataset.p, c = sel(); if (!k || !c) return;
     if (k.indexOf("rs:") === 0) { c.rastro = c.rastro || {}; c.rastro[k.slice(3)] = +el.value; var o4 = el.nextElementSibling; if (o4) o4.textContent = el.value + "%"; desenhar(); guardar(); marcarHist(); return; }
     if (k.indexOf("sm:") === 0) { c.selm = c.selm || {}; c.selm[k.slice(3)] = +el.value; var o3 = el.nextElementSibling; if (o3) o3.textContent = el.value + "%"; desenhar(); guardar(); marcarHist(); return; }
