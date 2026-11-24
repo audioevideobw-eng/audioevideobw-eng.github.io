@@ -1,13 +1,13 @@
 {
- "versao": "1.9.42",
+ "versao": "1.9.43",
  "data": "24/11/2026",
  "pacote": "downloads/BW-Reels-Studio.zip",
- "sha256": "98e0d74da12aa9c73bb785c485455afa3d65b86b0815e0cfa36269833be0e611",
- "bytes": 41928857,
+ "sha256": "086ef4659fe9c96787c1921f326e6266b46eb8fb4361d25d44481f6b95bc3510",
+ "bytes": 41857134,
  "novidades": [
   {
-   "titulo": "O BW agora é um programa de verdade",
-   "texto": "O ícone BW abre o programa novo (nome e ícone BW na barra de tarefas, placa de vídeo forte). O ícone BW (novo) da fase de teste sai. Quem quiser o BW antigo, na janela do Edge, usa \"7 - ABRIR BW ANTIGO (EDGE)\" na pasta do BW."
+   "titulo": "O BW no computador agora é só o programa",
+   "texto": "O ícone BW abre sempre o programa BW (nome e ícone próprios, placa de vídeo forte). A janela do Edge e os atalhos da fase de teste saem sozinhos."
   }
  ]
 }

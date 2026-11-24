@@ -2553,6 +2553,11 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   CHAVE DO ANDROID gerada (RSA 4096, alias bw) e guardada em Vídeos\bw-reels-studio\CHAVE-ANDROID (fora do instalador e do pacote); os 2 segredos do
   GitHub dependem do dono (a API de segredos é recusada daqui). Arquivos da 1.9.42 copiados para Vídeos\bw-reels-studio.
 
+- 24/11/2026 16:30 · Claude (dono: "computador não, ele mantenha só o app pc dentro do pc"): APP BW 1.9.43 — no PC o BW é SÓ o programa (BW.exe). BW-REELS.bat
+  abre programa\BW.exe; sem ele, baixa o componente numa janela visível (~110 MB) e monta o programa; só sem internet na 1ª vez cai no modo de reserva.
+  Saíram o "--classico" e os atalhos "6 - ABRIR BW NOVO" e "7 - ABRIR BW ANTIGO (EDGE)" (o BW-REELS.bat apaga os dois nas instalações antigas, já que a
+  atualização não apaga arquivo). Tutorial e manual (p. "O BW no computador…") sem a versão antiga. teste-app 0 falhas. BW-Setup.exe: pendente (PC do dono).
+
 ## Pendências (dono)
 - [ ] (24/11 15:05) GOOGLE PLAY: dono PEDIU o D-U-N-S (Dun & Bradstreet, grátis, 5–30 dias). Quando chegar: criar a conta de ORGANIZAÇÃO em
       play.google.com/console/signup (CNPJ + D-U-N-S, US$ 25) e avisar o Claude → gerar .aab + chave de assinatura fixa (segredos no GitHub) + ficha da loja.
