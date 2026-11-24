@@ -2447,6 +2447,14 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   gravação começa na entrada e para na saída — vale para vídeo, só áudio e sequência de imagens (trecho() num lugar só; só uma ponta marcada = dali até o
   fim / do começo até ali). Teste novo docs/testes/teste_video_trecho.py (arquivo exportado conferido no ffprobe: só o trecho, cor certa no começo e no
   fim) + testes de exportação/barra 0 falhas; vigia ✅. NÃO testado em iPhone. video-editor v32, ve-app v14, sw v217.
+- 23/11/2026 23:59 · Claude (dono: "deu amarelo dizendo que eu não estava usando a placa… existe uma maneira de o app fazer isso apertando um botão?" + print do painel):
+  PLACA DE VÍDEO — o painel dizia "pela placa" em verde mesmo quando era a Intel integrada trabalhando; agora cada linha diz QUAL placa faz (ex.: "pela
+  Intel UHD (integrada)") e fica âmbar quando o PC tem dedicada parada. Dentro do app BW: botão ⚡ USAR A NVIDIA (1 TOQUE) → o app grava no Windows a
+  preferência "alto desempenho" para o Edge e o Chrome (HKCU\Software\Microsoft\DirectX\UserGpuPreferences, a mesma chave da tela Elementos gráficos,
+  sem administrador; confirm antes; ações gpuPref/gpuAlta). Fora do app: ⚙ ABRIR ESSA TELA DO WINDOWS (ms-settings:display-advancedgraphics). App BW
+  1.9.39 publicado (ARGS_GPU: a janela já nasce pedindo a placa forte; cópia sem internet de hoje; tutorial; novidades). Teste novo teste_video_placa.py
+  (app simulado) e teste-app (+2) 0 falhas; vigia ✅. NÃO testado no Windows de verdade (aqui não há registro): o 1º toque do dono é o teste.
+  BW-Setup.exe continua o 1.9.37 (atualiza sozinho). video-editor v34, sw v219.
 
 ## Pendências (dono)
 - [x] (23/11 09:58) BW-Setup.exe 1.9.37 gerado pelo dono e publicado (9,0 MB, versão conferida dentro do .exe).

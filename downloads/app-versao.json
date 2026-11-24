@@ -1,13 +1,23 @@
 {
- "versao": "1.9.37",
+ "versao": "1.9.39",
  "data": "23/11/2026",
  "pacote": "downloads/BW-Reels-Studio.zip",
- "sha256": "b70e908c66a49230166e91144b9dd048cfbc685af7b7c1c9a76ff2d99aac28f9",
- "bytes": 41752932,
+ "sha256": "b7c844332a04d971b240db98661361ca44be812ef015c51eb8025317f189efd2",
+ "bytes": 41806591,
  "novidades": [
   {
-   "titulo": "Segurança e seus dados",
-   "texto": "Um escudo verde ao lado do selo LOGADO abre a página que explica onde ficam os seus dados, quem consegue ver, o que pode ser compartilhado e os testes de segurança."
+   "titulo": "Placa de vídeo em 1 toque",
+   "texto": "No editor de vídeo (⚙ → PLACA DE VÍDEO), o botão ⚡ USAR A NVIDIA pede ao Windows a placa forte para o navegador. Depois feche o app e abra de novo.",
+   "abrir": "video"
+  },
+  {
+   "titulo": "O app já nasce na placa forte",
+   "texto": "A janela do BW pede a placa de alto desempenho e lê vídeo pela placa."
+  },
+  {
+   "titulo": "Cor avançada e controle de efeitos",
+   "texto": "Nós de cor com LUTs e LOG, efeitos com movimento e chaves, parado em qualidade total e exportar só o trecho marcado.",
+   "abrir": "video"
   }
  ]
 }

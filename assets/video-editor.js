@@ -1603,30 +1603,49 @@
     async function dec(tipo, w, h) { try { if (!navigator.mediaCapabilities) return null; var d = await navigator.mediaCapabilities.decodingInfo({type: "file", video: {contentType: tipo, width: w, height: h, bitrate: w > 2000 ? 40e6 : 10e6, framerate: 30}}); return !d.supported ? "nao" : d.powerEfficient ? "placa" : "cpu"; } catch (e) { return null; } }
     r.dec = await dec('video/mp4; codecs="avc1.640028"', 1920, 1080); r.k4 = await dec('video/mp4; codecs="avc1.640033"', 3840, 2160); r.hevc = await dec('video/mp4; codecs="hvc1.1.6.L153.B0"', 3840, 2160);
     try { if (window.VideoEncoder) { var h = await VideoEncoder.isConfigSupported({codec: "avc1.640028", width: 1920, height: 1080, bitrate: 8e6, framerate: 30, hardwareAcceleration: "prefer-hardware"}); r.enc = h && h.supported ? "placa" : "cpu"; } else r.enc = "nao"; } catch (e) { r.enc = "cpu"; }
-    try { var p = window.bwNode || window.BWNode; if (typeof p === "function") { var a = await p("maquina"); if (a && a.ok && a.valor && a.valor.nome) r.app = a.valor; } } catch (e) {}
+    try { var p = window.bwNode || window.BWNode; if (typeof p === "function") { var a = await p("maquina"); if (a && a.ok && a.valor && a.valor.nome) r.app = a.valor; var g = await p("gpuPref"); if (g && g.ok && g.valor) r.pref = g.valor; } } catch (e) {}
     GPU.r = r; GPU.lendo = false; return r;
   }
   function gpuHtml() {
     var r = GPU.r; if (!r) return '<p class="ve-nota" style="margin:0">Lendo a placa de vídeo…</p>';
-    var dedApp = r.app && !/intel|uhd|iris/i.test(r.app.nome), outra = dedApp && r.integ;
+    var dedApp = r.app && !/intel|uhd|iris/i.test(r.app.nome), outra = dedApp && r.integ, noApp = typeof (window.bwNode || window.BWNode) === "function";
     var nivel = r.soft ? "ruim" : (r.dec === "cpu" || r.dec === "nao" || outra) ? "meio" : "ok";
-    var titulo = nivel === "ok" ? "TUDO OK — a placa está sendo usada" : nivel === "meio" ? "FUNCIONA, MAS DÁ PARA MELHORAR" : "SEM ACELERAÇÃO — tudo está no processador";
+    var titulo = nivel === "ok" ? "TUDO OK — a placa está sendo usada" : nivel === "meio" ? (outra ? "DÁ PARA FICAR MAIS RÁPIDO" : "FUNCIONA, MAS DÁ PARA MELHORAR") : "SEM ACELERAÇÃO — tudo está no processador";
     var li = function (bom, t) { return '<li class="' + (bom === true ? "ok" : bom === false ? "nao" : "meio") + '">' + t + '</li>'; };
-    var q = {placa: "pela placa", cpu: "pelo processador (mais pesado)", nao: "este navegador não abre"};
+    /* quem faz o trabalho: com a integrada no lugar da dedicada, "pela placa" enganava (era a Intel) → diz o nome e fica âmbar */
+    var marca = r.integ ? (r.curto.replace(/\(R\)|\(TM\)|Graphics/ig, "").replace(/\s+/g, " ").trim() || "integrada") + " (integrada)" : "placa", bomPl = outra ? null : true;
+    var q = {placa: "pela " + marca, cpu: "pelo processador (mais pesado)", nao: "este navegador não abre"};
     var h = '<div class="ve-gpu ' + nivel + '"><span class="ve-gpu-luz"></span><b>' + titulo + '</b></div>';
-    h += '<p class="ve-nota" style="margin:6px 0 4px">Placa que o navegador está usando: <b>' + esc(r.curto) + '</b>' + (r.app ? '<br>Placa do PC (lida pelo app BW): <b>' + esc(r.app.nome) + (r.app.vram ? " · " + r.app.vram + " GB" : "") + '</b>' : '') + '</p><ul class="ve-gpu-l">';
-    h += li(!r.soft, "Desenho da prévia e dos efeitos: " + (r.soft ? "pelo processador" : "pela placa"));
-    if (r.dec) h += li(r.dec === "placa", "Leitura de vídeo Full HD: " + q[r.dec]);
-    if (r.k4) h += li(r.k4 === "placa" ? true : r.k4 === "cpu" ? null : false, "Leitura de vídeo 4K: " + q[r.k4]);
-    if (r.hevc) h += li(r.hevc === "placa" ? true : null, "Vídeo HEVC/H.265 (iPhone, câmeras): " + (r.hevc === "nao" ? "não abre aqui — o proxy resolve" : q[r.hevc]));
-    if (r.enc) h += li(r.enc === "placa" ? true : null, "Exportar e fazer proxy: " + (r.enc === "nao" ? "gravação simples do navegador" : q[r.enc]));
+    h += '<p class="ve-nota" style="margin:6px 0 4px">O navegador está usando: <b>' + esc(r.curto) + '</b>' + (r.app ? '<br>Este PC tem: <b>' + esc(r.app.nome) + (r.app.vram ? " · " + r.app.vram + " GB" : "") + '</b>' : '') + '</p><ul class="ve-gpu-l">';
+    h += li(r.soft ? false : bomPl, "Prévia e efeitos: " + (r.soft ? "pelo processador" : "pela " + marca));
+    if (r.dec) h += li(r.dec === "placa" ? bomPl : false, "Vídeo Full HD: " + q[r.dec]);
+    if (r.k4) h += li(r.k4 === "placa" ? bomPl : r.k4 === "cpu" ? null : false, "Vídeo 4K: " + q[r.k4]);
+    if (r.hevc) h += li(r.hevc === "placa" ? bomPl : null, "Vídeo do iPhone/câmera (HEVC): " + (r.hevc === "nao" ? "o navegador não abre — o proxy converte sozinho" : q[r.hevc]));
+    if (r.enc) h += li(r.enc === "placa" ? bomPl : null, "Exportar e proxy: " + (r.enc === "nao" ? "gravação simples do navegador" : q[r.enc]));
     if (GPU.fps) h += li(GPU.fps >= 24 ? true : GPU.fps >= 15 ? null : false, "Última reprodução: " + GPU.fps + " quadros por segundo");
     h += '</ul>';
+    var win = /Windows/i.test(navigator.userAgent), pref = r.pref, jaPedi = pref && pref.todosAlta;
     if (r.soft) h += '<p class="ve-nota" style="margin:4px 0 0">Ligue a aceleração: Chrome → Configurações → Sistema → "Usar aceleração gráfica quando disponível" e reabra o navegador.</p>';
-    else if (r.integ) h += '<p class="ve-nota" style="margin:4px 0 0">' + (outra ? "O PC tem placa dedicada, mas o navegador está na integrada. " : "O navegador está no vídeo integrado (em notebook é o normal). Se o PC tem placa dedicada: ") + 'Windows → Configurações → Sistema → Tela → Elementos gráficos → escolha o navegador → <b>Alto desempenho</b>.</p>';
+    else if (outra && noApp && pref && pref.suportado) {
+      h += '<p class="ve-nota" style="margin:4px 0 0">' + (jaPedi ? 'O Windows já está marcado para usar a <b>' + esc(r.app.nome) + '</b> no navegador. <b>Feche o app BW e abra de novo</b> para valer.' : 'O app BW pode pedir ao Windows a placa <b>' + esc(r.app.nome) + '</b> para o navegador. É a mesma opção de Configurações → Elementos gráficos, desfeita por lá quando quiser.') + '</p>';
+      h += '<div class="ve-linha" style="margin-top:6px"><button class="ve-bt pri" id="veGpuAlta">' + (jaPedi ? "↻ MARCAR DE NOVO" : "⚡ USAR A " + esc((r.app.nome.match(/nvidia|amd|radeon/i) || ["PLACA"])[0].toUpperCase()) + " (1 TOQUE)") + '</button></div>';
+    }
+    else if (r.integ) {
+      h += '<p class="ve-nota" style="margin:4px 0 0">' + (outra ? "O PC tem placa dedicada, mas o navegador está na integrada. " : "O navegador está no vídeo integrado (em notebook é o normal). Se o PC tem placa dedicada: ") + 'Windows → Configurações → Sistema → Tela → Elementos gráficos → escolha o navegador → <b>Alto desempenho</b>, e reabra o navegador.' + (noApp ? "" : " No app BW isso é um botão só.") + '</p>';
+      if (win) h += '<div class="ve-linha" style="margin-top:6px"><a class="ve-bt pri" id="veGpuAbrir" href="ms-settings:display-advancedgraphics" style="text-decoration:none">⚙ ABRIR ESSA TELA DO WINDOWS</a></div>';
+    }
     h += '<p class="ve-nota" style="margin:4px 0 0;opacity:.75">A % de uso da placa o navegador não mostra: veja em Ctrl+Shift+Esc → Desempenho → GPU enquanto o vídeo toca.</p>';
     return h;
   }
+  document.addEventListener("click", async function (e) {
+    var b = e.target && e.target.closest && e.target.closest("#veGpuAlta"); if (!b) return;
+    var p = window.bwNode || window.BWNode, r = GPU.r; if (typeof p !== "function" || !r) return;
+    if (!confirm("Pedir ao Windows a placa " + (r.app ? r.app.nome : "dedicada") + " para o Edge e o Chrome deste PC?\n\nDepois feche o app BW e abra de novo.")) return;
+    b.disabled = true; aviso("⏳ Pedindo a placa ao Windows…");
+    try { var a = await p("gpuAlta"); if (a && a.ok && a.valor && a.valor.todosAlta) { r.pref = a.valor; aviso("✓ Pronto. Feche o app BW e abra de novo."); } else { aviso("Não deu. Use Configurações → Elementos gráficos.", true); if (a && a.valor) r.pref = a.valor; } }
+    catch (x) { aviso("Não deu. Use Configurações → Elementos gráficos.", true); }
+    var box = $("veGpu"); if (box) box.innerHTML = gpuHtml();
+  });
   function gpuPainel() { if (!GPU.r) gpuLer().then(function () { var b = $("veGpu"); if (b) b.innerHTML = gpuHtml(); }); return '<div class="ve-g"><h4>PLACA DE VÍDEO</h4><div id="veGpu">' + gpuHtml() + '</div></div>'; }
   function mb(b) { return b >= 1073741824 ? (b / 1073741824).toFixed(2).replace(".", ",") + " GB" : (b / 1048576).toFixed(b < 10485760 ? 1 : 0).replace(".", ",") + " MB"; }
   function tempoTxt(s) { if (s == null || !isFinite(s)) return "calculando…"; s = Math.max(1, Math.round(s)); return s < 60 ? s + " s" : Math.floor(s / 60) + " min " + (s % 60 < 10 ? "0" : "") + s % 60 + " s"; }
@@ -1987,7 +2006,7 @@
    ["addClip", function (f) { addClip = f; }, function () { return addClip; }], ["addTexto", function (f) { addTexto = f; }, function () { return addTexto; }]].forEach(function (q) {
     var orig = q[2](); q[1](function () { gravarHist(); var r = orig.apply(this, arguments); gravarHist(); return r; }); });
   window.addEventListener("bw-cor-lut", function () { if (!TOCANDO) desenhar(); });
-  window.__video = {trecho: function () { return trecho(); }, marcarES: marcarES, limparES: limparES, corAvancada: function (c) { corAvancada(c || sel()); }, NIT: NIT, GPU: GPU, gpuLer: gpuLer, PX: PX, PASTAS: PASTAS, opDe: function () { return opDe(); }, EXP: EXP, abrirExportar: function () { abrirExportar(); }, exportar: function (o) { exportar(o); }, filaProxy: function (a, b) { return filaProxy(a, b); }, medir: function () { return medir(); }, urlDe: function (m) { return urlDe(m); }, tamReal: function () { return tamReal(); }, tamanhoReal: tamanhoReal, porMidia: porMidia, EL: EL, abrirVideo: abrirVideo, codecDe: codecDe, tudo: function () { tudo(); }, desenharLib: desenharLib, guardarJa: function () { return tx("estado", "readwrite", function (s) { return s.put({id: "atual", p: JSON.parse(JSON.stringify(P))}); }); },
+  window.__video = {trecho: function () { return trecho(); }, marcarES: marcarES, limparES: limparES, corAvancada: function (c) { corAvancada(c || sel()); }, NIT: NIT, GPU: GPU, gpuLer: gpuLer, gpuHtml: function () { return gpuHtml(); }, PX: PX, PASTAS: PASTAS, opDe: function () { return opDe(); }, EXP: EXP, abrirExportar: function () { abrirExportar(); }, exportar: function (o) { exportar(o); }, filaProxy: function (a, b) { return filaProxy(a, b); }, medir: function () { return medir(); }, urlDe: function (m) { return urlDe(m); }, tamReal: function () { return tamReal(); }, tamanhoReal: tamanhoReal, porMidia: porMidia, EL: EL, abrirVideo: abrirVideo, codecDe: codecDe, tudo: function () { tudo(); }, desenharLib: desenharLib, guardarJa: function () { return tx("estado", "readwrite", function (s) { return s.put({id: "atual", p: JSON.parse(JSON.stringify(P))}); }); },
     trocarProjeto: function (np) { parar(); Object.keys(EL).forEach(soltarEl); P = np; SEL = null; T = 0; formato(); desenharLib(); tudo(); },
     backup: function () { return tx("estado", "readwrite", function (s) { return s.put({id: "anterior", p: JSON.parse(JSON.stringify(P))}); }); },
     anterior: function () { return new Promise(function (ok) { db().then(function (d) { var q = d.transaction("estado").objectStore("estado").get("anterior"); q.onsuccess = function () { ok(q.result && q.result.p); }; q.onerror = function () { ok(null); }; }); }); },
