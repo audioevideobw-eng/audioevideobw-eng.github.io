@@ -947,6 +947,9 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
      some .so-web e o login Google (o Google recusa login em WebView — no app é e-mail e senha) e <a download> com blob:/data: vira arquivo gravado
      em pedaços no cache + COMPARTILHAR do Android (o WebView não baixa blob sozinho). Sem os segredos BW_KEYSTORE_B64/BW_KEYSTORE_SENHA o .apk sai
      com a chave de teste de cada máquina: para atualizar é preciso desinstalar antes (auto: docs/testes/teste_android.py, Capacitor simulado).
+     SEM INTERNET (24/11): o build roda docs/app-android/montar-offline.py (site + 18 bibliotecas de CDN em assets/offline, mapa cdn.json) e a
+     BwClient.java entrega essa cópia SÓ quando o celular está sem rede (mesmo endereço → mesmos dados do aparelho; página recebe o código do
+     Capacitor por reflexão do jsInjector; sw.js = 404). O app é refeito a cada mudança do site (*.html, assets/**, icons/**).
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -2529,6 +2532,9 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   O .apk é montado pelo GitHub (workflow android.yml) e publicado em downloads/BW-Android.apk; baixar.html mostra BAIXAR O APP ANDROID (.APK) no
   Android quando o arquivo existe. Novo assets/bw-android.js (downloads viram arquivo + compartilhar; some baixar app e login Google). modos.js v9,
   sw v222. teste_android.py 0 falhas; vigia ✅. NÃO testado num Android de verdade. PENTE FINO 219.
+- 24/11/2026 14:58 · Claude (dono: "melhor ter a opção sem internet, faça"): APP ANDROID 1.0.2 abre SEM INTERNET — cópia do site (198 arquivos) e
+  das 18 bibliotecas dentro do app (14 MB), usada só sem rede. Dono vai pagar a conta de desenvolvedor do Google Play (US$ 25): conta pessoal nova
+  exige teste fechado com 12 testadores por 14 dias; para a loja o app sai como .aab e precisa da chave de assinatura.
 
 ## Pendências (dono)
 - [ ] (24/11) APP ANDROID: dono abrir audioevideobw-eng.github.io/baixar no Android, tocar em BAIXAR O APP ANDROID (.APK), permitir a instalação, entrar
