@@ -608,3 +608,21 @@ Armadilha: classe de ESTADO não serve para destacar botão. `＋ IMPORTAR` usav
    tabelas (pg_class.relrowsecurity + pg_policies). Teste de visitante: fetch cru só com a chave publishable em página SEM sessão.
 5. Pacote do app: só os arquivos que mudaram + site-offline.zip; o teste do motor do PC precisa de BW_STUDIO apontando para a cópia com
    node_modules (symlink do playwright de /opt/npm-tools — o npm baixa uma versão cujo navegador não está instalado aqui).
+
+## Editor de vídeo de mesa: efeitos, cor em nós, qualidade parado, placa, trecho (23/11/2026)
+1. **Efeito com movimento**: guardar a força como função do tempo do take (fixo/entra/sai/pulsa/chaves) e desenhar a curva com a agulha em cima.
+   Teste = PIXEL no começo e no fim do take (sem cor no começo, mais vivo no fim), não "o botão respondeu" (teste_video_efeitos.py).
+2. **Cor em nós (WebGL)**: um passe por nó, alvo de 16 bits quando `EXT_color_buffer_float` existe; a cadeia vai de "in" até "out" seguindo as
+   ligações (nó solto não entra). Testar a CONTA de cada nó no pixel (teste_cor_nos.py). CRIAR LUT = passar a tabela neutra (N·N × N) pelos
+   mesmos nós e ler de volta — `readPixels` vem de baixo para cima. Conta-gotas lê a imagem ANTES do nó de balanço.
+3. **Qualidade total parado**: ~0,5 s sem mexer → canvas no tamanho real + player à parte com o ORIGINAL (solto ao sair). Teste com um proxy FALSO
+   de outra cor: parado mostra a cor do original, tocando mostra a do proxy (teste_video_nitido.py). Variável usada no 1º desenho vai no topo do arquivo.
+4. **Placa de vídeo**: navegador = WebGL `WEBGL_debug_renderer_info` (nome), `mediaCapabilities.decodingInfo().powerEfficient` (leitura),
+   `VideoEncoder.isConfigSupported({hardwareAcceleration:"prefer-hardware"})` (gravação); placa REAL = app BW (`nvidia-smi`). Se o navegador
+   está na integrada e o PC tem dedicada: no app, gravar `HKCU\Software\Microsoft\DirectX\UserGpuPreferences` (valor = caminho do .exe do Edge/
+   Chrome, dado `GpuPreference=2;`) — é a mesma chave da tela "Elementos gráficos", sem administrador; achar o .exe por `App Paths` no registro +
+   pastas padrão. Fora do app: link `ms-settings:display-advancedgraphics`. A janela do app nasce com `--force_high_performance_gpu`.
+   Conferido no PC do dono (RTX 3050 Laptop): depois do toque e de reabrir, o painel disse TUDO OK com a NVIDIA.
+5. **Trecho I/O na exportação**: uma função só (`trecho()`) devolve [entrada, saída] ou null e TODA saída (vídeo, áudio, imagens) usa ela.
+   Teste confere o ARQUIVO no ffprobe (duração do trecho, cor certa no 1º e no último quadro).
+6. **Atalhos**: a lista do BWFerr.atalhos é separada por vírgula → vírgula e ponto se escrevem "virgula" e "ponto".

@@ -908,6 +908,10 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
 213. ATALHOS: lista de teclas do BWFerr.atalhos é separada por vírgula → a própria vírgula e o ponto se escrevem "virgula" e "ponto". Alt + arrastar
      duplica (a cópia fica no lugar; clique sem arrastar desfaz a cópia). Velocidade do play (L 2×/4×/8×, J para trás) nunca vale na gravação (GRAV).
 
+214. PAINEL QUE DIZ "PELA PLACA" PRECISA DIZER QUAL PLACA: com a Intel integrada trabalhando o painel ficava verde ("pela placa") e o dono
+     achava que estava tudo certo. Cada linha diz o NOME de quem faz (ex.: "pela Intel UHD (integrada)") e, se o PC tem dedicada parada, nada
+     fica verde. Ajuste que depende do sistema operacional: o app BW faz com 1 toque (registro do usuário, sem administrador, confirm antes) e o
+     site manda direto para a tela certa (ms-settings:); depois de mudar a placa, o navegador precisa ser REABERTO (auto: teste_video_placa.py).
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -2458,6 +2462,8 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
 
 - 24/11/2026 00:02 · Dono (print do painel depois do toque e de reabrir o app): PLACA DE VÍDEO "TUDO OK" — o navegador passou a usar a
   NVIDIA GeForce RTX 3050 6GB Laptop GPU em prévia, Full HD, 4K e exportação. O botão ⚡ USAR A NVIDIA (app BW 1.9.39) funcionou no Windows de verdade.
+- 24/11/2026 00:10 · Claude (dono: "ligue a regra de gravar, aprender etc."): FECHAMENTO do dia — manual 66 → 69 p. (Controle de efeitos e Cor avançada;
+  Qualidade, placa de vídeo e trecho), METODOS.md (efeitos, nós de cor, qualidade parado, placa de vídeo, trecho, atalhos) e PENTE FINO 214.
 ## Pendências (dono)
 - [x] (23/11 09:58) BW-Setup.exe 1.9.37 gerado pelo dono e publicado (9,0 MB, versão conferida dentro do .exe).
 - [ ] (23/11) iPhone: fechar e abrir o app, tocar em ＋ → ＋ IMPORTAR e dizer se a galeria abriu. PC: testar o laço na linha do tempo e os avisos pequenos.
