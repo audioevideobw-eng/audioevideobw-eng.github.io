@@ -111,6 +111,9 @@
     ["nome", "Nome e cargo", {txt: "Nome Sobrenome\nCargo ou empresa", tam: 4, x: -18, y: 34, fundo: "#111827"}], ["chamada", "Chamada", {txt: "SAIBA MAIS", tam: 6, y: 30, cor: "#111111", fundo: "#FFD23F", anima: "pulsar"}],
     ["sobe", "Sobe", {txt: "Texto que sobe", tam: 6, anima: "subir"}], ["maquina", "Máquina de escrever", {txt: "Digitando o texto...", tam: 5, anima: "maquina"}], ["letreiro", "Letreiro", {txt: "NOVIDADE · NOVIDADE · NOVIDADE", tam: 5, y: -36, anima: "letreiro"}], ["anel", "Anel na pessoa", {txt: "SEU NOME · SEU NOME ·", tam: 5, anima: "anel"}]];
   var TRANS = {"empurrar-d": "Empurrar →", descer: "Descer ↓", "zoom-giro": "Zoom com giro", "cortina-v": "Cortina ↓", losango: "Losango", barras: "Persiana", relogio: "Relógio", dissolver: "Dissolver", preto: "Passar pelo preto", branco: "Flash branco", empurrar: "Empurrar ←", deslizar: "Subir ↑", zoom: "Zoom", girar: "Girar", cortina: "Cortina", circulo: "Círculo", desfoque: "Desfoque", "zoom-saida": "Zoom de saída"};
+  /* 24/11 (dono: "a ferramenta TELAS integrada ao editor de vídeo, ao lado dos elementos, arrastar e soltar no take"):
+     as 16 transições das TELAS (as peças levam o take por dentro) entram como "tl:<id>"; divisões de tela por take em c.tela = {lay} */
+  if (window.BWTelas) Object.keys(BWTelas.TRANS).forEach(function (k) { TRANS["tl:" + k] = "▦ " + BWTelas.TRANS[k].nome; });
   var EFEITOS = {desbotado: "Desbotado", dourado: "Dourado", azulado: "Azul e laranja", rosado: "Rosado", cinema: "Cinema", duotom: "Duotom", pb: "Preto e branco", sepia: "Sépia", vintage: "Vintage", quente: "Quente", frio: "Frio", vivido: "Vívido", contraste: "Contraste", noite: "Noite", vinheta: "Vinheta", grao: "Grão de filme", vhs: "VHS", desfoque: "Desfoque"};
   var VELS = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 2, 3];
   var FONTES = ["Inter", "Montserrat", "Georgia", "Impact", "Courier New"];
@@ -584,10 +587,22 @@
     if (campoTam === "tam") o.tam = (c.tam || 6) * rr.k; else o.esc = (c.esc || 100) * rr.k; return o; }
   /* ELEMENTOS ANIMADOS (desenho próprio, cada quadro só de t): fogo, faíscas, brilho, fumaça, coração, raio — bons para seguir a mão */
   var ELEMENTOS = {fogo: "🔥 Fogo", faiscas: "✨ Faíscas", brilho: "🌟 Brilho", fumaca: "💨 Fumaça", coracoes: "💖 Corações", raio: "⚡ Raio", bolhas: "🫧 Bolhas", estrelas: "⭐ Estrelas girando"};
+  /* 24/11 (dono: "todo elemento do CRIADOR IA no editor de vídeo — overlays, emojis e etc."): "cv:<id>" = desenho/objeto do Criador
+     (BWConviteAnim.ITENS), "cvfx:<id>" = efeito de tela inteira (overlay), "emo:<emoji>" = emoji animado. Cada quadro só de t. */
+  var EMOJIS = "😀 😂 😍 🥰 😎 🤩 🥳 😮 😢 😡 👍 👏 🙌 🙏 💪 🤝 👀 ❤️ 🧡 💛 💚 💙 💜 🖤 🤍 💔 💯 🔥 ✨ ⭐ 🌟 💥 💫 🎉 🎊 🎈 🎁 🎂 🍾 🥂 🍻 🎵 🎶 🎤 🎧 🎸 🥁 🎬 📸 🎥 📢 💡 ✅ ❌ ⚠️ ❓ ❗ 💰 💸 🏆 🥇 🎯 🚀 ⏰ 📅 📍 🌈 ☀️ 🌙 ⚡ 💧 🌸 🌹 🍀 🐶 🐱 🦋 👑 💍 💎".split(" ");
+  function nomeEl(k) { k = k || "fogo"; if (ELEMENTOS[k]) return ELEMENTOS[k]; var C = window.BWConviteAnim;
+    if (k.indexOf("cvfx:") === 0) return "✨ " + (C && C.EFEITOS[k.slice(5)] ? C.EFEITOS[k.slice(5)].nome : "Efeito de tela");
+    if (k.indexOf("cv:") === 0) return "🎨 " + (C && C.ITENS[k.slice(3)] ? C.ITENS[k.slice(3)].nome : "Desenho");
+    if (k.indexOf("emo:") === 0) return k.slice(4) + " Emoji"; return k; }
   function sem(i) { var x = Math.sin(i * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); }
   function desenharElemento(c0, t) { var c = comRastro(c0, t), W = cv.width, H = cv.height, a = (c.op == null ? 100 : c.op) / 100 * fade(c0, t); if (a <= 0.001) return;
     var X = W / 2 + (c.x || 0) / 100 * W, Y = H / 2 + (c.y || 0) / 100 * H, R = Math.min(W, H) * 0.12 * (c.esc || 100) / 100, k = c0.el || "fogo", rel = t - c0.ini, cor = c0.cor || "";
     cx.save(); cx.globalAlpha = a;
+    if (k.indexOf("cvfx:") === 0) { var CE = window.BWConviteAnim && BWConviteAnim.EFEITOS[k.slice(5)]; if (CE) { try { CE.f(cx, W, H, rel, c0.cores || [cor || "#141826", "#2b2346", cor || "#ffd23f"]); } catch (x) {} } cx.restore(); return; }
+    if (k.indexOf("cv:") === 0) { if (window.BWConviteAnim) BWConviteAnim.desenharItem(cx, {id: k.slice(3), x: X / W, y: Y / H, s: 0.3 * (c.esc || 100) / 100, esp: c0.esp}, W, H, rel); cx.restore(); return; }
+    if (k.indexOf("emo:") === 0) { var em = k.slice(4), bob = Math.sin(rel * 3) * R * 0.08, gi = Math.sin(rel * 2) * 0.08, pul = 1 + 0.06 * Math.max(0, Math.sin(rel * 5));
+      cx.translate(X, Y + bob); cx.rotate(gi); cx.scale(pul, pul); cx.font = Math.round(R * 1.7) + 'px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif'; cx.textAlign = "center"; cx.textBaseline = "middle";
+      cx.shadowColor = "rgba(0,0,0,.35)"; cx.shadowBlur = R * 0.12; cx.shadowOffsetY = R * 0.04; cx.fillText(em, 0, R * 0.06); cx.restore(); return; }
     if (k === "fogo") { cx.globalCompositeOperation = "lighter"; for (var i = 0; i < 46; i++) { var per = 0.55 + sem(i) * 0.5, ph = ((rel / per) + sem(i + 9)) % 1, sx = (sem(i + 3) - 0.5) * R * 0.9 * (1 - ph * 0.6) + Math.sin(rel * 6 + i) * R * 0.08,
         sy = -ph * R * (1.6 + sem(i + 5)), rr = R * (0.42 - ph * 0.34) * (0.6 + sem(i + 7) * 0.6); if (rr <= 0) continue; var g = cx.createRadialGradient(X + sx, Y + sy, 0, X + sx, Y + sy, rr), q = 1 - ph;
         g.addColorStop(0, "rgba(255," + Math.round(240 - ph * 120) + "," + Math.round(160 - ph * 150) + "," + (0.55 * q) + ")"); g.addColorStop(0.5, "rgba(255," + Math.round(120 - ph * 80) + ",20," + (0.35 * q) + ")"); g.addColorStop(1, "rgba(200,30,0,0)");
@@ -603,11 +618,33 @@
     else if (k === "raio") { cx.globalCompositeOperation = "lighter"; cx.strokeStyle = cor || "#9FD7FF"; cx.shadowColor = cor || "#4DB2FF"; cx.shadowBlur = R * 0.3; cx.lineCap = "round"; var qd = Math.floor(rel * 14);
       for (var rz = 0; rz < 3; rz++) { cx.lineWidth = Math.max(1.5, R * (0.05 - rz * 0.012)); cx.beginPath(); var a0 = sem(qd * 7 + rz) * 6.2832, xx = X, yy = Y; cx.moveTo(xx, yy); for (var sg = 0; sg < 7; sg++) { a0 += (sem(qd * 13 + rz * 5 + sg) - 0.5) * 1.4; xx += Math.cos(a0) * R * 0.25; yy += Math.sin(a0) * R * 0.25; cx.lineTo(xx, yy); } cx.stroke(); } }
     cx.restore(); }
+  /* TELAS no editor: buffers de quadro inteiro (desenharMidia pinta no "cx" — trocamos o cx por um momento) */
+  var TLB = [];
+  function tlBuf(i, W, H) { var b = TLB[i] || (TLB[i] = document.createElement("canvas")); if (b.width !== W || b.height !== H) { b.width = W; b.height = H; } return b; }
+  /* DIVISÃO DE TELA no take (2, 3, 4 telas, diagonal, janela): o mesmo take em vários painéis que entram deslizando, como na ferramenta TELAS */
+  function desenharTela(f, c, t) {
+    var W = cv.width, H = cv.height, b = tlBuf(2, W, H), cx0 = cx; cx = b.getContext("2d"); cx.clearRect(0, 0, W, H); desenharMidia(f.el, f.w, f.h, c, t); cx = cx0;
+    var lay = c.tela.lay, ps = BWTelas.paineis(lay, W, H, Math.round(W * 0.012)), rel = t - c.ini, sai = function (x) { return 1 - Math.pow(1 - x, 3); };
+    ps.forEach(function (pn, i) {
+      var e = sai(lim((rel - i * 0.12) / 0.55, 0, 1)); if (c.tela.parado) e = 1; if (e <= 0) return;
+      cx.save();
+      if (ps.length > 1 && e < 1) { var ccx = pn.x + pn.w / 2 - W / 2, ccy = pn.y + pn.h / 2 - H / 2, d = Math.hypot(ccx, ccy) || 1;
+        if (lay === "janela") { cx.globalAlpha = e; if (i === 1) { cx.translate(W / 2, pn.y + pn.h / 2); cx.scale(0.6 + 0.4 * e, 0.6 + 0.4 * e); cx.translate(-W / 2, -(pn.y + pn.h / 2)); } }
+        else cx.translate(ccx / d * (1 - e) * W * 0.7, ccy / d * (1 - e) * H * 0.5); }
+      cx.beginPath(); pn.pts.forEach(function (q, j) { if (j) cx.lineTo(q[0], q[1]); else cx.moveTo(q[0], q[1]); }); cx.closePath(); cx.clip();
+      var k = Math.max(pn.w / W, pn.h / H), sw = pn.w / k, sh = pn.h / k, ox = (i % 2 ? 0.08 : -0.08) * (W - sw) / 2;
+      cx.drawImage(b, lim((W - sw) / 2 + ox, 0, W - sw), (H - sh) / 2, sw, sh, pn.x, pn.y, pn.w, pn.h);
+      if (lay === "janela" && i === 0) { cx.fillStyle = "rgba(0,0,0,.45)"; cx.fillRect(0, 0, W, H); }
+      cx.restore();
+      if (c.tela.linha && ps.length > 1) { cx.save(); cx.globalAlpha = e; cx.strokeStyle = c.tela.linha; cx.lineWidth = Math.max(2, W * 0.004); cx.beginPath(); pn.pts.forEach(function (q, j) { if (j) cx.lineTo(q[0], q[1]); else cx.moveTo(q[0], q[1]); }); cx.closePath(); cx.stroke(); cx.restore(); }
+    });
+  }
   function estrela(x, y, r, quatro) { var n = quatro ? 4 : 5; cx.beginPath(); for (var i = 0; i < n * 2; i++) { var rr = i % 2 ? r * (quatro ? 0.16 : 0.45) : r, an = i * Math.PI / n - Math.PI / 2; cx.lineTo(x + Math.cos(an) * rr, y + Math.sin(an) * rr); } cx.closePath(); cx.fill(); }
   function coracao(x, y, s) { cx.beginPath(); cx.moveTo(x, y + s * 0.6); cx.bezierCurveTo(x - s * 1.2, y - s * 0.2, x - s * 0.5, y - s * 1.1, x, y - s * 0.4); cx.bezierCurveTo(x + s * 0.5, y - s * 1.1, x + s * 1.2, y - s * 0.2, x, y + s * 0.6); cx.fill(); }
-  function addElemento(k) { var c = {id: uid(), trilha: novaTrilha("v"), tipo: "elemento", el: k || "fogo", nome: ELEMENTOS[k || "fogo"], ini: Math.round(T * 10) / 10, dur: 4, x: 0, y: 0, esc: 100, op: 100, fin: 0.2, fout: 0.3};
+  function addElemento(k, ini) { var c = {id: uid(), trilha: novaTrilha("v"), tipo: "elemento", el: k || "fogo", nome: nomeEl(k), ini: Math.round((ini == null ? T : ini) * 10) / 10, dur: 4, x: 0, y: 0, esc: 100, op: 100, fin: 0.2, fout: 0.3};
     var livre = trilhas().map(function (x) { return x[0]; }).filter(function (id) { return fam(id) === "v" && livreEm(id, c.ini, c.dur, null) && numTr(id) > 1; })[0]; if (livre) c.trilha = livre;
-    P.clips.push(c); SEL = c.id; tudo(); aviso(ELEMENTOS[c.el] + " na linha do tempo. Arraste na prévia, ou em SEGUIR UM PONTO faça ele acompanhar a mão."); return c; }
+    P.clips.push(c); SEL = c.id; tudo(); if (window.BWConviteAnim && c.el.indexOf("cv:r-") === 0) BWConviteAnim.pronto([c.el.slice(3)]).then(function () { desenhar(); });
+    aviso(nomeEl(c.el) + " na linha do tempo"); return c; }
   var RASTREANDO = null, ESCOLHENDO_PT = null;
   async function rastrear(c, inicio) { var rs = c.rastro || {}, sAlvo = document.querySelector("[data-rsalvo]"), alvoId = (sAlvo && sAlvo.value) || rs.alvo;
     var a = P.clips.filter(function (x) { return x.id === alvoId; })[0] || P.clips.filter(function (x) { return x !== c && (x.tipo === "video" || x.tipo === "imagem") && x.ini < c.ini + c.dur && x.ini + x.dur > c.ini; })[0];
@@ -721,6 +758,14 @@
         if (c.tipo === "audio") { if (ativo || (t > c.ini - 3 && t < c.ini + c.dur + 1)) sincronizar(c, t, ativo); else if (EL[c.id] && (t < c.ini - 8 || t > c.ini + c.dur + 4)) soltarEl(c.id); return; }
         if (!ativo) { if (c.tipo === "video" && !pintados[c.id]) { var perto = t > c.ini - 3 && t < c.ini + c.dur + 1; if (perto) sincronizar(c, t, false); else if (EL[c.id] && (t < c.ini - 8 || t > c.ini + c.dur + 4)) soltarEl(c.id); } return; }
         var td = transDe(c), ant = td ? anteriorDe(c) : null, p = td ? (t - c.ini) / td : 1;
+        if (ant && p < 1 && String(c.trans.tipo).indexOf("tl:") === 0 && window.BWTelas && BWTelas.TRANS[c.trans.tipo.slice(3)]) {   /* transição das TELAS */
+          var fa2 = fonteDe(ant, ant.ini + ant.dur - 0.04, false), fb2 = fonteDe(c, t, true), bA = tlBuf(0, W, H), bB = tlBuf(1, W, H), cx0 = cx; pintados[ant.id] = 1;
+          cx = bA.getContext("2d"); cx.clearRect(0, 0, W, H); if (fa2) desenharMidia(fa2.el, fa2.w, fa2.h, ant, ant.ini + ant.dur - 0.04);
+          cx = bB.getContext("2d"); cx.clearRect(0, 0, W, H); if (fb2) desenharMidia(fb2.el, fb2.w, fb2.h, c, t); cx = cx0;
+          var sm = 0, hs = String(c.id); for (var hi = 0; hi < hs.length; hi++) sm = (sm * 31 + hs.charCodeAt(hi)) >>> 0;
+          var rnd = function () { sm = (sm * 1664525 + 1013904223) >>> 0; return sm / 4294967296; };
+          cx.save(); BWTelas.TRANS[c.trans.tipo.slice(3)].f(cx, lim(p, 0, 1), W, H, function () { cx.drawImage(bA, 0, 0); }, function () { cx.drawImage(bB, 0, 0); }, rnd, c.trans.linha || null); cx.restore();
+          return; }
         if (ant && p < 1) {   /* transição: o clipe que sai fica no último quadro e o novo entra por cima */
           var mt = modsTrans(c.trans.tipo, lim(p, 0, 1)), fa = fonteDe(ant, ant.ini + ant.dur - 0.04, false); pintados[ant.id] = 1;
           if (ant.tipo === "video") { var oa = elDe(ant), alvoA = (ant.corte || 0) + (ant.dur - 0.04) * vel(ant); if (oa && !TOCANDO && Math.abs(oa.e.currentTime - alvoA) > 0.08) { try { oa.e.currentTime = alvoA; } catch (x) {} } }
@@ -728,7 +773,7 @@
           var fb = fonteDe(c, t, true); if (fb) desenharMidia(fb.el, fb.w, fb.h, c, t, mt.B);
           if (mt.cor && mt.corA > 0) { cx.globalAlpha = lim(mt.corA, 0, 1); cx.fillStyle = mt.cor; cx.fillRect(0, 0, W, H); cx.globalAlpha = 1; }
           return; }
-        var f = fonteDe(c, t, true); if (f) desenharMidia(f.el, f.w, f.h, c, t); }); });
+        var f = fonteDe(c, t, true); if (f) { if (c.tela && c.tela.lay && c.tela.lay !== "cheia" && window.BWTelas) desenharTela(f, c, t); else desenharMidia(f.el, f.w, f.h, c, t); } }); });
     /* PESSOA NA FRENTE: o take com a pessoa é desenhado de novo, só a pessoa, por cima de tudo o que ficou "atrás dela" */
     if (window.BWMascara) P.clips.forEach(function (c) { if (fam(c.trilha) !== "v" || !c.ia || !c.ia.frente || !(t >= c.ini && t < c.ini + c.dur) || !BWMascara.tem(c.mid)) return;
       var f = fonteDe(c, t, true); if (f) desenharMidia(f.el, f.w, f.h, c, t, {soPessoa: true}); });
@@ -754,7 +799,7 @@
   function irPara(t) { var era = TOCANDO; if (era) parar(); T = lim(t, 0, Math.max(total(), 0)); desenhar(); }
 
   /* ---------- telas ---------- */
-  var CATS = [["tudo", "▣", "Mídia"], ["audio", "♪", "Áudio"], ["texto", "T", "Texto"], ["elem", "✺", "Elementos"], ["efe", "✦", "Efeitos"], ["trans", "⋈", "Transições"]];
+  var CATS = [["tudo", "▣", "Mídia"], ["audio", "♪", "Áudio"], ["texto", "T", "Texto"], ["elem", "✺", "Elementos"], ["telas", "▦", "Telas"], ["efe", "✦", "Efeitos"], ["trans", "⋈", "Transições"]];
   function desenharLib() {
     var cat = ABA === "video" || ABA === "imagem" || ABA === "pasta" ? "tudo" : ABA, lib = $("veLib");
     $("veAbas").innerHTML = '<div class="ve-cats" role="tablist">' + CATS.map(function (a) { return '<button type="button" role="tab" data-aba="' + a[0] + '" class="' + (cat === a[0] ? "on" : "") + '" aria-selected="' + (cat === a[0]) + '" aria-pressed="' + (cat === a[0]) + '"><i aria-hidden="true">' + a[1] + '</i><span>' + a[2] + '</span></button>'; }).join("") + '</div>' +
@@ -764,17 +809,48 @@
     if (ABA === "trans" || ABA === "efe") { var L = ABA === "trans" ? TRANS : EFEITOS, pre = ABA === "trans" ? "t:" : "e:", cartao = function (k) { return '<div class="ve-item ve-fx ' + (ABA === "trans" ? "tr-" : "ef-") + esc(k) + '" role="button" tabindex="0" data-arr="' + pre + esc(k) + '" aria-label="' + (ABA === "trans" ? "Transição " : "Efeito ") + esc(L[k]) + ' — arraste até um take"><span class="mini" aria-hidden="true"><i></i></span><span>' + esc(L[k]) + '</span></div>'; };
       var usados = {}, h = '<p class="ve-nota" style="grid-column:1/-1;margin:0 0 4px">Arraste até ' + (ABA === "trans" ? "a emenda entre dois takes" : "um take") + ', ou toque para aplicar.</p>';
       GRUPOS[ABA].forEach(function (g) { var ks = g[1].filter(function (k) { return L[k]; }); if (!ks.length) return; h += tit(g[0]) + ks.map(function (k) { usados[k] = 1; return cartao(k); }).join(""); });
-      var resto = Object.keys(L).filter(function (k) { return !usados[k]; }); if (resto.length) h += tit("Mais") + resto.map(cartao).join("");
+      var resto = Object.keys(L).filter(function (k) { return !usados[k] && k.indexOf("tl:") !== 0; }); if (resto.length) h += tit("Mais") + resto.map(cartao).join("");
       lib.innerHTML = h; return; }
     if (ABA === "pasta") { desenharPasta(); return; }
     if (ABA === "texto") { lib.innerHTML = tit("Toque para pôr na agulha") + TEXTOS.map(function (t) { return '<div class="ve-item ve-tx" role="button" tabindex="0" data-texto="' + t[0] + '" aria-label="Pôr texto ' + esc(t[1]) + '"><span class="mini" aria-hidden="true"' + (t[2].fundo ? ' style="--tf:' + t[2].fundo + ";--tc:" + (t[2].cor || "#fff") + '"' : "") + '><b>' + esc(String(t[2].txt).split("\n")[0].slice(0, 14)) + '</b></span><span>' + esc(t[1]) + '</span></div>'; }).join(""); return; }
-    if (ABA === "elem") { lib.innerHTML = tit("Elementos animados") + Object.keys(ELEMENTOS).map(function (k) { var p = ELEMENTOS[k].split(" "); return '<div class="ve-item ve-el" role="button" tabindex="0" data-elem="' + esc(k) + '" aria-label="Pôr ' + esc(ELEMENTOS[k]) + '"><span class="mini" aria-hidden="true">' + p[0] + '</span><span>' + esc(p.slice(1).join(" ")) + '</span></div>'; }).join(""); return; }
+    if (ABA === "telas") { desenharTelasLib(lib, tit); return; }
+    if (ABA === "elem" && ELSUB !== "anim") { desenharElemLib(lib, tit); return; }
+    if (ABA === "elem") { lib.innerHTML = subsElem() + tit("Elementos animados") + Object.keys(ELEMENTOS).map(function (k) { var p = ELEMENTOS[k].split(" "); return '<div class="ve-item ve-el" role="button" tabindex="0" data-elem="' + esc(k) + '" aria-label="Pôr ' + esc(ELEMENTOS[k]) + '"><span class="mini" aria-hidden="true">' + p[0] + '</span><span>' + esc(p.slice(1).join(" ")) + '</span></div>'; }).join(""); return; }
     var sonsCasa = ""; if (ABA === "audio") { var gs = []; SONS.forEach(function (x) { if (gs.indexOf(x[3]) < 0) gs.push(x[3]); }); sonsCasa = gs.map(function (gn) { return tit(gn) + SONS.map(function (x, i) { return x[3] === gn ? somCartao(x, i) : ""; }).join(""); }).join("") + tit("Meus sons"); }
     var l = Object.keys(MID).map(function (k) { return MID[k]; }).filter(function (m) { return !m.ph && (ABA === "tudo" || m.tipo === ABA); });   /* espaços de modelo não aparecem na biblioteca */
     lib.innerHTML = sonsCasa + (l.length ? l.map(function (m) { var mini = m.tipo === "imagem" ? '<img alt="" src="' + m.url + '">' : m.capa ? '<img alt="" src="' + m.capa + '">' : '<span class="mini" aria-hidden="true">' + (m.tipo === "audio" ? "🎵" : "🎬") + '</span>';
       var f = m.cr && window.BWCriacoes ? BWCriacoes.FERR[m.cr.ferramenta] : null;
       return '<div class="ve-item' + (m.ruim ? " ruim" : "") + '" role="button" tabindex="0" data-mid="' + esc(m.id) + '" aria-label="Pôr ' + esc(m.nome) + ' na linha do tempo"' + (m.ruim ? ' title="Este arquivo não abre neste navegador"' : "") + (f ? ' style="--cf:' + f.cor + '"' : "") + '>' + mini + (PX[m.id] ? '<b class="selo px" title="Tem proxy: edita leve, exporta com o original">⚡ PROXY ' + PX[m.id].curto + 'p</b>' : "") + (m.ruim ? '<b class="selo ruim">⚠ ' + (m.codec === "hevc" ? "HEVC · NÃO ABRE AQUI" : "NÃO ABRE AQUI") + '</b><button type="button" class="ve-retry" data-retry="' + esc(m.id) + '" title="Tentar abrir de novo" aria-label="Tentar abrir de novo">↻</button>' : "") + (f ? '<b class="selo">' + f.icone + " " + esc(f.curto) + "</b>" : "") + '<span>' + esc(m.nome) + '</span>' + (f ? '<button type="button" class="ed" data-editar="' + esc(m.id) + '" title="Abrir no ' + esc(f.nome) + ' e trocar aqui" aria-label="Editar no ' + esc(f.nome) + '">✎</button>' : "") + '<button type="button" class="x" data-del="' + esc(m.id) + '" aria-label="Tirar ' + esc(m.nome) + ' da biblioteca">✕</button></div>'; }).join("")
       : '<p class="ve-nota" style="grid-column:1/-1;margin:0">' + (ABA === "audio" ? "Seus sons importados aparecem aqui." : "Nada aqui ainda. Toque em ＋ IMPORTAR ou em ✨ MINHAS CRIAÇÕES.") + '</p>');
+  }
+  var ELSUB = "anim", MINI_CV = {};
+  function subsElem() { return '<div class="ve-subs" style="grid-column:1/-1">' + [["anim", "✺ Animados"], ["over", "✨ Overlays"], ["des", "🎨 Desenhos"], ["real", "📸 Realistas"], ["emo", "😀 Emojis"]].map(function (a) { return '<button type="button" data-elsub="' + a[0] + '" class="' + (ELSUB === a[0] ? "on" : "") + '">' + a[1] + '</button>'; }).join("") + '</div>'; }
+  function cartaoEl(k, mini, nome) { return '<div class="ve-item ve-el" role="button" tabindex="0" data-arr="l:' + esc(k) + '" aria-label="Pôr ' + esc(nome) + ' na linha do tempo">' + mini + '<span>' + esc(nome) + '</span></div>'; }
+  function desenharElemLib(lib, tit) {
+    var C = window.BWConviteAnim, h = subsElem() + '<p class="ve-nota" style="grid-column:1/-1;margin:0 0 4px">Toque para pôr na agulha, ou arraste até a linha do tempo. Vêm do CRIADOR IA — o mesmo desenho, animado.</p>';
+    if (ELSUB === "emo") h += tit("Emojis animados") + EMOJIS.map(function (e) { return cartaoEl("emo:" + e, '<span class="mini" aria-hidden="true">' + e + '</span>', "Emoji " + e); }).join("");
+    else if (!C) h += '<p class="ve-nota" style="grid-column:1/-1">Os desenhos do Criador ainda estão carregando…</p>';
+    else if (ELSUB === "over") h += tit("Efeitos de tela (overlays)") + Object.keys(C.EFEITOS).map(function (k) { var u = MINI_CV["fx" + k] || (MINI_CV["fx" + k] = C.miniEfeito(k, 72)); return cartaoEl("cvfx:" + k, '<img alt="" src="' + u + '">', C.EFEITOS[k].nome); }).join("");
+    else { var cats = {}, ord = ELSUB === "real" ? ["real"] : ["bicho", "objeto", "adulto", "heroi", "anime"], nomes = {bicho: "Bichinhos", objeto: "Objetos", adulto: "Festa e adulto", heroi: "Super-herói", anime: "Anime", real: "Objetos realistas"};
+      Object.keys(C.ITENS).forEach(function (k) { var it = C.ITENS[k], ct = it.foto ? "real" : (it.cat || "objeto"); (cats[ct] = cats[ct] || []).push(k); });
+      Object.keys(cats).forEach(function (ct) { if (ord.indexOf(ct) < 0 && ELSUB !== "real" && ct !== "real") ord.push(ct); });
+      ord.forEach(function (ct) { if (!cats[ct]) return; h += tit(nomes[ct] || ct) + cats[ct].map(function (k) { var u = MINI_CV[k] || (MINI_CV[k] = C.mini(k, 72)); return cartaoEl("cv:" + k, '<img alt="" loading="lazy" src="' + u + '">', C.ITENS[k].nome); }).join(""); }); }
+    lib.innerHTML = h;
+  }
+  var TL_DESC = {cheia: "▢", dupla: "◫", tripla: "▥", quatro: "⊞", diagonal: "◩", janela: "▣"};
+  /* miniatura da transição de tela: o motor das TELAS desenha a peça no meio do caminho (azul = take que sai, âmbar = take que entra) */
+  function miniTela(k) { if (MINI_CV["tl" + k]) return MINI_CV["tl" + k]; var c = document.createElement("canvas"); c.width = c.height = 72; var x = c.getContext("2d"), sm = 7;
+    var A = function () { var g = x.createLinearGradient(0, 0, 72, 72); g.addColorStop(0, "#1d3a6b"); g.addColorStop(1, "#4C8DFF"); x.fillStyle = g; x.fillRect(0, 0, 72, 72); };
+    var B = function () { var g = x.createLinearGradient(0, 72, 72, 0); g.addColorStop(0, "#c2410c"); g.addColorStop(1, "#FFB547"); x.fillStyle = g; x.fillRect(0, 0, 72, 72); x.fillStyle = "rgba(255,255,255,.55)"; x.beginPath(); x.arc(36, 30, 9, 0, 6.3); x.fill(); x.fillRect(22, 42, 28, 16); };
+    try { BWTelas.TRANS[k].f(x, 0.55, 72, 72, A, B, function () { sm = (sm * 16807) % 2147483647; return sm / 2147483647; }, "#ffffff"); } catch (e) { A(); }
+    return (MINI_CV["tl" + k] = c.toDataURL()); }
+  function desenharTelasLib(lib, tit) {
+    var B = window.BWTelas; if (!B) { lib.innerHTML = '<p class="ve-nota" style="grid-column:1/-1">As telas ainda estão carregando…</p>'; return; }
+    var h = '<p class="ve-nota" style="grid-column:1/-1;margin:0 0 4px">A ferramenta TELAS EM MOVIMENTO, aqui dentro: arraste até a <b>emenda</b> (transição) ou até um <b>take</b> (divisão), ou toque para aplicar no escolhido.</p>';
+    h += tit("Transições de tela — as peças levam o take por dentro") + Object.keys(B.TRANS).filter(function (k) { return k !== "corte"; }).map(function (k) { return '<div class="ve-item ve-fx ve-tl" role="button" tabindex="0" data-arr="t:tl:' + esc(k) + '" aria-label="Transição de tela ' + esc(B.TRANS[k].nome) + ' — arraste até a emenda"><img class="tl-mini" alt="" src="' + miniTela(k) + '"><span>' + esc(B.TRANS[k].nome) + '</span></div>'; }).join("");
+    h += tit("Divisões de tela — arraste até o take") + Object.keys(B.LAYOUTS).map(function (k) { return '<div class="ve-item ve-fx ve-tl" role="button" tabindex="0" data-arr="d:' + esc(k) + '" aria-label="Divisão ' + esc(B.LAYOUTS[k].nome) + ' — arraste até um take"><span class="mini" aria-hidden="true" style="font-size:26px">' + (TL_DESC[k] || "▦") + '</span><span>' + esc(B.LAYOUTS[k].nome) + '</span></div>'; }).join("");
+    h += tit("Pacotes — todas as emendas da camada de uma vez") + Object.keys(B.PACOTES).map(function (k) { return '<div class="ve-item ve-fx ve-tl" role="button" tabindex="0" data-arr="k:' + esc(k) + '" aria-label="Pacote ' + esc(B.PACOTES[k].nome) + ' — arraste até um take da camada"><span class="mini" aria-hidden="true" style="font-size:24px">🎞</span><span>' + esc(B.PACOTES[k].nome) + '</span></div>'; }).join("");
+    lib.innerHTML = h;
   }
   function somCartao(x, i) { return '<div class="ve-item ve-sm" role="button" tabindex="0" data-som="' + i + '" aria-label="Pôr ' + x[1] + ' na linha do tempo"><span class="mini" aria-hidden="true">' + (x[0] === "sfx" ? "🔊" : "🎼") + '</span><span>' + x[1] + '</span></div>'; }
   function porTextoPronto(k) { var t = TEXTOS.filter(function (x) { return x[0] === k; })[0]; if (!t) return; var c = addTexto({}); Object.keys(t[2]).forEach(function (p) { c[p] = t[2][p]; }); c.txt = String(t[2].txt).replace(/\\n/g, "\n"); tudo(); aviso("✓ Texto “" + t[1] + "” na agulha"); return c; }
@@ -799,6 +875,11 @@
   function emendaNaAgulha() { var tol = Math.max(0.12, 14 / PPS), m = null, md = 1e9; P.clips.forEach(function (c) { if (famDoClip(c) !== "v" || c.tipo === "texto" || c.tipo === "audio" || !anteriorDe(c)) return; var d = Math.abs(T - c.ini) + (c.trilha === "v1" ? 0 : 0.001); if (d <= tol && d < md) { md = d; m = c; } }); return m; }
   function marcarEmenda() { var fx = $("veFaixas"); if (!fx) return; var e = emendaNaAgulha(), id = e ? e.id : ""; fx.querySelectorAll(".ve-junta").forEach(function (j) { j.classList.toggle("agulha", j.dataset.junta === id); }); document.documentElement.classList.toggle("ve-na-emenda", !!e); }
   function aplicarFx(c, kind, k, semAviso) { if (!c) { aviso("Escolha um take na linha do tempo (ou arraste até ele).", true); return false; }
+    if (kind === "d") { if (c.tipo !== "video" && c.tipo !== "imagem") { aviso("Divisão de tela é para vídeo e imagem.", true); return false; }
+      c.tela = k === "cheia" ? null : Object.assign({}, c.tela || {}, {lay: k}); SEL = c.id; tudo(); marcar(c.id); if (!semAviso) aviso(k === "cheia" ? "▢ Tela cheia de novo" : "▦ " + BWTelas.LAYOUTS[k].nome + " no take"); return true; }
+    if (kind === "k") { var pac = window.BWTelas && BWTelas.PACOTES[k]; if (!pac) return false; var lst = P.clips.filter(function (x) { return x.trilha === c.trilha && (x.tipo === "video" || x.tipo === "imagem") && anteriorDe(x); }).sort(function (a, b) { return a.ini - b.ini; });
+      if (!lst.length) { aviso("Encoste os takes um no fim do outro (mesma camada) para ter emendas.", true); return false; }
+      lst.forEach(function (x, i) { x.trans = {tipo: "tl:" + pac.lista[i % pac.lista.length], dur: (x.trans && x.trans.dur) || 0.6}; }); SEL = c.id; tudo(); marcar(c.id); aviso("🎞 Pacote “" + pac.nome + "” em " + lst.length + " emenda(s)"); return true; }
     if (kind === "t") { if (c.tipo === "texto" || c.tipo === "audio") { aviso("Transição é para vídeo e imagem.", true); return false; } c.trans = {tipo: k, dur: (c.trans && c.trans.dur) || 0.6}; }
     else { if (c.tipo !== "video" && c.tipo !== "imagem") { aviso("Efeito é para vídeo e imagem.", true); return false; } c.efeito = k; if (c.efInt == null) c.efInt = 85; }
     SEL = c.id; tudo(); marcar(c.id); if (!semAviso) aviso(kind === "t" ? "◧ Transição “" + TRANS[k] + "”" + (anteriorDe(c) ? " na emenda — arraste o ◆ para mudar o tempo." : " — encoste este take no fim de outro para ela aparecer.") : "✦ Efeito “" + EFEITOS[k] + "” no take."); return true; }
@@ -881,6 +962,9 @@
     if (c.tipo === "video" || c.tipo === "audio") h += g("vel", "VELOCIDADE", '<div class="ve-chips">' + VELS.map(function (v) { return '<button type="button" data-vel="' + v + '"' + (vel(c) === v ? ' class="on"' : "") + '>' + String(v).replace(".", ",") + '×</button>'; }).join("") + '</div>' + (c.tipo === "video" ? '<div class="ve-linha"><button class="ve-bt" type="button" data-acao="congelar">❄ CONGELAR QUADRO</button></div>' : ""), true);
     if (visual && c.tipo !== "texto" && c.tipo !== "elemento") { var tt = c.trans && c.trans.tipo || "";
       h += g("trans", "TRANSIÇÃO DE ENTRADA", (anteriorDe(c) ? "" : '<p class="ve-nota" style="margin:0 0 6px">Encoste este clipe no fim de outro (mesma camada) para a transição aparecer.</p>') + '<div class="ve-chips">' + '<button type="button" data-trans=""' + (!tt ? ' class="on"' : "") + '>Corte seco</button>' + Object.keys(TRANS).map(function (k) { return '<button type="button" data-trans="' + k + '"' + (tt === k ? ' class="on"' : "") + '>' + TRANS[k] + '</button>'; }).join("") + '</div>' + (tt ? faixaR("transDur", "Duração", 0.2, 2, (c.trans.dur || 0.6), " s", 0.1) : ""), true);
+      if (window.BWTelas) { var tl = c.tela && c.tela.lay || "cheia"; h += g("tela", "▦ DIVISÃO DE TELA", '<div class="ve-chips">' + Object.keys(BWTelas.LAYOUTS).map(function (k) { return '<button type="button" data-tela="' + k + '"' + (tl === k ? ' class="on"' : "") + '>' + (TL_DESC[k] || "") + " " + BWTelas.LAYOUTS[k].nome + '</button>'; }).join("") + '</div>' +
+        (tl !== "cheia" ? '<div class="ve-chips"><button type="button" data-tela-p="1"' + (c.tela.parado ? ' class="on"' : "") + '>Sem entrada deslizando</button>' + ["", "#ffffff", "#FFB547", "#00e5ff"].map(function (cr) { return '<button type="button" data-tela-l="' + cr + '"' + ((c.tela.linha || "") === cr ? ' class="on"' : "") + '>' + (cr ? '<i style="display:inline-block;width:12px;height:12px;border-radius:50%;background:' + cr + ';vertical-align:-2px"></i> linha' : "Sem linha") + '</button>'; }).join("") + '</div>' : "") +
+        '<p class="ve-nota" style="margin:6px 0 0">O mesmo take em várias telas, como na ferramenta TELAS. Também dá para arrastar da aba ▦ TELAS da biblioteca.</p>', true); }
       h += g("efeito", "✦ CONTROLE DE EFEITOS", fxPainel(c)); }
     if (visual && c.tipo !== "texto" && c.tipo !== "elemento" && window.BWCor) { var gd = c.grade || {}, grupoAnt = "", pre = predefCor();
       /* 23/11 (dono: cor "parecida com o DaVinci, clicou mudou, sem cara de filtro"): ordem do colorista — 1 CORREÇÃO · 2 REALCE · 3 ESTILO · 4 AJUSTE FINO */
@@ -1028,11 +1112,13 @@
   $("veAbas").addEventListener("click", function (e) { var b = e.target.closest("[data-aba]"); if (b) { ABA = b.dataset.aba; desenharLib(); } });
   $("veLib").addEventListener("click", async function (e) {
     if (Date.now() - LD_FIM < 400) return;   /* o clique que vem depois de arrastar não conta */
+    var esb = e.target.closest("[data-elsub]"); if (esb) { ELSUB = esb.dataset.elsub; desenharLib(); return; }
     if (e.target.closest("[data-pf],[data-pfa],[data-pfd],[data-pfouvir]")) { cliquePasta(e); return; }
     var fxb = e.target.closest("[data-arr]"); if (fxb) { var kk = fxb.dataset.arr;
       if (kk.charAt(0) === "t") { var em = emendaNaAgulha(); if (em) { aplicarFx(em, "t", kk.slice(2), true); aviso("◧ Transição “" + TRANS[kk.slice(2)] + "” na emenda da agulha — arraste o ◆ para mudar o tempo."); verTransicao(em); return; }
         var s0 = sel(); if (s0 && anteriorDe(s0)) { aplicarFx(s0, "t", kk.slice(2)); return; }
         aviso("Ponha a agulha na emenda entre dois takes (o ◆ acende)", true); return; }
+      if (kk.charAt(0) === "l") { addElemento(kk.slice(2)); if (window.VEApp && VEApp.aberta && VEApp.aberta()) VEApp.fechar(); return; }
       aplicarFx(sel(), kk.charAt(0), kk.slice(2)); return; }
     var rt = e.target.closest("[data-retry]"); if (rt) { e.stopPropagation(); var mr = MID[rt.dataset.retry]; if (!mr) return; aviso("⏳ Tentando abrir " + mr.nome + " de novo…");
       var r2 = await abrirVideo(mr, mr.tipo === "video", 30000); if (r2.ok && (mr.tipo !== "video" || r2.capa)) { mr.ruim = false; mr.capa = r2.capa || mr.capa; if (r2.dur) mr.dur = r2.dur; aviso("✓ " + mr.nome + " abriu."); } else aviso("⚠ " + mr.nome + " continua sem abrir neste navegador" + (mr.codec === "hevc" ? " (é HEVC/H.265)." : "."), true); desenharLib(); tudo(); return; }
@@ -1074,6 +1160,9 @@
   $("vePropCorpo").addEventListener("click", function (e) { var b = e.target.closest("button"), c = sel(); if (!b || !c) return;
     if (b.hasAttribute("data-vel")) mudarVel(c, +b.dataset.vel);
     else if (b.hasAttribute("data-trans")) { var k = b.dataset.trans; c.trans = k ? {tipo: k, dur: (c.trans && c.trans.dur) || 0.6} : null; tudo(); if (k) { verTransicao(c); aviso("Transição “" + TRANS[k] + "”" + (anteriorDe(c) ? "." : " — encoste o clipe no fim de outro para ela aparecer.")); } }
+    else if (b.hasAttribute("data-tela")) aplicarFx(c, "d", b.dataset.tela, true);
+    else if (b.hasAttribute("data-tela-p")) { if (c.tela) { c.tela.parado = !c.tela.parado; tudo(); } }
+    else if (b.hasAttribute("data-tela-l")) { if (c.tela) { c.tela.linha = b.dataset.telaL || ""; tudo(); } }
     else if (b.hasAttribute("data-efeito")) { c.efeito = b.dataset.efeito || ""; if (c.efeito && c.efInt == null) c.efInt = 85; tudo(); }
     else if (b.hasAttribute("data-ck")) { c.ck = b.dataset.ck === "1"; if (c.ck && !c.ckCor) { c.ckCor = corDoFundo(c) || "#00d000"; c.ckModo = "auto"; porNivel(c, nivelDoFundo(c)); } tudo(); if (c.ck) aviso("Chroma key ligado — fundo " + c.ckCor + (c.ckModo !== "manual" ? ", nível " + (c.ckNivel || 3) + ". Sobrou fundo? Suba o nível." : ".")); }
     else if (b.hasAttribute("data-ckmodo")) { c.ckModo = b.dataset.ckmodo; if (c.ckModo === "auto") porNivel(c, c.ckNivel || 3); tudo(); }
@@ -1278,10 +1367,11 @@
       /* página que rola (celular): dedo perto da borda de baixo/cima rola a página até a linha do tempo */
       var se = document.scrollingElement || document.documentElement; if (se.scrollHeight > innerHeight + 4) { var bx = innerHeight - LD.y, tp = LD.y; if (bx < 70) window.scrollBy(0, Math.round(8 + (70 - Math.max(0, bx)) * 0.45)); else if (tp < 70) window.scrollBy(0, -Math.round(8 + (70 - Math.max(0, tp)) * 0.45)); else { LD_RAF = requestAnimationFrame(laco); return; } ldMover(LD.x, LD.y); } LD_RAF = requestAnimationFrame(laco); }; LD_RAF = requestAnimationFrame(laco); }
   function ldMover(x, y) { LD.x = x; LD.y = y; if (!LD.ativo) return; LD.fantasma.style.left = (x + 12) + "px"; LD.fantasma.style.top = (y + 10) + "px"; var a = ldAlvo(x, y); LD.alvo = a; ldMarca(a);
-    var k = LD.kind, txt = !a ? "solte na linha do tempo" : k === "t" ? (a.clip ? "◧ transição neste take" : "solte num take") : k === "e" ? (a.clip ? "✦ efeito neste take" : "solte num take") : (a.clip ? "＋ camada nova por cima" : "pôr aqui · " + fmtT(a.t));
+    var k = LD.kind, txt = !a ? "solte na linha do tempo" : k === "t" ? (a.clip ? "◧ transição neste take" : "solte num take") : k === "e" ? (a.clip ? "✦ efeito neste take" : "solte num take") : k === "d" ? (a.clip ? "▦ dividir este take" : "solte num take") : k === "k" ? (a.clip ? "🎞 pacote nesta camada" : "solte num take") : k === "l" ? "pôr aqui · " + fmtT(a.t) : (a.clip ? "＋ camada nova por cima" : "pôr aqui · " + fmtT(a.t));
     LD.fantasma.setAttribute("data-dica", txt); }
   async function ldSoltar() { var a = LD.alvo, k = LD.kind, key = LD.key; if (!a) return;
-    if (k === "t" || k === "e") { var c = a.clip ? P.clips.filter(function (x) { return x.id === a.clip; })[0] : P.clips.filter(function (x) { return x.trilha === a.trilha && famDoClip(x) === "v"; }).sort(function (p, q) { return Math.abs(p.ini - a.t) - Math.abs(q.ini - a.t); })[0]; aplicarFx(c, k, key); return; }
+    if (k === "l") { var ne = addElemento(key, a.t); if (ne) marcar(ne.id); return; }
+    if (k === "t" || k === "e" || k === "d" || k === "k") { var c = a.clip ? P.clips.filter(function (x) { return x.id === a.clip; })[0] : P.clips.filter(function (x) { return x.trilha === a.trilha && famDoClip(x) === "v"; }).sort(function (p, q) { return Math.abs(p.ini - a.t) - Math.abs(q.ini - a.t); })[0]; aplicarFx(c, k, key); return; }
     var m = k === "s" ? await porSom(+key) : MID[key]; if (!m) return; var f = m.tipo === "audio" ? "a" : "v", tr = a.trilha && fam(a.trilha) === f ? a.trilha : (f === "a" ? (m.som === "sfx" ? "a2" : "a1") : "v1");
     if (a.clip) { var sob = P.clips.filter(function (x) { return x.id === a.clip; })[0]; if (sob && fam(sob.trilha) === f) tr = sob.trilha; }
     var nova = addClip(m, tr, a.t); marcar(nova.id); aviso((nova.trilha !== tr ? "＋ Camada nova (" + infoTr(nova.trilha)[0] + "): " : "") + m.nome + " em " + fmtT(nova.ini) + "."); }

@@ -41,7 +41,7 @@
    itens fora da vista não são desenhados (content-visibility) e a prévia só anima com o mouse em cima. */
 .ve-cats{display:flex;gap:2px;width:100%;overflow-x:auto;scrollbar-width:none;border-bottom:1px solid rgba(255,255,255,.08);padding-bottom:4px}
 .ve-cats::-webkit-scrollbar{display:none}
-.ve-abas .ve-cats button{flex:1 1 0;min-width:0;min-height:44px;padding:4px 1px;overflow:hidden;white-space:nowrap;border:0;border-radius:8px;background:transparent;color:#9aa1ad;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font:600 8.5px Inter,sans-serif;letter-spacing:0;text-transform:none}
+.ve-abas .ve-cats button{flex:1 0 auto;min-width:40px;text-overflow:clip;min-height:44px;padding:4px 1px;overflow:hidden;white-space:nowrap;border:0;border-radius:8px;background:transparent;color:#9aa1ad;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font:600 8.5px Inter,sans-serif;letter-spacing:0;text-transform:none}
 .ve-abas .ve-cats button i{font:400 16px/1 Inter,sans-serif;font-style:normal}
 .ve-abas .ve-cats button:hover{color:#fff;background:rgba(255,255,255,.05)}
 .ve-abas .ve-cats button.on{background:transparent;color:#21D4E4;box-shadow:inset 0 -2px 0 #21D4E4;border-radius:8px 8px 0 0}
@@ -294,6 +294,12 @@
 .ve-exp-grade{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:9px}.ve-exp-grade label{display:flex;flex-direction:column;gap:4px;font:700 11px Inter,sans-serif;text-transform:none;min-width:0}
 .ve-exp-res{margin:12px 0 4px;padding:10px;border-radius:12px;background:rgba(255,255,255,.04);font:500 11.5px/1.6 Inter,sans-serif}
 @media (max-width:560px){.ve-jan{padding:0;align-items:flex-end}.ve-jan-c{border-radius:18px 18px 0 0;max-height:92vh}.ve-exp-cards{grid-template-columns:1fr 1fr}.ve-copia{right:8px;left:8px;width:auto;bottom:calc(70px + env(safe-area-inset-bottom))}}
+/* 24/11 — TELAS e elementos do CRIADOR na biblioteca */
+.ve-item .tl-mini{width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;display:block}
+.ve-lib .ve-subs,#veLib .ve-subs{flex-wrap:wrap;padding:0 0 4px}
+#veLib .ve-subs button{min-height:28px;padding:0 10px;border-radius:999px;border:1px solid rgba(245,241,234,.14);background:rgba(255,255,255,.05);color:#cfd6e2;font:700 10.5px var(--bw-font-texto,Inter,sans-serif);letter-spacing:.03em;cursor:pointer;white-space:nowrap}
+#veLib .ve-subs button.on{background:rgba(255,181,71,.18);border-color:rgba(255,181,71,.6);color:#FFB547}
+.ve-item.ve-el img{width:100%;aspect-ratio:1;object-fit:contain;border-radius:8px;background:radial-gradient(circle,#2b2346,#141826)}
 </style>
 <script src="assets/modos.js?v=9"></script>
 <link rel="stylesheet" href="assets/ve-app.css?v=12">
@@ -366,7 +372,9 @@
 <script src="assets/ve-app.js?v=16"></script>
 <script src="assets/reels-celular.js?v=6"></script>
 <script src="assets/bw-proxy.js?v=3"></script>
-<script src="assets/video-editor.js?v=35"></script>
+<script src="assets/telas-motor.js?v=2"></script>
+<script src="assets/convite-anim.js?v=4"></script>
+<script src="assets/video-editor.js?v=36"></script>
 <script src="assets/ve-modelos.js?v=3"></script>
 <script src="assets/bw-controle.js?v=1"></script>
 </body>

@@ -2602,6 +2602,13 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   fotos_inicio, fotos_paineis 0 falhas; vigia ✅. Manual 71 → 72 p. fotos.js v24, fotos-efeitos.js v1, sw v227. App BW: o pacote sai junto com a próxima
   entrega (TELAS no editor de vídeo). PENTE FINO 220–222.
 
+- 24/11/2026 18:00 · Claude (dono: "TELAS integrada ao editor de vídeo, ao lado dos elementos, arrastar e soltar no take" + "todo elemento do CRIADOR IA no editor de vídeo,
+  overlays, emojis…"): EDITOR DE VÍDEO — nova aba ▦ TELAS na biblioteca (ao lado de Elementos): 16 TRANSIÇÕES DE TELA do motor das Telas (arrastar até a
+  emenda; miniatura desenhada pelo motor), 6 DIVISÕES DE TELA (arrastar até o take; dividida em 2/3/4, diagonal, janela; também em AJUSTES → ▦ DIVISÃO DE
+  TELA) e PACOTES (aplicam transições em todas as emendas da camada). ELEMENTOS ganhou sub-abas: Animados · Overlays (efeitos de tela do Criador: confete,
+  luzes, neve…) · Desenhos (bichinhos, objetos, festa, super-herói, anime) · Realistas · Emojis — tocar põe na agulha, arrastar põe no tempo. O Criador IA
+  continua separado (mesmo desenho, mesmo motor). Teste novo docs/testes/teste_video_telas.py (pixel no meio da transição de tela e na divisão, 1280/390)
+  + bateria do editor 0 falhas; vigia ✅. video-editor v36, sw v228.
 ## Pendências (dono)
 - [ ] (24/11 15:05) GOOGLE PLAY: dono PEDIU o D-U-N-S (Dun & Bradstreet, grátis, 5–30 dias). Quando chegar: criar a conta de ORGANIZAÇÃO em
       play.google.com/console/signup (CNPJ + D-U-N-S, US$ 25) e avisar o Claude → gerar .aab + chave de assinatura fixa (segredos no GitHub) + ficha da loja.
