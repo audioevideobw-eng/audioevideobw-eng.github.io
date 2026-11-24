@@ -2547,10 +2547,18 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   "BW (novo)" é apagado. teste-app 0 falhas. Obs.: no PC do dono o programa foi montado em Vídeos\bw-reels-studio (a cópia instalada em AppData\Local\BW Reels
   ainda não tinha o componente).
 
+- 24/11/2026 15:55 · Claude (dono: "faça agora o que está pendente"): manual 69 → 71 p. (Gestos no celular: toque duplo, régua, borda · O BW no computador,
+  no Android e no iPhone); METODOS (app Android, programa BW vira principal); teste_testes e teste_video_app inteiros 0 falhas (o "tela antiga escondida"
+  do tablet era o teste: o app monta antes do DOMContentLoaded e troca app-cedo por ve-app — o teste passa a olhar só se a tela antiga ficou escondida).
+  CHAVE DO ANDROID gerada (RSA 4096, alias bw) e guardada em Vídeos\bw-reels-studio\CHAVE-ANDROID (fora do instalador e do pacote); os 2 segredos do
+  GitHub dependem do dono (a API de segredos é recusada daqui). Arquivos da 1.9.42 copiados para Vídeos\bw-reels-studio.
+
 ## Pendências (dono)
 - [ ] (24/11 15:05) GOOGLE PLAY: dono PEDIU o D-U-N-S (Dun & Bradstreet, grátis, 5–30 dias). Quando chegar: criar a conta de ORGANIZAÇÃO em
       play.google.com/console/signup (CNPJ + D-U-N-S, US$ 25) e avisar o Claude → gerar .aab + chave de assinatura fixa (segredos no GitHub) + ficha da loja.
       Dono: "deixe isso pendente".
+- [ ] (24/11) CHAVE ANDROID: dono cadastrar BW_KEYSTORE_B64 e BW_KEYSTORE_SENHA (Vídeos\\bw-reels-studio\\CHAVE-ANDROID\\LEIA-ME.txt) e guardar cópia da pasta.
+- [ ] (24/11) BW-Setup.exe 1.9.42: dono dar dois cliques em "5 - GERAR INSTALADOR EXE" (arquivos já na pasta).
 - [ ] (24/11) APP ANDROID: dono abrir audioevideobw-eng.github.io/baixar no Android, tocar em BAIXAR O APP ANDROID (.APK), permitir a instalação, entrar
       com e-mail e senha e testar: editor de vídeo (importar, exportar → compartilhar), câmera/microfone (Tio Cláudio), editor de fotos. Para as
       atualizações instalarem por cima sem desinstalar: cadastrar a chave de assinatura (Claude gera e explica — 2 segredos no GitHub).

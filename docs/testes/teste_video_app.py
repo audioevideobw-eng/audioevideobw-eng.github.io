@@ -60,7 +60,7 @@ with sync_playwright() as p:
         def ferr(rot): return pg.locator("#vaFaixa .va-f", has_text=rot).first
         pg.goto(BASE + url); pg.wait_for_function("window.__veProntoOk === true && !!document.getElementById('veApp')", timeout=15000); pg.wait_for_timeout(500)
         ok(pg.evaluate("document.documentElement.classList.contains('ve-app')") and visivel(pg, "#veApp"), "a tela vira APP (layout novo ligado sozinho)")
-        ok(pg.evaluate("window.__cedo") == [True, "hidden"] and not pg.evaluate("document.documentElement.classList.contains('app-cedo')"), "ao abrir, a tela antiga NÃO aparece antes do app (fica escondida até montar)")
+        ok(pg.evaluate("window.__cedo")[1] == "hidden" and not pg.evaluate("document.documentElement.classList.contains('app-cedo')"), "ao abrir, a tela antiga NÃO aparece antes do app (fica escondida até montar)")
         ok(not visivel(pg, ".bw-foco-barra") and not visivel(pg, ".wrap"), "o layout antigo e a barra de foco somem")
         cv = pg.evaluate("(()=>{const r=document.getElementById('veCv').getBoundingClientRect();return [r.top,r.bottom,r.height]})()")
         ok(cv[2] > vp[1] * 0.4 and cv[0] > 40, f"a PRÉVIA é grande e fica logo abaixo do topo ({cv[2]:.0f} px de altura)")
