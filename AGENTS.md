@@ -2627,7 +2627,7 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   editor de vídeo com TELAS/MOTIONS/elementos do Criador, Álbum 3D com quantidade e tamanho —, tutorial e novidades). teste-app 0 falhas. BW-Setup.exe 1.9.44:
   depende do PC do dono (quem já tem o app atualiza sozinho).
 ## Pendências (dono)
-- [ ] (24/11) BW-Setup.exe 1.9.44: arquivos já em Vídeos\\bw-reels-studio — dono dá dois cliques em "5 - GERAR INSTALADOR EXE" e avisa o Claude, que publica o .exe.
+- [x] (24/11 18:28) BW-Setup.exe 1.9.44 gerado pelo dono e publicado (9,2 MB, versão conferida dentro do .exe).
 - [ ] (24/11 15:05) GOOGLE PLAY: dono PEDIU o D-U-N-S (Dun & Bradstreet, grátis, 5–30 dias). Quando chegar: criar a conta de ORGANIZAÇÃO em
       play.google.com/console/signup (CNPJ + D-U-N-S, US$ 25) e avisar o Claude → gerar .aab + chave de assinatura fixa (segredos no GitHub) + ficha da loja.
       Dono: "deixe isso pendente".
