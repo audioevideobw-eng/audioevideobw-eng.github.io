@@ -236,6 +236,7 @@ if crmjs and ("toISOString().slice(0, 10)" in crmjs or "BWSync.antesDeSalvar(k, 
     problemas.append("assets/crm.js: data em UTC (use data local) ou gravação sem antesDeSalvar")
 fotosjs = ler("assets/fotos.js") if os.path.exists("assets/fotos.js") else ""
 fotosjs += ler("assets/fotos-inicio.js") if os.path.exists("assets/fotos-inicio.js") else ""   # 22/11: tela de entrada com biblioteca (só IndexedDB)
+fotosjs += ler("assets/fotos-efeitos.js") if os.path.exists("assets/fotos-efeitos.js") else ""   # 24/11: efeitos desenhados no aparelho
 if "fotos.html" in todos and re.search(r"\.upload\(|from\(\"user_data\"\)|fetch\(|BWSync\.(antesDeSalvar|registrarAgora)", todos["fotos.html"] + fotosjs):
     problemas.append("fotos.html/assets/fotos.js: o editor não pode enviar fotos para a nuvem (regra 24)")
 # 16/11: AGENTE (assets/bw-agente.js) e LEITOR DE CONTAS (assets/bw-leitor.js) — só falam com a IA Brightway (bw-ia);

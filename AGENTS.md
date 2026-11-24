@@ -950,6 +950,22 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
      SEM INTERNET (24/11): o build roda docs/app-android/montar-offline.py (site + 18 bibliotecas de CDN em assets/offline, mapa cdn.json) e a
      BwClient.java entrega essa cópia SÓ quando o celular está sem rede (mesmo endereço → mesmos dados do aparelho; página recebe o código do
      Capacitor por reflexão do jsInjector; sw.js = 404). O app é refeito a cada mudança do site (*.html, assets/**, icons/**).
+220. EDITOR DE FOTOS SEM MEMÓRIA SOZINHA (dono, 24/11): o visual (borda, overlay, filtro, textos…) NÃO é gravado no aparelho a cada mudança — só
+     ui_fotos_ultimo = {saida} (escolhas de SALVAR). Guardar visual = PRESET que a pessoa salva (★ MEUS PRESETS no alto de TODA aba; KIT.padroes,
+     com o visual geral G + o da foto: aj, filtro, fundo, adesivos, ordem, ocultos, máscara, pastas, efeitos). ⟲ REMOVER ATRIBUTOS (botão direito /
+     segurar a foto) zera G e a foto atual, mantém as escolhas de salvar e entra no desfazer. Medida LIVRE (formato e tamanho) em px/cm/mm/pol com DPI:
+     uma conta só (emPx/livreDe) para a prévia e o arquivo (auto: teste_fotos_camadas.py).
+221. CAMADAS COMO NO PHOTOSHOP (fotos.html #camPainel): lista de CIMA para BAIXO, arrastar pelo ⠿ (pointer events + setPointerCapture, fantasma com
+     pointer-events:none, alvo por elementFromPoint: metade de cima/baixo = acima/abaixo; meio da pasta = dentro). PASTAS: f.grupos + f.grupoDe e o
+     marcador "g:id" em f.ordem; arvore()/gravarArvore() são a ÚNICA conta (quem reescreve f.ordem sem marcador não perde a pasta: ela renasce no lugar
+     do 1º filho). 👁/🔒 da pasta valem para os de dentro (ocultoK/trancada). No celular o painel é GAVETA que cobre só a foto (bottom = altura do
+     painel de controles) e fecha ao escolher a camada — senão cobria a foto e o dedo não mexia em nada. Mudar o lugar de uma lista que testes usam:
+     atualizar os seletores dos testes no mesmo commit e não rodar a bateria enquanto edita o arquivo (a rodada pega metade velha, metade nova).
+222. EFEITOS DO EDITOR DE FOTOS (assets/fotos-efeitos.js, BWFotoFx): desenho próprio em canvas 2D, sem ctx.filter (desfoque por reduzir/ampliar,
+     rastro/zoom/giro por cópias, cor por pixel); efeito novo = UMA linha em E (id: ícone, nome, grupo, fn(canvas, força, opções) → canvas do MESMO
+     tamanho); combinação pronta = uma linha em AUTO. Camada de imagem leva folga de 25% (rastro e brilho passam da borda) e o resultado vai para o
+     cache (chave = imagem + tamanho + efeitos + máscara). Teste roda TODOS os efeitos num canvas pequeno conferindo tamanho e que a imagem mudou
+     (desfoque com raio < 1,6 px não mudava nada num canvas pequeno).
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -2576,6 +2592,15 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   vigia ✅. sw v224. App BW: a cópia sem internet ganha os blocos no próximo pacote.
 - 24/11/2026 17:12 · Claude (dono: "retire do menu o APP DOWNLOAD, está redundante"): botão APP DOWNLOAD saiu do menu (layout.js v80) — os apps ficam só no
   item DOWNLOADS (downloads.html). Vigia agora confere o item DOWNLOADS no lugar do APP DOWNLOAD. sw v225.
+- 24/11/2026 17:45 · Claude (dono: "editor de fotos — tirar o salvamento automático de overlays/bordas; presets bem nítidos na aba; botão direito REMOVER
+  ATRIBUTOS; tamanho e formato LIVRES em px/cm; camadas como no Photoshop com painel lateral, arrastar e PASTAS; efeitos automáticos de movimento, cor,
+  opacidade/bordas, luz, giro, desfoque e diversos"): EDITOR DE FOTOS — (1) o visual não fica mais guardado sozinho (só as escolhas de SALVAR);
+  (2) ★ MEUS PRESETS no alto de toda aba (＋ SALVAR PRESET, tocar aplica, ✕ apaga); (3) ⟲ Remover atributos no botão direito / segurar a foto;
+  (4) ✎ LIVRE no FORMATO e no TAMANHO (px, cm, mm, pol + DPI); (5) PAINEL DE CAMADAS ao lado (celular: botão CAMADAS) com arrastar pelo ⠿, 📁 PASTAS
+  (👁/🔒/▸ da pasta, arrastar a pasta inteira, pôr numa pasta nova, tirar, desfazer, apagar); (6) aba EFEITOS: 37 efeitos em 7 grupos + 12 AUTOMÁTICOS +
+  🎲 SURPRESA, força por efeito, na foto ou na camada de imagem. Teste novo docs/testes/teste_fotos_camadas.py (0 falhas × 1280/390) + teste_fotos,
+  fotos_inicio, fotos_paineis 0 falhas; vigia ✅. Manual 71 → 72 p. fotos.js v24, fotos-efeitos.js v1, sw v227. App BW: o pacote sai junto com a próxima
+  entrega (TELAS no editor de vídeo). PENTE FINO 220–222.
 
 ## Pendências (dono)
 - [ ] (24/11 15:05) GOOGLE PLAY: dono PEDIU o D-U-N-S (Dun & Bradstreet, grátis, 5–30 dias). Quando chegar: criar a conta de ORGANIZAÇÃO em
