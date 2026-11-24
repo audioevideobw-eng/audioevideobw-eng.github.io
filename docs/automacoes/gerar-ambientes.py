@@ -6,7 +6,7 @@ Mudou ferramenta ou molde? Rode na raiz:  python3 docs/automacoes/gerar-ambiente
 import html, json, os
 AQUI = os.path.dirname(os.path.abspath(__file__)); RAIZ = os.path.abspath(os.path.join(AQUI, "..", ".."))
 CART = json.load(open(os.path.join(AQUI, "cartoes.json"), encoding="utf8"))
-V_CSS, V_LAYOUT, V_AGENDA, V_AMB = 38, 80, 2, 1   # 23/11: estavam velhos (36, 75, 1) — conferir com o index.html antes de gerar
+V_CSS, V_LAYOUT, V_AGENDA, V_AMB = 40, 81, 2, 1   # 23/11: estavam velhos (36, 75, 1) — conferir com o index.html antes de gerar
 
 I_EMP = '<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M3 12h18"/>'
 I_CASA = '<path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M9 21v-6h6v6"/>'

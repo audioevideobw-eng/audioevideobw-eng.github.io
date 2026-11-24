@@ -29,7 +29,7 @@ with sync_playwright() as p:
     pg.click('#veAbas [data-aba="telas"]'); pg.wait_for_timeout(400)
     nT = pg.locator('#veLib [data-arr^="t:tl:"]').count(); nD = pg.locator('#veLib [data-arr^="d:"]').count(); nK = pg.locator('#veLib [data-arr^="k:"]').count()
     ok(nT >= 15 and nD == 6 and nK >= 4, f"aba ▦ TELAS: {nT} transições de tela, {nD} divisões, {nK} pacotes")
-    ok(pg.locator('#veLib img.tl-mini').count() == nT, "cada transição de tela tem miniatura desenhada pelo motor das TELAS")
+    ok(pg.locator('#veLib canvas.tl-mini').count() == nT, "cada transição de tela tem miniatura desenhada pelo motor das TELAS")
     arrastar(pg, '#veLib [data-arr="t:tl:tiras"]', f'#veFaixas [data-clip="{cl[1]["id"]}"]')
     tr = pg.evaluate(f"{CL}[1].trans"); ok(tr and tr["tipo"] == "tl:tiras", f"arrastar TIRAS DIAGONAIS até o 2º take põe a transição de tela {tr}")
     meio = cl[1]["ini"] + 0.3

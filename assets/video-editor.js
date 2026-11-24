@@ -115,6 +115,8 @@
      as 16 transições das TELAS (as peças levam o take por dentro) entram como "tl:<id>"; divisões de tela por take em c.tela = {lay} */
   if (window.BWTelas) Object.keys(BWTelas.TRANS).forEach(function (k) { TRANS["tl:" + k] = "▦ " + BWTelas.TRANS[k].nome; });
   var EFEITOS = {desbotado: "Desbotado", dourado: "Dourado", azulado: "Azul e laranja", rosado: "Rosado", cinema: "Cinema", duotom: "Duotom", pb: "Preto e branco", sepia: "Sépia", vintage: "Vintage", quente: "Quente", frio: "Frio", vivido: "Vívido", contraste: "Contraste", noite: "Noite", vinheta: "Vinheta", grao: "Grão de filme", vhs: "VHS", desfoque: "Desfoque"};
+  var TR_DESC = {dissolver: "B aparece aos poucos por cima de A", preto: "A escurece e B nasce do preto", branco: "Clarão branco entre os dois", desfoque: "A desfoca e B entra nítido", empurrar: "B empurra A para a esquerda", "empurrar-d": "B empurra A para a direita", deslizar: "B sobe por cima de A", descer: "B desce por cima de A", girar: "A gira e some, B gira e entra", zoom: "A cresce e some, B entra", "zoom-saida": "A encolhe e B aparece", "zoom-giro": "Zoom com giro entre os dois", cortina: "B abre como cortina da direita", "cortina-v": "B desce como cortina", circulo: "B abre num círculo do meio", losango: "B abre num losango do meio", barras: "B entra em listras (persiana)", relogio: "B entra girando como ponteiro"};
+  var EF_DESC = {pb: "Tira a cor", sepia: "Tom de foto antiga", vintage: "Desbotado com vinheta", desbotado: "Cor fraca e suave", quente: "Puxa para o laranja", frio: "Puxa para o azul", vivido: "Cores mais fortes", contraste: "Escuros e claros mais fortes", dourado: "Luz de fim de tarde", azulado: "Azul nas sombras, laranja na pele", rosado: "Tom rosa", cinema: "Look de filme", noite: "Escurece e esfria", vinheta: "Escurece as bordas", duotom: "Duas cores", grao: "Grão de filme que se mexe", vhs: "Falha de fita VHS", desfoque: "Desfoca o take"};
   var VELS = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 2, 3];
   var FONTES = ["Inter", "Montserrat", "Georgia", "Impact", "Courier New"];
   var NIT = {on: false, T: -1, els: {}, tm: 0, dentro: false, n: 0}, NITCFG = true; try { NITCFG = localStorage.getItem("ui_ve_nitido") !== "nao"; } catch (e) {}
@@ -379,6 +381,14 @@
   var ATRIB = null, AT_VIS = ["ia", "grade", "op", "esc", "x", "y", "encaixe", "efeito", "efInt", "efs", "nos", "ck", "ckCor", "ckModo", "ckNivel", "ckInt", "ckSuave", "ckLimpa", "ckSombra"], AT_TXT = ["fonte", "tam", "cor", "fundo", "op"], AT_SOM = ["vol", "normG", "ruido", "voz"], AT_TEMPO = ["fin", "fout"];
   function temSom(c) { return c.tipo === "video" || c.tipo === "audio"; }
   function temImg(c) { return c.tipo === "video" || c.tipo === "imagem"; }
+  /* ⟲ REMOVER ATRIBUTOS (24/11, dono: "no vídeo também, no menu do clique com o mouse"): o take volta ao original — sai cor, efeitos, chroma,
+     pessoa e fundo, máscara, divisão de tela, transição, rastreio, posição/tamanho/opacidade, entradas suaves e tratamento de som.
+     FICAM: o arquivo, o lugar na linha do tempo, os cortes, a velocidade, o texto escrito e o conteúdo do motion. Entra no desfazer. */
+  var ATRIB_TIRAR = ["efeito", "efInt", "efs", "grade", "look", "corr", "nos", "ck", "ia", "selm", "tela", "trans", "rastro", "x", "y", "esc", "op", "encaixe", "fin", "fout", "vol", "normG", "ruido", "voz", "anima", "fundo", "cor", "frente", "raio", "velAnel", "fonte", "esp"];
+  function temAtrib(c) { return ATRIB_TIRAR.some(function (k) { return c[k] != null && c[k] !== "" && !(k === "esc" && c[k] === 100) && !(k === "op" && c[k] === 100) && !((k === "x" || k === "y") && !c[k]) && !(k === "vol" && c[k] === 100); }); }
+  function removerAtrib(lst) { lst = (lst || []).filter(Boolean); if (!lst.length) return; lst.forEach(function (c) { ATRIB_TIRAR.forEach(function (k) { delete c[k]; });
+      if (c.tipo === "texto") { c.tam = c.tam || 6; } if (c.tipo === "elemento" || c.tipo === "imagem" || c.tipo === "video") { c.esc = 100; c.op = 100; c.x = 0; c.y = 0; } if (c.tipo === "elemento" && String(c.el).indexOf("mo:") === 0) c.cor = "#FFC24A"; });
+    tudo(); lst.forEach(function (c) { marcar(c.id); }); aviso("⟲ Atributos removidos" + (lst.length > 1 ? " de " + lst.length + " takes" : "") + " (Ctrl+Z desfaz)"); }
   function copiarAtrib() { var c = sel(); if (!c) return false; ATRIB = JSON.parse(JSON.stringify(c)); aviso("Ajustes copiados. Escolha outro take e use COLAR AJUSTES (Ctrl+Shift+V)."); }
   function colarAtrib() { var c = sel(); if (!c) return false; if (!ATRIB) { aviso("Nenhum ajuste copiado ainda (botão direito no take › Copiar ajustes).", true); return; }
     var ks = AT_TEMPO.slice(), o = ATRIB, oq = [];
@@ -810,17 +820,17 @@
       (cat === "tudo" ? '<div class="ve-subs">' + [["tudo", "Tudo"], ["video", "Vídeo"], ["imagem", "Imagem"]].concat(typeof window.showDirectoryPicker === "function" ? [["pasta", "★ Minha pasta"]] : []).map(function (a) { return '<button type="button" data-aba="' + a[0] + '" class="' + (ABA === a[0] ? "on" : "") + '">' + a[1] + '</button>'; }).join("") + '</div>' : "");
     lib.setAttribute("data-cat", cat);
     var tit = function (t) { return '<p class="ve-gt">' + t + '</p>'; };
-    if (ABA === "trans" || ABA === "efe") { var L = ABA === "trans" ? TRANS : EFEITOS, pre = ABA === "trans" ? "t:" : "e:", cartao = function (k) { return '<div class="ve-item ve-fx ' + (ABA === "trans" ? "tr-" : "ef-") + esc(k) + '" role="button" tabindex="0" data-arr="' + pre + esc(k) + '" aria-label="' + (ABA === "trans" ? "Transição " : "Efeito ") + esc(L[k]) + ' — arraste até um take"><span class="mini" aria-hidden="true"><i></i></span><span>' + esc(L[k]) + '</span></div>'; };
-      var usados = {}, h = '<p class="ve-nota" style="grid-column:1/-1;margin:0 0 4px">Arraste até ' + (ABA === "trans" ? "a emenda entre dois takes" : "um take") + ', ou toque para aplicar.</p>';
+    if (ABA === "trans" || ABA === "efe") { var L = ABA === "trans" ? TRANS : EFEITOS, pre = ABA === "trans" ? "t:" : "e:", cartao = function (k) { return '<div class="ve-item ve-fx ' + (ABA === "trans" ? "tr-" : "ef-") + esc(k) + '" role="button" tabindex="0" data-arr="' + pre + esc(k) + '" aria-label="' + (ABA === "trans" ? "Transição " : "Efeito ") + esc(L[k]) + ' — arraste até um take" title="' + esc((ABA === "trans" ? TR_DESC : EF_DESC)[k] || L[k]) + '">' + vv((ABA === "trans" ? "tr:" : "ef:") + k) + '<span>' + esc(L[k]) + '</span></div>'; };
+      var usados = {}, h = '<p class="ve-nota ve-legenda" style="grid-column:1/-1;margin:0 0 4px">' + (ABA === "trans" ? '<i class="lg a">A</i> take que sai · <i class="lg b">B</i> take que entra. Arraste até a <b>emenda</b> entre dois takes, ou toque para aplicar no escolhido.' : 'Cada cartão mostra <b>ANTES</b> e <b>DEPOIS</b>. Arraste até um <b>take</b>, ou toque para aplicar no escolhido.') + '</p>';
       GRUPOS[ABA].forEach(function (g) { var ks = g[1].filter(function (k) { return L[k]; }); if (!ks.length) return; h += tit(g[0]) + ks.map(function (k) { usados[k] = 1; return cartao(k); }).join(""); });
       var resto = Object.keys(L).filter(function (k) { return !usados[k] && k.indexOf("tl:") !== 0; }); if (resto.length) h += tit("Mais") + resto.map(cartao).join("");
       lib.innerHTML = h; return; }
     if (ABA === "pasta") { desenharPasta(); return; }
-    if (ABA === "texto") { lib.innerHTML = tit("Toque para pôr na agulha") + TEXTOS.map(function (t) { return '<div class="ve-item ve-tx" role="button" tabindex="0" data-texto="' + t[0] + '" aria-label="Pôr texto ' + esc(t[1]) + '"><span class="mini" aria-hidden="true"' + (t[2].fundo ? ' style="--tf:' + t[2].fundo + ";--tc:" + (t[2].cor || "#fff") + '"' : "") + '><b>' + esc(String(t[2].txt).split("\n")[0].slice(0, 14)) + '</b></span><span>' + esc(t[1]) + '</span></div>'; }).join(""); return; }
+    if (ABA === "texto") { lib.innerHTML = '<p class="ve-nota" style="grid-column:1/-1;margin:0 0 4px">Cada cartão mostra o texto se mexendo. Toque para pôr na agulha; depois troque as palavras em AJUSTES. 🧠 = fica atrás da pessoa quando o take tem PESSOA E FUNDO (IA).</p>' + tit("Textos prontos") + TEXTOS.map(function (t) { return '<div class="ve-item ve-tx" role="button" tabindex="0" data-texto="' + t[0] + '" aria-label="Pôr texto ' + esc(t[1]) + '">' + vv("tx:" + t[0]) + '<span>' + esc(t[1]) + '</span></div>'; }).join(""); return; }
     if (ABA === "telas") { desenharTelasLib(lib, tit); return; }
     if (ABA === "motion") { desenharMotionLib(lib, tit); return; }
     if (ABA === "elem" && ELSUB !== "anim") { desenharElemLib(lib, tit); return; }
-    if (ABA === "elem") { lib.innerHTML = subsElem() + tit("Elementos animados") + Object.keys(ELEMENTOS).map(function (k) { var p = ELEMENTOS[k].split(" "); return '<div class="ve-item ve-el" role="button" tabindex="0" data-elem="' + esc(k) + '" aria-label="Pôr ' + esc(ELEMENTOS[k]) + '"><span class="mini" aria-hidden="true">' + p[0] + '</span><span>' + esc(p.slice(1).join(" ")) + '</span></div>'; }).join(""); return; }
+    if (ABA === "elem") { lib.innerHTML = subsElem() + tit("Elementos animados") + Object.keys(ELEMENTOS).map(function (k) { var p = ELEMENTOS[k].split(" "); return '<div class="ve-item ve-el" role="button" tabindex="0" data-elem="' + esc(k) + '" aria-label="Pôr ' + esc(ELEMENTOS[k]) + '">' + vv("el:" + k, 120, 120, "sq") + '<span>' + esc(p.slice(1).join(" ")) + '</span></div>'; }).join(""); return; }
     var sonsCasa = ""; if (ABA === "audio") { var gs = []; SONS.forEach(function (x) { if (gs.indexOf(x[3]) < 0) gs.push(x[3]); }); sonsCasa = gs.map(function (gn) { return tit(gn) + SONS.map(function (x, i) { return x[3] === gn ? somCartao(x, i) : ""; }).join(""); }).join("") + tit("Meus sons"); }
     var l = Object.keys(MID).map(function (k) { return MID[k]; }).filter(function (m) { return !m.ph && (ABA === "tudo" || m.tipo === ABA); });   /* espaços de modelo não aparecem na biblioteca */
     lib.innerHTML = sonsCasa + (l.length ? l.map(function (m) { var mini = m.tipo === "imagem" ? '<img alt="" src="' + m.url + '">' : m.capa ? '<img alt="" src="' + m.capa + '">' : '<span class="mini" aria-hidden="true">' + (m.tipo === "audio" ? "🎵" : "🎬") + '</span>';
@@ -833,20 +843,20 @@
   function cartaoEl(k, mini, nome) { return '<div class="ve-item ve-el" role="button" tabindex="0" data-arr="l:' + esc(k) + '" aria-label="Pôr ' + esc(nome) + ' na linha do tempo">' + mini + '<span>' + esc(nome) + '</span></div>'; }
   function desenharElemLib(lib, tit) {
     var C = window.BWConviteAnim, h = subsElem() + '<p class="ve-nota" style="grid-column:1/-1;margin:0 0 4px">Toque para pôr na agulha, ou arraste até a linha do tempo. Vêm do CRIADOR IA — o mesmo desenho, animado.</p>';
-    if (ELSUB === "emo") h += tit("Emojis animados") + EMOJIS.map(function (e) { return cartaoEl("emo:" + e, '<span class="mini" aria-hidden="true">' + e + '</span>', "Emoji " + e); }).join("");
+    if (ELSUB === "emo") h += tit("Emojis animados") + EMOJIS.map(function (e) { return cartaoEl("emo:" + e, vv("el:emo:" + e, 120, 120, "sq"), "Emoji " + e); }).join("");
     else if (!C) h += '<p class="ve-nota" style="grid-column:1/-1">Os desenhos do Criador ainda estão carregando…</p>';
-    else if (ELSUB === "over") h += tit("Efeitos de tela (overlays)") + Object.keys(C.EFEITOS).map(function (k) { var u = MINI_CV["fx" + k] || (MINI_CV["fx" + k] = C.miniEfeito(k, 72)); return cartaoEl("cvfx:" + k, '<img alt="" src="' + u + '">', C.EFEITOS[k].nome); }).join("");
+    else if (ELSUB === "over") h += tit("Efeitos de tela (overlays)") + Object.keys(C.EFEITOS).map(function (k) { return cartaoEl("cvfx:" + k, vv("el:cvfx:" + k, 120, 120, "sq"), C.EFEITOS[k].nome); }).join("");
     else { var cats = {}, ord = ELSUB === "real" ? ["real"] : ["bicho", "objeto", "adulto", "heroi", "anime"], nomes = {bicho: "Bichinhos", objeto: "Objetos", adulto: "Festa e adulto", heroi: "Super-herói", anime: "Anime", real: "Objetos realistas"};
       Object.keys(C.ITENS).forEach(function (k) { var it = C.ITENS[k], ct = it.foto ? "real" : (it.cat || "objeto"); (cats[ct] = cats[ct] || []).push(k); });
       Object.keys(cats).forEach(function (ct) { if (ord.indexOf(ct) < 0 && ELSUB !== "real" && ct !== "real") ord.push(ct); });
-      ord.forEach(function (ct) { if (!cats[ct]) return; h += tit(nomes[ct] || ct) + cats[ct].map(function (k) { var u = MINI_CV[k] || (MINI_CV[k] = C.mini(k, 72)); return cartaoEl("cv:" + k, '<img alt="" loading="lazy" src="' + u + '">', C.ITENS[k].nome); }).join(""); }); }
+      ord.forEach(function (ct) { if (!cats[ct]) return; h += tit(nomes[ct] || ct) + cats[ct].map(function (k) { return cartaoEl("cv:" + k, vv("el:cv:" + k, 120, 120, "sq"), C.ITENS[k].nome); }).join(""); }); }
     lib.innerHTML = h;
   }
   /* MOTIONS do BW REELS PRO no editor (24/11): mesmas categorias do Reels, desenho próprio em canvas (assets/ve-motions.js) — miniatura feita uma vez */
   function desenharMotionLib(lib, tit) { var MV = window.BWMotionsVE; if (!MV) { lib.innerHTML = '<p class="ve-nota" style="grid-column:1/-1">Os motions ainda estão carregando…</p>'; return; }
     var h = '<p class="ve-nota" style="grid-column:1/-1;margin:0 0 4px">Os textos animados e gráficos do BW REELS PRO. Toque para pôr na agulha ou arraste até a linha do tempo; os textos e a cor mudam em AJUSTES.</p>';
     MV.CATS.forEach(function (ct) { var ls = MV.LISTA.filter(function (m) { return m.cat === ct[0]; }); if (!ls.length) return;
-      h += tit(ct[1]) + ls.map(function (m) { return cartaoEl("mo:" + m.id, '<img alt="" loading="lazy" src="' + MV.mini(m.id, 64) + '">', m.nome); }).join(""); });
+      h += tit(ct[1]) + ls.map(function (m) { return cartaoEl("mo:" + m.id, vv("mo:" + m.id), m.nome); }).join(""); });
     lib.innerHTML = h; }
   var TL_DESC = {cheia: "▢", dupla: "◫", tripla: "▥", quatro: "⊞", diagonal: "◩", janela: "▣"};
   /* miniatura da transição de tela: o motor das TELAS desenha a peça no meio do caminho (azul = take que sai, âmbar = take que entra) */
@@ -857,13 +867,154 @@
     return (MINI_CV["tl" + k] = c.toDataURL()); }
   function desenharTelasLib(lib, tit) {
     var B = window.BWTelas; if (!B) { lib.innerHTML = '<p class="ve-nota" style="grid-column:1/-1">As telas ainda estão carregando…</p>'; return; }
-    var h = '<p class="ve-nota" style="grid-column:1/-1;margin:0 0 4px">A ferramenta TELAS EM MOVIMENTO, aqui dentro: arraste até a <b>emenda</b> (transição) ou até um <b>take</b> (divisão), ou toque para aplicar no escolhido.</p>';
-    h += tit("Transições de tela — as peças levam o take por dentro") + Object.keys(B.TRANS).filter(function (k) { return k !== "corte"; }).map(function (k) { return '<div class="ve-item ve-fx ve-tl" role="button" tabindex="0" data-arr="t:tl:' + esc(k) + '" aria-label="Transição de tela ' + esc(B.TRANS[k].nome) + ' — arraste até a emenda"><img class="tl-mini" alt="" src="' + miniTela(k) + '"><span>' + esc(B.TRANS[k].nome) + '</span></div>'; }).join("");
-    h += tit("Divisões de tela — arraste até o take") + Object.keys(B.LAYOUTS).map(function (k) { return '<div class="ve-item ve-fx ve-tl" role="button" tabindex="0" data-arr="d:' + esc(k) + '" aria-label="Divisão ' + esc(B.LAYOUTS[k].nome) + ' — arraste até um take"><span class="mini" aria-hidden="true" style="font-size:26px">' + (TL_DESC[k] || "▦") + '</span><span>' + esc(B.LAYOUTS[k].nome) + '</span></div>'; }).join("");
-    h += tit("Pacotes — todas as emendas da camada de uma vez") + Object.keys(B.PACOTES).map(function (k) { return '<div class="ve-item ve-fx ve-tl" role="button" tabindex="0" data-arr="k:' + esc(k) + '" aria-label="Pacote ' + esc(B.PACOTES[k].nome) + ' — arraste até um take da camada"><span class="mini" aria-hidden="true" style="font-size:24px">🎞</span><span>' + esc(B.PACOTES[k].nome) + '</span></div>'; }).join("");
+    var h = '<p class="ve-nota ve-legenda" style="grid-column:1/-1;margin:0 0 4px">A ferramenta TELAS EM MOVIMENTO, aqui dentro. <i class="lg a">A</i> take que sai · <i class="lg b">B</i> take que entra. Arraste até a <b>emenda</b> (transição) ou até um <b>take</b> (divisão), ou toque para aplicar no escolhido.</p>';
+    h += tit("Transições de tela — as peças levam o take por dentro") + Object.keys(B.TRANS).filter(function (k) { return k !== "corte"; }).map(function (k) { return '<div class="ve-item ve-fx ve-tl" role="button" tabindex="0" data-arr="t:tl:' + esc(k) + '" aria-label="Transição de tela ' + esc(B.TRANS[k].nome) + ' — arraste até a emenda">' + vv("tl:" + k, 120, 120, "tl-mini sq") + '<span>' + esc(B.TRANS[k].nome) + '</span></div>'; }).join("");
+    h += tit("Divisões de tela — arraste até o take") + Object.keys(B.LAYOUTS).map(function (k) { return '<div class="ve-item ve-fx ve-tl" role="button" tabindex="0" data-arr="d:' + esc(k) + '" aria-label="Divisão ' + esc(B.LAYOUTS[k].nome) + ' — arraste até um take">' + vv("dv:" + k, 120, 120, "sq") + '<span>' + esc(B.LAYOUTS[k].nome) + '</span></div>'; }).join("");
+    h += tit("Pacotes — todas as emendas da camada de uma vez") + Object.keys(B.PACOTES).map(function (k) { return '<div class="ve-item ve-fx ve-tl" role="button" tabindex="0" data-arr="k:' + esc(k) + '" aria-label="Pacote ' + esc(B.PACOTES[k].nome) + ' — arraste até um take da camada">' + vv("pk:" + k, 120, 120, "sq") + '<span>' + esc(B.PACOTES[k].nome) + '</span></div>'; }).join("");
     lib.innerHTML = h;
   }
-  function somCartao(x, i) { return '<div class="ve-item ve-sm" role="button" tabindex="0" data-som="' + i + '" aria-label="Pôr ' + x[1] + ' na linha do tempo"><span class="mini" aria-hidden="true">' + (x[0] === "sfx" ? "🔊" : "🎼") + '</span><span>' + x[1] + '</span></div>'; }
+  /* ===== PRÉVIAS VIVAS (24/11, dono: "com as telas verdes e rodando o efeito fica bem melhor… faça isso em todas… dê vida…
+     também com os efeitos IA de textos com pessoas… melhore o jeito de entender"):
+     cada cartão mostra o efeito RODANDO, desenhado pelo MESMO código do vídeo — o cv/cx do editor é trocado por um canvas pequeno por um instante.
+     A = take que SAI (escuro) · B = take que ENTRA (verde, como na ferramenta TELAS). Leve: um laço só, só os cartões que estão na tela
+     (IntersectionObserver), 24 quadros/s (8 com o vídeo tocando, 0 exportando ou com a aba escondida), parado com "reduzir movimento". */
+  var VV = {set: [], io: null, raf: 0, last: 0, t0: performance.now(), buf: {}, F: null, calmo: false};
+  try { VV.calmo = matchMedia("(prefers-reduced-motion: reduce)").matches; } catch (e) {}
+  function vvSil(x, px, base, h, cor, sway) {   /* silhueta de pessoa (cabeça + ombros), base = pé da tela */
+    var hr = h * 0.17, hy = base - h * 0.74, sw = h * 0.42; px += sway || 0;
+    x.fillStyle = cor; x.beginPath(); x.moveTo(px - sw, base + 2); x.quadraticCurveTo(px - sw, base - h * 0.42, px - h * 0.16, base - h * 0.47);
+    x.lineTo(px - h * 0.07, base - h * 0.55); x.lineTo(px + h * 0.07, base - h * 0.55); x.lineTo(px + h * 0.16, base - h * 0.47); x.quadraticCurveTo(px + sw, base - h * 0.42, px + sw, base + 2); x.closePath(); x.fill();
+    x.beginPath(); x.arc(px, hy, hr, 0, 6.2832); x.fill(); }
+  function vvQuadro(c1, c2, letra, corSil) { var c = document.createElement("canvas"); c.width = 192; c.height = 120; var x = c.getContext("2d"), g = x.createLinearGradient(0, 0, 192, 120);
+    g.addColorStop(0, c1); g.addColorStop(1, c2); x.fillStyle = g; x.fillRect(0, 0, 192, 120); vvSil(x, 96, 120, 92, corSil);
+    x.font = "900 22px Inter,system-ui,sans-serif"; x.textBaseline = "top"; x.fillStyle = "rgba(255,255,255,.92)"; x.shadowColor = "rgba(0,0,0,.5)"; x.shadowBlur = 4; x.fillText(letra, 8, 6); return c; }
+  function vvCena() { var c = document.createElement("canvas"); c.width = 192; c.height = 120; var x = c.getContext("2d"), g = x.createLinearGradient(0, 0, 0, 120);
+    g.addColorStop(0, "#3a7bd5"); g.addColorStop(0.55, "#ffb36b"); g.addColorStop(1, "#ff7a59"); x.fillStyle = g; x.fillRect(0, 0, 192, 120);
+    x.fillStyle = "#ffe07a"; x.beginPath(); x.arc(138, 52, 15, 0, 6.2832); x.fill();
+    x.fillStyle = "#2f9e5b"; x.beginPath(); x.moveTo(0, 92); x.quadraticCurveTo(60, 62, 120, 90); x.quadraticCurveTo(160, 74, 192, 86); x.lineTo(192, 120); x.lineTo(0, 120); x.fill();
+    x.fillStyle = "#1f6e45"; x.beginPath(); x.moveTo(0, 104); x.quadraticCurveTo(90, 86, 192, 108); x.lineTo(192, 120); x.lineTo(0, 120); x.fill();
+    [["#ff4d8d", 30, 104], ["#ffd23f", 44, 108], ["#7c5cff", 160, 110], ["#21d4e4", 174, 104]].forEach(function (f) { x.fillStyle = f[0]; x.beginPath(); x.arc(f[1], f[2], 4, 0, 6.2832); x.fill(); });
+    vvSil(x, 70, 120, 70, "#1b1530"); return c; }
+  /* 24/11 (dono: "quero mais realista e moderno"): fotos de AMOSTRA criadas pela IA da plataforma (pessoas inventadas, sem marca), no bucket público
+     "trends/amostras": PALCO (take que sai), APRESENTADOR NO FUNDO VERDE (take que entra — as "telas verdes"; recortado no aparelho para as
+     demonstrações de IA) e FESTA AO PÔR DO SOL (efeitos). Sem internet, ficam os desenhos de reserva. Só LÊ — nada é enviado. */
+  var AMOSTRA = "https://zdtnetplvdonogmdvarx.supabase.co/storage/v1/object/public/trends/amostras/";
+  function vvCarregar() { if (VV.ini) return; VV.ini = 1; VV.img = {}; ["palco", "verde", "cena"].forEach(function (k) { var im = new Image(); im.crossOrigin = "anonymous"; im.decoding = "async";
+    im.onload = function () { VV.img[k] = im; if (VV.img.palco && VV.img.verde && VV.img.cena) { VV.F = null; VV.real = true; [].forEach.call(document.querySelectorAll("canvas[data-vivo]"), function (c) { if (c.getClientRects().length) vvPintar(c, VV.calmo ? 1.2 : (performance.now() - VV.t0) / 1000); }); } };
+    im.src = AMOSTRA + k + "-v1.webp"; }); }
+  function vvCobrir(x, im, W, H, z, dx) { var iw = im.naturalWidth || im.width, ih = im.naturalHeight || im.height, k = Math.max(W / iw, H / ih) * (z || 1), w = iw * k, h = ih * k; x.drawImage(im, (W - w) / 2 + (dx || 0), (H - h) / 2, w, h); }
+  function vvPilula(x, txt, X, Y, cor, dir) { x.save(); x.font = "800 " + Math.round(Math.max(9, x.canvas.height * 0.085)) + "px Inter,system-ui,sans-serif"; x.textBaseline = "middle"; var w = x.measureText(txt).width + 12, h = Math.round(Math.max(13, x.canvas.height * 0.13)), X0 = dir === "right" ? X - w : X;
+    x.fillStyle = cor || "rgba(8,10,16,.62)"; x.beginPath(); if (x.roundRect) x.roundRect(X0, Y, w, h, h / 2); else x.rect(X0, Y, w, h); x.fill(); x.strokeStyle = "rgba(255,255,255,.18)"; x.lineWidth = 1; x.stroke();
+    x.fillStyle = cor && /3BFF6A/.test(cor) ? "#06210f" : "#fff"; x.fillText(txt, X0 + 6, Y + h / 2 + 0.5); x.restore(); }
+  function vvRecorte(im) { var c = document.createElement("canvas"); c.width = 384; c.height = 240; var x = c.getContext("2d"); vvCobrir(x, im, 384, 240); var d = x.getImageData(0, 0, 384, 240), a = d.data;
+    for (var i = 0; i < a.length; i += 4) { var r = a[i], g = a[i + 1], b = a[i + 2], m = Math.max(r, b), k = g - m, al = k <= 22 ? 1 : k >= 70 ? 0 : 1 - (k - 22) / 48; if (g > m) a[i + 1] = Math.min(g, m + 6); a[i + 3] = Math.round(al * 255); }
+    x.putImageData(d, 0, 0); return c; }
+  function vvReal(im, letra, cor) { var c = document.createElement("canvas"); c.width = 384; c.height = 240; var x = c.getContext("2d"); vvCobrir(x, im, 384, 240); if (letra) vvPilula(x, letra, 8, 8, cor); return c; }
+  function vvFontes() { vvCarregar(); if (VV.F) return VV.F;
+    if (VV.real) return (VV.F = {A: vvReal(VV.img.palco, "A · SAI"), B: vvReal(VV.img.verde, "B · ENTRA", "#3BFF6A"), C: vvReal(VV.img.cena), Pal: vvReal(VV.img.palco), P: vvRecorte(VV.img.verde)});
+    return {A: vvQuadro("#2a3346", "#080b12", "A", "rgba(255,255,255,.28)"), B: vvQuadro("#3BFF6A", "#0d8a33", "B", "rgba(255,255,255,.55)"), C: vvCena()}; }
+  function vvMini(canvas, fn) { var a = cv, b = cx, e1 = EF, e2 = EF2, tb = TLB; cv = canvas; cx = canvas.getContext("2d"); EF = VV.buf.ef || null; EF2 = VV.buf.ef2 || null; TLB = VV.buf.tlb || (VV.buf.tlb = []);
+    try { cx.setTransform(1, 0, 0, 1, 0, 0); cx.globalAlpha = 1; cx.globalCompositeOperation = "source-over"; cx.filter = "none"; fn(canvas.width, canvas.height); } catch (er) {}
+    finally { VV.buf.ef = EF; VV.buf.ef2 = EF2; cv = a; cx = b; EF = e1; EF2 = e2; TLB = tb; } }
+  function vvFundo(x, W, H, c1, c2) { var g = x.createLinearGradient(0, 0, W, H); g.addColorStop(0, c1 || "#1b2231"); g.addColorStop(1, c2 || "#2b2346"); x.fillStyle = g; x.fillRect(0, 0, W, H); }
+  function vvCiclo(t, L, ini, dur) { var r = t % L; return lim((r - ini) / dur, 0, 1); }
+  function vvRotulo(x, txt, X, Y, alinhar) { var h = Math.round(Math.max(13, x.canvas.height * 0.13)); vvPilula(x, txt, X, Y < 0 || Y > x.canvas.height / 2 ? x.canvas.height - h - 5 : Y, null, alinhar); }
+  /* cena da PESSOA (demonstração das ferramentas de IA): fundo com luzes, pessoa, texto que passa atrás ou na frente, contorno de luz */
+  function vvPessoa(W, H, t, o) { var x = cx, sway = Math.sin(t * 1.3) * W * 0.015, bg = VV.buf.pbg = tela2(VV.buf.pbg, W, H), b = bg.getContext("2d"), F = vvFontes();
+    b.globalCompositeOperation = "source-over"; b.globalAlpha = 1;
+    if (VV.real) return vvPessoaReal(W, H, t, o, F, bg, b);
+    vvFundo(b, W, H, "#2a1f4d", "#0e2a44"); b.fillStyle = "rgba(255,210,120,.22)"; b.fillRect(W * 0.08, H * 0.12, W * 0.2, H * 0.5);
+    for (var i = 0; i < 9; i++) { var bx = ((sem(i) * W + t * 9 * (0.6 + sem(i + 2))) % (W + 30)) - 15, by = H * (0.12 + sem(i + 5) * 0.55), br = 5 + sem(i + 7) * 10;
+      b.globalAlpha = 0.55; b.fillStyle = ["#ff6fa5", "#ffd23f", "#21d4e4", "#7c5cff"][i % 4]; b.beginPath(); b.arc(bx, by, br, 0, 6.2832); b.fill(); } b.globalAlpha = 1;
+    var fd = o.fundo || "";
+    if (fd === "desfoque") { var sm = VV.buf.psm = tela2(VV.buf.psm, Math.max(4, Math.round(W / 8)), Math.max(4, Math.round(H / 8))); sm.getContext("2d").drawImage(bg, 0, 0, sm.width, sm.height); b.imageSmoothingEnabled = true; b.drawImage(sm, 0, 0, W, H); }
+    else if (fd === "pb") { b.globalCompositeOperation = "saturation"; b.fillStyle = "#808080"; b.fillRect(0, 0, W, H); b.globalCompositeOperation = "source-over"; }
+    else if (fd === "escuro") { b.fillStyle = "rgba(0,0,0,.62)"; b.fillRect(0, 0, W, H); } else if (fd === "claro") { b.fillStyle = "rgba(255,255,255,.5)"; b.fillRect(0, 0, W, H); }
+    else if (fd === "cor") { b.fillStyle = o.fundoCor || "#111318"; b.fillRect(0, 0, W, H); }
+    else if (fd === "sem") { var q = Math.max(6, Math.round(H / 10)); for (var yy = 0; yy < H; yy += q) for (var xx = 0; xx < W; xx += q) { b.fillStyle = ((xx + yy) / q) % 2 ? "#cfd3da" : "#f2f3f6"; b.fillRect(xx, yy, q, q); } }
+    x.drawImage(bg, 0, 0);
+    var texto = function () { if (!o.texto) return; x.save(); var px = Math.round(H * 0.22); x.font = "900 " + px + "px Montserrat,Inter,system-ui,sans-serif"; x.textAlign = "center"; x.textBaseline = "middle";
+      x.fillStyle = "#FFD23F"; x.shadowColor = "rgba(0,0,0,.45)"; x.shadowBlur = 4; x.fillText(o.texto, W / 2 + Math.sin(t * 0.9) * W * 0.22, H * 0.4); x.restore(); };
+    if (o.anel) { o.anel.ini = 0; o.anel.dur = 99; desenharTexto(o.anel, t, "tras"); }
+    if (o.frente && !o.textoNaFrente) texto();
+    var px0 = W / 2, base = H, alt = H * (o.anel ? 0.82 : 0.86);
+    if (o.subir != null) { var c2 = o.subir; desenharTexto(c2, t); }
+    if (o.contorno) { x.save(); x.shadowColor = o.corCont || "#7C5CFF"; x.shadowBlur = Math.max(6, H * 0.08); vvSil(x, px0, base, alt, o.corCont || "#7C5CFF", sway); vvSil(x, px0, base, alt, o.corCont || "#7C5CFF", sway); x.restore(); }
+    x.save(); var gp = x.createLinearGradient(0, H * 0.3, 0, H); gp.addColorStop(0, "#3d5aa8"); gp.addColorStop(1, "#1d2b57"); vvSil(x, px0, base, alt, gp, sway);
+    x.fillStyle = "#e2b48d"; x.beginPath(); x.arc(px0 + sway, base - alt * 0.74, alt * 0.155, 0, 6.2832); x.fill();
+    x.fillStyle = "#2a1a12"; x.beginPath(); x.arc(px0 + sway, base - alt * 0.77, alt * 0.162, Math.PI * 1.02, Math.PI * 1.98); x.fill(); x.restore();
+    if (o.anel) desenharTexto(o.anel, t, "frente");
+    if (!o.frente || o.textoNaFrente) texto(); }
+  /* versão realista: palco de evento atrás + apresentador recortado do fundo verde (o mesmo recorte que o app faz com a pessoa do take) */
+  function vvPessoaReal(W, H, t, o, F, bg, b) { var x = cx, z = 1.06 + 0.03 * Math.sin(t * 0.5);
+    vvCobrir(b, F.Pal, W, H, z, Math.sin(t * 0.4) * W * 0.02); var fd = o.fundo || "";
+    if (fd === "desfoque") { var sm = VV.buf.psm = tela2(VV.buf.psm, Math.max(4, Math.round(W / 9)), Math.max(4, Math.round(H / 9))); sm.getContext("2d").drawImage(bg, 0, 0, sm.width, sm.height); b.imageSmoothingEnabled = true; b.drawImage(sm, 0, 0, W, H); }
+    else if (fd === "pb") { b.globalCompositeOperation = "saturation"; b.fillStyle = "#808080"; b.fillRect(0, 0, W, H); b.globalCompositeOperation = "source-over"; }
+    else if (fd === "escuro") { b.fillStyle = "rgba(0,0,0,.62)"; b.fillRect(0, 0, W, H); } else if (fd === "claro") { b.fillStyle = "rgba(255,255,255,.5)"; b.fillRect(0, 0, W, H); }
+    else if (fd === "cor") { b.fillStyle = o.fundoCor || "#111318"; b.fillRect(0, 0, W, H); }
+    else if (fd === "sem") { var q = Math.max(6, Math.round(H / 10)); for (var yy = 0; yy < H; yy += q) for (var xx = 0; xx < W; xx += q) { b.fillStyle = ((xx + yy) / q) % 2 ? "#cfd3da" : "#f2f3f6"; b.fillRect(xx, yy, q, q); } }
+    x.drawImage(bg, 0, 0);
+    var texto = function () { if (!o.texto) return; x.save(); var px = Math.round(H * 0.24); x.font = "900 " + px + "px Montserrat,Inter,system-ui,sans-serif"; x.textAlign = "center"; x.textBaseline = "middle";
+      var g = x.createLinearGradient(0, H * 0.3, 0, H * 0.5); g.addColorStop(0, "#FFE27A"); g.addColorStop(1, "#FFB547"); x.fillStyle = g; x.shadowColor = "rgba(0,0,0,.5)"; x.shadowBlur = px * 0.25; x.shadowOffsetY = px * 0.06;
+      x.fillText(o.texto, W / 2 + Math.sin(t * 0.9) * W * 0.24, H * 0.42); x.restore(); };
+    if (o.anel) { o.anel.ini = 0; o.anel.dur = 99; desenharTexto(o.anel, t, "tras"); }
+    if (o.frente && !o.textoNaFrente) texto();
+    if (o.subir != null) desenharTexto(o.subir, t);
+    var zz = 1 + 0.012 * Math.sin(t * 1.6), pessoa = function () { x.save(); x.translate(W / 2, H); x.scale(zz, zz); x.translate(-W / 2, -H); vvCobrir(x, F.P, W, H, 1, Math.sin(t * 1.3) * W * 0.01); x.restore(); };
+    if (o.contorno) { x.save(); x.shadowColor = o.corCont || "#7C5CFF"; x.shadowBlur = Math.max(8, H * 0.09); pessoa(); pessoa(); x.restore(); }
+    pessoa();
+    if (o.anel) desenharTexto(o.anel, t, "frente");
+    if (!o.frente || o.textoNaFrente) texto(); }
+  /* um quadro de cada tipo de prévia: spec = "tipo:chave" */
+  function vvPintar(canvas, t) { var spec = canvas.getAttribute("data-vivo") || "", i = spec.indexOf(":"), tp = spec.slice(0, i), k = spec.slice(i + 1), F = vvFontes();
+    vvMini(canvas, function (W, H) { var x = cx; x.fillStyle = "#000"; x.fillRect(0, 0, W, H);
+      var A = function () { x.drawImage(F.A, 0, 0, W, H); }, B = function () { x.drawImage(F.B, 0, 0, W, H); }, rs = 7, rnd = function () { rs = (rs * 16807) % 2147483647; return rs / 2147483647; };
+      if (tp === "tl" || (tp === "tr" && k.indexOf("tl:") === 0)) { var kk = tp === "tl" ? k : k.slice(3), p = vvCiclo(t, 2.2, 0.45, 1.2); if (p <= 0) { A(); vvRotulo(x, "SAI", 4, H - 16); return; } if (p >= 1) { B(); vvRotulo(x, "ENTRA", 4, H - 16); return; }
+        x.save(); BWTelas.TRANS[kk].f(x, p, W, H, A, B, rnd, null); x.restore(); return; }
+      if (tp === "tr") { var p2 = vvCiclo(t, 2.2, 0.45, 1.1), mt = modsTrans(k, p2), cA = {ini: 0, dur: 99}, cB = {ini: 0, dur: 99};
+        if (p2 <= 0) { A(); vvRotulo(x, "SAI", 4, H - 16); return; } if (p2 >= 1) { B(); vvRotulo(x, "ENTRA", 4, H - 16); return; }
+        desenharMidia(F.A, 192, 120, cA, 1, mt.A); desenharMidia(F.B, 192, 120, cB, 1, mt.B);
+        if (mt.cor && mt.corA > 0) { x.globalAlpha = lim(mt.corA, 0, 1); x.fillStyle = mt.cor; x.fillRect(0, 0, W, H); x.globalAlpha = 1; } return; }
+      if (tp === "dv") { var r = t % 2.8, c = {ini: 0, dur: 99, tela: {lay: k}}; if (k === "cheia" || !window.BWTelas) { var z = 1 + 0.06 * Math.sin(t * 1.4); x.save(); x.translate(W / 2, H / 2); x.scale(z, z); x.translate(-W / 2, -H / 2); B(); x.restore(); return; }
+        desenharTela({el: F.B, w: 192, h: 120}, c, r); return; }
+      if (tp === "pk") { var pac = window.BWTelas && BWTelas.PACOTES[k]; if (!pac) return; var seg = 1.5, n = pac.lista.length, j = Math.floor(t / seg) % n, pp = lim(((t % seg) - 0.3) / 0.9, 0, 1), tk = BWTelas.TRANS[pac.lista[j]];
+        var ida = j % 2 === 0; if (!tk) return; x.save(); tk.f(x, pp, W, H, ida ? A : B, ida ? B : A, rnd, null); x.restore(); vvRotulo(x, (j + 1) + "/" + n + " " + tk.nome, 4, H - 16); return; }
+      if (tp === "ef" || tp === "fm") { var pan = Math.sin(t * 0.6) * 4, base0 = {ini: 0, dur: 99, x: pan, esc: 108};
+        if (tp === "fm") { var D = 3, rr = t % (D + 0.6), cm = {ini: 0, dur: D, x: pan, esc: 108}; fxModelo(cm, FX_MODELOS[+k]); desenharMidia(F.C, 192, 120, cm, Math.min(rr, D));
+          x.fillStyle = "rgba(0,0,0,.5)"; x.fillRect(0, H - 4, W, 4); x.fillStyle = "#21D4E4"; x.fillRect(0, H - 4, W * Math.min(1, rr / D), 4); return; }
+        var s = 0.5 + 0.36 * Math.sin(t * 1.3); desenharMidia(F.C, 192, 120, base0, t);
+        desenharMidia(F.C, 192, 120, {ini: 0, dur: 99, x: pan, esc: 108, efeito: k, efInt: 100}, t, {recorte: function (q, w, h) { q.rect(w * s, 0, w * (1 - s) + 1, h); }});
+        x.fillStyle = "#fff"; x.fillRect(Math.round(W * s) - 1, 0, 2, H); vvRotulo(x, "ANTES", 3, 3); vvRotulo(x, "DEPOIS", W - 3, 3, "right"); return; }
+      if (tp === "tx" || tp === "an") { var pre = tp === "tx" ? (TEXTOS.filter(function (q) { return q[0] === k; })[0] || [0, 0, {}])[2] : {txt: k === "letreiro" ? "NOVIDADE · NOVIDADE ·" : k === "maquina" ? "Digitando…" : k === "anel" ? "SEU NOME · SEU NOME ·" : "TEXTO", tam: 9, anima: k, cor: "#FFD23F"},
+          L2 = 3.4, ct = Object.assign({ini: 0, dur: L2 - 0.2, fin: 0.35, fout: 0.3}, pre); ct.txt = String(pre.txt || "Texto").replace(/\\n/g, "\n"); if (tp === "an") ct.tam = k === "anel" ? 8 : 12; if (ct.anima === "anel") { ct.y = 16; ct.raio = 34; } var tt = t % L2;
+        if (ct.anima === "anel" || (tp === "an" && ct.anima === "subir")) { vvPessoa(W, H, tt, ct.anima === "anel" ? {anel: ct} : {subir: ct}); vvRotulo(x, "🧠 COM A PESSOA", 3, 3); return; }
+        if (VV.real) { vvCobrir(x, F.C, W, H, 1.08, Math.sin(t * 0.5) * W * 0.03); x.fillStyle = "rgba(6,8,14,.42)"; x.fillRect(0, 0, W, H); } else { vvFundo(x, W, H, "#1d2740", "#3a2a4a"); x.globalAlpha = 0.35; x.drawImage(F.C, -10 + Math.sin(t * 0.8) * 10, 0, W + 20, H); x.globalAlpha = 1; } desenharTexto(ct, tt); return; }
+      if (tp === "mo") { var mv = window.BWMotionsVE && BWMotionsVE.POR[k]; if (!mv) return; if (VV.real) { vvCobrir(x, F.Pal, W, H, 1.1, Math.sin(t * 0.4) * W * 0.03); x.fillStyle = "rgba(6,8,14,.66)"; x.fillRect(0, 0, W, H); } else vvFundo(x, W, H); var Lm = mv.dur + 0.8, cmv = {el: "mo:" + k, ini: 0, dur: mv.dur, x: 0, y: (mv.y || 0) * 50, esc: 82, mo: BWMotionsVE.padrao(k), cor: "#FFC24A"};
+        desenharElemento(cmv, Math.min(t % Lm, mv.dur - 0.01)); return; }
+      if (tp === "el") { if (VV.real && k.indexOf("cvfx:") !== 0) { vvCobrir(x, F.Pal, W, H, 1.15, Math.sin(t * 0.4) * W * 0.03); x.fillStyle = "rgba(6,8,14,.6)"; x.fillRect(0, 0, W, H); } else { var g = x.createRadialGradient(W / 2, H / 2, 4, W / 2, H / 2, Math.max(W, H) * 0.7); g.addColorStop(0, "#2b2346"); g.addColorStop(1, "#0c0f18"); x.fillStyle = g; x.fillRect(0, 0, W, H); }
+        var sobe = /^(fogo|fumaca|coracoes|bolhas)$/.test(k), ce = {el: k, ini: 0, dur: 999, x: 0, y: sobe ? 26 : 0, esc: k.indexOf("cv:") === 0 ? 230 : k.indexOf("emo:") === 0 ? 260 : 240};
+        desenharElemento(ce, t % 60); return; }
+      if (tp === "ia") { var c0 = sel(), ia = (c0 && c0.ia) || {}, o;
+        if (k === "atual") o = {fundo: ia.fundo, frente: !!ia.frente, contorno: !!ia.contorno, corCont: ia.contornoCor, fundoCor: ia.fundoCor, texto: "SEU TEXTO"};
+        else if (k === "demo") { var fase = Math.floor(t / 3) % 3; o = fase === 0 ? {frente: true, texto: "SEU TEXTO"} : fase === 1 ? {anel: {txt: "SEU NOME · SEU NOME ·", tam: 8, y: 16, raio: 34, cor: "#FFD23F", anima: "anel"}} : {fundo: "desfoque", contorno: true}; }
+        else if (k.indexOf("f=") === 0) o = {fundo: k.slice(2), fundoCor: ia.fundoCor};
+        else if (k.indexOf("p=") === 0) o = {frente: k.slice(2) === "1", texto: "TEXTO"};
+        else if (k.indexOf("c=") === 0) o = {contorno: k.slice(2) === "1", corCont: ia.contornoCor, fundo: "escuro"};
+        else if (k.indexOf("t=") === 0) o = {frente: true, textoNaFrente: k.slice(2) === "1", texto: "TEXTO"};
+        vvPessoa(W, H, t, o || {}); return; }
+    }); }
+  function vvLaco(agora) { VV.raf = 0; VV.set = VV.set.filter(function (c) { return c.isConnected; }); if (!VV.set.length) return; VV.raf = requestAnimationFrame(vvLaco);
+    if (document.hidden || GRAV) return; var fps = TOCANDO ? 8 : 24; if (agora - VV.last < 1000 / fps) return; VV.last = agora; var t = (agora - VV.t0) / 1000;
+    VV.set.forEach(function (c) { vvPintar(c, t + (+c.getAttribute("data-fase") || 0)); }); }
+  function ligarVivos(raiz) { if (!raiz) return; var cs = raiz.querySelectorAll("canvas[data-vivo]:not([data-ligado])"); if (!cs.length) return;
+    if (!VV.io && "IntersectionObserver" in window) VV.io = new IntersectionObserver(function (es) { es.forEach(function (e) { var c = e.target, i = VV.set.indexOf(c);
+      if (e.isIntersecting) { vvPintar(c, VV.calmo ? 1.2 : (performance.now() - VV.t0) / 1000); if (!VV.calmo && i < 0) { VV.set.push(c); if (!VV.raf) VV.raf = requestAnimationFrame(vvLaco); } } else if (i >= 0) VV.set.splice(i, 1); }); }, {rootMargin: "60px"});
+    [].forEach.call(cs, function (c, n) { c.setAttribute("data-ligado", "1"); if (!c.hasAttribute("data-fase")) c.setAttribute("data-fase", String((n % 5) * 0.13)); if (VV.io) VV.io.observe(c); else vvPintar(c, 1.2); }); }
+  function vv(spec, w, h, cls) { return '<canvas class="vv' + (cls ? " " + cls : "") + '" data-vivo="' + esc(spec) + '" width="' + (w || 192) + '" height="' + (h || 120) + '" aria-hidden="true"></canvas>'; }
+  var _dLib = desenharLib; desenharLib = function () { _dLib.apply(this, arguments); ligarVivos($("veLib")); };
+  var _dProp = desenharProp; desenharProp = function () { _dProp.apply(this, arguments); ligarVivos($("vePropCorpo")); };
+  window.__veVivo = {pintar: vvPintar, ligar: ligarVivos, ativos: function () { return VV.set.length; }};
+  function somCartao(x, i) { return '<div class="ve-item ve-sm" role="button" tabindex="0" data-som="' + i + '" aria-label="Pôr ' + x[1] + ' na linha do tempo"><span class="mini eq" aria-hidden="true"><em>' + (x[0] === "sfx" ? "🔊" : "🎼") + '</em><i></i><i></i><i></i><i></i><i></i></span><span>' + x[1] + '</span></div>'; }
   function porTextoPronto(k) { var t = TEXTOS.filter(function (x) { return x[0] === k; })[0]; if (!t) return; var c = addTexto({}); Object.keys(t[2]).forEach(function (p) { c[p] = t[2][p]; }); c.txt = String(t[2].txt).replace(/\\n/g, "\n"); tudo(); aviso("✓ Texto “" + t[1] + "” na agulha"); return c; }
   function desenharTL() { botoesES();
     var fim = Math.max(total() + 8, 20), larg = Math.ceil(fim * PPS), passoR = PPS >= 90 ? 1 : PPS >= 40 ? 2 : 5, h = '<div class="ve-regua" id="veRegua" style="width:' + larg + 'px">';
@@ -895,8 +1046,23 @@
     else { if (c.tipo !== "video" && c.tipo !== "imagem") { aviso("Efeito é para vídeo e imagem.", true); return false; } c.efeito = k; if (c.efInt == null) c.efInt = 85; }
     SEL = c.id; tudo(); marcar(c.id); if (!semAviso) aviso(kind === "t" ? "◧ Transição “" + TRANS[k] + "”" + (anteriorDe(c) ? " na emenda — arraste o ◆ para mudar o tempo." : " — encoste este take no fim de outro para ela aparecer.") : "✦ Efeito “" + EFEITOS[k] + "” no take."); return true; }
   function marcar(id) { var el = $("veFaixas").querySelector('[data-clip="' + id + '"]'); if (!el) return; el.classList.remove("marcado"); void el.offsetWidth; el.classList.add("marcado"); setTimeout(function () { el.classList.remove("marcado"); }, 1300); }
-  function menuTrans(c, x, y) { if (!window.BWFerr) return; BWFerr.menu(x, y, [{rot: "Corte seco (sem transição)", icone: "▮", fn: function () { c.trans = null; tudo(); }}].concat(Object.keys(TRANS).map(function (k) { return {rot: TRANS[k] + (c.trans && c.trans.tipo === k ? "  ✓" : ""), icone: "◧", fn: function () { aplicarFx(c, "t", k); }}; }),
-      c.trans ? ["-", {tit: "TEMPO"}].concat([0.3, 0.6, 1, 1.5, 2].map(function (d) { return {rot: String(d).replace(".", ",") + " s" + (Math.abs((c.trans.dur || 0.6) - d) < 0.01 ? "  ✓" : ""), fn: function () { c.trans.dur = d; tudo(); marcar(c.id); }}; })) : []), "TRANSIÇÃO NA EMENDA"); }
+  /* 24/11 (dono): tocar numa transição JÁ APLICADA não abre a lista de transições — abre o que se faz com ELA (ver, tempo, trocar, usar em todas, excluir).
+     Emenda sem transição (◇) continua abrindo a lista para escolher. */
+  function menuTrans(c, x, y) { if (!window.BWFerr) return;
+    var lista = Object.keys(TRANS).map(function (k) { return {rot: TRANS[k] + (c.trans && c.trans.tipo === k ? "  ✓" : ""), icone: "◧", fn: function () { aplicarFx(c, "t", k); }}; });
+    if (!c.trans || !TRANS[c.trans.tipo]) { BWFerr.menu(x, y, lista, "ESCOLHA A TRANSIÇÃO DA EMENDA"); return; }
+    var d = +c.trans.dur || 0.6, f = function (v) { return String(Math.round(v * 10) / 10).replace(".", ","); }, poe = function (v) { c.trans.dur = lim(Math.round(v * 10) / 10, 0.1, 5); tudo(); marcar(c.id); aviso("⏱ Transição com " + f(c.trans.dur) + " s"); };
+    BWFerr.menu(x, y, [
+      {icone: "▶", rot: "Ver a transição", fn: function () { verTransicao(c); }},
+      {icone: "⏱", rot: "Tempo (" + f(d) + " s)", sub: [0.2, 0.3, 0.5, 0.6, 0.8, 1, 1.5, 2].map(function (v) { return {rot: f(v) + " s" + (Math.abs(d - v) < 0.01 ? "  ✓" : ""), fn: function () { poe(v); }}; })
+        .concat([{rot: "Outro tempo…", fn: function () { var r = prompt("Tempo da transição em segundos:", f(d)); if (r == null) return; var v = parseFloat(String(r).replace(",", ".")); if (v > 0) poe(v); }}])},
+      {icone: "−", rot: "Mais rápida (−0,1 s)", off: d <= 0.15, fn: function () { poe(d - 0.1); }}, {icone: "+", rot: "Mais lenta (+0,1 s)", fn: function () { poe(d + 0.1); }},
+      {icone: "↔", rot: "Trocar por outra transição", sub: lista},
+      {icone: "⇉", rot: "Usar esta em todas as emendas da camada", fn: function () { var n = 0; P.clips.forEach(function (x2) { if (x2 !== c && x2.trilha === c.trilha && x2.tipo !== "texto" && x2.tipo !== "audio" && anteriorDe(x2)) { x2.trans = {tipo: c.trans.tipo, dur: d}; n++; } }); tudo(); aviso("⇉ “" + TRANS[c.trans.tipo] + "” em " + (n + 1) + " emenda(s)"); }},
+      {icone: "⚙", rot: "Abrir os ajustes da transição", fn: function () { SEL = c.id; tudo(); abrirGrupo("ve-trans"); }},
+      "-",
+      {icone: "🗑", rot: "Excluir a transição", perigo: true, fn: function () { c.trans = null; tudo(); marcar(c.id); aviso("🗑 Transição excluída — corte seco"); }}
+    ], "◧ " + String(TRANS[c.trans.tipo]).toUpperCase() + " · " + f(d) + " S"); }
   function ondaHtml(c, m) { if (!m || (c.tipo !== "audio" && c.tipo !== "video")) return "";
     var o = ONDA[m.id]; if (!o) { analisar(m).then(function (r) { if (r && r.img) desenharTL(); }); return ""; }
     if (!o._r) { o.then(function (r) { o._r = r || {}; }); return ""; } var r = o._r; if (!r.img) return "";
@@ -923,7 +1089,7 @@
   function fxCurva(c, L) { var n = 48, D = Math.max(0.1, c.dur), pts = []; for (var i = 0; i <= n; i++) { var r = D * i / n; pts.push((i / n * 100).toFixed(1) + "," + (30 - intFx(L, r, D) / 100 * 28).toFixed(1)); }
     var ag = lim((T - c.ini) / D, 0, 1) * 100, ch = L.modo === "chaves" ? (L.chaves || []).map(function (q, j) { return '<circle cx="' + (lim(q.t / D, 0, 1) * 100).toFixed(1) + '" cy="' + (30 - q.v / 100 * 28).toFixed(1) + '" r="2.4" data-fxch="' + j + '"></circle>'; }).join("") : "";
     return '<svg class="ve-fxc" viewBox="0 0 100 32" preserveAspectRatio="none" aria-hidden="true"><polyline points="' + pts.join(" ") + '"></polyline>' + ch + '<line x1="' + ag.toFixed(1) + '" x2="' + ag.toFixed(1) + '" y1="0" y2="32"></line></svg>'; }
-  function fxPainel(c) { var L = camadasFx(c), h = '<p class="ve-gt2">MODELOS DINÂMICOS</p><div class="ve-fxm">' + FX_MODELOS.map(function (m, i) { return '<button type="button" data-fxmod="' + i + '" title="' + esc(m.d) + '"><b>' + esc(m.n) + '</b><small>' + esc(m.d) + '</small></button>'; }).join("") + '</div>';
+  function fxPainel(c) { var L = camadasFx(c), h = '<p class="ve-gt2">MODELOS DINÂMICOS</p><div class="ve-fxm">' + FX_MODELOS.map(function (m, i) { return '<button type="button" data-fxmod="' + i + '" title="' + esc(m.d) + '">' + vv("fm:" + i, 160, 90) + '<b>' + esc(m.n) + '</b><small>' + esc(m.d) + '</small></button>'; }).join("") + '</div>';
     h += '<p class="ve-gt2">CAMADAS DE EFEITO' + (L.length ? " (" + L.length + ")" : "") + '</p>';
     if (!L.length) h += '<p class="ve-nota" style="margin:0 0 6px">Nenhum efeito. Toque num modelo acima ou some um efeito.</p>';
     L.forEach(function (x, i) { var opts = Object.keys(EFEITOS).map(function (k) { return '<option value="' + k + '"' + (k === x.k ? " selected" : "") + '>' + EFEITOS[k] + '</option>'; }).join("");
@@ -959,9 +1125,9 @@
     var visual = c.tipo !== "audio", g = function (k, t, corpo, fechada) { return corpo ? '<div class="ve-g" data-g="' + k + '"><h4 data-seta="ve-' + k + '"' + (fechada ? ' data-seta-padrao="fechada"' : "") + '>' + t + '</h4><div>' + corpo + '</div></div>' : ""; }, h = "";
     if (c.tipo === "texto") h += g("texto", "TEXTO", '<label class="um"><span>Texto</span><textarea data-p="txt" rows="3" maxlength="200" aria-label="Texto do clipe">' + esc(c.txt) + '</textarea></label><label class="um"><span>Fonte</span><select data-p="fonte" aria-label="Fonte">' + FONTES.map(function (f) { return '<option' + (f === c.fonte ? " selected" : "") + '>' + f + '</option>'; }).join("") + '</select></label>' + faixaR("tam", "Tamanho", 2, 20, c.tam, "%", 0.5) +
       '<label class="um"><span>Cor</span><input type="color" data-p="cor" value="' + esc(c.cor || "#ffffff") + '" aria-label="Cor do texto"></label><label class="um"><span>Fundo</span><select data-p="fundo" aria-label="Fundo do texto"><option value=""' + (!c.fundo ? " selected" : "") + '>Sem fundo (sombra)</option><option value="#000000"' + (c.fundo === "#000000" ? " selected" : "") + '>Caixa preta</option><option value="#ffffff"' + (c.fundo === "#ffffff" ? " selected" : "") + '>Caixa branca</option><option value="#7C5CFF"' + (c.fundo === "#7C5CFF" ? " selected" : "") + '>Caixa roxa</option><option value="#FFB547"' + (c.fundo === "#FFB547" ? " selected" : "") + '>Caixa âmbar</option></select></label>' +
-      '<label class="um"><span>Movimento</span><select data-p="anima" aria-label="Movimento do texto">' + ANIMAS.map(function (a) { return '<option value="' + a[0] + '"' + ((c.anima || "") === a[0] ? " selected" : "") + '>' + a[1] + '</option>'; }).join("") + '</select></label>' +
+      '<label class="um"><span>Movimento</span><select data-p="anima" aria-label="Movimento do texto">' + ANIMAS.map(function (a) { return '<option value="' + a[0] + '"' + ((c.anima || "") === a[0] ? " selected" : "") + '>' + a[1] + '</option>'; }).join("") + '</select></label><div class="ve-vchips" role="group" aria-label="Movimento do texto">' + ANIMAS.map(function (a) { return '<button type="button" data-animapick="' + a[0] + '"' + ((c.anima || "") === a[0] ? ' class="on"' : "") + ' title="' + esc(a[1]) + '">' + vv("an:" + a[0], 160, 100) + '<span>' + esc(a[1].replace(/ \(.*\)/, "")) + '</span></button>'; }).join("") + '</div>' +
       (c.anima === "anel" ? faixaR("raio", "Tamanho do anel", 15, 60, c.raio || 38, "%") + faixaR("velAnel", "Velocidade do giro", -2, 2, c.velAnel == null ? 0.7 : c.velAnel, "", 0.1) : "") +
-      '<p class="ve-sub">EM RELAÇÃO À PESSOA</p><div class="ve-chips"><button type="button" data-frente="0"' + (!c.frente ? ' class="on"' : "") + '>Atrás da pessoa</button><button type="button" data-frente="1"' + (c.frente ? ' class="on"' : "") + '>Na frente</button></div>' +
+      '<p class="ve-sub">EM RELAÇÃO À PESSOA</p><div class="ve-vchips"><button type="button" data-frente="0"' + (!c.frente ? ' class="on"' : "") + '>' + vv("ia:t=0", 160, 100) + '<span>Atrás da pessoa</span></button><button type="button" data-frente="1"' + (c.frente ? ' class="on"' : "") + '>' + vv("ia:t=1", 160, 100) + '<span>Na frente</span></button></div>' +
       '<p class="ve-nota" style="margin:4px 0 0">"Atrás da pessoa" funciona quando o take tem PESSOA E FUNDO (IA) analisado com "pessoa na frente" ligado.</p>');
     if (visual) h += g("pos", "TAMANHO E POSIÇÃO", (c.tipo !== "texto" ? '<label class="um"><span>Encaixe</span><select data-p="encaixe" aria-label="Encaixe na tela"><option value="cobrir"' + (c.encaixe !== "caber" ? " selected" : "") + '>Encher a tela</option><option value="caber"' + (c.encaixe === "caber" ? " selected" : "") + '>Mostrar inteiro</option></select></label>' + faixaR("esc", "Tamanho", 10, 300, c.esc, "%") : "") +
       faixaR("x", "Posição ↔", -60, 60, c.x || 0, "%") + faixaR("y", "Posição ↕", -60, 60, c.y || 0, "%") + faixaR("op", "Opacidade", 0, 100, c.op == null ? 100 : c.op, "%"));
@@ -990,11 +1156,11 @@
         '<p class="ve-nota" style="margin:6px 0 0">Dois toques numa barra volta ela a zero. Tudo é feito neste aparelho' + (BWCor.motor() === "2d" ? " (modo econômico: este navegador não tem WebGL, a prévia pode ficar mais lenta)" : "") + '.</p>', true); }
     if (visual && c.tipo !== "texto" && c.tipo !== "elemento" && window.BWMascara) { var ia = c.ia || {}, tem = BWMascara.tem(c.mid), fundos = [["", "Original"], ["desfoque", "Desfocado"], ["pb", "Cor só na pessoa"], ["escuro", "Escurecido"], ["claro", "Clareado"], ["cor", "Cor lisa"], ["sem", "Sem fundo"]];
       h += g("ia", "PESSOA E FUNDO (IA)", (ANALISANDO[c.mid] != null ? '<p class="ve-nota" style="margin:0 0 6px">🧠 Analisando a pessoa… <b id="veIaProg">' + Math.round(ANALISANDO[c.mid] * 100) + '%</b></p><div class="ve-linha"><button class="ve-bt" type="button" data-acao="iaCancelar">CANCELAR</button></div>'
-        : !tem ? '<p class="ve-nota" style="margin:0 0 6px">O app acha a pessoa em cada quadro deste take (no próprio aparelho). Depois dá para pôr texto e logo ATRÁS dela, desfocar ou trocar o fundo e acender um contorno de luz.</p><div class="ve-linha"><button class="ve-bt pri" type="button" data-acao="iaAnalisar">🧠 ANALISAR PESSOA NO TAKE</button></div><p class="ve-nota" style="margin:6px 0 0">Na primeira vez baixa o modelo (~16 MB). Leva mais ou menos o tempo do take no computador; no celular, um pouco mais.</p>'
-        : '<div class="ve-chips"><button type="button" data-iafrente="1"' + (ia.frente ? ' class="on"' : "") + '>Pessoa na frente dos textos</button><button type="button" data-iafrente="0"' + (!ia.frente ? ' class="on"' : "") + '>Normal</button></div>' +
-          '<p class="ve-sub">FUNDO</p><div class="ve-chips">' + fundos.map(function (f) { return '<button type="button" data-iafundo="' + f[0] + '"' + ((ia.fundo || "") === f[0] ? ' class="on"' : "") + '>' + f[1] + '</button>'; }).join("") + '</div>' +
+        : !tem ? vv("ia:demo", 320, 180, "grande") + '<p class="ve-nota" style="margin:0 0 6px">Exemplo acima. O app acha a pessoa em cada quadro deste take (no próprio aparelho). Depois dá para pôr texto e logo ATRÁS dela, um anel de texto em volta, desfocar ou trocar o fundo e acender um contorno de luz.</p><div class="ve-linha"><button class="ve-bt pri" type="button" data-acao="iaAnalisar">🧠 ANALISAR PESSOA NO TAKE</button></div><p class="ve-nota" style="margin:6px 0 0">Na primeira vez baixa o modelo (~16 MB). Leva mais ou menos o tempo do take no computador; no celular, um pouco mais.</p>'
+        : vv("ia:atual", 320, 180, "grande") + '<p class="ve-sub">TEXTOS E A PESSOA</p><div class="ve-vchips"><button type="button" data-iafrente="1"' + (ia.frente ? ' class="on"' : "") + '>' + vv("ia:p=1", 160, 100) + '<span>Pessoa na frente dos textos</span></button><button type="button" data-iafrente="0"' + (!ia.frente ? ' class="on"' : "") + '>' + vv("ia:p=0", 160, 100) + '<span>Normal</span></button></div>' +
+          '<p class="ve-sub">FUNDO</p><div class="ve-vchips">' + fundos.map(function (f) { return '<button type="button" data-iafundo="' + f[0] + '"' + ((ia.fundo || "") === f[0] ? ' class="on"' : "") + '>' + vv("ia:f=" + f[0], 160, 100) + '<span>' + f[1] + '</span></button>'; }).join("") + '</div>' +
           (ia.fundo === "cor" ? '<label class="um"><span>Cor do fundo</span><input type="color" data-p="ia:fundoCor" value="' + esc(ia.fundoCor || "#111318") + '" aria-label="Cor do fundo"></label>' : "") +
-          '<p class="ve-sub">CONTORNO DE LUZ NA PESSOA</p><div class="ve-chips"><button type="button" data-iacont="0"' + (!ia.contorno ? ' class="on"' : "") + '>Sem</button><button type="button" data-iacont="1"' + (ia.contorno ? ' class="on"' : "") + '>Ligado</button></div>' +
+          '<p class="ve-sub">CONTORNO DE LUZ NA PESSOA</p><div class="ve-vchips"><button type="button" data-iacont="0"' + (!ia.contorno ? ' class="on"' : "") + '>' + vv("ia:c=0", 160, 100) + '<span>Sem</span></button><button type="button" data-iacont="1"' + (ia.contorno ? ' class="on"' : "") + '>' + vv("ia:c=1", 160, 100) + '<span>Ligado</span></button></div>' +
           (ia.contorno ? '<label class="um"><span>Cor do contorno</span><input type="color" data-p="ia:contornoCor" value="' + esc(ia.contornoCor || "#7C5CFF") + '" aria-label="Cor do contorno"></label>' : "") +
           faixaR("ia:suave", "Borda suave", 0, 100, ia.suave == null ? 30 : ia.suave, "%") +
           '<div class="ve-linha" style="flex-wrap:wrap"><button class="ve-bt" type="button" data-acao="iaModelos">✨ MODELOS COM A PESSOA</button><button class="ve-bt" type="button" data-acao="iaAnalisar">↺ ANALISAR DE NOVO</button></div>' +
@@ -1215,6 +1381,7 @@
     else if (b.hasAttribute("data-iafundo")) { c.ia = c.ia || {}; c.ia.fundo = b.dataset.iafundo; tudo(); }
     else if (b.hasAttribute("data-iacont")) { c.ia = c.ia || {}; c.ia.contorno = b.dataset.iacont === "1"; tudo(); }
     else if (b.hasAttribute("data-frente")) { c.frente = b.dataset.frente === "1"; tudo(); }
+    else if (b.hasAttribute("data-animapick")) { c.anima = b.dataset.animapick; tudo(); }
     else if (b.hasAttribute("data-ruido")) { c.ruido = +b.dataset.ruido; tudo(); aviso(c.ruido ? "Redução de ruído " + ["", "leve", "média", "forte"][c.ruido] + " (tira zumbido grave e chiado agudo)." : "Redução de ruído desligada."); }
     else if (b.hasAttribute("data-voz")) { c.voz = +b.dataset.voz; tudo(); }
     else if (b.dataset.acao === "mudo") { c.vol = c.vol === 0 ? 100 : 0; tudo(); }
@@ -1539,7 +1706,8 @@
       itens.push({icone: "⏱", rot: (alvoD.length > 1 ? "Duração de cada um (" + alvoD.length + " takes)" : "Duração (" + durAtual + " s)"), sub: [1, 2, 3, 4, 5, 8].map(function (sg) { return {rot: sg + " s" + (alvoD.length > 1 ? " — em sequência" : "") + (alvoD.length === 1 && Math.abs(c.dur - sg) < 0.05 ? "  ✓" : ""), fn: function () { duracaoTakes(alvoD, sg); }}; }).concat([{rot: "Outra duração…", fn: function () { pedirDuracao(alvoD); }}])});
       itens.push({icone: "⇤", rot: "Cortar o começo até a agulha", tecla: "Q", off: !(T > c.ini + 0.05 && T < c.ini + c.dur - 0.05), fn: function () { aparar("ini"); }}, {icone: "⇥", rot: "Cortar o fim na agulha", tecla: "W", off: !(T > c.ini + 0.05 && T < c.ini + c.dur - 0.05), fn: function () { aparar("fim"); }},
         "-", {icone: "🎚", rot: "Copiar ajustes", tecla: "Ctrl+Shift+C", fn: copiarAtrib}, {icone: "🖌", rot: "Colar ajustes", tecla: "Ctrl+Shift+V", off: !ATRIB || ATRIB.id === c.id, fn: function () { return colarAtrib.apply(this, arguments); }},
-        {icone: c.off ? "👁" : "🚫", rot: c.off ? "Ativar o take" : "Desativar o take", tecla: "Shift+E", fn: ligarDesligar});
+        {icone: c.off ? "👁" : "🚫", rot: c.off ? "Ativar o take" : "Desativar o take", tecla: "Shift+E", fn: ligarDesligar},
+        {icone: "⟲", rot: "Remover atributos" + (alvoD.length > 1 ? " (" + alvoD.length + " takes)" : ""), off: !alvoD.some(temAtrib), fn: function () { removerAtrib(alvoD); }});
       if (temImg(c) && window.BWCor) itens.push({icone: "🎨", rot: "Cor", sub: [{rot: "Original" + (!BWCor.ativo(c.grade) ? "  ✓" : ""), fn: function () { delete c.grade; c.look = ""; tudo(); }}].concat(Object.keys(BWCor.LOOKS).map(function (k) { return {rot: BWCor.LOOKS[k].nome + (c.look === k && BWCor.ativo(c.grade) ? "  ✓" : ""), fn: function () { c.grade = JSON.parse(JSON.stringify(BWCor.LOOKS[k].g)); c.look = k; tudo(); }}; }))
         .concat([{rot: "⇉ Aplicar esta cor em todos os takes", off: !BWCor.ativo(c.grade), fn: function () { corEmTodos(c); }}, {rot: "Abrir os ajustes de cor…", fn: function () { abrirGrupo("ve-cor"); }}])});
       if (temSom(c)) { var vv = c.vol == null ? 100 : c.vol; itens.push({icone: "🔊", rot: "Som do take", sub: [

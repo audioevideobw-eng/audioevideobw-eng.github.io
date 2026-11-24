@@ -13,7 +13,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="apple-mobile-web-app-title" content="Brightway">
-<link rel="stylesheet" href="assets/brightway.css?v=39">
+<link rel="stylesheet" href="assets/brightway.css?v=40">
 <style>
 .wrap{max-width:1500px;margin:0 auto;padding:0 16px 110px}
 .ve-topo{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px}
@@ -295,6 +295,22 @@
 .ve-exp-res{margin:12px 0 4px;padding:10px;border-radius:12px;background:rgba(255,255,255,.04);font:500 11.5px/1.6 Inter,sans-serif}
 @media (max-width:560px){.ve-jan{padding:0;align-items:flex-end}.ve-jan-c{border-radius:18px 18px 0 0;max-height:92vh}.ve-exp-cards{grid-template-columns:1fr 1fr}.ve-copia{right:8px;left:8px;width:auto;bottom:calc(70px + env(safe-area-inset-bottom))}}
 /* 24/11 — TELAS e elementos do CRIADOR na biblioteca */
+/* PRÉVIAS VIVAS (24/11): cada cartão mostra o efeito rodando — canvas desenhado pelo mesmo código do vídeo */
+.ve-item canvas.vv{display:block;width:100%;height:auto;aspect-ratio:16/10;background:#05070a;border-radius:9px 9px 0 0;pointer-events:none;transition:transform .25s ease}
+.ve-item canvas.vv.sq{aspect-ratio:1}.ve-lib .ve-item{transition:border-color .2s,transform .2s}.ve-lib .ve-item:hover{transform:translateY(-1px)}.ve-lib .ve-item:hover canvas.vv{transform:scale(1.04)}
+.ve-legenda .lg{display:inline-block;min-width:16px;padding:0 4px;border-radius:4px;font:900 10px/16px Inter,sans-serif;font-style:normal;text-align:center;vertical-align:1px}.ve-legenda .lg.a{background:#2a3346;color:#fff}.ve-legenda .lg.b{background:#3BFF6A;color:#06210f}
+.ve-vchips{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:6px;margin:4px 0 8px}
+.ve-vchips button{padding:0;min-width:0;border-radius:10px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.035);color:#e8ebf0;cursor:pointer;overflow:hidden;text-align:left;font:600 10.5px Inter,sans-serif;transition:border-color .2s}
+.ve-vchips button:hover{border-color:rgba(33,212,228,.6)}.ve-vchips button canvas{display:block;width:100%;height:auto;pointer-events:none}
+.ve-vchips button span{display:block;padding:4px 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ve-vchips button.on{border-color:#FFB547;box-shadow:inset 0 0 0 1px #FFB547;color:#FFB547}
+canvas.vv.grande{display:block;width:100%;height:auto;border-radius:10px;margin:0 0 8px;background:#05070a}
+.ve-fxm button canvas{display:block;width:100%;height:auto;border-radius:6px;margin-bottom:4px;pointer-events:none}
+.ve-sm .mini.eq{position:relative;gap:4px;align-items:flex-end;justify-content:center;padding-bottom:12px;background:radial-gradient(circle at 50% 80%,#1d2b57,#05070a)}
+.ve-sm .mini.eq em{position:absolute;top:6px;left:8px;font-style:normal;font-size:15px}
+.ve-sm .mini.eq i{width:5px;height:60%;border-radius:3px;background:linear-gradient(#21D4E4,#7C5CFF);transform-origin:bottom;animation:veEq .9s ease-in-out infinite alternate}
+.ve-sm .mini.eq i:nth-child(3){animation-delay:-.3s}.ve-sm .mini.eq i:nth-child(4){animation-delay:-.6s}.ve-sm .mini.eq i:nth-child(5){animation-delay:-.15s}.ve-sm .mini.eq i:nth-child(6){animation-delay:-.45s}
+@keyframes veEq{from{transform:scaleY(.2)}to{transform:scaleY(1)}}
+@media (prefers-reduced-motion:reduce){.ve-sm .mini.eq i{animation:none}}
 .ve-item .tl-mini{width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;display:block}
 .ve-lib .ve-subs,#veLib .ve-subs{flex-wrap:wrap;padding:0 0 4px}
 #veLib .ve-subs button{min-height:28px;padding:0 10px;border-radius:999px;border:1px solid rgba(245,241,234,.14);background:rgba(255,255,255,.05);color:#cfd6e2;font:700 10.5px var(--bw-font-texto,Inter,sans-serif);letter-spacing:.03em;cursor:pointer;white-space:nowrap}
@@ -359,7 +375,7 @@
 <div class="ve-ocup" id="veOcup" hidden><span id="veOcupTxt">Gravando o vídeo…</span><progress id="veProg" max="1" value="0"></progress><button class="ve-bt" id="veCancelar" type="button">CANCELAR</button></div>
 <div class="ve-ocup ve-saida" id="veSaida" hidden><span id="veSaidaTxt">Vídeo pronto</span><video id="veVideoPronto" controls playsinline></video><div class="ve-linha"><a class="ve-bt pri" id="veBaixar" download="video-brightway.mp4">⬇ SALVAR VÍDEO</a><button class="ve-bt" id="veCompartilhar" type="button">COMPARTILHAR</button><button class="ve-bt" id="veFecharSaida" type="button">FECHAR</button></div></div>
 <input type="file" id="veArqTroca" accept="video/*,image/*,audio/*" tabindex="-1" aria-hidden="true" style="position:fixed;left:-9999px;top:0;width:1px;height:1px;opacity:0">
-<script src="assets/layout.js?v=80"></script>
+<script src="assets/layout.js?v=81"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.2/dist/umd/supabase.js" integrity="sha384-A97u3Qnt9GZHURO9YJZRe7VQgGUeFzcv6I1oIGnUTxQrCxnpQMwR0/G8F2zt9abZ" crossorigin="anonymous"></script>
 <script src="assets/bw-sync.js?v=20261122"></script>
 <script src="assets/bw-personagens.js?v=3"></script>
@@ -376,7 +392,7 @@
 <script src="assets/telas-motor.js?v=2"></script>
 <script src="assets/convite-anim.js?v=4"></script>
 <script src="assets/ve-motions.js?v=2"></script>
-<script src="assets/video-editor.js?v=37"></script>
+<script src="assets/video-editor.js?v=38"></script>
 <script src="assets/ve-modelos.js?v=3"></script>
 <script src="assets/bw-controle.js?v=1"></script>
 </body>

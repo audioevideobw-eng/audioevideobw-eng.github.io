@@ -873,3 +873,4 @@ html.bw-foco :is(.bw-btn,.ve-bt,.mo-bt,.tl-bt,.d3-bt,.al-bt,.rl-bt,.pg-bt)[disab
   html.bw-foco .bwf-bt{width:30px;height:30px;border-radius:8px;font-size:13px}
   html.bw-foco :is(.ve-sel,.mo-sel,.tl-sel,.d3-sel,.al-sel){min-height:30px;border-radius:8px;font-weight:600;font-size:12px}
 }
+html.bw-arrastando,html.bw-arrastando *{-webkit-user-select:none!important;user-select:none!important;-webkit-touch-callout:none}

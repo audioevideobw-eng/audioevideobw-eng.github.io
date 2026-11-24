@@ -147,7 +147,7 @@ with sync_playwright() as p:
             xh, yh, _ = centro(pg, f'[data-trp="{c2}"]'); arrastar(pg, xh, yh, xh - 0.6 * pps, yh); d2 = pg.evaluate(f"{CL}.find(c=>c.id==='{c2}').trans.dur")
             ok(d2 < d1 - 0.3, f"…e a alça na própria camada diminui ({d1} → {d2} s)")
             xj, yj, _ = centro(pg, f'[data-junta="{c2}"]'); pg.mouse.click(xj, yj); pg.wait_for_timeout(300)
-            ok(pg.locator(".bwf-menu").count() == 1 and "Dissolver" in pg.inner_text(".bwf-menu") and "TEMPO" in pg.inner_text(".bwf-menu").upper(), "tocar na emenda abre a lista de transições e de tempos")
+            ok(pg.locator(".bwf-menu").count() == 1 and "EXCLUIR" in pg.inner_text(".bwf-menu").upper() and "TEMPO" in pg.inner_text(".bwf-menu").upper(), "tocar na transição aplicada abre EXCLUIR e TEMPO (24/11: não a lista)")
             pg.keyboard.press("Escape"); pg.mouse.click(5, 5); pg.wait_for_timeout(200)
             pg.click('#veAbas [data-aba="efe"]'); pg.wait_for_timeout(200); c1 = pg.evaluate(f"{CL}[0].id"); xe, ye, _ = centro(pg, "#veLib [data-arr='e:pb']"); xc, yc, _ = centro(pg, f'[data-clip="{c1}"]')
             arrastar(pg, xe, ye, xc, yc, 20); ok(pg.evaluate(f"{CL}.find(c=>c.id==='{c1}').efeito") == "pb" and "Preto e branco" in pg.inner_text(f'[data-clip="{c1}"]'), "efeito PRETO E BRANCO arrastado até o take: aplicado e marcado no take")

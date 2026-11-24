@@ -970,6 +970,18 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
      passo do quadro (tipo "elemento" + prefixo em `el`; transição = chave em TRANS) — nunca HTML/foreignObject por quadro. Motions do Reels refeitos em
      assets/ve-motions.js (um item em M = um motion; vigia: sem rede/conta). Número digitado: "1.500" (grupos de 3 após o ponto) é milhar mesmo sem vírgula —
      "1.500" virava "2" (a regra 174 só valia com vírgula). Teste mede o tempo por quadro e confere que todo motion desenha (teste_video_motions.py).
+224. PRÉVIAS VIVAS (editor de vídeo, dono 24/11: "telas verdes rodando o efeito… em todas… mais realista e moderno"): cada cartão (biblioteca e
+     ajustes) é um canvas desenhado pelo MESMO código do vídeo — vvMini troca cv/cx (e os buffers EF/EF2/TLB, senão o quadro principal realoca
+     a cada frame) por um instante. Um laço só, só o que está na tela (IntersectionObserver), 24 q/s, 8 tocando, 0 exportando/aba escondida, parado
+     com "reduzir movimento". Fotos de AMOSTRA da IA da plataforma (pessoas inventadas) em trends/amostras/<nome>-v1.webp (só leitura, crossOrigin);
+     sem internet, desenhos de reserva. Prévia "estática" (texto parado) precisa mexer algo honesto (fundo andando), senão o teste "anima?" falha.
+     Spec = data-vivo="tipo:chave"; tipo novo = um ramo em vvPintar (auto: teste_video_vivo.py).
+225. Tocar num item JÁ APLICADO abre o que se faz com ELE (ver, tempo, trocar, usar em todas, excluir) — nunca a lista de escolher de novo; a lista
+     é só para quando ainda não há nada (emenda ◇). ⟲ REMOVER ATRIBUTOS existe no editor de fotos E no de vídeo (botão direito do take).
+226. ARRASTAR NÃO SELECIONA TEXTO (dono 24/11, regra para todas as ferramentas): layout.js põe html.bw-arrastando quando o arrasto começa num item
+     arrastável (data-arr/mid/clip, botão, canvas, img…) e passa de 3 px — user-select none na página toda + selectstart barrado + seleção limpa;
+     campo de digitar e texto comum continuam selecionáveis (auto: teste_arrasto_selecao.py).
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -2626,6 +2638,15 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
 - 24/11/2026 19:00 · Claude: APP BW 1.9.44 publicado (pacote, app-versao.json, cópia sem internet com o site de hoje — editor de fotos com camadas/efeitos,
   editor de vídeo com TELAS/MOTIONS/elementos do Criador, Álbum 3D com quantidade e tamanho —, tutorial e novidades). teste-app 0 falhas. BW-Setup.exe 1.9.44:
   depende do PC do dono (quem já tem o app atualiza sozinho).
+- 24/11/2026 19:05 · Claude (dono: "telas verdes rodando o efeito… em todas… dê vida… efeitos IA de textos com pessoas… mais realista e moderno";
+  "remover atributos no vídeo"; "clicar numa transição aplicada deve abrir excluir e tempo"; "trave as seleções no arrasto, em todas as ferramentas"):
+  EDITOR DE VÍDEO — PRÉVIAS VIVAS em toda a biblioteca (Transições e Telas com A = palco que sai e B = apresentador no fundo verde que entra; Efeitos
+  com ANTES|DEPOIS; Texto, Motions, Elementos, divisões e pacotes rodando) e nos AJUSTES (movimento do texto em cartões, ATRÁS/NA FRENTE da pessoa,
+  PESSOA E FUNDO (IA) com exemplo ao vivo e um cartão por fundo/contorno, modelos de efeito). 3 fotos de amostra criadas pela IA da plataforma (conta ADM,
+  pessoas inventadas) em trends/amostras. Menu do take ⟲ REMOVER ATRIBUTOS (Ctrl+Z desfaz). Transição aplicada: ver, tempo, mais rápida/lenta,
+  trocar, usar em todas, ajustes, EXCLUIR. layout.js: arrastar não seleciona texto em nenhuma página. Testes novos teste_video_vivo e
+  teste_arrasto_selecao (0 falhas); vídeo, telas, efeitos, motions, arrastar (ajustado à regra nova), opções, cor, atalhos, app, layout 0 falhas
+  (teste_mascara: as 2 falhas antigas). Manual 73 p. video-editor v38, layout v81, brightway.css v40, sw bw-mesa-v231. PENTE FINO 224–226.
 ## Pendências (dono)
 - [x] (24/11 18:28) BW-Setup.exe 1.9.44 gerado pelo dono e publicado (9,2 MB, versão conferida dentro do .exe).
 - [ ] (24/11 15:05) GOOGLE PLAY: dono PEDIU o D-U-N-S (Dun & Bradstreet, grátis, 5–30 dias). Quando chegar: criar a conta de ORGANIZAÇÃO em

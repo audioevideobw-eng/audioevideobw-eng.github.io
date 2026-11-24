@@ -675,6 +675,18 @@
     var tempo = ms === undefined || ms === null ? (tipo === "erro" ? 3600 : 1900) : ms;
     if (tempo > 0 && !/^⏳/.test(texto)) T = setTimeout(fechar, tempo);
   }
+  /* 24/11 (dono: "quando arrasto algo para aplicar, os textos ficam selecionando — trave as seleções no arrasto, em todas as ferramentas"):
+     arrasto que começa num item que se arrasta (cartão, botão, take, mídia, canvas, imagem…) trava a seleção de texto da página inteira até soltar.
+     Arrastar dentro de campo de digitar e selecionar texto comum continuam normais. */
+  (function () { var ini = null, ITEM = "[data-arr],[data-mid],[data-som],[data-clip],[data-texto],[data-elem],[data-junta],[data-cena],[draggable=true],button,[role=button],canvas,img,video,.ve-item,.bwf-pega,.ve-pega";
+    function limpar() { try { var s = window.getSelection(); if (s && s.rangeCount && !(document.activeElement && /^(INPUT|TEXTAREA)$/.test(document.activeElement.tagName))) s.removeAllRanges(); } catch (e) {} }
+    function fim() { ini = null; if (document.documentElement.classList.contains("bw-arrastando")) { document.documentElement.classList.remove("bw-arrastando"); limpar(); } }
+    document.addEventListener("pointerdown", function (e) { if (e.button > 0) return; var t = e.target; if (!t || !t.closest || t.closest("input,textarea,select,[contenteditable=true],[contenteditable='']")) { ini = null; return; }
+      ini = t.closest(ITEM) ? {x: e.clientX, y: e.clientY} : null; }, true);
+    document.addEventListener("pointermove", function (e) { if (!ini || !e.buttons) return; if (!document.documentElement.classList.contains("bw-arrastando") && Math.hypot(e.clientX - ini.x, e.clientY - ini.y) > 3) { document.documentElement.classList.add("bw-arrastando"); limpar(); } }, true);
+    document.addEventListener("selectstart", function (e) { if (document.documentElement.classList.contains("bw-arrastando") || (ini && !(e.target && e.target.closest && e.target.closest("input,textarea,[contenteditable]")))) e.preventDefault(); }, true);
+    ["pointerup", "pointercancel", "dragend", "blur"].forEach(function (ev) { (ev === "blur" ? window : document).addEventListener(ev, fim, true); });
+  })();
   window.BWAviso = mostrar;
   window.BWAviso.erro = function (t, ms) { mostrar(t, "erro", ms); };
   window.BWAviso.ok = function (t, ms) { mostrar(t, "ok", ms); };
