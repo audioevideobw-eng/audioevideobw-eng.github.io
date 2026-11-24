@@ -653,3 +653,20 @@ Armadilha: classe de ESTADO não serve para destacar botão. `＋ IMPORTAR` usav
   com Playwright `_electron.launch`. Navegação dentro de `evaluate` derruba o contexto: dispare com `.catch(() => {})` e espere o `waitForURL`.
 - Python que recorta texto com `s.index(a):s.index(b)`: confira que `b` vem DEPOIS de `a` (o "ligado = true" do topo veio antes e o replace de ''
   encheu o arquivo inteiro). Recorte sempre com `s.index(b, ia)`.
+
+## App Android com Capacitor sem copiar o site (24/11/2026)
+- Projeto em `docs/app-android` (Capacitor 8.6): `server.url` aponta para o site no ar; `appendUserAgent "BW-Android/1.0"` deixa o site saber que está no app
+  (modos.js carrega `assets/bw-android.js`: some `.so-web` e o login Google; `<a download>` com blob:/data: vira arquivo no cache + COMPARTILHAR).
+- O .apk é montado no GitHub Actions (`.github/workflows/android.yml`) — aqui a rede recusa SDK/Gradle/Maven. Push de workflow funciona; a API de Actions
+  (segredos, execuções) é recusada pelo proxy: segredos são cadastrados pelo dono no navegador.
+- Sem internet: `montar-offline.py` copia o site + bibliotecas de CDN (`cdn.json`, nomes por hash: URL sem extensão colidia com pasta) para `assets/offline`;
+  `BwClient` (subclasse de BridgeWebViewClient) só entrega a cópia quando o ConnectivityManager diz "sem rede" e injeta o Capacitor por reflexão (`jsInjector`).
+- Assinatura: sem `BW_KEYSTORE_B64`/`BW_KEYSTORE_SENHA` cada build usa a chave de teste da máquina → atualizar exige desinstalar. Chave gerada com keytool
+  (RSA 4096, alias bw, 100 anos); a cópia do dono fica em `Vídeos\bw-reels-studio\CHAVE-ANDROID` (fora do instalador: /XD no GERAR-INSTALADOR e FORA no publicar-app).
+- Teste: `docs/testes/teste_android.py` (Capacitor simulado: classe bw-android, Google escondido, blob de 7 MB gravado em 3 pedaços iguais, Share chamado).
+
+## Programa BW (Electron) vira o principal (24/11/2026)
+- O npm pode trazer `node_modules/electron` SEM `dist/` (download do postinstall falhou calado): rodar `node node_modules/electron/install.js` direto.
+- Troca de principal sem quebrar ninguém: o atalho de sempre (BW-REELS.bat) abre `programa\BW.exe` quando existe; senão abre o antigo e monta o programa por trás.
+  `--classico` abre o antigo. Ao conferir no PC do dono, procure o BW.exe pelo `computer_list_apps`/`resolve_access` (dá o caminho real) — ele estava em
+  `Vídeos\bw-reels-studio\programa`, não na cópia instalada em AppData.
