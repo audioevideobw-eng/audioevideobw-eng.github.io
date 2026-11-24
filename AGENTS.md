@@ -2567,6 +2567,13 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   Vigia (SEM_MENU + página obrigatória) ✅; teste no navegador (PC, Android, iPhone 13: 0 erro, 0 estouro, recomendado certo, links ok),
   teste_layout e teste_rolagem 0 falhas. Manual p. "O BW no computador…" aponta para DOWNLOADS. App BW: não muda (lá o menu esconde o que é só web).
   layout.js v79, sw v223.
+- 24/11/2026 17:20 · Claude (dono: "organizar as ferramentas em blocos — edição de foto e vídeo, motion, 3D e álbuns 3D, ferramentas de texto; bem visual,
+  fácil de entender, bonito e moderno"): FERRAMENTAS e MARKETING em BLOCOS com cor própria, ícone grande, quantidade de ferramentas e seta para
+  abrir/fechar (BWDobras, lembrado no aparelho) + barra de ATALHOS no alto (toque abre o bloco e rola até ele) + ▸ FECHAR TUDO / ▾ ABRIR TUDO.
+  Blocos: 🎬 Edição de foto e vídeo · ✨ Motion · 🧊 3D e álbuns 3D · 🎨 Criação com IA · ✍️ Ferramentas de texto (+ em Ferramentas: 📄 Documentos e
+  contas · 🤝 Clientes e preços · 💱 Finanças, viagem e notícias). Nenhuma ferramenta saiu (23 + 18 cartões conferidos). Atalhos com letra na cor
+  da página (no modo claro ficavam brancos) e título do bloco em grade (no celular quebrava palavra por palavra). 1280/390: 0 erro, 0 estouro;
+  vigia ✅. sw v224. App BW: a cópia sem internet ganha os blocos no próximo pacote.
 
 ## Pendências (dono)
 - [ ] (24/11 15:05) GOOGLE PLAY: dono PEDIU o D-U-N-S (Dun & Bradstreet, grátis, 5–30 dias). Quando chegar: criar a conta de ORGANIZAÇÃO em

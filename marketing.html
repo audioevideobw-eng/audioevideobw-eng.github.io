@@ -19,32 +19,85 @@
 .motor-bt{margin-left:auto}
 </style>
 <script src="assets/modos.js?v=9"></script>
+<style>
+/* 24/11: ferramentas em BLOCOS visuais (cor por bloco, ícone grande, contagem, atalhos no topo; a seta do título abre/fecha) */
+.ferr-topo{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.ferr-todas{display:flex;gap:6px;flex-wrap:wrap}
+.ferr-todas .bw-btn{font-size:11px;padding:6px 10px;min-height:0}
+.ferr-mapa{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 4px}
+.ferr-mapa a{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:999px;font-size:12px;font-weight:700;letter-spacing:.04em;text-decoration:none;color:inherit;border:1px solid color-mix(in srgb,var(--c) 55%,transparent);background:color-mix(in srgb,var(--c) 14%,transparent);transition:transform .15s,background .15s}
+.ferr-mapa a:hover{transform:translateY(-1px);background:color-mix(in srgb,var(--c) 26%,transparent)}
+.ferr-bloco{position:relative;margin-top:16px;padding:0 14px 6px;border-radius:18px;border:1px solid color-mix(in srgb,var(--c) 35%,transparent);background:linear-gradient(180deg,color-mix(in srgb,var(--c) 12%,transparent),rgba(255,255,255,.015) 70px);scroll-margin-top:80px;overflow:hidden}
+.ferr-bloco::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--c)}
+.ferr-bloco>h3{display:grid;grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:'ico tit seta' 'ico cont seta';align-items:center;column-gap:12px;row-gap:4px;margin:0;padding:14px 0 6px;font-size:15px;letter-spacing:.08em;cursor:pointer}
+.ferr-bloco>h3[data-seta]{display:grid!important}
+.ferr-bloco>h3::after{grid-area:seta;color:var(--c)}
+.ferr-ico{grid-area:ico;display:grid;place-items:center;width:42px;height:42px;border-radius:12px;font-size:22px;background:color-mix(in srgb,var(--c) 24%,transparent);box-shadow:0 0 0 1px color-mix(in srgb,var(--c) 45%,transparent) inset,0 6px 18px color-mix(in srgb,var(--c) 22%,transparent)}
+.ferr-tit{grid-area:tit;min-width:0;line-height:1.25}
+.ferr-cont{grid-area:cont;justify-self:start;font-size:11px;font-weight:700;letter-spacing:.04em;padding:3px 9px;border-radius:999px;color:var(--c);border:1px solid color-mix(in srgb,var(--c) 45%,transparent)}
+.ferr-bloco>.sub{margin:0 0 12px 54px;font-size:13px;opacity:.78}
+.ferr-bloco>h3.fechada{padding-bottom:14px}
+.ferr-bloco .menu-card{border-color:color-mix(in srgb,var(--c) 30%,transparent)}
+@media (max-width:480px){.ferr-bloco>.sub{margin-left:0}.ferr-ico{width:36px;height:36px;font-size:19px}.ferr-bloco>h3{font-size:13px}}
+</style>
 </head>
 <body>
 <header><div class="hd"><button id="btnVoltar" type="button">‹</button><div id="userBox"></div></div></header>
 <div class="wrap">
   <div class="tf-card" style="margin-top:0">
-    <h3>Marketing — escolha a ferramenta</h3>
+    <div class="ferr-topo"><h3 style="margin:0">Marketing — escolha a ferramenta</h3>
+      <div class="ferr-todas"><button type="button" class="bw-btn" onclick="BWDobras.todas(document.querySelector('.ferr-lista'),false)">▸ FECHAR TUDO</button><button type="button" class="bw-btn" onclick="BWDobras.todas(document.querySelector('.ferr-lista'),true)">▾ ABRIR TUDO</button></div></div>
     <p class="tf-sub">Fotos, textos, ideias e legendas — com IA. As fotos são editadas no seu aparelho, sem enviar para servidores.</p>
-    <div class="bw-grid">
-      <a class="menu-card" href="reels.html" title="BW Reels Pro — Reels, Shorts e TikToks cinematográficos com IA: gancho, roteiro com fontes, linha do tempo e prévia ao vivo; o vídeo final sai pelo motor no seu PC."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="2" width="12" height="20" rx="2.5"/><path d="M10.5 9.5v5l4-2.5z"/><path d="M9 18.5h6"/></svg></span><span class="nome">BW REELS PRO</span></a>
-      <a class="menu-card" href="promptia.html" title="Trends virais feitas com IA: veja o exemplo, copie o prompt e saiba onde fazer. Envie o print de uma trend e a IA explica como reproduzir."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/><path d="m12 7.5 1 2.3 2.3 1-2.3 1-1 2.3-1-2.3-2.3-1 2.3-1z"/></svg></span><span class="nome">PROMPT IA</span></a>
-      <a class="menu-card" href="personagens.html" title="Crie personagens conversando com o agente (ficha + prompt), gere a imagem e use no Quadro de História e no BW Reels."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.2-5.5 6.5-5.5s5.9 1.9 6.5 5.5"/><path d="m18 3 .9 2.1L21 6l-2.1.9L18 9l-.9-2.1L15 6l2.1-.9z"/></svg></span><span class="nome">PERSONAGENS</span></a>
-      <a class="menu-card" href="video.html" title="Linha do tempo em camadas: junte vídeos, imagens e criações de IA, ponha textos, trilha e efeitos sonoros e exporte o vídeo."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="11" rx="2"/><path d="m10 7.5 4 2-4 2z"/><path d="M3 19h7M13 19h8M10 17.5v3"/></svg></span><span class="nome">EDITOR DE VÍDEO</span></a>
-      <a class="menu-card" href="motion.html" title="Biblioteca de itens com efeitos prontos, keyframes e motion automático; vídeo com fundo para chroma key ou transparente."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 18c3-9 6-12 9-12"/><circle cx="16" cy="6" r="2.5"/><path d="M4 18h16"/><path d="M8 14l2 2M14 10l2 2"/><path d="m19 3 .6 1.4L21 5l-1.4.6L19 7l-.6-1.4L17 5l1.4-.6z"/></svg></span><span class="nome">ESTÚDIO DE MOTION</span></a>
-      <a class="menu-card" href="telas.html" title="Fotos e takes dentro de divisões de tela e transições geométricas (tiras, mosaico, cacos, painéis 3D), no ritmo da música."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="8" rx="1.5" transform="rotate(8 17 7)"/><rect x="3" y="13" width="8" height="8" rx="1.5" transform="rotate(-8 7 17)"/><path d="M14 14l6 6M20 14l-6 6"/></svg></span><span class="nome">TELAS EM MOVIMENTO</span></a>
-      <a class="menu-card" href="album3d.html" title="Modelos prontos em 3D: anel, carrossel, cascata, livro de fotos, polaroids, varal e efeitos 3D de tela cheia — só trocar os números pelas suas fotos e vídeos."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="13" rx="9" ry="4"/><rect x="5" y="5" width="5" height="7" rx="1" transform="rotate(-12 7.5 8.5)"/><rect x="10" y="4" width="5" height="7" rx="1"/><rect x="15" y="5" width="5" height="7" rx="1" transform="rotate(12 17.5 8.5)"/></svg></span><span class="nome">ÁLBUM 3D E EFEITOS</span></a>
-      <a class="menu-card" href="3d.html" title="Modelo 3D, logo em relevo, maquete de palco com painéis de LED (com a resolução em pixels do telão) e pedido pronto para IA de 3D — vídeo do giro feito no aparelho."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.6 20.5 7v10L12 21.4 3.5 17V7z"/><path d="M12 2.6V21.4M20.5 7 12 11.6 3.5 7"/></svg></span><span class="nome">ESTÚDIO 3D</span></a>
-      <a class="menu-card" href="criador.html" title="Convites, posts, flyers e cartões de visita com arte feita por IA — textos sem erro, no formato certo."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 1.8 4.7L18.5 9l-4.7 1.8L12 15.5l-1.8-4.7L5.5 9l4.7-1.3z"/><path d="M19 15l.9 2.1L22 18l-2.1.9L19 21l-.9-2.1L16 18l2.1-.9zM5 15l.7 1.6L7.3 17l-1.6.7L5 19.3l-.7-1.6L2.7 17l1.6-.4z"/></svg></span><span class="nome">CRIADOR IA</span></a>
-      <a class="menu-card" href="fotos.html" title="Logo automática, bordas, ajustes e filtros — em uma foto ou em todas do evento."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="15" rx="2"/><circle cx="9" cy="11" r="2"/><path d="m21 17-5-5-8 8"/></svg></span><span class="nome">EDITOR DE FOTOS</span></a>
-      <a class="menu-card" href="assistente.html#legenda" title="Legenda pronta para Instagram, TikTok ou LinkedIn — com hashtags e chamada para orçamento."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M8 9h8M8 13h5"/></svg></span><span class="nome">LEGENDA DE POST</span></a>
-      <a class="menu-card" href="assistente.html#ideias" title="Lista de ideias de posts e vídeos para o seu negócio."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/></svg></span><span class="nome">IDEIAS DE CONTEÚDO</span></a>
-      <a class="menu-card" href="assistente.html#email" title="Proposta, confirmação, agradecimento ou lembrete de pagamento — por e-mail ou WhatsApp."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg></span><span class="nome">E-MAIL AO CLIENTE</span></a>
-      <a class="menu-card" href="assistente.html#revisar" title="Corrige o português ou deixa o texto mais profissional, descontraído ou curto."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></span><span class="nome">REVISAR TEXTO</span></a>
-      <a class="menu-card" href="assistente.html#traduzir" title="Traduz para inglês, espanhol, francês, italiano ou alemão."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h8M8 3v2M6 5c0 4 3 7 6 8M10 5c0 4-3 7-6 8"/><path d="m13 21 4-9 4 9M14.5 18h5"/></svg></span><span class="nome">TRADUZIR</span></a>
-      <a class="menu-card" href="assistente.html#resumo" title="Resume briefing, reunião ou e-mail longo em tópicos ou lista de tarefas."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 10h16M4 14h10M4 18h6"/></svg></span><span class="nome">RESUMIR</span></a>
-      <a class="menu-card" href="transcricao.html" title="Áudio ou vídeo vira texto — briefing, reunião, entrevista."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 17v4M8 21h8"/></svg></span><span class="nome">TRANSCRIÇÃO</span></a>
-      <a class="menu-card" href="transcricao.html" title="Gera legendas .srt / .vtt do vídeo do evento para o editor."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M7 13h3M13 13h4M7 16h6M15 16h2"/></svg></span><span class="nome">LEGENDAS DE VÍDEO</span></a>
+    <nav class="ferr-mapa" aria-label="Blocos de ferramentas"><a href="#bloco-edicao" style="--c:#4C8DFF">🎬 EDIÇÃO DE FOTO E VÍDEO</a><a href="#bloco-motion" style="--c:#B36BFF">✨ MOTION</a><a href="#bloco-3d" style="--c:#22C7D6">🧊 3D E ÁLBUNS 3D</a><a href="#bloco-ia" style="--c:#FF5FA2">🎨 CRIAÇÃO COM IA</a><a href="#bloco-texto" style="--c:#FFB547">✍️ FERRAMENTAS DE TEXTO</a></nav>
+    <div class="ferr-lista">
+    <section class="ferr-bloco" id="bloco-edicao" style="--c:#4C8DFF">
+      <h3 data-seta="mkt_edicao"><span class="ferr-ico">🎬</span><span class="ferr-tit">EDIÇÃO DE FOTO E VÍDEO</span><span class="ferr-cont">3 ferramentas</span></h3>
+      <div class="sub">Editar fotos e vídeos e montar Reels — a linha do tempo é o centro.</div>
+      <div class="bw-grid">
+        <a class="menu-card" href="video.html" title="Linha do tempo em camadas: junte vídeos, imagens e criações de IA, ponha textos, trilha e efeitos sonoros e exporte o vídeo."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="11" rx="2"/><path d="m10 7.5 4 2-4 2z"/><path d="M3 19h7M13 19h8M10 17.5v3"/></svg></span><span class="nome">EDITOR DE VÍDEO</span></a>
+        <a class="menu-card" href="fotos.html" title="Logo automática, bordas, ajustes e filtros — em uma foto ou em todas do evento."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="15" rx="2"/><circle cx="9" cy="11" r="2"/><path d="m21 17-5-5-8 8"/></svg></span><span class="nome">EDITOR DE FOTOS</span></a>
+        <a class="menu-card" href="reels.html" title="BW Reels Pro — Reels, Shorts e TikToks cinematográficos com IA: gancho, roteiro com fontes, linha do tempo e prévia ao vivo; o vídeo final sai pelo motor no seu PC."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="2" width="12" height="20" rx="2.5"/><path d="M10.5 9.5v5l4-2.5z"/><path d="M9 18.5h6"/></svg></span><span class="nome">BW REELS PRO</span></a>
+      </div>
+    </section>
+    <section class="ferr-bloco" id="bloco-motion" style="--c:#B36BFF">
+      <h3 data-seta="mkt_motion"><span class="ferr-ico">✨</span><span class="ferr-tit">MOTION</span><span class="ferr-cont">2 ferramentas</span></h3>
+      <div class="sub">Textos, itens e telas que se mexem, com efeitos e keyframes.</div>
+      <div class="bw-grid">
+        <a class="menu-card" href="motion.html" title="Biblioteca de itens com efeitos prontos, keyframes e motion automático; vídeo com fundo para chroma key ou transparente."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 18c3-9 6-12 9-12"/><circle cx="16" cy="6" r="2.5"/><path d="M4 18h16"/><path d="M8 14l2 2M14 10l2 2"/><path d="m19 3 .6 1.4L21 5l-1.4.6L19 7l-.6-1.4L17 5l1.4-.6z"/></svg></span><span class="nome">ESTÚDIO DE MOTION</span></a>
+        <a class="menu-card" href="telas.html" title="Fotos e takes dentro de divisões de tela e transições geométricas (tiras, mosaico, cacos, painéis 3D), no ritmo da música."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="8" rx="1.5" transform="rotate(8 17 7)"/><rect x="3" y="13" width="8" height="8" rx="1.5" transform="rotate(-8 7 17)"/><path d="M14 14l6 6M20 14l-6 6"/></svg></span><span class="nome">TELAS EM MOVIMENTO</span></a>
+      </div>
+    </section>
+    <section class="ferr-bloco" id="bloco-3d" style="--c:#22C7D6">
+      <h3 data-seta="mkt_3d"><span class="ferr-ico">🧊</span><span class="ferr-tit">3D E ÁLBUNS 3D</span><span class="ferr-cont">2 ferramentas</span></h3>
+      <div class="sub">Modelos, logo em relevo, palco e LED, álbuns e efeitos em 3D.</div>
+      <div class="bw-grid">
+        <a class="menu-card" href="3d.html" title="Modelo 3D, logo em relevo, maquete de palco com painéis de LED (com a resolução em pixels do telão) e pedido pronto para IA de 3D — vídeo do giro feito no aparelho."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.6 20.5 7v10L12 21.4 3.5 17V7z"/><path d="M12 2.6V21.4M20.5 7 12 11.6 3.5 7"/></svg></span><span class="nome">ESTÚDIO 3D</span></a>
+        <a class="menu-card" href="album3d.html" title="Modelos prontos em 3D: anel, carrossel, cascata, livro de fotos, polaroids, varal e efeitos 3D de tela cheia — só trocar os números pelas suas fotos e vídeos."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="13" rx="9" ry="4"/><rect x="5" y="5" width="5" height="7" rx="1" transform="rotate(-12 7.5 8.5)"/><rect x="10" y="4" width="5" height="7" rx="1"/><rect x="15" y="5" width="5" height="7" rx="1" transform="rotate(12 17.5 8.5)"/></svg></span><span class="nome">ÁLBUM 3D E EFEITOS</span></a>
+      </div>
+    </section>
+    <section class="ferr-bloco" id="bloco-ia" style="--c:#FF5FA2">
+      <h3 data-seta="mkt_ia"><span class="ferr-ico">🎨</span><span class="ferr-tit">CRIAÇÃO COM IA</span><span class="ferr-cont">3 ferramentas</span></h3>
+      <div class="sub">Artes, convites, personagens e prompts de trends.</div>
+      <div class="bw-grid">
+        <a class="menu-card" href="criador.html" title="Convites, posts, flyers e cartões de visita com arte feita por IA — textos sem erro, no formato certo."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 1.8 4.7L18.5 9l-4.7 1.8L12 15.5l-1.8-4.7L5.5 9l4.7-1.3z"/><path d="M19 15l.9 2.1L22 18l-2.1.9L19 21l-.9-2.1L16 18l2.1-.9zM5 15l.7 1.6L7.3 17l-1.6.7L5 19.3l-.7-1.6L2.7 17l1.6-.4z"/></svg></span><span class="nome">CRIADOR IA</span></a>
+        <a class="menu-card" href="personagens.html" title="Crie personagens conversando com o agente (ficha + prompt), gere a imagem e use no Quadro de História e no BW Reels."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.2-5.5 6.5-5.5s5.9 1.9 6.5 5.5"/><path d="m18 3 .9 2.1L21 6l-2.1.9L18 9l-.9-2.1L15 6l2.1-.9z"/></svg></span><span class="nome">PERSONAGENS</span></a>
+        <a class="menu-card" href="promptia.html" title="Trends virais feitas com IA: veja o exemplo, copie o prompt e saiba onde fazer. Envie o print de uma trend e a IA explica como reproduzir."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/><path d="m12 7.5 1 2.3 2.3 1-2.3 1-1 2.3-1-2.3-2.3-1 2.3-1z"/></svg></span><span class="nome">PROMPT IA</span></a>
+      </div>
+    </section>
+    <section class="ferr-bloco" id="bloco-texto" style="--c:#FFB547">
+      <h3 data-seta="mkt_texto"><span class="ferr-ico">✍️</span><span class="ferr-tit">FERRAMENTAS DE TEXTO</span><span class="ferr-cont">8 ferramentas</span></h3>
+      <div class="sub">Legenda, ideias, e-mail, revisão, tradução, resumo e fala virando texto e legenda.</div>
+      <div class="bw-grid">
+        <a class="menu-card" href="assistente.html#legenda" title="Legenda pronta para Instagram, TikTok ou LinkedIn — com hashtags e chamada para orçamento."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M8 9h8M8 13h5"/></svg></span><span class="nome">LEGENDA DE POST</span></a>
+        <a class="menu-card" href="assistente.html#ideias" title="Lista de ideias de posts e vídeos para o seu negócio."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/></svg></span><span class="nome">IDEIAS DE CONTEÚDO</span></a>
+        <a class="menu-card" href="assistente.html#email" title="Proposta, confirmação, agradecimento ou lembrete de pagamento — por e-mail ou WhatsApp."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg></span><span class="nome">E-MAIL AO CLIENTE</span></a>
+        <a class="menu-card" href="assistente.html#revisar" title="Corrige o português ou deixa o texto mais profissional, descontraído ou curto."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></span><span class="nome">REVISAR TEXTO</span></a>
+        <a class="menu-card" href="assistente.html#traduzir" title="Traduz para inglês, espanhol, francês, italiano ou alemão."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h8M8 3v2M6 5c0 4 3 7 6 8M10 5c0 4-3 7-6 8"/><path d="m13 21 4-9 4 9M14.5 18h5"/></svg></span><span class="nome">TRADUZIR</span></a>
+        <a class="menu-card" href="assistente.html#resumo" title="Resume briefing, reunião ou e-mail longo em tópicos ou lista de tarefas."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 10h16M4 14h10M4 18h6"/></svg></span><span class="nome">RESUMIR</span></a>
+        <a class="menu-card" href="transcricao.html" title="Áudio ou vídeo vira texto — briefing, reunião, entrevista."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 17v4M8 21h8"/></svg></span><span class="nome">TRANSCRIÇÃO</span></a>
+        <a class="menu-card" href="transcricao.html" title="Gera legendas .srt / .vtt do vídeo do evento para o editor."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M7 13h3M13 13h4M7 16h6M15 16h2"/></svg></span><span class="nome">LEGENDAS DE VÍDEO</span></a>
+      </div>
+    </section>
     </div>
     <p class="tf-nota">Captar clientes, funil e indicadores ficam no <a href="crm.html" style="color:#FFB547">CRM</a>.</p>
   </div>
@@ -72,6 +125,10 @@
   if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(function () { });
 
 })();
+</script>
+<script>
+/* atalho do topo: abre o bloco (se estava fechado) e rola até ele */
+document.addEventListener("click",function(e){var a=e.target.closest&&e.target.closest(".ferr-mapa a");if(!a)return;var b=document.getElementById(a.getAttribute("href").slice(1));if(!b)return;e.preventDefault();var h=b.querySelector("h3");if(h&&h.classList.contains("fechada"))h.click();b.scrollIntoView({behavior:"smooth",block:"start"});});
 </script>
 </body>
 </html>

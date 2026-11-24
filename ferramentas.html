@@ -224,6 +224,27 @@ footer b{color:var(--gold)}
 @media(max-width:899px){#evDossie{grid-template-columns:1fr}}
 </style>
 <script src="assets/modos.js?v=9"></script>
+<style>
+/* 24/11: ferramentas em BLOCOS visuais (cor por bloco, ícone grande, contagem, atalhos no topo; a seta do título abre/fecha) */
+.ferr-topo{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.ferr-todas{display:flex;gap:6px;flex-wrap:wrap}
+.ferr-todas .bw-btn{font-size:11px;padding:6px 10px;min-height:0}
+.ferr-mapa{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 4px}
+.ferr-mapa a{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:999px;font-size:12px;font-weight:700;letter-spacing:.04em;text-decoration:none;color:inherit;border:1px solid color-mix(in srgb,var(--c) 55%,transparent);background:color-mix(in srgb,var(--c) 14%,transparent);transition:transform .15s,background .15s}
+.ferr-mapa a:hover{transform:translateY(-1px);background:color-mix(in srgb,var(--c) 26%,transparent)}
+.ferr-bloco{position:relative;margin-top:16px;padding:0 14px 6px;border-radius:18px;border:1px solid color-mix(in srgb,var(--c) 35%,transparent);background:linear-gradient(180deg,color-mix(in srgb,var(--c) 12%,transparent),rgba(255,255,255,.015) 70px);scroll-margin-top:80px;overflow:hidden}
+.ferr-bloco::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--c)}
+.ferr-bloco>h3{display:grid;grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:'ico tit seta' 'ico cont seta';align-items:center;column-gap:12px;row-gap:4px;margin:0;padding:14px 0 6px;font-size:15px;letter-spacing:.08em;cursor:pointer}
+.ferr-bloco>h3[data-seta]{display:grid!important}
+.ferr-bloco>h3::after{grid-area:seta;color:var(--c)}
+.ferr-ico{grid-area:ico;display:grid;place-items:center;width:42px;height:42px;border-radius:12px;font-size:22px;background:color-mix(in srgb,var(--c) 24%,transparent);box-shadow:0 0 0 1px color-mix(in srgb,var(--c) 45%,transparent) inset,0 6px 18px color-mix(in srgb,var(--c) 22%,transparent)}
+.ferr-tit{grid-area:tit;min-width:0;line-height:1.25}
+.ferr-cont{grid-area:cont;justify-self:start;font-size:11px;font-weight:700;letter-spacing:.04em;padding:3px 9px;border-radius:999px;color:var(--c);border:1px solid color-mix(in srgb,var(--c) 45%,transparent)}
+.ferr-bloco>.sub{margin:0 0 12px 54px;font-size:13px;opacity:.78}
+.ferr-bloco>h3.fechada{padding-bottom:14px}
+.ferr-bloco .menu-card{border-color:color-mix(in srgb,var(--c) 30%,transparent)}
+@media (max-width:480px){.ferr-bloco>.sub{margin-left:0}.ferr-ico{width:36px;height:36px;font-size:19px}.ferr-bloco>h3{font-size:13px}}
+</style>
 </head>
 <body>
 <header><div class="hd">
@@ -282,33 +303,82 @@ footer b{color:var(--gold)}
 <!-- ================= FERRAMENTAS ================= -->
   <h2 id="ferramentas" style="margin-top:0">Ferramentas</h2>
   <div class="card">
-    <h3>FERRAMENTAS — escolha a sua</h3>
-    <div class="sub">Atalhos para as ferramentas do dia a dia, com IA onde ajuda.</div>
-    <div class="bw-grid">
-      <a class="menu-card" href="leitor.html" title="PDF ou foto de conta, boleto ou comprovante → lê no aparelho e lança onde você escolher."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7V5a1 1 0 0 1 1-1h2M17 4h2a1 1 0 0 1 1 1v2M20 17v2a1 1 0 0 1-1 1h-2M7 20H5a1 1 0 0 1-1-1v-2"/><path d="M8 9h8M8 12h8M8 15h5"/></svg></span><span class="nome">LEITOR DE CONTAS</span></a>
-      <a class="menu-card" href="assistente.html" title="Legendas, e-mails, resumos, revisão e tradução com IA no seu aparelho."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.8 4.2L18 9l-4.2 1.8L12 15l-1.8-4.2L6 9l4.2-1.8z"/><path d="M19 15l.9 2.1L22 18l-2.1.9L19 21l-.9-2.1L16 18l2.1-.9z"/></svg></span><span class="nome">ASSISTENTE DE TEXTO</span></a>
-      <a class="menu-card" href="transcricao.html" title="Áudio ou vídeo vira texto e legendas .srt — no seu aparelho."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 17v4M8 21h8"/></svg></span><span class="nome">TRANSCRIÇÃO</span></a>
-      <a class="menu-card" href="pdf.html" title="Juntar, separar, assinar, marca d'água e fotos → PDF — sem enviar o arquivo."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6"/><path d="M8 13h8M8 17h5"/></svg></span><span class="nome">PDF</span></a>
-      <a class="menu-card" href="crm.html" title="Funil de clientes, agente de vendas com IA e indicadores."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h18l-7 8v6l-4 2v-8z"/></svg></span><span class="nome">CRM</span></a>
-      <a class="menu-card" href="reels.html" title="BW Reels Pro — Reels, Shorts e TikToks cinematográficos com IA: gancho, roteiro com fontes, linha do tempo e prévia ao vivo; o vídeo final sai pelo motor no seu PC."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="2" width="12" height="20" rx="2.5"/><path d="M10.5 9.5v5l4-2.5z"/><path d="M9 18.5h6"/></svg></span><span class="nome">BW REELS PRO</span></a>
-      <a class="menu-card" href="promptia.html" title="Trends virais feitas com IA: veja o exemplo, copie o prompt e saiba onde fazer. Envie o print de uma trend e a IA explica como reproduzir."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/><path d="m12 7.5 1 2.3 2.3 1-2.3 1-1 2.3-1-2.3-2.3-1 2.3-1z"/></svg></span><span class="nome">PROMPT IA</span></a>
-      <a class="menu-card" href="personagens.html" title="Crie personagens conversando com o agente (ficha + prompt), gere a imagem e use no Quadro de História e no BW Reels."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.2-5.5 6.5-5.5s5.9 1.9 6.5 5.5"/><path d="m18 3 .9 2.1L21 6l-2.1.9L18 9l-.9-2.1L15 6l2.1-.9z"/></svg></span><span class="nome">PERSONAGENS</span></a>
-      <a class="menu-card" href="video.html" title="Linha do tempo em camadas: junte vídeos, imagens e criações de IA, ponha textos, trilha e efeitos sonoros e exporte o vídeo."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="11" rx="2"/><path d="m10 7.5 4 2-4 2z"/><path d="M3 19h7M13 19h8M10 17.5v3"/></svg></span><span class="nome">EDITOR DE VÍDEO</span></a>
-      <a class="menu-card" href="motion.html" title="Biblioteca de itens com efeitos prontos, keyframes e motion automático; vídeo com fundo para chroma key ou transparente."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 18c3-9 6-12 9-12"/><circle cx="16" cy="6" r="2.5"/><path d="M4 18h16"/><path d="M8 14l2 2M14 10l2 2"/><path d="m19 3 .6 1.4L21 5l-1.4.6L19 7l-.6-1.4L17 5l1.4-.6z"/></svg></span><span class="nome">ESTÚDIO DE MOTION</span></a>
-      <a class="menu-card" href="telas.html" title="Fotos e takes dentro de divisões de tela e transições geométricas (tiras, mosaico, cacos, painéis 3D), no ritmo da música."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="8" rx="1.5" transform="rotate(8 17 7)"/><rect x="3" y="13" width="8" height="8" rx="1.5" transform="rotate(-8 7 17)"/><path d="M14 14l6 6M20 14l-6 6"/></svg></span><span class="nome">TELAS EM MOVIMENTO</span></a>
-      <a class="menu-card" href="album3d.html" title="Modelos prontos em 3D: anel, carrossel, cascata, livro de fotos, polaroids, varal e efeitos 3D de tela cheia — só trocar os números pelas suas fotos e vídeos."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="13" rx="9" ry="4"/><rect x="5" y="5" width="5" height="7" rx="1" transform="rotate(-12 7.5 8.5)"/><rect x="10" y="4" width="5" height="7" rx="1"/><rect x="15" y="5" width="5" height="7" rx="1" transform="rotate(12 17.5 8.5)"/></svg></span><span class="nome">ÁLBUM 3D E EFEITOS</span></a>
-      <a class="menu-card" href="3d.html" title="Modelo 3D, logo em relevo, maquete de palco com painéis de LED (com a resolução em pixels do telão) e pedido pronto para IA de 3D — vídeo do giro feito no aparelho."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.6 20.5 7v10L12 21.4 3.5 17V7z"/><path d="M12 2.6V21.4M20.5 7 12 11.6 3.5 7"/></svg></span><span class="nome">ESTÚDIO 3D</span></a>
-      <a class="menu-card" href="criador.html" title="Convites, posts, flyers e cartões de visita com arte feita por IA — textos sem erro, no formato certo."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 1.8 4.7L18.5 9l-4.7 1.8L12 15.5l-1.8-4.7L5.5 9l4.7-1.3z"/><path d="M19 15l.9 2.1L22 18l-2.1.9L19 21l-.9-2.1L16 18l2.1-.9zM5 15l.7 1.6L7.3 17l-1.6.7L5 19.3l-.7-1.6L2.7 17l1.6-.4z"/></svg></span><span class="nome">CRIADOR IA</span></a>
-      <a class="menu-card" href="fotos.html" title="Logo automática, bordas, ajustes e filtros nas fotos."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="15" rx="2"/><circle cx="9" cy="11" r="2"/><path d="m21 17-5-5-8 8"/></svg></span><span class="nome">EDITOR DE FOTOS</span></a>
-      <a class="menu-card" href="marketing.html" title="Todas as ferramentas de marketing."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11v2a1 1 0 0 0 1 1h2l5 4V6L6 10H4a1 1 0 0 0-1 1z"/><path d="M15 9a4 4 0 0 1 0 6M18 6a8 8 0 0 1 0 12"/></svg></span><span class="nome">MARKETING</span></a>
-      <a class="menu-card" href="calc.html" title="Custo real da compra de moeda com spread e IOF."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M8 6h8M8 11h.01M12 11h.01M16 11h.01M8 15h.01M12 15h.01M16 15h.01M8 19h8"/></svg></span><span class="nome">CALCULADORA DE CÂMBIO</span></a>
-      <a class="menu-card" href="viagem.html" title="Quanto rende o que você troca no destino."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg></span><span class="nome">CONVERSOR DE VIAGEM</span></a>
-      <a class="menu-card" href="preco.html" title="Custo + imposto + margem → quanto cobrar."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg></span><span class="nome">CALCULADORA DE PREÇO</span></a>
-      <a class="menu-card" href="invest.html" title="Poupança × CDB × Tesouro, já descontando o imposto."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/></svg></span><span class="nome">SIMULADOR DE RENDIMENTO</span></a>
-      <a class="menu-card" href="alertas.html" title="Avisa no celular quando a moeda chegar no valor que você quer."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 8-3 8h18s-3-1-3-8"/><path d="M10 21h4"/></svg></span><span class="nome">ALERTAS DE PREÇO</span></a>
-      <a class="menu-card" href="recs.html" title="Comprar moeda hoje ou esperar, vender ou segurar milhas."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg></span><span class="nome">RECOMENDAÇÕES</span></a>
-      <a class="menu-card" href="noticias.html" title="Manchetes do mercado ao longo do dia."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 8h10M7 12h10M7 16h6"/></svg></span><span class="nome">NOTÍCIAS</span></a>
-      <a class="menu-card" href="dados.html" title="Coleções organizadas do seu jeito, com busca."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></svg></span><span class="nome">MEUS DADOS</span></a>
+    <div class="ferr-topo"><h3 style="margin:0">FERRAMENTAS — escolha a sua</h3>
+      <div class="ferr-todas"><button type="button" class="bw-btn" onclick="BWDobras.todas(document.querySelector('.ferr-lista'),false)">▸ FECHAR TUDO</button><button type="button" class="bw-btn" onclick="BWDobras.todas(document.querySelector('.ferr-lista'),true)">▾ ABRIR TUDO</button></div></div>
+    <div class="sub">Organizadas em blocos. Toque no nome do bloco para fechar ou abrir.</div>
+    <nav class="ferr-mapa" aria-label="Blocos de ferramentas"><a href="#bloco-edicao" style="--c:#4C8DFF">🎬 EDIÇÃO DE FOTO E VÍDEO</a><a href="#bloco-motion" style="--c:#B36BFF">✨ MOTION</a><a href="#bloco-3d" style="--c:#22C7D6">🧊 3D E ÁLBUNS 3D</a><a href="#bloco-ia" style="--c:#FF5FA2">🎨 CRIAÇÃO COM IA</a><a href="#bloco-texto" style="--c:#FFB547">✍️ FERRAMENTAS DE TEXTO</a><a href="#bloco-docs" style="--c:#2FD08A">📄 DOCUMENTOS E CONTAS</a><a href="#bloco-vendas" style="--c:#FF8A4C">🤝 CLIENTES E PREÇOS</a><a href="#bloco-financas" style="--c:#7AD13F">💱 FINANÇAS, VIAGEM E NOTÍCIAS</a></nav>
+    <div class="ferr-lista">
+    <section class="ferr-bloco" id="bloco-edicao" style="--c:#4C8DFF">
+      <h3 data-seta="ferr_edicao"><span class="ferr-ico">🎬</span><span class="ferr-tit">EDIÇÃO DE FOTO E VÍDEO</span><span class="ferr-cont">3 ferramentas</span></h3>
+      <div class="sub">Editar fotos e vídeos e montar Reels — a linha do tempo é o centro.</div>
+      <div class="bw-grid">
+        <a class="menu-card" href="video.html" title="Linha do tempo em camadas: junte vídeos, imagens e criações de IA, ponha textos, trilha e efeitos sonoros e exporte o vídeo."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="11" rx="2"/><path d="m10 7.5 4 2-4 2z"/><path d="M3 19h7M13 19h8M10 17.5v3"/></svg></span><span class="nome">EDITOR DE VÍDEO</span></a>
+        <a class="menu-card" href="fotos.html" title="Logo automática, bordas, ajustes e filtros nas fotos."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="15" rx="2"/><circle cx="9" cy="11" r="2"/><path d="m21 17-5-5-8 8"/></svg></span><span class="nome">EDITOR DE FOTOS</span></a>
+        <a class="menu-card" href="reels.html" title="BW Reels Pro — Reels, Shorts e TikToks cinematográficos com IA: gancho, roteiro com fontes, linha do tempo e prévia ao vivo; o vídeo final sai pelo motor no seu PC."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="2" width="12" height="20" rx="2.5"/><path d="M10.5 9.5v5l4-2.5z"/><path d="M9 18.5h6"/></svg></span><span class="nome">BW REELS PRO</span></a>
+      </div>
+    </section>
+    <section class="ferr-bloco" id="bloco-motion" style="--c:#B36BFF">
+      <h3 data-seta="ferr_motion"><span class="ferr-ico">✨</span><span class="ferr-tit">MOTION</span><span class="ferr-cont">2 ferramentas</span></h3>
+      <div class="sub">Textos, itens e telas que se mexem, com efeitos e keyframes.</div>
+      <div class="bw-grid">
+        <a class="menu-card" href="motion.html" title="Biblioteca de itens com efeitos prontos, keyframes e motion automático; vídeo com fundo para chroma key ou transparente."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 18c3-9 6-12 9-12"/><circle cx="16" cy="6" r="2.5"/><path d="M4 18h16"/><path d="M8 14l2 2M14 10l2 2"/><path d="m19 3 .6 1.4L21 5l-1.4.6L19 7l-.6-1.4L17 5l1.4-.6z"/></svg></span><span class="nome">ESTÚDIO DE MOTION</span></a>
+        <a class="menu-card" href="telas.html" title="Fotos e takes dentro de divisões de tela e transições geométricas (tiras, mosaico, cacos, painéis 3D), no ritmo da música."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="8" rx="1.5" transform="rotate(8 17 7)"/><rect x="3" y="13" width="8" height="8" rx="1.5" transform="rotate(-8 7 17)"/><path d="M14 14l6 6M20 14l-6 6"/></svg></span><span class="nome">TELAS EM MOVIMENTO</span></a>
+      </div>
+    </section>
+    <section class="ferr-bloco" id="bloco-3d" style="--c:#22C7D6">
+      <h3 data-seta="ferr_3d"><span class="ferr-ico">🧊</span><span class="ferr-tit">3D E ÁLBUNS 3D</span><span class="ferr-cont">2 ferramentas</span></h3>
+      <div class="sub">Modelos, logo em relevo, palco e LED, álbuns e efeitos em 3D.</div>
+      <div class="bw-grid">
+        <a class="menu-card" href="3d.html" title="Modelo 3D, logo em relevo, maquete de palco com painéis de LED (com a resolução em pixels do telão) e pedido pronto para IA de 3D — vídeo do giro feito no aparelho."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.6 20.5 7v10L12 21.4 3.5 17V7z"/><path d="M12 2.6V21.4M20.5 7 12 11.6 3.5 7"/></svg></span><span class="nome">ESTÚDIO 3D</span></a>
+        <a class="menu-card" href="album3d.html" title="Modelos prontos em 3D: anel, carrossel, cascata, livro de fotos, polaroids, varal e efeitos 3D de tela cheia — só trocar os números pelas suas fotos e vídeos."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="13" rx="9" ry="4"/><rect x="5" y="5" width="5" height="7" rx="1" transform="rotate(-12 7.5 8.5)"/><rect x="10" y="4" width="5" height="7" rx="1"/><rect x="15" y="5" width="5" height="7" rx="1" transform="rotate(12 17.5 8.5)"/></svg></span><span class="nome">ÁLBUM 3D E EFEITOS</span></a>
+      </div>
+    </section>
+    <section class="ferr-bloco" id="bloco-ia" style="--c:#FF5FA2">
+      <h3 data-seta="ferr_ia"><span class="ferr-ico">🎨</span><span class="ferr-tit">CRIAÇÃO COM IA</span><span class="ferr-cont">3 ferramentas</span></h3>
+      <div class="sub">Artes, convites, personagens e prompts de trends.</div>
+      <div class="bw-grid">
+        <a class="menu-card" href="criador.html" title="Convites, posts, flyers e cartões de visita com arte feita por IA — textos sem erro, no formato certo."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 1.8 4.7L18.5 9l-4.7 1.8L12 15.5l-1.8-4.7L5.5 9l4.7-1.3z"/><path d="M19 15l.9 2.1L22 18l-2.1.9L19 21l-.9-2.1L16 18l2.1-.9zM5 15l.7 1.6L7.3 17l-1.6.7L5 19.3l-.7-1.6L2.7 17l1.6-.4z"/></svg></span><span class="nome">CRIADOR IA</span></a>
+        <a class="menu-card" href="personagens.html" title="Crie personagens conversando com o agente (ficha + prompt), gere a imagem e use no Quadro de História e no BW Reels."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.2-5.5 6.5-5.5s5.9 1.9 6.5 5.5"/><path d="m18 3 .9 2.1L21 6l-2.1.9L18 9l-.9-2.1L15 6l2.1-.9z"/></svg></span><span class="nome">PERSONAGENS</span></a>
+        <a class="menu-card" href="promptia.html" title="Trends virais feitas com IA: veja o exemplo, copie o prompt e saiba onde fazer. Envie o print de uma trend e a IA explica como reproduzir."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/><path d="m12 7.5 1 2.3 2.3 1-2.3 1-1 2.3-1-2.3-2.3-1 2.3-1z"/></svg></span><span class="nome">PROMPT IA</span></a>
+      </div>
+    </section>
+    <section class="ferr-bloco" id="bloco-texto" style="--c:#FFB547">
+      <h3 data-seta="ferr_texto"><span class="ferr-ico">✍️</span><span class="ferr-tit">FERRAMENTAS DE TEXTO</span><span class="ferr-cont">2 ferramentas</span></h3>
+      <div class="sub">Escrever, revisar, traduzir, resumir e transformar fala em texto e legenda.</div>
+      <div class="bw-grid">
+        <a class="menu-card" href="assistente.html" title="Legendas, e-mails, resumos, revisão e tradução com IA no seu aparelho."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.8 4.2L18 9l-4.2 1.8L12 15l-1.8-4.2L6 9l4.2-1.8z"/><path d="M19 15l.9 2.1L22 18l-2.1.9L19 21l-.9-2.1L16 18l2.1-.9z"/></svg></span><span class="nome">ASSISTENTE DE TEXTO</span></a>
+        <a class="menu-card" href="transcricao.html" title="Áudio ou vídeo vira texto e legendas .srt — no seu aparelho."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 17v4M8 21h8"/></svg></span><span class="nome">TRANSCRIÇÃO</span></a>
+      </div>
+    </section>
+    <section class="ferr-bloco" id="bloco-docs" style="--c:#2FD08A">
+      <h3 data-seta="ferr_docs"><span class="ferr-ico">📄</span><span class="ferr-tit">DOCUMENTOS E CONTAS</span><span class="ferr-cont">3 ferramentas</span></h3>
+      <div class="sub">Ler contas e comprovantes, mexer em PDF e organizar seus dados.</div>
+      <div class="bw-grid">
+        <a class="menu-card" href="leitor.html" title="PDF ou foto de conta, boleto ou comprovante → lê no aparelho e lança onde você escolher."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7V5a1 1 0 0 1 1-1h2M17 4h2a1 1 0 0 1 1 1v2M20 17v2a1 1 0 0 1-1 1h-2M7 20H5a1 1 0 0 1-1-1v-2"/><path d="M8 9h8M8 12h8M8 15h5"/></svg></span><span class="nome">LEITOR DE CONTAS</span></a>
+        <a class="menu-card" href="pdf.html" title="Juntar, separar, assinar, marca d'água e fotos → PDF — sem enviar o arquivo."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6"/><path d="M8 13h8M8 17h5"/></svg></span><span class="nome">PDF</span></a>
+        <a class="menu-card" href="dados.html" title="Coleções organizadas do seu jeito, com busca."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></svg></span><span class="nome">MEUS DADOS</span></a>
+      </div>
+    </section>
+    <section class="ferr-bloco" id="bloco-vendas" style="--c:#FF8A4C">
+      <h3 data-seta="ferr_vendas"><span class="ferr-ico">🤝</span><span class="ferr-tit">CLIENTES E PREÇOS</span><span class="ferr-cont">2 ferramentas</span></h3>
+      <div class="sub">Funil de clientes e quanto cobrar.</div>
+      <div class="bw-grid">
+        <a class="menu-card" href="crm.html" title="Funil de clientes, agente de vendas com IA e indicadores."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h18l-7 8v6l-4 2v-8z"/></svg></span><span class="nome">CRM</span></a>
+        <a class="menu-card" href="preco.html" title="Custo + imposto + margem → quanto cobrar."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg></span><span class="nome">CALCULADORA DE PREÇO</span></a>
+      </div>
+    </section>
+    <section class="ferr-bloco" id="bloco-financas" style="--c:#7AD13F">
+      <h3 data-seta="ferr_financas"><span class="ferr-ico">💱</span><span class="ferr-tit">FINANÇAS, VIAGEM E NOTÍCIAS</span><span class="ferr-cont">6 ferramentas</span></h3>
+      <div class="sub">Câmbio, rendimento, alertas e o que está acontecendo.</div>
+      <div class="bw-grid">
+        <a class="menu-card" href="calc.html" title="Custo real da compra de moeda com spread e IOF."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M8 6h8M8 11h.01M12 11h.01M16 11h.01M8 15h.01M12 15h.01M16 15h.01M8 19h8"/></svg></span><span class="nome">CALCULADORA DE CÂMBIO</span></a>
+        <a class="menu-card" href="viagem.html" title="Quanto rende o que você troca no destino."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg></span><span class="nome">CONVERSOR DE VIAGEM</span></a>
+        <a class="menu-card" href="invest.html" title="Poupança × CDB × Tesouro, já descontando o imposto."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/></svg></span><span class="nome">SIMULADOR DE RENDIMENTO</span></a>
+        <a class="menu-card" href="alertas.html" title="Avisa no celular quando a moeda chegar no valor que você quer."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 8-3 8h18s-3-1-3-8"/><path d="M10 21h4"/></svg></span><span class="nome">ALERTAS DE PREÇO</span></a>
+        <a class="menu-card" href="recs.html" title="Comprar moeda hoje ou esperar, vender ou segurar milhas."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg></span><span class="nome">RECOMENDAÇÕES</span></a>
+        <a class="menu-card" href="noticias.html" title="Manchetes do mercado ao longo do dia."><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 8h10M7 12h10M7 16h6"/></svg></span><span class="nome">NOTÍCIAS</span></a>
+      </div>
+    </section>
     </div>
   </div>
 
@@ -1815,5 +1885,9 @@ const {  $  } = MOD['core/format'];
 
 return {  };
 })();</script>
+<script>
+/* atalho do topo: abre o bloco (se estava fechado) e rola até ele */
+document.addEventListener("click",function(e){var a=e.target.closest&&e.target.closest(".ferr-mapa a");if(!a)return;var b=document.getElementById(a.getAttribute("href").slice(1));if(!b)return;e.preventDefault();var h=b.querySelector("h3");if(h&&h.classList.contains("fechada"))h.click();b.scrollIntoView({behavior:"smooth",block:"start"});});
+</script>
 </body>
 </html>
