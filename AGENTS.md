@@ -2557,7 +2557,7 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
 - [ ] (24/11 15:05) GOOGLE PLAY: dono PEDIU o D-U-N-S (Dun & Bradstreet, grátis, 5–30 dias). Quando chegar: criar a conta de ORGANIZAÇÃO em
       play.google.com/console/signup (CNPJ + D-U-N-S, US$ 25) e avisar o Claude → gerar .aab + chave de assinatura fixa (segredos no GitHub) + ficha da loja.
       Dono: "deixe isso pendente".
-- [ ] (24/11) CHAVE ANDROID: dono cadastrar BW_KEYSTORE_B64 e BW_KEYSTORE_SENHA (Vídeos\\bw-reels-studio\\CHAVE-ANDROID\\LEIA-ME.txt) e guardar cópia da pasta.
+- [x] (24/11 16:14) CHAVE ANDROID cadastrada pelo dono no GitHub (2 segredos). Era: dono cadastrar BW_KEYSTORE_B64 e BW_KEYSTORE_SENHA (Vídeos\\bw-reels-studio\\CHAVE-ANDROID\\LEIA-ME.txt) e guardar cópia da pasta.
 - [x] (24/11 16:00) BW-Setup.exe 1.9.42 gerado pelo dono e publicado (25 MB, versão conferida dentro do .exe; cresceu pelos renders de teste em modelos\\animacoes\\render — o GERAR-INSTALADOR agora ignora pastas "render").
 - [ ] (24/11) APP ANDROID: dono abrir audioevideobw-eng.github.io/baixar no Android, tocar em BAIXAR O APP ANDROID (.APK), permitir a instalação, entrar
       com e-mail e senha e testar: editor de vídeo (importar, exportar → compartilhar), câmera/microfone (Tio Cláudio), editor de fotos. Para as

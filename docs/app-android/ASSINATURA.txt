@@ -1,0 +1,1 @@
+App BW Android assinado com a chave do BW desde 24/11/2026 (segredos BW_KEYSTORE_B64/BW_KEYSTORE_SENHA).
