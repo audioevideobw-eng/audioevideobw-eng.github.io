@@ -110,6 +110,7 @@
   var EFEITOS = {desbotado: "Desbotado", dourado: "Dourado", azulado: "Azul e laranja", rosado: "Rosado", cinema: "Cinema", duotom: "Duotom", pb: "Preto e branco", sepia: "Sépia", vintage: "Vintage", quente: "Quente", frio: "Frio", vivido: "Vívido", contraste: "Contraste", noite: "Noite", vinheta: "Vinheta", grao: "Grão de filme", vhs: "VHS", desfoque: "Desfoque"};
   var VELS = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 2, 3];
   var FONTES = ["Inter", "Montserrat", "Georgia", "Impact", "Courier New"];
+  var NIT = {on: false, T: -1, els: {}, tm: 0, dentro: false, n: 0}, NITCFG = true; try { NITCFG = localStorage.getItem("ui_ve_nitido") !== "nao"; } catch (e) {}
   var P = {fmt: "9:16", clips: []}, MID = {}, SEL = null, T = 0, TOCANDO = false, PPS = 60, ABA = "tudo", EL = {}, GRAV = null;
   var cv = $("veCv"), cx = cv.getContext("2d");
 
@@ -326,6 +327,24 @@
   function dividir() { var c = sel(), alvos = c ? [c] : P.clips.filter(function (x) { return T > x.ini + 0.05 && T < x.ini + x.dur - 0.05; });
     var n = 0, ult = null; alvos.forEach(function (x) { var d = dividirEm(x, T); if (d) { n++; ult = d; } });
     if (!n) { aviso("Ponha a agulha em cima de um clipe para dividir", true); return; } if (ult) SEL = ult.id; tudo(); aviso("✂ Dividido" + (n > 1 ? " em " + n + " camadas" : "") + "."); }
+  /* ATALHOS DE EDITOR DE MESA (23/11, dono mandou a lista): Ctrl+Shift+K, A / Shift+A, I / O, M, vírgula e ponto, G */
+  function dividirTudo() { var n = 0; P.clips.filter(function (x) { return T > x.ini + 0.05 && T < x.ini + x.dur - 0.05; }).forEach(function (x) { if (dividirEm(x, T)) n++; }); if (!n) { aviso("Nenhum take embaixo da agulha", true); return; } tudo(); aviso("✂ Cortado em " + n + " camada" + (n > 1 ? "s" : "")); }
+  function daAgulha(dir) { var l = P.clips.filter(function (x) { return dir > 0 ? x.ini + x.dur > T + 0.01 : x.ini < T - 0.01; }); if (!l.length) { aviso(dir > 0 ? "Nada depois da agulha" : "Nada antes da agulha", true); return; }
+    GRUPO = l.map(function (x) { return x.id; }); SEL = GRUPO[0]; if (GRUPO.length < 2) GRUPO = []; desenharTL(); desenharProp(); aviso("▭ " + l.length + " take" + (l.length > 1 ? "s" : "") + (dir > 0 ? " da agulha para a frente" : " antes da agulha")); }
+  function marcarES(q) { var t = Math.round(T * 100) / 100; if (q === "e") { P.entra = t; if (P.sai != null && P.sai <= t) delete P.sai; } else { P.sai = t; if (P.entra != null && P.entra >= t) delete P.entra; } tudo(); aviso(q === "e" ? "⟦ Entrada em " + fmtT(t) : "⟧ Saída em " + fmtT(t)); }
+  function marcador() { P.marcas = P.marcas || []; var t = Math.round(T * 100) / 100, i = -1; P.marcas.forEach(function (m, k) { if (Math.abs(m - t) < 0.06) i = k; }); if (i >= 0) { P.marcas.splice(i, 1); tudo(); aviso("Marcador tirado"); } else { P.marcas.push(t); P.marcas.sort(function (a, b) { return a - b; }); tudo(); aviso("◆ Marcador em " + fmtT(t)); } }
+  function irMarcador(dir) { var l = (P.marcas || []).slice(); if (P.entra != null) l.push(P.entra); if (P.sai != null) l.push(P.sai); l.sort(function (a, b) { return a - b; }); var al = dir > 0 ? l.filter(function (m) { return m > T + 0.03; })[0] : l.filter(function (m) { return m < T - 0.03; }).pop(); if (al == null) { aviso("Sem marcador para esse lado", true); return; } irPara(al); }
+  var ULTMID = null;
+  /* vírgula = INSERIR (empurra o que vem depois na camada); ponto = SOBREPOR (cobre o que estiver embaixo) — com a última mídia usada da biblioteca */
+  function porUltima(inserir) { var m = MID[ULTMID]; if (!m || m.ruim) { aviso("Toque numa mídia da biblioteca antes (ela vira a mídia da vez)", true); return; }
+    var tr = m.tipo === "audio" ? "a1" : "v1", t = Math.round(T * 20) / 20, d = Math.min(m.tipo === "imagem" ? 4 : (m.dur || 4), P.entra != null && P.sai != null && P.sai > P.entra ? P.sai - P.entra : 1e9);
+    P.clips.filter(function (x) { return x.trilha === tr; }).forEach(function (x) { dividirEm(x, t); });
+    if (inserir) P.clips.forEach(function (x) { if (x.trilha === tr && x.ini >= t - 0.01) x.ini = Math.round((x.ini + d) * 100) / 100; });
+    else { P.clips.filter(function (x) { return x.trilha === tr; }).forEach(function (x) { dividirEm(x, t + d); }); P.clips = P.clips.filter(function (x) { return !(x.trilha === tr && x.ini >= t - 0.01 && x.ini + x.dur <= t + d + 0.01); }); }
+    var c = addClip(m, tr, t); if (c) { c.trilha = tr; c.ini = t; c.dur = Math.round(Math.min(c.dur, d) * 100) / 100; SEL = c.id; T = t + c.dur; } tudo(); aviso(inserir ? "⇥ Inserido na agulha" : "⤓ Sobreposto na agulha"); }
+  function ganhoPedir() { var g = grupo(), l = (g.length ? g : [sel()]).filter(function (x) { return x && temSom(x); }); if (!l.length) { aviso("Escolha um take com som", true); return; }
+    var at = l[0].vol == null ? 100 : l[0].vol, db = at > 0 ? Math.round(20 * Math.log10(at / 100) * 10) / 10 : -60, r = prompt("Ganho de áudio em dB (0 = original, −6 = metade, +6 = dobro):", String(db).replace(".", ",")); if (r == null) return;
+    var v = parseFloat(String(r).replace(",", ".")); if (isNaN(v)) { aviso("Digite um número em dB", true); return; } v = lim(v, -60, 12); l.forEach(function (x) { x.vol = v <= -60 ? 0 : Math.round(Math.pow(10, v / 20) * 100); }); tudo(); aviso("🔊 Ganho " + (v > 0 ? "+" : "") + String(v).replace(".", ",") + " dB em " + l.length + " take" + (l.length > 1 ? "s" : "")); }
   function duplicar() { var g = grupo(); if (g.length) { var a0 = Math.min.apply(null, g.map(function (x) { return x.ini; })), a1 = Math.max.apply(null, g.map(function (x) { return x.ini + x.dur; })), nv = [];
       g.forEach(function (x) { var d = JSON.parse(JSON.stringify(x)); d.id = uid(); d.ini = Math.round((x.ini + a1 - a0) * 20) / 20; P.clips.push(d); nv.push(d.id); }); GRUPO = nv; SEL = nv[0]; tudo(); aviso("⧉ " + nv.length + " takes duplicados."); return; }
     var c = sel(); if (!c) return; var d = JSON.parse(JSON.stringify(c)); d.id = uid(); d.ini = c.ini + c.dur; P.clips.push(d); SEL = d.id; tudo(); aviso("⧉ Duplicado."); }
@@ -345,7 +364,7 @@
   function colar() { if (!COPIA) { aviso("Nada copiado ainda (Ctrl+C num clipe).", true); return; } if (Array.isArray(COPIA)) { var b0 = Math.min.apply(null, COPIA.map(function (x) { return x.ini; })), nv = []; COPIA.forEach(function (x) { var k = JSON.parse(JSON.stringify(x)); k.id = uid(); k.ini = Math.round((T + x.ini - b0) * 20) / 20; P.clips.push(k); nv.push(k.id); }); GRUPO = nv; SEL = nv[0]; tudo(); aviso(nv.length + " takes colados na agulha."); return; }
     var d = JSON.parse(JSON.stringify(COPIA)); d.id = uid(); d.ini = Math.round(T * 20) / 20; P.clips.push(d); SEL = d.id; tudo(); aviso("Colado na agulha."); }
   /* COPIAR E COLAR AJUSTES (atributos) de um take em outro: cada grupo só entra onde faz sentido (som em quem tem som, imagem em quem tem imagem) */
-  var ATRIB = null, AT_VIS = ["ia", "grade", "op", "esc", "x", "y", "encaixe", "efeito", "efInt", "efs", "ck", "ckCor", "ckModo", "ckNivel", "ckInt", "ckSuave", "ckLimpa", "ckSombra"], AT_TXT = ["fonte", "tam", "cor", "fundo", "op"], AT_SOM = ["vol", "normG", "ruido", "voz"], AT_TEMPO = ["fin", "fout"];
+  var ATRIB = null, AT_VIS = ["ia", "grade", "op", "esc", "x", "y", "encaixe", "efeito", "efInt", "efs", "nos", "ck", "ckCor", "ckModo", "ckNivel", "ckInt", "ckSuave", "ckLimpa", "ckSombra"], AT_TXT = ["fonte", "tam", "cor", "fundo", "op"], AT_SOM = ["vol", "normG", "ruido", "voz"], AT_TEMPO = ["fin", "fout"];
   function temSom(c) { return c.tipo === "video" || c.tipo === "audio"; }
   function temImg(c) { return c.tipo === "video" || c.tipo === "imagem"; }
   function copiarAtrib() { var c = sel(); if (!c) return false; ATRIB = JSON.parse(JSON.stringify(c)); aviso("Ajustes copiados. Escolha outro take e use COLAR AJUSTES (Ctrl+Shift+V)."); }
@@ -469,8 +488,10 @@
     if (!ativo) { if (!e.paused) e.pause(); return o; }
     var alvo = (c.corte || 0) + (t - c.ini) * vel(c), v = trMuda(c.trilha) ? 0 : lim(ganhoTake(c) * fade(c, t), 0, 4);
     if (o.g) { o.g.gain.value = v; e.volume = 1; filtrosSom(o, c); } else e.volume = Math.min(1, v);
-    if (Math.abs(e.playbackRate - vel(c)) > 0.001) { try { e.playbackRate = vel(c); e.preservesPitch = true; } catch (x) {} }
-    if (TOCANDO) { if (c.tipo === "video" && (e.seeking || e.readyState < 3)) ESPERA = true; if (e.paused) { try { e.currentTime = alvo; } catch (x) {} var pr = e.play(); if (pr && pr.catch) pr.catch(function () {}); } else if (Math.abs(e.currentTime - alvo) > (IOS ? 0.6 : 0.35) * vel(c)) { try { e.currentTime = alvo; } catch (x) {} } }
+    var rt = GRAV ? 1 : RITMO, pb = lim(vel(c) * Math.max(rt, 0.25), 0.1, 16);
+    if (Math.abs(e.playbackRate - pb) > 0.001) { try { e.playbackRate = pb; e.preservesPitch = true; } catch (x) {} }
+    if (TOCANDO && rt < 0) { if (!e.paused) e.pause(); if (Math.abs(e.currentTime - alvo) > 0.08 && !e.seeking) { try { e.currentTime = alvo; } catch (x) {} } return o; }
+    if (TOCANDO) { if (c.tipo === "video" && (e.seeking || e.readyState < 3)) ESPERA = true; if (e.paused) { try { e.currentTime = alvo; } catch (x) {} var pr = e.play(); if (pr && pr.catch) pr.catch(function () {}); } else if (Math.abs(e.currentTime - alvo) > (IOS ? 0.6 : 0.35) * vel(c) * Math.max(1, rt)) { try { e.currentTime = alvo; } catch (x) {} } }
     else { if (!e.paused) e.pause(); if (Math.abs(e.currentTime - alvo) > 0.04) { if (window.__veRaspa && e.seeking) return o;   /* 23/11 (iPhone travando ao arrastar a linha do tempo): não empilhar pulos — o "seeked" redesenha e pede o ponto mais novo */ try { e.currentTime = alvo; } catch (x) {} } }
     return o;
   }
@@ -606,6 +627,7 @@
   function desenharMidia(fonte, fw, fh, c, t, mod) {
     c = comRastro(c, t);
     if (!fw || !fh) return; mod = mod || {}; if (c.ck && !SEM_CK && window.BWChroma) { var semFundo = BWChroma.aplicar(fonte, fw, fh, c); if (semFundo) fonte = semFundo; }   /* chroma key: o fundo some antes de tudo */
+    if (c.nos && !SEM_CK && window.BWCorNos && BWCorNos.ativo(c.nos)) { var comNos = BWCorNos.aplicar(fonte, fw, fh, c.nos, {max: Math.max(1280, cv.width, cv.height)}); if (comNos) fonte = comNos; }   /* COR AVANÇADA (nós): antes da cor simples */
     if (c.grade && !SEM_CK && window.BWCor && BWCor.ativo(c.grade)) { var comCor = BWCor.aplicar(fonte, fw, fh, c.grade); if (comCor) fonte = comCor; }   /* cor do take (BWCor), depois do recorte */
     if (c.ia && window.BWMascara && BWMascara.tem(c.mid) && (mod.soPessoa || (c.ia.fundo || ""))) { var mk = BWMascara.mascara(c.mid, c.tipo === "video" ? (c.corte || 0) + (t - c.ini) * vel(c) : 0);
       if (mk) fonte = BWMascara.compor(fonte, fw, fh, mk, c.ia, !!mod.soPessoa); }   /* pessoa e fundo (IA, no aparelho) */
@@ -677,8 +699,10 @@
     cx.fillStyle = c.cor || "#fff"; linhas.forEach(function (l, i) { cx.fillText(l, cxm, cym + (i - (linhas.length - 1) / 2) * lh); }); cx.restore();
   }
   function fonteDe(c, t, ativo) { if (c.tipo === "imagem") { var m = MID[c.mid]; return m && m.img ? {el: m.img, w: m.img.naturalWidth, h: m.img.naturalHeight} : null; }
-    var o = sincronizar(c, t, ativo); return o && c.tipo === "video" && o.e.readyState >= 2 ? {el: o.e, w: o.e.videoWidth, h: o.e.videoHeight} : null; }
+    var o = sincronizar(c, t, ativo); var hq = NIT.on && NIT.els[c.id]; if (hq && c.tipo === "video" && hq.readyState >= 2 && hq.videoWidth) return {el: hq, w: hq.videoWidth, h: hq.videoHeight};
+    return o && c.tipo === "video" && o.e.readyState >= 2 ? {el: o.e, w: o.e.videoWidth, h: o.e.videoHeight} : null; }
   function desenhar() {
+    nitChecar();
     var t = T, W = cv.width, H = cv.height, frente = []; cx.fillStyle = "#000"; cx.fillRect(0, 0, W, H);
     var ordemDes = pilha().slice();   /* de baixo para cima: a camada de cima é desenhada por último */
     ordemDes.concat(trilhas().map(function (x) { return x[0]; }).filter(function (id) { return fam(id) === "a"; })).forEach(function (tr) { var pintados = {};
@@ -712,9 +736,12 @@
      Agora o relógio ESPERA o take da tela ficar pronto (ESPERA, marcada no sincronizar) — como o play dos editores de verdade, que seguram o tempo
      até o quadro chegar. Na gravação (exportar) o relógio não espera. */
   var t0 = 0, p0 = 0, raf = 0, ESPERA = false, ultP = 0, espDesde = 0;
-  function passo() { if (!TOCANDO) return; var agora = performance.now(); if (ESPERA && !GRAV && ultP) { if (!espDesde) espDesde = agora; if (agora - espDesde < 1500) p0 += Math.min(250, agora - ultP); } else espDesde = 0; ultP = agora; ESPERA = false; T = t0 + (agora - p0) / 1000; var fim = total(); if (T >= fim) { T = fim; desenhar(); parar(); if (GRAV) GRAV.fim(); return; } desenhar(); if (GRAV) GRAV.prog(T / fim); var ag = $("veAgulha"), ro = $("veRolo"); if (ag && !GRAV && (T * PPS > ro.scrollLeft + ro.clientWidth - 40)) ro.scrollLeft = T * PPS - 60; raf = requestAnimationFrame(passo); }
-  function tocar() { if (TOCANDO) return; if (!P.clips.length) { aviso("Coloque um vídeo, imagem ou som na linha do tempo para tocar.", true); return; } var a = audioCtx(); if (a && a.state === "suspended") a.resume(); if (T >= total() - 0.05) T = 0; TOCANDO = true; t0 = T; p0 = performance.now(); ultP = 0; ESPERA = false; $("vePlay").textContent = "⏸ PAUSAR"; raf = requestAnimationFrame(passo); }
-  function parar() { TOCANDO = false; cancelAnimationFrame(raf); $("vePlay").textContent = "▶ TOCAR"; Object.keys(EL).forEach(function (k) { try { EL[k].e.pause(); } catch (e) {} }); desenhar(); }
+  function passo() { if (!TOCANDO) return; var agora = performance.now(); if (ESPERA && !GRAV && ultP) { if (!espDesde) espDesde = agora; if (agora - espDesde < 1500) p0 += Math.min(250, agora - ultP); } else espDesde = 0; ultP = agora; ESPERA = false; T = t0 + (agora - p0) / 1000 * (GRAV ? 1 : RITMO); if (T <= 0 && RITMO < 0 && !GRAV) { T = 0; desenhar(); parar(); return; } var fim = total(); if (T >= fim) { T = fim; desenhar(); parar(); if (GRAV) GRAV.fim(); return; } desenhar(); if (GRAV) GRAV.prog(T / fim); var ag = $("veAgulha"), ro = $("veRolo"); if (ag && !GRAV && (T * PPS > ro.scrollLeft + ro.clientWidth - 40)) ro.scrollLeft = T * PPS - 60; raf = requestAnimationFrame(passo); }
+  function tocar() { if (TOCANDO) return; if (!P.clips.length) { aviso("Coloque um vídeo, imagem ou som na linha do tempo para tocar.", true); return; } var a = audioCtx(); if (a && a.state === "suspended") a.resume(); if (T >= total() - 0.05 && RITMO > 0) T = 0; TOCANDO = true; t0 = T; p0 = performance.now(); ultP = 0; ESPERA = false; $("vePlay").textContent = "⏸ PAUSAR"; raf = requestAnimationFrame(passo); }
+  var RITMO = 1;   /* L repetido: 1× → 2× → 4× → 8×; J: para trás */
+  function ritmo(r) { if (GRAV) return; if (!TOCANDO) { RITMO = r; if (r < 0 && T <= 0) return; tocarRitmo(); } else { t0 = T; p0 = performance.now(); RITMO = r; } aviso(r === 1 ? "▶ 1×" : r > 0 ? "▶▶ " + r + "×" : "◀◀ " + (-r) + "×"); }
+  function tocarRitmo() { var r = RITMO; tocar(); RITMO = r; }
+  function parar() { RITMO = 1; TOCANDO = false; cancelAnimationFrame(raf); $("vePlay").textContent = "▶ TOCAR"; Object.keys(EL).forEach(function (k) { try { EL[k].e.pause(); } catch (e) {} }); desenhar(); }
   function irPara(t) { var era = TOCANDO; if (era) parar(); T = lim(t, 0, Math.max(total(), 0)); desenhar(); }
 
   /* ---------- telas ---------- */
@@ -745,6 +772,9 @@
   function desenharTL() {
     var fim = Math.max(total() + 8, 20), larg = Math.ceil(fim * PPS), passoR = PPS >= 90 ? 1 : PPS >= 40 ? 2 : 5, h = '<div class="ve-regua" id="veRegua" style="width:' + larg + 'px">';
     for (var s = 0; s <= fim; s += passoR) h += '<i style="left:' + (s * PPS) + 'px">' + (s >= 60 ? Math.floor(s / 60) + ":" + (s % 60 < 10 ? "0" : "") + s % 60 : s + "s") + '</i>';
+    (P.marcas || []).forEach(function (m) { h += '<b class="ve-marca" style="left:' + (m * PPS) + 'px" title="Marcador (M tira)">◆</b>'; });
+    if (P.entra != null) h += '<b class="ve-es" style="left:' + (P.entra * PPS) + 'px" title="Entrada (I)">⟦</b>'; if (P.sai != null) h += '<b class="ve-es" style="left:' + (P.sai * PPS) + 'px" title="Saída (O)">⟧</b>';
+    if (P.entra != null && P.sai != null && P.sai > P.entra) h += '<u class="ve-faixa-es" style="left:' + (P.entra * PPS) + 'px;width:' + ((P.sai - P.entra) * PPS) + 'px"></u>';
     h += "</div>";
     var TRILHAS = trilhas(); TRILHAS.forEach(function (tr) { var at = altTr(tr[0]); h += '<div class="ve-faixa' + (vaziaTr(tr[0]) ? " vazia" : "") + (trMuda(tr[0]) ? " muda" : "") + (at < 34 ? " baixa" : "") + '" data-trilha="' + tr[0] + '" style="width:' + larg + 'px;height:' + at + 'px">' + P.clips.filter(function (c) { return c.trilha === tr[0]; }).map(function (c) { var m = MID[c.mid], nome = c.tipo === "texto" ? String(c.txt || "Texto").split("\n")[0] : c.tipo === "elemento" ? (ELEMENTOS[c.el] || "Elemento") + (c.rastro ? " · ⌖" : "") : m ? m.nome : "arquivo que falta", mini = m && (m.tipo === "imagem" ? m.url : m.capa);
         return '<div class="ve-clip' + (c.id === SEL ? " on" : "") + (GRUPO.length > 1 && GRUPO.indexOf(c.id) >= 0 ? " multi" : "") + '" data-clip="' + c.id + '" style="--c:' + tr[2] + (c.off ? ";opacity:.35;filter:grayscale(1)" : "") + (mini && c.tipo !== "audio" ? ";--mini:url(" + mini + ")" : "") + ';left:' + (c.ini * PPS) + 'px;width:' + Math.max(18, c.dur * PPS) + 'px" title="' + esc(nome) + '"><i class="al e" data-al="e"></i>' + (mini ? '<img alt="" src="' + mini + '">' : "") + '<span>' + (c.tipo === "texto" ? "T · " : c.tipo === "audio" ? "♪ " : "") + esc(nome) + '</span>' + (vel(c) !== 1 ? '<b class="bd">' + String(vel(c)).replace(".", ",") + '×</b>' : "") + (c.efeito && EFEITOS[c.efeito] ? '<b class="bd" title="Efeito: ' + esc(EFEITOS[c.efeito]) + '">✦ ' + esc(EFEITOS[c.efeito]) + '</b>' : "") + (c.grade && window.BWCor && BWCor.ativo(c.grade) ? '<b class="bd" title="Cor ajustada">🎨</b>' : "") + (c.ia && window.BWMascara && BWMascara.tem(c.mid) ? '<b class="bd" title="Pessoa analisada (IA)">🧠</b>' : "") + (c.anima ? '<b class="bd" title="Texto com movimento">✦</b>' : "") + ondaHtml(c, m) + '<i class="al d" data-al="d"></i>' + (transDe(c) && anteriorDe(c) ? '<i class="tr" title="Transição: ' + esc(TRANS[c.trans.tipo]) + " · " + String(Math.round(transDe(c) * 10) / 10).replace(".", ",") + ' s" style="width:' + Math.max(10, transDe(c) * PPS) + 'px"><i class="trp" data-trp="' + c.id + '" title="Arraste para mudar o tempo da transição"></i></i>' : "") + '</div>'; }).join("") + juntas(tr[0]) + "</div>"; });
@@ -823,7 +853,7 @@
   function desenharProp() {
     if (ehVisual(sel())) ULTV = SEL;
     var c = sel(), b = $("vePropCorpo"); if (!c) { var nC = P.clips.length, f0 = FMT[P.fmt] || [P.w || cv.width, P.h || cv.height];
-      b.innerHTML = '<div class="ve-g"><h4>O PROJETO</h4><p class="ve-nota" style="margin:0 0 4px">Tamanho: <b>' + tamReal()[0] + " × " + tamReal()[1] + ' px</b>' + (escalaPrev() < 1 ? '<br><span style="opacity:.75">Prévia leve: ' + cv.width + ' × ' + cv.height + ' (o vídeo sai no tamanho real)</span>' : '') + '<br><label style="display:flex;gap:6px;align-items:center;margin-top:4px;text-transform:none"><input type="checkbox" id="vePreviaCheia"' + (CHEIA ? ' checked' : '') + '> Prévia em tamanho cheio (mais pesado)</label><br>Duração: <b>' + fmtT(total()) + '</b><br>Clipes: <b>' + nC + '</b></p></div><p class="ve-nota" style="margin:0">Toque num clipe da linha do tempo: este painel mostra os ajustes daquele tipo de clipe (vídeo e foto, som ou texto).</p>'; return; }
+      b.innerHTML = '<div class="ve-g"><h4>O PROJETO</h4><p class="ve-nota" style="margin:0 0 4px">Tamanho: <b>' + tamReal()[0] + " × " + tamReal()[1] + ' px</b>' + (escalaPrev() < 1 ? '<br><span style="opacity:.75">Prévia leve: ' + cv.width + ' × ' + cv.height + ' (o vídeo sai no tamanho real)</span>' : '') + '<br><label style="display:flex;gap:6px;align-items:center;margin-top:4px;text-transform:none"><input type="checkbox" id="vePreviaCheia"' + (CHEIA ? ' checked' : '') + '> Prévia em tamanho cheio (mais pesado)</label><label style="display:flex;gap:6px;align-items:center;margin-top:4px;text-transform:none"><input type="checkbox" id="veNitido"' + (NITCFG ? ' checked' : '') + '> Parado em qualidade total (no play volta a leve)</label><br>Duração: <b>' + fmtT(total()) + '</b><br>Clipes: <b>' + nC + '</b></p></div>' + gpuPainel() + '<p class="ve-nota" style="margin:0">Toque num clipe da linha do tempo: este painel mostra os ajustes daquele tipo de clipe (vídeo e foto, som ou texto).</p>'; return; }
     if (c.id !== ULT_SEL) { ULT_SEL = c.id; if (window.__veVista) window.__veVista.aoSelecionar(); }
     var visual = c.tipo !== "audio", g = function (k, t, corpo, fechada) { return corpo ? '<div class="ve-g" data-g="' + k + '"><h4 data-seta="ve-' + k + '"' + (fechada ? ' data-seta-padrao="fechada"' : "") + '>' + t + '</h4><div>' + corpo + '</div></div>' : ""; }, h = "";
     if (c.tipo === "texto") h += g("texto", "TEXTO", '<label class="um"><span>Texto</span><textarea data-p="txt" rows="3" maxlength="200" aria-label="Texto do clipe">' + esc(c.txt) + '</textarea></label><label class="um"><span>Fonte</span><select data-p="fonte" aria-label="Fonte">' + FONTES.map(function (f) { return '<option' + (f === c.fonte ? " selected" : "") + '>' + f + '</option>'; }).join("") + '</select></label>' + faixaR("tam", "Tamanho", 2, 20, c.tam, "%", 0.5) +
@@ -851,6 +881,7 @@
         '<p class="ve-sub">3 · ESTILO (OPCIONAL)</p><div class="ve-chips"><button type="button" data-look=""' + (!BWCor.ativo(gd) ? ' class="on"' : "") + '>Original</button>' + Object.keys(BWCor.LOOKS).map(function (k) { return '<button type="button" data-look="' + k + '"' + (c.look === k && BWCor.ativo(gd) ? ' class="on"' : "") + '>' + BWCor.LOOKS[k].nome + '</button>'; }).join("") +
         pre.map(function (p, i) { return '<button type="button" class="pre' + (c.look === "p" + i && BWCor.ativo(gd) ? " on" : "") + '" data-predef="' + i + '" title="Predefinição sua">★ ' + esc(p.nome) + '<i data-predel="' + i + '" title="Apagar esta predefinição" aria-label="Apagar a predefinição ' + esc(p.nome) + '">✕</i></button>'; }).join("") + '</div>' +
         BWCor.CAMPOS.map(function (f) { var t = (f[0] !== grupoAnt ? '<p class="ve-sub">' + (grupoAnt ? "" : "4 · AJUSTE FINO — ") + f[0] + '</p>' : ""); grupoAnt = f[0]; return t + faixaR("g:" + f[1], f[2], -100, 100, Math.round(+gd[f[1]] || 0), ""); }).join("") +
+        '<div class="ve-linha" style="flex-wrap:wrap;margin-top:8px"><button class="ve-bt pri" type="button" data-acao="corNos" title="Nós de cor ligados, rodas, curvas, LUTs, LOG e escopos">🎛 COR AVANÇADA' + (window.BWCorNos && c.nos && BWCorNos.cadeia(c.nos).length ? " · " + BWCorNos.cadeia(c.nos).length + " nó(s)" : "") + '</button></div>' +
         '<div class="ve-linha" style="flex-wrap:wrap"><button class="ve-bt" type="button" data-acao="corZerar">↺ ZERAR</button><button class="ve-bt" type="button" data-acao="corTodos" title="Põe esta mesma cor em todos os takes de vídeo e foto">⇉ APLICAR EM TODOS</button><button class="ve-bt" type="button" data-acao="corSalvar">★ SALVAR PREDEFINIÇÃO</button></div>' +
         '<p class="ve-nota" style="margin:6px 0 0">Dois toques numa barra volta ela a zero. Tudo é feito neste aparelho' + (BWCor.motor() === "2d" ? " (modo econômico: este navegador não tem WebGL, a prévia pode ficar mais lenta)" : "") + '.</p>', true); }
     if (visual && c.tipo !== "texto" && c.tipo !== "elemento" && window.BWMascara) { var ia = c.ia || {}, tem = BWMascara.tem(c.mid), fundos = [["", "Original"], ["desfoque", "Desfocado"], ["pb", "Cor só na pessoa"], ["escuro", "Escurecido"], ["claro", "Clareado"], ["cor", "Cor lisa"], ["sem", "Sem fundo"]];
@@ -906,7 +937,8 @@
   var CHEIA = false; try { CHEIA = localStorage.getItem("ui_ve_previa") === "cheia"; } catch (e) {}
   var FORCAR_REAL = false;
   function tamReal() { return P.fmt === "livre" && P.w && P.h ? [P.w, P.h] : FMT[P.fmt] || FMT["9:16"]; }
-  function escalaPrev() { var f = tamReal(); return (CHEIA || FORCAR_REAL || GRAV) ? 1 : Math.min(1, 1280 / Math.max(f[0], f[1])); }
+  function escalaPrev() { var f = tamReal(); if (NIT.on && !CHEIA && !FORCAR_REAL && !GRAV && document.documentElement.classList.contains("ve-app")) return Math.min(1, 1920 / Math.max(f[0], f[1]));   /* celular: parado vai até Full HD (4K inteiro derruba a memória) */
+    return (CHEIA || FORCAR_REAL || GRAV || NIT.on) ? 1 : Math.min(1, 1280 / Math.max(f[0], f[1])); }
   var SAIDA = null;   /* tamanho de saída escolhido na janela de EXPORTAR (ex.: YouTube 4K a partir de um projeto 1080p) */
   function tamanhoReal(sim, saida) { FORCAR_REAL = !!sim; SAIDA = sim && saida ? saida : null; formato(); }
   document.addEventListener("change", function (e) { if (e.target && e.target.id === "vePreviaCheia") { CHEIA = e.target.checked; try { localStorage.setItem("ui_ve_previa", CHEIA ? "cheia" : "leve"); } catch (x) {} formato(); desenharProp(); aviso(CHEIA ? "Prévia em tamanho cheio (mais pesada)." : "Prévia leve ligada: edição mais solta; o vídeo sai no tamanho real."); } });
@@ -1002,7 +1034,7 @@
     var m = e.target.closest("[data-mid]"); if (!m || !MID[m.dataset.mid]) return; var mm = MID[m.dataset.mid], cs = sel();
     if (cs && cs.ph && mm.tipo !== "audio" && cs.tipo !== "audio") { trocarEspaco(cs, mm); return; }
     if (cs && cs.phMusica && mm.tipo === "audio") { cs.mid = mm.id; cs.corte = 0; delete cs.phMusica; soltarEl(cs.id); cs.dur = Math.min(cs.dur, mm.dur || cs.dur); tudo(); aviso("🎵 Música do modelo trocada."); return; }
-    var nc = addClip(mm, null, T);   /* 23/11 (dono): o que se toca na biblioteca entra ONDE A AGULHA ESTÁ (padrão CapCut/Premiere) */
+    ULTMID = mm.id; var nc = addClip(mm, null, T);   /* 23/11 (dono): o que se toca na biblioteca entra ONDE A AGULHA ESTÁ (padrão CapCut/Premiere) */
     if (nc && mm.tipo !== "audio") { T = nc.ini + nc.dur; desenhar(); desenharTL(); }   /* a agulha vai para o fim do take: tocar em vários forma uma sequência */
     if (window.VEApp && VEApp.aberta && VEApp.aberta() === "midia") VEApp.fechar();   /* no celular a folha fechava só no ✕ e parecia que nada tinha entrado */
     aviso((mm.ruim ? "⚠ " : "✓ ") + mm.nome + " na linha do tempo (" + infoTr(nc.trilha)[0] + ", em " + fmtT(nc.ini) + ")" + (mm.ruim ? " — mas este arquivo não abre neste navegador." : "."), !!mm.ruim);
@@ -1042,6 +1074,7 @@
     else if (b.hasAttribute("data-realce")) { var rl = BWCor.REALCE[+b.dataset.realce]; if (rl) { c.grade = c.grade || {}; if (rl[1]) c.grade.vib = rl[1]; else delete c.grade.vib; tudo(); aviso(rl[1] ? "Realce de cor: " + rl[0] : "Realce de cor desligado"); } }
     else if (b.hasAttribute("data-look")) { var lk = BWCor.LOOKS[b.dataset.look]; c.grade = lk ? comCorr(c, lk.g) : {}; if (!lk) delete c.corr; c.look = b.dataset.look; tudo(); aviso(lk ? "Cor “" + lk.nome + "” — ajuste as barras à vontade." : "Cor original."); }
     else if (b.hasAttribute("data-predef")) { var pr = predefCor()[+b.dataset.predef]; if (pr) { c.grade = comCorr(c, pr.g); c.look = "p" + b.dataset.predef; tudo(); aviso("Predefinição “" + pr.nome + "” aplicada."); } }
+    else if (b.dataset.acao === "corNos") { corAvancada(c); }
     else if (b.dataset.acao === "corZerar") { delete c.grade; delete c.corr; c.look = ""; tudo(); aviso("Cor zerada (original)."); }
     else if (b.dataset.acao === "corTodos") corEmTodos(c);
     else if (b.dataset.acao === "iaAnalisar") analisarPessoa(c);
@@ -1105,6 +1138,17 @@
     aviso(Object.keys(gA).length ? "✦ Correção aplicada — ajuste fino nas barras, se quiser" : "Este take já está equilibrado — nada a corrigir"); }
   /* predefinições de cor: preferência só deste aparelho (ui_ve_cor_predef) — servem para todos os projetos */
   function predefCor(lista) { try { if (lista) { localStorage.setItem("ui_ve_cor_predef", JSON.stringify(lista.slice(0, 24))); return lista; } var l = JSON.parse(localStorage.getItem("ui_ve_cor_predef") || "[]"); return Array.isArray(l) ? l.filter(function (x) { return x && x.nome && x.g; }) : []; } catch (er) { return lista || []; } }
+  /* COR AVANÇADA (assets/bw-cor-nos.js): área própria em tela cheia; os nós ficam em c.nos e valem na prévia e na exportação */
+  function corAvancada(c) {
+    if (!window.BWCorNos || !c || (c.tipo !== "video" && c.tipo !== "imagem")) { aviso("Escolha um take de vídeo ou foto", true); return; }
+    if (T < c.ini || T >= c.ini + c.dur) irPara(c.ini + Math.min(c.dur / 2, 0.5)); var tg = 0;
+    BWCorNos.abrir({clip: c, aviso: aviso, passo: function () { gravarHist(); },
+      quadro: function () { return fonteDe(c, lim(T, c.ini, c.ini + c.dur - 0.01), true); },
+      mudou: function () { clearTimeout(tg); tg = setTimeout(function () { guardar(); }, 400); },
+      tempo: function () { return T; }, tocando: function () { return TOCANDO; }, tocar: function () { if (TOCANDO) parar(); else { if (T < c.ini || T >= c.ini + c.dur - 0.05) irPara(c.ini); tocar(); } }, irPara: function (t) { irPara(t); },
+      todos: function (g) { var n = 0; gravarHist(); P.clips.forEach(function (x) { if (x !== c && (x.tipo === "video" || x.tipo === "imagem")) { x.nos = JSON.parse(JSON.stringify(g)); n++; } }); guardar(); return n; },
+      aoFechar: function () { if (c.nos && !c.nos.nos.length) delete c.nos; guardar(); tudo(); }});
+  }
   function corEmTodos(c) { var n = 0; P.clips.forEach(function (x) { if (x !== c && (x.tipo === "video" || x.tipo === "imagem")) { if (c.grade) x.grade = JSON.parse(JSON.stringify(c.grade)); else delete x.grade; x.look = c.look || ""; n++; } }); tudo(); aviso(n ? "⇉ Mesma cor em mais " + n + " take" + (n > 1 ? "s" : "") + "." : "Não há outros takes de vídeo ou foto.", !n); }
   function porNivel(c, n) { n = lim(Math.round(n) || 3, 1, 5); var v = window.BWChroma && BWChroma.NIVEIS[n]; c.ckNivel = n; if (v) { c.ckInt = v.ckInt; c.ckSuave = v.ckSuave; c.ckLimpa = v.ckLimpa; c.ckSombra = v.ckSombra; } }
   function nivelDoFundo(c) { var f = fonteDe(c, lim(T, c.ini, c.ini + c.dur - 0.02), true); return f && window.BWChroma && c.ckCor ? BWChroma.nivelPara(f.el, f.w, f.h, c.ckCor) : 3; }
@@ -1136,14 +1180,16 @@
     var c = P.clips.filter(function (x) { return x.id === el.dataset.clip; })[0]; if (!c) return; var al = e.target.dataset.al || "";
     if ((e.ctrlKey || e.metaKey || e.shiftKey) && e.pointerType === "mouse" && !al) { if (!GRUPO.length && SEL) GRUPO = [SEL]; var ig = GRUPO.indexOf(c.id); if (ig >= 0) GRUPO.splice(ig, 1); else GRUPO.push(c.id);
       SEL = GRUPO.length ? GRUPO[GRUPO.length - 1] : null; desenharTL(); desenharProp(); if (GRUPO.length > 1) aviso(GRUPO.length + " takes escolhidos — arraste um deles para mover todos; Delete apaga, Ctrl+C copia."); e.preventDefault(); return; }
+    var altDup = e.altKey && e.pointerType === "mouse" && e.button === 0 && !al && !toqueApp, dupIds = null;   /* 23/11 (dono): segurar Alt e arrastar DUPLICA — a cópia fica no lugar e o take anda */
+    if (altDup) { gravarHist(); dupIds = (GRUPO.length > 1 && GRUPO.indexOf(c.id) >= 0 ? grupo() : [c]).map(function (x) { var k = JSON.parse(JSON.stringify(x)); k.id = uid(); P.clips.push(k); return k.id; }); desenharTL(); el = $("veFaixas").querySelector('[data-clip="' + c.id + '"]') || el; }
     if (GRUPO.length > 1 && GRUPO.indexOf(c.id) >= 0 && !al && !toqueApp) { var gs = grupo(); SEL = c.id; $("veFaixas").querySelectorAll(".ve-clip").forEach(function (x) { x.classList.toggle("on", x === el); }); desenharProp();
-      arr = {tipo: "grupo", c: c, x0: e.clientX, y0: e.clientY, itens: gs.map(function (x) { return {c: x, ini: x.ini, el: $("veFaixas").querySelector('[data-clip="' + x.id + '"]')}; }), min: Math.min.apply(null, gs.map(function (x) { return x.ini; })), moveu: false}; e.preventDefault(); return; }
+      arr = {tipo: "grupo", c: c, x0: e.clientX, y0: e.clientY, itens: gs.map(function (x) { return {c: x, ini: x.ini, el: $("veFaixas").querySelector('[data-clip="' + x.id + '"]')}; }), min: Math.min.apply(null, gs.map(function (x) { return x.ini; })), moveu: false, dup: dupIds}; e.preventDefault(); return; }
     limparGrupo();
     /* no app, dedo em take NÃO escolhido rola a linha do tempo e o toque (click) escolhe — ve-app.js. 22/11 (dono): SEGURAR o dedo parado ~0,3 s
        PEGA o take e já arrasta (antes segurar abria o menu e atrapalhava o arraste; o menu ficou no ⋯ MAIS) */
     if (toqueApp && SEL !== c.id) { segurarPegar(e, el, c, al); return; }
     if (SEL !== c.id) { SEL = c.id; $("veFaixas").querySelectorAll(".ve-clip").forEach(function (x) { x.classList.toggle("on", x === el); }); desenharProp(); }
-    arr = {tipo: al ? "al" + al : "mover", c: c, el: el, x0: e.clientX, y0: e.clientY, ini: c.ini, dur: c.dur, corte: c.corte || 0, trOrig: c.trilha, moveu: false}; e.preventDefault();
+    arr = {tipo: al ? "al" + al : "mover", c: c, el: el, x0: e.clientX, y0: e.clientY, ini: c.ini, dur: c.dur, corte: c.corte || 0, trOrig: c.trilha, moveu: false, dup: dupIds}; e.preventDefault();
   });
   window.addEventListener("pointermove", function (e) {
     if (!arr) { lamina(e); return; }
@@ -1196,6 +1242,7 @@
   window.addEventListener("pointerup", function () { if (SEG && !arr) soltarSeg(); }, true);
   var ultimoXY = {x: 0, y: 0}; window.addEventListener("pointerup", function (e) { ultimoXY = {x: e.clientX, y: e.clientY}; }, true);
   window.addEventListener("pointerup", function () { if (SEG) { SEG = null; setTimeout(function () { window.__bwSegurando = false; }, 0); } if (!arr) return; var a = arr; arr = null; if (window.BWFerr) BWFerr.preso(false);
+    if (a.dup) { if (!a.moveu) { P.clips = P.clips.filter(function (x) { return a.dup.indexOf(x.id) < 0; }); desenharTL(); } else setTimeout(function () { aviso("⧉ Duplicado (Alt + arrastar)"); }, 30); }
     dicaArr(null);
     if (a.tipo === "laco") { if (a.caixa) a.caixa.remove(); if (!a.moveu) { limparGrupo(); if (SEL) { SEL = null; desenharTL(); desenharProp(); } return; }
       GRUPO = a.ids || []; SEL = GRUPO.length ? GRUPO[0] : null; if (GRUPO.length < 2) GRUPO = []; desenharTL(); desenharProp();
@@ -1342,7 +1389,13 @@
       aoTrocar: function (id) { var l = $("veLamina"); if (l && id !== "c") l.hidden = true; } });
     var passoQ = 1 / 30;
     BWFerr.atalhos({
-      "espaco, k": function () { $("vePlay").click(); }, "l": function () { if (!TOCANDO) tocar(); }, "j": function () { irPara(T - 1); },
+      "espaco, k": function () { $("vePlay").click(); }, "l": function () { ritmo(!TOCANDO || RITMO < 0 ? 1 : Math.min(8, RITMO * 2)); }, "j": function () { ritmo(TOCANDO && RITMO < 0 ? Math.max(-8, RITMO * 2) : -1); },
+      "ctrl+shift+k": function () { return dividirTudo(); }, "a": function () { return daAgulha(1); }, "shift+a": function () { return daAgulha(-1); },
+      "i": function () { return marcarES("e"); }, "o": function () { return marcarES("s"); }, "shift+i": function () { if (P.entra == null) return false; irPara(P.entra); }, "shift+o": function () { if (P.sai == null) return false; irPara(P.sai); }, "ctrl+shift+x": function () { delete P.entra; delete P.sai; tudo(); aviso("Entrada e saída limpas"); },
+      "m": function () { return marcador(); }, "shift+m": function () { return irMarcador(1); }, "ctrl+shift+m": function () { return irMarcador(-1); },
+      "virgula": function () { return porUltima(true); }, "ponto": function () { return porUltima(false); },
+      "ctrl+l": function () { var c = sel(); if (!c || c.tipo !== "video") { aviso("Escolha um take de vídeo para separar o som", true); return; } extrairAudio(c); },
+      "g": function () { return ganhoPedir(); }, "ctrl+alt+v": function () { return colarAtrib.apply(this, arguments); },
       "arrowleft": function () { irPara(T - passoQ); }, "arrowright": function () { irPara(T + passoQ); }, "shift+arrowleft": function () { irPara(T - 1); }, "shift+arrowright": function () { irPara(T + 1); },
       "home": function () { irPara(0); $("veRolo").scrollLeft = 0; }, "end": function () { irPara(total()); },
       "delete": function () { if (!SEL && !GRUPO.length) return false; apagar(false); }, "shift+delete": function () { if (!SEL) return false; apagar(true); },
@@ -1354,8 +1407,8 @@
       "ctrl+a": function () { if (!P.clips.length) return false; GRUPO = P.clips.map(function (x) { return x.id; }); SEL = GRUPO[0]; if (GRUPO.length < 2) GRUPO = []; desenharTL(); desenharProp(); aviso("▭ Todos os takes escolhidos (" + P.clips.length + ")."); },
       "escape": function () { if (!SEL && !GRUPO.length) return false; limparGrupo(); SEL = null; desenharTL(); desenharProp(); }
     });
-    BWFerr.ajuda("ATALHOS DO EDITOR DE VÍDEO", [["#", "TOCAR E NAVEGAR"], ["Espaço / K", "tocar / pausar"], ["L", "tocar"], ["J", "voltar 1 s"], ["← / →", "um quadro para trás / frente"], ["Shift+← / Shift+→", "1 segundo"], ["Home / End", "início / fim"],
-      ["#", "EDITAR"], ["Ctrl+K", "cortar na agulha (o clipe escolhido, ou tudo o que está na agulha)"], ["Delete", "apagar o clipe"], ["Shift+Delete", "apagar e fechar o espaço"], ["Ctrl+C / Ctrl+V", "copiar / colar na agulha"], ["Ctrl+Shift+C / Ctrl+Shift+V", "copiar os AJUSTES de um take / colar em outro"], ["Q / W", "cortar o começo / o fim do take até a agulha"], ["Shift+E", "desativar / ativar o take"],
+    BWFerr.ajuda("ATALHOS DO EDITOR DE VÍDEO", [["#", "TOCAR E NAVEGAR"], ["Espaço / K", "tocar / pausar"], ["L", "tocar — de novo: 2×, 4×, 8×"], ["J", "tocar para trás"], ["I / O", "marcar entrada / saída (Shift+I, Shift+O vão até elas)"], ["M", "marcador na agulha (Shift+M próximo)"], ["← / →", "um quadro para trás / frente"], ["Shift+← / Shift+→", "1 segundo"], ["Home / End", "início / fim"],
+      ["#", "EDITAR"], ["Ctrl+K", "cortar na agulha (o clipe escolhido, ou tudo o que está na agulha)"], ["Delete", "apagar o clipe"], ["Shift+Delete", "apagar e fechar o espaço"], ["Ctrl+C / Ctrl+V", "copiar / colar na agulha"], ["Ctrl+Shift+C / Ctrl+Shift+V", "copiar os AJUSTES de um take / colar em outro"], ["Ctrl+Shift+K", "cortar TODAS as camadas na agulha"], ["A / Shift+A", "escolher tudo da agulha para a frente / para trás"], ["Alt + arrastar", "duplicar o take (vídeo, foto, texto, som)"], [", / .", "inserir / sobrepor a última mídia na agulha"], ["G", "ganho de áudio em dB"], ["Ctrl+L", "separar o som do vídeo"], ["Ctrl+Alt+V", "colar ajustes"], ["Q / W", "cortar o começo / o fim do take até a agulha"], ["Shift+E", "desativar / ativar o take"],
       ["Ctrl+Shift+D", "duplicar"], ["Ctrl+D", "transição Dissolver no clipe"], ["Ctrl+Z", "desfazer"], ["Ctrl+Shift+Z / Ctrl+Y", "refazer"], ["Botão direito", "opções do clipe (no celular: ⋯ MAIS)"],
       ["#", "LINHA DO TEMPO E ARQUIVO"], ["= / -", "aproximar / afastar"], ["\\", "caber o vídeo inteiro"], ["Ctrl+roda do mouse", "zoom onde está o mouse"], ["Ctrl+I", "importar mídia"], ["Ctrl+S", "salvar"], ["Ctrl+M", "exportar o vídeo"], ["?", "esta lista"]]);
     // MENU DO CLIPE (botão direito / segurar o dedo)
@@ -1494,6 +1547,80 @@
   function urlDe(m) { var x = PX[m.id]; return x && x.url && PXCFG.usar && !ORIGINAL && m.tipo === "video" ? x.url : m.url; }
   function recarregarEls(mid) { Object.keys(EL).forEach(function (k) { var c = P.clips.filter(function (x) { return x.id === k; })[0]; if (!mid || (c && c.mid === mid)) soltarEl(k); }); if (!TOCANDO) desenhar(); }
   function usarOriginais(sim) { if (ORIGINAL === !!sim) return; ORIGINAL = !!sim; if (Object.keys(PX).length) recarregarEls(); }
+
+  /* PARADO = QUALIDADE TOTAL (23/11, dono: "vi isso na Adobe: só fica com qualidade total parado, e no play volta a baixa para rodar liso"):
+     meio segundo depois de parar, a prévia passa para o tamanho REAL do projeto e os takes da agulha são lidos do arquivo ORIGINAL (não do proxy).
+     Qualquer play, arraste da agulha ou gravação volta na hora para a prévia leve + proxy. Os players do original são soltos ao sair (regra 180). */
+  function nitTam() { var f = tamReal(), k = escalaPrev(), par = function (v) { v = Math.round(v * k); return v - v % 2; }; var w = par(f[0]), h = par(f[1]); if (cv.width !== w || cv.height !== h) { cv.width = w; cv.height = h; } }
+  function nitSoltar(els) { Object.keys(els).forEach(function (k) { try { els[k].pause(); els[k].removeAttribute("src"); els[k].load(); } catch (e) {} }); }
+  function nitSelo() { var tela = cv.parentElement, b = $("veNit"); if (!tela) return; if (!b) { b = document.createElement("span"); b.id = "veNit"; b.className = "ve-nit"; b.textContent = "● QUALIDADE TOTAL"; b.title = "Parado, a prévia mostra o arquivo original no tamanho real. No play volta para a prévia leve."; tela.appendChild(b); } b.hidden = !NIT.on; }
+  function nitSair() { if (!NIT.on) return; NIT.on = false; nitSoltar(NIT.els); NIT.els = {}; if (!SAIDA) nitTam(); nitSelo(); }
+  function nitChecar() {
+    if (TOCANDO && !GRAV) { var ag = performance.now(); GPU.q.push(ag); while (GPU.q.length && ag - GPU.q[0] > 1000) GPU.q.shift(); if (GPU.q.length > 5) GPU.fps = GPU.q.length; }
+    if (NIT.dentro) return;
+    if (NIT.on) { if (TOCANDO || GRAV || FORCAR_REAL || !NITCFG || Math.abs(T - NIT.T) > 1e-4) nitSair(); else return; }
+    clearTimeout(NIT.tm); NIT.n++;
+    if (TOCANDO || GRAV || FORCAR_REAL || !NITCFG || window.__veRaspa || window.__bwSegurando) return;
+    NIT.tm = setTimeout(nitEntrar, 480);
+  }
+  function nitEntrar() {
+    if (TOCANDO || GRAV || FORCAR_REAL || NIT.on || !NITCFG) return;
+    var Tn = T, vez = NIT.n, lista = P.clips.filter(function (c) { var o = EL[c.id]; return c.tipo === "video" && !c.off && Tn >= c.ini && Tn < c.ini + c.dur && o && o.px && MID[c.mid] && !MID[c.mid].ruim; }).slice(0, 4);
+    if (!lista.length && escalaPrev() >= 1) return;
+    var els = {}, falta = lista.length, feito = false;
+    function pronto() { if (feito) return; feito = true; if (vez !== NIT.n || TOCANDO || GRAV || Math.abs(T - Tn) > 1e-4) { nitSoltar(els); return; }
+      NIT.on = true; NIT.T = Tn; NIT.els = els; nitTam(); nitSelo(); NIT.dentro = true; try { desenhar(); } finally { NIT.dentro = false; } }
+    if (!falta) { pronto(); return; }
+    lista.forEach(function (c) { var e = document.createElement("video"); e.muted = true; e.preload = "auto"; e.playsInline = true; e.crossOrigin = "anonymous"; var ok = false, um = function () { if (ok || e.readyState < 2) return; ok = true; if (--falta <= 0) pronto(); };
+      e.addEventListener("loadedmetadata", function () { try { e.currentTime = lim((c.corte || 0) + (Tn - c.ini) * vel(c), 0, Math.max(0, (e.duration || 1e9) - 0.03)); } catch (x) {} });
+      e.addEventListener("seeked", um); e.addEventListener("loadeddata", function () { if (Math.abs(e.currentTime - ((c.corte || 0) + (Tn - c.ini) * vel(c))) < 0.08) um(); }); e.addEventListener("error", function () { if (!ok) { ok = true; delete els[c.id]; if (--falta <= 0) pronto(); } });
+      els[c.id] = e; e.src = MID[c.mid].url; });
+    setTimeout(pronto, 5000);   /* original pesado demais: segue com o que chegou (o resto fica no proxy) */
+  }
+  /* mexendo num controle ou arrastando na prévia: volta para a leve (o desenho seguinte reagenda a qualidade total) */
+  document.addEventListener("input", function (e) { if (NIT.on && e.target && e.target.type === "range") nitSair(); }, true);
+  cv.addEventListener("pointerdown", function () { if (NIT.on) { nitSair(); desenhar(); } }, true);
+  document.addEventListener("change", function (e) { if (e.target && e.target.id === "veNitido") { NITCFG = e.target.checked; try { localStorage.setItem("ui_ve_nitido", NITCFG ? "sim" : "nao"); } catch (x) {} desenhar(); aviso(NITCFG ? "Parado, a prévia fica em qualidade total." : "Prévia sempre leve, mesmo parada."); } });
+
+  /* PLACA DE VÍDEO (23/11, dono: "identifica a placa de vídeo e informa a sua utilização, sinal verde se tiver tudo OK"): o navegador diz QUAL placa ele
+     está usando (regra 129: em notebook costuma ser a integrada), se a prévia é desenhada pela placa, se a LEITURA e a GRAVAÇÃO de vídeo são pela placa.
+     A % de uso da placa o navegador não deixa ler — a tela diz onde ver. Dentro do app BW vem também a placa de verdade do PC. Só leitura. */
+  var GPU = {q: [], fps: 0, r: null, lendo: false};
+  async function gpuLer() {
+    if (GPU.r || GPU.lendo) return GPU.r; GPU.lendo = true;
+    var r = {nome: "", soft: false, integ: false, webgl: false, dec: null, hevc: null, k4: null, enc: null, app: null};
+    try { var c = document.createElement("canvas"), gl = c.getContext("webgl2") || c.getContext("webgl"); if (gl) { r.webgl = true; var x = gl.getExtension("WEBGL_debug_renderer_info"); r.nome = String((x && gl.getParameter(x.UNMASKED_RENDERER_WEBGL)) || gl.getParameter(gl.RENDERER) || ""); var l = gl.getExtension("WEBGL_lose_context"); if (l) l.loseContext(); } } catch (e) {}
+    var limpo = r.nome.replace(/^ANGLE \(([^,]*),\s*/, "").replace(/\s*(Direct3D|OpenGL|Vulkan|Metal).*$/i, "").replace(/\(0x[0-9a-f]+\)/ig, "").replace(/\)\s*$/, "").trim(); r.curto = limpo || r.nome || "não deu para ler";
+    r.soft = !r.webgl || /swiftshader|llvmpipe|software|basic render|softpipe/i.test(r.nome);
+    r.integ = /intel|uhd|iris|hd graphics|radeon\(tm\) graphics|vega \d|adreno|mali|powervr/i.test(r.nome) && !/rtx|gtx|arc\b|radeon rx|quadro/i.test(r.nome);
+    async function dec(tipo, w, h) { try { if (!navigator.mediaCapabilities) return null; var d = await navigator.mediaCapabilities.decodingInfo({type: "file", video: {contentType: tipo, width: w, height: h, bitrate: w > 2000 ? 40e6 : 10e6, framerate: 30}}); return !d.supported ? "nao" : d.powerEfficient ? "placa" : "cpu"; } catch (e) { return null; } }
+    r.dec = await dec('video/mp4; codecs="avc1.640028"', 1920, 1080); r.k4 = await dec('video/mp4; codecs="avc1.640033"', 3840, 2160); r.hevc = await dec('video/mp4; codecs="hvc1.1.6.L153.B0"', 3840, 2160);
+    try { if (window.VideoEncoder) { var h = await VideoEncoder.isConfigSupported({codec: "avc1.640028", width: 1920, height: 1080, bitrate: 8e6, framerate: 30, hardwareAcceleration: "prefer-hardware"}); r.enc = h && h.supported ? "placa" : "cpu"; } else r.enc = "nao"; } catch (e) { r.enc = "cpu"; }
+    try { var p = window.bwNode || window.BWNode; if (typeof p === "function") { var a = await p("maquina"); if (a && a.ok && a.valor && a.valor.nome) r.app = a.valor; } } catch (e) {}
+    GPU.r = r; GPU.lendo = false; return r;
+  }
+  function gpuHtml() {
+    var r = GPU.r; if (!r) return '<p class="ve-nota" style="margin:0">Lendo a placa de vídeo…</p>';
+    var dedApp = r.app && !/intel|uhd|iris/i.test(r.app.nome), outra = dedApp && r.integ;
+    var nivel = r.soft ? "ruim" : (r.dec === "cpu" || r.dec === "nao" || outra) ? "meio" : "ok";
+    var titulo = nivel === "ok" ? "TUDO OK — a placa está sendo usada" : nivel === "meio" ? "FUNCIONA, MAS DÁ PARA MELHORAR" : "SEM ACELERAÇÃO — tudo está no processador";
+    var li = function (bom, t) { return '<li class="' + (bom === true ? "ok" : bom === false ? "nao" : "meio") + '">' + t + '</li>'; };
+    var q = {placa: "pela placa", cpu: "pelo processador (mais pesado)", nao: "este navegador não abre"};
+    var h = '<div class="ve-gpu ' + nivel + '"><span class="ve-gpu-luz"></span><b>' + titulo + '</b></div>';
+    h += '<p class="ve-nota" style="margin:6px 0 4px">Placa que o navegador está usando: <b>' + esc(r.curto) + '</b>' + (r.app ? '<br>Placa do PC (lida pelo app BW): <b>' + esc(r.app.nome) + (r.app.vram ? " · " + r.app.vram + " GB" : "") + '</b>' : '') + '</p><ul class="ve-gpu-l">';
+    h += li(!r.soft, "Desenho da prévia e dos efeitos: " + (r.soft ? "pelo processador" : "pela placa"));
+    if (r.dec) h += li(r.dec === "placa", "Leitura de vídeo Full HD: " + q[r.dec]);
+    if (r.k4) h += li(r.k4 === "placa" ? true : r.k4 === "cpu" ? null : false, "Leitura de vídeo 4K: " + q[r.k4]);
+    if (r.hevc) h += li(r.hevc === "placa" ? true : null, "Vídeo HEVC/H.265 (iPhone, câmeras): " + (r.hevc === "nao" ? "não abre aqui — o proxy resolve" : q[r.hevc]));
+    if (r.enc) h += li(r.enc === "placa" ? true : null, "Exportar e fazer proxy: " + (r.enc === "nao" ? "gravação simples do navegador" : q[r.enc]));
+    if (GPU.fps) h += li(GPU.fps >= 24 ? true : GPU.fps >= 15 ? null : false, "Última reprodução: " + GPU.fps + " quadros por segundo");
+    h += '</ul>';
+    if (r.soft) h += '<p class="ve-nota" style="margin:4px 0 0">Ligue a aceleração: Chrome → Configurações → Sistema → "Usar aceleração gráfica quando disponível" e reabra o navegador.</p>';
+    else if (r.integ) h += '<p class="ve-nota" style="margin:4px 0 0">' + (outra ? "O PC tem placa dedicada, mas o navegador está na integrada. " : "O navegador está no vídeo integrado (em notebook é o normal). Se o PC tem placa dedicada: ") + 'Windows → Configurações → Sistema → Tela → Elementos gráficos → escolha o navegador → <b>Alto desempenho</b>.</p>';
+    h += '<p class="ve-nota" style="margin:4px 0 0;opacity:.75">A % de uso da placa o navegador não mostra: veja em Ctrl+Shift+Esc → Desempenho → GPU enquanto o vídeo toca.</p>';
+    return h;
+  }
+  function gpuPainel() { if (!GPU.r) gpuLer().then(function () { var b = $("veGpu"); if (b) b.innerHTML = gpuHtml(); }); return '<div class="ve-g"><h4>PLACA DE VÍDEO</h4><div id="veGpu">' + gpuHtml() + '</div></div>'; }
   function mb(b) { return b >= 1073741824 ? (b / 1073741824).toFixed(2).replace(".", ",") + " GB" : (b / 1048576).toFixed(b < 10485760 ? 1 : 0).replace(".", ",") + " MB"; }
   function tempoTxt(s) { if (s == null || !isFinite(s)) return "calculando…"; s = Math.max(1, Math.round(s)); return s < 60 ? s + " s" : Math.floor(s / 60) + " min " + (s % 60 < 10 ? "0" : "") + s % 60 + " s"; }
 
@@ -1851,7 +1978,8 @@
    ["colar", function (f) { colar = f; }, function () { return colar; }], ["colarAtrib", function (f) { colarAtrib = f; }, function () { return colarAtrib; }],
    ["addClip", function (f) { addClip = f; }, function () { return addClip; }], ["addTexto", function (f) { addTexto = f; }, function () { return addTexto; }]].forEach(function (q) {
     var orig = q[2](); q[1](function () { gravarHist(); var r = orig.apply(this, arguments); gravarHist(); return r; }); });
-  window.__video = {PX: PX, PASTAS: PASTAS, opDe: function () { return opDe(); }, EXP: EXP, abrirExportar: function () { abrirExportar(); }, exportar: function (o) { exportar(o); }, filaProxy: function (a, b) { return filaProxy(a, b); }, medir: function () { return medir(); }, urlDe: function (m) { return urlDe(m); }, tamReal: function () { return tamReal(); }, tamanhoReal: tamanhoReal, porMidia: porMidia, EL: EL, abrirVideo: abrirVideo, codecDe: codecDe, tudo: function () { tudo(); }, desenharLib: desenharLib, guardarJa: function () { return tx("estado", "readwrite", function (s) { return s.put({id: "atual", p: JSON.parse(JSON.stringify(P))}); }); },
+  window.addEventListener("bw-cor-lut", function () { if (!TOCANDO) desenhar(); });
+  window.__video = {corAvancada: function (c) { corAvancada(c || sel()); }, NIT: NIT, GPU: GPU, gpuLer: gpuLer, PX: PX, PASTAS: PASTAS, opDe: function () { return opDe(); }, EXP: EXP, abrirExportar: function () { abrirExportar(); }, exportar: function (o) { exportar(o); }, filaProxy: function (a, b) { return filaProxy(a, b); }, medir: function () { return medir(); }, urlDe: function (m) { return urlDe(m); }, tamReal: function () { return tamReal(); }, tamanhoReal: tamanhoReal, porMidia: porMidia, EL: EL, abrirVideo: abrirVideo, codecDe: codecDe, tudo: function () { tudo(); }, desenharLib: desenharLib, guardarJa: function () { return tx("estado", "readwrite", function (s) { return s.put({id: "atual", p: JSON.parse(JSON.stringify(P))}); }); },
     trocarProjeto: function (np) { parar(); Object.keys(EL).forEach(soltarEl); P = np; SEL = null; T = 0; formato(); desenharLib(); tudo(); },
     backup: function () { return tx("estado", "readwrite", function (s) { return s.put({id: "anterior", p: JSON.parse(JSON.stringify(P))}); }); },
     anterior: function () { return new Promise(function (ok) { db().then(function (d) { var q = d.transaction("estado").objectStore("estado").get("anterior"); q.onsuccess = function () { ok(q.result && q.result.p); }; q.onerror = function () { ok(null); }; }); }); },

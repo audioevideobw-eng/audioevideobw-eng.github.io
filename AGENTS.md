@@ -891,6 +891,23 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
      navigator.storage.getDirectory) no lugar do seletor (docs/testes/teste_video_pasta.py). Som sintetizado novo: medir o PICO de cada um (nenhum
      mudo, nenhum ≥ 1,0) antes de publicar.
 
+**Aprendidos em 23/11 à noite (qualidade total parado, COR AVANÇADA, placa de vídeo, atalhos)**
+210. PARADO = QUALIDADE TOTAL (dono: "vi na Adobe"): ~0,5 s depois de parar, a prévia vai para o tamanho real (celular: até Full HD) e o take da agulha é
+     lido do ORIGINAL por um player à parte (NIT.els, solto ao sair — regra 180); play, arraste da agulha, barra de ajuste ou toque na prévia voltam na hora
+     para prévia leve + proxy. Teste com proxy FALSO de outra cor (docs/testes/teste_video_nitido.py). Variável usada dentro do desenhar() é declarada no
+     TOPO do arquivo (var lá embaixo ainda é undefined no 1º desenho).
+211. COR AVANÇADA (assets/bw-cor-nos.js): c.nos = {nos, lig}; a imagem segue as ligações de "in" até "out" (uma entrada e uma saída por nó; nó fora do
+     fluxo ou fluxo aberto NÃO entra). Um passe de WebGL por nó, textura de 16 bits quando a placa deixa (senão 8); sem WebGL a cor avançada não é
+     aplicada e a tela avisa. Ordem no take: chroma → NÓS → cor simples → efeitos. LOG = fórmula publicada de cada fabricante + mapa de tons; a COR da gama
+     é aproximada e a tela diz isso (cor exata = LUT oficial da marca). LUT .cube: só 3D, faixa N·N × N, fica no IndexedDB bw_luts do aparelho (regra 178:
+     LUT comprada/da marca nunca vai para a biblioteca de todos). CRIAR LUT = passar a tabela neutra pelos mesmos nós (sem a nitidez) e ler de volta —
+     readPixels vem de baixo para cima. Conta-gotas do branco lê a imagem ANTES do nó de balanço (op.ate). Teste confere a CONTA no pixel por nó
+     (docs/testes/teste_cor_nos.py). Tecla Esc de tela cheia não rouba o Esc do menu aberto (.bwf-menu).
+212. PLACA DE VÍDEO no painel do projeto: o navegador diz qual placa ELE usa e se desenho, leitura (mediaCapabilities.powerEfficient) e gravação
+     (VideoEncoder prefer-hardware) vão pela placa — verde/âmbar/vermelho; a % de uso o navegador não lê (a tela diz onde ver); placa de verdade só pelo app BW.
+213. ATALHOS: lista de teclas do BWFerr.atalhos é separada por vírgula → a própria vírgula e o ponto se escrevem "virgula" e "ponto". Alt + arrastar
+     duplica (a cópia fica no lugar; clique sem arrastar desfaz a cópia). Velocidade do play (L 2×/4×/8×, J para trás) nunca vale na gravação (GRAV).
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -2408,6 +2425,21 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   lista de chaves editável, ＋ SOMAR UM EFEITO, 🎲 SURPRESA, ⇉ EM TODOS OS TAKES, LIMPAR. Vale na prévia e na exportação (mesmo desenho). Teste novo
   docs/testes/teste_video_efeitos.py (pixel sem cor no começo e mais vivo no fim; PC e folha do celular) + bateria do editor 0 falhas novas (teste_mascara
   segue com 2 falhas ANTIGAS dos modelos ao recarregar — conferido com git stash); vigia ✅. NÃO feito: manual, pacote do app/.exe. video-editor v30, ve-app v13, sw v215.
+
+- 23/11/2026 23:59 · Claude (dono, 22:40–23:00: "parado com qualidade total mesmo com proxy, como na Adobe"; "aba COR AVANÇADA imitando o sistema de nós:
+  nodes flutuantes que você conecta, um node para cada coisa, balanço de branco clicando no que é branco, LUTs e presets, criar LUTs e inserir LUTs de
+  marcas e seus LOG"; "placa de vídeo com sinal verde nas configurações do projeto"; lista de atalhos de editor de mesa; "duplicar segurando Alt"):
+  EDITOR DE VÍDEO — (1) PARADO EM QUALIDADE TOTAL (selo ● QUALIDADE TOTAL; opção no painel do projeto). (2) 🎛 COR AVANÇADA (botão no grupo COR; área em
+  tela cheia): nós ENTRADA LOG (S-Log3, LogC3, V-Log, Canon Log/Log 3, F-Log, Apple Log, D-Log, genérico → Rec.709), BALANÇO DE BRANCO com 🎯 conta-gotas,
+  EXPOSIÇÃO E CONTRASTE com pivô, RODAS PRIMÁRIAS (lift/gamma/gain/offset), RODAS LOG, CURVAS (luz, R, G, B), SATURAÇÃO, NITIDEZ e LUT; ligar arrastando a
+  bolinha, soltar tocando na linha, ● liga/desliga, mistura por nó; ESCOPOS (waveform, parade, vectorscope); ★ 9 PRESETS + meus presets; ▦ LUTS: importar
+  .cube, CRIAR LUT DOS NÓS (33³) e baixar .cube; ANTES, ⇉ EM TODOS, desfazer; no celular abas NÓS · AJUSTES · ESCOPOS. (3) PLACA DE VÍDEO no painel do
+  projeto (sinal verde/âmbar/vermelho + o que vai pela placa). (4) ATALHOS: Ctrl+Shift+K, A / Shift+A, I / O (+ Shift), M (+ Shift+M), vírgula/ponto
+  (inserir/sobrepor a última mídia), G (ganho em dB), Ctrl+L (separar o som), Ctrl+Alt+V, L 2×/4×/8×, J para trás; Alt + arrastar duplica.
+  Testes novos teste_cor_nos, teste_video_nitido, teste_video_atalhos + bateria do editor 0 falhas (teste_motion: 1 falha do render do PC, fora desta
+  mudança); vigia ✅. NÃO feito / limites ditos ao dono: cor da gama LOG é aproximada (exata = LUT da marca); I/O ainda não limitam a exportação;
+  os atalhos novos só no editor de vídeo (Motion/Telas têm os comuns); nada testado em iPhone nem com LOG real de câmera; manual, pacote do app e .exe.
+  video-editor v31, bw-cor-nos v1, bw-ferramentas v8, sw v216. PENTE FINO 210–213.
 
 ## Pendências (dono)
 - [x] (23/11 09:58) BW-Setup.exe 1.9.37 gerado pelo dono e publicado (9,0 MB, versão conferida dentro do .exe).

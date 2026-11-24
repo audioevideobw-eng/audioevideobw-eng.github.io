@@ -80,7 +80,7 @@
   var MAPAS = [];
   function norma(e) { var p = []; if (e.ctrlKey || e.metaKey) p.push("ctrl"); if (e.shiftKey) p.push("shift"); if (e.altKey) p.push("alt");
     var k = (e.key || "").toLowerCase(); if (k === " ") k = "espaco"; if (k === "backspace") k = "delete"; if (k === "del") k = "delete"; if (k === "+") k = "="; if (k === "?" ) k = "/"; p.push(k); return p.join("+"); }
-  function atalhos(mapa) { var m = {}; Object.keys(mapa).forEach(function (k) { k.split(",").forEach(function (x) { var ps = x.trim().toLowerCase().split("+"), tec = ps.pop(), mods = ["ctrl", "shift", "alt"].filter(function (z) { return ps.indexOf(z) >= 0; }); m[mods.concat([tec]).join("+")] = mapa[k]; }); }); MAPAS.push(m); return m; }
+  function atalhos(mapa) { var m = {}; Object.keys(mapa).forEach(function (k) { k.split(",").forEach(function (x) { var ps = x.trim().toLowerCase().split("+"), tec = ({virgula: ",", ponto: "."})[ps[ps.length - 1]] || ps[ps.length - 1], mods = ["ctrl", "shift", "alt"].filter(function (z) { return ps.indexOf(z) >= 0; }); m[mods.concat([tec]).join("+")] = mapa[k]; }); }); MAPAS.push(m); return m; }
   document.addEventListener("keydown", function (e) {
     if (abertoMenu) { if (e.key === "Escape") { fecharMenu(); e.preventDefault(); e.stopImmediatePropagation(); } return; }
     if (e.key === "Escape" && document.querySelector(".bwf-ajuda")) { document.querySelector(".bwf-ajuda").remove(); e.preventDefault(); e.stopImmediatePropagation(); return; }
