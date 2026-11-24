@@ -2541,6 +2541,12 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   APP BW 1.9.41: BW-REELS.bat baixa o componente em segundo plano (electron/install.js, janela minimizada) e monta o BW.exe; BW-ELECTRON.bat roda o
   install.js quando falta o dist; o atualizador faz o mesmo depois do npm. Ensinamento: optionalDependency com download no postinstall pode chegar vazia.
 
+- 24/11/2026 15:35 · Claude (dono: "faça isso"): BW novo conferido no PC do dono (janela "Editor de vídeo — Brightway" no BW.exe, PLACA DE VÍDEO "TUDO OK" na
+  RTX 3050) → APP BW 1.9.42: o PROGRAMA vira o BW principal. BW-REELS.bat (alvo do ícone BW e do menu Iniciar) abre programa\BW.exe quando ele existe; sem ele, abre
+  o BW antigo e monta o programa em segundo plano (na abertura seguinte já é o programa). "7 - ABRIR BW ANTIGO (EDGE)" = BW-REELS.bat --classico. O atalho
+  "BW (novo)" é apagado. teste-app 0 falhas. Obs.: no PC do dono o programa foi montado em Vídeos\bw-reels-studio (a cópia instalada em AppData\Local\BW Reels
+  ainda não tinha o componente).
+
 ## Pendências (dono)
 - [ ] (24/11 15:05) GOOGLE PLAY: dono PEDIU o D-U-N-S (Dun & Bradstreet, grátis, 5–30 dias). Quando chegar: criar a conta de ORGANIZAÇÃO em
       play.google.com/console/signup (CNPJ + D-U-N-S, US$ 25) e avisar o Claude → gerar .aab + chave de assinatura fixa (segredos no GitHub) + ficha da loja.
@@ -2549,7 +2555,7 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
       com e-mail e senha e testar: editor de vídeo (importar, exportar → compartilhar), câmera/microfone (Tio Cláudio), editor de fotos. Para as
       atualizações instalarem por cima sem desinstalar: cadastrar a chave de assinatura (Claude gera e explica — 2 segredos no GitHub).
 - [x] (23/11 09:58) BW-Setup.exe 1.9.37 gerado pelo dono e publicado (9,0 MB, versão conferida dentro do .exe).
-- [ ] (24/11) BW NOVO (PROGRAMA): dono tocar em ATUALIZAR no BW (1.9.40; baixa ~110 MB do componente), abrir o ícone "BW (novo)", entrar com a conta
+- [x] (24/11 15:35) BW NOVO conferido e virou o principal (1.9.42). Era: dono tocar em ATUALIZAR no BW (1.9.40; baixa ~110 MB do componente), abrir o ícone "BW (novo)", entrar com a conta
       e conferir: nome/ícone BW na barra de tarefas e no Gerenciador de Tarefas, editor de vídeo (prévia, proxy, exportar), placa (⚙ → PLACA DE VÍDEO).
       Se aprovar: o programa vira o BW principal (instalador e atalho). Se o ícone não aparecer: "6 - ABRIR BW NOVO (PROGRAMA)" na pasta do BW.
 - [ ] (23/11) iPhone: fechar e abrir o app, tocar em ＋ → ＋ IMPORTAR e dizer se a galeria abriu. PC: laço e avisos pequenos APROVADOS (24/11). iPhone (24/11): conferir se a tela parou de ir para o lado com toque firme (trava-borda).
