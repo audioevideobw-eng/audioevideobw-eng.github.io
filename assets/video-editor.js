@@ -345,7 +345,7 @@
   function colar() { if (!COPIA) { aviso("Nada copiado ainda (Ctrl+C num clipe).", true); return; } if (Array.isArray(COPIA)) { var b0 = Math.min.apply(null, COPIA.map(function (x) { return x.ini; })), nv = []; COPIA.forEach(function (x) { var k = JSON.parse(JSON.stringify(x)); k.id = uid(); k.ini = Math.round((T + x.ini - b0) * 20) / 20; P.clips.push(k); nv.push(k.id); }); GRUPO = nv; SEL = nv[0]; tudo(); aviso(nv.length + " takes colados na agulha."); return; }
     var d = JSON.parse(JSON.stringify(COPIA)); d.id = uid(); d.ini = Math.round(T * 20) / 20; P.clips.push(d); SEL = d.id; tudo(); aviso("Colado na agulha."); }
   /* COPIAR E COLAR AJUSTES (atributos) de um take em outro: cada grupo só entra onde faz sentido (som em quem tem som, imagem em quem tem imagem) */
-  var ATRIB = null, AT_VIS = ["ia", "grade", "op", "esc", "x", "y", "encaixe", "efeito", "efInt", "ck", "ckCor", "ckModo", "ckNivel", "ckInt", "ckSuave", "ckLimpa", "ckSombra"], AT_TXT = ["fonte", "tam", "cor", "fundo", "op"], AT_SOM = ["vol", "normG", "ruido", "voz"], AT_TEMPO = ["fin", "fout"];
+  var ATRIB = null, AT_VIS = ["ia", "grade", "op", "esc", "x", "y", "encaixe", "efeito", "efInt", "efs", "ck", "ckCor", "ckModo", "ckNivel", "ckInt", "ckSuave", "ckLimpa", "ckSombra"], AT_TXT = ["fonte", "tam", "cor", "fundo", "op"], AT_SOM = ["vol", "normG", "ruido", "voz"], AT_TEMPO = ["fin", "fout"];
   function temSom(c) { return c.tipo === "video" || c.tipo === "audio"; }
   function temImg(c) { return c.tipo === "video" || c.tipo === "imagem"; }
   function copiarAtrib() { var c = sel(); if (!c) return false; ATRIB = JSON.parse(JSON.stringify(c)); aviso("Ajustes copiados. Escolha outro take e use COLAR AJUSTES (Ctrl+Shift+V)."); }
@@ -477,6 +477,39 @@
   /* camada de efeito (fora da tela): a mídia é desenhada aqui, recebe o efeito por modos de mistura e volta por cima com a intensidade escolhida */
   var EF = null, EF2 = null, GRAO = null, SEM_CK = false, PEGAR_CK = false;
   function tela2(k, W, H) { if (!k) k = document.createElement("canvas"); if (k.width !== W || k.height !== H) { k.width = W; k.height = H; } return k; }
+  /* 23/11 (dono): CONTROLE DE EFEITOS — cada take pode ter VÁRIAS camadas de efeito, cada uma com a intensidade que MUDA no tempo.
+     Camada 0 = c.efeito/c.efInt (o que o resto do editor já conhece) + c.efs[0] (modo, duração, chaves); camadas extras em c.efs[1..].
+     Modos: fixo · entrar (0→força) · sair (força→0) · entrar e sair · subir (0→força no take todo) · descer · pulsar (vai e volta a cada "dur" s) ·
+     chaves (◆ keyframes {t: segundos desde o começo do take, v: 0–100}). A conta é só de t: prévia e vídeo exportado iguais. */
+  var FX_MODOS = [["fixo", "Fixo"], ["entrar", "Entra aos poucos"], ["sair", "Sai aos poucos"], ["entsai", "Entra e sai"], ["subir", "Cresce no take todo"], ["descer", "Diminui no take todo"], ["pulsar", "Pulsa"], ["chaves", "◆ Chaves (keyframes)"]];
+  var FX_MODELOS = [
+    {n: "Cor nascendo", d: "Começa sem cor e a cor vai chegando", L: [{k: "pb", int: 100, modo: "descer"}]},
+    {n: "Do P&B ao vivo", d: "Sem cor → cor → cor intensa", L: [{k: "pb", int: 100, modo: "chaves", chaves: [{f: 0, v: 100}, {f: 0.4, v: 0}]}, {k: "vivido", int: 100, modo: "chaves", chaves: [{f: 0.35, v: 0}, {f: 1, v: 100}]}]},
+    {n: "Cor ganhando força", d: "A cor fica cada vez mais viva", L: [{k: "vivido", int: 100, modo: "subir"}]},
+    {n: "Desbota no fim", d: "Termina como lembrança", L: [{k: "desbotado", int: 100, modo: "chaves", chaves: [{f: 0.55, v: 0}, {f: 1, v: 100}]}]},
+    {n: "Glitch de entrada", d: "Entra com falha de VHS e limpa", L: [{k: "vhs", int: 100, modo: "chaves", chaves: [{f: 0, v: 100}, {f: 0.08, v: 30}, {f: 0.12, v: 90}, {f: 0.25, v: 0}]}]},
+    {n: "Pulsar na batida", d: "A cor pulsa o tempo todo", L: [{k: "vivido", int: 80, modo: "pulsar", dur: 0.5}]},
+    {n: "Esquenta aos poucos", d: "Fica dourado com o tempo", L: [{k: "dourado", int: 90, modo: "subir"}]},
+    {n: "Esfria aos poucos", d: "Fica azulado com o tempo", L: [{k: "frio", int: 90, modo: "subir"}]},
+    {n: "Memória", d: "Sépia com grão de filme", L: [{k: "sepia", int: 70, modo: "fixo"}, {k: "grao", int: 60, modo: "fixo"}, {k: "vinheta", int: 60, modo: "entrar", dur: 1}]},
+    {n: "Noite chegando", d: "Escurece e esfria no fim", L: [{k: "noite", int: 100, modo: "subir"}]},
+    {n: "Cinema que entra", d: "Look de cinema em 1 s", L: [{k: "cinema", int: 100, modo: "entrar", dur: 1}]},
+    {n: "Foco que abre", d: "Começa desfocado e abre", L: [{k: "desfoque", int: 100, modo: "sair", dur: 1.2}]},
+    {n: "Sonho", d: "Desbotado com desfoque que respira", L: [{k: "desbotado", int: 60, modo: "fixo"}, {k: "desfoque", int: 35, modo: "pulsar", dur: 2}]},
+    {n: "Retrô que vai e vem", d: "Vintage entra e sai", L: [{k: "vintage", int: 90, modo: "entsai", dur: 0.8}]}];
+  function camadasFx(c) { var L = [], b = (c.efs && c.efs[0]) || {}; if (c.efeito && EFEITOS[c.efeito]) L.push({k: c.efeito, int: c.efInt == null ? 85 : c.efInt, modo: b.modo || "fixo", dur: b.dur, chaves: b.chaves});
+    (c.efs || []).slice(1).forEach(function (x) { if (x && EFEITOS[x.k]) L.push(x); }); return L; }
+  function intFx(L, r, D) { var F = L.int == null ? 85 : L.int, d = Math.max(0.05, Math.min(L.dur || 0.8, D)), p = D > 0 ? lim(r / D, 0, 1) : 0, sv = function (x) { x = lim(x, 0, 1); return x * x * (3 - 2 * x); };
+    switch (L.modo) {
+      case "entrar": return F * sv(r / d);
+      case "sair": return F * sv((D - r) / d);
+      case "entsai": return F * Math.min(sv(r / d), sv((D - r) / d));
+      case "subir": return F * sv(p);
+      case "descer": return F * sv(1 - p);
+      case "pulsar": return F * (0.5 - 0.5 * Math.cos(2 * Math.PI * r / Math.max(0.1, L.dur || 0.8)));
+      case "chaves": var ch = (L.chaves || []).slice().sort(function (a, b) { return a.t - b.t; }); if (!ch.length) return F; if (r <= ch[0].t) return ch[0].v; if (r >= ch[ch.length - 1].t) return ch[ch.length - 1].v;
+        for (var i = 1; i < ch.length; i++) if (r <= ch[i].t) { var a = ch[i - 1], z = ch[i]; return a.v + (z.v - a.v) * sv((r - a.t) / Math.max(0.001, z.t - a.t)); } return F;
+      default: return F; } }
   function comEfeito(fonte, x, y, w, h, c, t) {
     var W = cv.width, H = cv.height; EF = tela2(EF, W, H); var o = EF.getContext("2d"); o.setTransform(1, 0, 0, 1, 0, 0); o.globalAlpha = 1; o.globalCompositeOperation = "source-over"; o.clearRect(0, 0, W, H); o.drawImage(fonte, x, y, w, h);
     var mix = function (op, cor, a) { o.globalCompositeOperation = op; o.globalAlpha = a == null ? 1 : a; o.fillStyle = cor; o.fillRect(0, 0, W, H); o.globalAlpha = 1; };
@@ -585,7 +618,7 @@
     var fonteFinal = fonte;
     if (mod.borrar) { var pq = tela2(null, Math.max(8, Math.round(W / (2 + mod.borrar))), Math.max(8, Math.round(H / (2 + mod.borrar)))), q = pq.getContext("2d"); q.drawImage(fonte, x * pq.width / W, y * pq.height / H, w * pq.width / W, h * pq.height / H); cx.globalAlpha = a; cx.drawImage(pq, 0, 0, W, H); cx.restore(); return; }
     cx.globalAlpha = a; cx.drawImage(fonteFinal, x, y, w, h);
-    if (c.efeito && EFEITOS[c.efeito]) { var k = lim((c.efInt == null ? 85 : c.efInt) / 100, 0, 1); if (k > 0) { var e = comEfeito(fonte, x, y, w, h, c, t); cx.setTransform(1, 0, 0, 1, 0, 0); if (mod.recorte) { cx.restore(); cx.save(); cx.beginPath(); mod.recorte(cx, W, H); cx.clip(); } if (mod.dx || mod.dy || (mod.k && mod.k !== 1) || mod.r) { cx.translate(W / 2 + (mod.dx || 0) * W, H / 2 + (mod.dy || 0) * H); if (mod.r) cx.rotate(mod.r); if (mod.k) cx.scale(mod.k, mod.k); cx.translate(-W / 2, -H / 2); } cx.globalAlpha = a * k; cx.drawImage(e, 0, 0); } }
+    camadasFx(c).forEach(function (L) { var k = lim(intFx(L, t - c.ini, c.dur) / 100, 0, 1); if (k > 0.004) { var cc = Object.create(c); cc.efeito = L.k; var e = comEfeito(fonte, x, y, w, h, cc, t); cx.setTransform(1, 0, 0, 1, 0, 0); if (mod.recorte) { cx.restore(); cx.save(); cx.beginPath(); mod.recorte(cx, W, H); cx.clip(); } if (mod.dx || mod.dy || (mod.k && mod.k !== 1) || mod.r) { cx.translate(W / 2 + (mod.dx || 0) * W, H / 2 + (mod.dy || 0) * H); if (mod.r) cx.rotate(mod.r); if (mod.k) cx.scale(mod.k, mod.k); cx.translate(-W / 2, -H / 2); } cx.globalAlpha = a * k; cx.drawImage(e, 0, 0); cx.setTransform(1, 0, 0, 1, 0, 0); } });
     cx.restore(); cx.globalAlpha = 1;
   }
   // como cada transição mexe no clipe que SAI (A) e no que ENTRA (B), p de 0 a 1
@@ -756,6 +789,26 @@
   function fecharVao(tr, t, todos) { var v = vaoEm(tr, t); if (!v) return false; gravarHist(); var d = Math.round(v.d * 1000) / 1000;
     (todos ? v.todos : [v.prox]).forEach(function (c) { c.ini = Math.max(0, Math.round((c.ini - d) * 1000) / 1000); }); SEL = v.prox.id; tudo(true); gravarHist(); marcar(v.prox.id);
     aviso(todos ? "Espaço fechado — os takes seguintes vieram juntos" : "Take encostado no anterior"); return true; }
+  function fxCurva(c, L) { var n = 48, D = Math.max(0.1, c.dur), pts = []; for (var i = 0; i <= n; i++) { var r = D * i / n; pts.push((i / n * 100).toFixed(1) + "," + (30 - intFx(L, r, D) / 100 * 28).toFixed(1)); }
+    var ag = lim((T - c.ini) / D, 0, 1) * 100, ch = L.modo === "chaves" ? (L.chaves || []).map(function (q, j) { return '<circle cx="' + (lim(q.t / D, 0, 1) * 100).toFixed(1) + '" cy="' + (30 - q.v / 100 * 28).toFixed(1) + '" r="2.4" data-fxch="' + j + '"></circle>'; }).join("") : "";
+    return '<svg class="ve-fxc" viewBox="0 0 100 32" preserveAspectRatio="none" aria-hidden="true"><polyline points="' + pts.join(" ") + '"></polyline>' + ch + '<line x1="' + ag.toFixed(1) + '" x2="' + ag.toFixed(1) + '" y1="0" y2="32"></line></svg>'; }
+  function fxPainel(c) { var L = camadasFx(c), h = '<p class="ve-gt2">MODELOS DINÂMICOS</p><div class="ve-fxm">' + FX_MODELOS.map(function (m, i) { return '<button type="button" data-fxmod="' + i + '" title="' + esc(m.d) + '"><b>' + esc(m.n) + '</b><small>' + esc(m.d) + '</small></button>'; }).join("") + '</div>';
+    h += '<p class="ve-gt2">CAMADAS DE EFEITO' + (L.length ? " (" + L.length + ")" : "") + '</p>';
+    if (!L.length) h += '<p class="ve-nota" style="margin:0 0 6px">Nenhum efeito. Toque num modelo acima ou some um efeito.</p>';
+    L.forEach(function (x, i) { var opts = Object.keys(EFEITOS).map(function (k) { return '<option value="' + k + '"' + (k === x.k ? " selected" : "") + '>' + EFEITOS[k] + '</option>'; }).join("");
+      h += '<div class="ve-fxl" data-fxi="' + i + '"><div class="ve-linha" style="margin:0 0 4px"><select data-fxp="k" aria-label="Efeito da camada ' + (i + 1) + '">' + opts + '</select><button type="button" class="ve-bt" data-fxa="tirar" title="Tirar esta camada" aria-label="Tirar a camada ' + (i + 1) + '">✕</button></div>' +
+        '<label><span>Força</span><input type="range" data-fxp="int" min="0" max="100" value="' + Math.round(x.int == null ? 85 : x.int) + '"><output>' + Math.round(x.int == null ? 85 : x.int) + '%</output></label>' +
+        '<label class="um"><span>Movimento</span><select data-fxp="modo" aria-label="Como a força muda">' + FX_MODOS.map(function (m) { return '<option value="' + m[0] + '"' + ((x.modo || "fixo") === m[0] ? " selected" : "") + '>' + m[1] + '</option>'; }).join("") + '</select></label>' +
+        (/^(entrar|sair|entsai|pulsar)$/.test(x.modo || "") ? '<label><span>' + (x.modo === "pulsar" ? "Ritmo" : "Duração") + '</span><input type="range" data-fxp="dur" min="0.1" max="4" step="0.1" value="' + (x.dur || 0.8) + '"><output>' + String(x.dur || 0.8).replace(".", ",") + ' s</output></label>' : "") +
+        fxCurva(c, x) +
+        (x.modo === "chaves" ? '<div class="ve-linha" style="flex-wrap:wrap;margin:4px 0 0"><button type="button" class="ve-bt" data-fxa="chave">◆ CHAVE NA AGULHA (' + Math.round(x.int == null ? 85 : x.int) + '%)</button>' + ((x.chaves || []).length ? '<button type="button" class="ve-bt" data-fxa="limpar">Limpar chaves</button>' : "") + '</div>' +
+          ((x.chaves || []).length ? '<div class="ve-fxk">' + x.chaves.slice().sort(function (a, b) { return a.t - b.t; }).map(function (q) { var j = x.chaves.indexOf(q); return '<span>◆ ' + String(Math.round(q.t * 10) / 10).replace(".", ",") + ' s · <input type="number" min="0" max="100" data-fxk="' + j + '" value="' + Math.round(q.v) + '" aria-label="Força da chave">%<button type="button" data-fxa="tirarch" data-j="' + j + '" aria-label="Tirar a chave">✕</button></span>'; }).join("") + '</div>' : '<p class="ve-nota" style="margin:4px 0 0">Ponha a agulha num ponto do take, ajuste a Força e toque em ◆. Repita em outro ponto.</p>') : "") + '</div>'; });
+    h += '<div class="ve-linha" style="flex-wrap:wrap"><button type="button" class="ve-bt" data-fxa="somar">＋ SOMAR UM EFEITO</button><button type="button" class="ve-bt" data-fxa="sorte">🎲 SURPRESA</button>' + (L.length ? '<button type="button" class="ve-bt" data-fxa="todos">⇉ EM TODOS OS TAKES</button><button type="button" class="ve-bt" data-fxa="nenhum">LIMPAR</button>' : "") + '</div>';
+    return h; }
+  /* camadas → campos do take (camada 0 vai também em c.efeito/c.efInt, que o resto do editor lê) */
+  function fxGravar(c, L) { L = L.filter(function (x) { return x && EFEITOS[x.k]; }); if (!L.length) { c.efeito = ""; delete c.efs; return; }
+    c.efeito = L[0].k; c.efInt = L[0].int == null ? 85 : L[0].int; c.efs = L.map(function (x, i) { var o = {modo: x.modo || "fixo"}; if (x.dur) o.dur = x.dur; if (x.chaves) o.chaves = x.chaves.map(function (q) { return {t: q.t, v: q.v}; }); if (i) { o.k = x.k; o.int = x.int; } return o; }); }
+  function fxModelo(c, m) { fxGravar(c, m.L.map(function (x) { var o = JSON.parse(JSON.stringify(x)); if (o.chaves) o.chaves = o.chaves.map(function (q) { return {t: Math.round(q.f * c.dur * 100) / 100, v: q.v}; }); return o; })); }
   function faixaR(k, rot, min, max, v, suf, passo) { return '<label><span>' + rot + '</span><input type="range" data-p="' + k + '" min="' + min + '" max="' + max + '" step="' + (passo || 1) + '" value="' + v + '"><output>' + v + (suf || "") + '</output></label>'; }
   var ANIMAS = [["", "Parado"], ["subir", "Sobe (por trás dos ombros)"], ["descer", "Desce"], ["zoom", "Zoom de entrada"], ["pulsar", "Pulsar"], ["letreiro", "Letreiro passando"], ["maquina", "Máquina de escrever"], ["anel", "Anel girando em volta"]];
   var ULT_SEL = null;
@@ -789,7 +842,7 @@
     if (c.tipo === "video" || c.tipo === "audio") h += g("vel", "VELOCIDADE", '<div class="ve-chips">' + VELS.map(function (v) { return '<button type="button" data-vel="' + v + '"' + (vel(c) === v ? ' class="on"' : "") + '>' + String(v).replace(".", ",") + '×</button>'; }).join("") + '</div>' + (c.tipo === "video" ? '<div class="ve-linha"><button class="ve-bt" type="button" data-acao="congelar">❄ CONGELAR QUADRO</button></div>' : ""), true);
     if (visual && c.tipo !== "texto" && c.tipo !== "elemento") { var tt = c.trans && c.trans.tipo || "";
       h += g("trans", "TRANSIÇÃO DE ENTRADA", (anteriorDe(c) ? "" : '<p class="ve-nota" style="margin:0 0 6px">Encoste este clipe no fim de outro (mesma camada) para a transição aparecer.</p>') + '<div class="ve-chips">' + '<button type="button" data-trans=""' + (!tt ? ' class="on"' : "") + '>Corte seco</button>' + Object.keys(TRANS).map(function (k) { return '<button type="button" data-trans="' + k + '"' + (tt === k ? ' class="on"' : "") + '>' + TRANS[k] + '</button>'; }).join("") + '</div>' + (tt ? faixaR("transDur", "Duração", 0.2, 2, (c.trans.dur || 0.6), " s", 0.1) : ""), true);
-      h += g("efeito", "EFEITO", '<div class="ve-chips"><button type="button" data-efeito=""' + (!c.efeito ? ' class="on"' : "") + '>Nenhum</button>' + Object.keys(EFEITOS).map(function (k) { return '<button type="button" data-efeito="' + k + '"' + (c.efeito === k ? ' class="on"' : "") + '>' + EFEITOS[k] + '</button>'; }).join("") + '</div>' + (c.efeito ? faixaR("efInt", "Intensidade", 0, 100, c.efInt == null ? 85 : c.efInt, "%") : ""), true); }
+      h += g("efeito", "✦ CONTROLE DE EFEITOS", fxPainel(c)); }
     if (visual && c.tipo !== "texto" && c.tipo !== "elemento" && window.BWCor) { var gd = c.grade || {}, grupoAnt = "", pre = predefCor();
       /* 23/11 (dono: cor "parecida com o DaVinci, clicou mudou, sem cara de filtro"): ordem do colorista — 1 CORREÇÃO · 2 REALCE · 3 ESTILO · 4 AJUSTE FINO */
       var vibA = Math.round(+gd.vib || 0), nivR = BWCor.REALCE.map(function (x) { return x[1]; }).indexOf(vibA);
@@ -1021,6 +1074,26 @@
     else if (b.dataset.acao === "extrair") extrairAudio(c);
     else if (b.dataset.acao === "corAuto") { corAuto(c); }
     else if (b.dataset.acao === "corSalvar") { if (!BWCor.ativo(c.grade)) { aviso("Mexa em alguma barra de cor antes de salvar.", true); return; } var lst = predefCor(), nm = (prompt("Nome da predefinição:", "Minha cor " + (lst.length + 1)) || "").trim().slice(0, 28); if (!nm) return; lst.push({nome: nm, g: JSON.parse(JSON.stringify(c.grade))}); predefCor(lst); c.look = "p" + (lst.length - 1); desenharProp(); aviso("★ “" + nm + "” salva neste aparelho: aparece em todo take e em todo projeto."); } });
+  function fxRefazer(c, L, semPainel) { fxGravar(c, L); if (semPainel) { desenhar(); guardar(); marcarHist(); var bx = $("vePropCorpo").querySelectorAll(".ve-fxl"); L.forEach(function (x, i) { var sv = bx[i] && bx[i].querySelector(".ve-fxc"); if (sv) sv.outerHTML = fxCurva(c, x); }); } else tudo(); }
+  $("vePropCorpo").addEventListener("click", function (e) { var c = sel(), b = e.target.closest("[data-fxmod],[data-fxa]"); if (!b || !c) return; e.stopPropagation(); var L = camadasFx(c).map(function (x) { return JSON.parse(JSON.stringify(x)); });
+    if (b.dataset.fxmod != null) { var m = FX_MODELOS[+b.dataset.fxmod]; fxModelo(c, m); tudo(); aviso("✦ " + m.n); return; }
+    var a = b.dataset.fxa, li = b.closest("[data-fxi]"), i = li ? +li.dataset.fxi : -1, x = L[i];
+    if (a === "somar") { var usados = L.map(function (q) { return q.k; }), k = Object.keys(EFEITOS).filter(function (q) { return usados.indexOf(q) < 0; })[0] || "vivido"; L.push({k: k, int: 70, modo: "fixo"}); fxRefazer(c, L); }
+    else if (a === "sorte") { var mm = FX_MODELOS[Math.floor(Math.random() * FX_MODELOS.length)]; fxModelo(c, mm); tudo(); aviso("🎲 " + mm.n); }
+    else if (a === "nenhum") { fxGravar(c, []); tudo(); }
+    else if (a === "todos") { var cp = JSON.stringify({e: c.efeito, i: c.efInt, s: c.efs || null}), n = 0, D0 = c.dur; P.clips.forEach(function (o) { if (o === c || (o.tipo !== "video" && o.tipo !== "imagem")) return; var q = JSON.parse(cp); o.efeito = q.e; o.efInt = q.i; if (q.s) { o.efs = q.s; o.efs.forEach(function (z) { if (z.chaves) z.chaves = z.chaves.map(function (h) { return {t: Math.round(h.t / D0 * o.dur * 100) / 100, v: h.v}; }); }); } else delete o.efs; n++; }); tudo(); aviso("⇉ Efeitos em " + n + " take(s)"); }
+    else if (a === "tirar" && x) { L.splice(i, 1); fxRefazer(c, L); }
+    else if (a === "chave" && x) { var r = lim(T - c.ini, 0, c.dur), v = x.int == null ? 85 : x.int; x.chaves = (x.chaves || []).filter(function (q) { return Math.abs(q.t - r) > 0.04; }).concat({t: Math.round(r * 100) / 100, v: v}); fxRefazer(c, L); aviso("◆ Chave em " + String(Math.round(r * 10) / 10).replace(".", ",") + " s: " + Math.round(v) + "%"); }
+    else if (a === "limpar" && x) { x.chaves = []; fxRefazer(c, L); }
+    else if (a === "tirarch" && x) { x.chaves.splice(+b.dataset.j, 1); fxRefazer(c, L); } }, true);
+  function fxEntrada(e, final) { var c = sel(), el = e.target, p = el.dataset.fxp, kj = el.dataset.fxk; if (!c || (p == null && kj == null)) return; var li = el.closest("[data-fxi]"); if (!li) return; e.stopPropagation();
+    var L = camadasFx(c).map(function (x) { return JSON.parse(JSON.stringify(x)); }), x = L[+li.dataset.fxi]; if (!x) return;
+    if (kj != null) { if (x.chaves && x.chaves[+kj]) x.chaves[+kj].v = lim(+el.value || 0, 0, 100); fxRefazer(c, L, !final); return; }
+    if (p === "k") x.k = el.value; else if (p === "modo") { x.modo = el.value; if (x.modo === "chaves" && !(x.chaves || []).length) x.chaves = [{t: 0, v: 0}, {t: Math.round(c.dur * 100) / 100, v: x.int == null ? 85 : x.int}]; }
+    else { x[p] = +el.value; var o = el.nextElementSibling; if (o) o.textContent = p === "dur" ? String(el.value).replace(".", ",") + " s" : el.value + "%"; }
+    fxRefazer(c, L, !final && (p === "int" || p === "dur")); }
+  $("vePropCorpo").addEventListener("input", function (e) { fxEntrada(e, false); }, true);
+  $("vePropCorpo").addEventListener("change", function (e) { fxEntrada(e, true); }, true);
   $("vePropCorpo").addEventListener("dblclick", function (e) { var el = e.target.closest('input[type="range"][data-p^="g:"]'), c = sel(); if (!el || !c) return; el.value = 0; el.dispatchEvent(new Event("input", {bubbles: true})); });
   /* CORREÇÃO AUTOMÁTICA (23/11): lê o quadro do take na agulha (se a agulha está fora do take, vai ao meio dele antes) e troca SÓ os campos de
      correção (BWCor.CORRECAO) — realce, estilo e o resto do ajuste ficam como estavam. Um passo no desfazer. */

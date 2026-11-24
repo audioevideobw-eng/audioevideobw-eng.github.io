@@ -158,7 +158,7 @@ with sync_playwright() as p:
         pg.evaluate("__video.P().clips[0].efeito='pb'; __video.P().clips[0].efInt=100; __video.sel('r1'); __video.irPara(1)"); pg.wait_for_timeout(250)
         g = px(0.5, 0.5); ok(max(g) - min(g) < 12, f"EFEITO Preto e branco: a foto vermelha fica cinza {g}")
         pg.evaluate("__video.P().clips[0].efeito='quente'; __video.sel('r1')"); pg.wait_for_timeout(200)
-        ok(pg.locator('#vePropCorpo [data-efeito]').count() == len(pg.evaluate("Object.keys(__video.EFEITOS)")) + 1 and pg.locator('#vePropCorpo [data-trans]').count() == len(pg.evaluate("Object.keys(__video.TRANS)")) + 1, "AJUSTES: lista de transições e de efeitos")
+        ok(pg.locator('#vePropCorpo [data-fxp="k"] option').count() == len(pg.evaluate("Object.keys(__video.EFEITOS)")) and pg.locator('#vePropCorpo [data-trans]').count() == len(pg.evaluate("Object.keys(__video.TRANS)")) + 1, "AJUSTES: lista de transições e de efeitos")
         # T na prévia cria texto onde tocou
         ferr("t"); pg.locator("#veCv").scroll_into_view_if_needed(); cb = pg.locator("#veCv").bounding_box(); nt = pg.evaluate("__video.P().clips.filter(c => c.tipo === 'texto').length")
         if cel: pg.touchscreen.tap(cb["x"] + cb["width"] * 0.25, cb["y"] + cb["height"] * 0.8)

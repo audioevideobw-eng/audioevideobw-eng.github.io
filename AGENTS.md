@@ -2400,6 +2400,15 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   junto; vídeo mais curto usa o que tem). (4) Botão direito no vazio da camada: 🗑 EXCLUIR ESTA CAMADA (confirma se tiver takes; números se fecham).
   Teste novo docs/testes/teste_video_opcoes.py + bateria do editor 0 falhas (teste_video e teste_video_fluidez acertados à agulha nova); vigia ✅. video-editor v29, sw v214.
 
+- 23/11/2026 23:00 · Claude (dono: "ao aplicar um efeito o único ajuste é a intensidade; crie uma aba só para controle de efeitos, com automáticos, modelos,
+  variações de intensidade, duração e keyframes"): EDITOR DE VÍDEO — ✦ CONTROLE DE EFEITOS no lugar da lista de chips: 14 MODELOS DINÂMICOS (Cor nascendo,
+  Do P&B ao vivo, Cor ganhando força, Desbota no fim, Glitch de entrada, Pulsar na batida, Esquenta/Esfria aos poucos, Memória, Noite chegando, Cinema que
+  entra, Foco que abre, Sonho, Retrô que vai e vem), várias CAMADAS de efeito no mesmo take (c.efs; a 1ª continua em c.efeito/c.efInt), cada uma com Força e
+  MOVIMENTO (fixo, entra, sai, entra e sai, cresce, diminui, pulsa, ◆ chaves) + duração/ritmo, curva da força desenhada com a agulha, ◆ CHAVE NA AGULHA e
+  lista de chaves editável, ＋ SOMAR UM EFEITO, 🎲 SURPRESA, ⇉ EM TODOS OS TAKES, LIMPAR. Vale na prévia e na exportação (mesmo desenho). Teste novo
+  docs/testes/teste_video_efeitos.py (pixel sem cor no começo e mais vivo no fim; PC e folha do celular) + bateria do editor 0 falhas novas (teste_mascara
+  segue com 2 falhas ANTIGAS dos modelos ao recarregar — conferido com git stash); vigia ✅. NÃO feito: manual, pacote do app/.exe. video-editor v30, ve-app v13, sw v215.
+
 ## Pendências (dono)
 - [x] (23/11 09:58) BW-Setup.exe 1.9.37 gerado pelo dono e publicado (9,0 MB, versão conferida dentro do .exe).
 - [ ] (23/11) iPhone: fechar e abrir o app, tocar em ＋ → ＋ IMPORTAR e dizer se a galeria abriu. PC: testar o laço na linha do tempo e os avisos pequenos.

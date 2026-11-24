@@ -176,7 +176,7 @@
   document.addEventListener("click", function (e) { var b = e.target.closest && e.target.closest("#vaFaixa .va-f"); if (!b || !FAIXA._L) return; var it = FAIXA._L[+b.dataset.i]; if (it) it[2](); });
 
   /* ---------- folhas que sobem de baixo ---------- */
-  var NOMES = {texto: "TEXTO", pos: "TAMANHO E POSIÇÃO", som: "SOM", vel: "VELOCIDADE", trans: "TRANSIÇÃO DE ENTRADA", efeito: "EFEITO", cor: "COR", ia: "PESSOA E FUNDO (IA)", selm: "MÁSCARA POR SELEÇÃO", rastro: "SEGUIR UM PONTO", elem: "ELEMENTO ANIMADO", chroma: "CHROMA KEY", tempo: "TEMPO E CAMADA"};
+  var NOMES = {texto: "TEXTO", pos: "TAMANHO E POSIÇÃO", som: "SOM", vel: "VELOCIDADE", trans: "TRANSIÇÃO DE ENTRADA", efeito: "CONTROLE DE EFEITOS", cor: "COR", ia: "PESSOA E FUNDO (IA)", selm: "MÁSCARA POR SELEÇÃO", rastro: "SEGUIR UM PONTO", elem: "ELEMENTO ANIMADO", chroma: "CHROMA KEY", tempo: "TEMPO E CAMADA"};
   function guardar() { [].slice.call(CORPO.children).forEach(function (x) { MOLHO.appendChild(x); }); CORPO.innerHTML = ""; SHEET.removeAttribute("data-g"); }
   function filtrarGrupo(g) { document.querySelectorAll("#vePropCorpo .ve-g").forEach(function (x) { x.classList.toggle("va-fora", x.getAttribute("data-g") !== g); }); }
   /* 23/11 (dono, iPhone: "não abre a área de importação de mídia"): a seção MÍDIA tinha sido FECHADA pela seta (ui_dobras, vale no PC também) e, na folha,
