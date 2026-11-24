@@ -161,8 +161,8 @@ if "min-width:0" not in css:
     problemas.append("assets/brightway.css: sem min-width:0 nas grades (estoura a tela no celular)")
 if lay and "slot.innerHTML = orig.innerHTML" not in lay:
     problemas.append("assets/layout.js: não copia o #userBox (selo LOGADO some)")
-if lay and "APP DOWNLOAD" not in lay:
-    problemas.append("assets/layout.js: sumiu o botão APP DOWNLOAD do menu")
+if lay and 'href="downloads.html"' not in lay:
+    problemas.append("assets/layout.js: sumiu o item DOWNLOADS do menu (é por ele que se baixam os apps)")
 for p in ["index.html", "negocio.html"]:
     t = todos.get(p, "")
     if re.search(r'class="(menu-card|bw-tool-card)"[^>]*>(?!<span class="ico">)', t):

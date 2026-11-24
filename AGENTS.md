@@ -2574,6 +2574,8 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   contas · 🤝 Clientes e preços · 💱 Finanças, viagem e notícias). Nenhuma ferramenta saiu (23 + 18 cartões conferidos). Atalhos com letra na cor
   da página (no modo claro ficavam brancos) e título do bloco em grade (no celular quebrava palavra por palavra). 1280/390: 0 erro, 0 estouro;
   vigia ✅. sw v224. App BW: a cópia sem internet ganha os blocos no próximo pacote.
+- 24/11/2026 17:12 · Claude (dono: "retire do menu o APP DOWNLOAD, está redundante"): botão APP DOWNLOAD saiu do menu (layout.js v80) — os apps ficam só no
+  item DOWNLOADS (downloads.html). Vigia agora confere o item DOWNLOADS no lugar do APP DOWNLOAD. sw v225.
 
 ## Pendências (dono)
 - [ ] (24/11 15:05) GOOGLE PLAY: dono PEDIU o D-U-N-S (Dun & Bradstreet, grátis, 5–30 dias). Quando chegar: criar a conta de ORGANIZAÇÃO em
