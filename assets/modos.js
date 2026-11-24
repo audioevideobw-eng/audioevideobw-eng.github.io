@@ -120,6 +120,8 @@
   var PADRAO = "pb";
   /* 22/11 (dono): dentro do app BW do PC (window.BW_APP, posto antes da página) somem as opções que só fazem sentido na web (.so-web) */
   if (window.BW_APP) { R.classList.add("bw-no-app"); try { var st = document.createElement("style"); st.textContent = "html.bw-no-app .so-web{display:none!important}"; (document.head || R).appendChild(st); } catch (e) { } }
+  /* 24/11 (dono): dentro do app BW do ANDROID (Capacitor; user agent com "BW-Android") carrega o ajuste do app — downloads viram arquivo de verdade */
+  if (/BW-Android/.test(navigator.userAgent)) { try { var sa = document.createElement("script"); sa.src = (document.currentScript && document.currentScript.src || "assets/modos.js").replace(/modos\.js.*$/, "bw-android.js?v=1"); (document.head || R).appendChild(sa); } catch (e) { } }
   var VARS = [];
   function limpar() { VARS.forEach(function (v) { R.style.removeProperty(v); }); VARS = []; ["data-modo", "data-base", "data-conteudo", "data-fx", "data-estilo", "data-cena", "data-fonte"].forEach(function (a) { R.removeAttribute(a); }); }
   function def(o) { Object.keys(o).forEach(function (k) { R.style.setProperty(k, o[k]); VARS.push(k); }); }

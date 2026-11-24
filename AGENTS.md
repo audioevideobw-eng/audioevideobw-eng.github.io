@@ -941,6 +941,12 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
      "BW (novo)"); electron e rcedit são optionalDependencies (se o download falhar, o BW antigo continua). Perfil do programa é OUTRO
      (~/.bw-reels/app-electron): login de novo e o que é só do aparelho (IndexedDB) começa vazio. Teste: motor/teste-electron.mjs
      (Xvfb + Playwright _electron; BW_EXE=programa/bw testa o programa montado) + teste-app.mjs para a janela antiga.
+219. APP ANDROID (Capacitor, docs/app-android; decisão do dono 24/11 — iPhone fica como PWA): o app só ABRE o site no ar (server.url), nada do site é
+     copiado para dentro dele; o .apk é montado pelo GitHub Actions (.github/workflows/android.yml → downloads/BW-Android.apk + android-versao.json),
+     porque aqui a rede recusa o SDK do Android e o Gradle. Dentro do app (user agent "BW-Android") o modos.js carrega assets/bw-android.js:
+     some .so-web e o login Google (o Google recusa login em WebView — no app é e-mail e senha) e <a download> com blob:/data: vira arquivo gravado
+     em pedaços no cache + COMPARTILHAR do Android (o WebView não baixa blob sozinho). Sem os segredos BW_KEYSTORE_B64/BW_KEYSTORE_SENHA o .apk sai
+     com a chave de teste de cada máquina: para atualizar é preciso desinstalar antes (auto: docs/testes/teste_android.py, Capacitor simulado).
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -2518,7 +2524,16 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   o teste. BW-Setup.exe continua o 1.9.37 (atualiza sozinho). Dono decidiu também: app ANDROID (Capacitor, .apk para instalar direto) — próximo;
   iPhone fica como está (sem conta paga da Apple). PENTE FINO 218.
 
+- 24/11/2026 14:55 · Claude (dono: "faça o Android e deixe a Apple como está"): APP BW PARA ANDROID — projeto Capacitor 8.6 em docs/app-android
+  (nome BW, ícone BW, abre https://audioevideobw-eng.github.io, câmera/microfone/arquivos pedidos pelo Android, tela "sem internet" própria).
+  O .apk é montado pelo GitHub (workflow android.yml) e publicado em downloads/BW-Android.apk; baixar.html mostra BAIXAR O APP ANDROID (.APK) no
+  Android quando o arquivo existe. Novo assets/bw-android.js (downloads viram arquivo + compartilhar; some baixar app e login Google). modos.js v9,
+  sw v222. teste_android.py 0 falhas; vigia ✅. NÃO testado num Android de verdade. PENTE FINO 219.
+
 ## Pendências (dono)
+- [ ] (24/11) APP ANDROID: dono abrir audioevideobw-eng.github.io/baixar no Android, tocar em BAIXAR O APP ANDROID (.APK), permitir a instalação, entrar
+      com e-mail e senha e testar: editor de vídeo (importar, exportar → compartilhar), câmera/microfone (Tio Cláudio), editor de fotos. Para as
+      atualizações instalarem por cima sem desinstalar: cadastrar a chave de assinatura (Claude gera e explica — 2 segredos no GitHub).
 - [x] (23/11 09:58) BW-Setup.exe 1.9.37 gerado pelo dono e publicado (9,0 MB, versão conferida dentro do .exe).
 - [ ] (24/11) BW NOVO (PROGRAMA): dono tocar em ATUALIZAR no BW (1.9.40; baixa ~110 MB do componente), abrir o ícone "BW (novo)", entrar com a conta
       e conferir: nome/ícone BW na barra de tarefas e no Gerenciador de Tarefas, editor de vídeo (prévia, proxy, exportar), placa (⚙ → PLACA DE VÍDEO).

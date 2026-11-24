@@ -1,0 +1,16 @@
+{
+  "appId": "com.bwaudiovisual.bw",
+  "appName": "BW",
+  "webDir": "www",
+  "server": {
+    "url": "https://audioevideobw-eng.github.io/index.html",
+    "errorPath": "erro.html",
+    "androidScheme": "https"
+  },
+  "android": {
+    "appendUserAgent": "BW-Android/1.0",
+    "backgroundColor": "#05070c",
+    "allowMixedContent": false,
+    "webContentsDebuggingEnabled": false
+  }
+}

@@ -56,7 +56,7 @@ body{min-height:100vh;display:flex;flex-direction:column;align-items:center;
 [hidden]{display:none!important}
 @media(prefers-reduced-motion:reduce){.btn{transition:none}}
 </style>
-<script src="assets/modos.js?v=8"></script>
+<script src="assets/modos.js?v=9"></script>
 </head>
 <body>
 <main class="pag">
@@ -100,6 +100,18 @@ body{min-height:100vh;display:flex;flex-direction:column;align-items:center;
       <li><span class="n">1</span><span>Toque em <span class="tecla"><svg viewBox="0 0 24 24"><path d="M12 15V3M8 7l4-4 4 4"/><path d="M5 11v9a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-9"/></svg>Compartilhar</span> na barra do Safari.</span></li>
       <li><span class="n">2</span><span>Role a lista e toque em <span class="tecla"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M12 8v8M8 12h8"/></svg>Adicionar à Tela de Início</span>.</span></li>
       <li><span class="n">3</span><span>Toque em <b>Adicionar</b> no canto de cima. O ícone do Brightway aparece na sua tela.</span></li>
+    </ol>
+  </div>
+
+  <!-- Android: app BW de verdade (.apk), aparece quando o arquivo já foi publicado -->
+  <div class="cartao" id="cxApk" hidden>
+    <h2>App BW para Android</h2>
+    <a class="btn" id="btApk" href="downloads/BW-Android.apk" download="BW-Android.apk">BAIXAR O APP ANDROID (.APK)</a>
+    <p id="apkInfo" style="margin:10px 0 0;opacity:.8;font-size:14px"></p>
+    <ol class="passos" style="margin-top:12px">
+      <li><span class="n">1</span><span>Toque em <b>BAIXAR</b> e abra o arquivo quando terminar.</span></li>
+      <li><span class="n">2</span><span>Na primeira vez o Android pede para <b>permitir instalar apps desta fonte</b>: permita e volte.</span></li>
+      <li><span class="n">3</span><span>Toque em <b>Instalar</b>. O ícone <b>BW</b> aparece na sua tela. No app, entre com <b>e-mail e senha</b>.</span></li>
     </ol>
   </div>
 
@@ -157,6 +169,11 @@ body{min-height:100vh;display:flex;flex-direction:column;align-items:center;
   /* Android e computador: espera o pedido nativo do navegador; se não vier, mostra o passo a passo */
   mostrar(android ? "cxAndroid" : "cxPC");
   if (android) $("avChrome").hidden = !dentroDeApp;
+  if (android) fetch("downloads/android-versao.json", {cache: "no-store"}).then(function (r) { return r.ok ? r.json() : null; }).then(function (j) {
+    if (!j || !j.versao) return;
+    $("cxApk").hidden = false;
+    $("apkInfo").textContent = "Versão " + j.versao + (j.tamanho ? " · " + (j.tamanho / 1048576).toFixed(1).replace(".", ",") + " MB" : "");
+  }).catch(function () { });
   if (!android) {   /* computador: instalador do app BW em destaque; a versão vem do mesmo arquivo que o app usa para se atualizar */
     $("cxExe").hidden = false; $("seloSemArq").hidden = true; $("btInstalar").classList.add("sec");
     $("fraseOnde").textContent = "no computador e no celular";
