@@ -170,7 +170,7 @@ with sync_playwright() as p:
         ok(pg.evaluate("document.getElementById('veFmt').value") == "16:9" and pg.evaluate("document.getElementById('veCv').width > document.getElementById('veCv').height") and "16:9" in pg.inner_text("#vaFmt"), "trocar para 16:9 muda o vídeo e o botão do topo")
         tocar_el("#vaSheetOk")
         # transições e efeitos pela raiz
-        ferr("Transições").click(); pg.wait_for_timeout(300); ok(pg.locator("#veLib [data-arr^='t:']").count() == 11, "TRANSIÇÕES abre as 11 transições")
+        ferr("Transições").click(); pg.wait_for_timeout(300); ok(pg.locator("#veLib [data-arr^='t:']").count() == 18, "TRANSIÇÕES abre as 18 transições")
         # 22/11 (dono: "a tela fica travada e não rola"): arrastar o dedo EM CIMA das miniaturas rola a folha (antes a biblioteca, com 'contain', prendia o dedo)
         cb = pg.evaluate("(()=>{const c=document.getElementById('vaSheetCorpo'),r=c.getBoundingClientRect();return [r.left+r.width/2,r.top+c.clientHeight*0.75,c.clientHeight,c.scrollHeight-c.clientHeight]})()")
         if cb[3] > 20:

@@ -126,7 +126,7 @@ with sync_playwright() as p:
             pg.evaluate(f"__video.sel({CL}[0].id)"); arrastar(pg, xv, yv, xv + 40, yv + 30); ok(pg.locator(".bwf-menu").count() == 0 and pg.evaluate(f"({CL}[0].x||0)") != sel0[0], "arrastar na prévia continua movendo o take (sem abrir o menu)")
             pg.evaluate("__video.desfazer()")
             # 4) transições/efeitos por arrasto
-            pg.click('#veAbas [data-aba="trans"]'); pg.wait_for_timeout(200); ok(pg.locator("#veLib [data-arr^='t:']").count() == 11, "4) aba ◧ TRANSIÇÕES com as 11 transições (prévia animada)")
+            pg.click('#veAbas [data-aba="trans"]'); pg.wait_for_timeout(200); ok(pg.locator("#veLib [data-arr^='t:']").count() == 18, "4) aba ⋈ Transições com as 18 transições (prévia animada)")
             c2 = pg.evaluate(f"{CL}[1].id")
             # 22/11 10:05 (dono): a transição vai na EMENDA onde está a AGULHA
             pg.evaluate("__video.sel(null)"); pg.evaluate("__video.irPara(3)"); pg.wait_for_timeout(200)

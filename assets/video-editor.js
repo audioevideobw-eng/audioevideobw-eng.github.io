@@ -97,8 +97,17 @@
   var ALT_MIN = 22;
   var FMT = {"9:16": [720, 1280], "16:9": [1280, 720], "1:1": [1080, 1080], "4:5": [864, 1080], "4k-v": [2160, 3840], "4k-h": [3840, 2160]};
   /* 20/11 — transições entre clipes e efeitos (estilo CapCut), tudo desenhado no canvas (funciona em qualquer navegador) */
-  var TRANS = {dissolver: "Dissolver", preto: "Passar pelo preto", branco: "Flash branco", empurrar: "Empurrar ←", deslizar: "Subir ↑", zoom: "Zoom", girar: "Girar", cortina: "Cortina", circulo: "Círculo", desfoque: "Desfoque", "zoom-saida": "Zoom de saída"};
-  var EFEITOS = {pb: "Preto e branco", sepia: "Sépia", vintage: "Vintage", quente: "Quente", frio: "Frio", vivido: "Vívido", contraste: "Contraste", noite: "Noite", vinheta: "Vinheta", grao: "Grão de filme", vhs: "VHS", desfoque: "Desfoque"};
+  /* 23/11 (dono: "CapCut e biblioteca à nossa maneira, mais leve e ao mesmo tempo visual"): a biblioteca é organizada por TIPO (abas com ícone) e,
+     dentro do tipo, por FUNÇÃO (GRUPOS). Tudo é criação própria desenhada por código — nenhuma imagem/vídeo para baixar: as prévias são CSS e só
+     animam com o mouse em cima (não pesa a memória). Item novo = uma linha em TRANS/EFEITOS/TEXTOS + o grupo dele. */
+  var GRUPOS = {
+    trans: [["Básicas", ["dissolver", "preto", "branco", "desfoque"]], ["Movimento", ["empurrar", "empurrar-d", "deslizar", "descer", "girar"]], ["Zoom", ["zoom", "zoom-saida", "zoom-giro"]], ["Formas", ["cortina", "cortina-v", "circulo", "losango", "barras", "relogio"]]],
+    efe: [["Clássicos", ["pb", "sepia", "vintage", "desbotado"]], ["Cor", ["quente", "frio", "vivido", "contraste", "dourado", "azulado", "rosado"]], ["Cinema", ["cinema", "noite", "vinheta", "duotom"]], ["Textura", ["grao", "vhs", "desfoque"]]]};
+  var TEXTOS = [["titulo", "Título", {txt: "SEU TÍTULO", tam: 9, fonte: "Montserrat", y: -10, anima: "zoom"}], ["sub", "Subtítulo", {txt: "Seu subtítulo aqui", tam: 5, y: 8}], ["legenda", "Legenda", {txt: "Legenda do vídeo", tam: 4.5, y: 36, fundo: "#000000"}],
+    ["nome", "Nome e cargo", {txt: "Nome Sobrenome\nCargo ou empresa", tam: 4, x: -18, y: 34, fundo: "#111827"}], ["chamada", "Chamada", {txt: "SAIBA MAIS", tam: 6, y: 30, cor: "#111111", fundo: "#FFD23F", anima: "pulsar"}],
+    ["sobe", "Sobe", {txt: "Texto que sobe", tam: 6, anima: "subir"}], ["maquina", "Máquina de escrever", {txt: "Digitando o texto...", tam: 5, anima: "maquina"}], ["letreiro", "Letreiro", {txt: "NOVIDADE · NOVIDADE · NOVIDADE", tam: 5, y: -36, anima: "letreiro"}], ["anel", "Anel na pessoa", {txt: "SEU NOME · SEU NOME ·", tam: 5, anima: "anel"}]];
+  var TRANS = {"empurrar-d": "Empurrar →", descer: "Descer ↓", "zoom-giro": "Zoom com giro", "cortina-v": "Cortina ↓", losango: "Losango", barras: "Persiana", relogio: "Relógio", dissolver: "Dissolver", preto: "Passar pelo preto", branco: "Flash branco", empurrar: "Empurrar ←", deslizar: "Subir ↑", zoom: "Zoom", girar: "Girar", cortina: "Cortina", circulo: "Círculo", desfoque: "Desfoque", "zoom-saida": "Zoom de saída"};
+  var EFEITOS = {desbotado: "Desbotado", dourado: "Dourado", azulado: "Azul e laranja", rosado: "Rosado", cinema: "Cinema", duotom: "Duotom", pb: "Preto e branco", sepia: "Sépia", vintage: "Vintage", quente: "Quente", frio: "Frio", vivido: "Vívido", contraste: "Contraste", noite: "Noite", vinheta: "Vinheta", grao: "Grão de filme", vhs: "VHS", desfoque: "Desfoque"};
   var VELS = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 2, 3];
   var FONTES = ["Inter", "Montserrat", "Georgia", "Impact", "Courier New"];
   var P = {fmt: "9:16", clips: []}, MID = {}, SEL = null, T = 0, TOCANDO = false, PPS = 60, ABA = "tudo", EL = {}, GRAV = null;
@@ -423,6 +432,12 @@
       case "sepia": mix("saturation", "#808080"); mix("color", "#a8743c", 0.85); break;
       case "vintage": mix("saturation", "#808080", 0.55); mix("color", "#b07d4a", 0.45); mix("multiply", "#f3e2c3", 0.6); vinheta(0.55); break;
       case "quente": mix("soft-light", "#ff8a2a", 0.85); break;
+      case "desbotado": mix("saturation", "#808080", 0.45); mix("screen", "#2a2a30", 0.5); break;
+      case "dourado": mix("soft-light", "#ffb84a", 0.9); mix("multiply", "#fff0d0", 0.5); break;
+      case "azulado": mix("soft-light", "#1f8fa8", 0.7); mix("overlay", "#ff9a4a", 0.22); break;
+      case "rosado": mix("soft-light", "#ff6fa5", 0.7); break;
+      case "cinema": mix("soft-light", "#16808f", 0.55); mix("overlay", "#ff8f3a", 0.18); o.globalCompositeOperation = "overlay"; o.globalAlpha = 0.3; o.drawImage(copia(), 0, 0); vinheta(0.45); break;
+      case "duotom": mix("saturation", "#808080"); mix("multiply", "#ff5fa2", 0.9); mix("screen", "#2b2f9a", 0.8); break;
       case "frio": mix("soft-light", "#2a8aff", 0.85); break;
       case "vivido": mix("saturation", "#ff0000", 0.35); o.globalCompositeOperation = "overlay"; o.globalAlpha = 0.35; o.drawImage(copia(), 0, 0); break;
       case "contraste": o.globalCompositeOperation = "overlay"; o.globalAlpha = 0.75; o.drawImage(copia(), 0, 0); break;
@@ -525,6 +540,13 @@
     switch (tipo) {
       case "preto": case "branco": return {A: {a: p < 0.5 ? 1 : 0}, B: {a: p < 0.5 ? 0 : 1}, cor: tipo === "preto" ? "#000" : "#fff", corA: 1 - Math.abs(p - 0.5) * 2};
       case "empurrar": return {A: {dx: -e}, B: {dx: 1 - e}};
+      case "empurrar-d": return {A: {dx: e}, B: {dx: e - 1}};
+      case "descer": return {A: {}, B: {dy: e - 1}};
+      case "zoom-giro": return {A: {k: 1 + 0.5 * e, r: e * 0.35, a: 1 - e}, B: {k: 1.5 - 0.5 * e, r: -(1 - e) * 0.35, a: e}};
+      case "cortina-v": return {A: {}, B: {recorte: function (x, W, H) { x.rect(0, 0, W, H * e + 1); }}};
+      case "losango": return {A: {}, B: {recorte: function (x, W, H) { var d = (W + H) * 0.5 * e + 1; x.moveTo(W / 2, H / 2 - d); x.lineTo(W / 2 + d, H / 2); x.lineTo(W / 2, H / 2 + d); x.lineTo(W / 2 - d, H / 2); x.closePath(); }}};
+      case "barras": return {A: {}, B: {recorte: function (x, W, H) { var n = 8, h = H / n; for (var i = 0; i < n; i++) x.rect(0, i * h, W, h * e + 1); }}};
+      case "relogio": return {A: {}, B: {recorte: function (x, W, H) { x.moveTo(W / 2, H / 2); x.arc(W / 2, H / 2, Math.hypot(W, H), -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * e + 0.001); x.closePath(); }}};
       case "deslizar": return {A: {}, B: {dy: 1 - e}};
       case "zoom": return {A: {k: 1 + 0.35 * e, a: 1 - e}, B: {k: 1.35 - 0.35 * e, a: e}};
       case "zoom-saida": return {A: {k: 1 - 0.3 * e, a: 1 - e}, B: {k: 1.25 - 0.25 * e, a: e}};
@@ -608,18 +630,29 @@
   function irPara(t) { var era = TOCANDO; if (era) parar(); T = lim(t, 0, Math.max(total(), 0)); desenhar(); }
 
   /* ---------- telas ---------- */
+  var CATS = [["tudo", "▣", "Mídia"], ["audio", "♪", "Áudio"], ["texto", "T", "Texto"], ["elem", "✺", "Elementos"], ["efe", "✦", "Efeitos"], ["trans", "⋈", "Transições"]];
   function desenharLib() {
-    var abas = [["tudo", "TUDO"], ["video", "VÍDEO"], ["imagem", "IMAGEM"], ["audio", "SOM"], ["trans", "◧ TRANSIÇÕES"], ["efe", "✦ EFEITOS"]];
-    $("veAbas").innerHTML = abas.map(function (a) { return '<button type="button" data-aba="' + a[0] + '" class="' + (ABA === a[0] ? "on" : "") + '" aria-pressed="' + (ABA === a[0]) + '">' + a[1] + '</button>'; }).join("");
-    if (ABA === "trans" || ABA === "efe") { var L = ABA === "trans" ? TRANS : EFEITOS, pre = ABA === "trans" ? "t:" : "e:";
-      $("veLib").innerHTML = '<p class="ve-nota" style="grid-column:1/-1;margin:0 0 4px">Arraste até um take' + (ABA === "trans" ? " (ou até a emenda ◆ entre dois)" : "") + ' — ou toque para pôr no take escolhido.</p>' +
-        Object.keys(L).map(function (k) { return '<div class="ve-item ve-fx ' + (ABA === "trans" ? "tr-" : "ef-") + esc(k) + '" role="button" tabindex="0" data-arr="' + pre + esc(k) + '" aria-label="' + (ABA === "trans" ? "Transição " : "Efeito ") + esc(L[k]) + ' — arraste até um take"><span class="mini" aria-hidden="true"><i></i></span><span>' + esc(L[k]) + '</span></div>'; }).join(""); return; }
+    var cat = ABA === "video" || ABA === "imagem" ? "tudo" : ABA, lib = $("veLib");
+    $("veAbas").innerHTML = '<div class="ve-cats" role="tablist">' + CATS.map(function (a) { return '<button type="button" role="tab" data-aba="' + a[0] + '" class="' + (cat === a[0] ? "on" : "") + '" aria-selected="' + (cat === a[0]) + '" aria-pressed="' + (cat === a[0]) + '"><i aria-hidden="true">' + a[1] + '</i><span>' + a[2] + '</span></button>'; }).join("") + '</div>' +
+      (cat === "tudo" ? '<div class="ve-subs">' + [["tudo", "Tudo"], ["video", "Vídeo"], ["imagem", "Imagem"]].map(function (a) { return '<button type="button" data-aba="' + a[0] + '" class="' + (ABA === a[0] ? "on" : "") + '">' + a[1] + '</button>'; }).join("") + '</div>' : "");
+    lib.setAttribute("data-cat", cat);
+    var tit = function (t) { return '<p class="ve-gt">' + t + '</p>'; };
+    if (ABA === "trans" || ABA === "efe") { var L = ABA === "trans" ? TRANS : EFEITOS, pre = ABA === "trans" ? "t:" : "e:", cartao = function (k) { return '<div class="ve-item ve-fx ' + (ABA === "trans" ? "tr-" : "ef-") + esc(k) + '" role="button" tabindex="0" data-arr="' + pre + esc(k) + '" aria-label="' + (ABA === "trans" ? "Transição " : "Efeito ") + esc(L[k]) + ' — arraste até um take"><span class="mini" aria-hidden="true"><i></i></span><span>' + esc(L[k]) + '</span></div>'; };
+      var usados = {}, h = '<p class="ve-nota" style="grid-column:1/-1;margin:0 0 4px">Arraste até ' + (ABA === "trans" ? "a emenda entre dois takes" : "um take") + ', ou toque para aplicar.</p>';
+      GRUPOS[ABA].forEach(function (g) { var ks = g[1].filter(function (k) { return L[k]; }); if (!ks.length) return; h += tit(g[0]) + ks.map(function (k) { usados[k] = 1; return cartao(k); }).join(""); });
+      var resto = Object.keys(L).filter(function (k) { return !usados[k]; }); if (resto.length) h += tit("Mais") + resto.map(cartao).join("");
+      lib.innerHTML = h; return; }
+    if (ABA === "texto") { lib.innerHTML = tit("Toque para pôr na agulha") + TEXTOS.map(function (t) { return '<div class="ve-item ve-tx" role="button" tabindex="0" data-texto="' + t[0] + '" aria-label="Pôr texto ' + esc(t[1]) + '"><span class="mini" aria-hidden="true"' + (t[2].fundo ? ' style="--tf:' + t[2].fundo + ";--tc:" + (t[2].cor || "#fff") + '"' : "") + '><b>' + esc(String(t[2].txt).split("\n")[0].slice(0, 14)) + '</b></span><span>' + esc(t[1]) + '</span></div>'; }).join(""); return; }
+    if (ABA === "elem") { lib.innerHTML = tit("Elementos animados") + Object.keys(ELEMENTOS).map(function (k) { var p = ELEMENTOS[k].split(" "); return '<div class="ve-item ve-el" role="button" tabindex="0" data-elem="' + esc(k) + '" aria-label="Pôr ' + esc(ELEMENTOS[k]) + '"><span class="mini" aria-hidden="true">' + p[0] + '</span><span>' + esc(p.slice(1).join(" ")) + '</span></div>'; }).join(""); return; }
+    var sonsCasa = ABA === "audio" ? tit("Efeitos sonoros") + SONS.map(function (x, i) { return x[0] === "sfx" ? somCartao(x, i) : ""; }).join("") + tit("Trilhas") + SONS.map(function (x, i) { return x[0] !== "sfx" ? somCartao(x, i) : ""; }).join("") + tit("Meus sons") : "";
     var l = Object.keys(MID).map(function (k) { return MID[k]; }).filter(function (m) { return !m.ph && (ABA === "tudo" || m.tipo === ABA); });   /* espaços de modelo não aparecem na biblioteca */
-    $("veLib").innerHTML = l.length ? l.map(function (m) { var mini = m.tipo === "imagem" ? '<img alt="" src="' + m.url + '">' : m.capa ? '<img alt="" src="' + m.capa + '">' : '<span class="mini" aria-hidden="true">' + (m.tipo === "audio" ? "🎵" : "🎬") + '</span>';
+    lib.innerHTML = sonsCasa + (l.length ? l.map(function (m) { var mini = m.tipo === "imagem" ? '<img alt="" src="' + m.url + '">' : m.capa ? '<img alt="" src="' + m.capa + '">' : '<span class="mini" aria-hidden="true">' + (m.tipo === "audio" ? "🎵" : "🎬") + '</span>';
       var f = m.cr && window.BWCriacoes ? BWCriacoes.FERR[m.cr.ferramenta] : null;
       return '<div class="ve-item' + (m.ruim ? " ruim" : "") + '" role="button" tabindex="0" data-mid="' + esc(m.id) + '" aria-label="Pôr ' + esc(m.nome) + ' na linha do tempo"' + (m.ruim ? ' title="Este arquivo não abre neste navegador"' : "") + (f ? ' style="--cf:' + f.cor + '"' : "") + '>' + mini + (PX[m.id] ? '<b class="selo px" title="Tem proxy: edita leve, exporta com o original">⚡ PROXY ' + PX[m.id].curto + 'p</b>' : "") + (m.ruim ? '<b class="selo ruim">⚠ ' + (m.codec === "hevc" ? "HEVC · NÃO ABRE AQUI" : "NÃO ABRE AQUI") + '</b><button type="button" class="ve-retry" data-retry="' + esc(m.id) + '" title="Tentar abrir de novo" aria-label="Tentar abrir de novo">↻</button>' : "") + (f ? '<b class="selo">' + f.icone + " " + esc(f.curto) + "</b>" : "") + '<span>' + esc(m.nome) + '</span>' + (f ? '<button type="button" class="ed" data-editar="' + esc(m.id) + '" title="Abrir no ' + esc(f.nome) + ' e trocar aqui" aria-label="Editar no ' + esc(f.nome) + '">✎</button>' : "") + '<button type="button" class="x" data-del="' + esc(m.id) + '" aria-label="Tirar ' + esc(m.nome) + ' da biblioteca">✕</button></div>'; }).join("")
-      : '<p class="ve-nota" style="grid-column:1/-1;margin:0">Nada aqui ainda. Toque em ＋ IMPORTAR ou em ✨ MINHAS CRIAÇÕES.</p>';
+      : '<p class="ve-nota" style="grid-column:1/-1;margin:0">' + (ABA === "audio" ? "Seus sons importados aparecem aqui." : "Nada aqui ainda. Toque em ＋ IMPORTAR ou em ✨ MINHAS CRIAÇÕES.") + '</p>');
   }
+  function somCartao(x, i) { return '<div class="ve-item ve-sm" role="button" tabindex="0" data-som="' + i + '" aria-label="Pôr ' + x[1] + ' na linha do tempo"><span class="mini" aria-hidden="true">' + (x[0] === "sfx" ? "🔊" : "🎼") + '</span><span>' + x[1] + '</span></div>'; }
+  function porTextoPronto(k) { var t = TEXTOS.filter(function (x) { return x[0] === k; })[0]; if (!t) return; var c = addTexto({}); Object.keys(t[2]).forEach(function (p) { c[p] = t[2][p]; }); c.txt = String(t[2].txt).replace(/\\n/g, "\n"); tudo(); aviso("✓ Texto “" + t[1] + "” na agulha"); return c; }
   function desenharTL() {
     var fim = Math.max(total() + 8, 20), larg = Math.ceil(fim * PPS), passoR = PPS >= 90 ? 1 : PPS >= 40 ? 2 : 5, h = '<div class="ve-regua" id="veRegua" style="width:' + larg + 'px">';
     for (var s = 0; s <= fim; s += passoR) h += '<i style="left:' + (s * PPS) + 'px">' + (s >= 60 ? Math.floor(s / 60) + ":" + (s % 60 < 10 ? "0" : "") + s % 60 : s + "s") + '</i>';
@@ -834,7 +867,7 @@
   function menuElementos(x, y) { var itens = Object.keys(ELEMENTOS).map(function (k) { return {rot: ELEMENTOS[k], fn: function () { addElemento(k); }}; });
     if (window.BWFerr && BWFerr.menu) BWFerr.menu(x, y, itens, "ELEMENTO ANIMADO", true); else addElemento("fogo"); }
   if ($("veElem")) $("veElem").onclick = function (e) { var r = this.getBoundingClientRect(); menuElementos(r.left, r.bottom + 4); };
-  $("veSons").onclick = function () { ABA = "audio"; var b = $("veLib"); desenharLib(); b.insertAdjacentHTML("afterbegin", SONS.map(function (s, i) { return '<div class="ve-item" role="button" tabindex="0" data-som="' + i + '" aria-label="Pôr ' + s[1] + ' na linha do tempo"><span class="mini" aria-hidden="true">' + (s[0] === "sfx" ? "🔊" : "🎼") + '</span><span>' + (s[0] === "sfx" ? "Efeito · " : "Trilha · ") + s[1] + '</span></div>'; }).join("")); var v = b.querySelector("p"); if (v) v.remove(); };
+  $("veSons").onclick = function () { ABA = "audio"; desenharLib(); };
   /* 23/11 (dono: "um botão à esquerda que abre a biblioteca de transições e efeitos; pegar, arrastar e soltar no local"): no PC abre o painel MÍDIA
      na aba de transições (a de efeitos fica ao lado); no celular abre a folha. O arrastar-e-soltar das abas já existia (take ou emenda). */
   function abrirBib(aba) { if (window.VEApp && VEApp.ligado) { VEApp.abrir(aba === "efe" ? "efe" : "trans"); return; } if (window.__veVista && __veVista.mostrar) __veVista.mostrar("esq"); ABA = aba === "efe" ? "efe" : "trans"; desenharLib();
@@ -852,6 +885,8 @@
     var rt = e.target.closest("[data-retry]"); if (rt) { e.stopPropagation(); var mr = MID[rt.dataset.retry]; if (!mr) return; aviso("⏳ Tentando abrir " + mr.nome + " de novo…");
       var r2 = await abrirVideo(mr, mr.tipo === "video", 30000); if (r2.ok && (mr.tipo !== "video" || r2.capa)) { mr.ruim = false; mr.capa = r2.capa || mr.capa; if (r2.dur) mr.dur = r2.dur; aviso("✓ " + mr.nome + " abriu."); } else aviso("⚠ " + mr.nome + " continua sem abrir neste navegador" + (mr.codec === "hevc" ? " (é HEVC/H.265)." : "."), true); desenharLib(); tudo(); return; }
     var d = e.target.closest("[data-del]"); if (d) { e.stopPropagation(); var id = d.dataset.del; if (P.clips.some(function (c) { return c.mid === id; }) && !confirm("Este arquivo está na linha do tempo. Tirar da biblioteca apaga os clipes dele. Continuar?")) return; P.clips.filter(function (c) { return c.mid === id; }).forEach(function (c) { soltarEl(c.id); }); P.clips = P.clips.filter(function (c) { return c.mid !== id; }); if (MID[id]) URL.revokeObjectURL(MID[id].url); delete MID[id]; if (window.BWMascara) BWMascara.apagar(id); await tx("midias", "readwrite", function (s) { return s.delete(id); }); desenharLib(); tudo(); return; }
+    var tp = e.target.closest("[data-texto]"); if (tp) { porTextoPronto(tp.dataset.texto); if (window.VEApp && VEApp.aberta && VEApp.aberta()) VEApp.fechar(); return; }
+    var ep = e.target.closest("[data-elem]"); if (ep) { addElemento(ep.dataset.elem); if (window.VEApp && VEApp.aberta && VEApp.aberta()) VEApp.fechar(); return; }
     var s = e.target.closest("[data-som]"); if (s) { var ms = await porSom(+s.dataset.som); addClip(ms); if (window.VEApp && VEApp.aberta && VEApp.aberta() === "midia") VEApp.fechar(); aviso("✓ " + SONS[+s.dataset.som][1] + " na linha do tempo (" + (ms.som === "sfx" ? "EFEITOS, na posição da agulha" : "TRILHA") + ")."); return; }
     var ed = e.target.closest("[data-editar]"); if (ed) { e.stopPropagation(); editarNaOrigem(ed.dataset.editar); return; }
     var m = e.target.closest("[data-mid]"); if (!m || !MID[m.dataset.mid]) return; var mm = MID[m.dataset.mid], cs = sel();

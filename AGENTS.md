@@ -2364,6 +2364,15 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   do app, .exe, biblioteca de terceiros (E:\ADOBE ARQUIVOS — regra 178), layout novo estilo CapCut. video-editor v25, ve-app v12, ve-app.css v11,
   bw-ferramentas v7, bw-proxy v3, bw-cor v2, modos v8, mo-app.css v4, brightway.css v39, sw v210.
 
+- 23/11/2026 21:40 · Claude (dono, com prints do CapCut: "CapCut e biblioteca à nossa maneira, mais leve e ao mesmo tempo visual"): EDITOR DE VÍDEO —
+  BIBLIOTECA POR TIPO: abas com ícone no alto do painel (Mídia · Áudio · Texto · Elementos · Efeitos · Transições) e, dentro de cada uma, grupos por
+  FUNÇÃO (transições: Básicas/Movimento/Zoom/Formas; efeitos: Clássicos/Cor/Cinema/Textura; áudio: Efeitos sonoros/Trilhas/Meus sons). Novos, todos
+  desenho próprio: 7 transições (empurrar →, descer, zoom com giro, cortina ↓, losango, persiana, relógio = 18), 6 efeitos (desbotado, dourado, azul
+  e laranja, rosado, cinema, duotom = 18) e 9 TEXTOS PRONTOS (título, subtítulo, legenda, nome e cargo, chamada, sobe, máquina, letreiro, anel).
+  LEVE: nenhuma imagem baixada (prévias em CSS), prévia só anima com o mouse em cima, cartão fora da vista não é desenhado (content-visibility).
+  Item novo = uma linha em TRANS/EFEITOS/TEXTOS + o grupo em GRUPOS. Testes do editor 0 falhas novas (contagem 11 → 18 acertada em 2 testes);
+  vigia ✅. NÃO feito: pasta E:\\ADOBE ARQUIVOS (pacotes de terceiros, regra 178), manual, pacote do app/.exe. video-editor v26, ve-app.css v12, sw v211.
+
 ## Pendências (dono)
 - [x] (23/11 09:58) BW-Setup.exe 1.9.37 gerado pelo dono e publicado (9,0 MB, versão conferida dentro do .exe).
 - [ ] (23/11) iPhone: fechar e abrir o app, tocar em ＋ → ＋ IMPORTAR e dizer se a galeria abriu. PC: testar o laço na linha do tempo e os avisos pequenos.
