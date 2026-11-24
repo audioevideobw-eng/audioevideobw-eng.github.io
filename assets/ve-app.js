@@ -83,6 +83,7 @@
         if (!t || !t.closest || !t.closest(".va") || t.closest(".va-sheet-corpo,[data-rola-livre],input,textarea,select")) return; e.preventDefault(); }, {passive: false});
       ["gesturestart", "gesturechange"].forEach(function (ev) { document.addEventListener(ev, function (e) { if (e.target && e.target.closest && e.target.closest(".va")) e.preventDefault(); }, {passive: false}); });
       if (BWFerr.travarBorda) BWFerr.travarBorda({so: "ve-app"}); /* 24/11: gesto de voltar do Safari pela borda */
+      if (BWFerr.toqueDuplo) BWFerr.toqueDuplo({so: "ve-app", pular: ".va-faixa,.bwf-seta"}); /* 24/11: dois toques rápidos = botão direito */
       BWFerr.faixaFirme(FAIXA, {setas: true, pai: APP, esq: function () { var v = FAIXA.querySelector(".va-f.volta"); return v ? v.offsetWidth + 8 : 0; }});
       BWFerr.faixaFirme($("veRolo"), {max: fimPx, vertical: $("veRolo").closest(".ve-tl-corpo"), aoRolar: function () { rolando = Date.now(); }, parar: function () { return !!window.__bwSegurando; }, pular: function (t) { return !!(t.closest && t.closest(".ve-clip.on,.al,[data-junta],[data-trp]")); }});
     }
@@ -106,6 +107,66 @@
     ["touchstart", "wheel", "pointerdown"].forEach(function (t) { ro.addEventListener(t, function (e) { if (t === "pointerdown" && e.pointerType === "mouse" && !e.target.closest("#veRegua")) return; pega(); }, {passive: true}); });
     ro.addEventListener("scroll", function () { if (!rolando && Math.abs(ro.scrollLeft - progV) < 1.5) return; if (!rolando) return; rolando = Date.now(); var v2 = V(); if (v2) { var f = fimPx(); if (f != null && ro.scrollLeft > f + 1) { ro.scrollLeft = f; } raspar(Math.min(ro.scrollLeft, f == null ? ro.scrollLeft : f) / v2.pps()); } }, {passive: true});
     setInterval(function () { if (rolando && Date.now() - rolando > 260) { rolando = 0; soltarRaspa(); } }, 120);
+    /* 24/11 (dono: "ao puxar pela zona neutra da linha do tempo, a dos números, ela puxa a tela e diminui as camadas automaticamente"):
+       RÉGUA QUE ESTICA — arrastar a régua na VERTICAL muda a altura da linha do tempo (para cima = maior, a prévia encolhe; para baixo = menor)
+       e as camadas acompanham na mesma proporção (__video.escalaAlt). Na horizontal a régua continua andando no tempo. Altura guardada só no
+       aparelho (ui_ve_tl_alt). Dois toques na régua voltam ao tamanho padrão. */
+    (function reguaEstica() {
+      var tl = $("vaTl"); if (!tl) return;
+      var CH = "ui_ve_tl_alt", st = null;
+      function limites() { return [96, Math.round(innerHeight * 0.72)]; }
+      /* camadas ENCAIXAM na altura que sobra embaixo da régua: escala = espaço livre ÷ soma das alturas padrão (0,5–2,2; menor que isso, rola) */
+      function encaixar(h) { var v2 = V(); if (!v2 || !v2.escalaAlt || !v2.altBase) return; var r = $("veRegua"), rg = (r ? r.offsetHeight : 22) + 10, esc = v2.escalaAlt() || 1,
+          fx = [].slice.call(document.querySelectorAll("#veFaixas .ve-faixa:not(.vazia)")).filter(function (f) { return f.getClientRects().length; }),
+          base = fx.length ? fx.reduce(function (s2, f) { return s2 + f.getBoundingClientRect().height / esc + 4; }, 0) : (v2.altBase() || 52);   /* camadas na tela, no tamanho padrão */
+        /* altura "natural" (sem esticar): régua + camadas no tamanho padrão, entre 118 px e 34% da tela. Maior que ela = camadas crescem na mesma
+           proporção; menor = só encolhem se não couberem (nunca crescem ao diminuir a linha do tempo) */
+        var nat = Math.max(118, Math.min(innerHeight * 0.34, rg + base)), cabe = (h - rg) / base;
+        v2.escalaAlt(Math.max(0.5, Math.min(2.2, Math.min(cabe, Math.max(1, h / nat))))); }
+      function aplicar(h, guardar) {
+        var L = limites(); h = Math.round(Math.max(L[0], Math.min(L[1], h)));
+        tl.style.maxHeight = h + "px"; tl.style.height = h + "px"; tl.style.minHeight = "0"; encaixar(h);
+        if (guardar) { try { localStorage.setItem(CH, String(h)); } catch (e) {} }
+        medir(); return h;
+      }
+      function padraoVolta() { tl.style.maxHeight = ""; tl.style.height = ""; tl.style.minHeight = ""; var v2 = V(); if (v2 && v2.escalaAlt) v2.escalaAlt(1);
+        try { localStorage.removeItem(CH); } catch (er) {} medir(); }
+      try { var g = +localStorage.getItem(CH); if (g > 0) setTimeout(function () { aplicar(g, false); }, 0); } catch (e) {}
+      /* "na régua" = a FAIXA dos números de ponta a ponta (inclusive a folga antes do zero e depois do fim), pela altura do toque */
+      function naRegua(t, e) { if (t && t.closest && t.closest("#veRegua")) return true; var r = $("veRegua"); if (!r || !e || !t || !t.closest || !t.closest("#veRolo") || t.closest("[data-clip]")) return false;
+        var b = r.getBoundingClientRect(); return e.clientY >= b.top - 2 && e.clientY <= b.bottom + 2; }
+      /* DEDO: pointer events PRESOS na linha do tempo (setPointerCapture no #veRolo, que não é redesenhado). A régua é redesenhada a cada
+         mudança de altura das camadas, e eventos de toque presos a um nó removido não chegam mais a ninguém (o arraste parava no 1º movimento). */
+      ro.addEventListener("pointerdown", function (e) {
+        if (e.pointerType === "mouse" || !e.isPrimary || !naRegua(e.target, e)) { st = null; return; }
+        st = {x: e.clientX, y: e.clientY, h: tl.getBoundingClientRect().height, modo: "", id: e.pointerId};
+      }, true);
+      ro.addEventListener("pointermove", function (e) {
+        if (!st || e.pointerId !== st.id) return; var dx = e.clientX - st.x, dy = e.clientY - st.y;
+        if (!st.modo) { if (Math.abs(dy) > 7 && Math.abs(dy) > Math.abs(dx) * 1.3) { st.modo = "v"; try { ro.setPointerCapture(e.pointerId); } catch (er) {} }
+          else if (Math.abs(dx) > 7) { st = null; return; } else return; }
+        e.stopPropagation(); aplicar(st.h - dy, false);
+      }, true);
+      var fimDedo = function (e) { if (!st || e.pointerId !== st.id) return; if (st.modo === "v") { e.stopPropagation(); aplicar(tl.getBoundingClientRect().height, true); } st = null; };
+      ro.addEventListener("pointerup", fimDedo, true); ro.addEventListener("pointercancel", fimDedo, true);
+      /* enquanto estica, a rolagem própria da linha do tempo (BWFerr.faixaFirme, por toque) não anda */
+      ro.addEventListener("touchmove", function (e) { if (st && st.modo === "v") { e.stopPropagation(); if (e.cancelable) e.preventDefault(); } }, {passive: false, capture: true});
+      /* mouse (?layout=app no PC): arrastar a régua com o botão segurado na vertical faz o mesmo */
+      ro.addEventListener("pointerdown", function (e) {
+        if (e.pointerType !== "mouse" || !naRegua(e.target, e)) return;
+        var m = {x: e.clientX, y: e.clientY, h: tl.getBoundingClientRect().height, modo: ""};
+        var mv = function (ev) { var dx = ev.clientX - m.x, dy = ev.clientY - m.y;
+          if (!m.modo) { if (Math.abs(dy) > 7 && Math.abs(dy) > Math.abs(dx) * 1.3) m.modo = "v"; else if (Math.abs(dx) > 7) { fim(); return; } else return; }
+          ev.stopPropagation(); ev.preventDefault(); aplicar(m.h - dy, false); };
+        var fim = function () { removeEventListener("pointermove", mv, true); removeEventListener("pointerup", fim, true); if (m.modo === "v") aplicar(tl.getBoundingClientRect().height, true); };
+        addEventListener("pointermove", mv, true); addEventListener("pointerup", fim, true);
+      }, true);
+      var volta = function (e) { if (!naRegua(e.target, e)) return; e.preventDefault(); e.stopPropagation(); padraoVolta(); };
+      ro.addEventListener("dblclick", volta); ro.addEventListener("contextmenu", volta, true);   /* toque duplo (BWFerr.toqueDuplo) ou botão direito na régua = tamanho padrão */
+      /* camada nova/apagada com a altura escolhida: encaixa de novo (escalaAlt não redesenha se a conta não mudou, então não entra em laço) */
+      try { var tEnc = 0; new MutationObserver(function () { if (!tl.style.height) return; clearTimeout(tEnc); tEnc = setTimeout(function () { encaixar(tl.getBoundingClientRect().height); }, 60); }).observe($("veFaixas"), {childList: true}); } catch (e) {}
+      window.__vaRegua = {aplicar: aplicar, padrao: padraoVolta};
+    })();
     /* pinça com dois dedos = mais ou menos tempo na tela */
     var pin = null;
     ro.addEventListener("touchstart", function (e) { if (e.touches && e.touches.length === 2) pin = Math.abs(e.touches[0].clientX - e.touches[1].clientX); }, {passive: true});

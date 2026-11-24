@@ -918,6 +918,16 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
      "não andou" lia 0,0 do .click() vazio e o "tocar no vazio larga o take" quebrou no teste); campo de digitar e input de arquivo ficam de fora (regra 203);
      arrastar a partir da borda não vira clique; -webkit-touch-callout none (toque firme não abre lupa/menu de copiar). A barra de baixo do iPhone (tela de
      início) é do SISTEMA: página nenhuma trava — só o Acesso Guiado (Ajustes → Acessibilidade). Teste: docs/testes/teste_borda.py (toque CDP na borda).
+216. TOQUE DUPLO = BOTÃO DIREITO no celular (dono, 24/11): BWFerr.toqueDuplo({so, pular}) — dois toques curtos (≤ 12 px, ≤ 350 ms) no mesmo lugar (≤ 30 px)
+     em até 320 ms disparam contextmenu no ponto do 2º toque (30 ms depois do clique dele), o MESMO evento sintético do ⋯ MAIS: o menu ignora o clique
+     dos primeiros 450 ms, então o dedo não escolhe item. O 1º toque continua sendo clique (escolhe o take). Fora: campos, menus, faixa de ferramentas
+     e quem estiver segurando/arrastando. Ligado no layout de app do editor de vídeo e do Motion (teste_toque_duplo.py).
+217. RÉGUA QUE ESTICA (editor de vídeo no celular, dono 24/11): arrastar a régua na VERTICAL muda a altura da linha do tempo (a prévia encolhe/cresce) e as
+     camadas ENCAIXAM (__video.escalaAlt: só no layout de app, não grava no projeto; base = altura das faixas na tela ÷ escala). Nunca crescem ao diminuir
+     a linha do tempo; encolhem só se não couberem (mín. 22 px). Na horizontal a régua anda no tempo. Dois toques na régua = tamanho padrão;
+     altura em ui_ve_tl_alt. ARMADILHA: a régua é redesenhada a cada mudança de altura, e eventos de TOQUE presos a um nó removido não chegam a
+     ninguém (nem ao document) — o arraste parava no 1º movimento. Arraste que redesenha o próprio alvo = pointer events + setPointerCapture num
+     contêiner que não é redesenhado. "Na régua" = a faixa dos números pela altura do toque (a folga antes do zero é o #veRolo, não a #veRegua).
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -2477,6 +2487,13 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   iPhone é do sistema (não dá para travar pelo site) — para travar tudo, Acesso Guiado. PC: seleção pelo laço e avisos discretos APROVADOS pelo dono.
   Teste novo docs/testes/teste_borda.py 0 falhas; teste_video_app (1 falha antiga e intermitente do "tela antiga escondida", igual sem a mudança) e
   teste_motion_app 0 falhas; vigia ✅. NÃO testado em iPhone de verdade (o dono testa). bw-ferramentas v9, ve-app v15, mo-app v4, sw v220. PENTE FINO 215.
+
+- 24/11/2026 14:30 · Claude (dono: "botão direito no app do celular com dois cliques rápidos, como o mouse" + "puxar pela régua dos números estica a tela e
+  diminui as camadas automaticamente"): (1) TOQUE DUPLO = BOTÃO DIREITO no editor de vídeo e no Motion (take, vazio da camada, prévia, barra do Motion);
+  (2) RÉGUA QUE ESTICA no editor de vídeo (celular/tablet): arrastar para cima = linha do tempo maior e camadas mais altas; para baixo = menor, camadas
+  encolhem só se não couberem; na horizontal continua andando no tempo; dois toques na régua = padrão; altura guardada no aparelho. Testes novos
+  teste_toque_duplo e teste_regua 0 falhas; borda, motion_app, video_arrastar, video_laco, video_layout 0 falhas; video_app com a falha antiga e
+  intermitente de sempre. NÃO testado em iPhone de verdade. bw-ferramentas v10, ve-app v16, mo-app v5, video-editor v35, sw v221. PENTE FINO 216–217.
 
 ## Pendências (dono)
 - [x] (23/11 09:58) BW-Setup.exe 1.9.37 gerado pelo dono e publicado (9,0 MB, versão conferida dentro do .exe).

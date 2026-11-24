@@ -433,7 +433,44 @@
     (document.head || document.documentElement).appendChild(s);
   }
 
-  window.BWFerr = { faixaFirme: faixaFirme, travarBorda: travarBorda, previa: previa, barra: barra, trocar: trocar, atalhos: atalhos, menu: menu, fecharMenu: fecharMenu, contexto: contexto, ajuda: ajuda, telaFixa: telaFixa, mostrarAjuda: mostrarAjuda, preso: preso, digitando: digitando,
+  /* 24/11 (dono: "habilitar o botão direito no app do celular com dois cliques rápidos, como se fosse o mouse"): TOQUE DUPLO = BOTÃO DIREITO.
+     Dois toques curtos (≤ 12 px de movimento, ≤ 350 ms cada) no mesmo lugar (≤ 30 px) em até 320 ms → contextmenu no ponto do 2º toque,
+     o MESMO evento que o ⋯ MAIS já dispara (isTrusted false: o BWFerr.contexto aceita; o menu ignora o clique dos primeiros 450 ms, então o
+     dedo do 2º toque não escolhe item). O 1º toque continua sendo um clique normal (escolhe o take), como o mouse. Fora: campos de digitar,
+     menus abertos, faixa de ferramentas (botões) e enquanto se segura/arrasta um take. */
+  var duploLigado = false;
+  function toqueDuplo(o) {
+    if (duploLigado) return; duploLigado = true; o = o || {};
+    var ini = null, ult = null;
+    function dentro() { return !o.so || document.documentElement.classList.contains(o.so); }
+    function fora(t) { return !t || !t.closest || !!t.closest("input,textarea,select,[contenteditable],.bwf-menu,.bwf-ajuda" + (o.pular ? "," + o.pular : "")); }
+    document.addEventListener("touchstart", function (e) {
+      if (!e.touches || e.touches.length !== 1 || !dentro()) { ini = null; ult = null; return; }
+      var p = e.touches[0]; ini = {x: p.clientX, y: p.clientY, h: Date.now(), t: e.target};
+    }, {passive: true, capture: true});
+    document.addEventListener("touchmove", function (e) {
+      if (!ini || !e.touches || !e.touches[0]) return; var p = e.touches[0];
+      if (Math.abs(p.clientX - ini.x) > 12 || Math.abs(p.clientY - ini.y) > 12) { ini = null; ult = null; }
+    }, {passive: true, capture: true});
+    document.addEventListener("touchend", function (e) {
+      var a = ini; ini = null; if (!a) return;
+      var c = e.changedTouches && e.changedTouches[0], agora = Date.now();
+      if (!c || agora - a.h > 350 || window.__bwSegurando || fora(a.t)) { ult = null; return; }
+      if (ult && agora - ult.h < 320 && Math.abs(c.clientX - ult.x) < 30 && Math.abs(c.clientY - ult.y) < 30) {
+        ult = null;
+        var alvo = document.elementFromPoint(c.clientX, c.clientY) || a.t;
+        if (!alvo || fora(alvo)) return;
+        setTimeout(function () {   /* depois do clique do 2º toque, para o menu não fechar com ele */
+          alvo.dispatchEvent(new MouseEvent("contextmenu", {bubbles: true, cancelable: true, view: window, clientX: c.clientX, clientY: c.clientY, button: 2}));
+        }, 30);
+        return;
+      }
+      ult = {x: c.clientX, y: c.clientY, h: agora};
+    }, {capture: true});
+    document.addEventListener("touchcancel", function () { ini = null; ult = null; }, {capture: true});
+  }
+
+  window.BWFerr = { faixaFirme: faixaFirme, travarBorda: travarBorda, toqueDuplo: toqueDuplo, previa: previa, barra: barra, trocar: trocar, atalhos: atalhos, menu: menu, fecharMenu: fecharMenu, contexto: contexto, ajuda: ajuda, telaFixa: telaFixa, mostrarAjuda: mostrarAjuda, preso: preso, digitando: digitando,
     atual: function () { return BARRA ? (BARRA.temp || BARRA.atual) : "v"; }, alt: function () { return !!(BARRA && BARRA.alt); },
     ICONES: { v: "➤", c: "✂", h: "✋", z: "🔍", t: "T", b: "🖌", e: "⌫", i: "💧", m: "⬚", r: "⟳", p: "✒" } };
 })();

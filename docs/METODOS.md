@@ -636,3 +636,10 @@ Armadilha: classe de ESTADO não serve para destacar botão. `＋ IMPORTAR` usav
 - Teste: toque CDP (Input.dispatchTouchEvent) a 6 px da borda e espiar `defaultPrevented` num ouvinte de window em bolha; botão de teste na borda
   conta cliques (1 só); arrasto a partir da borda = 0 cliques; meio da tela e campo na borda = não cancelados (docs/testes/teste_borda.py).
 - Limite: a barra de baixo (ir para a tela de início) é do sistema. Para travar tudo durante uma gravação: Acesso Guiado do iOS.
+
+## Arrastar algo que redesenha o próprio alvo (24/11/2026)
+- Sintoma: arraste de toque que para depois do 1º movimento (régua que estica a linha do tempo). Causa: o handler muda a altura das camadas, o editor
+  redesenha a régua com innerHTML, e os touchmove seguintes ficam presos ao nó removido — não sobem nem para o document.
+- Receita: pointer events no contêiner estável (#veRolo) com setPointerCapture assim que a direção é decidida; um touchmove em capture no mesmo contêiner
+  só para impedir a rolagem própria (faixaFirme). Teste: toque CDP com 8 movimentos e conferir a altura FINAL, não só a primeira mudança (docs/testes/teste_regua.py).
+- Toque duplo como botão direito: contextmenu sintético 30 ms depois do 2º toque (docs/testes/teste_toque_duplo.py confere que o menu abre e nada foi escolhido).
