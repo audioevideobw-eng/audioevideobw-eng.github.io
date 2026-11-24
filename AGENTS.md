@@ -2536,6 +2536,11 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   das 18 bibliotecas dentro do app (14 MB), usada só sem rede. Dono vai pagar a conta de desenvolvedor do Google Play (US$ 25): conta pessoal nova
   exige teste fechado com 12 testadores por 14 dias; para a loja o app sai como .aab e precisa da chave de assinatura.
 
+- 24/11/2026 15:15 · Claude (dono: "não achei" o BW novo): o BW do dono fica em %LOCALAPPDATA%\BW Reels (não em \BW) e já estava na 1.9.40, mas o
+  npm da atualização deixou o electron SEM o programa (node_modules\electron sem dist/) → preparar-bw nunca rodou e o atalho "BW (novo)" não nasceu.
+  APP BW 1.9.41: BW-REELS.bat baixa o componente em segundo plano (electron/install.js, janela minimizada) e monta o BW.exe; BW-ELECTRON.bat roda o
+  install.js quando falta o dist; o atualizador faz o mesmo depois do npm. Ensinamento: optionalDependency com download no postinstall pode chegar vazia.
+
 ## Pendências (dono)
 - [ ] (24/11 15:05) GOOGLE PLAY: dono PEDIU o D-U-N-S (Dun & Bradstreet, grátis, 5–30 dias). Quando chegar: criar a conta de ORGANIZAÇÃO em
       play.google.com/console/signup (CNPJ + D-U-N-S, US$ 25) e avisar o Claude → gerar .aab + chave de assinatura fixa (segredos no GitHub) + ficha da loja.
