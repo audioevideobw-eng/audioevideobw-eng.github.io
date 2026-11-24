@@ -148,7 +148,7 @@
       if (SUB === "texto") return [["voltar", "Voltar", function () { SUB = ""; faixa(); }, "volta"], ["texto", "Adicionar texto", function () { clicar("veTexto"); setTimeout(function () { abrir("g:texto"); }, 60); }], ["pessoa", "Texto atrás da pessoa", function () { if (window.VEModelos) VEModelos.abrir("mascara"); }], ["modelos", "Modelos", function () { if (window.VEModelos) VEModelos.abrir(); }]];
       return [["mais", "Mídia", function () { abrir("midia"); }], ["audio", "Áudio", function () { SUB = "audio"; faixa(); }], ["texto", "Texto", function () { SUB = "texto"; faixa(); }], ["efe", "Elementos", function () { var v = V(); if (v && v.menuElementos) v.menuElementos(innerWidth / 2 - 90, innerHeight * 0.45); }],
         ["modelos", "Modelos", function () { if (window.VEModelos) VEModelos.abrir(); }], ["trans", "Transições", function () { abrir("trans"); }], ["efe", "Efeitos", function () { abrir("efe"); }],
-        ["criar", "Criar", function () { abrir("criar"); }], ["prop", "Formato", function () { abrir("prop"); }], ["camadas", "Camadas", function () { clicar("veTlMin"); }],
+        ["criar", "Criar", function () { abrir("criar"); }], ["dividir", "Marcar entrada", function () { clicar("veMarcaE"); }], ["dividir", "Marcar saída", function () { clicar("veMarcaS"); }], ["prop", "Formato", function () { abrir("prop"); }], ["camadas", "Camadas", function () { clicar("veTlMin"); }],
         ["tela", "Outra tela", function () { clicar("veSegunda"); }], ["cel", "Controle", function () { clicar("veCelular"); }]];
     }
     var L = [["voltar", "", function () { v.sel(null); }, "volta"]];

@@ -2441,6 +2441,13 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   os atalhos novos só no editor de vídeo (Motion/Telas têm os comuns); nada testado em iPhone nem com LOG real de câmera; manual, pacote do app e .exe.
   video-editor v31, bw-cor-nos v1, bw-ferramentas v8, sw v216. PENTE FINO 210–213.
 
+- 23/11/2026 23:55 · Claude (dono: "faça o I e O funcionar para exportar o que está marcando, crie o ícone"): EDITOR DE VÍDEO — TRECHO MARCADO limita a
+  exportação: botões ⟦ ENTRADA e SAÍDA ⟧ na barra de corte (acendem quando marcados) + ✕ para limpar; no celular "Marcar entrada / Marcar saída" na faixa.
+  Com trecho, o botão vira "EXPORTAR VÍDEO · TRECHO 0:02,5", a janela mostra "Só o trecho marcado: de → até" (com o link "exportar o vídeo inteiro") e a
+  gravação começa na entrada e para na saída — vale para vídeo, só áudio e sequência de imagens (trecho() num lugar só; só uma ponta marcada = dali até o
+  fim / do começo até ali). Teste novo docs/testes/teste_video_trecho.py (arquivo exportado conferido no ffprobe: só o trecho, cor certa no começo e no
+  fim) + testes de exportação/barra 0 falhas; vigia ✅. NÃO testado em iPhone. video-editor v32, ve-app v14, sw v217.
+
 ## Pendências (dono)
 - [x] (23/11 09:58) BW-Setup.exe 1.9.37 gerado pelo dono e publicado (9,0 MB, versão conferida dentro do .exe).
 - [ ] (23/11) iPhone: fechar e abrir o app, tocar em ＋ → ＋ IMPORTAR e dizer se a galeria abriu. PC: testar o laço na linha do tempo e os avisos pequenos.
