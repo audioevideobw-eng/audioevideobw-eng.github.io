@@ -1,13 +1,21 @@
 {
- "versao": "1.9.43",
+ "versao": "1.9.44",
  "data": "24/11/2026",
  "pacote": "downloads/BW-Reels-Studio.zip",
- "sha256": "086ef4659fe9c96787c1921f326e6266b46eb8fb4361d25d44481f6b95bc3510",
- "bytes": 41857134,
+ "sha256": "066ed60542f11634c3202fe3111330d7feaf7ea560ea58728c467a7997ee60a6",
+ "bytes": 41940072,
  "novidades": [
   {
-   "titulo": "O BW no computador agora é só o programa",
-   "texto": "O ícone BW abre sempre o programa BW (nome e ícone próprios, placa de vídeo forte). A janela do Edge e os atalhos da fase de teste saem sozinhos."
+   "titulo": "Editor de vídeo com TELAS e MOTIONS",
+   "texto": "Transições e divisões de tela, textos animados e gráficos do BW Reels e os desenhos do Criador IA agora ficam na biblioteca do editor. É só arrastar até o take."
+  },
+  {
+   "titulo": "Editor de fotos com camadas e efeitos",
+   "texto": "Painel de camadas com pastas, 37 efeitos com combinações automáticas, seus presets e medida livre em px ou cm."
+  },
+  {
+   "titulo": "Álbum 3D do seu tamanho",
+   "texto": "Escolha quantas fotos o modelo tem, o formato livre do cartão e estique o modelo em X, Y e Z."
   }
  ]
 }

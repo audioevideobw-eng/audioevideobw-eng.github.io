@@ -2623,6 +2623,9 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   desenhados direto no canvas (assets/ve-motions.js: ~0,5–0,8 ms por quadro, sem HTML por quadro como no Reels) — tocar põe na agulha, arrastar põe no tempo,
   textos/números/cor em AJUSTES. Folha de quadros revisada (corrigidos "1.500" → "2", rótulos da linha do tempo cortados, faixa do cargo curta). Teste novo
   teste_video_motions.py + bateria do editor 0 falhas; vigia 7.x (ve-motions sem rede). Manual 72 → 73 p. (Telas, Motions e elementos). video-editor v37, sw v230. PENTE FINO 223.
+- 24/11/2026 19:00 · Claude: APP BW 1.9.44 publicado (pacote, app-versao.json, cópia sem internet com o site de hoje — editor de fotos com camadas/efeitos,
+  editor de vídeo com TELAS/MOTIONS/elementos do Criador, Álbum 3D com quantidade e tamanho —, tutorial e novidades). teste-app 0 falhas. BW-Setup.exe 1.9.44:
+  depende do PC do dono (quem já tem o app atualiza sozinho).
 ## Pendências (dono)
 - [ ] (24/11 15:05) GOOGLE PLAY: dono PEDIU o D-U-N-S (Dun & Bradstreet, grátis, 5–30 dias). Quando chegar: criar a conta de ORGANIZAÇÃO em
       play.google.com/console/signup (CNPJ + D-U-N-S, US$ 25) e avisar o Claude → gerar .aab + chave de assinatura fixa (segredos no GitHub) + ficha da loja.
