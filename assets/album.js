@@ -135,15 +135,17 @@
   /* ---------- ajustes ---------- */
   var BORDAS = [["nenhuma", "Sem moldura"], ["fina", "Fio branco"], ["branca", "Branca"], ["polaroid", "Polaroid"], ["cor", "Cor"], ["neon", "Neon"]];
   var FUNDOS = [["escuro", "Escuro"], ["estudio", "Estúdio"], ["claro", "Claro"], ["cor", "Cor"], ["degrade", "Degradê"], ["foto", "1ª foto desfocada"], ["papel", "Papel"], ["madeira", "Madeira"], ["linho", "Linho"], ["verde", "Verde (chroma)"], ["azul", "Azul (chroma)"], ["magenta", "Magenta (chroma)"]];
-  var CARTOES = [["auto", "Automático"], ["3:4", "3:4"], ["4:5", "4:5"], ["1:1", "1:1"], ["2:3", "2:3"], ["9:16", "9:16"], ["16:9", "16:9"]];
+  var CARTOES = [["auto", "Automático"], ["3:4", "3:4"], ["4:5", "4:5"], ["1:1", "1:1"], ["2:3", "2:3"], ["9:16", "9:16"], ["16:9", "16:9"], ["livre", "✎ Livre"]];
   function chips(nome, lista, atual) { return '<div class="al-chips" data-grupo="' + nome + '">' + lista.map(function (x) { return '<button type="button" data-v="' + x[0] + '"' + (atual === x[0] ? ' class="on"' : "") + ">" + x[1] + "</button>"; }).join("") + "</div>"; }
   function desenharVisual() {
     var md = B.modelo(P), tp = P.tp || md.tela ? (P.tp || md.tp) : (P.tp || md.tp);
     $("alVisual").innerHTML =
       '<label>Tempo por foto<input type="range" id="alTp" min="0.3" max="4" step="0.1" value="' + tp + '"><output>' + fmt(tp) + ' s</output></label>' +
       (BATIDA ? '<div class="al-linha" style="margin-top:0"><button class="al-bt mini" type="button" id="alNaBatida">♫ NA BATIDA DA MÚSICA (' + Math.round(60 / BATIDA) + ' BPM)</button></div>' : "") +
+      blocoQtd(md) + blocoTamanho() +
       (md.tela ? '<p class="al-dica">Efeito de tela cheia: cada foto/vídeo ocupa a tela toda.</p>' :
         "<b class=\"al-dica\" style=\"display:block;color:#B9C0CC\">Formato do cartão</b>" + chips("cartao", CARTOES, P.cartao || "auto") +
+        (P.cartao === "livre" ? '<div class="al-linha al-cartlivre"><label class="um">Largura<input type="number" id="alCw" min="1" max="999" step="1" value="' + (+P.cartaoW || 4) + '"></label><span>×</span><label class="um">Altura<input type="number" id="alCh" min="1" max="999" step="1" value="' + (+P.cartaoH || 5) + '"></label></div><p class="al-dica">Qualquer medida: 10 × 15, 1080 × 1350… vale a proporção.</p>' : "") +
         "<b class=\"al-dica\" style=\"display:block;color:#B9C0CC\">Moldura</b>" + chips("borda", BORDAS, P.borda || "nenhuma") +
         (P.borda === "cor" || P.borda === "neon" ? '<label class="um">Cor da moldura<input type="color" id="alBordaCor" value="' + esc(P.bordaCor || "#B6FF3B") + '"></label>' : "") +
         '<label>Cantos<input type="range" id="alCantos" min="0" max="0.25" step="0.01" value="' + (P.cantos == null ? 0.06 : P.cantos) + '"><output>' + Math.round((P.cantos == null ? 0.06 : P.cantos) * 100) + '</output></label>' +
@@ -155,6 +157,20 @@
       (/verde|azul|magenta/.test(P.fundo || "") ? '<p class="al-dica">Fundo de recorte: no editor (ou no CapCut) use CHROMA KEY nessa cor para pôr o álbum por cima de outro vídeo.</p>' : "") +
       '<label class="um">Números nos espaços vazios<input type="checkbox" id="alNumeros"' + (P.numeros !== false ? " checked" : "") + "></label>";
   }
+  /* QUANTIDADE de fotos por modelo e TAMANHO/ESTICAR do modelo (dono, 24/11) */
+  function blocoQtd(md) { var L = B.limites(P), q = B.qtdFixa(P), n = B.quantos(P, ORDEM.length);
+    return '<b class="al-dica" style="display:block;color:#B9C0CC">Fotos neste modelo</b>' +
+      '<label>Quantidade<input type="range" id="alFotosN" min="' + L.min + '" max="' + L.max + '" step="1" value="' + n + '"><output>' + n + '</output></label>' +
+      '<div class="al-linha" style="margin-top:0"><button type="button" class="al-bt mini al-qauto' + (q ? "" : " on") + '" id="alQtdAuto">' + (q ? "AUTOMÁTICO (1 POR FOTO)" : "✓ AUTOMÁTICO (1 POR FOTO)") + '</button></div>' +
+      '<p class="al-dica">' + (q ? (ORDEM.length && ORDEM.length < q ? "Com menos fotos que espaços, as fotos se repetem em ordem." : ORDEM.length > q ? "Entram as " + q + " primeiras fotos." : "Espaços fixos neste modelo.") : "Automático: um espaço por foto (de " + L.min + " a " + L.max + ").") + "</p>"; }
+  function blocoTamanho() { var e = P.esc || {}, prop = e.prop !== false, v = function (k, d) { return e[k] == null ? d : +e[k]; }, pc = function (x) { return Math.round(x * 100) + "%"; };
+    function bar(id, rot, min, max, val, txt) { return '<label>' + rot + '<input type="range" id="' + id + '" min="' + min + '" max="' + max + '" step="0.01" value="' + val + '"><output>' + txt + "</output></label>"; }
+    return '<b class="al-dica" style="display:block;color:#B9C0CC">Tamanho do modelo</b>' +
+      bar("alEscT", "Tamanho", 0.3, 2.5, v("t", 1), pc(v("t", 1))) +
+      '<label class="um">🔒 Proporcional<input type="checkbox" id="alEscProp"' + (prop ? " checked" : "") + "></label>" +
+      (prop ? "" : bar("alEscX", "Esticar ↔ largura (X)", 0.3, 3, v("x", 1), pc(v("x", 1))) + bar("alEscY", "Esticar ↕ altura (Y)", 0.3, 3, v("y", 1), pc(v("y", 1))) + bar("alEscZ", "Esticar profundidade (Z)", 0.2, 3, v("z", 1), pc(v("z", 1)))) +
+      bar("alEscMx", "Mover ↔ (X)", -2, 2, v("mx", 0), v("mx", 0).toFixed(2)) + bar("alEscMy", "Mover ↕ (Y)", -2, 2, v("my", 0), v("my", 0).toFixed(2)) +
+      '<div class="al-linha" style="margin-top:0"><button type="button" class="al-bt mini" id="alEscZero">↺ TAMANHO ORIGINAL</button></div>'; }
   function desenharTitulo() {
     $("alTitulo").innerHTML = '<label class="um">Título<input type="text" id="alTit" maxlength="60" placeholder="Ex.: Casamento Ana & Léo" value="' + esc(P.titulo || "") + '"></label>' +
       '<label class="um">Subtítulo<input type="text" id="alSub" maxlength="80" placeholder="Ex.: 22 de novembro de 2026" value="' + esc(P.sub || "") + '"></label>' +
@@ -294,8 +310,15 @@
     $("alVisual").addEventListener("click", function (e) { var b = e.target.closest("button"); if (!b) return;
       var g = b.parentNode.getAttribute("data-grupo");
       if (g) { var v = b.getAttribute("data-v"); P[g] = v; if (g === "borda") P.bordaTocada = true; if (g === "fundo") P.fundoTocado = true; limparCache(); desenharVisual(); mudou(); return; }
+      if (b.id === "alQtdAuto") { if (P.qtd) delete P.qtd[B.modelo(P).id]; limparCache(); desenharVisual(); mudou(); return; }
+      if (b.id === "alEscZero") { P.esc = { prop: true }; desenharVisual(); mudou(); return; }
       if (b.id === "alNaBatida" && BATIDA) { var md = B.modelo(P), alvo = P.tp || md.tp, k = Math.max(1, Math.round(alvo / BATIDA)); P.tp = +(k * BATIDA).toFixed(3); desenharVisual(); mudou(); aviso("♫ " + fmt(P.tp, 2) + " s por foto = " + k + " batida(s)."); } });
     $("alVisual").addEventListener("input", function (e) { var el = e.target;
+      if (el.id === "alFotosN") { P.qtd = P.qtd || {}; P.qtd[B.modelo(P).id] = Number(el.value); el.nextElementSibling.textContent = el.value; var ab = $("alQtdAuto"); if (ab) ab.classList.remove("on"); limparCache(); mudou(); }
+      if (el.id === "alCw" || el.id === "alCh") { var nv = Math.max(1, Number(el.value) || 1); if (el.id === "alCw") P.cartaoW = nv; else P.cartaoH = nv; if (!P.cartaoW) P.cartaoW = 4; if (!P.cartaoH) P.cartaoH = 5; limparCache(); mudou(); }
+      var ESC = { alEscT: "t", alEscX: "x", alEscY: "y", alEscZ: "z", alEscMx: "mx", alEscMy: "my" };
+      if (ESC[el.id]) { P.esc = P.esc || {}; P.esc[ESC[el.id]] = Number(el.value); el.nextElementSibling.textContent = /m[xy]$/.test(ESC[el.id]) ? Number(el.value).toFixed(2) : Math.round(el.value * 100) + "%"; mudou(); }
+      if (el.id === "alEscProp") { P.esc = P.esc || {}; P.esc.prop = el.checked; if (el.checked) { P.esc.x = 1; P.esc.y = 1; P.esc.z = 1; } desenharVisual(); mudou(); }
       if (el.id === "alTp") { P.tp = Number(el.value); el.nextElementSibling.textContent = fmt(P.tp) + " s"; mudou(); }
       if (el.id === "alCantos") { P.cantos = Number(el.value); el.nextElementSibling.textContent = Math.round(P.cantos * 100); limparCache(); mudou(); }
       if (el.id === "alBordaCor") { P.bordaCor = el.value; limparCache(); mudou(); }

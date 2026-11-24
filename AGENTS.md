@@ -2609,6 +2609,11 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   luzes, neve…) · Desenhos (bichinhos, objetos, festa, super-herói, anime) · Realistas · Emojis — tocar põe na agulha, arrastar põe no tempo. O Criador IA
   continua separado (mesmo desenho, mesmo motor). Teste novo docs/testes/teste_video_telas.py (pixel no meio da transição de tela e na divisão, 1280/390)
   + bateria do editor 0 falhas; vigia ✅. video-editor v36, sw v228.
+- 24/11/2026 18:20 · Claude (dono: "no álbum 3D, tamanho livre e proporcional, esticar em X, Y…" + "a quantidade de fotos por modelo"): ÁLBUM 3D → AJUSTES DO
+  MODELO ganhou FOTOS NESTE MODELO (quantidade fixa por modelo, P.qtd[id], dentro do mínimo/máximo do modelo; com menos fotos elas se repetem; AUTOMÁTICO volta a
+  1 espaço por foto), cartão ✎ LIVRE (largura × altura, vale a proporção) e TAMANHO DO MODELO (tamanho %, 🔒 proporcional; desligado = esticar X, Y e Z;
+  mover X/Y; ↺ tamanho original — P.esc, aplicado no mundo antes da câmera, vale na prévia e no vídeo). Armadilha da regra 96 de novo: id "alQtd" já era o contador
+  de modelos (→ alFotosN). Teste novo docs/testes/teste_album_tamanho.py + teste_album 0 falhas. album-motor v4, album.js v6, sw v229.
 ## Pendências (dono)
 - [ ] (24/11 15:05) GOOGLE PLAY: dono PEDIU o D-U-N-S (Dun & Bradstreet, grátis, 5–30 dias). Quando chegar: criar a conta de ORGANIZAÇÃO em
       play.google.com/console/signup (CNPJ + D-U-N-S, US$ 25) e avisar o Claude → gerar .aab + chave de assinatura fixa (segredos no GitHub) + ficha da loja.

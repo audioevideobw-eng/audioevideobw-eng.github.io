@@ -422,9 +422,15 @@
   var _tmp = null; function TMP(w, h) { if (!_tmp) _tmp = document.createElement("canvas"); if (_tmp.width !== w || _tmp.height !== h) { _tmp.width = w; _tmp.height = h; } return _tmp; }
 
   function modelo(P) { return POR[P.modelo] || M[0]; }
-  function quantos(P, nMidias) { var md = modelo(P), nmin = md.nMin || 3, nmax = md.nMax || 24; return nMidias ? cl(nMidias, md.tela ? 1 : nmin, nmax) : md.nPad; }
+  /* quantidade de espaços: o modelo tem um mínimo e um máximo; a pessoa pode fixar quantos (P.qtd[modelo], 24/11) — com menos mídias que espaços
+     as fotos se repetem em ordem; com mais, entram só as primeiras */
+  function limites(P) { var md = modelo(P); return { min: md.tela ? 1 : (md.nMin || 3), max: Math.max(md.nMax || 24, md.tela ? 40 : 24), pad: md.nPad }; }
+  function qtdFixa(P) { var q = P && P.qtd && P.qtd[modelo(P).id]; return q ? +q : 0; }
+  function quantos(P, nMidias) { var L = limites(P), q = qtdFixa(P); if (q) return cl(Math.round(q), L.min, L.max); return nMidias ? cl(nMidias, L.min, L.max) : L.pad; }
+  /* tamanho e esticar do modelo inteiro (P.esc = {t: tamanho, x, y, z: esticar, mx, my: mover}, 24/11) */
+  function escala(P) { var e = P && P.esc || {}, t = e.t == null ? 1 : +e.t; return { x: t * (e.x == null ? 1 : +e.x), y: t * (e.y == null ? 1 : +e.y), z: t * (e.z == null ? 1 : +e.z), mx: +e.mx || 0, my: +e.my || 0 }; }
   function duracao(P, nMidias) { var md = modelo(P), n = quantos(P, nMidias), tp = +P.tp || md.tp; return +(md.dur ? md.dur(n, tp) : Math.max(md.tela ? 2 : 4, n * tp + (md.tela ? 0 : 0.8))).toFixed(2); }
-  function ratioCartao(P, W, H) { var md = modelo(P); if (md.tela) return W / H; if (md.quadrado) return 1; var r = { "3:4": 0.75, "4:5": 0.8, "1:1": 1, "9:16": 0.5625, "16:9": 1.7778, "2:3": 0.6667 }[P.cartao || "auto"]; if (r) return r; return md.borda === "polaroid" ? 0.82 : 0.75; }
+  function ratioCartao(P, W, H) { var md = modelo(P); if (md.tela) return W / H; if (md.quadrado) return 1; var r = { "3:4": 0.75, "4:5": 0.8, "1:1": 1, "9:16": 0.5625, "16:9": 1.7778, "2:3": 0.6667 }[P.cartao || "auto"]; if (r) return r; if (P.cartao === "livre" && +P.cartaoW > 0 && +P.cartaoH > 0) return cl(P.cartaoW / P.cartaoH, 0.2, 5); return md.borda === "polaroid" ? 0.82 : 0.75; }
 
   /* desenha um quadro.  fontes(i) → {el,w,h} | null (vazio = cartão numerado colorido).  opc: {leve, textura (px), chaveVideo(i)} */
   function desenhar(c, P, t, W, H, fontes, opc) {
@@ -440,7 +446,7 @@
     var tw = r >= 1 ? long : Math.round(long * r), th = r >= 1 ? Math.round(long / r) : long;
     var zoom = cam.zoom || 1; function proj(p) { var X = p[0] + tx, Y = p[1] + ty, Z = p[2] + tz + dist; if (Z < 0.08) return null; var s = u * zoom * dist / Z; return [W / 2 + X * s, H / 2 - Y * s, Z]; }
     function cameraDe(p) { return rot(p, 0, 0, 0); }
-    var lista = [], zDe = {};
+    var lista = [], zDe = {}, ES = escala(P);
     (q.pecas || []).forEach(function (pc, ordem) {
       if (pc.op === 0 || (pc.op != null && pc.op < 0.003)) return;
       var w = pc.w || cw, h = pc.h || ch, cu = pc.curva || 0, cv = pc.curvaY || 0, cols = cu ? (opc.leve ? 6 : 10) : 2, rows = cv ? (opc.leve ? 6 : 10) : 2;
@@ -449,7 +455,7 @@
         var lx = (i / cols - 0.5) * w, ly = (0.5 - j / rows) * h, lz = 0;
         if (cu) { var a = lx * cu; lx = Math.sin(a) / cu; lz = (1 - Math.cos(a)) / cu; }
         if (cv) { var b = ly * cv; ly = Math.sin(b) / cv; lz += (1 - Math.cos(b)) / cv; }
-        var w1 = rot([lx, ly, lz], pc.rx || 0, pc.ry || 0, pc.rz || 0); w1 = [w1[0] + (pc.x || 0), w1[1] + (pc.y || 0), w1[2] + (pc.z || 0)];
+        var w1 = rot([lx, ly, lz], pc.rx || 0, pc.ry || 0, pc.rz || 0); w1 = [(w1[0] + (pc.x || 0)) * ES.x + ES.mx, (w1[1] + (pc.y || 0)) * ES.y + ES.my, (w1[2] + (pc.z || 0)) * ES.z];
         var cmr = rot(w1, 0, cy, 0); cmr = rot(cmr, cs, 0, cz); var pr = proj(cmr); if (!pr) { ok = false; break; } pts.push([pr[0], pr[1], pr[2], cmr]); zs += cmr[2];
       }
       if (!ok) return;
@@ -520,5 +526,5 @@
   function tempoMidia(P, i, t, dur, nMidias) { var md = modelo(P); if (!dur) return 0; var n = quantos(P, nMidias), D = duracao(P, nMidias); var tl = md.seq ? t - i * D / n + 0.4 : t + i * 0.73; return ((tl % dur) + dur) % dur; }
   function limpar(cx) { var C = cx || CACHE0; Object.keys(C).forEach(function (k) { delete C[k]; }); }
 
-  window.BWAlbum = { MODELOS: M, POR: POR, CATS: CATS, desenhar: desenhar, duracao: duracao, quantos: quantos, modelo: modelo, tempoMidia: tempoMidia, limpar: limpar, A: A };
+  window.BWAlbum = { MODELOS: M, POR: POR, CATS: CATS, desenhar: desenhar, duracao: duracao, quantos: quantos, limites: limites, qtdFixa: qtdFixa, escala: escala, modelo: modelo, tempoMidia: tempoMidia, limpar: limpar, A: A };
 })();
