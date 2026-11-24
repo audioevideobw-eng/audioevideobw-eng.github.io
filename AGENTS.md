@@ -2558,7 +2558,7 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
       play.google.com/console/signup (CNPJ + D-U-N-S, US$ 25) e avisar o Claude → gerar .aab + chave de assinatura fixa (segredos no GitHub) + ficha da loja.
       Dono: "deixe isso pendente".
 - [ ] (24/11) CHAVE ANDROID: dono cadastrar BW_KEYSTORE_B64 e BW_KEYSTORE_SENHA (Vídeos\\bw-reels-studio\\CHAVE-ANDROID\\LEIA-ME.txt) e guardar cópia da pasta.
-- [ ] (24/11) BW-Setup.exe 1.9.42: dono dar dois cliques em "5 - GERAR INSTALADOR EXE" (arquivos já na pasta).
+- [x] (24/11 16:00) BW-Setup.exe 1.9.42 gerado pelo dono e publicado (25 MB, versão conferida dentro do .exe; cresceu pelos renders de teste em modelos\\animacoes\\render — o GERAR-INSTALADOR agora ignora pastas "render").
 - [ ] (24/11) APP ANDROID: dono abrir audioevideobw-eng.github.io/baixar no Android, tocar em BAIXAR O APP ANDROID (.APK), permitir a instalação, entrar
       com e-mail e senha e testar: editor de vídeo (importar, exportar → compartilhar), câmera/microfone (Tio Cláudio), editor de fotos. Para as
       atualizações instalarem por cima sem desinstalar: cadastrar a chave de assinatura (Claude gera e explica — 2 segredos no GitHub).
