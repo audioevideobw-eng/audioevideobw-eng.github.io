@@ -4,7 +4,7 @@ name: App Android (BW)
 on:
   push:
     branches: [main]
-    paths: ["docs/app-android/**", ".github/workflows/android.yml"]
+    paths: ["docs/app-android/**", ".github/workflows/android.yml", "*.html", "assets/**", "icons/**"]
   workflow_dispatch:
 permissions:
   contents: write
@@ -26,7 +26,7 @@ jobs:
           if [ -n "$KS" ]; then echo "$KS" | base64 -d > "$RUNNER_TEMP/bw.jks"; echo "BW_KEYSTORE=$RUNNER_TEMP/bw.jks" >> $GITHUB_ENV; echo "assinada com a chave do BW"; else echo "sem chave própria: chave de teste"; fi
       - name: Montar o projeto
         working-directory: docs/app-android
-        run: npm ci --no-audit --no-fund && npx cap sync android
+        run: npm ci --no-audit --no-fund && npx cap sync android && python3 montar-offline.py
       - name: Gerar o .apk
         working-directory: docs/app-android/android
         env: { BW_KEYSTORE_SENHA: "${{ secrets.BW_KEYSTORE_SENHA }}" }
