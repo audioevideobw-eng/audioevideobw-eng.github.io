@@ -1,21 +1,13 @@
 {
- "versao": "1.9.40",
+ "versao": "1.9.41",
  "data": "24/11/2026",
  "pacote": "downloads/BW-Reels-Studio.zip",
- "sha256": "70bc457fa24c7641bde7db406bdf8ff3f13aaa2c9b46158151f566f960790f4a",
- "bytes": 41924642,
+ "sha256": "510fab8e4b4f238ee4a75d161b12ed7ebdde6b73f401f97ed1f74953abdb13f0",
+ "bytes": 41925078,
  "novidades": [
   {
-   "titulo": "BW novo: o app como programa (teste)",
-   "texto": "Apareceu o ícone BW (novo) na Área de Trabalho: o BW como programa próprio, com nome e ícone BW na barra de tarefas. O BW de sempre continua igual, lado a lado."
-  },
-  {
-   "titulo": "Mesma força, placa forte já ao abrir",
-   "texto": "Por dentro é o mesmo motor: prévia, cor, proxy e exportação rodam igual. O programa pede a placa de vídeo de alto desempenho sozinho."
-  },
-  {
-   "titulo": "Primeira vez no BW (novo)",
-   "texto": "Entre de novo com a sua conta. Projetos guardados só no aparelho (editor de vídeo, criações) começam vazios no programa novo."
+   "titulo": "BW novo: conserto da primeira instalação",
+   "texto": "O componente do BW novo não tinha terminado de baixar. Agora o BW baixa sozinho em segundo plano (uma janela minimizada) e cria o ícone BW (novo) na Área de Trabalho quando terminar."
   }
  ]
 }

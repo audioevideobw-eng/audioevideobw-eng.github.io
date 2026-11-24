@@ -1,0 +1,3 @@
+[
+ {"titulo":"BW novo: conserto da primeira instalação","texto":"O componente do BW novo não tinha terminado de baixar. Agora o BW baixa sozinho em segundo plano (uma janela minimizada) e cria o ícone BW (novo) na Área de Trabalho quando terminar."}
+]
