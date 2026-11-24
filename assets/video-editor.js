@@ -969,10 +969,10 @@
   function vvPintar(canvas, t) { var spec = canvas.getAttribute("data-vivo") || "", i = spec.indexOf(":"), tp = spec.slice(0, i), k = spec.slice(i + 1), F = vvFontes();
     vvMini(canvas, function (W, H) { var x = cx; x.fillStyle = "#000"; x.fillRect(0, 0, W, H);
       var A = function () { x.drawImage(F.A, 0, 0, W, H); }, B = function () { x.drawImage(F.B, 0, 0, W, H); }, rs = 7, rnd = function () { rs = (rs * 16807) % 2147483647; return rs / 2147483647; };
-      if (tp === "tl" || (tp === "tr" && k.indexOf("tl:") === 0)) { var kk = tp === "tl" ? k : k.slice(3), p = vvCiclo(t, 2.2, 0.45, 1.2); if (p <= 0) { A(); vvRotulo(x, "SAI", 4, H - 16); return; } if (p >= 1) { B(); vvRotulo(x, "ENTRA", 4, H - 16); return; }
+      if (tp === "tl" || (tp === "tr" && k.indexOf("tl:") === 0)) { var kk = tp === "tl" ? k : k.slice(3), p = vvCiclo(t, 2.2, 0.45, 1.2); if (p <= 0) { A(); if (!VV.real) vvRotulo(x, "SAI", 4, H - 16); return; } if (p >= 1) { B(); if (!VV.real) vvRotulo(x, "ENTRA", 4, H - 16); return; }
         x.save(); BWTelas.TRANS[kk].f(x, p, W, H, A, B, rnd, null); x.restore(); return; }
       if (tp === "tr") { var p2 = vvCiclo(t, 2.2, 0.45, 1.1), mt = modsTrans(k, p2), cA = {ini: 0, dur: 99}, cB = {ini: 0, dur: 99};
-        if (p2 <= 0) { A(); vvRotulo(x, "SAI", 4, H - 16); return; } if (p2 >= 1) { B(); vvRotulo(x, "ENTRA", 4, H - 16); return; }
+        if (p2 <= 0) { A(); if (!VV.real) vvRotulo(x, "SAI", 4, H - 16); return; } if (p2 >= 1) { B(); if (!VV.real) vvRotulo(x, "ENTRA", 4, H - 16); return; }
         desenharMidia(F.A, 192, 120, cA, 1, mt.A); desenharMidia(F.B, 192, 120, cB, 1, mt.B);
         if (mt.cor && mt.corA > 0) { x.globalAlpha = lim(mt.corA, 0, 1); x.fillStyle = mt.cor; x.fillRect(0, 0, W, H); x.globalAlpha = 1; } return; }
       if (tp === "dv") { var r = t % 2.8, c = {ini: 0, dur: 99, tela: {lay: k}}; if (k === "cheia" || !window.BWTelas) { var z = 1 + 0.06 * Math.sin(t * 1.4); x.save(); x.translate(W / 2, H / 2); x.scale(z, z); x.translate(-W / 2, -H / 2); B(); x.restore(); return; }
@@ -1009,7 +1009,7 @@
   function ligarVivos(raiz) { if (!raiz) return; var cs = raiz.querySelectorAll("canvas[data-vivo]:not([data-ligado])"); if (!cs.length) return;
     if (!VV.io && "IntersectionObserver" in window) VV.io = new IntersectionObserver(function (es) { es.forEach(function (e) { var c = e.target, i = VV.set.indexOf(c);
       if (e.isIntersecting) { vvPintar(c, VV.calmo ? 1.2 : (performance.now() - VV.t0) / 1000); if (!VV.calmo && i < 0) { VV.set.push(c); if (!VV.raf) VV.raf = requestAnimationFrame(vvLaco); } } else if (i >= 0) VV.set.splice(i, 1); }); }, {rootMargin: "60px"});
-    [].forEach.call(cs, function (c, n) { c.setAttribute("data-ligado", "1"); if (!c.hasAttribute("data-fase")) c.setAttribute("data-fase", String((n % 5) * 0.13)); if (VV.io) VV.io.observe(c); else vvPintar(c, 1.2); }); }
+    [].forEach.call(cs, function (c, n) { c.setAttribute("data-ligado", "1"); if (!c.hasAttribute("data-fase")) c.setAttribute("data-fase", String((n % 4) * 0.55 + (n % 3) * 0.17)); if (VV.io) VV.io.observe(c); else vvPintar(c, 1.2); }); }
   function vv(spec, w, h, cls) { return '<canvas class="vv' + (cls ? " " + cls : "") + '" data-vivo="' + esc(spec) + '" width="' + (w || 192) + '" height="' + (h || 120) + '" aria-hidden="true"></canvas>'; }
   var _dLib = desenharLib; desenharLib = function () { _dLib.apply(this, arguments); ligarVivos($("veLib")); };
   var _dProp = desenharProp; desenharProp = function () { _dProp.apply(this, arguments); ligarVivos($("vePropCorpo")); };

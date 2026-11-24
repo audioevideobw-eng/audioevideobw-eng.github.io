@@ -2646,7 +2646,7 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   pessoas inventadas) em trends/amostras. Menu do take ⟲ REMOVER ATRIBUTOS (Ctrl+Z desfaz). Transição aplicada: ver, tempo, mais rápida/lenta,
   trocar, usar em todas, ajustes, EXCLUIR. layout.js: arrastar não seleciona texto em nenhuma página. Testes novos teste_video_vivo e
   teste_arrasto_selecao (0 falhas); vídeo, telas, efeitos, motions, arrastar (ajustado à regra nova), opções, cor, atalhos, app, layout 0 falhas
-  (teste_mascara: as 2 falhas antigas). Manual 73 p. video-editor v38, layout v81, brightway.css v40, sw bw-mesa-v231. PENTE FINO 224–226.
+  (teste_mascara: as 2 falhas antigas). Manual 73 p. video-editor v39, layout v81, brightway.css v40, sw bw-mesa-v232. PENTE FINO 224–226.
 ## Pendências (dono)
 - [x] (24/11 18:28) BW-Setup.exe 1.9.44 gerado pelo dono e publicado (9,2 MB, versão conferida dentro do .exe).
 - [ ] (24/11 15:05) GOOGLE PLAY: dono PEDIU o D-U-N-S (Dun & Bradstreet, grátis, 5–30 dias). Quando chegar: criar a conta de ORGANIZAÇÃO em
