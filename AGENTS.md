@@ -881,6 +881,16 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
      malicioso roda código — e getDocument com isEvalSupported:false), node-forge < 1.3.2, xlsx 0.18 (o npm parou no 0.18.5; a versão boa vem
      de cdn.sheetjs.com). O gerar-ambientes.py tinha as versões ?v= VELHAS (36/75/1): conferir V_* com o index.html antes de gerar.
 
+**Aprendidos em 23/11 à noite (biblioteca do editor e a pasta do usuário)**
+209. PACOTE COMPRADO PELA PESSOA (dono, 23/11: "o pacote é meu, consegue pelo menos utilizar?"): entra pela aba ★ MINHA PASTA do editor de vídeo —
+     showDirectoryPicker em modo "read", o atalho fica no IndexedDB do aparelho (cfg minhaPasta) e o navegador pede de novo a autorização a cada
+     abertura (botão 🔓 ABRIR). Só lê, nunca copia para a plataforma nem envia (regra 178 continua: nada de terceiros na biblioteca de todos).
+     Leve: lista só a pasta aberta (240 por vez), miniatura só da imagem que aparece (IntersectionObserver, ≤ 300 guardadas), vídeo sem prévia,
+     arquivo de outro programa (.mogrt/.prproj/.aep/.cube) só contado. Fonte da pasta vira FontFace e fica guardada no aparelho (cfg fontes).
+     Biblioteca da casa = só criação própria ou CC0; Pixabay NÃO (proíbe distribuir "standalone"). Teste com pasta de verdade do navegador (OPFS
+     navigator.storage.getDirectory) no lugar do seletor (docs/testes/teste_video_pasta.py). Som sintetizado novo: medir o PICO de cada um (nenhum
+     mudo, nenhum ≥ 1,0) antes de publicar.
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -2372,6 +2382,15 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   LEVE: nenhuma imagem baixada (prévias em CSS), prévia só anima com o mouse em cima, cartão fora da vista não é desenhado (content-visibility).
   Item novo = uma linha em TRANS/EFEITOS/TEXTOS + o grupo em GRUPOS. Testes do editor 0 falhas novas (contagem 11 → 18 acertada em 2 testes);
   vigia ✅. NÃO feito: pasta E:\\ADOBE ARQUIVOS (pacotes de terceiros, regra 178), manual, pacote do app/.exe. video-editor v26, ve-app.css v12, sw v211.
+
+- 23/11/2026 22:20 · Claude (dono: "o pacote é meu, consegue pelo menos utilizar e buscar semelhantes livres de direitos?" → "faça tudo"): EDITOR DE VÍDEO —
+  (1) ★ MINHA PASTA (aba Mídia, PC com Chrome/Edge): a pessoa escolhe a pasta da biblioteca dela (ex.: E:\ADOBE ARQUIVOS), navega pelas subpastas,
+  procura pelo nome, ▶ ouve o som antes, toca e o arquivo vai para a linha do tempo; fontes .ttf/.otf viram fonte do texto. Só lê, nada é enviado
+  nem copiado para a plataforma; .mogrt/.prproj/.aep/LUT ficam só contados (são do Premiere/After). (2) SONS DA CASA 8 → 29, todos sintetizados no
+  aparelho e organizados por função (Transição, Impacto, Subida e tensão, Interface, Diversos, Trilhas): whoosh rápido/longo, swish, fita parando,
+  boom, batida, sub drop, descida, suspense, contagem, tecla, bolha, notificação, sucesso, erro, câmera, glitch, brilho e bases corporativa, lo-fi e
+  épica (pico medido de cada um: nenhum mudo nem estourado). Sons CC0 de fora (Kenney, Freesound CC0) não deu para baixar daqui (rede bloqueada).
+  Teste novo docs/testes/teste_video_pasta.py + bateria do editor 0 falhas; vigia ✅. NÃO feito: manual, pacote do app/.exe. video-editor v27, sw v212. PENTE FINO 209.
 
 ## Pendências (dono)
 - [x] (23/11 09:58) BW-Setup.exe 1.9.37 gerado pelo dono e publicado (9,0 MB, versão conferida dentro do .exe).

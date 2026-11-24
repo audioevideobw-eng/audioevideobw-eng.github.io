@@ -249,7 +249,13 @@
   }
 
   /* ---------- efeitos sonoros e trilhas (sintetizados aqui, sem arquivo de terceiros) ---------- */
-  var SONS = [["sfx", "Whoosh", 0.7], ["sfx", "Pop", 0.25], ["sfx", "Ding", 1.4], ["sfx", "Impacto", 0.9], ["sfx", "Clique", 0.12], ["sfx", "Subida", 1.6], ["trilha", "Base calma", 24], ["trilha", "Base animada", 24]];
+  /* 23/11: sons da casa por FUNÇÃO (4º campo = grupo). Todos sintetizados no aparelho — nenhum arquivo para baixar e nenhuma licença de terceiros. */
+  var SONS = [["sfx", "Whoosh", 0.7, "Transição"], ["sfx", "Whoosh rápido", 0.35, "Transição"], ["sfx", "Whoosh longo", 1.4, "Transição"], ["sfx", "Swish", 0.25, "Transição"], ["sfx", "Fita parando", 0.6, "Transição"],
+    ["sfx", "Impacto", 0.9, "Impacto"], ["sfx", "Boom grave", 1.6, "Impacto"], ["sfx", "Batida", 0.3, "Impacto"], ["sfx", "Sub drop", 1.8, "Impacto"],
+    ["sfx", "Subida", 1.6, "Subida e tensão"], ["sfx", "Descida", 1.4, "Subida e tensão"], ["sfx", "Suspense", 3, "Subida e tensão"], ["sfx", "Contagem", 0.35, "Subida e tensão"],
+    ["sfx", "Pop", 0.25, "Interface"], ["sfx", "Clique", 0.12, "Interface"], ["sfx", "Tecla", 0.09, "Interface"], ["sfx", "Bolha", 0.22, "Interface"], ["sfx", "Ding", 1.4, "Interface"], ["sfx", "Notificação", 0.6, "Interface"], ["sfx", "Sucesso", 0.8, "Interface"], ["sfx", "Erro", 0.45, "Interface"],
+    ["sfx", "Câmera", 0.22, "Diversos"], ["sfx", "Glitch", 0.4, "Diversos"], ["sfx", "Brilho", 1.1, "Diversos"],
+    ["trilha", "Base calma", 24, "Trilhas"], ["trilha", "Base animada", 24, "Trilhas"], ["trilha", "Base corporativa", 24, "Trilhas"], ["trilha", "Base lo-fi", 24, "Trilhas"], ["trilha", "Base épica", 24, "Trilhas"]];
   function wav(canais, taxa) {
     var n = canais[0].length, nc = canais.length, buf = new ArrayBuffer(44 + n * nc * 2), v = new DataView(buf), s = function (o, t) { for (var i = 0; i < t.length; i++) v.setUint8(o + i, t.charCodeAt(i)); };
     s(0, "RIFF"); v.setUint32(4, 36 + n * nc * 2, true); s(8, "WAVE"); s(12, "fmt "); v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, nc, true); v.setUint32(24, taxa, true); v.setUint32(28, taxa * nc * 2, true); v.setUint16(32, nc * 2, true); v.setUint16(34, 16, true); s(36, "data"); v.setUint32(40, n * nc * 2, true);
@@ -260,7 +266,36 @@
     var sr = 44100, O = window.OfflineAudioContext || window.webkitOfflineAudioContext, o = new O(1, Math.ceil(dur * sr), sr), g = o.createGain(); g.connect(o.destination);
     var ruido = function () { var b = o.createBuffer(1, Math.ceil(dur * sr), sr), d = b.getChannelData(0), a = 12345; for (var i = 0; i < d.length; i++) { a = (a * 1664525 + 1013904223) >>> 0; d[i] = a / 2147483648 - 1; } var s = o.createBufferSource(); s.buffer = b; return s; };
     var tom = function (tipo, f0, f1, t0, d, vol) { var os = o.createOscillator(), gg = o.createGain(); os.type = tipo; os.frequency.setValueAtTime(f0, t0); if (f1) os.frequency.exponentialRampToValueAtTime(f1, t0 + d); gg.gain.setValueAtTime(0.0001, t0); gg.gain.exponentialRampToValueAtTime(vol, t0 + Math.min(0.02, d / 4)); gg.gain.exponentialRampToValueAtTime(0.0001, t0 + d); os.connect(gg); gg.connect(g); os.start(t0); os.stop(t0 + d + 0.02); };
-    if (nome === "Whoosh" || nome === "Subida") { var r = ruido(), f = o.createBiquadFilter(), gg = o.createGain(); f.type = "bandpass"; f.Q.value = 1.2; f.frequency.setValueAtTime(nome === "Subida" ? 200 : 300, 0); f.frequency.exponentialRampToValueAtTime(nome === "Subida" ? 6000 : 4000, dur * (nome === "Subida" ? 0.95 : 0.5)); if (nome === "Whoosh") f.frequency.exponentialRampToValueAtTime(400, dur);
+    var chiado = function (tipo, f0, f1, t0, d, vol, q) { var r0 = ruido(), f0n = o.createBiquadFilter(), g0 = o.createGain(); f0n.type = tipo; f0n.Q.value = q || 1; f0n.frequency.setValueAtTime(f0, t0); if (f1) f0n.frequency.exponentialRampToValueAtTime(f1, t0 + d); g0.gain.setValueAtTime(0.0001, t0); g0.gain.exponentialRampToValueAtTime(vol, t0 + Math.min(d * 0.4, 0.6)); g0.gain.exponentialRampToValueAtTime(0.0001, t0 + d); r0.connect(f0n); f0n.connect(g0); g0.connect(g); r0.start(t0); r0.stop(t0 + d + 0.02); };
+    var NOVOS = {
+      "Whoosh rápido": function () { chiado("bandpass", 500, 5000, 0, dur, 0.75, 1.4); },
+      "Whoosh longo": function () { chiado("bandpass", 200, 3200, 0, dur * 0.6, 0.6, 0.9); chiado("bandpass", 3200, 250, dur * 0.4, dur * 0.6, 0.5, 0.9); },
+      "Swish": function () { chiado("highpass", 2500, 7000, 0, dur, 0.55, 0.7); },
+      "Fita parando": function () { tom("sawtooth", 440, 40, 0, dur, 0.3); chiado("lowpass", 3000, 200, 0, dur, 0.2); },
+      "Boom grave": function () { tom("sine", 90, 28, 0, dur, 0.95); chiado("lowpass", 400, 80, 0, 0.5, 0.5); },
+      "Batida": function () { tom("sine", 180, 60, 0, 0.25, 0.9); chiado("lowpass", 1800, 600, 0, 0.08, 0.5); },
+      "Sub drop": function () { tom("sine", 160, 24, 0, dur, 0.9); },
+      "Descida": function () { chiado("bandpass", 6000, 200, 0, dur, 0.6, 1.2); tom("sawtooth", 880, 110, 0, dur * 0.95, 0.13); },
+      "Suspense": function () { tom("sawtooth", 55, 0, 0, dur, 0.22); tom("sawtooth", 58.3, 0, 0, dur, 0.18); chiado("bandpass", 300, 900, 0, dur, 0.12, 2); },
+      "Contagem": function () { tom("square", 880, 0, 0, 0.3, 0.3); },
+      "Tecla": function () { chiado("bandpass", 1800, 0, 0, 0.05, 0.7, 3); tom("sine", 240, 120, 0, 0.05, 0.3); },
+      "Bolha": function () { tom("sine", 300, 900, 0, 0.18, 0.7); },
+      "Notificação": function () { tom("sine", 880, 0, 0, 0.3, 0.45); tom("sine", 1318.5, 0, 0.14, 0.42, 0.45); },
+      "Sucesso": function () { [523.3, 659.3, 784, 1046.5].forEach(function (fq, k) { tom("triangle", fq, 0, k * 0.09, 0.45, 0.35); }); },
+      "Erro": function () { tom("square", 220, 0, 0, 0.18, 0.25); tom("square", 165, 0, 0.2, 0.22, 0.25); },
+      "Câmera": function () { chiado("highpass", 3000, 0, 0, 0.04, 0.8); chiado("highpass", 2200, 0, 0.09, 0.07, 0.6); tom("sine", 900, 300, 0, 0.03, 0.3); },
+      "Glitch": function () { for (var k = 0; k < 8; k++) tom("square", 200 + ((k * 7919) % 1900), 0, k * 0.045, 0.035, 0.22); chiado("highpass", 4000, 0, 0.1, 0.12, 0.3); },
+      "Brilho": function () { [1568, 2093, 2637, 3136, 3951].forEach(function (fq, k) { tom("sine", fq, 0, k * 0.1, 0.6, 0.2); }); },
+      "Base corporativa": function () { base(100, [[261.6, 329.6, 392], [220, 261.6, 329.6], [174.6, 220, 261.6], [196, 246.9, 293.7]], "pulso"); },
+      "Base lo-fi": function () { base(72, [[220, 261.6, 329.6, 392], [174.6, 220, 261.6, 329.6], [196, 246.9, 293.7, 349.2], [164.8, 196, 246.9, 293.7]], "lofi"); },
+      "Base épica": function () { base(90, [[146.8, 174.6, 220], [116.5, 146.8, 174.6], [174.6, 220, 261.6], [130.8, 164.8, 196]], "epica"); }};
+    function base(bpm, acs, jeito) { var b = 60 / bpm; for (var t = 0, k = 0; t < dur - 0.1; t += b * 4, k++) { var ac = acs[k % 4], d4 = Math.min(b * 4, dur - t); ac.forEach(function (fq) { tom(jeito === "epica" ? "sawtooth" : "triangle", fq, 0, t, d4, jeito === "epica" ? 0.05 : 0.08); }); tom("sine", ac[0] / 2, 0, t, d4, 0.17);
+        for (var q = 0; q < 4 && t + q * b < dur - 0.2; q++) { var tq = t + q * b;
+          if (jeito === "pulso") { tom("triangle", ac[q % ac.length] * 2, 0, tq, 0.2, 0.07); tom("triangle", ac[(q + 1) % ac.length] * 2, 0, tq + b / 2, 0.2, 0.05); if (q % 2 === 0) tom("sine", 120, 45, tq, 0.2, 0.35); }
+          else if (jeito === "lofi") { if (q % 2 === 0) tom("sine", 110, 42, tq, 0.25, 0.45); else chiado("highpass", 1800, 0, tq, 0.09, 0.16); tom("sine", ac[(q * 2 + k) % ac.length] * 2, 0, tq + b * 0.66, 0.3, 0.05); }
+          else { tom("sine", 80, 36, tq, 0.4, q === 0 ? 0.7 : 0.35); if (q === 3) chiado("lowpass", 900, 300, tq + b / 2, 0.3, 0.2); } } } }
+    if (NOVOS[nome]) NOVOS[nome]();
+    else if (nome === "Whoosh" || nome === "Subida") { var r = ruido(), f = o.createBiquadFilter(), gg = o.createGain(); f.type = "bandpass"; f.Q.value = 1.2; f.frequency.setValueAtTime(nome === "Subida" ? 200 : 300, 0); f.frequency.exponentialRampToValueAtTime(nome === "Subida" ? 6000 : 4000, dur * (nome === "Subida" ? 0.95 : 0.5)); if (nome === "Whoosh") f.frequency.exponentialRampToValueAtTime(400, dur);
       gg.gain.setValueAtTime(0.0001, 0); gg.gain.exponentialRampToValueAtTime(0.7, dur * (nome === "Subida" ? 0.9 : 0.45)); gg.gain.exponentialRampToValueAtTime(0.0001, dur); r.connect(f); f.connect(gg); gg.connect(g); r.start(0); if (nome === "Subida") tom("sawtooth", 110, 880, 0, dur * 0.95, 0.15); }
     else if (nome === "Pop") tom("sine", 620, 150, 0, 0.16, 0.8);
     else if (nome === "Ding") { tom("sine", 1320, 0, 0, 1.3, 0.5); tom("sine", 1980, 0, 0, 0.9, 0.25); }
@@ -632,9 +667,9 @@
   /* ---------- telas ---------- */
   var CATS = [["tudo", "▣", "Mídia"], ["audio", "♪", "Áudio"], ["texto", "T", "Texto"], ["elem", "✺", "Elementos"], ["efe", "✦", "Efeitos"], ["trans", "⋈", "Transições"]];
   function desenharLib() {
-    var cat = ABA === "video" || ABA === "imagem" ? "tudo" : ABA, lib = $("veLib");
+    var cat = ABA === "video" || ABA === "imagem" || ABA === "pasta" ? "tudo" : ABA, lib = $("veLib");
     $("veAbas").innerHTML = '<div class="ve-cats" role="tablist">' + CATS.map(function (a) { return '<button type="button" role="tab" data-aba="' + a[0] + '" class="' + (cat === a[0] ? "on" : "") + '" aria-selected="' + (cat === a[0]) + '" aria-pressed="' + (cat === a[0]) + '"><i aria-hidden="true">' + a[1] + '</i><span>' + a[2] + '</span></button>'; }).join("") + '</div>' +
-      (cat === "tudo" ? '<div class="ve-subs">' + [["tudo", "Tudo"], ["video", "Vídeo"], ["imagem", "Imagem"]].map(function (a) { return '<button type="button" data-aba="' + a[0] + '" class="' + (ABA === a[0] ? "on" : "") + '">' + a[1] + '</button>'; }).join("") + '</div>' : "");
+      (cat === "tudo" ? '<div class="ve-subs">' + [["tudo", "Tudo"], ["video", "Vídeo"], ["imagem", "Imagem"]].concat(typeof window.showDirectoryPicker === "function" ? [["pasta", "★ Minha pasta"]] : []).map(function (a) { return '<button type="button" data-aba="' + a[0] + '" class="' + (ABA === a[0] ? "on" : "") + '">' + a[1] + '</button>'; }).join("") + '</div>' : "");
     lib.setAttribute("data-cat", cat);
     var tit = function (t) { return '<p class="ve-gt">' + t + '</p>'; };
     if (ABA === "trans" || ABA === "efe") { var L = ABA === "trans" ? TRANS : EFEITOS, pre = ABA === "trans" ? "t:" : "e:", cartao = function (k) { return '<div class="ve-item ve-fx ' + (ABA === "trans" ? "tr-" : "ef-") + esc(k) + '" role="button" tabindex="0" data-arr="' + pre + esc(k) + '" aria-label="' + (ABA === "trans" ? "Transição " : "Efeito ") + esc(L[k]) + ' — arraste até um take"><span class="mini" aria-hidden="true"><i></i></span><span>' + esc(L[k]) + '</span></div>'; };
@@ -642,9 +677,10 @@
       GRUPOS[ABA].forEach(function (g) { var ks = g[1].filter(function (k) { return L[k]; }); if (!ks.length) return; h += tit(g[0]) + ks.map(function (k) { usados[k] = 1; return cartao(k); }).join(""); });
       var resto = Object.keys(L).filter(function (k) { return !usados[k]; }); if (resto.length) h += tit("Mais") + resto.map(cartao).join("");
       lib.innerHTML = h; return; }
+    if (ABA === "pasta") { desenharPasta(); return; }
     if (ABA === "texto") { lib.innerHTML = tit("Toque para pôr na agulha") + TEXTOS.map(function (t) { return '<div class="ve-item ve-tx" role="button" tabindex="0" data-texto="' + t[0] + '" aria-label="Pôr texto ' + esc(t[1]) + '"><span class="mini" aria-hidden="true"' + (t[2].fundo ? ' style="--tf:' + t[2].fundo + ";--tc:" + (t[2].cor || "#fff") + '"' : "") + '><b>' + esc(String(t[2].txt).split("\n")[0].slice(0, 14)) + '</b></span><span>' + esc(t[1]) + '</span></div>'; }).join(""); return; }
     if (ABA === "elem") { lib.innerHTML = tit("Elementos animados") + Object.keys(ELEMENTOS).map(function (k) { var p = ELEMENTOS[k].split(" "); return '<div class="ve-item ve-el" role="button" tabindex="0" data-elem="' + esc(k) + '" aria-label="Pôr ' + esc(ELEMENTOS[k]) + '"><span class="mini" aria-hidden="true">' + p[0] + '</span><span>' + esc(p.slice(1).join(" ")) + '</span></div>'; }).join(""); return; }
-    var sonsCasa = ABA === "audio" ? tit("Efeitos sonoros") + SONS.map(function (x, i) { return x[0] === "sfx" ? somCartao(x, i) : ""; }).join("") + tit("Trilhas") + SONS.map(function (x, i) { return x[0] !== "sfx" ? somCartao(x, i) : ""; }).join("") + tit("Meus sons") : "";
+    var sonsCasa = ""; if (ABA === "audio") { var gs = []; SONS.forEach(function (x) { if (gs.indexOf(x[3]) < 0) gs.push(x[3]); }); sonsCasa = gs.map(function (gn) { return tit(gn) + SONS.map(function (x, i) { return x[3] === gn ? somCartao(x, i) : ""; }).join(""); }).join("") + tit("Meus sons"); }
     var l = Object.keys(MID).map(function (k) { return MID[k]; }).filter(function (m) { return !m.ph && (ABA === "tudo" || m.tipo === ABA); });   /* espaços de modelo não aparecem na biblioteca */
     lib.innerHTML = sonsCasa + (l.length ? l.map(function (m) { var mini = m.tipo === "imagem" ? '<img alt="" src="' + m.url + '">' : m.capa ? '<img alt="" src="' + m.capa + '">' : '<span class="mini" aria-hidden="true">' + (m.tipo === "audio" ? "🎵" : "🎬") + '</span>';
       var f = m.cr && window.BWCriacoes ? BWCriacoes.FERR[m.cr.ferramenta] : null;
@@ -877,6 +913,7 @@
   $("veAbas").addEventListener("click", function (e) { var b = e.target.closest("[data-aba]"); if (b) { ABA = b.dataset.aba; desenharLib(); } });
   $("veLib").addEventListener("click", async function (e) {
     if (Date.now() - LD_FIM < 400) return;   /* o clique que vem depois de arrastar não conta */
+    if (e.target.closest("[data-pf],[data-pfa],[data-pfd],[data-pfouvir]")) { cliquePasta(e); return; }
     var fxb = e.target.closest("[data-arr]"); if (fxb) { var kk = fxb.dataset.arr;
       if (kk.charAt(0) === "t") { var em = emendaNaAgulha(); if (em) { aplicarFx(em, "t", kk.slice(2), true); aviso("◧ Transição “" + TRANS[kk.slice(2)] + "” na emenda da agulha — arraste o ◆ para mudar o tempo."); verTransicao(em); return; }
         var s0 = sel(); if (s0 && anteriorDe(s0)) { aplicarFx(s0, "t", kk.slice(2)); return; }
@@ -1361,6 +1398,59 @@
   function tempoTxt(s) { if (s == null || !isFinite(s)) return "calculando…"; s = Math.max(1, Math.round(s)); return s < 60 ? s + " s" : Math.floor(s / 60) + " min " + (s % 60 < 10 ? "0" : "") + s % 60 + " s"; }
 
   /* ---------- pastas (File System Access: Chrome/Edge do computador) ---------- */
+
+  /* 23/11 (dono: "o pacote é meu, consegue pelo menos utilizar?"): ★ MINHA PASTA — a biblioteca que a pessoa JÁ TEM no computador (efeitos sonoros, trilhas,
+     overlays, fontes) aparece dentro do editor, pelas subpastas dela. Só LEITURA e só neste aparelho: nada é copiado para a plataforma nem enviado
+     (pacote comprado tem licença de quem comprou — regra 178). Leve: lista só a pasta aberta, miniatura só do que está à vista, vídeo sem prévia. */
+  var PF = {raiz: null, pilha: [], lista: null, busca: "", max: 240, mini: {}, som: null, obs: null};
+  var PF_EXT = {video: /\.(mp4|mov|webm|m4v)$/i, imagem: /\.(png|jpe?g|webp|gif)$/i, audio: /\.(mp3|wav|m4a|ogg|aac|flac)$/i, fonte: /\.(ttf|otf|woff2?)$/i};
+  function pfTipo(n) { for (var k in PF_EXT) if (PF_EXT[k].test(n)) return k; return ""; }
+  async function pfPerm(pedir) { var h = PF.raiz; if (!h) return false; try { var o = {mode: "read"}; if ((await h.queryPermission(o)) === "granted") return true; return pedir ? (await h.requestPermission(o)) === "granted" : false; } catch (e) { return false; } }
+  async function pfCarregar() { try { var r = await tx("cfg", "readonly", function (st) { return st.get("minhaPasta"); }); if (r && r.h) PF.raiz = r.h; } catch (e) {} try { var fo = await tx("cfg", "readonly", function (st) { return st.get("fontes"); }); for (var i = 0; fo && i < (fo.lista || []).length; i++) await pfFonte(fo.lista[i].blob, fo.lista[i].nome, true); } catch (e) {} }
+  function pfAtual() { return PF.pilha.length ? PF.pilha[PF.pilha.length - 1] : PF.raiz; }
+  async function pfListar() { var d = pfAtual(), L = [], fora = 0; for await (var en of d.values()) { if (en.name.charAt(0) === "." || en.name.charAt(0) === "_") continue; if (en.kind === "directory") L.push({n: en.name, h: en, t: "pasta"}); else { var t = pfTipo(en.name); if (t) L.push({n: en.name, h: en, t: t}); else fora++; } }
+    L.sort(function (a, b) { return (a.t === "pasta" ? 0 : 1) - (b.t === "pasta" ? 0 : 1) || a.n.localeCompare(b.n, "pt", {numeric: true}); }); PF.lista = L; PF.fora = fora; }
+  async function desenharPasta() { var lib = $("veLib");
+    if (!PF.raiz) { lib.innerHTML = '<p class="ve-nota" style="grid-column:1/-1;margin:0 0 6px">Mostre aqui a biblioteca que você já tem no computador: sons, trilhas, overlays, imagens e fontes. Só este aparelho lê a pasta — nada é enviado.</p><button class="ve-bt pri" type="button" data-pfa="escolher" style="grid-column:1/-1">📁 ESCOLHER MINHA PASTA</button>'; return; }
+    if (!(await pfPerm(false))) { lib.innerHTML = '<p class="ve-nota" style="grid-column:1/-1;margin:0 0 6px">O navegador pede a sua autorização de novo a cada vez que o editor abre.</p><button class="ve-bt pri" type="button" data-pfa="liberar" style="grid-column:1/-1">🔓 ABRIR “' + esc(PF.raiz.name) + '”</button><button class="ve-bt" type="button" data-pfa="escolher" style="grid-column:1/-1">Escolher outra pasta</button>'; return; }
+    if (ABA !== "pasta") return;
+    if (!PF.lista) { lib.innerHTML = '<p class="ve-nota" style="grid-column:1/-1;margin:0">Lendo a pasta…</p>'; try { await pfListar(); } catch (e) { lib.innerHTML = '<p class="ve-nota" style="grid-column:1/-1;margin:0 0 6px">Não consegui ler esta pasta.</p><button class="ve-bt" type="button" data-pfa="escolher" style="grid-column:1/-1">Escolher outra pasta</button>'; return; } if (ABA !== "pasta") return; }
+    var caminho = [PF.raiz.name].concat(PF.pilha.map(function (h) { return h.name; }));
+    lib.innerHTML = '<div class="ve-pfh">' + (PF.pilha.length ? '<button class="ve-bt" type="button" data-pfa="voltar" aria-label="Voltar uma pasta">‹</button>' : "") + '<b title="' + esc(caminho.join(" › ")) + '">📁 ' + esc(caminho[caminho.length - 1]) + '</b><button class="ve-bt" type="button" data-pfa="escolher" title="Escolher outra pasta" aria-label="Escolher outra pasta">⇄</button></div>' +
+      '<input class="ve-pfb" id="vePfBusca" type="search" placeholder="Procurar nesta pasta" aria-label="Procurar nesta pasta" value="' + esc(PF.busca) + '"><div id="vePfGrade" style="display:contents"></div>';
+    pfGrade(); }
+  function pfGrade() { var g = $("vePfGrade"); if (!g) return; var q = PF.busca.trim().toLowerCase(), L = PF.lista.map(function (x, i) { return {x: x, i: i}; }).filter(function (o) { return !q || o.x.n.toLowerCase().indexOf(q) >= 0; });
+    var ic = {pasta: "📁", video: "🎬", imagem: "🖼", audio: "🔊", fonte: "Aa"};
+    g.innerHTML = (L.length ? L.slice(0, PF.max).map(function (o) { var x = o.x, nome = x.t === "pasta" ? x.n : x.n.replace(/\.[^.]+$/, "");
+      return x.t === "pasta" ? '<div class="ve-item ve-pf pst" role="button" tabindex="0" data-pfd="' + o.i + '" aria-label="Abrir a pasta ' + esc(x.n) + '"><span class="mini" aria-hidden="true">📁</span><span>' + esc(nome) + '</span></div>'
+        : '<div class="ve-item ve-pf" role="button" tabindex="0" data-pf="' + o.i + '" title="' + esc(x.n) + '" aria-label="' + (x.t === "fonte" ? "Usar a fonte " : "Pôr na linha do tempo: ") + esc(nome) + '"><span class="mini" aria-hidden="true"' + (x.t === "imagem" ? ' data-pfimg="' + o.i + '"' : "") + '>' + (PF.mini[pfChave(x)] ? '<img alt="" src="' + PF.mini[pfChave(x)] + '">' : ic[x.t]) + '</span><span>' + esc(nome) + '</span>' + (x.t === "audio" ? '<button type="button" class="ve-pfo" data-pfouvir="' + o.i + '" title="Ouvir" aria-label="Ouvir ' + esc(nome) + '">▶</button>' : "") + '</div>'; }).join("")
+      : '<p class="ve-nota" style="grid-column:1/-1;margin:0">' + (q ? "Nada com esse nome nesta pasta." : "Nada que o editor abra nesta pasta.") + '</p>') +
+      (L.length > PF.max ? '<button class="ve-bt" type="button" data-pfa="mais" style="grid-column:1/-1">Mostrar mais (' + (L.length - PF.max) + ')</button>' : "") +
+      (PF.fora && !q ? '<p class="ve-nota" style="grid-column:1/-1;margin:4px 0 0">' + PF.fora + ' arquivo(s) de outros programas (Premiere, After Effects, LUT…) não aparecem.</p>' : "");
+    if (PF.obs) PF.obs.disconnect();
+    if (window.IntersectionObserver) { PF.obs = new IntersectionObserver(function (es) { es.forEach(function (en) { if (en.isIntersecting) { PF.obs.unobserve(en.target); pfMini(en.target); } }); }, {root: $("veLib"), rootMargin: "120px"}); [].forEach.call(g.querySelectorAll("[data-pfimg]"), function (el) { if (!el.firstElementChild) PF.obs.observe(el); }); } }
+  function pfChave(x) { return PF.pilha.map(function (h) { return h.name; }).join("/") + "/" + x.n; }
+  async function pfMini(el) { var x = PF.lista[+el.dataset.pfimg]; if (!x) return; try { var f = await x.h.getFile(); if (f.size > 40e6) return; var bm = await createImageBitmap(f, {resizeWidth: 168, resizeQuality: "low"}), c = document.createElement("canvas"); c.width = bm.width; c.height = bm.height; c.getContext("2d").drawImage(bm, 0, 0); bm.close && bm.close();
+      var ks = Object.keys(PF.mini); if (ks.length > 300) delete PF.mini[ks[0]]; var u = c.toDataURL("image/webp", 0.7); PF.mini[pfChave(x)] = u; if (el.isConnected) el.innerHTML = '<img alt="" src="' + u + '">'; } catch (e) {} }
+  function pfCalar() { if (PF.som) { try { PF.som.a.pause(); URL.revokeObjectURL(PF.som.u); } catch (e) {} if (PF.som.b && PF.som.b.isConnected) { PF.som.b.textContent = "▶"; PF.som.b.classList.remove("on"); } PF.som = null; } }
+  async function pfFonte(blob, nome, calado) { var fam = String(nome).replace(/\.[^.]+$/, "").replace(/[^A-Za-zÀ-ÿ0-9 ]+/g, " ").replace(/\s+/g, " ").trim(); if (/^[0-9]/.test(fam)) fam = "F " + fam; if (!fam) return "";
+    var ff = new FontFace(fam, await blob.arrayBuffer()); await ff.load(); document.fonts.add(ff); if (FONTES.indexOf(fam) < 0) FONTES.push(fam);
+    if (!calado) { try { var r = (await tx("cfg", "readonly", function (st) { return st.get("fontes"); })) || {id: "fontes", lista: []}; r.lista = r.lista.filter(function (o) { return o.nome !== nome; }).concat([{nome: nome, blob: blob}]).slice(-40); await tx("cfg", "readwrite", function (st) { return st.put(r); }); } catch (e) {} }
+    return fam; }
+  async function cliquePasta(e) { var a = e.target.closest("[data-pfa]"), d = e.target.closest("[data-pfd]"), o = e.target.closest("[data-pfouvir]"), it = e.target.closest("[data-pf]");
+    if (a) { var k = a.dataset.pfa;
+      if (k === "escolher") { try { var h = await window.showDirectoryPicker({id: "bw-ve-minha", mode: "read"}); pfCalar(); PF.raiz = h; PF.pilha = []; PF.lista = null; PF.busca = ""; PF.max = 240; await tx("cfg", "readwrite", function (st) { return st.put({id: "minhaPasta", h: h}); }); } catch (x) { return; } }
+      else if (k === "liberar") { if (!(await pfPerm(true))) { aviso("O navegador não liberou a pasta.", true); return; } }
+      else if (k === "voltar") { pfCalar(); PF.pilha.pop(); PF.lista = null; PF.busca = ""; PF.max = 240; }
+      else if (k === "mais") { PF.max += 240; pfGrade(); return; }
+      desenharPasta(); return; }
+    if (d) { pfCalar(); PF.pilha.push(PF.lista[+d.dataset.pfd].h); PF.lista = null; PF.busca = ""; PF.max = 240; desenharPasta(); return; }
+    if (o) { var xo = PF.lista[+o.dataset.pfouvir], era = PF.som && PF.som.i === +o.dataset.pfouvir; pfCalar(); if (era || !xo) return; try { var fo = await xo.h.getFile(), u = URL.createObjectURL(fo), au = new Audio(u); PF.som = {a: au, u: u, b: o, i: +o.dataset.pfouvir}; o.textContent = "■"; o.classList.add("on"); au.onended = pfCalar; await au.play(); } catch (x) { pfCalar(); aviso("Não consegui tocar este som.", true); } return; }
+    if (it) { var x = PF.lista[+it.dataset.pf]; if (!x) return; pfCalar(); var f; try { f = await x.h.getFile(); } catch (er) { aviso("Não consegui abrir este arquivo.", true); return; }
+      if (x.t === "fonte") { try { var fam = await pfFonte(f, x.n); var ct = P.clips.filter(function (c) { return c.id === SEL && c.tipo === "texto"; })[0]; if (ct) { ct.fonte = fam; tudo(); } aviso("✓ Fonte " + fam + (ct ? " no texto escolhido" : " pronta na lista de fontes")); } catch (er) { aviso("Esta fonte não abriu.", true); } return; }
+      var antes = {}; Object.keys(MID).forEach(function (kk) { antes[kk] = 1; }); await importar([f]); var novo = Object.keys(MID).filter(function (kk) { return !antes[kk]; })[0]; ABA = "pasta"; desenharLib();
+      if (novo && !MID[novo].ruim) { addClip(MID[novo]); if (window.VEApp && VEApp.aberta && VEApp.aberta()) VEApp.fechar(); aviso("✓ " + String(MID[novo].nome).slice(0, 40) + " na linha do tempo"); } } }
+  $("veLib").addEventListener("input", function (e) { if (e.target && e.target.id === "vePfBusca") { PF.busca = e.target.value; PF.max = 240; pfGrade(); } });
   var TEM_PASTA = typeof window.showDirectoryPicker === "function";
   async function permissao(h, pedir) { if (!h) return false; try { var o = {mode: "readwrite"}; if ((await h.queryPermission(o)) === "granted") return true; return pedir ? (await h.requestPermission(o)) === "granted" : false; } catch (e) { return false; } }
   async function salvarNaPasta(qual, nome, blob) { var h = PASTAS[qual]; if (!h || !(await permissao(h, false))) return ""; try { var f = await h.getFileHandle(nome, {create: true}), w = await f.createWritable(); await w.write(blob); await w.close(); return h.name; } catch (e) { return ""; } }
@@ -1644,7 +1734,7 @@
     try {
     var ms = (await tx("midias", "readonly", function (s) { return s.getAll(); })) || [];
     for (var i = 0; i < ms.length; i++) { try { var mm = await porMidia(ms[i].blob, ms[i].nome, ms[i].tipo, ms[i].id, ms[i].dur, ms[i].capa); if (ms[i].cr) { mm.cr = ms[i].cr; mm.crCriado = ms[i].crCriado; mm.criacao = true; } } catch (e) {} }
-    await carregarPastas(); await carregarProxies(); setTimeout(function () { try { proxyAuto(); } catch (e) {} }, 4000);
+    await carregarPastas(); try { await pfCarregar(); } catch (e) {} await carregarProxies(); setTimeout(function () { try { proxyAuto(); } catch (e) {} }, 4000);
     var st = await tx("estado", "readonly", function (s) { return s.get("atual"); });
     if (st && st.p && Array.isArray(st.p.clips)) { P = st.p; for (var k = 0; k < P.clips.length; k++) { var c = P.clips[k]; if (c.mid && !MID[c.mid] && c.mid.indexOf("som-") === 0) { var ix = SONS.map(function (s) { return "som-" + s[1].toLowerCase().replace(/\s+/g, "-"); }).indexOf(c.mid); if (ix >= 0) await porSom(ix); } }
       if (window.VEModelos && VEModelos.garantir) { try { await VEModelos.garantir(P); } catch (e) {} }   /* espaços e música de modelo são refeitos (não ficam guardados) */

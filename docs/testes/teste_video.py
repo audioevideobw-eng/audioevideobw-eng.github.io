@@ -51,7 +51,7 @@ with sync_playwright() as p:
         pg.fill('#vePropCorpo [data-p="txt"]', "OLÁ BW"); pg.wait_for_timeout(200)
         ok(pg.locator('.ve-faixa[data-trilha="tx"] .ve-clip').count() == 1 and "OLÁ BW" in pg.inner_text('.ve-faixa[data-trilha="tx"]'), "T TEXTO cria o clipe de texto e o que digito aparece na linha do tempo")
         pg.click("#veSons"); pg.wait_for_timeout(200)
-        ok(pg.locator("#veLib [data-som]").count() == 8, "EFEITOS E TRILHAS: 6 efeitos + 2 trilhas feitos no aparelho")
+        ok(pg.locator("#veLib [data-som]").count() == 29, "SONS: 24 efeitos + 5 trilhas feitos no aparelho")
         pg.evaluate("__video.irPara(1)"); pg.evaluate("document.querySelector('#veLib [data-som=\"2\"]').click()"); pg.wait_for_function("__video.P().clips.some(c => c.trilha === 'a2')", timeout=10000)
         fx = pg.evaluate("__video.P().clips.find(c => c.trilha === 'a2')")
         ok(fx["ini"] == 1 and abs(fx["dur"] - 1.4) < 0.05, f"efeito sonoro entra na camada EFEITOS, na posição da agulha {fx['ini']} / {fx['dur']}")

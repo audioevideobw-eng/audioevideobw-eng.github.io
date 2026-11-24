@@ -52,7 +52,11 @@
 .ve-gt:first-child{margin-top:0}
 .ve-lib .ve-item{content-visibility:auto;contain-intrinsic-size:auto 90px;border-color:rgba(255,255,255,.07);background:rgba(255,255,255,.035);border-radius:9px}
 .ve-lib .ve-item:hover{border-color:rgba(33,212,228,.6);background:rgba(255,255,255,.07)}
-.ve-tx .mini,.ve-el .mini,.ve-sm .mini{display:flex;align-items:center;justify-content:center;width:100%;aspect-ratio:16/10;border-radius:7px;background:linear-gradient(135deg,rgba(255,255,255,.07),rgba(255,255,255,.02));font-size:26px}
+.ve-pfh{grid-column:1/-1;display:flex;align-items:center;gap:6px;min-width:0}.ve-pfh b{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:700 11px Inter,sans-serif;color:#dfe3ea}.ve-pfh .ve-bt{min-height:26px;height:26px;padding:0 8px}
+.ve-pfb{grid-column:1/-1;min-width:0;height:28px;border-radius:7px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);color:#fff;padding:0 9px;font:500 12px Inter,sans-serif}
+.ve-pf .mini img{width:100%;height:100%;object-fit:contain;display:block}.ve-pf.pst .mini{background:rgba(33,212,228,.08)}
+.ve-pfo{position:absolute;top:4px;right:4px;width:24px;height:24px;border-radius:50%;border:0;background:rgba(0,0,0,.6);color:#fff;font-size:10px;cursor:pointer}.ve-pfo.on{background:#21D4E4;color:#000}
+.ve-tx .mini,.ve-el .mini,.ve-sm .mini,.ve-pf .mini{display:flex;align-items:center;justify-content:center;width:100%;aspect-ratio:16/10;border-radius:7px;background:linear-gradient(135deg,rgba(255,255,255,.07),rgba(255,255,255,.02));font-size:26px}
 .ve-tx .mini b{font:800 11px Montserrat,Inter,sans-serif;color:var(--tc,#fff);background:var(--tf,transparent);padding:2px 6px;border-radius:4px;max-width:92%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
 @media (hover:hover){.ve-fx .mini i{animation-play-state:paused}.ve-fx:hover .mini i{animation-play-state:running}}
 .ve-fx.tr-empurrar-d .mini i{background:#c05a2a;animation-name:veFxE;animation-direction:alternate-reverse}.ve-fx.tr-descer .mini i,.ve-fx.tr-cortina-v .mini i,.ve-fx.tr-barras .mini i{background:#c05a2a;animation-name:veFxS;animation-direction:alternate-reverse}
@@ -347,7 +351,7 @@
 <script src="assets/ve-app.js?v=12"></script>
 <script src="assets/reels-celular.js?v=6"></script>
 <script src="assets/bw-proxy.js?v=3"></script>
-<script src="assets/video-editor.js?v=26"></script>
+<script src="assets/video-editor.js?v=27"></script>
 <script src="assets/ve-modelos.js?v=3"></script>
 <script src="assets/bw-controle.js?v=1"></script>
 </body>
