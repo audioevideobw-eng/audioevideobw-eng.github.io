@@ -643,3 +643,13 @@ Armadilha: classe de ESTADO não serve para destacar botão. `＋ IMPORTAR` usav
 - Receita: pointer events no contêiner estável (#veRolo) com setPointerCapture assim que a direção é decidida; um touchmove em capture no mesmo contêiner
   só para impedir a rolagem própria (faixaFirme). Teste: toque CDP com 8 movimentos e conferir a altura FINAL, não só a primeira mudança (docs/testes/teste_regua.py).
 - Toque duplo como botão direito: contextmenu sintético 30 ms depois do 2º toque (docs/testes/teste_toque_duplo.py confere que o menu abre e nada foi escolhido).
+
+## App do PC como programa (Electron) sem jogar fora o app antigo (24/11/2026)
+- Separe o NÚCLEO (ações, downloads, avisos, atualização) da janela: `criarNucleo(o)` recebe `paginas()`, `fechar()`, `relancar()` e trabalha com
+  um "pg" que tem evaluate/goto/url/waitForSelector/waitForTimeout. A Page do Playwright já serve; no Electron, um adaptador do webContents
+  (`executeJavaScript('(' + fn + ')(' + JSON.stringify(arg) + ')', true)`, `loadURL` engolindo ERR_ABORTED).
+- Download no Electron: `item.setSavePath(temp)` na hora; o `saveAs(alvo)` espera o `done` e copia.
+- Testar aqui: `npm i electron` (o postinstall baixa do GitHub; se não vier, `node node_modules/electron/install.js`), `xvfb-run -a node motor/teste-electron.mjs`
+  com Playwright `_electron.launch`. Navegação dentro de `evaluate` derruba o contexto: dispare com `.catch(() => {})` e espere o `waitForURL`.
+- Python que recorta texto com `s.index(a):s.index(b)`: confira que `b` vem DEPOIS de `a` (o "ligado = true" do topo veio antes e o replace de ''
+  encheu o arquivo inteiro). Recorte sempre com `s.index(b, ia)`.

@@ -1,23 +1,21 @@
 {
- "versao": "1.9.39",
- "data": "23/11/2026",
+ "versao": "1.9.40",
+ "data": "24/11/2026",
  "pacote": "downloads/BW-Reels-Studio.zip",
- "sha256": "b7c844332a04d971b240db98661361ca44be812ef015c51eb8025317f189efd2",
- "bytes": 41806591,
+ "sha256": "70bc457fa24c7641bde7db406bdf8ff3f13aaa2c9b46158151f566f960790f4a",
+ "bytes": 41924642,
  "novidades": [
   {
-   "titulo": "Placa de vídeo em 1 toque",
-   "texto": "No editor de vídeo (⚙ → PLACA DE VÍDEO), o botão ⚡ USAR A NVIDIA pede ao Windows a placa forte para o navegador. Depois feche o app e abra de novo.",
-   "abrir": "video"
+   "titulo": "BW novo: o app como programa (teste)",
+   "texto": "Apareceu o ícone BW (novo) na Área de Trabalho: o BW como programa próprio, com nome e ícone BW na barra de tarefas. O BW de sempre continua igual, lado a lado."
   },
   {
-   "titulo": "O app já nasce na placa forte",
-   "texto": "A janela do BW pede a placa de alto desempenho e lê vídeo pela placa."
+   "titulo": "Mesma força, placa forte já ao abrir",
+   "texto": "Por dentro é o mesmo motor: prévia, cor, proxy e exportação rodam igual. O programa pede a placa de vídeo de alto desempenho sozinho."
   },
   {
-   "titulo": "Cor avançada e controle de efeitos",
-   "texto": "Nós de cor com LUTs e LOG, efeitos com movimento e chaves, parado em qualidade total e exportar só o trecho marcado.",
-   "abrir": "video"
+   "titulo": "Primeira vez no BW (novo)",
+   "texto": "Entre de novo com a sua conta. Projetos guardados só no aparelho (editor de vídeo, criações) começam vazios no programa novo."
   }
  ]
 }

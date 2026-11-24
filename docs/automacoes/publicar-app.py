@@ -12,7 +12,7 @@ Uso (na raiz do site):
 import argparse, datetime, hashlib, json, os, re, sys, zipfile
 
 RAIZ = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
-FORA = {"node_modules", "instalador", "site-offline", ".git", "atualizacao"}
+FORA = {"node_modules", "programa", "instalador", "site-offline", ".git", "atualizacao"}
 
 
 def main():

@@ -928,6 +928,19 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
      altura em ui_ve_tl_alt. ARMADILHA: a régua é redesenhada a cada mudança de altura, e eventos de TOQUE presos a um nó removido não chegam a
      ninguém (nem ao document) — o arraste parava no 1º movimento. Arraste que redesenha o próprio alvo = pointer events + setPointerCapture num
      contêiner que não é redesenhado. "Na régua" = a faixa dos números pela altura do toque (a folga antes do zero é o #veRolo, não a #veRegua).
+218. APP BW COMO PROGRAMA (Electron, decisão do dono 24/11: "o app aparece como Edge, como se fosse extensão do navegador"): o núcleo do app saiu do
+     Playwright — motor/app.mjs criarNucleo({pastaCopia, rede, canal, fechar, paginas, relancar}) tem as ações da ponte, downloads, avisos e
+     atualização, e as DUAS janelas usam o mesmo (Playwright: abrirApp; Electron: electron/main.mjs). Ponte no Electron = preload isolado
+     (contextIsolation + sandbox) com bwNode → ipcMain.handle, conferindo ev.senderFrame (só o quadro principal, mesmo filtro DO_SITE/LIVRES);
+     naPagina roda no mundo da página por webFrame.executeJavaScript e BW_APP sai por contextBridge ANTES dos scripts (modos.js lê no <head>).
+     Download: o Electron exige o caminho NA HORA → vai para o temp e o saveAs() do adaptador copia quando o núcleo decidir. Sem internet:
+     O.ligarElectron (protocol.handle https; sw.js = 404; corpo já descompactado → tirar content-encoding). Script do motor chamado com
+     process.execPath dentro do BW.exe precisa de ELECTRON_RUN_AS_NODE=1 (motor/node-exe.mjs envNode) — senão abre OUTRA janela do programa.
+     User agent sem "Electron" (o Google recusa login em navegador embutido). Programa = motor/preparar-bw.mjs (node_modules/electron/dist →
+     programa/, electron.exe → BW.exe, rcedit com ícone e nome BW, resources/app/package.json apontando para electron/main.mjs, atalho
+     "BW (novo)"); electron e rcedit são optionalDependencies (se o download falhar, o BW antigo continua). Perfil do programa é OUTRO
+     (~/.bw-reels/app-electron): login de novo e o que é só do aparelho (IndexedDB) começa vazio. Teste: motor/teste-electron.mjs
+     (Xvfb + Playwright _electron; BW_EXE=programa/bw testa o programa montado) + teste-app.mjs para a janela antiga.
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -2495,8 +2508,21 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   teste_toque_duplo e teste_regua 0 falhas; borda, motion_app, video_arrastar, video_laco, video_layout 0 falhas; video_app com a falha antiga e
   intermitente de sempre. NÃO testado em iPhone de verdade. bw-ferramentas v10, ve-app v16, mo-app v5, video-editor v35, sw v221. PENTE FINO 216–217.
 
+- 24/11/2026 15:20 · Claude (dono: "por que o app do PC aparece como Edge, como se fosse extensão do navegador?" → "pode ser Electron"): APP BW 1.9.40 —
+  o BW vira PROGRAMA de verdade em teste, LADO A LADO com o de sempre: ao atualizar, o app baixa o componente (electron 45.4.1, ~110 MB),
+  monta programa\BW.exe com ícone e nome BW e cria o atalho "BW (novo)" (também "6 - ABRIR BW NOVO (PROGRAMA).bat"). Mesmo motor de
+  navegador por dentro; a placa forte é pedida pelo próprio programa (e o ⚡ USAR A NVIDIA inclui o BW.exe). O BW de sempre (janela do Edge)
+  não muda. Núcleo do app separado do Playwright (criarNucleo) — teste-app.mjs 0 falhas; teste-electron.mjs novo (25 checagens: janela,
+  ponte e filtro, login, render .bwreels, Estúdio de motion como Node, download, sem internet, sw.js, placa, user agent) 0 falhas também com o
+  programa montado. NÃO testado no Windows de verdade (rcedit, atalho, BW.exe, download do electron no PC do dono): a 1ª atualização do dono é
+  o teste. BW-Setup.exe continua o 1.9.37 (atualiza sozinho). Dono decidiu também: app ANDROID (Capacitor, .apk para instalar direto) — próximo;
+  iPhone fica como está (sem conta paga da Apple). PENTE FINO 218.
+
 ## Pendências (dono)
 - [x] (23/11 09:58) BW-Setup.exe 1.9.37 gerado pelo dono e publicado (9,0 MB, versão conferida dentro do .exe).
+- [ ] (24/11) BW NOVO (PROGRAMA): dono tocar em ATUALIZAR no BW (1.9.40; baixa ~110 MB do componente), abrir o ícone "BW (novo)", entrar com a conta
+      e conferir: nome/ícone BW na barra de tarefas e no Gerenciador de Tarefas, editor de vídeo (prévia, proxy, exportar), placa (⚙ → PLACA DE VÍDEO).
+      Se aprovar: o programa vira o BW principal (instalador e atalho). Se o ícone não aparecer: "6 - ABRIR BW NOVO (PROGRAMA)" na pasta do BW.
 - [ ] (23/11) iPhone: fechar e abrir o app, tocar em ＋ → ＋ IMPORTAR e dizer se a galeria abriu. PC: laço e avisos pequenos APROVADOS (24/11). iPhone (24/11): conferir se a tela parou de ir para o lado com toque firme (trava-borda).
 - [ ] (23/11 00:37, dono: "depois terminamos, grave o que falta") FALTA: (a) dono testar no iPhone — ＋ IMPORTAR/＋ abrindo a galeria, .MOV da câmera sem ⚠
       (importar de novo), rebote (dizer em qual parte ainda quica), folha MÍDIA vazia, pinça na prévia, layout de app, rastreio com mão/corpo reais;
