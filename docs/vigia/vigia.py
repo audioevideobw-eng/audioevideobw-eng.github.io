@@ -220,7 +220,7 @@ if lgx and ("bw_excluir_minha_conta" not in lgx or "lExportar" not in lgx):
     problemas.append("login.html: sem 'Baixar meus dados' / 'Excluir minha conta' (LGPD)")
 
 # 7.8 páginas públicas obrigatórias
-for p in ["baixar.html", "privacidade.html", "termos.html", "politica.html", "seguranca.html", "financeiro-painel.html", "investimentos-painel.html", "marketing.html", "assistente.html", "transcricao.html", "pdf.html",
+for p in ["baixar.html", "downloads.html", "privacidade.html", "termos.html", "politica.html", "seguranca.html", "financeiro-painel.html", "investimentos-painel.html", "marketing.html", "assistente.html", "transcricao.html", "pdf.html",
           "crm.html", "captacao.html", "resultados.html", "fotos.html", "pedido.html"]:
     if p not in todos:
         problemas.append(f"{p} sumiu (link de instalação / política exigida pelo Google / painel financeiro)")
@@ -483,7 +483,7 @@ if "bw-escudo--topo" not in ler("assets/layout.js") or "bw-escudo--menu" not in 
     problemas.append("layout.js: o ESCUDO de segurança ao lado do LOGADO (topo e menu) sumiu")
 
 # 7.9 páginas com o visual novo (menu lateral) — exceto as de propósito
-SEM_MENU = {"controle.html", "login.html", "cadastro.html", "pedido.html", "baixar.html", "privacidade.html", "termos.html", "politica.html", "financeiro-painel.html", "investimentos-painel.html", "app.html", "financeiro.html", "fluxo.html", "custos.html"}
+SEM_MENU = {"controle.html", "login.html", "cadastro.html", "pedido.html", "baixar.html", "downloads.html", "privacidade.html", "termos.html", "politica.html", "financeiro-painel.html", "investimentos-painel.html", "app.html", "financeiro.html", "fluxo.html", "custos.html"}
 for p, t in todos.items():
     if p not in SEM_MENU and "assets/layout.js" not in t:
         problemas.append(f"{p}: sem o visual novo (não carrega assets/layout.js)")

@@ -2558,6 +2558,16 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   Saíram o "--classico" e os atalhos "6 - ABRIR BW NOVO" e "7 - ABRIR BW ANTIGO (EDGE)" (o BW-REELS.bat apaga os dois nas instalações antigas, já que a
   atualização não apaga arquivo). Tutorial e manual (p. "O BW no computador…") sem a versão antiga. teste-app 0 falhas. BW-Setup.exe 1.9.43 gerado pelo dono e publicado (9 MB, versão conferida dentro do .exe; voltou ao tamanho normal sem os renders).
 
+- 24/11/2026 17:05 · Claude (dono: "uma página só para os downloads, com a explicação dos usos de cada modelo e o arquivo certo embaixo, e uma arte animada"):
+  página DOWNLOADS (downloads.html, pública, sem menu): arte animada própria em SVG (nuvem BW com a seta descendo, pacotes de dados correndo
+  pelos fios até o PC .EXE, o celular .APK e o tablet, barras enchendo e ✓; parada com "reduzir movimento"), QUAL ESCOLHER?, 4 cartões
+  (App BW para Windows · App BW para Android · iPhone e iPad · Direto no navegador), cada um com para que serve e o botão do arquivo embaixo
+  (nome, tamanho e versão lidos do próprio site), COMO INSTALAR que abre, selo RECOMENDADO AQUI + primeiro da lista conforme o aparelho, e os
+  GUIAS EM PDF. Menu: item DOWNLOADS (so-web) e APP DOWNLOAD do PC agora abre ela; baixar.html continua (link curto) com "Ver todos os downloads".
+  Vigia (SEM_MENU + página obrigatória) ✅; teste no navegador (PC, Android, iPhone 13: 0 erro, 0 estouro, recomendado certo, links ok),
+  teste_layout e teste_rolagem 0 falhas. Manual p. "O BW no computador…" aponta para DOWNLOADS. App BW: não muda (lá o menu esconde o que é só web).
+  layout.js v79, sw v223.
+
 ## Pendências (dono)
 - [ ] (24/11 15:05) GOOGLE PLAY: dono PEDIU o D-U-N-S (Dun & Bradstreet, grátis, 5–30 dias). Quando chegar: criar a conta de ORGANIZAÇÃO em
       play.google.com/console/signup (CNPJ + D-U-N-S, US$ 25) e avisar o Claude → gerar .aab + chave de assinatura fixa (segredos no GitHub) + ficha da loja.

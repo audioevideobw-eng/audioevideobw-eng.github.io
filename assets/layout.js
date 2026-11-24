@@ -39,7 +39,7 @@
     if (instalado()) { avisoApp("App já instalado", "<p>Você já está usando o Brightway como aplicativo neste aparelho.</p>"); return; }
     /* 20/11 (dono): no COMPUTADOR o APP DOWNLOAD leva ao instalador do app BW (.exe) — a página baixar.html mostra o botão do .exe em destaque */
     var pc = !ios && !/Android/i.test(ua) && !(window.matchMedia && matchMedia("(max-width: 899px)").matches);
-    if (pc) { location.href = "baixar.html"; return; }
+    if (pc) { location.href = "downloads.html"; return; }
     if (window.__bwInstall) {
       var ev = window.__bwInstall; window.__bwInstall = null;
       ev.prompt();
@@ -47,7 +47,7 @@
       return;
     }
     /* iPhone, Android sem o pedido nativo e computador: página de instalação com o passo a passo certo */
-    location.href = "baixar.html";
+    location.href = "downloads.html";
   };
   function init(){
   var PAGINA = (location.pathname.split("/").pop() || "index.html").replace(".html", "");
@@ -130,6 +130,8 @@
     '<button type="button" class="bw-app-dl so-web" onclick="window.bwInstalarApp()"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M5 21h14"/></svg><span>APP DOWNLOAD</span></button>' +
     '<button type="button" class="bw-fb-btn" onclick="window.bwFeedback()"><svg width="17" height="17" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M8 9h8M8 13h5"/></svg><span>ENVIAR FEEDBACK</span></button>' +
     '<a class="bw-fb-btn bw-cfg" href="config.html" title="Meus dados e modos de aparência"><svg width="17" height="17" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M12 2v3M12 19v3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M2 12h3M19 12h3M4.9 19.1 7 17M17 7l2.1-2.1"/></svg><span>CONFIGURAÇÕES</span></a>' +
+    /* 24/11 (pedido do dono): página só de DOWNLOADS — cada app com o seu arquivo e para que serve */
+    '<a class="bw-fb-btn bw-manual bw-downloads so-web" href="downloads.html" title="App BW para Windows, Android, iPhone e os guias em PDF"><svg width="17" height="17" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M5 21h14"/></svg><span>DOWNLOADS</span></a>' +
     /* 15/11 (pedido do dono): baixar o Guia do usuário (PDF) direto do menu */
     '<a class="bw-fb-btn bw-manual" href="docs/Brightway-Guia-do-usuario.pdf" target="_blank" rel="noopener" download="Brightway-Guia-do-usuario.pdf" title="Guia do usuário em PDF"><svg width="17" height="17" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/><path d="M12 7v6M9.5 10.5 12 13l2.5-2.5"/></svg><span>MANUAL DO USUÁRIO</span></a>' +
     /* 23/11 (pedido do dono): página dedicada à SEGURANÇA — dados, compartilhamentos permitidos e testes */
