@@ -1002,8 +1002,8 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
      quadro do PRÓPRIO endereço (TESTES E SOLUÇÕES e prévias continuam); num site de fora ou quadro com sandbox fica em branco. Junto: <meta name=
      "referrer" content="strict-origin-when-cross-origin"> (link para fora não leva ?g=TOKEN/?t=). security.txt em .well-known (o Jekyll ignora pasta
      com ponto → _config.yml com include) com Expires de até 1 ano — o vigia avisa 30 dias antes de vencer. Brightway e BW Produções (/bw-producoes/)
-     são a MESMA ORIGEM: dividem o armazenamento do navegador onde fica a sessão do login; script de fora numa delas (o Google Analytics da BW
-     Produções) roda com o mesmo acesso — por isso nada de script de terceiros novo em nenhuma das duas sem pensar nisso (auto: vigia 7.10e,
+     são a MESMA ORIGEM: dividem o armazenamento do navegador onde fica a sessão do login; script de fora numa delas roda com o mesmo acesso —
+     por isso o Google Analytics da BW Produções SAIU (25/11, decisão do dono) e nenhuma das duas recebe script de terceiros (analytics, pixel, chat) (auto: vigia 7.10e,
      docs/testes/teste_moldura.py; BW Produções: scripts/seguranca_paginas.py).
 
 **Como testar no navegador (rotina)**
@@ -2835,5 +2835,5 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   proteções + scripts/seguranca_paginas.py + link do portfólio só abre http(s). Mesa de câmbio não está publicada como site (só fornece milhas.json).
   ACHADO PARA DECISÃO: Brightway e BW Produções dividem o mesmo endereço; o Google Analytics da BW Produções roda com acesso à sessão do login da
   Brightway. PENTE FINO 229.
-- [ ] (25/11) DECIDIR: Google Analytics no site da BW Produções (mesmo endereço da Brightway) — tirar, ou mudar a BW Produções para outro endereço
-      (domínio próprio ou outro serviço de hospedagem). BW-Setup.exe 1.9.46 depende do PC do dono (o app se atualiza sozinho).
+- [x] (25/11 08:10, dono: "vamos retirar") Google Analytics TIRADO do site da BW Produções (código, ID, CSP, privacidade e README).
+- [ ] (25/11) BW-Setup.exe 1.9.46 depende do PC do dono (o app se atualiza sozinho).
