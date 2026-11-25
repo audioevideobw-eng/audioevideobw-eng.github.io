@@ -2727,7 +2727,9 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   layout.js v82, fotos-nuvem v4, bw-decupar v2, minhas-ias v1, tutoriais v1, sw v237. PENTE FINO 232–233.
 ## Pendências (dono)
 - [ ] (25/11) MINHAS IAS: dono testar conectar uma chave de verdade (ex.: um token novo da Cloudflare dele) em Configurações → MINHAS IAS e gerar
-      1 imagem com USAR MINHA CONTA; dizer se os tutoriais estão claros e quais tutoriais faltam. BW-Setup.exe 1.9.49: depende do PC (atualiza sozinho).
+      1 imagem com USAR MINHA CONTA; dizer se os tutoriais estão claros e quais tutoriais faltam.
+- [x] (25/11 10:22) BW-Setup.exe 1.9.49 gerado pelo dono e publicado (9,3 MB, versão conferida dentro do .exe). A 1ª geração saiu 1.9.48:
+      os arquivos da 1.9.49 não tinham sido copiados para Vídeos\\bw-reels-studio antes (etapa 5e do FECHAMENTO: copiar ANTES de pedir para gerar).
 - [x] (25/11 09:39, dono: "ficou muito bom") DECUPAGEM COM IA testada com take real — FUNCIONANDO. (1) [x] 25/11 09:30 GEMINI_API_KEY colada pelo dono (digest 8284f275…; ping no ar {pronta:true}). Era: dono criar a chave em aistudio.google.com → Get API key e colar em Supabase → Edge Functions → Secrets como
       GEMINI_API_KEY (de preferência num projeto com faturamento ativo: no grátis o Google usa os vídeos para melhorar os produtos; o pago custa
       centavos por take); (2) [x] função bw-ia-video PUBLICADA 25/11 09:20 (SHA-256 065bb710… igual ao repo antes e depois; Verify JWT desligado; no ar: ping 200 {pronta:false}, sem login 401);
