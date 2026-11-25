@@ -2850,7 +2850,10 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   cartão do PDF, no Word e no pacote; a do link abre o link); CONTATO com botões clicáveis (WhatsApp, e-mail, site, Instagram, TikTok, YouTube),
   rodapé e cabeçalho clicáveis em todas as páginas; ☰ OPÇÕES PRONTAS em ~30 campos (≈60 profissões em grupos, cidades, serviços, funções,
   habilidades, perfil, números…); ✕ TIRAR ESTA PARTE em cada parte com ↺ DEVOLVER. teste_presskit (+25) 0 falhas. Manual 78 p. presskit.js v6, sw v248. PENTE FINO 241.
+  App BW 1.9.54 publicado (cópia sem internet com o press kit novo, tutorial 18 p., novidades). teste-app 0 falhas.
 ## Pendências (dono)
+- [ ] (25/11) BW-Setup.exe 1.9.54: dois cliques em "5 - GERAR INSTALADOR EXE" (Vídeos\\bw-reels-studio) e avisar o Claude (quem já tem o app atualiza sozinho).
+- [ ] (25/11) PRESS KIT: testar foto em cada cartão, ☰ OPÇÕES PRONTAS, ✕ TIRAR ESTA PARTE e abrir os links do PDF no celular.
 - [ ] (25/11) BW-Setup.exe 1.9.53: dois cliques em "5 - GERAR INSTALADOR EXE" (Vídeos\\bw-reels-studio) e avisar o Claude.
 - [ ] (25/11) MODO DIRETOR: dono testar logado (IA real) — um aftermovie de verdade, um PEDIR MUDANÇA e o STORYBOARD 3×3 numa IA de vídeo.
 - [x] (25/11 15:47) BW-Setup.exe 1.9.52 gerado pelo dono e publicado (15,6 MB, versão conferida dentro do .exe).

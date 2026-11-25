@@ -1,24 +1,24 @@
 {
- "versao": "1.9.53",
+ "versao": "1.9.54",
  "data": "25/11/2026",
  "pacote": "downloads/BW-Reels-Studio.zip",
- "sha256": "46c12735499adf464d836268af78420b90bc8c61a9e831548da939c8a72b6a8b",
- "bytes": 49055568,
+ "sha256": "ac3dc29b461325a265982f241ad36a256c48b53919a2a2cfee0638f7fbd04f87",
+ "bytes": 48953503,
  "novidades": [
   {
-   "titulo": "Modo diretor",
-   "texto": "No Quadro de História, o 🎬 DIRETOR monta a história: escolha um início rápido, conte a ideia (escrevendo ou falando) e aprove o roteiro antes de virar quadro.",
-   "abrir": "quadro"
+   "titulo": "Foto em cada cartão",
+   "texto": "No press kit, cada serviço, trabalho e link tem ＋ FOTO (ou escolha da sua galeria) e ✥ para enquadrar.",
+   "abrir": "presskit"
   },
   {
-   "titulo": "Pedir mudança",
-   "texto": "Diga o que mudar e o diretor refaz só as cenas afetadas; as outras ficam iguais.",
-   "abrir": "quadro"
+   "titulo": "PDF interativo",
+   "texto": "WhatsApp, e-mail, site, Instagram, TikTok e YouTube viram botões que abrem o lugar certo; rodapé e fotos com link também.",
+   "abrir": "presskit"
   },
   {
-   "titulo": "Storyboard 3×3",
-   "texto": "Uma imagem com até 9 cenas numeradas e o texto pronto para colar numa IA de vídeo.",
-   "abrir": "quadro"
+   "titulo": "Opções prontas",
+   "texto": "☰ OPÇÕES PRONTAS nos campos (profissões, cidades, serviços, habilidades…) e ✕ TIRAR ESTA PARTE para o que não interessa.",
+   "abrir": "presskit"
   }
  ]
 }
