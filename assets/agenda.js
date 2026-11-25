@@ -68,7 +68,7 @@ const KF = "agenda_feitos";
 const feitosSet = () => { const s = {}; ler(KF).forEach(f => { if (f && f.id) s[f.id] = f.em || 1; }); return s; };
 function itensEntre(ini, fim, amb) {
   if (amb === undefined) amb = AMB;
-  const PJ = amb !== "pf", PF = amb !== "pj";   /* "" = tudo (Tio Cláudio e sino) */
+  const PJ = amb !== "pf", PF = amb !== "pj";   /* "" = tudo (Assistente e sino) */
   const out = [], FEITOS = feitosSet();
   const dentro = d => d && d >= ini && d <= fim;
   /* tarefas (com repetição semanal/mensal) */
@@ -499,7 +499,7 @@ function ligarItens(raiz, depois) {
 window.addEventListener("storage", e => { if (e.key && /agenda_tarefas|agenda_feitos|casa_contas|casa_orcamento|neg_fluxo|neg_eventos|mkt_leads/.test(e.key)) render(); });
 /* 16/11: o AGENTE grava nesta mesma aba → redesenha na hora; e ele lê a agenda pelo mesmo cálculo (respostas iguais à tela) */
 window.addEventListener("bw-dados", e => { if (e.detail && /agenda_tarefas|agenda_feitos|casa_contas|casa_orcamento|neg_fluxo|neg_eventos|mkt_leads/.test(e.detail.chave || "")) render(); });
-window.BWAgendaItens = (ini, fim, amb) => itensEntre(ini, fim, amb == null ? "" : amb);   /* quem lê de fora (Tio Cláudio) vê tudo, a não ser que peça um ambiente */
+window.BWAgendaItens = (ini, fim, amb) => itensEntre(ini, fim, amb == null ? "" : amb);   /* quem lê de fora (Assistente) vê tudo, a não ser que peça um ambiente */
 
 
 window.BWAgenda = { init, render, itensEntre, entender, ambDe, amb: AMB };

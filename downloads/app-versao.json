@@ -1,22 +1,19 @@
 {
- "versao": "1.9.49",
+ "versao": "1.9.50",
  "data": "25/11/2026",
  "pacote": "downloads/BW-Reels-Studio.zip",
- "sha256": "ca5b7d93381e4df0af2e922f87817ffaeec5dd1bd063d3c10e4a12f1d2063884",
- "bytes": 41979939,
+ "sha256": "3787a5b7809c39f55acac759373254026b02a76d176416baca98e465e8b2965a",
+ "bytes": 46621031,
  "novidades": [
   {
-   "titulo": "Tutoriais",
-   "texto": "Passo a passo de cada ferramenta com demonstração animada, organizado por assunto. Fica no menu e num cartão novo.",
+   "titulo": "Tutoriais com as telas de verdade",
+   "texto": "Cada tutorial mostra as páginas reais da Brightway num celular: o dedo toca no botão certo, a tela rola e o teclado digita. Com narração e fundo musical baixinho.",
    "abrir": "tutoriais"
   },
   {
-   "titulo": "Minhas IAs (opcional)",
-   "texto": "Imagens e decupagem continuam com o limite do dia. Quem precisar de mais conecta a própria conta grátis: abrir o site, copiar e colar — conecta sozinho."
-  },
-  {
-   "titulo": "Sua chave fica aqui",
-   "texto": "A chave fica só neste computador e vai junto apenas na hora do pedido. Você escolhe usar a sua conta ou a da plataforma."
+   "titulo": "O robô agora é o seu Assistente",
+   "texto": "O Tio Cláudio virou Assistente. Em Configurações → MEU ASSISTENTE você dá o nome que quiser, escolhe o visual (robô, ela, ele), a cor e a voz.",
+   "abrir": "meu-assistente"
   }
  ]
 }

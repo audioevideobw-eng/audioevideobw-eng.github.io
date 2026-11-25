@@ -35,7 +35,7 @@
     idb: "O navegador recusou guardar arquivos (modo anônimo/privado?). Saia da janela anônima.",
     webgl: "Sem aceleração de vídeo: chroma e cor usam o plano B (mais lento). Atualize o navegador ou ligue 'usar aceleração de hardware' nas configurações dele.",
     voz: "O navegador não fala. No iPhone desligue o MODO SILENCIOSO (a chave do lado) e suba o volume de mídia.",
-    ouvir: "Reconhecimento de voz indisponível aqui: o Tio Cláudio grava e transcreve pela IA (precisa de conta).",
+    ouvir: "Reconhecimento de voz indisponível aqui: o assistente grava e transcreve pela IA (precisa de conta).",
     statusbar: "O topo da página está por baixo da barra do iPhone (fica embaçado). FECHE o app e abra de novo — ou tire o ícone da tela de início e ponha de novo.",
     erro: "A ferramenta deu erro ao abrir. Toque em ↻ ATUALIZAR AGORA; se continuar, envie o relatório (ele leva o erro exato).",
     vazia: "A página abriu vazia. Toque em ↻ ATUALIZAR AGORA e confira a internet.",
@@ -130,7 +130,7 @@
     var vozes = window.speechSynthesis ? speechSynthesis.getVoices() : [];
     if (window.speechSynthesis && !vozes.length) { await espera(600); vozes = speechSynthesis.getVoices(); }
     var pt = vozes.filter(function (v) { return /^pt/i.test(v.lang); });
-    add(G, window.speechSynthesis ? (pt.length ? "ok" : "av") : "av", "Voz do Tio Cláudio", window.speechSynthesis ? pt.length + " voz(es) em português" : "o navegador não fala", "voz");
+    add(G, window.speechSynthesis ? (pt.length ? "ok" : "av") : "av", "Voz do assistente", window.speechSynthesis ? pt.length + " voz(es) em português" : "o navegador não fala", "voz");
     add(G, (window.SpeechRecognition || window.webkitSpeechRecognition) ? "ok" : "in", "Ouvir pelo microfone (no aparelho)", (window.SpeechRecognition || window.webkitSpeechRecognition) ? "disponível" : "usa a IA para transcrever", "ouvir");
   }
 
@@ -207,7 +207,7 @@
     seg.addEventListener("contextmenu", function (e) { e.preventDefault(); });
     $("tsBip").onclick = function () { try { var A = window.AudioContext || window.webkitAudioContext, ac = new A(), o = ac.createOscillator(), g = ac.createGain();
       o.frequency.value = 880; g.gain.value = 0.25; o.connect(g); g.connect(ac.destination); o.start(); o.stop(ac.currentTime + 0.35); setTimeout(function () { ac.close(); }, 800); } catch (e) {} $("tsPergBip").classList.add("on"); };
-    $("tsVoz").onclick = function () { try { var u = new SpeechSynthesisUtterance("Olá! Aqui é o Tio Cláudio. Se você me ouviu, toque em sim."); u.lang = "pt-BR";
+    $("tsVoz").onclick = function () { try { var u = new SpeechSynthesisUtterance("Olá! Aqui é o seu assistente virtual. Se você me ouviu, toque em sim."); u.lang = "pt-BR";
       var v = speechSynthesis.getVoices().filter(function (x) { return /^pt/i.test(x.lang); })[0]; if (v) u.voice = v; speechSynthesis.speak(u); } catch (e) {} $("tsPergVoz").classList.add("on"); };
     document.addEventListener("click", function (e) { var b = e.target.closest("[data-r]"); if (b) { var p = b.dataset.r.split(":"); resp(p[0], p[1]); }
       if (e.target.closest("[data-atualizar]")) atualizar(); });

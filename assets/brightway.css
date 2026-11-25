@@ -762,7 +762,7 @@ html.bw-no-app .bw-abas{display:none}
 html.bw-no-app .wrap,html.bw-no-app .bw-pagina{max-width:none}
 html.bw-no-app .hub-palco{height:max(380px,calc(100vh - 400px))}
 
-/* 22/11 CAIXA ÚNICA DO TIO CLÁUDIO (assets/bw-pede.js) — cores pelas variáveis do modo (pb, claros, vidro) */
+/* 22/11 CAIXA ÚNICA DO ASSISTENTE (assets/bw-pede.js) — cores pelas variáveis do modo (pb, claros, vidro) */
 .bp-pede{position:relative;max-width:760px;margin:18px auto 0;z-index:3}
 .bp-caixa{border:1px solid var(--m-linha,rgba(245,241,234,.14));background:var(--m-cartao,rgba(255,255,255,.045));border-radius:20px;padding:12px 12px 8px;box-shadow:0 10px 34px rgba(0,0,0,.22);backdrop-filter:blur(10px)}
 .bp-caixa:focus-within{border-color:rgba(var(--m-dest-rgb,201,169,97),.65);box-shadow:0 0 0 3px rgba(var(--m-dest-rgb,201,169,97),.14),0 10px 34px rgba(0,0,0,.22)}
@@ -798,7 +798,7 @@ html.bw-no-app .hub-palco{height:max(380px,calc(100vh - 400px))}
 .bp-nota{font-size:11.5px;line-height:1.45;color:var(--m-texto3,var(--txt2,#9aa0ab));margin:6px 10px 4px}
 @media (max-width:480px){.bp-pede{margin:12px 0 76px}.bp-caixa{border-radius:18px;padding:10px 8px 6px}.bp-bt{width:34px;height:34px}.bp-modelo{padding:0 8px;font-size:12px}.bp-modelo svg{display:none}.bp-enviar{width:38px;height:38px}}
 @media (max-width:360px){.bp-modelo span{max-width:64px;overflow:hidden;text-overflow:ellipsis}}
-/* 22/11: o menu da caixa do Tio Cláudio vai para o <body> e fica na FRENTE da roda do robô e do botão flutuante */
+/* 22/11: o menu da caixa do assistente vai para o <body> e fica na FRENTE da roda do robô e do botão flutuante */
 .bp-menu.bp-solto{position:fixed;z-index:9900;top:auto}
 
 /* ===== 22/11 (dono: "botões do Criador IA mais modernos — MESMA COR, com RELEVO e SOMBRA — padronizado em TUDO") =====

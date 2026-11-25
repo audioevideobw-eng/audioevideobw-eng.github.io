@@ -64,7 +64,7 @@
 .cfg-cores{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
 .cfg-cores button{width:44px;height:44px;border-radius:12px;border:2px solid rgba(127,127,127,.4);cursor:pointer}
 </style>
-<script src="assets/modos.js?v=10"></script>
+<script src="assets/modos.js?v=11"></script>
 </head>
 <body>
 <header><div class="hd"><button id="btnVoltar" type="button" title="Voltar">‹</button><div id="userBox"></div></div></header>
@@ -72,9 +72,10 @@
   <section class="cfg-cx" id="cfgEu">
     <h2>MEUS DADOS</h2><p>Quem está usando a plataforma neste aparelho.</p>
     <div class="cfg-eu"><div class="cfg-foto" id="cfgFoto">B</div><div class="txt"><b id="cfgNome">Visitante</b><small id="cfgEmail">Entre na sua conta para ver os seus dados.</small></div></div>
-    <div class="cfg-form"><label>Como te chamo? (o Tio Cláudio usa este nome)<input type="text" id="cfgChamo" maxlength="30" autocomplete="off" placeholder="seu nome"></label></div>
+    <div class="cfg-form"><label>Como te chamo? (o assistente usa este nome)<input type="text" id="cfgChamo" maxlength="30" autocomplete="off" placeholder="seu nome"></label></div>
     <div class="cfg-linha">
       <a class="cfg-bt pri" id="cfgConta" href="login.html">ENTRAR NA CONTA</a>
+      <a class="cfg-bt" href="meu-assistente.html" title="Nome, visual, voz e jeito de trabalhar do assistente">🤖 MEU ASSISTENTE</a>
       <a class="cfg-bt" href="login.html#dados" title="Baixar os seus dados ou excluir a conta">BAIXAR MEUS DADOS / EXCLUIR CONTA</a>
       <a class="cfg-bt" href="docs/Brightway-Guia-do-usuario.pdf" target="_blank" rel="noopener">MANUAL DO USUÁRIO</a>
       <a class="cfg-bt" href="teste.html" title="Confere a plataforma neste aparelho e mostra a solução de cada problema">🩺 TESTES E SOLUÇÕES</a>
@@ -114,10 +115,10 @@
     <div class="cfg-aviso" id="mkAviso" hidden aria-live="polite"></div>
   </section>
 </div>
-<script src="assets/layout.js?v=82"></script>
+<script src="assets/layout.js?v=83"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.2/dist/umd/supabase.js" integrity="sha384-A97u3Qnt9GZHURO9YJZRe7VQgGUeFzcv6I1oIGnUTxQrCxnpQMwR0/G8F2zt9abZ" crossorigin="anonymous"></script>
 <script src="assets/bw-sync.js?v=20261122"></script>
 <script src="assets/config.js?v=2"></script>
-<script src="assets/minhas-ias.js?v=1"></script>
+<script src="assets/minhas-ias.js?v=2"></script>
 </body>
 </html>

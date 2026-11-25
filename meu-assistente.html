@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' blob: https://cdn.jsdelivr.net https://cdn.sheetjs.com; worker-src 'self' blob: https://cdn.jsdelivr.net; connect-src 'self' data: blob: https://zdtnetplvdonogmdvarx.supabase.co wss://zdtnetplvdonogmdvarx.supabase.co https://cdn.jsdelivr.net https://cdn.sheetjs.com https://open.er-api.com https://olinda.bcb.gov.br https://raw.githubusercontent.com https://storage.googleapis.com https://huggingface.co https://*.huggingface.co https://*.hf.co https://tessdata.projectnaptha.com https://fonts.googleapis.com https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' data: blob: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; font-src 'self' data: https://fonts.gstatic.com https://cdn.jsdelivr.net; frame-src 'self' blob: data: https://docs.google.com; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<style id="bwAntiMoldura">html{display:none!important}</style><script>(function(){var ok=self===top;if(!ok){try{ok=top.location.origin===location.origin}catch(e){ok=false}}if(ok){var s=document.getElementById("bwAntiMoldura");if(s)s.parentNode.removeChild(s)}else{try{top.location.href=location.href}catch(e){}}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Meu assistente — Brightway</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#06080D">
+<link rel="icon" type="image/png" href="icons/favicon-64.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="Brightway">
+<link rel="stylesheet" href="assets/brightway.css?v=40">
+<style>
+.wrap{max-width:900px;margin:0 auto;padding:0 16px 120px}
+.ma-hero{display:flex;gap:18px;align-items:center;margin:8px 0 18px;padding:20px;border-radius:22px;background:linear-gradient(135deg,color-mix(in srgb,var(--ass,#3B82F6) 22%,transparent),rgba(232,181,74,.10));border:1px solid var(--bw-card-borda)}
+.ma-av{flex:none;display:grid;place-items:center;width:96px;height:96px;border-radius:50%;background:radial-gradient(circle at 50% 35%,#16305e,#081226 70%);box-shadow:0 0 0 2px var(--ass,#3B82F6) inset,0 0 30px color-mix(in srgb,var(--ass,#3B82F6) 55%,transparent);animation:maFlut 3.2s ease-in-out infinite}
+.ma-av .bwg-robo{width:74px;height:74px}
+@keyframes maFlut{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+@media (prefers-reduced-motion:reduce){.ma-av{animation:none}}
+.ma-hero h1{margin:0 0 4px;font:900 clamp(22px,4vw,30px) Inter,sans-serif;letter-spacing:.04em;color:var(--bw-marfim)}
+.ma-hero p{margin:0 0 10px;font:500 15px/1.5 Inter,sans-serif;color:var(--bw-texto-2)}
+.ma-card{margin:0 0 14px;padding:18px;border-radius:18px;background:var(--bw-card-bg);border:1px solid var(--bw-card-borda)}
+.ma-card h2{margin:0 0 4px;font:900 13px Inter,sans-serif;letter-spacing:.14em;color:var(--bw-marfim)}
+.ma-card .sub{margin:0 0 12px;font:500 13px/1.5 Inter,sans-serif;color:var(--bw-texto-3)}
+.ma-card input[type=text]{width:100%;box-sizing:border-box;min-height:48px;padding:0 14px;border-radius:12px;border:1px solid var(--bw-card-borda);background:rgba(0,0,0,.14);color:var(--bw-marfim);font:600 16px Inter,sans-serif}
+.ma-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.ma-chips button{min-height:40px;padding:0 14px;border-radius:999px;border:1px solid var(--bw-card-borda);background:transparent;color:var(--bw-marfim);font:800 12px Inter,sans-serif;letter-spacing:.06em;cursor:pointer}
+.ma-chips button.on{background:var(--ass,#3B82F6);border-color:transparent;color:#fff}
+.ma-vis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+@media (max-width:520px){.ma-vis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.ma-vis button{display:flex;flex-direction:column;align-items:center;gap:8px;padding:14px 6px;border-radius:16px;border:1px solid var(--bw-card-borda);background:rgba(127,127,127,.06);color:var(--bw-marfim);font:800 11px Inter,sans-serif;letter-spacing:.08em;cursor:pointer;min-width:0}
+.ma-vis button i{display:grid;place-items:center;width:64px;height:64px;border-radius:50%;background:radial-gradient(circle at 50% 35%,#16305e,#081226 70%)}
+.ma-vis button i .bwg-robo{width:50px;height:50px}
+.ma-vis button.on{border-color:var(--ass,#3B82F6);box-shadow:0 0 0 2px var(--ass,#3B82F6) inset}
+.ma-cores{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+.ma-cores button{width:40px;height:40px;border-radius:50%;border:3px solid transparent;background:var(--c);cursor:pointer}
+.ma-cores button.on{border-color:var(--bw-marfim);box-shadow:0 0 0 2px var(--c)}
+.ma-g{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}@media (max-width:520px){.ma-g{grid-template-columns:1fr}}
+.ma-g label{display:flex;flex-direction:column;gap:6px;font:700 12px Inter,sans-serif;letter-spacing:.06em;color:var(--bw-texto-2);text-transform:none}
+.ma-g select,.ma-g input[type=range]{min-height:44px;border-radius:12px;border:1px solid var(--bw-card-borda);background:rgba(0,0,0,.14);color:var(--bw-marfim);font:600 15px Inter,sans-serif;padding:0 10px}
+.ma-chk{display:flex;gap:12px;align-items:flex-start;padding:10px 0;font:600 14px/1.45 Inter,sans-serif;color:var(--bw-marfim);text-transform:none;letter-spacing:0;cursor:pointer}
+.ma-chk input{width:22px;height:22px;flex:none;margin-top:1px}
+.ma-chk small{display:block;font-weight:500;color:var(--bw-texto-3)}
+.ma-bt{display:inline-flex;align-items:center;justify-content:center;min-height:46px;padding:0 18px;border-radius:14px;border:1px solid var(--bw-card-borda);background:rgba(127,127,127,.1);color:var(--bw-marfim);font:900 12px Inter,sans-serif;letter-spacing:.08em;cursor:pointer;text-decoration:none}
+.ma-bt.pri{background:var(--ass,#3B82F6);border-color:transparent;color:#fff}
+.ma-linha{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
+</style>
+<script src="assets/modos.js?v=11"></script>
+</head>
+<body>
+<header><div class="hd"><button id="btnVoltar" type="button" title="Voltar">‹</button><div id="userBox"></div></div></header>
+<div class="wrap" id="maWrap">
+  <section class="ma-hero">
+    <div class="ma-av" id="maAv"></div>
+    <div style="min-width:0">
+      <h1 id="maTitulo">MEU ASSISTENTE</h1>
+      <p id="maFrase">Olá, sou o seu assistente virtual.</p>
+      <button type="button" class="ma-bt pri" id="maOuvir">🔊 OUVIR</button>
+    </div>
+  </section>
+
+  <section class="ma-card">
+    <h2>NOME DO ASSISTENTE</h2>
+    <p class="sub">Dê o nome que quiser. Ele aparece no botão, na conversa, nas falas e na narração dos tutoriais.</p>
+    <input type="text" id="maNome" maxlength="24" autocomplete="off" placeholder="Assistente" aria-label="Nome do assistente">
+    <div class="ma-chips" id="maSug"></div>
+  </section>
+
+  <section class="ma-card">
+    <h2>COMO ELE TE CHAMA</h2>
+    <p class="sub">O seu nome, para o "bom dia" e o resumo do dia.</p>
+    <input type="text" id="maVoce" maxlength="30" autocomplete="off" placeholder="seu nome" aria-label="Como o assistente te chama">
+  </section>
+
+  <section class="ma-card">
+    <h2>VISUAL</h2>
+    <p class="sub">Escolha o modelo e a cor. Vale para o botão que fica no canto de todas as páginas.</p>
+    <div class="ma-vis" id="maVis"></div>
+    <div class="ma-cores" id="maCores" role="radiogroup" aria-label="Cor do assistente"></div>
+  </section>
+
+  <section class="ma-card">
+    <h2>VOZ</h2>
+    <p class="sub">Usa as vozes do próprio aparelho (grátis, nada sai do celular). No iPhone, a chave do silencioso precisa estar desligada.</p>
+    <div class="ma-chips" id="maVoz"></div>
+    <div class="ma-g" style="margin-top:12px">
+      <label>Tom<select id="maTom"><option value="auto">Automático</option><option value="grave">Mais grave</option><option value="normal">Normal</option><option value="agudo">Mais agudo</option></select></label>
+      <label>Velocidade · <span id="maVelTxt"></span><input type="range" id="maVel" min="0.7" max="1.5" step="0.05"></label>
+    </div>
+    <div class="ma-linha"><button type="button" class="ma-bt" id="maOuvir2">🔊 OUVIR A VOZ</button></div>
+  </section>
+
+  <section class="ma-card">
+    <h2>INTELIGÊNCIA</h2>
+    <p class="sub">BW Smart escolhe sozinho: rápido para o dia a dia e o mais inteligente para pedidos difíceis.</p>
+    <div class="ma-chips" id="maNivel"></div>
+  </section>
+
+  <section class="ma-card">
+    <h2>COMO ELE TRABALHA</h2>
+    <label class="ma-chk"><input type="checkbox" id="maAuto"><span>Lançar sem perguntar<small>Desligado (recomendado), ele mostra o cartão e só lança com ✓ LANÇAR.</small></span></label>
+    <label class="ma-chk"><input type="checkbox" id="maConversa"><span>Continuar ouvindo depois de responder<small>Para conversar por voz; "tchau" encerra.</small></span></label>
+    <label class="ma-chk"><input type="checkbox" id="maBip"><span>Sinal sonoro ao começar a ouvir</span></label>
+  </section>
+
+  <section class="ma-card">
+    <h2>NOS TUTORIAIS</h2>
+    <label class="ma-chk"><input type="checkbox" id="maNarra"><span>Narração (o assistente lê cada passo)</span></label>
+    <label class="ma-chk"><input type="checkbox" id="maMusica"><span>Fundo musical baixinho</span></label>
+    <div class="ma-linha"><a class="ma-bt" href="tutoriais.html">▶ VER OS TUTORIAIS</a><button type="button" class="ma-bt" id="maPadrao">↺ VOLTAR AO PADRÃO</button></div>
+  </section>
+</div>
+<script src="assets/layout.js?v=83"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.2/dist/umd/supabase.js" integrity="sha384-A97u3Qnt9GZHURO9YJZRe7VQgGUeFzcv6I1oIGnUTxQrCxnpQMwR0/G8F2zt9abZ" crossorigin="anonymous"></script>
+<script src="assets/bw-sync.js?v=20261122"></script>
+<script src="assets/meu-assistente.js?v=1"></script>
+<script>
+(function () {
+  "use strict";
+  var $ = function (id) { return document.getElementById(id); };
+  var esc = function (s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return {"&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;"}[c]; }); };
+  var vb = $("btnVoltar"); if (vb) vb.onclick = function () { if (history.length > 1) history.back(); else location.href = "./"; };
+  (async function () {
+    var el = $("userBox"); if (!el) return;
+    try {
+      var sb = window.BWSync && BWSync.cliente(); var s = sb ? await sb.auth.getSession() : null;
+      var u = s && s.data && s.data.session && s.data.session.user;
+      el.innerHTML = u ? '<a href="login.html" class="bw-logado" title="Conta: ' + esc(u.email) + '"><i></i>LOGADO</a>'
+                       : '<a href="login.html" class="bw-btn bw-btn--vidro" style="min-height:34px;padding:0 14px;font-size:12px">LOGIN</a>';
+    } catch (e) { }
+  })();
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(function () { });
+})();
+</script>
+</body>
+</html>

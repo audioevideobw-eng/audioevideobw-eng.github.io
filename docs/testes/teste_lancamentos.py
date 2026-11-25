@@ -186,7 +186,7 @@ with sync_playwright() as p:
         pg.goto(BASE + "lancamentos.html?a=pj"); pg.wait_for_timeout(1500)
         ok(pg.locator('#lcFerr a[href="leitor.html"]').count() == 1 and pg.locator('#lcFerr a[href="financeiro-painel.html?a=pj"]').count() == 1 and pg.locator("#lcFalar").count() == 1, "FERRAMENTAS: leitor de contas, Tio Cláudio e planilha estão nos LANÇAMENTOS")
         pg.click("#lcFalar"); pg.wait_for_timeout(700)
-        ok(pg.evaluate("!!window.BWAgente && [...document.querySelectorAll('[class*=ag], [id*=ag]')].some(e => e.offsetParent && /Tio Cl/i.test(e.textContent))"), "FALAR COM O TIO CLÁUDIO abre o agente")
+        ok(pg.evaluate("!!window.BWAgente && [...document.querySelectorAll('[class*=ag], [id*=ag]')].some(e => e.offsetParent && /ASSISTENTE/i.test(e.textContent))"), "FALAR COM O ASSISTENTE abre o agente")
         pg.keyboard.press("Escape"); pg.wait_for_timeout(300)
         # FIXOS DO NEGÓCIO (vieram da página Fluxo de caixa, que saiu)
         pg.goto(BASE + "lancamentos.html?a=pj"); pg.wait_for_timeout(1200)

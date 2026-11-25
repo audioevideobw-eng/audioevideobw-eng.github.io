@@ -2,6 +2,42 @@
    Correções do dono (12/11): (1) o .bw-conteudo entra DENTRO do .bw-shell;
    (2) o menu usa data-slot e MOVE os originais (#menuSync, #userBox, #btnVoltar)
    — sem duplicar ids, os handlers presos aos ids continuam funcionando. */
+/* 25/11 (dono): o robô que ajuda chama-se ASSISTENTE (antes "Assistente") e cada pessoa pode dar o nome que quiser na página MEU ASSISTENTE.
+   Um lugar só para o nome: BWAssistente.nome() — guardado no aparelho (ui_assistente), como as outras preferências. */
+window.BWAssistente = window.BWAssistente || {
+  pref: function () { try { return JSON.parse(localStorage.getItem("ui_assistente") || "{}") || {}; } catch (e) { return {}; } },
+  nome: function () { var n = String(this.pref().nome || "").trim(); return n ? n.slice(0, 24) : "Assistente"; },
+  proprio: function () { return this.nome() !== "Assistente"; },
+  /* como ele se apresenta: "o seu assistente virtual" ou "o Zé, o seu assistente virtual" */
+  quem: function () { return this.proprio() ? this.nome() + ", o seu assistente virtual" : "o seu assistente virtual"; },
+  /* visual: robô BW (a imagem de sempre), robô redondo, ELA e ELE (desenhos próprios em SVG) + a cor do destaque */
+  CORES: [["azul", "#3B82F6"], ["ciano", "#06B6D4"], ["verde", "#22C55E"], ["dourado", "#E8B54A"], ["laranja", "#F97316"], ["vermelho", "#EF4444"], ["rosa", "#EC4899"], ["roxo", "#8B5CF6"]],
+  VISUAIS: [["robo", "ROBÔ BW"], ["redondo", "ROBÔ REDONDO"], ["ela", "ELA"], ["ele", "ELE"]],
+  cor: function () { var c = this.pref().cor; return /^#[0-9a-f]{6}$/i.test(c || "") ? c : "#3B82F6"; },
+  visual: function () { var v = this.pref().visual; return /^(robo|redondo|ela|ele)$/.test(v || "") ? v : "robo"; },
+  avatar: function (tam, visual, cor) {
+    tam = tam || 46; visual = visual || this.visual(); cor = cor || this.cor();
+    if (visual === "robo") {   /* a imagem azul de sempre; outra cor = girar o tom (o azul da imagem fica perto de 215°) */
+      var hx = parseInt(cor.slice(1), 16), r = (hx >> 16) / 255, g = (hx >> 8 & 255) / 255, b = (hx & 255) / 255, mx = Math.max(r, g, b), mn = Math.min(r, g, b), d = mx - mn, h = 0;
+      if (d) h = mx === r ? ((g - b) / d) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4; h = Math.round(h * 60 + 360) % 360;
+      var gira = Math.round(h - 217), f = Math.abs(gira) < 8 ? "" : "filter:hue-rotate(" + gira + "deg)" + (d < .25 ? " saturate(.35)" : "") + ";";
+      return '<img class="bwg-robo" src="icons/robo-bw-128.png" alt="" width="' + tam + '" height="' + tam + '" decoding="async" style="' + f + '">';
+    }
+    var pele = visual === "ela" ? "#F2C3A0" : "#E0A97E", svg;
+    if (visual === "redondo") svg = '<circle cx="32" cy="9" r="3.2" fill="' + cor + '"/><path d="M32 12v6" stroke="#cfd6e6" stroke-width="2.4"/><rect x="11" y="18" width="42" height="34" rx="17" fill="#eef2fa"/>' +
+      '<rect x="16" y="25" width="32" height="18" rx="9" fill="#0b1224"/><circle cx="25" cy="34" r="4" fill="' + cor + '"/><circle cx="39" cy="34" r="4" fill="' + cor + '"/>' +
+      '<path d="M27 46q5 3 10 0" stroke="' + cor + '" stroke-width="2.2" fill="none" stroke-linecap="round"/><rect x="6" y="29" width="6" height="12" rx="3" fill="' + cor + '"/><rect x="52" y="29" width="6" height="12" rx="3" fill="' + cor + '"/>';
+    else svg = (visual === "ela" ? '<path d="M13 40c-3-18 6-30 19-30s22 12 19 30c-2 9-4 14-4 14H17s-2-5-4-14z" fill="#3a2316"/>' : '') +
+      '<path d="M14 62c2-10 9-14 18-14s16 4 18 14z" fill="' + cor + '"/><circle cx="32" cy="31" r="14" fill="' + pele + '"/>' +
+      (visual === "ele" ? '<path d="M18 28c0-10 7-15 14-15s14 5 14 15c-3-4-8-6-14-6s-11 2-14 6z" fill="#2b1d14"/><path d="M22 38q10 9 20 0q-2 7-10 7t-10-7z" fill="#2b1d14"/>'
+                        : '<path d="M18 30c1-11 7-16 14-16s13 5 14 16c-5-6-10-8-15-8-5 0-10 3-13 8z" fill="#3a2316"/>') +
+      '<circle cx="27" cy="31" r="1.8" fill="#1b1b1b"/><circle cx="37" cy="31" r="1.8" fill="#1b1b1b"/><path d="M28 37q4 3 8 0" stroke="#7a3b2a" stroke-width="1.8" fill="none" stroke-linecap="round"/>' +
+      '<path d="M16 32a16 16 0 0 1 32 0" stroke="#e9edf5" stroke-width="2.6" fill="none"/><rect x="13" y="29" width="6" height="10" rx="3" fill="' + cor + '"/><rect x="45" y="29" width="6" height="10" rx="3" fill="' + cor + '"/>' +
+      '<path d="M48 38q0 6-8 7" stroke="#e9edf5" stroke-width="2" fill="none"/><circle cx="39" cy="45" r="2.2" fill="' + cor + '"/>';
+    return '<svg class="bwg-robo" viewBox="0 0 64 64" width="' + tam + '" height="' + tam + '" aria-hidden="true">' + svg + '</svg>';
+  },
+  gravar: function (p) { var a = this.pref(); for (var k in p) a[k] = p[k]; try { localStorage.setItem("ui_assistente", JSON.stringify(a)); } catch (e) { } try { window.dispatchEvent(new Event("bw-assistente")); } catch (e) { } }
+};
 (function(){
   /* 14/11 (Claude): itens só da administração BW (Painel Financeiro, Configuração) ficam
      escondidos para os demais usuários. Quem decide é o Supabase (is_bw_admin). */
@@ -73,7 +109,7 @@
     crm: [["crm","Painel do CRM"],["captacao","Funil de clientes"],["resultados","Indicadores"]],
     mkt: [["marketing","Todas de marketing"],["promptia","Prompt IA"],["reels","BW Reels Pro"],["personagens","Personagens"],["video","Editor de vídeo"],["motion","Estúdio de motion"],["telas","Telas em movimento"],["album3d","Álbum 3D e efeitos"],["3d","Estúdio 3D"],["criador","Criador IA"],["fotos","Editor de fotos"],["assistente","Assistente de texto"],["transcricao","Transcrição e legendas"]],
     ferr: [["ferramentas","Todas as ferramentas"],["pdf","PDF"],["dados","Meus dados"]],
-    conta: [["tutoriais","Tutoriais"],["config","Configurações e aparência"],["seguranca","Segurança e seus dados"],["login","Acesso"],["configadm","Configuração (ADM)"]]
+    conta: [["tutoriais","Tutoriais"],["meu-assistente","Meu assistente"],["config","Configurações e aparência"],["seguranca","Segurança e seus dados"],["login","Acesso"],["configadm","Configuração (ADM)"]]
   };
   function categoriaDe(p){
     if (p === "index") return "inicio";
@@ -95,7 +131,7 @@
     invest:"Simulador de rendimento", "investimentos-painel":"Painel de Investimentos", serie:"Série histórica", diario:"Diário de câmbio", calc:"Calculadora",
     viagem:"Conversor de viagem", leitor:"Leitor de contas", recs:"Recomendações",
     noticias:"Notícias", dados:"Meus dados", app:"App & sincronização", login:"Acesso",
-    configadm:"Configuração", config:"Configurações", teste:"Testes e soluções", tutoriais:"Tutoriais", marketing:"Marketing", assistente:"Assistente de texto", transcricao:"Transcrição e legendas", pdf:"Ferramentas de PDF",
+    configadm:"Configuração", config:"Configurações", teste:"Testes e soluções", tutoriais:"Tutoriais", "meu-assistente":"Meu assistente", marketing:"Marketing", assistente:"Assistente de texto", transcricao:"Transcrição e legendas", pdf:"Ferramentas de PDF",
     crm:"CRM", captacao:"Funil de clientes", resultados:"Indicadores", fotos:"Editor de fotos", criador:"Criador IA", reels:"BW Reels Pro", personagens:"Personagens", promptia:"Prompt IA", video:"Editor de vídeo", motion:"Estúdio de motion", telas:"Telas em movimento", album3d:"Álbum 3D e efeitos", "3d":"Estúdio 3D", propostas:"Gerador de orçamento" };
   var NOMES_CAT = {}; CATEGORIAS.forEach(function(c){ NOMES_CAT[c.id] = c.nome; });
 
@@ -164,7 +200,7 @@
       '<a href="login.html" title="Conta" aria-label="Conta"><span class="bw-icone" style="width:40px;height:40px"><svg width="20" height="20" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></span></a>' +
     '</div></div>';
 
-  /* 22/11 (dono): LANÇAMENTOS saiu da barra de baixo (o Tio Cláudio já lança por lá) e entrou MARKETING */
+  /* 22/11 (dono): LANÇAMENTOS saiu da barra de baixo (o assistente já lança por lá) e entrou MARKETING */
   var abas = ["inicio", "negocio", "casa", "mkt"].map(function(id){ return CATEGORIAS.filter(function(c){ return c.id === id; })[0]; }).concat([{id:"mais", nome:"Mais", href:"#", icon:'<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>'}])
     .map(function(c){
       var ativo = c.id === CAT ? " ativo" : "";
@@ -616,7 +652,7 @@
 /* ===== AGENTE (16/11): o robô fica em todas as páginas — carregado aqui para não precisar mexer em cada página ===== */
 (function () {
   if (window.BWLanca || document.querySelector('script[src*="bw-agente.js"]')) return;
-  var s = document.createElement("script"); s.src = "assets/bw-agente.js?v=26"; s.defer = true; document.head.appendChild(s);
+  var s = document.createElement("script"); s.src = "assets/bw-agente.js?v=27"; s.defer = true; document.head.appendChild(s);
 })();
 
 /* 18/11: SETAS de abrir/fechar seções (data-seta). Fechada por padrão com data-seta-padrao="fechada"; a escolha fica em ui_dobras. */

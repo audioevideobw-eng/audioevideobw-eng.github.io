@@ -351,7 +351,7 @@
   $("lcFxCorpo").addEventListener("change", function (e) { if (e.target.id === "fxDest" && F && F.modo === "editar") { F.guardado = lerCampos(); F.dest = e.target.value; desenharEditar(); } });
   $("lcFxCorpo").addEventListener("keydown", function (e) { if (e.key === "Enter" && e.target.tagName === "INPUT" && F) { e.preventDefault(); if (F.modo === "novo") { if (F.dest) lancar(false); } else { lerDest = F.dest; salvar(); } } });
   document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !$("lcFolha").hidden) fecharFolha(); });
-  window.addEventListener("bw-dados", function () { if ($("lcFolha").hidden) desenhar(); });   /* Tio Cláudio lançou algo → a lista atualiza */
+  window.addEventListener("bw-dados", function () { if ($("lcFolha").hidden) desenhar(); });   /* Assistente lançou algo → a lista atualiza */
   window.addEventListener("storage", function (e) { if (e.key && e.key.indexOf("bw_") === 0 && $("lcFolha").hidden) desenhar(); });
   var vb = $("btnVoltar"); if (vb) vb.onclick = function () { if (history.length > 1) history.back(); else location.href = "./"; };
   (async function () { var el = $("userBox"); if (!el) return; var u = null; try { var c = window.BWSync && BWSync.cliente && BWSync.cliente(), s = c ? await c.auth.getSession() : null; u = s && s.data && s.data.session && s.data.session.user; } catch (e) {}
@@ -362,7 +362,7 @@
     $("lcFixosLista").addEventListener("click", function (e) { var b = e.target.closest("[data-delfixo]"); if (b) apagarFixo(b.dataset.delfixo); }); } catch (e) {}
   $("lcPdf").onclick = function () { var b = this; b.disabled = true; pdfMes().then(function (r) { var a = document.createElement("a"); a.href = URL.createObjectURL(r.blob); a.download = r.nome; document.body.appendChild(a); a.click(); a.remove(); aviso($("lcAviso"), "✓ PDF do mês gerado (" + r.linhas + " lançamentos)."); })
     .catch(function (e) { aviso($("lcAviso"), "Não deu para gerar o PDF: " + (e && e.message || e), true); }).then(function () { b.disabled = false; }); };
-  $("lcFalar").onclick = function () { if (window.BWAgente) BWAgente.abrir(false); else aviso($("lcAviso"), "O Tio Cláudio ainda está carregando. Tente de novo em instantes.", true); };
+  $("lcFalar").onclick = function () { if (window.BWAgente) BWAgente.abrir(false); else aviso($("lcAviso"), "O assistente ainda está carregando. Tente de novo em instantes.", true); };
   var abas = $("lcAbas"); if (abas) abas.addEventListener("click", function (e) { var b = e.target.closest("[data-amb]"); if (b) { e.preventDefault(); trocarAmb(b.getAttribute("data-amb")); } });
   aplicarAmb(); expandirFixos(); desenhar();
   try { if (/[?&]novo=1/.test(location.search)) $("lcNovo").click(); } catch (e) {}

@@ -1,7 +1,7 @@
-/* CAIXA ÚNICA DO TIO CLÁUDIO (22/11/2026, pedido do dono, ideia vinda do Adapta ONE): uma caixa de pedido na página do robô.
+/* CAIXA ÚNICA DO ASSISTENTE (22/11/2026, pedido do dono, ideia vinda do Adapta ONE): uma caixa de pedido na página do robô.
    ＋ anexar (leva para a ferramenta certa) · ⚡ atalhos (gerar, lançar, perguntar) · chip do modelo (BW Smart / Rápido / Inteligente — window.BWIA,
    no bw-agente.js) · ✨ varinha (melhora o pedido pelos 4Is, sem inventar dados) · 🎙 falar · ➤ enviar (BWAgente.processar).
-   Nada é gravado aqui: o Tio Cláudio mostra o cartão e só lança com ✓ LANÇAR, como sempre. A escolha do modelo fica no aparelho. */
+   Nada é gravado aqui: o assistente mostra o cartão e só lança com ✓ LANÇAR, como sempre. A escolha do modelo fica no aparelho. */
 (function () {
   "use strict";
   var caixa = document.getElementById("bwPede"); if (!caixa) return;
@@ -13,12 +13,12 @@
   };
   var ic = function (n) { return '<svg viewBox="0 0 24 24" aria-hidden="true">' + ICO[n] + "</svg>"; };
   caixa.innerHTML =
-    '<div class="bp-caixa"><textarea id="bpTexto" rows="1" maxlength="1500" aria-label="Pedido ao Tio Cláudio" placeholder="Peça ao Tio Cláudio: gastei 80 no mercado, lembrar de ligar amanhã às 10, como está meu dia…"></textarea>' +
+    '<div class="bp-caixa"><textarea id="bpTexto" rows="1" maxlength="1500" aria-label="Pedido ao assistente" placeholder="Peça ' + (window.BWAssistente && BWAssistente.proprio() ? "ao " + String(BWAssistente.nome()).replace(/[<>"&]/g, "") : "ao assistente") + ': gastei 80 no mercado, lembrar de ligar amanhã às 10, como está meu dia…"></textarea>' +
     '<div class="bp-linha"><button type="button" class="bp-bt" id="bpMais" title="Anexar: conta, foto, print">' + ic("mais") + '</button>' +
     '<button type="button" class="bp-bt" id="bpRaio" title="Atalhos: gerar, lançar, perguntar">' + ic("raio") + '</button><span class="bp-esp"></span>' +
     '<button type="button" class="bp-modelo" id="bpModelo" title="Qual IA responde"><i></i><span id="bpModeloNome">BW Smart</span>' + ic("seta") + '</button>' +
     '<button type="button" class="bp-bt" id="bpVarinha" title="Melhorar o pedido (varinha)">' + ic("varinha") + '</button>' +
-    '<button type="button" class="bp-bt" id="bpMic" title="Falar com o Tio Cláudio">' + ic("mic") + '</button>' +
+    '<button type="button" class="bp-bt" id="bpMic" title="Falar com o assistente">' + ic("mic") + '</button>' +
     '<button type="button" class="bp-enviar" id="bpEnviar" title="Enviar (Enter)" aria-label="Enviar">' + ic("enviar") + '</button></div></div>' +
     '<div class="bp-via" id="bpVia" aria-live="polite"></div><div class="bp-menu" id="bpMenu" role="menu" hidden></div>';
   var tx = $("bpTexto"), menu = $("bpMenu"), via = $("bpVia"), antes = null;
@@ -42,7 +42,7 @@
   }
   var BOTAO = null;
   function posMenu() { var botao = BOTAO; if (!botao) return;
-    /* 22/11 (dono, print do celular): o menu ficava ATRÁS da tela da frente do robô e do Tio Cláudio — a caixa tem z-index baixo e não vence a roda.
+    /* 22/11 (dono, print do celular): o menu ficava ATRÁS da tela da frente do robô e do assistente — a caixa tem z-index baixo e não vence a roda.
        Agora o menu vai para o <body>, preso na tela (position:fixed) e acima de tudo; abre PARA CIMA quando em cima cabe. */
     if (menu.parentNode !== document.body) document.body.appendChild(menu);
     menu.classList.add("bp-solto"); menu.hidden = false;
@@ -97,7 +97,7 @@
   $("bpMic").onclick = function () { esperarAgente(function (ag) { if (ag) ag.abrir(true); }); };
   function enviar() {
     var t = tx.value.trim(); if (!t) { tx.focus(); return; }
-    esperarAgente(function (ag) { if (!ag) { via.dataset.fixo = "1"; via.textContent = "O Tio Cláudio ainda está carregando. Tente de novo em um instante."; return; } ag.processar(t); tx.value = ""; antes = null; crescer(); });
+    esperarAgente(function (ag) { if (!ag) { via.dataset.fixo = "1"; via.textContent = "O assistente ainda está carregando. Tente de novo em um instante."; return; } ag.processar(t); tx.value = ""; antes = null; crescer(); });
   }
   $("bpEnviar").onclick = enviar;
   tx.addEventListener("keydown", function (e) { if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); enviar(); } });

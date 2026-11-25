@@ -88,7 +88,7 @@
   ];
   /* páginas já ajustadas para fundo CLARO. Nas outras (e nos editores, onde a mídia pede fundo escuro) um modo claro muda o menu e os
      destaques, e o miolo da ferramenta continua escuro. Página nova ajustada → acrescentar aqui. */
-  var CLARO_OK = {index: 1, negocio: 1, casa: 1, lancamentos: 1, config: 1, ferramentas: 1, marketing: 1, crm: 1, "financeiro-painel": 1, "investimentos-painel": 1};
+  var CLARO_OK = {index: 1, negocio: 1, casa: 1, lancamentos: 1, config: 1, "meu-assistente": 1, ferramentas: 1, marketing: 1, crm: 1, "financeiro-painel": 1, "investimentos-painel": 1};
   var R = document.documentElement, PAG = (location.pathname.split("/").pop() || "index.html").replace(".html", "") || "index";
 
   function ler(k, p) { try { var v = JSON.parse(localStorage.getItem(k)); return v == null ? p : v; } catch (e) { return p; } }

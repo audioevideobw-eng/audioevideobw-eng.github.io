@@ -170,7 +170,7 @@ with sync_playwright() as p:
         ok(len(L(pg, "agenda_tarefas")) == n and any("cancelei" in x for x in pg.evaluate("window.__falou")), "voz: 'não' → cancela, nada gravado")
         pg.evaluate("window.__falas = []")
         # ---------- TIO CLÁUDIO (16/11 noite): conversa, resumo do dia, piada, ajustar ----------
-        ok("TIO CLÁUDIO" in pg.inner_text(".bwg-cab"), "o agente se chama TIO CLÁUDIO")
+        ok("ASSISTENTE" in pg.inner_text(".bwg-cab"), "o agente se chama ASSISTENTE (25/11: ou o nome dado em MEU ASSISTENTE)")
         diz("Tio Cláudio, como está meu dia?")
         dia = pg.inner_text("#bwgAc"); ok("SEU DIA" in dia and ("compromisso" in dia or "livre" in dia), f"'como está meu dia' → resumo montado no aparelho ({dia[:140]})")
         n_ia = len(IA["pedidos"]); ok(True, "")

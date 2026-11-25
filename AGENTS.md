@@ -1032,6 +1032,19 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
 233. TUTORIAIS (tutoriais.html + assets/tutoriais.js; dono: "aba só com tutoriais, passo a passo, vídeos de demonstração, simples e organizado"):
      funcionalidade nova ou que muda passos = atualizar o item no catálogo TUT no mesmo commit (passos com o texto EXATO do botão). Demonstração
      animada é desenho genérico (site de terceiros sem logo/cópia da interface); passos de serviço de fora conferidos na documentação oficial do dia.
+     A demonstração é num CELULAR desenhado (dono 25/11: "como se fosse o usuário no seu celular") — o passo descreve o CAMINHO no celular
+     (aba MAIS / ⋯ → folha → arrastar → opção) com o texto exato; campo tocado ganha borda (foco), não a cor de botão tocado (auto: teste_tutoriais.py).
+
+**Aprendidos em 25/11 (TUTORIAIS FIÉIS e o ASSISTENTE)**
+234. TUTORIAL = TELAS DE VERDADE (dono, 25/11: "fiel às páginas, tudo como o real"): passo NA Brightway não é desenhado — é foto da página
+     tirada por docs/tutoriais/capturar.py seguindo o caminho real (roteiro por passo, mesmo índice de assets/tutoriais.js); só site de
+     terceiro é desenhado, com o selo TELA ILUSTRATIVA. Página que muda de botão/caminho = rodar o capturar de novo no mesmo commit e
+     REVISAR a folha de contato (achou 3 bugs: botão invisível no PRETO E BRANCO, "tocar de novo para entrar" que não existe, COLAR sem
+     permissão). A narração abre com "Olá, sou {quem}, e vou te ensinar a…" e só fala depois de um toque; o passo espera a fala acabar
+     (auto: vigia 7.8n, teste_tutoriais.py).
+235. O ROBÔ É O ASSISTENTE (dono, 25/11): nunca escrever "Tio Cláudio" numa página; texto fixo = "o assistente", fala do robô = BWAssistente.quem()
+     (o nome que a pessoa deu em MEU ASSISTENTE). Preferência do assistente (nome, visual, cor, voz) é do APARELHO (ui_assistente), nunca da
+     conta. Ferramenta ASSISTENTE DE TEXTO continua com o nome completo para não confundir (auto: vigia 7.8n).
 
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
@@ -2725,7 +2738,27 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   trazem o painel para conectar ali mesmo. Teste novo docs/testes/teste_tutoriais.py (0 falhas × 1280/390); decupar, aviso, ia_retoque, layout,
   modos 0 falhas; vigia ✅ (7.8m). Manual 74 → 75 p. App BW 1.9.49 (cartão TUTORIAIS, cópia sem internet, tutorial 16 p., novidades).
   layout.js v82, fotos-nuvem v4, bw-decupar v2, minhas-ias v1, tutoriais v1, sw v237. PENTE FINO 232–233.
+- 25/11/2026 10:50 · Claude (dono: "o vídeo simulando um iPhone ou Android, com a tela e tamanho, como se fosse o usuário no celular — apertar os três
+  pontos, abre a aba, passa o dedo e acha a opção"): TUTORIAIS — a demonstração virou um CELULAR desenhado com 📱 iPhone / 🤖 Android (ilha e barrinha ×
+  furo e ◁ ○ ▢, relógio, abas de baixo da Brightway, barra de endereço nos sites): o dedo toca, a folha do menu sobe, o dedo arrasta a lista até a opção,
+  o teclado abre e o texto é digitado. Os 11 tutoriais reescritos com o caminho real no celular (MAIS → menu → arrastar → opção). teste_tutoriais (+5)
+  0 falhas; vigia ✅. Manual 75 p. (texto da página Tutoriais). App BW 1.9.50. tutoriais.js v3, sw v239.
+- 25/11/2026 12:30 · Claude (dono: "faça o tutorial fiel às páginas, tudo tem que ser como o real" + "narração bem dinâmica e com um fundo musical
+  baixo… sempre dizer: Olá, sou seu assistente virtual, vou te ensinar a…" + "alterar o nome do Tio Cláudio para assistente… cada pessoa configura
+  o nome… uma página de config do assistente… modelos feminino, masculino, cores"): (1) TUTORIAIS com as TELAS DE VERDADE: 13 tutoriais, 99 fotos
+  das páginas reais tiradas por docs/tutoriais/capturar.py (conta de exemplo, IAs simuladas); o dedo toca no botão real, a tela rola, o teclado
+  digita; sites de terceiros desenhados com o selo TELA ILUSTRATIVA; textos reescritos pelo caminho real (ex.: no celular UM toque na tela do robô
+  já entra). (2) NARRAÇÃO com a voz do aparelho + FUNDO MUSICAL feito na hora (WebAudio), botão 🔊; abre com "Olá, sou o seu assistente virtual,
+  e vou te ensinar a…". (3) "Tio Cláudio" virou ASSISTENTE em todo o site; nova página MEU ASSISTENTE (Configurações → 🤖 MEU ASSISTENTE):
+  nome próprio, como te chama, visual ROBÔ BW/ROBÔ REDONDO/ELA/ELE em 8 cores, voz masculina/feminina/automática com tom e velocidade,
+  inteligência, lançar sem perguntar, narração/música dos tutoriais — tudo no aparelho. Novo tutorial "Deixar o assistente do seu jeito".
+  Bug achado no caminho: botão 3 · CONECTAR de MINHAS IAS invisível no modo PRETO E BRANCO (minhas-ias.js v2). Testes: teste_tutoriais
+  (0 falhas × 1280/390) + agente_leitor, pede, layout, ambientes, agente_arrastar, lancamentos, modos, testes; vigia ✅ (7.8n). Manual 75 → 76 p.
+  ("Meu assistente"). App BW 1.9.50. layout.js v83, modos.js v11, bw-agente v27, tutoriais.js v4, sw v240. PENTE FINO 234–235.
 ## Pendências (dono)
+- [ ] (25/11) BW-Setup.exe 1.9.50: arquivos já copiados para Vídeos\bw-reels-studio — dono dar dois cliques em "5 - GERAR INSTALADOR EXE" e avisar.
+- [ ] (25/11) TUTORIAIS + MEU ASSISTENTE: dono abrir um tutorial no celular (som ligado, iPhone sem o silencioso) e dizer se a narração e a música
+      ficaram boas; dar um nome ao assistente em MEU ASSISTENTE e conferir o botão do canto e a voz.
 - [ ] (25/11) MINHAS IAS: dono testar conectar uma chave de verdade (ex.: um token novo da Cloudflare dele) em Configurações → MINHAS IAS e gerar
       1 imagem com USAR MINHA CONTA; dizer se os tutoriais estão claros e quais tutoriais faltam.
 - [x] (25/11 10:22) BW-Setup.exe 1.9.49 gerado pelo dono e publicado (9,3 MB, versão conferida dentro do .exe). A 1ª geração saiu 1.9.48:

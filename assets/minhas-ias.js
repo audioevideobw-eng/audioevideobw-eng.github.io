@@ -24,7 +24,7 @@
   var CSS = ".mia{display:flex;flex-direction:column;gap:10px;min-width:0}" +
     ".mia-st{margin:0;font:600 14px/1.5 Inter,sans-serif;color:var(--bw-texto-2,#bbb)}.mia-st.ok{color:#2FD08A;font-weight:800}" +
     ".mia-bt{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 16px;border-radius:12px;border:1px solid var(--bw-card-borda,#333);background:rgba(127,127,127,.12);color:var(--bw-marfim,#fff);font:800 12px Inter,sans-serif;letter-spacing:.06em;text-decoration:none;cursor:pointer;white-space:normal;text-align:center}" +
-    ".mia-bt.pri{background:var(--gold,#E8B54A);color:#111;border-color:transparent}.mia-bt.perigo{color:#FF6B6B}" +
+    ".mia-bt.pri{background:var(--bw-ambar,#E8B54A);color:var(--bw-noite,#111);border-color:transparent}.mia-bt.perigo{color:#FF6B6B}" +
     ".mia-campo{display:flex;flex-direction:column;gap:6px;font:700 12px Inter,sans-serif;color:var(--bw-texto-2,#bbb);text-transform:none;letter-spacing:0}" +
     ".mia-campo span{display:flex;gap:8px;min-width:0}.mia-campo input{flex:1;min-width:0;min-height:46px;padding:0 12px;border-radius:12px;border:1px solid var(--bw-card-borda,#333);background:rgba(127,127,127,.08);color:var(--bw-marfim,#fff);font:600 16px Inter,sans-serif}" +
     ".mia.voltou .mia-campo input,.mia.voltou [data-a=colar]{box-shadow:0 0 0 3px rgba(232,181,74,.55)}" +

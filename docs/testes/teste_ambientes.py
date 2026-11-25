@@ -94,6 +94,7 @@ with sync_playwright() as p:
         ok("AGENDA DA CASA" in ag and "Dentista CASA" in ag and "Feira CASA" in ag and "Internet CASA" in ag, "agenda da casa: tarefas pessoais e contas da casa")
         ok("EMPRESA" not in ag and "Evento Corporativo" not in ag and "fornecedor" not in ag.lower(), "agenda da casa NÃO mostra nada da empresa (reunião, evento, tarefa criada lá)")
         ok(pg.locator('.amb-sec a[href="orcamento.html"]').count() == 1 and pg.locator('.amb-sec a[href="investimentos-painel.html"]').count() == 1 and pg.locator('.amb-sec a[href="eventos.html"]').count() == 0, "ferramentas da casa: orçamento, contas, reserva, investimentos (sem as da empresa)")
+        pg.wait_for_timeout(1500)   # 25/11: a agenda é redesenhada pela sincronia ao abrir (regra 42) — o clique antes disso caía no botão velho
         antes = pg.evaluate(FOTO, PJ)
         pg.fill("#agMagica", "pagar gás 180 hoje"); pg.click("#agMagicaBtn"); pg.wait_for_timeout(400)
         pg.fill("#agMagica", "recebi R$ 500 hoje"); pg.click("#agMagicaBtn"); pg.wait_for_timeout(400)

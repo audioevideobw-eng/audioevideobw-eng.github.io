@@ -220,7 +220,7 @@ if lgx and ("bw_excluir_minha_conta" not in lgx or "lExportar" not in lgx):
     problemas.append("login.html: sem 'Baixar meus dados' / 'Excluir minha conta' (LGPD)")
 
 # 7.8 páginas públicas obrigatórias
-for p in ["baixar.html", "downloads.html", "privacidade.html", "termos.html", "politica.html", "seguranca.html", "tutoriais.html", "financeiro-painel.html", "investimentos-painel.html", "marketing.html", "assistente.html", "transcricao.html", "pdf.html",
+for p in ["baixar.html", "downloads.html", "privacidade.html", "termos.html", "politica.html", "seguranca.html", "tutoriais.html", "meu-assistente.html", "financeiro-painel.html", "investimentos-painel.html", "marketing.html", "assistente.html", "transcricao.html", "pdf.html",
           "crm.html", "captacao.html", "resultados.html", "fotos.html", "pedido.html"]:
     if p not in todos:
         problemas.append(f"{p} sumiu (link de instalação / política exigida pelo Google / painel financeiro)")
@@ -433,6 +433,32 @@ for _f in ["docs/supabase/functions/bw-ia-imagem/index.ts", "docs/supabase/funct
     _t = _arq(_f)
     if _t and ("chaveSua" not in _t or re.search(r"console\.log|\.insert\(|\.upsert\(", _t)):
         problemas.append(f"{_f}: a chave da pessoa é usada só no pedido (chaveSua) — sem log e sem gravar")
+# 7.8n ASSISTENTE + TUTORIAIS COM AS TELAS DE VERDADE (25/11/2026, dono: "trocar o nome do Tio Cláudio para assistente… cada pessoa configura
+# o nome"; "faça o tutorial fiel às páginas, tudo tem que ser como o real"). O nome sai de BWAssistente (layout.js, ui_assistente no aparelho);
+# nenhuma página volta a escrever "Tio Cláudio"; meu-assistente.js não usa rede nem a conta; todo passo de tutorial NA Brightway tem as fotos de
+# verdade (assets/tutoriais/quadros.js, gerado por docs/tutoriais/capturar.py) e as fotos existem (binárias, webp).
+for _p, _t in todos.items():
+    if re.search(r"Tio Cl[áa]udio|TIO CL[ÁA]UDIO", _t):
+        problemas.append(f"{_p}: o robô agora se chama ASSISTENTE (ou o nome que a pessoa der em MEU ASSISTENTE) — não escrever \"Tio Cláudio\"")
+_ma = _arq("assets/meu-assistente.js")
+if "window.BWAssistente" not in lay or not _ma or not os.path.exists("meu-assistente.html"):
+    problemas.append("MEU ASSISTENTE: falta BWAssistente no layout.js ou a página meu-assistente.html")
+elif re.search(r"fetch\(|XMLHttpRequest|supabase|BWSync|indexedDB|user_data|\.upload\(", _ma):
+    problemas.append("assets/meu-assistente.js: as escolhas do assistente ficam só no aparelho (ui_*) — nada de rede nem conta")
+_tq = _arq("assets/tutoriais/quadros.js")
+if not _tq:
+    problemas.append("TUTORIAIS: falta assets/tutoriais/quadros.js (rode python3 docs/tutoriais/capturar.py)")
+else:
+    try:
+        _Q = json.loads(_tq.split("=", 1)[1].strip().rstrip(";"))
+        for _tid, _ps in _Q.items():
+            for _pi, _l in _ps.items():
+                for _f in _l:
+                    _fp = os.path.join("assets", "tutoriais", _f["img"])
+                    if not os.path.exists(_fp) or open(_fp, "rb").read(4) != b"RIFF":
+                        problemas.append(f"TUTORIAIS: a foto {_fp} falta ou não é WEBP binária")
+    except Exception as _e:
+        problemas.append(f"TUTORIAIS: assets/tutoriais/quadros.js ilegível ({_e})")
 # 7.8d MODOS DE APARÊNCIA (20/11/2026): modos.js no <head> de toda página; só preferências locais (ui_*); nada de rede
 _mj, _cj = _arq("assets/modos.js"), _arq("assets/config.js")
 for _p, _t in todos.items():

@@ -43,6 +43,8 @@
     return true;
   }
   function novoId(p) { return p + Date.now() + Math.random().toString(36).slice(2, 6); }
+  /* 25/11: o nome que a pessoa deu ao assistente, sem acento e só letras (para tirar do começo da frase: "Zé, gastei 50") */
+  function nomeNorm() { try { var n = window.BWAssistente && BWAssistente.proprio() ? BWAssistente.nome() : ""; return n.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9 ]/g, "").trim(); } catch (e) { return ""; } }
   function ui(k, padrao) { try { var v = localStorage.getItem("ui_agente_" + k); return v == null ? padrao : JSON.parse(v); } catch (e) { return padrao; } }
   function uiSet(k, v) { try { localStorage.setItem("ui_agente_" + k, JSON.stringify(v)); } catch (e) { } }
   /* 22/11 BW SMART (dono): a IA Brightway tem dois níveis — RÁPIDO (gpt-oss-20b) e INTELIGENTE (gpt-oss-120b), cada um com reserva no servidor.
@@ -175,7 +177,7 @@
     var fimS = new Date(d); fimS.setDate(fimS.getDate() + 7);
     var prox = ler("neg_eventos").filter(function (e) { return e && e.nome && e.data > k && e.data <= ymd(fimS) && !/cancel/i.test(e.status || ""); }).sort(function (a, b) { return String(a.data).localeCompare(b.data); })[0];
     if (prox) partes.push("Próximo evento: " + prox.nome + ", " + SEMANA[deYmd(prox.data).getDay()] + " dia " + br(prox.data).slice(0, 5) + ".");
-    partes.push(its.length || venc.length ? ["Bora pra cima!", "Conta comigo.", "Qualquer coisa é só chamar o Tio Cláudio."][Math.floor(Math.random() * 3)] : "Aproveita o respiro!");
+    partes.push(its.length || venc.length ? ["Bora pra cima!", "Conta comigo.", "Qualquer coisa é só me chamar."][Math.floor(Math.random() * 3)] : "Aproveita o respiro!");
     return partes.join(" ");
   }
   function consultar(q) {
@@ -258,14 +260,14 @@
   }
   function entenderLocal(texto) {
     var t = " " + extenso(sa(texto)).replace(/[!?;]/g, " ").replace(/\s+/g, " ") + " ", m, valor = 0;
-    t = t.replace(/^ (ok |ei |oi |ola |e ai |fala )?(tio claudio|claudio|tio|agente|robo|assistente|brightway)[ ,]*/, " ");
+    t = t.replace(/^ (ok |ei |oi |ola |e ai |fala )?(tio claudio|claudio|tio|agente|robo|assistente|brightway)[ ,]*/, " "); var nAss = nomeNorm(); if (nAss) t = t.replace(new RegExp("^ (ok |ei |oi |ola |e ai |fala )?" + nAss + "[ ,]*"), " ");
     var tt = t.trim();
     /* conversa (sem IA): despedida, agradecimento, saudação/resumo, piada, quem é você */
     if (/^(tchau|ate mais|ate logo|falou|so isso|e so isso|pode parar|chega|encerrar|desliga|para|pare)( (tio )?(claudio|obrigad[oa]|valeu|por hoje|de ouvir))*$/.test(tt) || /^(tchau|ate mais|ate logo|so isso)( |$)/.test(tt) || /^(obrigad[oa]|valeu)( .*)? (so isso|tchau)/.test(tt)) return [{ tipo: "fim" }];
-    if (/^(obrigad[oa]|valeu|brigad[oa])/.test(tt) && tt.split(" ").length <= 4) return [{ tipo: "responder", texto: "Por nada! Tamo junto, é só chamar o Tio Cláudio." }];
+    if (/^(obrigad[oa]|valeu|brigad[oa])/.test(tt) && tt.split(" ").length <= 4) return [{ tipo: "responder", texto: "Por nada! Tamo junto, é só me chamar." }];
     if (/como (esta|ta|vai|e) (o )?meu dia|resumo do (meu )?dia|o que tem (pra|para) hoje|^(bom dia|boa tarde|boa noite)( .*)?$/.test(tt)) return [{ tipo: "resumo_dia", dia: /amanha/.test(tt) ? "amanha" : "hoje" }];
     if (/piada|me faz rir|algo engracado/.test(tt)) return [{ tipo: "responder", texto: PIADAS[Math.floor(Math.random() * PIADAS.length)] }];
-    if (/quem (e|eh) voce|qual (e )?(o )?seu nome|como (voce )?se chama/.test(tt)) return [{ tipo: "responder", texto: "Eu sou o Tio Cláudio, seu ajudante aqui na Brightway. Lanço gastos, contas e tarefas, conto como está o seu dia e ainda solto umas piadas." }];
+    if (/quem (e|eh) voce|qual (e )?(o )?seu nome|como (voce )?se chama/.test(tt)) return [{ tipo: "responder", texto: "Eu sou " + (window.BWAssistente ? BWAssistente.quem() : "o seu assistente virtual") + " aqui na Brightway. Lanço gastos, contas e tarefas, conto como está o seu dia e ainda solto umas piadas." }];
     if (/^(oi|ola|e ai|opa|fala)( tudo bem| beleza)?$/.test(tt) || /^tudo (bem|bom|certo)/.test(tt)) return [{ tipo: "responder", texto: "Opa, tudo bão por aqui! Em que posso ajudar? Pode pedir um lançamento, uma tarefa ou perguntar como está o seu dia." }];
     var mn = String(texto).match(/(?:me chama(?:r)? de|pode me chamar de|meu nome [eé]) ([A-Za-zÀ-ÿ]{2,20})/i);
     if (mn) { uiSet("nome", cap(mn[1])); return [{ tipo: "responder", texto: "Combinado, " + cap(mn[1]) + "! Vou te chamar assim." }]; }
@@ -336,7 +338,7 @@
   /* ================= entender: IA Brightway ================= */
   async function sessao() { try { var c = window.BWSync && BWSync.cliente && BWSync.cliente(); var s = c ? await c.auth.getSession() : null; return (s && s.data && s.data.session) || null; } catch (e) { return null; } }
   function jsonDe(t) { t = String(t || "").replace(/```(json)?/g, ""); var a = t.indexOf("{"), b = t.lastIndexOf("}"); if (a < 0 || b <= a) return null; try { return JSON.parse(t.slice(a, b + 1)); } catch (e) { return null; } }
-  var SISTEMA = 'Você é o TIO CLÁUDIO, assistente de voz da Brightway (casa + produtora de eventos do Marcos, mineiro). Jeito descontraído e caloroso, um toque mineiro ("uai", "trem bão") com moderação.\n' +
+  var SISTEMA = 'Você é ' + (window.BWAssistente ? BWAssistente.nome() : "Assistente") + ', o assistente virtual de voz da Brightway (casa + produtora de eventos do Marcos, mineiro). Jeito descontraído e caloroso, um toque mineiro ("uai", "trem bão") com moderação.\n' +
     'Responda SÓ com JSON, CADA ação com "tipo": {"acoes":[{"tipo":"tarefa","titulo":"Ligar para o cliente","data":"2026-01-02","hora":"10:00","categoria":"trabalho"}],"resposta":""}\n' +
     'Tipos:\n- gasto_casa: descricao, valor, categoria, data\n- receita_casa / gasto_negocio / entrada_negocio: descricao, valor, data\n' +
     '- conta_pagar: descricao (Energia, Água…), valor, vencimento\n' +
@@ -350,7 +352,7 @@
     'Regras: valor número com ponto; datas AAAA-MM-DD pelos PRÓXIMOS DIAS dados ("de manhã" 09:00, "à tarde" 14:00, "à noite" 19:00); gasto sem empresa/cliente/evento = gasto_casa; ' +
     '"recebi" de cliente = entrada_negocio; vários pedidos = várias ações; nunca invente valor nem dados dele; use a CONVERSA ANTERIOR para entender "e depois?", "muda isso". ' +
     'Nunca diga que algo foi lançado (quem lança é o app).';
-  /* 17/11: quando a IA Brightway cai (chave, limite do dia, sem internet) o Tio Cláudio diz o MOTIVO, em vez de "não entendi" */
+  /* 17/11: quando a IA Brightway cai (chave, limite do dia, sem internet) o assistente diz o MOTIVO, em vez de "não entendi" */
   var IA_ERRO = "";
   function motivoIA() {
     return IA_ERRO === "limite" ? "A IA Brightway já atingiu o limite de pedidos de hoje nesta conta." : IA_ERRO === "sem_login" ? "Entre na sua conta para eu usar a IA Brightway."
@@ -363,7 +365,7 @@
     var d = new Date(), sem = ["domingo", "segunda", "terça", "quarta", "quinta", "sexta", "sábado"][d.getDay()];
     var evs = Lanca.eventos().slice(0, 12).map(function (e) { return e.nome + (e.data ? " (" + br(e.data) + ")" : ""); });
     var dias = []; for (var i = 1; i <= 7; i++) { var dx = new Date(d); dx.setDate(dx.getDate() + i); dias.push(["domingo", "segunda", "terça", "quarta", "quinta", "sexta", "sábado"][dx.getDay()] + " = " + ymd(dx)); }
-    var hist = (ESTADO.hist || []).slice(-6).map(function (h) { return "Pessoa: " + h.q + "\nTio Cláudio: " + h.r; }).join("\n");
+    var hist = (ESTADO.hist || []).slice(-6).map(function (h) { return "Pessoa: " + h.q + "\nAssistente: " + h.r; }).join("\n");
     var pedido = (hist ? "CONVERSA ANTERIOR:\n" + hist + "\n\n" : "") + "HOJE: " + hoje() + " (" + sem + "), " + dois(d.getHours()) + ":" + dois(d.getMinutes()) + "\nPRÓXIMOS DIAS: " + dias.join(", ") + "\nEVENTOS: " + (evs.join("; ") || "nenhum") + "\nPEDIDO: " + String(texto).slice(0, 600);
     try {
       var ctl = new AbortController(), tm = setTimeout(function () { ctl.abort(); }, 12000);
@@ -384,12 +386,12 @@
     if (ks.length === 1) return Object.assign({ tipo: ks[0] }, typeof a[ks[0]] === "object" && a[ks[0]] ? a[ks[0]] : {});
     return null;
   }
-  async function papo(texto) {   /* conversa livre com o Tio Cláudio (só a frase + as últimas falas) */
+  async function papo(texto) {   /* conversa livre com o assistente (só a frase + as últimas falas) */
     var s = await sessao(); if (!s) return "";
-    var hist = (ESTADO.hist || []).slice(-4).map(function (h) { return "Pessoa: " + h.q + "\nTio Cláudio: " + h.r; }).join("\n");
+    var hist = (ESTADO.hist || []).slice(-4).map(function (h) { return "Pessoa: " + h.q + "\nAssistente: " + h.r; }).join("\n");
     try {
       var r = await fetch(FN, { method: "POST", headers: { "Content-Type": "application/json", "Authorization": "Bearer " + s.access_token, "apikey": PUB },
-        body: JSON.stringify({ sistema: "Você é o TIO CLÁUDIO, assistente de voz da Brightway, do Marcos (mineiro, produtora de eventos e audiovisual). Responda em português, de forma calorosa e descontraída, um toque mineiro com moderação, em 1 a 3 frases curtas para serem FALADAS (sem emoji, sem markdown, sem listas). Se não souber, diga que não sabe. Não invente dados da agenda ou das contas dele.", pedido: (hist ? hist + "\n" : "") + "Pessoa: " + String(texto).slice(0, 500), max: 300, nivel: nivelPara(texto, "papo") }) });
+        body: JSON.stringify({ sistema: "Você é " + (window.BWAssistente ? BWAssistente.nome() : "Assistente") + ", o assistente virtual de voz da Brightway, do Marcos (mineiro, produtora de eventos e audiovisual). Responda em português, de forma calorosa e descontraída, um toque mineiro com moderação, em 1 a 3 frases curtas para serem FALADAS (sem emoji, sem markdown, sem listas). Se não souber, diga que não sabe. Não invente dados da agenda ou das contas dele.", pedido: (hist ? hist + "\n" : "") + "Pessoa: " + String(texto).slice(0, 500), max: 300, nivel: nivelPara(texto, "papo") }) });
       var j = await r.json().catch(function () { return {}; }); marcarErro(r, j); anotar(j); return r.ok && j.texto ? String(j.texto).replace(/[*#_`]/g, "").trim().slice(0, 600) : "";
     } catch (e) { return ""; }
   }
@@ -453,19 +455,21 @@
 
   /* ================= voz: falar e ouvir ================= */
   function vozes() { try { return (window.speechSynthesis ? speechSynthesis.getVoices() : []).filter(function (v) { return /^pt/i.test(v.lang); }); } catch (e) { return []; } }
-  /* 16/11: o Tio Cláudio é homem → prefere voz MASCULINA em pt-BR. Nomes conhecidos: Windows (Daniel), Edge (Antonio, natural),
+  /* 16/11: o assistente é homem → prefere voz MASCULINA em pt-BR. Nomes conhecidos: Windows (Daniel), Edge (Antonio, natural),
      iPhone/Mac (Felipe, Eddy, Reed, Rocko, Grandpa), Android (…x-ptd…, #male). Sem voz masculina: a melhor que houver, em tom mais grave. */
   var HOMEM = /daniel|antonio|ant[oô]nio|felipe|eddy|reed|rocko|grandpa|vov[oô]\b|donato|fabio|f[aá]bio|humberto|julio|j[uú]lio|nicolau|valerio|val[eé]rio|ricardo|duarte|joaquim|x-ptd|#male|\bmale\b|masculin/i;
   var MULHER = /maria|francisca|thalita|luciana|fernanda|brenda|elza|giovanna|leila|leticia|manuela|yara|raquel|catarina|joana|flo\b|sandy|shelley|grandma|x-afs|x-pte|#female|female|feminin/i;
   function idVoz(v) { return v.name + " " + (v.voiceURI || ""); }   /* no Android o nome é só "português Brasil": a pista (x-ptd = homem) vem no voiceURI */
   function ehHomem(v) { return HOMEM.test(idVoz(v)) && !MULHER.test(idVoz(v)); }
+  /* 25/11: voz MASCULINA ou FEMININA (página MEU ASSISTENTE); "auto" segue o visual (ELA → feminina, os outros → masculina) */
+  function querHomem() { var p = window.BWAssistente ? BWAssistente.pref() : {}, v = p.voz || "auto"; return v === "f" ? false : v === "m" ? true : (window.BWAssistente ? BWAssistente.visual() !== "ela" : true); }
   function melhorVoz() {   /* a escolhida nos ajustes, ou a melhor voz masculina em português do aparelho */
     var vs = vozes(), esc0 = ui("vozNome", ""); if (!vs.length) return null;
     if (esc0) { var e0 = vs.filter(function (v) { return v.name === esc0; })[0]; if (e0) return e0; }
-    var pts = function (v) { var n = v.name; return (/pt[-_]BR/i.test(v.lang) ? 25 : 0) + (ehHomem(v) ? 20 : 0) + (/natural|neural|online|premium|enhanced|aprimorad/i.test(n) ? 6 : 0) + (/google/i.test(n) ? 3 : 0) + (/felipe|antonio|daniel/i.test(n) ? 4 : 0) + (/compact|eloquence|novelty|eddy|reed|rocko|grandpa/i.test(n) ? -5 : 0); };
+    var pts = function (v) { var n = v.name; return (/pt[-_]BR/i.test(v.lang) ? 25 : 0) + (ehHomem(v) === querHomem() ? 20 : 0) + (/natural|neural|online|premium|enhanced|aprimorad/i.test(n) ? 6 : 0) + (/google/i.test(n) ? 3 : 0) + (/felipe|antonio|daniel/i.test(n) ? 4 : 0) + (/compact|eloquence|novelty|eddy|reed|rocko|grandpa/i.test(n) ? -5 : 0); };
     return vs.slice().sort(function (a, b) { return pts(b) - pts(a); })[0];
   }
-  function tomDe(v) { var t = ui("tom", "auto"); return t === "grave" ? 0.6 : t === "normal" ? 1 : (v && !ehHomem(v) ? 0.7 : 1); }
+  function tomDe(v) { var t = ui("tom", "auto"); if (t === "grave") return 0.6; if (t === "normal") return 1; if (t === "agudo") return 1.3; var h = querHomem(); return v && ehHomem(v) !== h ? (h ? 0.7 : 1.3) : 1; }
   function frases(txt) {   /* fala em frases: fica mais natural e o Chrome não corta respostas longas */
     var out = [], atual = "";
     (String(txt).match(/[^.!?…]+[.!?…]*\s*/g) || [String(txt)]).map(function (x) { return x.trim(); }).filter(Boolean).forEach(function (f) { if ((atual + " " + f).length > 180 && atual) { out.push(atual); atual = f; } else atual = (atual ? atual + " " : "") + f; });
@@ -521,7 +525,7 @@
     status('<span class="bwg-onda"><i></i><i></i><i></i><i></i></span> Diga <b>"sim"</b> para lançar, <b>"não"</b> para cancelar — ou toque nos botões.');
     sessaoAudio("play-and-record"); var r = ""; try { r = sa(await ouvirNavegador(function () { })); } catch (e) { }
     ouvindo = false; fab.classList.remove("ouvindo"); micFim = Date.now(); sessaoAudio("playback");
-    var rt = r.trim().replace(/^(tio claudio|claudio)[ ,]*/, "");
+    var rt = r.trim().replace(/^(tio claudio|claudio|assistente)[ ,]*/, ""); var nAss2 = nomeNorm(); if (nAss2) rt = rt.replace(new RegExp("^" + nAss2 + "[ ,]*"), "");
     if (/^(sim|s|isso|pode|confirm|lanc|ok|beleza|certo|manda|bora|claro|positivo|uhum|aham)( |$)/.test(rt) || / (pode lancar|confirmo|isso mesmo)/.test(" " + rt)) lancarTodas(continuar);
     else if (/^(nao|cancel|esquece|deixa|para)( |$)/.test(rt) && rt.split(" ").length <= 3) { ESTADO.acoes = []; desenharAcoes(); status("Cancelado. Nada foi lançado."); falar("Tudo bem, cancelei.", continuar); }
     else if (rt) processar(r, true);   /* falou outra coisa ("muda para as 15h", um pedido novo) */
@@ -579,8 +583,8 @@
   function parar() { try { if (rec) rec.stop(); } catch (e) { } try { if (gravador && gravador.state === "recording") gravador.stop(); } catch (e) { } }
 
   /* ================= tela ================= */
-  /* 20/11 (dono): o Tio Cláudio ganhou o visual novo do robô (icons/robo-bw-128.png, o mesmo da página principal) */
-  var ROBO = '<img class="bwg-robo" src="icons/robo-bw-128.png" alt="" width="46" height="46" decoding="async">';
+  /* 20/11 (dono): o assistente ganhou o visual novo do robô (icons/robo-bw-128.png, o mesmo da página principal) */
+  function avatar(t) { return window.BWAssistente ? BWAssistente.avatar(t) : '<img class="bwg-robo" src="icons/robo-bw-128.png" alt="" width="' + t + '" height="' + t + '" decoding="async">'; }
   var CSS = ".bwg-fab{position:fixed;right:16px;bottom:24px;z-index:70;width:60px;height:60px;border-radius:50%;border:0;padding:0;cursor:pointer;touch-action:manipulation;" +
     "background:radial-gradient(circle at 50% 35%,#16305e,#081226 70%);box-shadow:0 10px 26px rgba(0,0,0,.5),0 0 0 1.5px rgba(96,165,255,.75) inset,0 0 22px rgba(56,132,255,.6);display:flex;align-items:center;justify-content:center;transition:transform .15s;overflow:visible}" +
     ".bwg-robo{display:block;width:46px;height:46px;object-fit:contain;pointer-events:none;transition:transform .25s cubic-bezier(.2,.8,.2,1)}.bwg-fab:hover .bwg-robo{transform:rotate(-10deg) scale(1.12) translateY(-2px)}.bwg-cab .bwg-robo{width:32px;height:32px;flex:none}" +
@@ -588,6 +592,7 @@
     ".bwg-fab:active{transform:scale(.94)}.bwg-fab svg{width:36px;height:36px;fill:none;stroke:#1a1306;stroke-width:2.3;stroke-linecap:round;stroke-linejoin:round}.bwg-fab svg .vis{fill:#1a1306}.bwg-fab svg .olho{fill:#7CF3FF;stroke:none}" +
     ".bwg-fab.ouvindo{animation:bwgPulso 1.2s ease-in-out infinite}.bwg-fab.ouvindo svg .olho{fill:#5FE0A0}@keyframes bwgPulso{0%,100%{box-shadow:0 0 0 0 rgba(232,194,106,.55),0 10px 26px rgba(0,0,0,.45)}50%{box-shadow:0 0 0 14px rgba(232,194,106,0),0 10px 26px rgba(0,0,0,.45)}}" +
     "html.ed-aberto .bwg-fab,html.bw-menu-aberto .bwg-fab{display:none}" +
+    ".bwg-fab{box-shadow:0 10px 26px rgba(0,0,0,.5),0 0 0 1.5px var(--ass-cor,#60a5ff) inset,0 0 22px color-mix(in srgb,var(--ass-cor,#3884ff) 60%,transparent)}svg.bwg-robo{border-radius:50%}" +
     ".bwg-fab{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}.bwg-fab.bwg-arr{transform:scale(1.15);transition:none;cursor:grabbing;box-shadow:0 18px 40px rgba(0,0,0,.6),0 0 0 2px #7fd6ff inset,0 0 34px rgba(56,132,255,.9)}" +
     ".bwg-p{position:fixed;right:16px;bottom:96px;z-index:71;width:min(420px,calc(100vw - 24px));max-height:min(72vh,640px);overflow:auto;background:#0d1119;border:1px solid rgba(232,194,106,.35);border-radius:20px;box-shadow:0 24px 70px rgba(0,0,0,.6);color:#F5F1EA;font:14px/1.45 Inter,system-ui,sans-serif;padding:16px}" +
     ".bwg-p[hidden]{display:none}.bwg-cab{display:flex;align-items:center;gap:10px;margin-bottom:10px}.bwg-cab b{font:800 13px Inter,sans-serif;letter-spacing:.12em;color:#E8C26A}.bwg-cab .x{margin-left:auto;width:34px;height:34px;border-radius:50%;border:1px solid rgba(255,255,255,.18);background:transparent;color:#fff;cursor:pointer}" +
@@ -611,9 +616,9 @@
     if (fab || !document.body) return;
     if (/(^|\/)(login|cadastro|pedido|baixar|privacidade|termos|painel)\.html/.test(location.pathname)) return;   /* páginas públicas */
     var st = document.createElement("style"); st.id = "bwgCss"; st.textContent = CSS; document.head.appendChild(st);
-    fab = document.createElement("button"); fab.type = "button"; fab.className = "bwg-fab"; fab.id = "bwAgente"; fab.innerHTML = ROBO;
-    fab.setAttribute("aria-label", "Tio Cláudio: toque e fale"); fab.title = "TIO CLÁUDIO — toque e fale (ex.: como está meu dia?)";
-    painel = document.createElement("div"); painel.className = "bwg-p"; painel.hidden = true; painel.setAttribute("role", "dialog"); painel.setAttribute("aria-label", "Tio Cláudio, assistente da Brightway");
+    fab = document.createElement("button"); fab.type = "button"; fab.className = "bwg-fab"; fab.id = "bwAgente"; fab.innerHTML = avatar(46); var pintar = function () { fab.innerHTML = avatar(46); if (window.BWAssistente) fab.style.setProperty("--ass-cor", BWAssistente.cor()); var nm = window.BWAssistente ? BWAssistente.nome() : "Assistente"; fab.setAttribute("aria-label", nm + ": toque e fale"); fab.title = nm.toUpperCase() + " — toque e fale (ex.: como está meu dia?)"; }; pintar(); window.addEventListener("bw-assistente", pintar);
+    fab.setAttribute("aria-label", (window.BWAssistente ? BWAssistente.nome() : "Assistente") + ": toque e fale"); fab.title = (window.BWAssistente ? BWAssistente.nome() : "Assistente").toUpperCase() + " — toque e fale (ex.: como está meu dia?)";
+    painel = document.createElement("div"); painel.className = "bwg-p"; painel.hidden = true; painel.setAttribute("role", "dialog"); painel.setAttribute("aria-label", (window.BWAssistente ? BWAssistente.nome() : "Assistente") + ", assistente virtual da Brightway");
     document.body.appendChild(painel); document.body.appendChild(fab);
     fab.addEventListener("click", function (e) { if (engoleClique && Date.now() < engoleClique) { engoleClique = 0; e.preventDefault(); return; } destravar(); if (ouvindo) { parar(); return; } calar(); abrir(true); });
     ligarArraste();
@@ -624,7 +629,7 @@
     document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !painel.hidden) fechar(); });
     posicionar(); window.addEventListener("resize", posicionar); setInterval(posicionar, 2500);
   }
-  /* 22/11 (dono): SEGURAR E ARRASTAR o Tio Cláudio para outro lugar da tela. Segurar ~350 ms sem mexer o dedo/mouse = pega; mexer antes = rolagem
+  /* 22/11 (dono): SEGURAR E ARRASTAR o assistente para outro lugar da tela. Segurar ~350 ms sem mexer o dedo/mouse = pega; mexer antes = rolagem
      normal. O lugar fica SÓ neste aparelho (ui_agente_pos, em fração da tela: serve para celular deitado/em pé) e respeita as barras de baixo. */
   var engoleClique = 0, POS_K = "ui_agente_pos";
   function posSalva() { try { var p = JSON.parse(localStorage.getItem(POS_K) || "null"); return p && isFinite(p.x) && isFinite(p.y) ? p : null; } catch (e) { return null; } }
@@ -686,11 +691,11 @@
   var EXEMPLOS = ["Como está meu dia?", "Lance 30 reais de lanche", "Me lembra de ligar pro cliente amanhã às 10", "Conta de luz de 250 que vence dia 20", "O que eu tenho amanhã?", "Conta uma piada"];
   function desenhar() {
     var semVoz = !SR && !(navigator.mediaDevices && window.MediaRecorder);
-    painel.innerHTML = '<div class="bwg-cab">' + ROBO.replace('width="46" height="46"', 'width="32" height="32"') + '<b>TIO CLÁUDIO</b><button type="button" class="aj" data-g="ajustes" aria-label="Ajustes do agente" title="Ajustes">⚙</button><button type="button" class="x" data-g="fechar" aria-label="Fechar">✕</button></div>' +
+    painel.innerHTML = '<div class="bwg-cab">' + avatar(32) + '<b>' + esc((window.BWAssistente ? BWAssistente.nome() : "Assistente").toUpperCase()) + '</b><button type="button" class="aj" data-g="ajustes" aria-label="Ajustes do agente" title="Ajustes">⚙</button><button type="button" class="x" data-g="fechar" aria-label="Fechar">✕</button></div>' +
       '<div class="bwg-st" aria-live="polite"></div><div class="bwg-fala" aria-live="polite"></div><div id="bwgAc"></div>' +
       '<div class="bwg-escr"><input id="bwgTxt" type="text" autocomplete="off" placeholder="' + (semVoz ? "Escreva o que quer lançar…" : "…ou escreva aqui") + '" aria-label="Escreva o pedido"><button type="button" class="bwg-b pri" data-g="enviar">➤</button>' + (semVoz ? "" : '<button type="button" class="bwg-b" data-g="ouvir" aria-label="Falar de novo" title="Falar">🎙</button>') + "</div>" +
       '<div class="bwg-ex">' + EXEMPLOS.map(function (e) { return '<button type="button" data-g="ex">' + esc(e) + "</button>"; }).join("") + "</div>" +
-      '<div class="bwg-aj" id="bwgAj" hidden><label><input type="checkbox" data-u="ia"' + (ui("ia", true) ? " checked" : "") + '> Usar a IA Brightway para entender (manda só a frase; sem login ou sem internet, entende no aparelho)</label>' +
+      '<div class="bwg-aj" id="bwgAj" hidden><a href="meu-assistente.html" style="display:block;margin:0 0 8px;color:#E8C26A;font-weight:800;text-decoration:none">🤖 MEU ASSISTENTE: nome, visual e voz →</a><label><input type="checkbox" data-u="ia"' + (ui("ia", true) ? " checked" : "") + '> Usar a IA Brightway para entender (manda só a frase; sem login ou sem internet, entende no aparelho)</label>' +
       '<label><input type="checkbox" data-u="voz"' + (ui("voz", true) ? " checked" : "") + '> Responder falando</label>' +
       '<label><input type="checkbox" data-u="bip"' + (ui("bip", true) ? " checked" : "") + '> Sinal sonoro quando começa a ouvir</label>' +
       '<label><input type="checkbox" data-u="conversa"' + (ui("conversa", true) ? " checked" : "") + '> Modo conversa: depois de responder, continua ouvindo (diga “tchau” para encerrar)</label>' +
@@ -714,7 +719,7 @@
     try {
       var micLigado = soltarMic();
       falaId++; sessaoAudio("playback"); speechSynthesis.cancel(); try { speechSynthesis.resume(); } catch (e) { }
-      var v = melhorVoz(), u = new SpeechSynthesisUtterance("Opa! Aqui é o Tio Cláudio. Bora organizar esse dia, uai?"); u.lang = v ? v.lang : "pt-BR"; if (v) u.voice = v; u.volume = 1; u.rate = +ui("velocidade", 1.05) || 1.05; u.pitch = tomDe(v);
+      var v = melhorVoz(), u = new SpeechSynthesisUtterance("Opa! Aqui é " + (window.BWAssistente ? BWAssistente.quem() : "o seu assistente virtual") + ". Bora organizar esse dia?"); u.lang = v ? v.lang : "pt-BR"; if (v) u.voice = v; u.volume = 1; u.rate = +ui("velocidade", 1.05) || 1.05; u.pitch = tomDe(v);
       var info = (v ? v.name : "voz padrão") + " · " + vozes().length + " vozes pt" + (navigator.standalone ? " · app instalado" : "") + (navigator.audioSession ? " · sessão " + navigator.audioSession.type : " · sem audioSession") + (micFim ? " · mic usado" : "");
       info += " · [" + vozes().slice(0, 5).map(function (x) { return x.name + (x.voiceURI && x.voiceURI !== x.name ? "|" + x.voiceURI : ""); }).join("; ") + "]";
       linha("pedindo som… " + info);
@@ -736,7 +741,7 @@
       (vs.some(ehHomem) ? "" : '<div style="font-size:12px;color:#cfa94a;margin:4px 0">Este aparelho não tem voz masculina em português instalada — estou usando a que há, em tom mais grave. ' + dicaVoz() + "</div>") +
       '<label style="display:grid;grid-template-columns:auto 1fr;gap:8px;align-items:center">Velocidade <select data-u="velocidade" style="padding:6px;border-radius:8px;background:#0a0d14;color:#fff;border:1px solid rgba(255,255,255,.16);font-size:16px">' +
       [[0.9, "Calma"], [1.05, "Normal"], [1.2, "Rápida"]].map(function (o) { return '<option value="' + o[0] + '"' + (Math.abs(vel - o[0]) < .01 ? " selected" : "") + ">" + o[1] + "</option>"; }).join("") + "</select></label>" +
-      '<button type="button" class="bwg-b" data-g="testarVoz" style="margin-top:4px">🔊 OUVIR A VOZ' + (atual ? " (" + esc(atual.name.slice(0, 28)) + ")" : "") + "</button>" + '<div id="bwgDiag" style="font-size:12px;color:#cfa94a;margin-top:6px">v' + VERSAO + (IOS ? " · No iPhone o Tio Cláudio só fala com o MODO SILENCIOSO desligado." : "") + "</div>"
+      '<button type="button" class="bwg-b" data-g="testarVoz" style="margin-top:4px">🔊 OUVIR A VOZ' + (atual ? " (" + esc(atual.name.slice(0, 28)) + ")" : "") + "</button>" + '<div id="bwgDiag" style="font-size:12px;color:#cfa94a;margin-top:6px">v' + VERSAO + (IOS ? " · No iPhone o assistente só fala com o MODO SILENCIOSO desligado." : "") + "</div>"
       : '<button type="button" class="bwg-b" data-g="testarVoz" style="margin-top:4px">🔊 OUVIR A VOZ</button><div id="bwgDiag" style="font-size:12px;color:#cfa94a;margin-top:6px">v' + VERSAO + " · este aparelho não listou voz em português</div>";
   }
   function abrir(escutar) {
@@ -748,7 +753,7 @@
     calar(); descartarEscuta = false; var fala = painel.querySelector(".bwg-fala"); fala.textContent = "";
     if (!SR && !(navigator.mediaDevices && window.MediaRecorder)) { status("Seu navegador não tem reconhecimento de voz — escreva o pedido abaixo."); return; }
     ouvindo = true; fab.classList.add("ouvindo"); bip(true); sessaoAudio("play-and-record");
-    status('<span class="bwg-onda"><i></i><i></i><i></i><i></i></span> ' + (emConversa ? "Tô ouvindo… pode falar (ou diga “tchau”)" : "Ouvindo… pode falar com o Tio Cláudio (toque no robô para parar)"));
+    status('<span class="bwg-onda"><i></i><i></i><i></i><i></i></span> ' + (emConversa ? "Tô ouvindo… pode falar (ou diga “tchau”)" : "Ouvindo… pode falar com " + ((window.BWAssistente ? BWAssistente.nome() : "Assistente") === "Assistente" ? "o assistente" : (window.BWAssistente ? BWAssistente.nome() : "Assistente")) + " (toque no robô para parar)"));
     try {
       var txt;
       if (SR && !srRuim) {
@@ -788,7 +793,7 @@
       if (a.tipo === "consulta") { a.feito = true; a.resposta = consultar(a); falas.push(a.resposta); histR.push("(respondi com os dados dele)"); }
       if (a.tipo === "resumo_dia") { a.feito = true; a.resposta = a.dataEsp ? consultar({ fonte: "agenda", periodo: "hoje", _ini: a.dataEsp }) : resumoDia(a.dia); falas.push(a.resposta); histR.push("(contei como está o dia dele)"); }
       if (a.tipo === "responder") { a.feito = true; a.texto = a.texto || r.resposta || ""; falas.push(a.texto); histR.push(a.texto); }
-      if (a.tipo === "fim") { a.feito = true; a.texto = r.resposta || ["Valeu! Até mais.", "Tchau, até a próxima!", "Falou! Qualquer coisa é só chamar o Tio Cláudio."][Math.floor(Math.random() * 3)]; falas.push(a.texto); encerra = true; }
+      if (a.tipo === "fim") { a.feito = true; a.texto = r.resposta || ["Valeu! Até mais.", "Tchau, até a próxima!", "Falou! Qualquer coisa é só me chamar."][Math.floor(Math.random() * 3)]; falas.push(a.texto); encerra = true; }
       if (a.tipo === "nada") { falas.push(r.resposta || "Não entendi. Pode repetir?"); histR.push(r.resposta || "Não entendi."); }
       if (a.tipo === "ajustar") { a.feito = true; a.texto = ajustarUltimo(a); falas.push(a.texto); histR.push(a.texto); }
     });
@@ -887,7 +892,7 @@
   }
   function mudanca(e) {
     var el = e.target;
-    if (el.dataset.u) { uiSet(el.dataset.u, el.type === "checkbox" ? el.checked : el.dataset.u === "velocidade" ? +el.value : el.value); if (/vozNome|tom|velocidade/.test(el.dataset.u)) falar("Opa! Aqui é o Tio Cláudio."); return; }
+    if (el.dataset.u) { uiSet(el.dataset.u, el.type === "checkbox" ? el.checked : el.dataset.u === "velocidade" ? +el.value : el.value); if (/vozNome|tom|velocidade/.test(el.dataset.u)) falar("Opa! Aqui é " + (window.BWAssistente ? BWAssistente.quem() : "o seu assistente virtual") + "."); return; }
     if (el.dataset.k == null) return;
     var a = ESTADO.acoes[+el.dataset.i]; if (!a) return;
     var v = el.value; if (el.dataset.k === "valor") v = num(v);
@@ -895,6 +900,6 @@
     if (el.dataset.k === "tipo") { if (v === "tarefa" && !a.titulo) a.titulo = a.descricao; if (v === "conta_pagar" && !a.vencimento) a.vencimento = a.data || hoje(); if (v === "gasto_casa" && CAT_CASA.indexOf(a.categoria) < 0) a.categoria = categoria(a.descricao); if (!a.data) a.data = hoje(); desenharAcoes(); }
   }
 
-  window.BWAgente = { melhorar: melhorar, abrir: function (escutar) { montar(); abrir(!!escutar); }, processar: function (t) { montar(); abrir(false); return processar(t); }, entenderLocal: entenderLocal, entender: entender, voz: function () { var v = melhorVoz(); return v ? { nome: v.name, homem: ehHomem(v), tom: tomDe(v) } : null; }, consultar: consultar, executar: executar, estado: ESTADO };
+  window.BWAgente = { melhorar: melhorar, abrir: function (escutar) { montar(); abrir(!!escutar); }, processar: function (t) { montar(); abrir(false); return processar(t); }, entenderLocal: entenderLocal, entender: entender, voz: function () { var v = melhorVoz(); return v ? { nome: v.name, homem: ehHomem(v), tom: tomDe(v), obj: v, velocidade: +ui("velocidade", 1.05) || 1.05 } : null; }, consultar: consultar, executar: executar, estado: ESTADO };
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", montar); else montar();
 })();

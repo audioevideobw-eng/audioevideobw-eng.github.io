@@ -730,9 +730,43 @@ Armadilha: classe de ESTADO não serve para destacar botão. `＋ IMPORTAR` usav
   reduzida errou o botão e NADA foi publicado; sempre recarregar e conferir o SHA-256 do código no ar.
 
 ## Tutoriais com demonstração animada (25/11/2026)
-- Catálogo em `assets/tutoriais.js` (TUT): cada passo tem `tela {onde, itens, alvo, campo?}`; o player desenha a janela genérica, digita o campo
-  letra a letra, move o cursor até `itens[alvo]` (posição medida com getBoundingClientRect relativa ao conteúdo) e acende o toque.
+- Catálogo em `assets/tutoriais.js` (TUT): cada passo tem `tela {app: bw|site|sistema, titulo, topo, aba, itens, alvo, campo, abre: aba|topo|item, folha}`;
+  o player desenha um CELULAR (iPhone com ilha e barrinha / Android com furo e ◁ ○ ▢; escolha em ui_tut_aparelho) e roda a sequência:
+  tocar o campo → teclado sobe → digita; tocar MAIS/⋯/item → folha sobe → dedo ARRASTA a lista (translateY no .tf-rolo, dedo junto) → toca o alvo.
+  Posição do dedo = getBoundingClientRect do alvo relativo à .tf-tela; cada animação tem um `run` e para se outro passo começar.
   Tutorial novo = um item; `conectar:"cf"|"gemini"` embute o painel de verdade (`<div data-mia>`); `video` aceita gravação MP4 nossa.
 - Tela de site de terceiros = desenho GENÉRICO com o texto do botão (sem logo nem cópia da interface); passos conferidos na documentação oficial do dia.
 - Teste: `docs/testes/teste_tutoriais.py` (funções simuladas; sessão simulada por `ctx.add_init_script` — a ÚLTIMA adicionada vale; limpar
   localStorage só uma vez com flag em sessionStorage, senão cada navegação apaga a chave).
+
+## Tutoriais com as TELAS DE VERDADE + narração (25/11/2026)
+- Dono: "faça o tutorial fiel às páginas, tudo tem que ser como o real" + "narração dinâmica com fundo musical baixo" + "sempre dizer: Olá, sou seu assistente virtual, vou te ensinar a…".
+- **Fotos**: `python3 docs/tutoriais/capturar.py [id …]` abre cada página em 390 × 766 (UA iPhone, toque), logada numa conta de EXEMPLO (stub do supabase com sessão;
+  dados = SEED da Produtora Exemplo do manual; `_sem_sri` tira o selo de integridade só no servidor local) e segue o ROTEIRO de cada passo
+  (`ROTEIROS[id][índice do passo]`): `toque`/`rolar`/`digita` fotografam ANTES da ação e guardam o retângulo do alvo (`r` em px de 390);
+  `abrir`/`clique`/`arquivo`/`js`/`espera`/`esperasel`/`clipboard`/`tecla`/`talvez` não fotografam. Sai WEBP em assets/tutoriais + quadros.js
+  (gravado depois de CADA tutorial — se um quebrar, os outros ficam). IAs SIMULADAS na rota (bw-ia-video devolve trechos, bw-ia-imagem uma
+  foto tingida, "testar" conecta); diálogos aceitos sozinhos; takes = assets/reels-exemplos/*.mp4 (nossos).
+- **Revisar** sempre numa folha de contato (todas as fotos de um tutorial com o alvo em vermelho): achou 3 bugs de verdade (botão principal
+  invisível no PRETO E BRANCO em MINHAS IAS; "toque de novo para entrar" não existe no celular — um toque já entra; COLAR sem permissão de
+  área de transferência mostra erro).
+- **Armadilhas**: input com selo SRI + stub = supabase não carrega (página "não logada"); `post_data` de upload binário dá UnicodeDecodeError →
+  `post_data_buffer`; botão só com ícone (Voltar da faixa do editor) tem innerText vazio — usar posição/JS; clique em `<label for=file>` abre
+  o seletor: `expect_file_chooser` e depois `set_input_files`.
+- **Player**: passo sem `tela` usa as fotos (o dedo vai ao centro do retângulo × largura/390; rolar = arraste + a foto sobe 12% e troca com fade;
+  digita = teclado + caixa branca no lugar do campo digitando); passo com `tela` = site de terceiro desenhado + selo TELA ILUSTRATIVA.
+- **Narração**: speechSynthesis com a voz do assistente (`BWAgente.voz()`), texto por frases, emoji/símbolo tirado e PALAVRA EM MAIÚSCULAS
+  escrita normal (algumas vozes soletram); abre com "Olá, sou {BWAssistente.quem()}, e vou te ensinar a {ensina}", conectores entre passos,
+  fecha com "E pronto!". O passo só avança quando a animação E a fala terminam (prazo por frase para voz travada não prender). Só fala depois
+  de um toque (`navigator.userActivation.hasBeenActive`); aberto pelo endereço, o botão 🔈 OUVIR NARRAÇÃO pisca.
+- **Música**: WebAudio na hora (Dó–Sol–Lá m–Fá, 100 BPM: acorde em triângulo, baixo em seno, arpejo e chimbal de ruído), volume 0,055 e 0,022
+  durante a fala; para ao pausar, sair ou terminar. Nada de arquivo de terceiros.
+- Teste: docs/testes/teste_tutoriais.py (speechSynthesis falso grava o que falaria; confere a frase de abertura, o dedo no retângulo real ±3 px,
+  todo passo da Brightway com fotos e as fotos existindo; MEU ASSISTENTE muda o nome no botão do canto e na narração).
+
+## Assistente com nome próprio (25/11/2026)
+- "Tio Cláudio" virou **Assistente**; o nome vem de `BWAssistente` (layout.js: nome(), quem(), avatar(), cor(), visual(), gravar(); ui_assistente
+  no aparelho; evento `bw-assistente` redesenha o botão do canto). Textos fixos dizem "o assistente"; falas do robô usam `quem()`.
+  Visuais ELA/ELE/ROBÔ REDONDO são SVG próprios; o ROBÔ BW (imagem) muda de cor por hue-rotate a partir de 217°. Voz: "auto" segue o visual.
+- Trocar texto em massa: substituir as formas com artigo primeiro ("com o Tio Cláudio" → "com o assistente", "do…", "ao…", "O…") e só no fim o
+  nome solto; depois `grep` no site inteiro (o vigia 7.8n recusa "Tio Cláudio" nas páginas).
