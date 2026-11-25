@@ -1,19 +1,19 @@
 {
- "versao": "1.9.50",
+ "versao": "1.9.51",
  "data": "25/11/2026",
  "pacote": "downloads/BW-Reels-Studio.zip",
- "sha256": "3787a5b7809c39f55acac759373254026b02a76d176416baca98e465e8b2965a",
- "bytes": 46621031,
+ "sha256": "7eb0dd2560c52ed4ae37c529dadab5487dccabcba62d53e8c18057d038f5f56e",
+ "bytes": 48790013,
  "novidades": [
   {
-   "titulo": "Tutoriais com as telas de verdade",
-   "texto": "Cada tutorial mostra as páginas reais da Brightway num celular: o dedo toca no botão certo, a tela rola e o teclado digita. Com narração e fundo musical baixinho.",
+   "titulo": "Tutoriais das ferramentas",
+   "texto": "Novo bloco FERRAMENTAS nos tutoriais: transformar fotos em PDF, juntar vários PDFs, assinar um PDF com o dedo e escrever legenda de post com IA. O último passo mostra o arquivo pronto de verdade.",
    "abrir": "tutoriais"
   },
   {
-   "titulo": "O robô agora é o seu Assistente",
-   "texto": "O Tio Cláudio virou Assistente. Em Configurações → MEU ASSISTENTE você dá o nome que quiser, escolhe o visual (robô, ela, ele), a cor e a voz.",
-   "abrir": "meu-assistente"
+   "titulo": "Exemplos com o resultado real",
+   "texto": "O tutorial de foto com IA agora mostra a foto antes e depois do pedido (cabelo cacheado ruivo), e todos os exemplos seguem as cores da Brightway.",
+   "abrir": "tutoriais"
   }
  ]
 }

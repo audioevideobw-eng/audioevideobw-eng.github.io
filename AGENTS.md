@@ -2776,7 +2776,11 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   verdade gerado pela página (capturar.py: ação "baixa" + quadro_arquivo). Exemplos fictícios da Produtora Exemplo em docs/tutoriais/exemplos/ (gerados por
   docs/tutoriais/gerar_exemplos.py). Dono pediu no meio: fundo marrom dos recibos → azul-marinho da marca (regra 237). 17 tutoriais.
   tutoriais.js v6, quadros.js v3, sw v242. PENTE FINO 237.
+- 25/11/2026 13:00 · Claude (dono: "pode ser agora"): APP BW 1.9.51 — cópia sem internet refeita com o site de hoje (352 arquivos, os 17 tutoriais
+  com as telas reais e os exemplos), tutorial em PDF e novidades (tutoriais das FERRAMENTAS; exemplos com o resultado real). teste-app 0 falhas;
+  pacote e app-versao.json publicados; arquivos copiados para Vídeos\\bw-reels-studio. BW-Setup.exe 1.9.51: falta o dono gerar.
 ## Pendências (dono)
+- [ ] (25/11 13:00) BW-Setup.exe 1.9.51: dois cliques em "5 - GERAR INSTALADOR EXE" (Vídeos\\bw-reels-studio) e avisar o Claude, que traz e publica.
 - [x] (25/11 11:37) BW-Setup.exe 1.9.50 gerado pelo dono e publicado (13,2 MB, versão conferida dentro do .exe; maior pela cópia sem internet com as fotos dos tutoriais).
 - [ ] (25/11) TUTORIAIS + MEU ASSISTENTE: dono abrir um tutorial no celular (som ligado, iPhone sem o silencioso) e dizer se a narração e a música
       ficaram boas; dar um nome ao assistente em MEU ASSISTENTE e conferir o botão do canto e a voz.
