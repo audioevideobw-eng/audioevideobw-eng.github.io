@@ -2756,7 +2756,7 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   (0 falhas × 1280/390) + agente_leitor, pede, layout, ambientes, agente_arrastar, lancamentos, modos, testes; vigia ✅ (7.8n). Manual 75 → 76 p.
   ("Meu assistente"). App BW 1.9.50. layout.js v83, modos.js v11, bw-agente v27, tutoriais.js v4, sw v240. PENTE FINO 234–235.
 ## Pendências (dono)
-- [ ] (25/11) BW-Setup.exe 1.9.50: arquivos já copiados para Vídeos\bw-reels-studio — dono dar dois cliques em "5 - GERAR INSTALADOR EXE" e avisar.
+- [x] (25/11 11:37) BW-Setup.exe 1.9.50 gerado pelo dono e publicado (13,2 MB, versão conferida dentro do .exe; maior pela cópia sem internet com as fotos dos tutoriais).
 - [ ] (25/11) TUTORIAIS + MEU ASSISTENTE: dono abrir um tutorial no celular (som ligado, iPhone sem o silencioso) e dizer se a narração e a música
       ficaram boas; dar um nome ao assistente em MEU ASSISTENTE e conferir o botão do canto e a voz.
 - [ ] (25/11) MINHAS IAS: dono testar conectar uma chave de verdade (ex.: um token novo da Cloudflare dele) em Configurações → MINHAS IAS e gerar
