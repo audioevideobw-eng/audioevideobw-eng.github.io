@@ -8,6 +8,8 @@
   var esc = function (s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return {"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"}[c]; }); };
   var uid = function (p) { return (p || "c") + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); };
   var lim = function (v, a, b) { return Math.max(a, Math.min(b, v)); };
+  /* 25/11: decupagem com IA guardada no aparelho (por id da mídia) — no TOPO porque a biblioteca a lê no 1º desenho (regra 210) */
+  var DEC = (function () { try { return JSON.parse(localStorage.getItem("ui_ve_decup") || "{}") || {}; } catch (e) { return {}; } })();
   /* CAMADAS (22/11): v1, v2, v3… (vídeo/imagem; número maior = mais em cima), tx, tx2… (texto), a1, a2, a3… (som). Camada nova nasce quando
      um take é solto EM CIMA de outro (fam + próximo número livre); camada vazia some sozinha. Altura de cada camada: P.alt[id] (Alt + rodinha). */
   var BASE_TR = {v1: ["VÍDEO", "#7C5CFF"], v2: ["SOBREPOSIÇÃO", "#B14DFF"], tx: ["TEXTO", "#22B8CF"], a1: ["TRILHA", "#12B76A"], a2: ["EFEITOS", "#F5A524"]};
@@ -835,7 +837,7 @@
     var l = Object.keys(MID).map(function (k) { return MID[k]; }).filter(function (m) { return !m.ph && (ABA === "tudo" || m.tipo === ABA); });   /* espaços de modelo não aparecem na biblioteca */
     lib.innerHTML = sonsCasa + (l.length ? l.map(function (m) { var mini = m.tipo === "imagem" ? '<img alt="" src="' + m.url + '">' : m.capa ? '<img alt="" src="' + m.capa + '">' : '<span class="mini" aria-hidden="true">' + (m.tipo === "audio" ? "🎵" : "🎬") + '</span>';
       var f = m.cr && window.BWCriacoes ? BWCriacoes.FERR[m.cr.ferramenta] : null;
-      return '<div class="ve-item' + (m.ruim ? " ruim" : "") + '" role="button" tabindex="0" data-mid="' + esc(m.id) + '" aria-label="Pôr ' + esc(m.nome) + ' na linha do tempo"' + (m.ruim ? ' title="Este arquivo não abre neste navegador"' : "") + (f ? ' style="--cf:' + f.cor + '"' : "") + '>' + mini + (PX[m.id] ? '<b class="selo px" title="Tem proxy: edita leve, exporta com o original">⚡ PROXY ' + PX[m.id].curto + 'p</b>' : "") + (m.ruim ? '<b class="selo ruim">⚠ ' + (m.codec === "hevc" ? "HEVC · NÃO ABRE AQUI" : "NÃO ABRE AQUI") + '</b><button type="button" class="ve-retry" data-retry="' + esc(m.id) + '" title="Tentar abrir de novo" aria-label="Tentar abrir de novo">↻</button>' : "") + (f ? '<b class="selo">' + f.icone + " " + esc(f.curto) + "</b>" : "") + '<span>' + esc(m.nome) + '</span>' + (f ? '<button type="button" class="ed" data-editar="' + esc(m.id) + '" title="Abrir no ' + esc(f.nome) + ' e trocar aqui" aria-label="Editar no ' + esc(f.nome) + '">✎</button>' : "") + '<button type="button" class="x" data-del="' + esc(m.id) + '" aria-label="Tirar ' + esc(m.nome) + ' da biblioteca">✕</button></div>'; }).join("")
+      return '<div class="ve-item' + (m.ruim ? " ruim" : "") + '" role="button" tabindex="0" data-mid="' + esc(m.id) + '" aria-label="Pôr ' + esc(m.nome) + ' na linha do tempo"' + (m.ruim ? ' title="Este arquivo não abre neste navegador"' : "") + (f ? ' style="--cf:' + f.cor + '"' : "") + '>' + mini + (PX[m.id] ? '<b class="selo px" title="Tem proxy: edita leve, exporta com o original">⚡ PROXY ' + PX[m.id].curto + 'p</b>' : "") + (DEC[m.id] ? '<b class="selo dc" title="Decupado pela IA">🎬 ' + DEC[m.id].trechos.length + '</b>' : "") + (m.ruim ? '<b class="selo ruim">⚠ ' + (m.codec === "hevc" ? "HEVC · NÃO ABRE AQUI" : "NÃO ABRE AQUI") + '</b><button type="button" class="ve-retry" data-retry="' + esc(m.id) + '" title="Tentar abrir de novo" aria-label="Tentar abrir de novo">↻</button>' : "") + (f ? '<b class="selo">' + f.icone + " " + esc(f.curto) + "</b>" : "") + '<span>' + esc(m.nome) + '</span>' + (f ? '<button type="button" class="ed" data-editar="' + esc(m.id) + '" title="Abrir no ' + esc(f.nome) + ' e trocar aqui" aria-label="Editar no ' + esc(f.nome) + '">✎</button>' : "") + '<button type="button" class="x" data-del="' + esc(m.id) + '" aria-label="Tirar ' + esc(m.nome) + ' da biblioteca">✕</button></div>'; }).join("")
       : '<p class="ve-nota" style="grid-column:1/-1;margin:0">' + (ABA === "audio" ? "Seus sons importados aparecem aqui." : "Nada aqui ainda. Toque em ＋ IMPORTAR ou em ✨ MINHAS CRIAÇÕES.") + '</p>');
   }
   var ELSUB = "anim", MINI_CV = {};
@@ -2013,12 +2015,12 @@
   function montarCache() {
     if ($("veCache")) return; var lib = $("veLib"); if (!lib) return;
     var d = document.createElement("div"); d.className = "ve-cache"; d.id = "veCache";
-    d.innerHTML = '<div class="ve-linha"><button class="ve-bt" id="veProxyBt" type="button" title="Faz cópias leves (720p) dos vídeos para editar sem pesar — a exportação usa o original">⚡ FAZER PROXY</button><button class="ve-bt" id="veLimparBt" type="button" title="Libera espaço: proxies, análises de pessoa, arquivos fora da linha do tempo">🧹 LIMPAR CACHE</button><button class="ve-bt ic" id="veCfgBt" type="button" title="Onde o projeto, o cache e os arquivos exportados são salvos" aria-label="Configurar pastas e proxy">⚙</button></div>'
+    d.innerHTML = '<div class="ve-linha"><button class="ve-bt" id="veProxyBt" type="button" title="Faz cópias leves (720p) dos vídeos para editar sem pesar — a exportação usa o original">⚡ FAZER PROXY</button><button class="ve-bt" id="veDecupBt" type="button" title="A IA assiste aos takes e marca os melhores trechos (falas, plateia, palco, detalhes)">🎬 DECUPAR COM IA</button><button class="ve-bt" id="veLimparBt" type="button" title="Libera espaço: proxies, análises de pessoa, arquivos fora da linha do tempo">🧹 LIMPAR CACHE</button><button class="ve-bt ic" id="veCfgBt" type="button" title="Onde o projeto, o cache e os arquivos exportados são salvos" aria-label="Configurar pastas e proxy">⚙</button></div>'
       + '<div class="ve-uso" id="veUso" aria-live="polite">Medindo o espaço…</div>'
       + '<label class="ve-px"><input type="checkbox" id="veUsarPx"' + (PXCFG.usar ? " checked" : "") + '> Editar com os proxies (mais leve) <small id="vePxConta"></small></label>'
       + '<label class="ve-px"><input type="checkbox" id="vePxAuto"' + (PXCFG.auto !== false ? " checked" : "") + '> Fazer a cópia leve sozinho ao importar vídeo pesado (4K, HEVC)</label>';
     lib.parentNode.insertBefore(d, lib.nextSibling);
-    $("veProxyBt").onclick = abrirProxy; $("veLimparBt").onclick = abrirLimpar; $("veCfgBt").onclick = abrirCfg;
+    $("veProxyBt").onclick = abrirProxy; $("veDecupBt").onclick = function () { abrirDecup(); }; $("veLimparBt").onclick = abrirLimpar; $("veCfgBt").onclick = abrirCfg;
     $("vePxAuto").onchange = function () { PXCFG.auto = this.checked; gravarPxCfg(); if (this.checked) proxyAuto(); };
     $("veUsarPx").onchange = function () { PXCFG.usar = this.checked; gravarPxCfg(); recarregarEls(); aviso(PXCFG.usar ? "⚡ Edição com proxy: os vídeos leves entram na prévia (a exportação usa o original)." : "Edição com os arquivos originais (mais pesado)."); medir(); };
     medir(); setInterval(function () { if (!document.hidden && $("veUso") && $("veUso").getClientRects().length) medir(); }, 6000);
@@ -2130,6 +2132,106 @@
       fecharJan(j); desenharLib(); desenhar(); var depois = 0; try { depois = (await navigator.storage.estimate()).usage || 0; } catch (e) {}
       aviso("🧹 Cache limpo" + (antes > depois ? " · " + mb(antes - depois) + " liberados" : "") + "."); medir(); };
   }
+
+  /* ---------- 🎬 DECUPAR COM IA (25/11/2026; dono: "Gemini fazendo a decupagem dos takes") ----------
+     A IA (Gemini, pela Edge Function bw-ia-video) assiste a uma CÓPIA LEVE de cada take e devolve os trechos: fala, plateia, palco, detalhe,
+     movimento ou ruim, com nota 1–5. Este arquivo NÃO fala com a internet: quem envia é assets/bw-decupar.js, e só depois do "sim" da pessoa.
+     O resultado fica só no aparelho (ui_ve_decup, por id da mídia). ＋ PÔR = o trecho entra na agulha já aparado; MONTAR = os melhores em fila. */
+  var DC_TIPOS = { fala: ["🗣", "Fala"], plateia: ["👏", "Plateia"], palco: ["🎤", "Palco"], detalhe: ["✨", "Detalhe"], movimento: ["🎥", "Movimento"], ruim: ["⚠", "Ruim"] };
+  var DCF = { nota: 4, tipo: "", ruins: false };
+  function gravarDec() { var ks = Object.keys(DEC); if (ks.length > 200) ks.sort(function (a, b) { return (DEC[a].quando || 0) - (DEC[b].quando || 0); }).slice(0, ks.length - 200).forEach(function (k) { delete DEC[k]; });
+    try { localStorage.setItem("ui_ve_decup", JSON.stringify(DEC)); } catch (e) {} }
+  function videosDecup() { return Object.keys(MID).map(function (k) { return MID[k]; }).filter(function (m) { return m && m.tipo === "video" && !m.ph && !m.ruim && m.blob; }); }
+  function abrirDecup() {
+    var vs = videosDecup(), feitos = vs.filter(function (m) { return DEC[m.id]; }).length;
+    if (!vs.length) { aviso("Importe os takes de vídeo antes de decupar", true); return; }
+    var ctx = ""; try { ctx = localStorage.getItem("ui_ve_decup_ctx") || ""; } catch (e) {}
+    var j = janela("veJanDecup", "DECUPAR COM IA", '<p class="ve-nota" style="margin:0 0 8px">A IA do Google (Gemini) <b>assiste</b> a cada take e marca os trechos bons: falas, plateia, palco, detalhes e movimentos — e os ruins (tremido, fora de foco). Vai só uma <b>cópia leve</b> (360p) de cada take, que não fica guardada.</p>'
+      + (feitos ? '<div class="ve-linha"><button class="ve-bt pri" type="button" id="veDcVer">📋 VER A DECUPAGEM (' + feitos + " take" + (feitos > 1 ? "s" : "") + ')</button></div>' : "")
+      + '<label class="ve-nota" style="display:block;margin:8px 0 4px">Que evento é? (ajuda a IA; opcional)</label><input class="ve-sel" id="veDcCtx" maxlength="200" style="width:100%" placeholder="ex.: convenção de vendas, palestra e premiação" value="' + esc(ctx) + '">'
+      + '<div class="ve-linha" style="margin-top:10px"><button class="ve-bt" type="button" id="veDcTodos">MARCAR TODOS</button><button class="ve-bt" type="button" id="veDcSem">SÓ OS QUE FALTAM</button></div>'
+      + '<div class="ve-dclista" id="veDcLista">' + vs.map(function (m) { var d = DEC[m.id];
+          return '<label class="ve-pxit"><input type="checkbox" value="' + esc(m.id) + '"' + (!d ? " checked" : "") + '>' + (m.capa ? '<img alt="" src="' + m.capa + '">' : '<span class="mini">🎬</span>') + '<span><b>' + esc(m.nome) + '</b><small>' + (m.dur ? fmtT(m.dur) : "") + (d ? " · ✓ decupado: " + d.trechos.length + " trechos" : "") + '</small></span></label>'; }).join("") + '</div>'
+      + '<p class="ve-nota" id="veDcResumo"></p><div class="ve-linha"><button class="ve-bt pri" type="button" id="veDcIr">🎬 DECUPAR</button><button class="ve-bt" type="button" data-fechar>CANCELAR</button></div>');
+    function resumo() { var sel = [].slice.call(j.querySelectorAll("#veDcLista input:checked")), seg = sel.reduce(function (t, i) { var m = MID[i.value]; return t + (m && m.dur || 0); }, 0);
+      $("veDcResumo").textContent = sel.length ? sel.length + " take" + (sel.length > 1 ? "s" : "") + " · " + fmtT(seg) + " de vídeo · conta 1 análise por take no limite do dia" : "Marque os takes";
+      $("veDcIr").disabled = !sel.length; $("veDcIr").textContent = "🎬 DECUPAR" + (sel.length ? " (" + sel.length + ")" : ""); }
+    j.addEventListener("change", resumo); resumo();
+    $("veDcTodos").onclick = function () { j.querySelectorAll("#veDcLista input").forEach(function (i) { i.checked = true; }); resumo(); };
+    $("veDcSem").onclick = function () { j.querySelectorAll("#veDcLista input").forEach(function (i) { i.checked = !DEC[i.value]; }); resumo(); };
+    if ($("veDcVer")) $("veDcVer").onclick = function () { fecharJan(j); verDecup(); };
+    $("veDcIr").onclick = function () {
+      var ids = [].slice.call(j.querySelectorAll("#veDcLista input:checked")).map(function (i) { return i.value; }), cx = ($("veDcCtx").value || "").trim();
+      try { localStorage.setItem("ui_ve_decup_ctx", cx); } catch (e) {}
+      if (!window.BWDecupar) { aviso("A decupagem não carregou. Recarregue a página.", true); return; }
+      if (!confirm("Vou mandar uma cópia leve (360p, com som) de " + ids.length + " take" + (ids.length > 1 ? "s" : "") + " para a IA do Google (Gemini) assistir.\n\nA cópia não fica guardada na Brightway. Use só com vídeos que você pode compartilhar com o Google.\n\nContinuar?")) return;
+      fecharJan(j); rodarDecup(ids, cx);
+    };
+  }
+  var DC_RODANDO = false;
+  async function rodarDecup(ids, cx) {
+    if (DC_RODANDO) { aviso("Já tem uma decupagem rodando", true); return; } DC_RODANDO = true;
+    var parar = false, falhas = [], ok = 0;
+    var j = janela("veJanDecupRun", "DECUPANDO", '<div class="ve-cp-nome" id="veDcNome"></div><div class="ve-barra"><i id="veDcBarra" style="width:0%"></i></div><p class="ve-nota" id="veDcEtapa">Começando…</p><div class="ve-linha"><button class="ve-bt" type="button" id="veDcParar">PARAR</button></div>');
+    $("veDcParar").onclick = function () { parar = true; $("veDcEtapa").textContent = "Parando depois deste take…"; };
+    try {
+      for (var i = 0; i < ids.length && !parar; i++) {
+        var m = MID[ids[i]]; if (!m) continue;
+        if ($("veDcNome")) $("veDcNome").textContent = (i + 1) + " de " + ids.length + " · " + m.nome;
+        var r = await BWDecupar.analisar(m.blob, { dur: m.dur, ctx: cx, cancelar: function () { return parar; }, aoProgredir: function (x) {
+          var b = $("veDcBarra"), e = $("veDcEtapa"); if (b) b.style.width = ((i + (x.pct || 0) / 100) / ids.length * 100).toFixed(1) + "%"; if (e && !parar) e.textContent = x.etapa + "…"; } });
+        if (r && r.trechos) { DEC[m.id] = { nome: m.nome, dur: m.dur, resumo: r.resumo, trechos: r.trechos, modelo: r.modelo, quando: Date.now() }; gravarDec(); ok++; }
+        else if (r && r.erro === "cancelado") break;
+        else { falhas.push(m.nome + ": " + BWDecupar.msg(r && r.erro)); if (r && /sem_login|sem_chave|limite|rede/.test(r.erro)) break; }
+      }
+    } finally { DC_RODANDO = false; fecharJan(j); }
+    desenharLib();
+    if (falhas.length && !ok) { aviso(falhas[0].slice(0, 85), true); return; }
+    if (ok) { aviso("🎬 " + ok + " take" + (ok > 1 ? "s" : "") + " decupado" + (ok > 1 ? "s" : "") + (falhas.length ? " · " + falhas.length + " não deu" : "")); verDecup(falhas); }
+  }
+  function trechosFiltrados() { var l = [];
+    videosDecup().forEach(function (m) { var d = DEC[m.id]; if (!d) return; d.trechos.forEach(function (t, k) {
+      if (!DCF.ruins && t.tipo === "ruim") return; if (t.nota < DCF.nota && !(DCF.ruins && t.tipo === "ruim")) return; if (DCF.tipo && t.tipo !== DCF.tipo) return;
+      l.push({ m: m, t: t, k: k }); }); });
+    return l; }
+  function verDecup(falhas) {
+    var nT = videosDecup().filter(function (m) { return DEC[m.id]; });
+    if (!nT.length) { abrirDecup(); return; }
+    var j = janela("veJanDecupVer", "DECUPAGEM", '<div class="ve-linha ve-dcfiltro" id="veDcFiltro"></div><div id="veDcCorpo"></div>'
+      + '<div class="ve-linha" style="margin-top:10px"><button class="ve-bt pri" type="button" id="veDcMontar">＋ MONTAR COM OS MELHORES</button><button class="ve-bt" type="button" id="veDcCopiar">⧉ COPIAR A LISTA</button><button class="ve-bt" type="button" id="veDcMais">🎬 DECUPAR MAIS</button></div>'
+      + (falhas && falhas.length ? '<p class="ve-nota">Não deu: ' + falhas.map(esc).join(" · ") + '</p>' : ""));
+    function filtro() {
+      $("veDcFiltro").innerHTML = [5, 4, 3, 1].map(function (n) { return '<button type="button" class="ve-bt' + (DCF.nota === n ? " on" : "") + '" data-nota="' + n + '">' + (n === 1 ? "TODAS AS NOTAS" : "★ " + n + (n < 5 ? "+" : "")) + "</button>"; }).join("")
+        + '<button type="button" class="ve-bt' + (!DCF.tipo ? " on" : "") + '" data-tipo="">TODOS</button>' + Object.keys(DC_TIPOS).filter(function (k) { return k !== "ruim"; }).map(function (k) { return '<button type="button" class="ve-bt' + (DCF.tipo === k ? " on" : "") + '" data-tipo="' + k + '">' + DC_TIPOS[k][0] + " " + DC_TIPOS[k][1].toUpperCase() + "</button>"; }).join("")
+        + '<label class="ve-px" style="margin:0"><input type="checkbox" id="veDcRuins"' + (DCF.ruins ? " checked" : "") + "> mostrar os ruins</label>";
+      var l = trechosFiltrados(), porTake = {};
+      l.forEach(function (x) { (porTake[x.m.id] = porTake[x.m.id] || []).push(x); });
+      $("veDcCorpo").innerHTML = !l.length ? '<p class="ve-nota">Nenhum trecho com esse filtro.</p>' : Object.keys(porTake).map(function (mid) { var m = MID[mid], d = DEC[mid];
+        return '<div class="ve-dctake"><div class="ve-dccab">' + (m.capa ? '<img alt="" src="' + m.capa + '">' : "") + '<span><b>' + esc(m.nome) + '</b><small>' + esc(d.resumo || "") + '</small></span></div>'
+          + porTake[mid].map(function (x) { var t = x.t, tp = DC_TIPOS[t.tipo] || ["•", t.tipo];
+            return '<div class="ve-dct' + (t.tipo === "ruim" ? " ruim" : "") + '"><span class="tm">' + fmtT(t.ini) + " – " + fmtT(t.fim) + '</span><span class="tp" title="' + esc(tp[1]) + '">' + tp[0] + '</span><span class="tx"><span class="nt">' + "★★★★★".slice(0, t.nota) + '<i>' + "★★★★★".slice(t.nota) + '</i></span> ' + esc(t.desc || tp[1]) + (t.fala ? '<em>“' + esc(t.fala) + '”</em>' : "") + '</span><button type="button" class="ve-bt ic" data-por="' + esc(mid) + '|' + x.k + '" title="Pôr este trecho na agulha" aria-label="Pôr este trecho na linha do tempo">＋</button></div>'; }).join("") + "</div>"; }).join("");
+      $("veDcMontar").textContent = "＋ MONTAR COM OS MELHORES (" + l.filter(function (x) { return x.t.tipo !== "ruim"; }).length + ")";
+    }
+    j.addEventListener("click", function (e) { var b = e.target.closest("[data-nota],[data-tipo],[data-por]"); if (!b) return;
+      if (b.dataset.nota) { DCF.nota = +b.dataset.nota; filtro(); }
+      else if (b.dataset.tipo != null && !b.dataset.por) { DCF.tipo = b.dataset.tipo; filtro(); }
+      else if (b.dataset.por) { var p = b.dataset.por.split("|"), d = DEC[p[0]], t = d && d.trechos[+p[1]]; if (t) { var c = porTrecho(MID[p[0]], t, T); if (c) { T = c.ini + c.dur; tudo(); aviso("＋ Trecho de " + fmtT(c.dur) + " na agulha"); } } } });
+    j.addEventListener("change", function (e) { if (e.target.id === "veDcRuins") { DCF.ruins = e.target.checked; filtro(); } });
+    $("veDcMontar").onclick = function () { var l = trechosFiltrados().filter(function (x) { return x.t.tipo !== "ruim"; }); if (!l.length) { aviso("Nenhum trecho para montar", true); return; }
+      var em = fimDaTrilha("v1"), n = 0; l.forEach(function (x) { var c = porTrecho(x.m, x.t, em, "v1"); if (c) { em = c.ini + c.dur; n++; } });
+      fecharJan(j); T = em; tudo(); aviso("＋ " + n + " trechos montados em fila (" + fmtT(em) + ")"); };
+    $("veDcCopiar").onclick = function () { var txt = videosDecup().filter(function (m) { return DEC[m.id]; }).map(function (m) { var d = DEC[m.id];
+        return m.nome + (d.resumo ? " — " + d.resumo : "") + "\n" + d.trechos.map(function (t) { return "  " + fmtT(t.ini) + "–" + fmtT(t.fim) + "  [" + (DC_TIPOS[t.tipo] || ["", t.tipo])[1] + " ★" + t.nota + "] " + (t.desc || "") + (t.fala ? ' "' + t.fala + '"' : ""); }).join("\n"); }).join("\n\n");
+      try { navigator.clipboard.writeText(txt).then(function () { aviso("⧉ Lista copiada"); }, function () { aviso("Não deu para copiar", true); }); } catch (e) { aviso("Não deu para copiar", true); } };
+    $("veDcMais").onclick = function () { fecharJan(j); abrirDecup(); };
+    filtro();
+  }
+  /* um trecho da decupagem vira clipe JÁ APARADO (corte = início do trecho) — na camada de vídeo livre, sem cobrir ninguém */
+  function porTrecho(m, t, em, trilha) { if (!m || !t) return null;
+    var ini = Math.max(0, Math.min(t.ini, (m.dur || t.fim) - 0.2)), dur = Math.max(0.3, Math.min(t.fim, m.dur || t.fim) - ini);
+    var c = {id: uid(), trilha: trilha || "v1", tipo: "video", mid: m.id, ini: Math.max(0, Math.round((em || 0) * 20) / 20), dur: Math.round(dur * 100) / 100, corte: Math.round(ini * 100) / 100, vel: 1, vol: 100, op: 100, esc: 100, x: 0, y: 0, fin: 0, fout: 0, encaixe: "cobrir", decup: t.tipo};
+    if (!livreEm(c.trilha, c.ini, c.dur, null)) c.trilha = trilhaTopo(fam(c.trilha), c.ini, c.dur);
+    P.clips.push(c); SEL = c.id; return c; }
 
   /* ---------- ⚙ PASTAS E PROXY ---------- */
   function abrirCfg() {
@@ -2284,7 +2386,7 @@
    ["addClip", function (f) { addClip = f; }, function () { return addClip; }], ["addTexto", function (f) { addTexto = f; }, function () { return addTexto; }]].forEach(function (q) {
     var orig = q[2](); q[1](function () { gravarHist(); var r = orig.apply(this, arguments); gravarHist(); return r; }); });
   window.addEventListener("bw-cor-lut", function () { if (!TOCANDO) desenhar(); });
-  window.__video = {altBase: function () { var usadas = trilhas().filter(function (id) { return P.clips.some(function (c) { return c.trilha === id; }); }); return (usadas.length ? usadas : ["v1"]).reduce(function (s, id) { var a = P.alt && P.alt[id]; return s + (a ? lim(a, ALT_MIN, 160) : APP ? (fam(id) === "v" ? 48 : 30) : 52) + 4; }, 0); }, escalaAlt: function (x) { if (x === undefined) return ESC_ALT; x = Math.max(0.4, Math.min(2.2, +x || 1)); if (Math.abs(x - ESC_ALT) < 0.01) return ESC_ALT; ESC_ALT = x; desenharTL(); return ESC_ALT; }, trecho: function () { return trecho(); }, marcarES: marcarES, limparES: limparES, corAvancada: function (c) { corAvancada(c || sel()); }, NIT: NIT, GPU: GPU, gpuLer: gpuLer, gpuHtml: function () { return gpuHtml(); }, PX: PX, PASTAS: PASTAS, opDe: function () { return opDe(); }, EXP: EXP, abrirExportar: function () { abrirExportar(); }, exportar: function (o) { exportar(o); }, filaProxy: function (a, b) { return filaProxy(a, b); }, medir: function () { return medir(); }, urlDe: function (m) { return urlDe(m); }, tamReal: function () { return tamReal(); }, tamanhoReal: tamanhoReal, porMidia: porMidia, EL: EL, abrirVideo: abrirVideo, codecDe: codecDe, tudo: function () { tudo(); }, desenharLib: desenharLib, guardarJa: function () { return tx("estado", "readwrite", function (s) { return s.put({id: "atual", p: JSON.parse(JSON.stringify(P))}); }); },
+  window.__video = {DEC: function () { return DEC; }, verDecup: function () { verDecup(); }, altBase: function () { var usadas = trilhas().filter(function (id) { return P.clips.some(function (c) { return c.trilha === id; }); }); return (usadas.length ? usadas : ["v1"]).reduce(function (s, id) { var a = P.alt && P.alt[id]; return s + (a ? lim(a, ALT_MIN, 160) : APP ? (fam(id) === "v" ? 48 : 30) : 52) + 4; }, 0); }, escalaAlt: function (x) { if (x === undefined) return ESC_ALT; x = Math.max(0.4, Math.min(2.2, +x || 1)); if (Math.abs(x - ESC_ALT) < 0.01) return ESC_ALT; ESC_ALT = x; desenharTL(); return ESC_ALT; }, trecho: function () { return trecho(); }, marcarES: marcarES, limparES: limparES, corAvancada: function (c) { corAvancada(c || sel()); }, NIT: NIT, GPU: GPU, gpuLer: gpuLer, gpuHtml: function () { return gpuHtml(); }, PX: PX, PASTAS: PASTAS, opDe: function () { return opDe(); }, EXP: EXP, abrirExportar: function () { abrirExportar(); }, exportar: function (o) { exportar(o); }, filaProxy: function (a, b) { return filaProxy(a, b); }, medir: function () { return medir(); }, urlDe: function (m) { return urlDe(m); }, tamReal: function () { return tamReal(); }, tamanhoReal: tamanhoReal, porMidia: porMidia, EL: EL, abrirVideo: abrirVideo, codecDe: codecDe, tudo: function () { tudo(); }, desenharLib: desenharLib, guardarJa: function () { return tx("estado", "readwrite", function (s) { return s.put({id: "atual", p: JSON.parse(JSON.stringify(P))}); }); },
     trocarProjeto: function (np) { parar(); Object.keys(EL).forEach(soltarEl); P = np; SEL = null; T = 0; formato(); desenharLib(); tudo(); },
     backup: function () { return tx("estado", "readwrite", function (s) { return s.put({id: "anterior", p: JSON.parse(JSON.stringify(P))}); }); },
     anterior: function () { return new Promise(function (ok) { db().then(function (d) { var q = d.transaction("estado").objectStore("estado").get("anterior"); q.onsuccess = function () { ok(q.result && q.result.p); }; q.onerror = function () { ok(null); }; }); }); },

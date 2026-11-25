@@ -23,7 +23,8 @@ def rota(r):
     if "127.0.0.1" in u or u.startswith(("blob:", "data:", "about:")): return r.continue_()
     if "supabase-js" in u: return r.fulfill(body=STUB, content_type="application/javascript")
     if "fonts.g" in u: return r.fulfill(body="", content_type="text/css")   # fontes do visual da plataforma (brightway.css), não do editor
-    FORA.append(u); return r.abort()
+    if "/storage/v1/object/public/trends/amostras/" not in u: FORA.append(u)   # 24/11: fotos de AMOSTRA das prévias vivas (só leitura, regra 224)
+    return r.abort()
 falhas = []
 def ok(c, m):
     print(("  ✓ " if c else "  ✗ ") + m)

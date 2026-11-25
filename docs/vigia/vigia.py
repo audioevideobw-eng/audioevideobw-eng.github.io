@@ -297,6 +297,15 @@ if os.path.exists("assets/personagens-prontos.js") and re.search(r"fetch\(|XMLHt
 if os.path.exists("assets/bw-personagens.js") and re.search(r"fetch\(|XMLHttpRequest|supabase", ler("assets/bw-personagens.js")): problemas.append("assets/bw-personagens.js: a biblioteca de personagens não fala com a internet")
 # 24/11: a única exceção é LER as fotos de amostra das prévias vivas (bucket público trends/amostras/, só imagem)
 if os.path.exists("assets/video-editor.js") and re.search(r"fetch\(|XMLHttpRequest|supabase\.(?!co/storage/v1/object/public/trends/amostras/)|BWSync\.(?!cliente)|\.upload\(|https?://(?!zdtnetplvdonogmdvarx\.supabase\.co/storage/v1/object/public/trends/amostras/)", ler("assets/video-editor.js")): problemas.append("assets/video-editor.js: o editor de vídeo não envia nada (sem fetch, upload, conta nem endereço de fora)")
+
+# 25/11: DECUPAGEM COM IA — a única saída do editor de vídeo para a internet é assets/bw-decupar.js → Edge Function bw-ia-video (Gemini),
+# só depois do confirm() no editor; nada gravado na conta nem no Storage.
+if os.path.exists("assets/bw-decupar.js"):
+    _dc = ler("assets/bw-decupar.js")
+    _urls = set(re.findall(r"https?://[^\s\"'`]+", _dc))
+    if any("functions/v1/bw-ia-video" not in u for u in _urls): problemas.append(f"assets/bw-decupar.js: só pode falar com a Edge Function bw-ia-video ({_urls})")
+    if re.search(r"\.storage|user_data|\.upload\(|BWSync\.(?!cliente)|antesDeSalvar|localStorage", _dc): problemas.append("assets/bw-decupar.js: não pode guardar nada (conta, Storage ou aparelho) — quem guarda o resultado é o editor")
+    if "confirm(" not in ler("assets/video-editor.js") or "BWDecupar.analisar" not in ler("assets/video-editor.js"): problemas.append("assets/video-editor.js: a decupagem precisa do confirm() antes de chamar BWDecupar.analisar")
 if os.path.exists("assets/bw-proxy.js") and re.search(r"fetch\(|XMLHttpRequest|supabase\.|BWSync\.|\.upload\(|https?://", ler("assets/bw-proxy.js")): problemas.append("assets/bw-proxy.js: o proxy é feito no aparelho e não pode enviar nada (PENTE FINO 182)")
 if os.path.exists("video.html") and "assets/bw-proxy.js" not in ler("video.html"): problemas.append("video.html: precisa carregar assets/bw-proxy.js (FAZER PROXY, PENTE FINO 182)")
 # TELAS EM MOVIMENTO (20/11): fotos, vídeos e música ficam no aparelho — motor e editor sem rede, conta ou envio

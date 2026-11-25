@@ -280,6 +280,17 @@
 .ve-copia-t{display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid rgba(245,241,234,.1)}.ve-copia-t b{flex:1;letter-spacing:.06em}.ve-copia-t span{color:rgba(245,241,234,.7)}
 .ve-copia-t .ve-bt{min-height:30px;width:30px;padding:0}
 .ve-copia-corpo{padding:10px 12px}.ve-copia.min .ve-copia-corpo{display:none}
+.ve-item .selo.dc{left:auto;right:4px;top:4px;color:#FFB547;font-weight:800}
+.ve-dclista{display:grid;gap:6px;margin:10px 0}
+.ve-barra{height:8px;border-radius:6px;background:rgba(245,241,234,.1);overflow:hidden;margin:6px 0}.ve-barra i{display:block;height:100%;background:#7C5CFF;transition:width .3s}
+.ve-dcfiltro{flex-wrap:wrap;gap:6px}.ve-dcfiltro .ve-bt{min-height:32px;padding:4px 10px;font-size:11px}
+.ve-dctake{margin:12px 0;border:1px solid rgba(245,241,234,.1);border-radius:12px;overflow:hidden}
+.ve-dccab{display:grid;grid-template-columns:auto minmax(0,1fr);gap:9px;align-items:center;padding:8px;background:rgba(255,255,255,.04)}
+.ve-dccab img{width:64px;height:38px;object-fit:cover;border-radius:7px}.ve-dccab b{display:block;font:700 12px Inter,sans-serif;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ve-dccab small{display:block;font:500 11px/1.35 Inter,sans-serif;color:rgba(245,241,234,.65)}
+.ve-dct{display:grid;grid-template-columns:auto auto minmax(0,1fr) auto;gap:8px;align-items:center;padding:7px 8px;border-top:1px solid rgba(245,241,234,.06);font:500 12px/1.35 Inter,sans-serif}
+.ve-dct.ruim{opacity:.6}.ve-dct .tm{font:600 11px ui-monospace,monospace;color:#8d95a3;white-space:nowrap}.ve-dct .tp{font-size:15px}
+.ve-dct .nt{color:#FFB547;letter-spacing:-1px}.ve-dct .nt i{color:rgba(245,241,234,.18);font-style:normal}.ve-dct em{display:block;color:#cfd5df;font-style:italic;margin-top:2px}
+@media(max-width:480px){.ve-dct{grid-template-columns:auto minmax(0,1fr) auto}.ve-dct .tm{grid-column:1/-1}}
 .ve-cp-nome{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:6px}
 .ve-cp-barra{height:12px;border-radius:7px;background:rgba(255,255,255,.08);overflow:hidden}.ve-cp-barra i{display:block;height:100%;width:0;background:linear-gradient(90deg,#7C5CFF,#3ECF8E);transition:width .25s linear}
 .ve-cp-barra.total{height:8px}.ve-cp-barra.total i{background:#3ECF8E}
@@ -390,11 +401,12 @@ canvas.vv.grande{display:block;width:100%;height:auto;border-radius:10px;margin:
 <script src="assets/bw-rastreio.js?v=1"></script>
 <script src="assets/ve-app.js?v=17"></script>
 <script src="assets/reels-celular.js?v=6"></script>
-<script src="assets/bw-proxy.js?v=3"></script>
+<script src="assets/bw-proxy.js?v=4"></script>
+<script src="assets/bw-decupar.js?v=1"></script>
 <script src="assets/telas-motor.js?v=2"></script>
 <script src="assets/convite-anim.js?v=4"></script>
 <script src="assets/ve-motions.js?v=2"></script>
-<script src="assets/video-editor.js?v=39"></script>
+<script src="assets/video-editor.js?v=40"></script>
 <script src="assets/ve-modelos.js?v=3"></script>
 <script src="assets/bw-controle.js?v=1"></script>
 </body>

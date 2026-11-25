@@ -1,21 +1,21 @@
 {
- "versao": "1.9.47",
+ "versao": "1.9.48",
  "data": "25/11/2026",
  "pacote": "downloads/BW-Reels-Studio.zip",
- "sha256": "80859454cfb5936fbe08bd303a2003d56a3d8fafeb9656e0a00eb91e1c3d4927",
- "bytes": 41923504,
+ "sha256": "15e3094ab2eb2d626057981f1fd622d3396b18f3966778f2c40201d8ced46df7",
+ "bytes": 41931105,
  "novidades": [
   {
-   "titulo": "Conferência do vídeo pronto",
-   "texto": "Todo vídeo que o app gera é conferido sozinho no fim: texto cortado ou fora da tela, letra pequena, pouco contraste, texto na área dos botões do Reels, imagem parada, tela preta e som mudo, baixo ou estourando."
+   "titulo": "Decupagem com IA",
+   "texto": "No editor de vídeo, toque em 🎬 DECUPAR COM IA: a IA do Google assiste aos takes e marca falas, plateia, palco, detalhes e os trechos ruins, com nota de 1 a 5."
   },
   {
-   "titulo": "Aviso com o resultado",
-   "texto": "O aviso de Vídeo pronto diz quantos problemas a conferência achou e qual é o primeiro."
+   "titulo": "Montar com os melhores",
+   "texto": "＋ põe um trecho na linha do tempo já aparado; MONTAR COM OS MELHORES põe todos em fila. COPIAR A LISTA leva a decupagem em texto."
   },
   {
-   "titulo": "Skill Animação por código 1.3",
-   "texto": "A IA passa a conferir o vídeo antes de entregar. Toque em ATUALIZAR na BW SKILL."
+   "titulo": "Seus vídeos",
+   "texto": "Vai só uma cópia leve (360p) de cada take, depois do seu sim, e ela não fica guardada."
   }
  ]
 }

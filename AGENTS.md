@@ -1013,6 +1013,14 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
      pequenas viram uma linha só — senão o relatório vira ruído. Imagem parada e preto viram AVISO (cartela final é de propósito); só o vídeo
      inteiro parado/preto/mudo é ERRO. Teste com defeitos DE PROPÓSITO + um vídeo certo que tem de passar limpo (motor/teste-conferir.mjs).
 
+231. DECUPAGEM COM IA (editor de vídeo; dono 25/11: "Gemini fazendo a decupagem"): a ÚNICA saída do editor para a internet é assets/bw-decupar.js →
+     Edge Function bw-ia-video (Gemini, chave GEMINI_API_KEY só no Supabase, store:false, conta no bw_ia_contar 200/dia), e só depois do confirm()
+     que diz para onde vai (vigia). Vai uma CÓPIA LEVE feita pelo BWProxy.fazer com op.qps=2 / op.kbps / op.somKbps (360p, ~12 KB/s; take longo
+     baixa a imagem para caber em ~16 MB; > 40 min recusa) — o arquivo original nunca sai. Resultado no aparelho (ui_ve_decup por id da mídia);
+     trecho vira clipe JÁ APARADO (corte = início). A API do Google muda: a função tenta uma LISTA de modelos e dois endereços (interactions →
+     generateContent) e lê o texto da resposta nos dois formatos; ajudantes testados no Node 22 rodando o próprio .ts (--experimental-strip-types,
+     sem tirar tipos na mão). Nota 0 da IA é nota 1, não "sem nota" (o teste pegou `+x || 3`). Variável que a biblioteca lê vai no TOPO (regra 210).
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -2686,7 +2694,19 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   problemas e o 1º; `--checar` também confere os textos; `node motor/conferir.mjs <video>` confere qualquer arquivo. Skill ANIMAÇÃO POR CÓDIGO 1.3 e
   revisão de qualidade ensinam a usar. teste-conferir.mjs (18 ✓), teste-recorte e teste-app 0 falhas; os 3 modelos do Studio sem erro (só avisos
   reais de letra pequena). Pacote, tutorial (17 p.) e novidades publicados. A raea NÃO foi usada nem instalada.
+- 25/11/2026 09:20 · Claude (dono: "sim" para o Gemini fazendo a decupagem): EDITOR DE VÍDEO → 🎬 DECUPAR COM IA. Nova Edge Function bw-ia-video
+  (docs/supabase/functions/bw-ia-video/index.ts — NÃO publicada ainda) + assets/bw-decupar.js (cópia leve 360p/2 q/s com som pelo BWProxy, só
+  depois do confirm) + janela no editor: lista por take com tempo, tipo, nota ★1–5 e a fala; filtros; ＋ PÔR (aparado na agulha); MONTAR COM OS
+  MELHORES (fila sem os ruins); COPIAR A LISTA; selo 🎬 na biblioteca; guardado no aparelho. Documentação do Gemini conferida em 25/11
+  (gemini-3.8-flash nos exemplos de vídeo, endereço novo /interactions; preços só listam 3.5 Flash e 2.5 Flash-Lite; plano GRÁTIS: o Google usa os
+  dados para melhorar os produtos, plano PAGO não). teste_decupar.py (novo, 2 larguras, Gemini simulado) 0 falhas; proxy, midia, takes,
+  proxy_som, video_app, video, aviso 0 falhas (teste_video: a regra "nada saiu" passa a aceitar as fotos de amostra das prévias vivas). Manual 73 → 74 p.
+  App BW 1.9.48 (cópia sem internet com o editor novo). bw-proxy v4, video-editor v40, sw v236.
 ## Pendências (dono)
+- [ ] (25/11) DECUPAGEM COM IA: (1) dono criar a chave em aistudio.google.com → Get API key e colar em Supabase → Edge Functions → Secrets como
+      GEMINI_API_KEY (de preferência num projeto com faturamento ativo: no grátis o Google usa os vídeos para melhorar os produtos; o pago custa
+      centavos por take); (2) publicar a função bw-ia-video pelo painel (Verify JWT DESLIGADO — a função confere o login) — o Claude faz com o "sim";
+      (3) teste real com um take do dono. BW-Setup.exe 1.9.48: "5 - GERAR INSTALADOR EXE".
 - [x] (25/11 08:36) BW-Setup.exe 1.9.47 gerado pelo dono e publicado (9,2 MB, versão conferida dentro do .exe).
 - [x] (24/11 23:02) BW-Setup.exe 1.9.45 gerado pelo dono e publicado (9,3 MB, versão conferida dentro do .exe).
 - [x] (24/11 18:28) BW-Setup.exe 1.9.44 gerado pelo dono e publicado (9,2 MB, versão conferida dentro do .exe).

@@ -704,3 +704,12 @@ Armadilha: classe de ESTADO não serve para destacar botão. `＋ IMPORTAR` usav
 - Contraste sem adivinhar o fundo: estilo temporário `*{color:transparent!important;text-shadow:none!important}`, foto do quadro, cor MEDIANA
   da área do texto × cor da letra pela fórmula do WCAG; tirar o estilo depois. Avisar abaixo de 3:1 (texto normal) ou 2:1 (texto grande).
 - Teste = arquivos com defeito de propósito (ffmpeg lavfi: testsrc2, color=black, sine com volume, anullsrc, loudnorm=I=-14:TP=-2) + um certo que passa limpo.
+
+## Decupagem com IA de vídeo (Gemini) sem mandar o arquivo original (25/11/2026)
+- Cópia leve no navegador: `BWProxy.fazer(blob, {curto:360, kbps:220, somKbps:48, qps:2, velocidade:4})` — o vídeo toca a 4× e só 2 quadros por
+  segundo são codificados (o Gemini amostra 1 q/s); 12 s de 1080p viraram 147 KB. Corpo cru `Content-Type: video/mp4` na Edge Function
+  (sem base64 no aparelho); a função converte com `encodeBase64` do jsr:@std/encoding.
+- API que muda de nome: lista de modelos + dois endereços, texto lido por `output_text` / `candidates[].content.parts[].text` / passo
+  `model_output` (sem pegar o texto do PEDIDO, que vem em `input`); resposta sem JSON = próximo modelo; todos falharam = motivo de cada um.
+- Testar ajudantes de Edge Function no Node 22: recortar o trecho entre marcadores do .ts e rodar com `node --experimental-strip-types`.
+- Teste no navegador: rota simulada guarda o CORPO enviado → ffprobe confere tamanho, quadros por segundo e som da cópia; recusar o confirm = 0 envios.
