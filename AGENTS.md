@@ -1064,6 +1064,12 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
      olha content + background(1) (o nome da capa não está no content). Ditado: reconhecimento do navegador → texto → bw-ia corrige SEM acrescentar
      nada, com ↺ COMO ESTAVA; sem reconhecimento (iPhone instalado) grava e transcreve na bw-ia (?lang=pt) (auto: teste_presskit.py, vigia 7.8o).
 
+239. ESTILO AO VIVO e ENQUADRAR (press kit): escolha visual da pessoa fica em kit.est (capa, fundo, tit, cart, nome, texto, esp, maiusc, deco) e é aplicada
+     POR CIMA do modelo dentro de modelo() — nunca copiar o modelo. Foto: IMGS.enq[chave] = {x, y, z, aj} e a janela desenha a prévia com o MESMO recortar()
+     do PDF, na proporção do lugar onde a foto vai (corteCapa/corteFoto); luz e cor por pixel (sem ctx.filter); mover/tirar foto leva/limpa o ajuste.
+     ARMADILHA: CSS da página colado dentro do <style id="bwAntiMoldura"> SOME ao abrir (o bloco é apagado) — o press kit ficou sem parte do visual
+     desde a publicação anterior e o teste não viu (auto: vigia 7.10e). Teste de "desenhou" não procura texto em MAIÚSCULAS: cada capa escreve o nome de um jeito. Classe nova: procurar antes (.pk-mini já era a miniatura da lista e quebrou os cartões).
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -2802,6 +2808,14 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   de cada foto. Um toque → a foto nova entra NO LUGAR (prévia refeita) e aparece ↺ ORIGINAL. Passa pela fotos-nuvem.js (bw-ia-imagem: cópia ≤ 504 px,
   confirmação na 1ª vez, limite do dia ou a conta da própria pessoa); o presskit.js não fala com a internet para isso. teste_presskit.py (+7, IA de imagem
   simulada) 0 falhas × 1280/390; vigia ✅. Manual atualizado. presskit.js v3, sw v245.
+- 25/11/2026 15:40 · Claude (dono: "editor de posicionamento e tamanho nas fotos — às vezes corta a cabeça" + "opções de edição como exposição" + "mais opções de
+  layout, bonito e moderno, vários modelos, editar em tempo real elementos e cores"): PRESS KIT — (1) ✥ ENQUADRAR E AJUSTAR na capa e em cada foto da galeria:
+  arrastar a foto dentro da moldura do formato real, aproximar (barra/rodinha), ⬆ topo / ⊕ centro / ⬇ base, exposição, brilho, contraste, saturação, temperatura
+  e sombras + looks CLAREAR/VIVO/QUENTE/FRIO/P&B e segurar ◐ para ver o antes; 🎚 LUZ E COR na foto recortada. (2) 🎛 ESTILO AO VIVO: 11 capas com miniatura
+  (6 novas: revista, diagonal, foto e faixa, retrato redondo, arco, duotom), 12 paletas, cor do fundo, 5 jeitos de título, 4 de caixa, tamanho do nome e do
+  texto, espaçamento, maiúsculas e enfeites — a prévia se refaz na hora. (3) 6 modelos novos (fotógrafo, beleza, chef, atleta, mestre de cerimônias, artista
+  visual) = 14. Achado: parte do CSS do press kit estava dentro do bloco anti-moldura e sumia no site no ar — corrigido + vigia. teste_presskit 0 falhas
+  (1280/390). Manual 77 p. presskit.js v4, sw v246. PENTE FINO 239.
 ## Pendências (dono)
 - [ ] (25/11) PRESS KIT: dono testar no celular e no PC — 🎙 CONTAR SOBRE MIM falando, 🎙 FALAR num texto e baixar o PDF; dizer quais modelos faltam.
 - [x] (25/11 13:01) BW-Setup.exe 1.9.51 gerado pelo dono e publicado (15,3 MB, versão conferida dentro do .exe).

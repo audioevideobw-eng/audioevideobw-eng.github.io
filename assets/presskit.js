@@ -71,8 +71,16 @@
     var k = src.length + "|" + src.slice(-48) + "|" + w + "x" + h + "|" + JSON.stringify(op);
     if (CORTES[k]) return CORTES[k];
     var im = await imgDe(src), c = document.createElement("canvas"); c.width = Math.round(w); c.height = Math.round(h);
-    var x = c.getContext("2d"), s = Math.max(c.width / im.naturalWidth, c.height / im.naturalHeight), dw = im.naturalWidth * s, dh = im.naturalHeight * s;
-    x.drawImage(im, (c.width - dw) * (op.fx == null ? 0.5 : op.fx), (c.height - dh) * 0.5, dw, dh);
+    var x = c.getContext("2d"), s = Math.max(c.width / im.naturalWidth, c.height / im.naturalHeight) * Math.max(1, +op.z || 1), dw = im.naturalWidth * s, dh = im.naturalHeight * s;
+    if (op.forma) {   /* foto redonda ou em arco: recorte no próprio canvas (o PDF não recorta imagem) */
+      x.beginPath();
+      if (op.forma === "circulo") x.arc(c.width / 2, c.height / 2, Math.min(c.width, c.height) / 2, 0, Math.PI * 2);
+      else { var ra = c.width / 2; x.moveTo(0, c.height); x.lineTo(0, ra); x.arc(ra, ra, ra, Math.PI, 0); x.lineTo(c.width, c.height); x.closePath(); }
+      x.clip();
+    }
+    x.drawImage(im, (c.width - dw) * (op.fx == null ? 0.5 : op.fx), (c.height - dh) * (op.fy == null ? 0.5 : op.fy), dw, dh);
+    if (temAj(op.aj)) aplicarAj(x, c.width, c.height, op.aj);
+    if (op.duo) duotom(x, c.width, c.height, op.duo[0], op.duo[1]);
     if (op.escurecer) {
       var g = op.dir === "esq" ? x.createLinearGradient(0, 0, c.width, 0) : x.createLinearGradient(0, 0, 0, c.height);
       g.addColorStop(0, "rgba(6,8,13," + (op.dir === "esq" ? op.escurecer : op.escurecer * 0.35) + ")");
@@ -80,10 +88,58 @@
       g.addColorStop(1, "rgba(6,8,13," + (op.dir === "esq" ? 0.05 : op.escurecer) + ")");
       x.fillStyle = g; x.fillRect(0, 0, c.width, c.height);
     }
-    var u = c.toDataURL("image/jpeg", op.q || 0.86);
+    var u = op.forma ? c.toDataURL("image/png") : c.toDataURL("image/jpeg", op.q || 0.86);
     var ks = Object.keys(CORTES); if (ks.length > 60) delete CORTES[ks[0]];
     return (CORTES[k] = u);
   }
+  /* ENQUADRAR E AJUSTAR (posição, tamanho, exposição…): a MESMA conta vale para a prévia da janela e para o PDF.
+     Feito por pixel (sem ctx.filter, que o Safari do iPhone não tem); o transparente do PNG fica como está. */
+  var AJUSTES = [["ex", "☀ Exposição"], ["br", "◐ Brilho"], ["ct", "◑ Contraste"], ["sa", "🎨 Saturação"], ["te", "🌡 Temperatura"], ["so", "▾ Sombras"]];
+  function temAj(aj) { return !!aj && AJUSTES.some(function (a) { return +aj[a[0]]; }); }
+  function aplicarAj(x, w, h, aj) {
+    var im = x.getImageData(0, 0, w, h), p = im.data, ex = Math.pow(2, (+aj.ex || 0) / 100), br = (+aj.br || 0) * 0.9, ct = (+aj.ct || 0) / 100,
+      cf = ct >= 0 ? 1 + ct * 1.4 : 1 + ct * 0.85, sa = 1 + (+aj.sa || 0) / 100, te = (+aj.te || 0) * 0.32, so = (+aj.so || 0) / 100;
+    for (var i = 0; i < p.length; i += 4) {
+      var r = p[i] * ex + br + te, g = p[i + 1] * ex + br, b = p[i + 2] * ex + br - te;
+      if (so) { var lu = (0.299 * r + 0.587 * g + 0.114 * b) / 255, pe = so * Math.pow(Math.max(0, 1 - lu), 2) * 90; r += pe; g += pe; b += pe; }
+      r = (r - 128) * cf + 128; g = (g - 128) * cf + 128; b = (b - 128) * cf + 128;
+      var l = 0.299 * r + 0.587 * g + 0.114 * b; r = l + (r - l) * sa; g = l + (g - l) * sa; b = l + (b - l) * sa;
+      p[i] = r < 0 ? 0 : r > 255 ? 255 : r; p[i + 1] = g < 0 ? 0 : g > 255 ? 255 : g; p[i + 2] = b < 0 ? 0 : b > 255 ? 255 : b;
+    }
+    x.putImageData(im, 0, 0);
+  }
+  /* duotom: a luz da foto vira a mistura entre duas cores (sombra → destaque) */
+  function duotom(x, w, h, c1, c2) {
+    var a = hexRgb(c1), b = hexRgb(c2), im = x.getImageData(0, 0, w, h), p = im.data;
+    for (var i = 0; i < p.length; i += 4) { var l = (0.299 * p[i] + 0.587 * p[i + 1] + 0.114 * p[i + 2]) / 255; l = l * l * (3 - 2 * l); p[i] = a[0] + (b[0] - a[0]) * l; p[i + 1] = a[1] + (b[1] - a[1]) * l; p[i + 2] = a[2] + (b[2] - a[2]) * l; }
+    x.putImageData(im, 0, 0);
+  }
+  /* foto inteira (a recortada, PNG) só com a cor ajustada, sem cortar */
+  async function ajustarImg(src, aj) {
+    if (!src || !temAj(aj)) return src;
+    var k = "a" + src.length + "|" + src.slice(-48) + "|" + JSON.stringify(aj); if (CORTES[k]) return CORTES[k];
+    var im = await imgDe(src), c = document.createElement("canvas"); c.width = im.naturalWidth; c.height = im.naturalHeight;
+    var x = c.getContext("2d"); x.drawImage(im, 0, 0); aplicarAj(x, c.width, c.height, aj);
+    return (CORTES[k] = c.toDataURL("image/png"));
+  }
+  function enqOp(e, op) { op = Object.assign({}, op || {}); if (e) { if (e.x != null) op.fx = +e.x; if (e.y != null) op.fy = +e.y; if (+e.z > 1) op.z = +e.z; if (temAj(e.aj)) op.aj = e.aj; } return op; }
+  /* tamanho do corte de cada lugar (em pontos do PDF) — usado no PDF e na janela ENQUADRAR */
+  function corteCapa(cap, G, t) {
+    var W = G.W, H = G.H, cp = (t && t.corPura) || "#E8B54A";
+    if (cap === "foto") return [W, H, { escurecer: 0.82 }];
+    if (cap === "revista") return [W, H, { escurecer: 0.62 }];
+    if (cap === "duotom") return [W, H, { duo: [misturar(cp, "#000000", 0.82), misturar(cp, "#FFFFFF", 0.45)] }];
+    if (cap === "compcard") return [W, H, { escurecer: 0.55 }];
+    if (cap === "dividida") return [250, H, {}];
+    if (cap === "diagonal") return [W * 0.62, H, {}];
+    if (cap === "faixa") return [W, H * 0.6, {}];
+    if (cap === "circulo") return [W * 0.56, W * 0.56, { forma: "circulo" }];
+    if (cap === "arco") return [W * 0.6, H * 0.54, { forma: "arco" }];
+    if (cap === "moldura") return [420, 300, {}];
+    if (cap === "recorte") return [W * 0.5, H, { escurecer: 0.3, dir: "esq" }];
+    return [G.CW, Math.min(250, H * 0.3), {}];
+  }
+  function corteFoto(cap, G, i) { return cap === "compcard" ? [180, 225] : i === 0 ? [G.CW, G.CW * 0.525] : [160, 110]; }
   async function reduzir(src, max) {
     if (!src) return "";
     var k = "r" + src.length + "|" + src.slice(-48) + "|" + max; if (CORTES[k]) return CORTES[k];
@@ -272,6 +328,71 @@
         contato: { resp: "Juliana Castro", cargo: "Produtora de eventos", tel: "(31) 90000-0050", email: "juliana@exemplo.com.br", site: "", insta: "", tiktok: "", youtube: "", cidade: "Belo Horizonte · MG" } });
     }
   };
+  /* 25/11 (dono: "mais opções do layout… vários modelos"): mais 6 profissões, cada uma com capa própria. Pessoas e empresas inventadas. */
+  Object.assign(EX, {
+    foto: function () {
+      return base({ marca: "Lia Fontes", slogan: "Fotógrafa de eventos e retratos", etiqueta: "PORTFÓLIO", cidade: "Belo Horizonte · MG",
+        sobreCurto: "Fotografia de eventos com olhar de revista: gente de verdade, luz bonita e entrega rápida.",
+        sobre: "Fotografo eventos corporativos, casamentos e retratos há 9 anos. Gosto de contar o evento pelas pessoas, sem pose forçada.\n\nEntrego a prévia em 24 horas e as fotos tratadas em até 7 dias, prontas para as redes e para impressão.",
+        servicos: [{ t: "Eventos corporativos", d: "Convenções, lançamentos e feiras com cobertura completa e prévia no mesmo dia." }, { t: "Retratos profissionais", d: "Fotos para LinkedIn, sites e imprensa, em estúdio ou no local." }, { t: "Casamentos", d: "Do making of à festa, com álbum diagramado." }],
+        clientes: "Grupo Vértice\nBanco Aurora\nConstrutora Horizonte\nFeira Sabor de Minas\nAgência Ponto Alto\nHotel Serra Azul",
+        depoimentos: [{ texto: "As fotos chegaram no dia seguinte e ficaram melhores do que a gente imaginava.", autor: "Paula Reis", cargo: "Marketing · Construtora Horizonte" }],
+        links: [{ rot: "Portfólio completo", url: "lia-fontes.exemplo.com" }, { rot: "Instagram", url: "instagram.com/exemplo" }],
+        contato: { resp: "Lia Fontes", cargo: "Fotógrafa", tel: "(31) 90000-0080", email: "lia@exemplo.com.br", site: "lia-fontes.exemplo.com", insta: "@liafontes.foto", tiktok: "", youtube: "", cidade: "Belo Horizonte · MG" } });
+    },
+    beleza: function () {
+      return base({ marca: "Bianca Rocha", slogan: "Maquiadora e hair stylist", etiqueta: "BELEZA", cidade: "Belo Horizonte · MG",
+        sobreCurto: "Maquiagem que dura a festa inteira e fica linda na foto e no vídeo.",
+        sobre: "Trabalho com noivas, formaturas, ensaios e gravações há 7 anos. Cada pele recebe produto e técnica certos, com higiene profissional.\n\nAtendo em estúdio ou no local do evento, com equipe para grupos.",
+        servicos: [{ t: "Noivas", d: "Teste, maquiagem e penteado no dia, com retoque para a festa." }, { t: "Fotos e vídeo", d: "Maquiagem para ensaios, comerciais e gravações com luz forte." }, { t: "Grupos e eventos", d: "Equipe para madrinhas, formandas e convidadas." }],
+        numeros: [{ v: "+600", r: "noivas atendidas" }, { v: "7 anos", r: "de experiência" }, { v: "4,9/5", r: "nas avaliações" }],
+        depoimentos: [{ texto: "Me senti eu mesma, só que na minha melhor versão. Durou até o fim da festa!", autor: "Camila S.", cargo: "Noiva" }],
+        links: [{ rot: "Antes e depois", url: "instagram.com/exemplo" }, { rot: "Agendar", url: "wa.me/5531900000090" }],
+        contato: { resp: "Bianca Rocha", cargo: "Maquiadora", tel: "(31) 90000-0090", email: "bianca@exemplo.com.br", site: "", insta: "@biancarocha.make", tiktok: "@biancarocha", youtube: "", cidade: "Belo Horizonte · MG" } });
+    },
+    chef: function () {
+      return base({ marca: "Rafael Antunes", slogan: "Chef · Eventos e experiências gastronômicas", etiqueta: "CHEF", cidade: "Belo Horizonte · MG",
+        sobreCurto: "Cozinha mineira contemporânea para eventos, jantares e marcas.",
+        sobre: "Formado em gastronomia, passei por restaurantes premiados antes de criar meu serviço de eventos. Monto cardápios com ingredientes da estação e produtores locais.\n\nAtendo de jantares para 10 pessoas a eventos corporativos para 800.",
+        servicos: [{ t: "Jantar com chef", d: "Menu degustação na sua casa ou num espaço reservado." }, { t: "Eventos corporativos", d: "Coquetéis, almoços e coffee breaks com a cara da marca." }, { t: "Aulas e shows", d: "Show cooking em feiras, lançamentos e programas." }],
+        experiencia: [{ grupo: "Trajetória", titulo: "Chef executivo", papel: "Restaurante Fogo Brando", onde: "Belo Horizonte", ano: (ANO - 4) + "", link: "" },
+          { grupo: "Trajetória", titulo: "Show cooking", papel: "Feira Sabor de Minas", onde: "Expominas", ano: ANO + "", link: "youtube.com/exemplo" }],
+        imprensa: [{ veiculo: "Revista Exemplo", titulo: "O chef que leva o fogão a lenha para os eventos", data: ANO + "", link: "" }],
+        links: [{ rot: "Cardápios", url: "drive.google.com/exemplo" }, { rot: "Vídeos", url: "youtube.com/exemplo" }],
+        contato: { resp: "Rafael Antunes", cargo: "Chef", tel: "(31) 90000-0100", email: "chef@exemplo.com.br", site: "", insta: "@chefrafaelantunes", tiktok: "", youtube: "", cidade: "Belo Horizonte · MG" } });
+    },
+    atleta: function () {
+      return base({ marca: "Duda Martins", slogan: "Atleta de corrida e personal trainer", etiqueta: "ATLETA", cidade: "Belo Horizonte · MG",
+        sobreCurto: "Corredora de montanha, treinadora e embaixadora de marcas esportivas.",
+        sobre: "Corro há 12 anos e hoje compito em provas de trilha pelo Brasil. Como personal, ajudo iniciantes a correr os primeiros 5 km sem lesão.\n\nProduzo conteúdo de treino e equipamentos para as redes.",
+        numeros: [{ v: "38", r: "pódios" }, { v: "120 mil", r: "seguidores" }, { v: "+300", r: "alunos" }],
+        experiencia: [{ grupo: "Conquistas", titulo: "Ultra Trilha da Serra (50 km)", papel: "1º lugar geral feminino", onde: "MG", ano: ANO + "", link: "" },
+          { grupo: "Conquistas", titulo: "Circuito de Montanha", papel: "Campeã da categoria", onde: "RJ", ano: (ANO - 1) + "", link: "" }],
+        servicos: [{ t: "Treino de corrida", d: "Planilhas online e treinos em grupo." }, { t: "Marcas e eventos", d: "Embaixadora, palestras e ações em provas." }],
+        links: [{ rot: "Treinos", url: "youtube.com/exemplo" }, { rot: "Instagram", url: "instagram.com/exemplo" }],
+        contato: { resp: "Duda Martins", cargo: "Atleta e treinadora", tel: "(31) 90000-0110", email: "duda@exemplo.com.br", site: "", insta: "@dudacorre", tiktok: "@dudacorre", youtube: "", cidade: "Belo Horizonte · MG" } });
+    },
+    mc: function () {
+      return base({ marca: "Henrique Vale", slogan: "Mestre de cerimônias e apresentador de eventos", etiqueta: "APRESENTADOR", cidade: "Belo Horizonte · MG",
+        sobreCurto: "Voz e condução para eventos corporativos que precisam acontecer no horário.",
+        sobre: "Conduzo convenções, premiações e lançamentos há 15 anos. Faço o roteiro junto com a produção e seguro o palco quando algo sai do plano.\n\nApresento em português e inglês.",
+        servicos: [{ t: "Convenções e congressos", d: "Abertura, chamadas, mediação de painéis e encerramento." }, { t: "Premiações", d: "Roteiro, ritmo e interação com o público." }, { t: "Locução", d: "Vinhetas, vozes de palco e vídeos institucionais." }],
+        numeros: [{ v: "15 anos", r: "de palco" }, { v: "+400", r: "eventos conduzidos" }, { v: "2", r: "idiomas" }],
+        depoimentos: [{ texto: "Segurou o evento com tranquilidade quando o telão caiu. Ninguém percebeu.", autor: "Ricardo Lemos", cargo: "Diretor de marketing · Grupo Vértice" }],
+        links: [{ rot: "Vídeo de apresentação", url: "youtube.com/exemplo" }],
+        contato: { resp: "Henrique Vale", cargo: "Mestre de cerimônias", tel: "(31) 90000-0120", email: "henrique@exemplo.com.br", site: "", insta: "@henriquevale.mc", tiktok: "", youtube: "", cidade: "Belo Horizonte · MG" } });
+    },
+    artista: function () {
+      return base({ marca: "Nina Albuquerque", slogan: "Artista visual · Pintura e muralismo", etiqueta: "ARTISTA", cidade: "Belo Horizonte · MG",
+        sobreCurto: "Cor, cidade e memória em telas, muros e projetos com marcas.",
+        sobre: "Pinto murais e telas que falam sobre os bairros onde cresci. Já levei cor para escolas, empresas e festivais.\n\nAceito encomendas, projetos de muralismo e colaborações com marcas.",
+        experiencia: [{ grupo: "Exposições", titulo: "Cores do Bairro (individual)", papel: "", onde: "Galeria Exemplo", ano: ANO + "", link: "" },
+          { grupo: "Murais", titulo: "Mural da Escola Estadual", papel: "120 m²", onde: "Belo Horizonte", ano: (ANO - 1) + "", link: "instagram.com/exemplo" }],
+        imprensa: [{ veiculo: "Jornal Exemplo", titulo: "Artista transforma muros do bairro em galeria", data: ANO + "", link: "" }],
+        links: [{ rot: "Obras", url: "instagram.com/exemplo" }, { rot: "Encomendas", url: "wa.me/5531900000130" }],
+        contato: { resp: "Nina Albuquerque", cargo: "Artista visual", tel: "(31) 90000-0130", email: "nina@exemplo.com.br", site: "", insta: "@nina.albuquerque.art", tiktok: "", youtube: "", cidade: "Belo Horizonte · MG" } });
+    }
+  });
   var MODELOS = [
     { id: "ator", nome: "Ator e atriz", ico: "🎭", para: "Book do artista: perfil, trabalhos, formação, habilidades e vídeo de apresentação.",
       tema: { escuro: true, fundo: "#141414", txt: "#F5F1EA", sub: "#B3ADA4", capa: "foto", caixaAlta: true }, cor: "#E8B54A", cor2: "#C9A227", fonte: "PF", formato: "a4",
@@ -296,8 +417,36 @@
       ordem: ["sobre", "servicos", "numeros", "experiencia", "depoimentos", "links", "contato"], tons: ["#1C6BFF", "#FFB547", "#22C7D6"], ex: "palestra", tit: { servicos: "Palestras", experiencia: "Onde já palestrou" } },
     { id: "pro", nome: "Profissional e colaborador", ico: "🧑‍💼", para: "Currículo visual para produtor, técnico, recepção, MC… experiência, habilidades e formação.",
       tema: { escuro: false, fundo: "#FFFFFF", txt: "#111111", sub: "#6B6B6B", capa: "tipografica", caixaAlta: true }, cor: "#111111", cor2: "#E8B54A", fonte: "Roboto", formato: "a4",
-      ordem: ["sobre", "experiencia", "habilidades", "formacao", "perfil", "depoimentos", "contato"], tons: ["#E8B54A", "#4C8DFF", "#22C7D6"], ex: "pro", tit: { sobre: "Resumo profissional", experiencia: "Experiência" } }
+      ordem: ["sobre", "experiencia", "habilidades", "formacao", "perfil", "depoimentos", "contato"], tons: ["#E8B54A", "#4C8DFF", "#22C7D6"], ex: "pro", tit: { sobre: "Resumo profissional", experiencia: "Experiência" } },
+    { id: "foto", nome: "Fotógrafo e filmmaker", ico: "📷", para: "Capa de revista: serviços com fotos, galeria grande, clientes e recomendações.",
+      tema: { escuro: true, fundo: "#0D0D0F", txt: "#FFFFFF", sub: "#B7B7BD", capa: "revista", caixaAlta: true }, cor: "#FF6A3D", cor2: "#FFD166", fonte: "MO", formato: "a4", estTit: "linha",
+      ordem: ["sobre", "servicos", "galeria", "clientes", "depoimentos", "links", "contato"], tons: ["#FF6A3D", "#FFD166", "#4C8DFF"], ex: "foto", servFotos: true },
+    { id: "beleza", nome: "Beleza e maquiagem", ico: "💄", para: "Foto em arco, serviços, números, antes e depois e agendamento.",
+      tema: { escuro: false, fundo: "#FBF3EF", txt: "#2B1B20", sub: "#7D6168", capa: "arco", caixaAlta: false }, cor: "#B4536B", cor2: "#E6B8A2", fonte: "PF", formato: "rede", estTit: "grande",
+      ordem: ["sobre", "servicos", "numeros", "galeria", "depoimentos", "links", "contato"], tons: ["#B4536B", "#E6B8A2", "#F2A65A"], ex: "beleza" },
+    { id: "chef", nome: "Chef e gastronomia", ico: "👨‍🍳", para: "Capa diagonal, experiências, trajetória, imprensa e cardápios.",
+      tema: { escuro: false, fundo: "#FBF6EE", txt: "#2A1D15", sub: "#75655A", capa: "diagonal", caixaAlta: true }, cor: "#B4462B", cor2: "#E9A23B", fonte: "PF", formato: "a4", estTit: "barra",
+      ordem: ["sobre", "servicos", "experiencia", "galeria", "imprensa", "links", "contato"], tons: ["#E9A23B", "#B4462B", "#6B8F3E"], ex: "chef", tit: { experiencia: "Trajetória" } },
+    { id: "atleta", nome: "Atleta e personal", ico: "🏃", para: "Foto em duotom, números grandes, conquistas e o que você oferece às marcas.",
+      tema: { escuro: true, fundo: "#0B0F14", txt: "#FFFFFF", sub: "#A9B1BC", capa: "duotom", caixaAlta: true }, cor: "#C6F432", cor2: "#2F7BFF", fonte: "MO", formato: "rede", estTit: "pilula",
+      ordem: ["sobre", "numeros", "experiencia", "servicos", "galeria", "links", "contato"], tons: ["#C6F432", "#2F7BFF", "#22C7D6"], ex: "atleta", tit: { experiencia: "Conquistas" } },
+    { id: "mc", nome: "Mestre de cerimônias", ico: "🎤", para: "Retrato redondo, o que você conduz, números, recomendações e vídeo.",
+      tema: { escuro: true, fundo: "#0F1220", txt: "#F5F3FF", sub: "#A9A8C2", capa: "circulo", caixaAlta: true }, cor: "#8B7CFF", cor2: "#E8B54A", fonte: "MO", formato: "a4", estTit: "barra",
+      ordem: ["sobre", "servicos", "numeros", "depoimentos", "links", "contato"], tons: ["#8B7CFF", "#E8B54A", "#22C7D6"], ex: "mc", tit: { servicos: "O que eu conduzo" } },
+    { id: "artista", nome: "Artista visual", ico: "🎨", para: "Foto e faixa: obras, exposições, imprensa e encomendas.",
+      tema: { escuro: false, fundo: "#F4F1EA", txt: "#1B2432", sub: "#5E6673", capa: "faixa", caixaAlta: false }, cor: "#1F3A5F", cor2: "#E07A5F", fonte: "PF", formato: "a4", estTit: "grande",
+      ordem: ["sobre", "galeria", "experiencia", "imprensa", "links", "contato"], tons: ["#E07A5F", "#1F3A5F", "#F2CC8F"], ex: "artista", tit: { experiencia: "Exposições e murais" } }
   ];
+  /* capas, títulos e cartões que a pessoa escolhe ao vivo (25/11, dono: "mais opções do layout… bonito e moderno… editar em tempo real") */
+  var CAPAS = { foto: "Foto inteira", revista: "Revista", recorte: "Recorte e círculos", dividida: "Dividida", diagonal: "Diagonal", faixa: "Foto e faixa",
+    circulo: "Retrato redondo", arco: "Arco", duotom: "Duotom", moldura: "Moldura", tipografica: "Tipográfica" };
+  var TITULOS = { numero: "01 Numerado", barra: "▍ Barra", pilula: "● Etiqueta", linha: "— Linha", grande: "Grande." };
+  var CARTOES = { suave: "Suave", forte: "Na cor", contraste: "Contraste", liso: "Sem caixa" };
+  var PALETAS = [["Ouro noite", "#E8B54A", "#C9A227", "#121212"], ["Neon azul", "#2F7BFF", "#22D3EE", "#0B1020"], ["Rosé", "#D9466F", "#F2A65A", "#FFF6F3"],
+    ["Esmeralda", "#10B981", "#F5C542", "#0E1714"], ["Terracota", "#C8553D", "#F2C14E", "#FBF4EC"], ["Lavanda", "#7C5CFF", "#FF7AB6", "#F7F5FF"],
+    ["Preto e branco", "#111111", "#9A9A9A", "#FFFFFF"], ["Vinho", "#B0274A", "#E8B54A", "#170A0E"], ["Oceano", "#0F6E8C", "#7CD5E8", "#F2F8FA"], ["Lima", "#B6F23A", "#2F7BFF", "#0D0D0D"],
+    ["Coral", "#FF6A3D", "#FFD166", "#101214"], ["Areia", "#8A6A3F", "#2F4858", "#F4EFE6"]];
+  function capaDoKit(kit) { var mc = modeloDe(kit.modelo).tema.capa, e = (kit.est || {}).capa; return mc === "compcard" ? mc : CAPAS[e] ? e : mc; }
   function modeloDe(id) { return MODELOS.filter(function (m) { return m.id === id; })[0] || MODELOS[0]; }
   function imgsExemplo(mod) {
     var s = mod.id.length * 3;
@@ -347,9 +496,18 @@
     op = op || {}; imgs = imgs || imgsVazias();
     var mod = modeloDe(kit.modelo), tm = Object.assign({}, mod.tema), d = kit.d || {}, alta = !!op.alta, f = alta ? 2 : 1.15;
     var formato = mod.tema.capa === "compcard" ? "a5" : (GEOM[kit.formato] ? kit.formato : mod.formato), G = geom(formato);
-    var cor = kit.cor || mod.cor, cor2 = kit.cor2 || mod.cor2;
+    var cor = kit.cor || mod.cor, cor2 = kit.cor2 || mod.cor2, est = kit.est || {};
+    /* 🎛 ESTILO AO VIVO: capa, fundo, títulos, cartões, tamanhos e espaço escolhidos pela pessoa por cima do modelo */
+    tm.capa = capaDoKit(kit);
+    if (/^#[0-9a-f]{6}$/i.test(est.fundo || "")) { tm.fundo = est.fundo; tm.escuro = lum(est.fundo) < 0.36; tm.txt = tm.escuro ? "#F5F1EA" : "#15181F"; tm.sub = misturar(tm.txt, tm.fundo, 0.36); }
+    if (est.maiusc === "sim" || est.maiusc === "nao") tm.caixaAlta = est.maiusc === "sim";
+    tm.estTit = TITULOS[est.tit] ? est.tit : (mod.estTit || "numero"); tm.deco = est.deco !== "nao";
+    tm.escNome = Math.max(0.6, Math.min(1.5, (+est.nome || 100) / 100)); tm.escTxt = Math.max(0.8, Math.min(1.25, (+est.texto || 100) / 100));
+    tm.esp = { compacto: 0.65, normal: 1, arejado: 1.4 }[est.esp] || 1;
     tm.cor = destaqueLegivel(cor, tm.fundo); tm.corPura = cor; tm.cor2 = cor2; tm.fTit = FONTES_TIT[kit.fonte] ? kit.fonte : mod.fonte;
-    tm.cartao = tm.escuro ? misturar(tm.fundo, "#FFFFFF", 0.07) : misturar(tm.fundo, tm.corPura, 0.07);
+    var cart = CARTOES[est.cart] ? est.cart : "suave";
+    tm.cartao = cart === "liso" ? tm.fundo : cart === "forte" ? misturar(tm.fundo, tm.corPura, tm.escuro ? 0.24 : 0.15) : cart === "contraste" ? misturar(tm.fundo, tm.txt, tm.escuro ? 0.14 : 0.08)
+      : tm.escuro ? misturar(tm.fundo, "#FFFFFF", 0.07) : misturar(tm.fundo, tm.corPura, 0.07);
     tm.linha = tm.escuro ? misturar(tm.fundo, "#FFFFFF", 0.16) : misturar(tm.fundo, "#000000", 0.12);
     var m = { kit: kit, tema: tm, formato: formato, G: G, marca: d.marca || "Seu nome", slogan: d.slogan || "", etiqueta: d.etiqueta || "APRESENTAÇÃO", cidade: d.cidade || "", secoes: [] };
     m.logo = imgs.logo ? await reduzir(imgs.logo, alta ? 1400 : 700) : "";
@@ -357,15 +515,9 @@
     m.retrato = imgs.retrato ? await reduzir(imgs.retrato, alta ? 1800 : 900) : "";
     m.retratoProp = m.retrato ? await proporcao(m.retrato) : 0.8;
     var cap = tm.capa, W = G.W, H = G.H;
-    var capaSrc = imgs.capa || imgs.retrato || (imgs.fotos || [])[0] || "";
-    if (capaSrc) {
-      if (cap === "foto") m.capaImg = await recortar(capaSrc, W * f, H * f, { escurecer: 0.82 });
-      else if (cap === "compcard") m.capaImg = await recortar(capaSrc, W * f, H * f, { escurecer: 0.55 });
-      else if (cap === "dividida") m.capaImg = await recortar(capaSrc, 250 * f, H * f);
-      else if (cap === "moldura") m.capaImg = await recortar(capaSrc, 420 * f, 300 * f);
-      else if (cap === "recorte") m.capaImg = imgs.retrato ? "" : await recortar(capaSrc, W * 0.5 * f, H * f, { escurecer: 0.3, dir: "esq" });
-      else m.capaImg = await recortar(capaSrc, G.CW * f, 250 * f);
-    }
+    var capaSrc = imgs.capa || imgs.retrato || (imgs.fotos || [])[0] || "", EQ = imgs.enq || {};
+    if (m.retrato && EQ.retrato && temAj(EQ.retrato.aj)) m.retrato = await ajustarImg(m.retrato, EQ.retrato.aj);
+    if (capaSrc && !(cap === "recorte" && imgs.retrato)) { var cc0 = corteCapa(cap, G, tm); m.capaImg = await recortar(capaSrc, cc0[0] * f, cc0[1] * f, enqOp(EQ.capa, cc0[2])); }
     var c = d.contato || {};
     m.contato = c;
     var vis = (kit.ordem || TODAS).filter(function (id) { return SECOES[id] && (kit.ocultas || []).indexOf(id) < 0; });
@@ -377,7 +529,7 @@
       else if (id === "numeros") { s.itens = (d.numeros || []).filter(function (x) { return x && (String(x.v || "").trim() || String(x.r || "").trim()); }); if (!s.itens.length) continue; }
       else if (id === "servicos") {
         s.itens = (d.servicos || []).filter(function (x) { return x && (String(x.t || "").trim() || String(x.d || "").trim()); }); if (!s.itens.length) continue;
-        if (kit.servFotos && fotos.length) { s.fotos = []; for (var a = 0; a < s.itens.length; a++) s.fotos.push(await recortar(fotos[a % fotos.length], 240 * f, 140 * f)); }
+        if (kit.servFotos && fotos.length) { s.fotos = []; for (var a = 0; a < s.itens.length; a++) s.fotos.push(await recortar(fotos[a % fotos.length], 240 * f, 140 * f, enqOp(EQ["f" + (a % fotos.length)]))); }
       }
       else if (id === "perfil") { s.itens = (d.perfil || []).filter(function (x) { return x && (String(x.k || "").trim() || String(x.v || "").trim()); }); if (!s.itens.length) continue; }
       else if (id === "experiencia") {
@@ -398,8 +550,8 @@
       else if (id === "rider") { s.itens = linhas(d.rider); s.obs = (d.riderObs || "").trim(); if (!s.itens.length && !s.obs) continue; }
       else if (id === "galeria") {
         var fs = fotos.slice(0, 7); if (!fs.length) continue;
-        if (cap === "compcard") { s.peq = []; for (var j0 = 0; j0 < Math.min(4, fs.length); j0++) s.peq.push(await recortar(fs[j0], 180 * f, 225 * f)); }
-        else { s.grande = await recortar(fs[0], G.CW * f, G.CW * 0.525 * f); s.peq = []; for (var j = 1; j < fs.length; j++) s.peq.push(await recortar(fs[j], 160 * f, 110 * f)); }
+        if (cap === "compcard") { s.peq = []; for (var j0 = 0; j0 < Math.min(4, fs.length); j0++) s.peq.push(await recortar(fs[j0], 180 * f, 225 * f, enqOp(EQ["f" + j0]))); }
+        else { s.grande = await recortar(fs[0], G.CW * f, G.CW * 0.525 * f, enqOp(EQ.f0)); s.peq = []; for (var j = 1; j < fs.length; j++) s.peq.push(await recortar(fs[j], 160 * f, 110 * f, enqOp(EQ["f" + j]))); }
         s.legenda = (d.galeriaLegenda || "").trim();
       }
       else if (id === "contato") { if (!cheio(c)) continue; }
@@ -423,7 +575,7 @@
     var ret = function (x, y, w, h, cor) { return Object.assign({ canvas: [{ type: "rect", x: 0, y: 0, w: w, h: h, color: cor }] }, abs(x, y)); };
     var logoNo = function (x, y, larg, alt) { if (!m.logo) return null; var w = larg, h = larg / m.logoProp; if (h > alt) { h = alt; w = alt * m.logoProp; } return Object.assign({ image: m.logo, width: w, height: h }, abs(x, y)); };
     var etiq = { text: tituloCaixa(m.etiqueta), fontSize: z(9), bold: true, characterSpacing: 2.5 * k };
-    var tamNome = function (base, longo) { return z(m.marca.length > longo ? base * 0.74 : base); };
+    var tamNome = function (base, longo) { return z((m.marca.length > longo ? base * 0.74 : base) * (t.escNome || 1)); };
     var fixos = (d.perfil || []).filter(function (x) { return x && String(x.v || "").trim(); }).slice(0, 5);
     if (t.capa === "foto") {
       capaFundo.push(m.capaImg ? Object.assign({ image: m.capaImg, width: W, height: H }, abs(0, 0)) : ret(0, 0, W, H, t.fundo));
@@ -441,7 +593,7 @@
     } else if (t.capa === "recorte") {   /* pessoa recortada em cima de um fundo forte (como um portfólio de apresentador) */
       capaFundo.push(ret(0, 0, W, H, t.fundo));
       capaFundo.push(Object.assign({ canvas: [{ type: "ellipse", x: 0, y: 0, r1: W * 0.38, r2: W * 0.38, color: t.corPura }] }, abs(W * 0.72, H * 0.64)));
-      capaFundo.push(Object.assign({ canvas: [{ type: "ellipse", x: 0, y: 0, r1: W * 0.16, r2: W * 0.16, color: t.cor2 }] }, abs(W * 0.96, H * 0.08)));
+      if (t.deco) capaFundo.push(Object.assign({ canvas: [{ type: "ellipse", x: 0, y: 0, r1: W * 0.16, r2: W * 0.16, color: t.cor2 }] }, abs(W * 0.96, H * 0.08)));
       if (m.retrato) { var rh = Math.min(H * 0.84, (W * 0.58) / m.retratoProp), rw = rh * m.retratoProp; capaFundo.push(Object.assign({ image: m.retrato, width: rw, height: rh }, abs(W - rw - W * 0.02, H - rh))); }
       else if (m.capaImg) capaFundo.push(Object.assign({ image: m.capaImg, width: W * 0.5, height: H }, abs(W * 0.5, 0)));
       var lg5 = logoNo(MX, 50, 150, 54); if (lg5) capa.push(lg5);
@@ -449,6 +601,64 @@
         { text: m.slogan, fontSize: z(13), color: t.cor, bold: true, margin: [0, 14, 0, 0], lineHeight: 1.3 },
         { canvas: [{ type: "rect", x: 0, y: 0, w: 54, h: 4, color: t.cor2 }], margin: [0, 20, 0, 8] },
         { text: m.cidade, fontSize: z(9.5), color: t.sub, characterSpacing: 1 }], absolutePosition: { x: MX, y: H * 0.11 }, width: W * 0.44 });
+    } else if (t.capa === "revista") {   /* capa de revista: nome enorme no alto, por cima da foto */
+      capaFundo.push(m.capaImg ? Object.assign({ image: m.capaImg, width: W, height: H }, abs(0, 0)) : ret(0, 0, W, H, misturar(t.corPura, "#000000", 0.7)));
+      if (t.deco) capaFundo.push(Object.assign({ canvas: [{ type: "rect", x: 0, y: 0, w: W - 36, h: H - 36, lineColor: "#FFFFFF", lineWidth: 0.8, strokeOpacity: 0.45 }] }, abs(18, 18)));
+      capa.push({ stack: [{ table: { body: [[{ text: tituloCaixa(m.etiqueta), fontSize: z(8.5), bold: true, characterSpacing: 2 * k, color: corSobreCor, fillColor: t.corPura, margin: [8, 4, 8, 3] }]] }, layout: semGap(t.corPura, 0) },
+        { text: m.marca.toUpperCase(), font: fT, bold: true, fontSize: tamNome(70, 12), color: "#FFFFFF", lineHeight: 0.92, margin: [0, 14, 0, 0], characterSpacing: -0.5 }], absolutePosition: { x: MX, y: 54 }, width: CW });
+      var lgR = logoNo(W - MX - 120, H - 120, 120, 50); if (lgR) capa.push(lgR);
+      capa.push({ stack: [{ canvas: [{ type: "rect", x: 0, y: 0, w: 70, h: 4, color: t.corPura }], margin: [0, 0, 0, 12] }, { text: m.slogan, fontSize: z(16), bold: true, color: "#FFFFFF", lineHeight: 1.25 },
+        { text: m.cidade, fontSize: z(9.5), color: "#E2DED7", characterSpacing: 1.4, margin: [0, 10, 0, 0] }], absolutePosition: { x: MX, y: H - 190 * (H / 842) }, width: CW * 0.7 });
+    } else if (t.capa === "duotom") {   /* foto inteira em duas cores + nome no centro */
+      capaFundo.push(m.capaImg ? Object.assign({ image: m.capaImg, width: W, height: H }, abs(0, 0)) : ret(0, 0, W, H, misturar(t.corPura, "#000000", 0.7)));
+      capaFundo.push(Object.assign({ canvas: [{ type: "rect", x: 0, y: 0, w: W, h: H * 0.42, color: "#000000", fillOpacity: 0.32 }] }, abs(0, H * 0.58)));
+      if (t.deco) { capaFundo.push(ret(W / 2 - 1, 0, 2, H * 0.1, t.cor2)); capaFundo.push(ret(W / 2 - 1, H * 0.9, 2, H * 0.1, t.cor2)); }
+      var lgD = logoNo((W - 120) / 2, H * 0.12, 120, 50); if (lgD) capa.push(lgD);
+      capa.push({ stack: [Object.assign({}, etiq, { color: t.cor2, alignment: "center" }), { text: m.marca.toUpperCase(), font: fT, bold: true, fontSize: tamNome(56, 14), color: "#FFFFFF", alignment: "center", lineHeight: 0.95, margin: [0, 10, 0, 0] },
+        { text: m.slogan, fontSize: z(14), color: "#FFFFFF", alignment: "center", margin: [20, 12, 20, 0], lineHeight: 1.3 },
+        { text: m.cidade, fontSize: z(9.5), color: "#E2DED7", characterSpacing: 1.6, alignment: "center", margin: [0, 12, 0, 0] }], absolutePosition: { x: MX, y: H * 0.64 }, width: CW });
+    } else if (t.capa === "diagonal") {   /* corte diagonal na cor, foto à direita */
+      capaFundo.push(m.capaImg ? Object.assign({ image: m.capaImg, width: W * 0.62, height: H }, abs(W * 0.38, 0)) : ret(W * 0.38, 0, W * 0.62, H, misturar(t.corPura, "#000000", 0.4)));
+      capaFundo.push(Object.assign({ canvas: [{ type: "polyline", closePath: true, color: t.corPura, points: [{ x: 0, y: 0 }, { x: W * 0.6, y: 0 }, { x: W * 0.44, y: H }, { x: 0, y: H }] }] }, abs(0, 0)));
+      if (t.deco) capaFundo.push(Object.assign({ canvas: [{ type: "polyline", closePath: true, color: t.cor2, points: [{ x: W * 0.6, y: 0 }, { x: W * 0.635, y: 0 }, { x: W * 0.475, y: H }, { x: W * 0.44, y: H }] }] }, abs(0, 0)));
+      var lgG = logoNo(MX, 56, 150, 60); if (lgG) capa.push(lgG);
+      capa.push({ stack: [Object.assign({}, etiq, { color: corSobreCor }), { text: m.marca, font: fT, bold: true, fontSize: tamNome(44, 14), color: corSobreCor, lineHeight: 1.02, margin: [0, 12, 0, 0] },
+        { text: m.slogan, fontSize: z(13.5), color: corSobreCor, margin: [0, 14, 0, 0], lineHeight: 1.3 },
+        { canvas: [{ type: "rect", x: 0, y: 0, w: 50, h: 3, color: t.cor2 }], margin: [0, 20, 0, 8] },
+        { text: m.cidade, fontSize: z(9.5), color: corSobreCor, characterSpacing: 1 }], absolutePosition: { x: MX, y: H * 0.36 }, width: W * 0.36 });
+    } else if (t.capa === "faixa") {   /* foto em cima, faixa sólida embaixo com o nome */
+      var fyF = H * 0.6;
+      capaFundo.push(ret(0, 0, W, H, t.fundo));
+      capaFundo.push(m.capaImg ? Object.assign({ image: m.capaImg, width: W, height: fyF }, abs(0, 0)) : ret(0, 0, W, fyF, misturar(t.corPura, "#000000", 0.4)));
+      capaFundo.push(ret(0, fyF, W, 8, t.corPura));
+      if (t.deco) capaFundo.push(Object.assign({ canvas: [{ type: "ellipse", x: 0, y: 0, r1: 26, r2: 26, color: t.cor2 }] }, abs(W - MX - 26, fyF + 4)));
+      var lgF = logoNo(MX, 40, 140, 56); if (lgF) capa.push(lgF);
+      capa.push({ stack: [Object.assign({}, etiq, { color: t.cor }), { text: m.marca, font: fT, bold: true, fontSize: tamNome(48, 18), color: t.txt, lineHeight: 1, margin: [0, 8, 0, 0] },
+        { text: m.slogan, fontSize: z(14), color: t.sub, margin: [0, 10, 0, 0], lineHeight: 1.3 },
+        { text: m.cidade, fontSize: z(9.5), color: t.sub, characterSpacing: 1.4, margin: [0, 12, 0, 0] }], absolutePosition: { x: MX, y: fyF + 44 }, width: CW - 60 });
+    } else if (t.capa === "circulo") {   /* retrato redondo com anel, nome centralizado */
+      var rC = W * 0.28, cyC = H * 0.1 + rC;
+      capaFundo.push(ret(0, 0, W, H, t.fundo));
+      if (t.deco) { capaFundo.push(Object.assign({ canvas: [{ type: "ellipse", x: 0, y: 0, r1: rC * 1.55, r2: rC * 1.55, color: misturar(t.fundo, t.corPura, t.escuro ? 0.16 : 0.1) }] }, abs(W / 2, cyC)));
+        capaFundo.push(Object.assign({ canvas: [{ type: "ellipse", x: 0, y: 0, r1: 14, r2: 14, color: t.cor2 }] }, abs(W / 2 + rC * 0.86, cyC - rC * 0.86))); }
+      capaFundo.push(Object.assign({ canvas: [{ type: "ellipse", x: 0, y: 0, r1: rC + 9, r2: rC + 9, lineColor: t.corPura, lineWidth: 3 }] }, abs(W / 2, cyC)));
+      capaFundo.push(m.capaImg ? Object.assign({ image: m.capaImg, width: rC * 2, height: rC * 2 }, abs(W / 2 - rC, cyC - rC)) : Object.assign({ canvas: [{ type: "ellipse", x: 0, y: 0, r1: rC, r2: rC, color: t.cartao }] }, abs(W / 2, cyC)));
+      var lgC = logoNo(MX, 34, 110, 44); if (lgC) capa.push(lgC);
+      capa.push({ stack: [Object.assign({}, etiq, { color: t.cor, alignment: "center" }), { text: m.marca, font: fT, bold: true, fontSize: tamNome(44, 18), color: t.txt, alignment: "center", lineHeight: 1.02, margin: [0, 10, 0, 0] },
+        { text: m.slogan, fontSize: z(14), color: t.sub, alignment: "center", margin: [20, 10, 20, 0], lineHeight: 1.3 },
+        { canvas: [{ type: "rect", x: (CW - 46) / 2, y: 0, w: 46, h: 3, color: t.corPura }], margin: [0, 18, 0, 10] },
+        { text: m.cidade, fontSize: z(9.5), color: t.sub, alignment: "center", characterSpacing: 1.5 }], absolutePosition: { x: MX, y: cyC + rC + 34 }, width: CW });
+    } else if (t.capa === "arco") {   /* foto em arco, moldura deslocada e nome embaixo */
+      var aw = W * 0.6, ah = H * 0.54, ax = (W - aw) / 2, ay = H * 0.07, ra = aw / 2, pts = [];
+      for (var ai = 0; ai <= 24; ai++) { var an = Math.PI + Math.PI * ai / 24; pts.push({ x: ra + ra * Math.cos(an), y: ra + ra * Math.sin(an) }); }
+      pts = [{ x: 0, y: ah }].concat(pts).concat([{ x: aw, y: ah }]);
+      capaFundo.push(ret(0, 0, W, H, t.fundo));
+      if (t.deco) capaFundo.push(Object.assign({ canvas: [{ type: "polyline", closePath: true, lineColor: t.corPura, lineWidth: 1.4, points: pts }] }, abs(ax + 14, ay + 14)));
+      capaFundo.push(m.capaImg ? Object.assign({ image: m.capaImg, width: aw, height: ah }, abs(ax, ay)) : Object.assign({ canvas: [{ type: "polyline", closePath: true, color: t.cartao, points: pts }] }, abs(ax, ay)));
+      var lgA = logoNo(MX, 30, 110, 44); if (lgA) capa.push(lgA);
+      capa.push({ stack: [Object.assign({}, etiq, { color: t.cor, alignment: "center" }), { text: m.marca, font: fT, bold: true, fontSize: tamNome(42, 18), color: t.txt, alignment: "center", lineHeight: 1.02, margin: [0, 8, 0, 0] },
+        { text: m.slogan, fontSize: z(13.5), color: t.sub, alignment: "center", margin: [20, 8, 20, 0], lineHeight: 1.3 },
+        { text: m.cidade, fontSize: z(9.5), color: t.cor, alignment: "center", characterSpacing: 1.6, margin: [0, 12, 0, 0] }], absolutePosition: { x: MX, y: ay + ah + 36 }, width: CW });
     } else if (t.capa === "dividida") {
       var bp = W * 0.42, wb = W - bp;
       capaFundo.push(ret(0, 0, wb, H, t.corPura));
@@ -485,8 +695,14 @@
 
     /* ---------- SEÇÕES ---------- */
     var cabSec = function (s, n) {
-      return [{ text: [{ text: String(n).padStart(2, "0") + "   ", color: t.cor }, { text: tituloCaixa(s.tit), color: t.txt }], font: fT, bold: true, fontSize: z(t.caixaAlta ? 17 : 22), characterSpacing: t.caixaAlta ? k : 0, margin: [0, n === 1 ? 0 : z(26), 0, 0] },
-        { canvas: [{ type: "rect", x: 0, y: 0, w: 42 * k, h: 3, color: t.corPura }], margin: [0, z(8), 0, z(14)] }];
+      var topo = n === 1 ? 0 : z(26) * (t.esp || 1), tam = z(t.caixaAlta ? 17 : 22), est = t.estTit || "numero", tt = tituloCaixa(s.tit), dep = z(14) * (t.esp || 1);
+      if (est === "barra") return [{ table: { widths: [5, "*"], body: [[{ text: "", fillColor: t.corPura }, { text: tt, font: fT, bold: true, fontSize: tam, color: t.txt, characterSpacing: t.caixaAlta ? k : 0, margin: [12, 2, 0, 2] }]] }, layout: semGap(t.fundo, 0), margin: [0, topo, 0, dep] }];
+      if (est === "pilula") return [{ table: { body: [[{ text: tt.toUpperCase(), bold: true, fontSize: z(11), color: sobre(t.corPura), fillColor: t.corPura, characterSpacing: 1.6 * k, margin: [12, 6, 12, 5] }]] }, layout: semGap(t.fundo, 0), margin: [0, topo, 0, dep] }];
+      if (est === "linha") return [{ text: tt, font: fT, bold: true, fontSize: tam, color: t.txt, characterSpacing: t.caixaAlta ? k : 0, margin: [0, topo, 0, 0] },
+        { canvas: [{ type: "line", x1: 0, y1: 1.5, x2: CW, y2: 1.5, lineWidth: 0.7, lineColor: t.linha }, { type: "rect", x: 0, y: 0, w: 64 * k, h: 3, color: t.corPura }], margin: [0, z(8), 0, dep] }];
+      if (est === "grande") return [{ text: [{ text: s.tit, color: t.txt }, { text: ".", color: t.cor }], font: fT, bold: true, fontSize: z(30), lineHeight: 1.05, margin: [0, topo, 0, dep] }];
+      return [{ text: [{ text: String(n).padStart(2, "0") + "   ", color: t.cor }, { text: tt, color: t.txt }], font: fT, bold: true, fontSize: tam, characterSpacing: t.caixaAlta ? k : 0, margin: [0, topo, 0, 0] },
+        { canvas: [{ type: "rect", x: 0, y: 0, w: 42 * k, h: 3, color: t.corPura }], margin: [0, z(8), 0, dep] }];
     };
     var cartao = function (pilha, pad) { return { table: { widths: ["*"], body: [[{ stack: pilha, margin: pad || [14, 12, 14, 12], fillColor: t.cartao }]] }, layout: semGap(t.fundo, 0), unbreakable: true }; };
     /* grade = uma tabela por LINHA (a página pode virar entre as linhas, e o título da seção vai junto com a primeira) */
@@ -611,7 +827,7 @@
         header: function (pg) { if (pg === 1) return null; return { columns: [{ text: m.marca.toUpperCase(), fontSize: z(7.5), bold: true, color: t.sub, characterSpacing: 1.6 }, { text: String(m.etiqueta).toUpperCase(), fontSize: z(7.5), color: t.sub, alignment: "right", characterSpacing: 1.6 }], margin: [MX, z(28), MX, 0] }; },
         footer: function (pg, n) { if (pg === 1) return null; return { columns: [{ text: m.linhaContato, fontSize: z(7.5), color: t.sub }, { text: pg + " / " + n, fontSize: z(7.5), color: t.sub, alignment: "right", width: 50 }], margin: [MX, z(22), MX, 0] }; },
         content: c,
-        defaultStyle: { font: "Roboto", fontSize: z(10.5), lineHeight: 1.4, color: t.txt }
+        defaultStyle: { font: "Roboto", fontSize: z(10.5) * (t.escTxt || 1), lineHeight: 1.4, color: t.txt }
       };
     }
   }
@@ -837,10 +1053,120 @@
   }
   /* galeria: o ✨ da foto abre os mesmos presets numa folha — um toque cria no lugar */
   function fotoIAmenu(i) { modal('<button type="button" class="pk-mx" data-a="fecharModal" aria-label="Fechar">✕</button><h3>✨ Melhorar a foto ' + (+i + 1) + '</h3><p class="tf-sub">Um toque e a foto nova entra no lugar.</p>' + botoesIA(String(i))); }
+  /* ✥ ENQUADRAR E AJUSTAR: arrastar a foto dentro da moldura (posição), aproximar (tamanho) e luz/cor.
+     A prévia da janela é desenhada pelo MESMO recortar() do PDF, no mesmo formato do lugar onde a foto vai. */
+  var ENQ = null;
+  function formatoKit() { var mod = modeloDe(KIT.modelo); return { cap: capaDoKit(KIT), G: geom(mod.tema.capa === "compcard" ? "a5" : (GEOM[KIT.formato] ? KIT.formato : mod.formato)) }; }
+  function enqTrocar(a, b) { var e = IMGS.enq || {}, x = e[a], y = e[b]; delete e[a]; delete e[b]; if (x) e[b] = x; if (y) e[a] = y; }
+  function enqTirarFoto(i) { var e = IMGS.enq || {}, n = {}; Object.keys(e).forEach(function (k) { var m = /^f(\d+)$/.exec(k); if (!m) n[k] = e[k]; else if (+m[1] < i) n[k] = e[k]; else if (+m[1] > i) n["f" + (+m[1] - 1)] = e[k]; }); IMGS.enq = n; }
+  function abrirEnquadrar(alvo) {
+    var k = chaveFoto(alvo), fm = formatoKit(), src, cw, ch, op = {}, inteira = k === "retrato";
+    if (k === "capa") { src = IMGS.capa || IMGS.retrato || (IMGS.fotos || [])[0]; var cc = corteCapa(fm.cap, fm.G, { corPura: KIT.cor || modeloDe(KIT.modelo).cor }); cw = cc[0]; ch = cc[1]; op = cc[2]; }
+    else if (inteira) src = IMGS.retrato;
+    else { src = (IMGS.fotos || [])[+alvo]; var cf = corteFoto(fm.cap, fm.G, +alvo); cw = cf[0]; ch = cf[1]; }
+    if (!src) return;
+    var e = Object.assign({ x: 0.5, y: 0.5, z: 1, aj: {} }, clone((IMGS.enq || {})[k] || {})); e.aj = Object.assign({}, e.aj || {});
+    ENQ = { k: k, src: src, cw: cw, ch: ch, op: op, e: e, inteira: inteira, antes: false };
+    var nome = k === "capa" ? "foto da capa" : inteira ? "foto recortada" : "foto " + (+alvo + 1);
+    modal('<button type="button" class="pk-mx" data-a="fecharModal" aria-label="Fechar">✕</button><h3>' + (inteira ? "🎚 Ajustar a " : "✥ Enquadrar e ajustar a ") + nome + "</h3>" +
+      '<p class="tf-sub">' + (inteira ? "Luz e cor da foto sem fundo." : "Arraste a foto para posicionar (sem cortar a cabeça), aproxime com a barra ou a rodinha e acerte a luz.") + " É exatamente assim que sai no PDF.</p>" +
+      '<div class="pk-enq' + (inteira ? " xadrez" : "") + '" id="enqPalco"><canvas id="enqCv"></canvas>' + (inteira ? "" : '<i class="pk-enq-g"></i>') + "</div>" +
+      (inteira ? "" : '<label class="pk-aj"><span>🔍 Tamanho</span><input type="range" min="100" max="300" step="1" data-enq="z" value="' + Math.round(e.z * 100) + '"><b>' + Math.round(e.z * 100) + "%</b></label>" +
+        '<div class="pk-chips"><button type="button" class="pk-chip" data-a="enqPos" data-v="topo">⬆ MOSTRAR O TOPO</button><button type="button" class="pk-chip" data-a="enqPos" data-v="centro">⊕ CENTRALIZAR</button><button type="button" class="pk-chip" data-a="enqPos" data-v="base">⬇ MOSTRAR A BASE</button></div>') +
+      '<div class="pk-sub-t">LUZ E COR</div>' + AJUSTES.map(function (a) { var v = +e.aj[a[0]] || 0; return '<label class="pk-aj"><span>' + a[1] + '</span><input type="range" min="-100" max="100" step="1" data-enq="' + a[0] + '" value="' + v + '"><b>' + v + "</b></label>"; }).join("") +
+      '<div class="pk-chips"><button type="button" class="pk-chip" data-a="enqLook" data-v="auto">✦ CLAREAR</button><button type="button" class="pk-chip" data-a="enqLook" data-v="vivo">VIVO</button><button type="button" class="pk-chip" data-a="enqLook" data-v="quente">QUENTE</button><button type="button" class="pk-chip" data-a="enqLook" data-v="frio">FRIO</button><button type="button" class="pk-chip" data-a="enqLook" data-v="pb">P&amp;B</button><button type="button" class="pk-chip" data-a="enqLook" data-v="zero">↺ ZERAR</button></div>' +
+      '<div class="pk-chips" style="margin-top:14px"><button type="button" class="pk-chip" data-a="enqAntes">◐ SEGURE PARA VER O ANTES</button><button type="button" class="bw-btn pri" data-a="enqPronto">✓ PRONTO</button></div>');
+    var cv = $("enqCv"), palco = $("enqPalco");
+    if (!inteira) { palco.style.aspectRatio = cw + " / " + ch; palco.style.width = "min(100%, calc(52vh * " + (cw / ch).toFixed(4) + "))"; }
+    ligarEnquadrar(palco); enqDesenhar();
+  }
+  var tEnq = 0, enqVez = 0;
+  function enqDesenhar() {
+    if (!ENQ) return; cancelAnimationFrame(tEnq);
+    tEnq = requestAnimationFrame(async function () {
+      var cv = $("enqCv"); if (!cv || !ENQ) return; var vez = ++enqVez, e = ENQ.antes ? { x: ENQ.e.x, y: ENQ.e.y, z: ENQ.e.z } : ENQ.e, u;
+      if (ENQ.inteira) u = ENQ.antes ? ENQ.src : await ajustarImg(await reduzir(ENQ.src, 700), e.aj);
+      else { var L = Math.min(640, (cv.parentNode.clientWidth || 480) * 1.5), sc = L / ENQ.cw; u = await recortar(ENQ.src, ENQ.cw * sc, ENQ.ch * sc, enqOp(e, Object.assign({ q: 0.8 }, ENQ.op))); }
+      if (vez !== enqVez || !ENQ) return;
+      var im = await imgDe(u); if (vez !== enqVez) return;
+      cv.width = im.naturalWidth; cv.height = im.naturalHeight; cv.getContext("2d").drawImage(im, 0, 0);
+    });
+  }
+  function ligarEnquadrar(palco) {
+    var cx = $("modalCx"), ini = null;
+    if (!cx.__enq) { cx.__enq = 1;
+      cx.addEventListener("input", function (ev) {
+        var n = ev.target.getAttribute && ev.target.getAttribute("data-enq"); if (!n || !ENQ) return;
+        var v = +ev.target.value; if (n === "z") ENQ.e.z = v / 100; else ENQ.e.aj[n] = v;
+        var b = ev.target.parentNode.querySelector("b"); if (b) b.textContent = n === "z" ? v + "%" : v; enqDesenhar();
+      });
+      var antes = function (on) { return function (ev) { var b = ev.target.closest && ev.target.closest('[data-a="enqAntes"]'); if (!b || !ENQ) return; if (on) ev.preventDefault(); ENQ.antes = on; enqDesenhar(); }; };
+      cx.addEventListener("pointerdown", antes(true)); ["pointerup", "pointerleave", "pointercancel"].forEach(function (t) { cx.addEventListener(t, function (ev) { if (ENQ && ENQ.antes) { ENQ.antes = false; enqDesenhar(); } }, true); });
+    }
+    if (ENQ.inteira) return;
+    palco.addEventListener("pointerdown", function (ev) { ev.preventDefault(); palco.setPointerCapture(ev.pointerId); var r = palco.getBoundingClientRect(); ini = { px: ev.clientX, py: ev.clientY, x: ENQ.e.x, y: ENQ.e.y, w: r.width, h: r.height }; palco.classList.add("pega"); });
+    palco.addEventListener("pointermove", function (ev) {
+      if (!ini || !ENQ) return;
+      /* quanto a foto sobra para cada lado (no tamanho da moldura) — a mesma conta do recortar() */
+      enqMedida().then(function (md) { if (!ini) return;
+        var sobraX = md.dw - 1, sobraY = md.dh - 1;
+        if (sobraX > 0.001) ENQ.e.x = Math.max(0, Math.min(1, ini.x - (ev.clientX - ini.px) / ini.w / sobraX));
+        if (sobraY > 0.001) ENQ.e.y = Math.max(0, Math.min(1, ini.y - (ev.clientY - ini.py) / ini.h / sobraY));
+        enqDesenhar(); });
+    });
+    var solta = function () { ini = null; palco.classList.remove("pega"); };
+    palco.addEventListener("pointerup", solta); palco.addEventListener("pointercancel", solta);
+    palco.addEventListener("wheel", function (ev) { ev.preventDefault(); ENQ.e.z = Math.max(1, Math.min(3, ENQ.e.z * (ev.deltaY < 0 ? 1.06 : 1 / 1.06))); var r = $("modalCx").querySelector('[data-enq="z"]'); if (r) { r.value = Math.round(ENQ.e.z * 100); r.parentNode.querySelector("b").textContent = r.value + "%"; } enqDesenhar(); }, { passive: false });
+  }
+  /* tamanho da foto desenhada em relação à moldura (1 = do tamanho da moldura) */
+  var ENQ_MED = {};
+  async function enqMedida() {
+    var k = ENQ.src.length + "|" + ENQ.src.slice(-32), im = ENQ_MED[k] || (ENQ_MED[k] = await imgDe(ENQ.src));
+    var s = Math.max(ENQ.cw / im.naturalWidth, ENQ.ch / im.naturalHeight) * Math.max(1, ENQ.e.z);
+    return { dw: im.naturalWidth * s / ENQ.cw, dh: im.naturalHeight * s / ENQ.ch };
+  }
+  function enqLook(v) {
+    var L = { auto: { ex: 18, so: 30, ct: 8, sa: 6 }, vivo: { ct: 22, sa: 32, ex: 4 }, quente: { te: 38, sa: 10, ex: 4 }, frio: { te: -36, ct: 8 }, pb: { sa: -100, ct: 22 }, zero: {} }[v] || {};
+    ENQ.e.aj = Object.assign({}, L);
+    AJUSTES.forEach(function (a) { var r = $("modalCx").querySelector('[data-enq="' + a[0] + '"]'); if (r) { r.value = +ENQ.e.aj[a[0]] || 0; r.parentNode.querySelector("b").textContent = r.value; } });
+    enqDesenhar();
+  }
+  function enqPos(v) { ENQ.e.y = v === "topo" ? 0 : v === "base" ? 1 : 0.5; if (v === "centro") ENQ.e.x = 0.5; enqDesenhar(); }
+  function enqPronto() {
+    if (!ENQ) return; var e = ENQ.e, aj = {}; AJUSTES.forEach(function (a) { if (+e.aj[a[0]]) aj[a[0]] = +e.aj[a[0]]; });
+    var limpo = ENQ.inteira ? {} : { x: +(+e.x).toFixed(4), y: +(+e.y).toFixed(4), z: +(+e.z).toFixed(3) }; if (Object.keys(aj).length) limpo.aj = aj;
+    IMGS.enq = IMGS.enq || {};
+    var neutro = !limpo.aj && (ENQ.inteira || (Math.abs(limpo.x - 0.5) < 0.001 && Math.abs(limpo.y - 0.5) < 0.001 && limpo.z <= 1.001));
+    if (neutro) delete IMGS.enq[ENQ.k]; else IMGS.enq[ENQ.k] = limpo;
+    ENQ = null; fecharModal(); guardarImgs(); desenharForm(); agendarPrevia(0); aviso("Foto ajustada ✓");
+  }
   function caixaImg(rot, chave, dica, png) {
     var u = IMGS[chave];
     return '<div class="pk-img"><span>' + rot + "</span>" + (u ? '<img src="' + u + '" alt="' + esc(rot) + '"' + (png ? ' class="xadrez"' : "") + ">" : "<i>" + esc(dica) + "</i>") + '<div class="pk-chips">' + upload(u ? "↺ TROCAR" : "＋ ESCOLHER", chave) +
-      (u ? '<button type="button" class="pk-chip" data-a="tirarImg" data-v="' + chave + '">✕ TIRAR</button>' : "") + (chave === "logo" ? '<button type="button" class="pk-chip" data-a="logoEmpresa">★ DA MINHA EMPRESA</button>' : "") + "</div>" + (u && chave !== "logo" ? botoesIA(chave) : "") + "</div>";
+      (u ? '<button type="button" class="pk-chip" data-a="tirarImg" data-v="' + chave + '">✕ TIRAR</button>' : "") + (chave === "logo" ? '<button type="button" class="pk-chip" data-a="logoEmpresa">★ DA MINHA EMPRESA</button>' : u ? '<button type="button" class="pk-chip" data-a="enquadrar" data-alvo="' + chave + '">' + (chave === "retrato" ? "🎚 LUZ E COR" : "✥ ENQUADRAR E AJUSTAR") + "</button>" : "") + "</div>" + (u && chave !== "logo" ? botoesIA(chave) : "") + "</div>";
+  }
+  /* 🎛 ESTILO AO VIVO: tudo o que muda o visual, com a prévia (o próprio PDF) se refazendo na hora */
+  function grupoEstilo(k, mod) {
+    var e = k.est || {}, cap = capaDoKit(k), c1 = k.cor || mod.cor, c2 = k.cor2 || mod.cor2, bg = e.fundo || mod.tema.fundo, cc = mod.tema.capa === "compcard";
+    var vars = "--c1:" + c1 + ";--c2:" + c2 + ";--bg:" + bg;
+    var chips = function (campo, lista, atual) { return '<div class="pk-chips">' + Object.keys(lista).map(function (v) { return '<button type="button" class="pk-chip' + (v === atual ? " on" : "") + '" data-a="est" data-c="' + campo + '" data-v="' + v + '">' + esc(lista[v]) + "</button>"; }).join("") + "</div>"; };
+    var faixa = function (rot, campo, min, max, v) { return '<label class="pk-aj"><span>' + rot + '</span><input type="range" min="' + min + '" max="' + max + '" step="1" data-k="est.' + campo + '" value="' + v + '" data-mostra="1"><b>' + v + "%</b></label>"; };
+    var corpo = '<p class="tf-sub">Mexa à vontade: a prévia se refaz na hora. Seus textos e fotos não mudam.</p>' +
+      (cc ? "" : '<div class="pk-sub-t">CAPA</div><div class="pk-capas" style="' + vars + '">' + Object.keys(CAPAS).map(function (v) {
+        return '<button type="button" class="pk-capa' + (v === cap ? " on" : "") + '" data-a="est" data-c="capa" data-v="' + v + '" title="' + CAPAS[v] + '"><i class="pk-cmini m-' + v + '"><u></u><s></s><em></em></i><span>' + CAPAS[v] + "</span></button>"; }).join("") + "</div>") +
+      '<div class="pk-sub-t">PALETAS PRONTAS</div><div class="pk-paletas">' + PALETAS.map(function (p, i) {
+        return '<button type="button" class="pk-paleta' + (p[1] === c1 && p[3] === bg ? " on" : "") + '" data-a="estPaleta" data-i="' + i + '"><i style="background:' + p[3] + '"><b style="background:' + p[1] + '"></b><b style="background:' + p[2] + '"></b></i><span>' + esc(p[0]) + "</span></button>"; }).join("") + "</div>" +
+      '<div class="pk-cores"><label class="pk-campo"><span>Cor principal</span><input type="color" data-k="cor" value="' + esc(c1) + '"></label><label class="pk-campo"><span>Cor de apoio</span><input type="color" data-k="cor2" value="' + esc(c2) + '"></label>' +
+      '<label class="pk-campo"><span>Fundo das páginas</span><input type="color" data-k="est.fundo" value="' + esc(bg) + '"></label></div>' +
+      '<div class="pk-chips"><button type="button" class="pk-chip" data-a="coresEmpresa">★ COR DA MINHA EMPRESA</button></div>' +
+      '<div class="pk-sub-t">TÍTULOS DAS PARTES</div>' + chips("tit", TITULOS, TITULOS[e.tit] ? e.tit : (mod.estTit || "numero")) +
+      '<div class="pk-sub-t">CAIXAS</div>' + chips("cart", CARTOES, CARTOES[e.cart] ? e.cart : "suave") +
+      '<div class="pk-sub-t">TAMANHOS E ESPAÇO</div>' + faixa("Aa Nome na capa", "nome", 60, 150, +e.nome || 100) + faixa("Aa Textos", "texto", 80, 125, +e.texto || 100) +
+      chips("esp", { compacto: "Compacto", normal: "Normal", arejado: "Arejado" }, e.esp || "normal") +
+      '<div class="pk-sub-t">DETALHES</div>' + chips("maiusc", { sim: "TÍTULOS EM MAIÚSCULAS", nao: "Títulos normais" }, e.maiusc || (mod.tema.caixaAlta ? "sim" : "nao")) +
+      chips("deco", { sim: "✦ Com enfeites", nao: "Sem enfeites" }, e.deco || "sim") +
+      '<div class="pk-chips" style="margin-top:12px"><button type="button" class="bw-btn" data-a="estZerar">↺ VOLTAR AO ESTILO DO MODELO</button></div>';
+    return grupo("estilo", "🎛 ESTILO AO VIVO", corpo, false);
   }
   function desenharForm() {
     var k = KIT, d = k.d, c = d.contato || (d.contato = {}), mod = modeloDe(k.modelo), cc = mod.tema.capa === "compcard";
@@ -853,10 +1179,10 @@
     h += grupo("modelo", "🎨 MODELO E VISUAL",
       '<div class="pk-chips">' + MODELOS.map(function (m) { return '<button type="button" class="pk-chip' + (m.id === k.modelo ? " on" : "") + '" data-a="trocarModelo" data-m="' + m.id + '">' + m.ico + " " + esc(m.nome) + "</button>"; }).join("") + "</div>" +
       '<p class="tf-sub">Trocar o modelo mantém todos os seus textos e fotos.</p>' +
-      '<div class="pk-cores"><label class="pk-campo"><span>Cor principal</span><input type="color" data-k="cor" value="' + esc(k.cor || mod.cor) + '"></label><label class="pk-campo"><span>Cor de apoio</span><input type="color" data-k="cor2" value="' + esc(k.cor2 || mod.cor2) + '"></label>' +
-      '<label class="pk-campo"><span>Letra dos títulos</span><select data-k="fonte">' + Object.keys(FONTES_TIT).map(function (f) { return '<option value="' + f + '"' + ((k.fonte || mod.fonte) === f ? " selected" : "") + ">" + FONTES_TIT[f] + "</option>"; }).join("") + "</select></label>" +
+      '<div class="pk-cores"><label class="pk-campo"><span>Letra dos títulos</span><select data-k="fonte">' + Object.keys(FONTES_TIT).map(function (f) { return '<option value="' + f + '"' + ((k.fonte || mod.fonte) === f ? " selected" : "") + ">" + FONTES_TIT[f] + "</option>"; }).join("") + "</select></label>" +
       '<label class="pk-campo"><span>Formato</span><select data-k="formato"' + (cc ? " disabled" : "") + ">" + (cc ? '<option>A5 (comp card)</option>' : Object.keys(FORMATOS).map(function (f) { return '<option value="' + f + '"' + ((k.formato || mod.formato) === f ? " selected" : "") + ">" + FORMATOS[f] + "</option>"; }).join("")) + "</select></label></div>" +
-      '<div class="pk-chips"><button type="button" class="pk-chip" data-a="coresModelo">↺ CORES DO MODELO</button><button type="button" class="pk-chip" data-a="coresEmpresa">★ COR DA MINHA EMPRESA</button></div>', true);
+      '<p class="tf-sub">Capa, cores, títulos e tamanhos ficam em 🎛 ESTILO AO VIVO, logo abaixo.</p>', true);
+    h += grupoEstilo(k, mod);
     /* 1 · quem é você */
     h += grupo("quem", "QUEM É VOCÊ",
       '<div class="pk-campos">' + campo("Seu nome (ou nome artístico)", "d.marca", d.marca, { larga: true, max: 80 }) + campo("O que você faz (uma linha)", "d.slogan", d.slogan, { larga: true, max: 160, ph: "Ex.: Atriz · Teatro, TV e publicidade" }) +
@@ -865,7 +1191,7 @@
     h += grupo("midia", "FOTOS E MÍDIA",
       '<div class="pk-imgs">' + caixaImg("SUA FOTO RECORTADA (sem fundo)", "retrato", "PNG sem fundo — fica ao lado do seu texto", true) + caixaImg(cc ? "FOTO PRINCIPAL" : "FOTO DA CAPA", "capa", "a foto que abre a apresentação") + caixaImg("LOGO OU ASSINATURA (opcional)", "logo", "sem logo", true) + "</div>" +
       '<div class="pk-sub-t">GALERIA <small>(' + (IMGS.fotos || []).length + "/7)</small></div>" + '<div class="pk-fotos">' + (IMGS.fotos || []).map(function (u, i) {
-        return '<div class="pk-foto"><img src="' + u + '" alt="Foto ' + (i + 1) + '"><span><button type="button" class="pk-sx" data-a="fotoEsq" data-i="' + i + '" aria-label="Para a esquerda">◀</button><button type="button" class="pk-sx" data-a="fotoTira" data-i="' + i + '" aria-label="Tirar foto">✕</button><button type="button" class="pk-sx ia" data-a="fotoIAmenu" data-i="' + i + '" aria-label="Melhorar com IA"' + (IA_OCUP["f" + i] ? " disabled" : "") + '>✨</button><button type="button" class="pk-sx" data-a="fotoDir" data-i="' + i + '" aria-label="Para a direita">▶</button></span></div>';
+        return '<div class="pk-foto"><img src="' + u + '" alt="Foto ' + (i + 1) + '"><span><button type="button" class="pk-sx" data-a="fotoEsq" data-i="' + i + '" aria-label="Para a esquerda">◀</button><button type="button" class="pk-sx" data-a="fotoTira" data-i="' + i + '" aria-label="Tirar foto">✕</button><button type="button" class="pk-sx" data-a="enquadrar" data-alvo="' + i + '" aria-label="Enquadrar e ajustar">✥</button><button type="button" class="pk-sx ia" data-a="fotoIAmenu" data-i="' + i + '" aria-label="Melhorar com IA"' + (IA_OCUP["f" + i] ? " disabled" : "") + '>✨</button><button type="button" class="pk-sx" data-a="fotoDir" data-i="' + i + '" aria-label="Para a direita">▶</button></span></div>';
       }).join("") + "</div>" + ((IMGS.fotos || []).length < 7 ? upload("＋ FOTOS NA GALERIA", "fotos", true) : "") +
       '<p class="tf-sub">' + (cc ? "As 4 primeiras fotos vão para o verso do comp card." : "A primeira foto da galeria sai grande; as outras, em grade.") + " Sem foto recortada? No <a href=\"fotos.html\">Editor de fotos</a> → ✨ IA → fundo transparente. Tudo fica só neste aparelho.</p>", false, true);
     /* seções ligadas, na ordem */
@@ -1081,7 +1407,7 @@
   function limpar(t) { return String(t || "").replace(/\*\*|__|^#+\s*/gm, "").trim(); }
   function erroIA(e) { return { sem_login: "Entre na sua conta para usar a IA.", limite: "Limite diário da IA atingido.", ocupada: "A IA está ocupada. Tente em alguns segundos.", rede: "Sem internet agora." }[e] || "A IA não respondeu agora (" + e + ")."; }
   function modal(html) { $("modalCx").innerHTML = html; $("modal").hidden = false; var f = $("modalCx").querySelector("textarea,input"); if (f) setTimeout(function () { f.focus(); }, 50); }
-  function fecharModal() { $("modal").hidden = true; $("modalCx").innerHTML = ""; }
+  function fecharModal() { ENQ = null; $("modal").hidden = true; $("modalCx").innerHTML = ""; }
   var DESFAZER_IA = null;
   function abrirIaSobre() {
     modal('<button type="button" class="pk-mx" data-a="fecharModal" aria-label="Fechar">✕</button><h3>🎙 Conte sobre você</h3><p class="tf-sub">Fale ou escreva do seu jeito, sem se preocupar com a ordem: quem você é, o que faz, há quanto tempo, onde já trabalhou, cursos, habilidades, suas medidas (se for modelo). A IA corrige e coloca cada coisa no lugar certo — <b>não inventa nada</b>.</p>' +
@@ -1144,18 +1470,25 @@
     else if (a === "abrir") await abrirKit(id);
     else if (a === "duplicar") { var k = acharKit(id); if (!k) return; var n = clone(k); n.id = uid(); n.nome = (k.nome || "Press kit") + " (cópia)"; n.criado = new Date().toISOString(); salvarKit(n); var im = await idbGet("imgs", k.id); if (im) await idbPut("imgs", n.id, im); var th = await idbGet("thumbs", "kit-" + k.id); if (th) await idbPut("thumbs", "kit-" + n.id, th); desenharLista(); aviso("Cópia criada ✓"); }
     else if (a === "excluir") { var k2 = acharKit(id); if (!k2 || !confirm("Excluir o press kit \"" + (k2.nome || "") + "\"? Isso não pode ser desfeito.")) return; gravarLista(lista().filter(function (x) { return x.id !== id; })); await idbDel("imgs", id); await idbDel("thumbs", "kit-" + id); desenharLista(); aviso("Press kit excluído"); }
-    else if (a === "trocarModelo") { var md = modeloDe(el.getAttribute("data-m")); KIT.modelo = md.id; KIT.cor = md.cor; KIT.cor2 = md.cor2; KIT.fonte = md.fonte; KIT.formato = md.formato; guardar(); desenharForm(); agendarPrevia(0); aviso("Modelo " + md.nome + " ✓"); }
+    else if (a === "trocarModelo") { var md = modeloDe(el.getAttribute("data-m")); KIT.modelo = md.id; KIT.cor = md.cor; KIT.cor2 = md.cor2; KIT.fonte = md.fonte; KIT.formato = md.formato; KIT.est = {}; guardar(); desenharForm(); agendarPrevia(0); aviso("Modelo " + md.nome + " ✓"); }
     else if (a === "coresModelo") { var m2 = modeloDe(KIT.modelo); KIT.cor = m2.cor; KIT.cor2 = m2.cor2; KIT.fonte = m2.fonte; guardar(); desenharForm(); agendarPrevia(0); }
     else if (a === "coresEmpresa") { var e = cfgOrc("empresa") || {}; if (!e.cor) { aviso("Sem cor salva em MINHA EMPRESA (Gerador de orçamento).", true); return; } KIT.cor = e.cor; guardar(); desenharForm(); agendarPrevia(0); }
     else if (a === "logoEmpresa") { var lg = cfgOrc("logo"); if (!lg) { aviso("Sem logo salva em MINHA EMPRESA (Gerador de orçamento).", true); return; } IMGS.logo = lg; guardarImgs(); desenharForm(); agendarPrevia(0); }
     else if (a === "puxarEmpresa") puxarEmpresa();
-    else if (a === "tirarImg") { IMGS[el.getAttribute("data-v")] = ""; if (IMGS.origs) delete IMGS.origs[el.getAttribute("data-v")]; guardarImgs(); desenharForm(); agendarPrevia(0); }
+    else if (a === "est") { var ec = el.getAttribute("data-c"); KIT.est = KIT.est || {}; KIT.est[ec] = el.getAttribute("data-v"); [].forEach.call(el.parentNode.children, function (b) { b.classList.toggle("on", b === el); }); guardar(); agendarPrevia(80); }
+    else if (a === "estPaleta") { var pl = PALETAS[+el.getAttribute("data-i")]; KIT.cor = pl[1]; KIT.cor2 = pl[2]; KIT.est = KIT.est || {}; KIT.est.fundo = pl[3]; guardar(); desenharForm(); agendarPrevia(80); aviso("Paleta " + pl[0] + " ✓"); }
+    else if (a === "estZerar") { var mz = modeloDe(KIT.modelo); KIT.est = {}; KIT.cor = mz.cor; KIT.cor2 = mz.cor2; guardar(); desenharForm(); agendarPrevia(80); aviso("Estilo do modelo de volta"); }
+    else if (a === "enquadrar") abrirEnquadrar(el.getAttribute("data-alvo"));
+    else if (a === "enqPronto") enqPronto();
+    else if (a === "enqLook") enqLook(el.getAttribute("data-v"));
+    else if (a === "enqPos") enqPos(el.getAttribute("data-v"));
+    else if (a === "tirarImg") { IMGS[el.getAttribute("data-v")] = ""; if (IMGS.origs) delete IMGS.origs[el.getAttribute("data-v")]; if (IMGS.enq) delete IMGS.enq[el.getAttribute("data-v")]; guardarImgs(); desenharForm(); agendarPrevia(0); }
     else if (a === "vis") { var s = el.getAttribute("data-s"), oc = KIT.ocultas || (KIT.ocultas = []); if (el.checked) KIT.ocultas = oc.filter(function (x) { return x !== s; }); else if (oc.indexOf(s) < 0) oc.push(s); guardar(); desenharForm(); agendarPrevia(0); }
     else if (a === "sobe" || a === "desce") { var o = KIT.ordem || (KIT.ordem = TODAS.slice()), i = o.indexOf(el.getAttribute("data-s")); TODAS.forEach(function (x) { if (o.indexOf(x) < 0) o.push(x); }); i = o.indexOf(el.getAttribute("data-s")); mover(o, i, a === "sobe" ? i - 1 : i + 1); guardar(); desenharForm(); agendarPrevia(0); }
     else if (a === "addItem") { var l = el.getAttribute("data-l"); (d[l] || (d[l] = [])).push(clone(NOVOS[l])); guardar(); desenharForm(); var c = $("form").querySelectorAll('[data-k^="d.' + l + '."]'); if (c.length) { var alvo = c[c.length - Object.keys(NOVOS[l]).length]; if (alvo) alvo.focus(); } }
     else if (a === "tirarItem") { d[el.getAttribute("data-l")].splice(+el.getAttribute("data-i"), 1); guardar(); desenharForm(); agendarPrevia(0); }
-    else if (a === "fotoTira") { IMGS.origs = Object.keys(IMGS.origs || {}).filter(function (x) { return x[0] !== "f"; }).reduce(function (o, x) { o[x] = IMGS.origs[x]; return o; }, {}); IMGS.fotos.splice(+el.getAttribute("data-i"), 1); guardarImgs(); desenharForm(); agendarPrevia(0); }
-    else if (a === "fotoEsq" || a === "fotoDir") { var fi = +el.getAttribute("data-i"), oo = IMGS.origs || {}, ja = oo["f" + fi], jb = oo["f" + (a === "fotoEsq" ? fi - 1 : fi + 1)]; if (ja || jb) { delete oo["f" + fi]; delete oo["f" + (a === "fotoEsq" ? fi - 1 : fi + 1)]; if (ja) oo["f" + (a === "fotoEsq" ? fi - 1 : fi + 1)] = ja; if (jb) oo["f" + fi] = jb; } mover(IMGS.fotos, fi, a === "fotoEsq" ? fi - 1 : fi + 1); guardarImgs(); desenharForm(); agendarPrevia(0); }
+    else if (a === "fotoTira") { IMGS.origs = Object.keys(IMGS.origs || {}).filter(function (x) { return x[0] !== "f"; }).reduce(function (o, x) { o[x] = IMGS.origs[x]; return o; }, {}); enqTirarFoto(+el.getAttribute("data-i")); IMGS.fotos.splice(+el.getAttribute("data-i"), 1); guardarImgs(); desenharForm(); agendarPrevia(0); }
+    else if (a === "fotoEsq" || a === "fotoDir") { var fi = +el.getAttribute("data-i"), oo = IMGS.origs || {}, ja = oo["f" + fi], jb = oo["f" + (a === "fotoEsq" ? fi - 1 : fi + 1)]; if (ja || jb) { delete oo["f" + fi]; delete oo["f" + (a === "fotoEsq" ? fi - 1 : fi + 1)]; if (ja) oo["f" + (a === "fotoEsq" ? fi - 1 : fi + 1)] = ja; if (jb) oo["f" + fi] = jb; } if ((a === "fotoEsq" ? fi - 1 : fi + 1) >= 0 && (a === "fotoEsq" ? fi - 1 : fi + 1) < IMGS.fotos.length) enqTrocar("f" + fi, "f" + (a === "fotoEsq" ? fi - 1 : fi + 1)); mover(IMGS.fotos, fi, a === "fotoEsq" ? fi - 1 : fi + 1); guardarImgs(); desenharForm(); agendarPrevia(0); }
     else if (a === "limparExemplo") {
       if (!confirm("Apagar todos os textos e fotos do exemplo e começar do zero? O modelo e as cores continuam.")) return;
       var vazio = base({ etiqueta: KIT.d.etiqueta || "APRESENTAÇÃO PESSOAL" }); (modeloDe(KIT.modelo).ordem || []).forEach(function (id) { if (NOVOS[id]) vazio[id] = [clone(NOVOS[id])]; });
@@ -1187,8 +1520,8 @@
     andamento("Lendo a imagem…");
     try {
       if (alvo === "logo") IMGS.logo = await arquivoParaUrl(fs[0], 1600, true);
-      else if (alvo === "retrato") { IMGS.retrato = await arquivoParaUrl(fs[0], 1800, true); if (IMGS.origs) delete IMGS.origs.retrato; }
-      else if (alvo === "capa") { IMGS.capa = await arquivoParaUrl(fs[0], 2400, false); if (IMGS.origs) delete IMGS.origs.capa; }
+      else if (alvo === "retrato") { IMGS.retrato = await arquivoParaUrl(fs[0], 1800, true); if (IMGS.origs) delete IMGS.origs.retrato; if (IMGS.enq) delete IMGS.enq.retrato; }
+      else if (alvo === "capa") { IMGS.capa = await arquivoParaUrl(fs[0], 2400, false); if (IMGS.origs) delete IMGS.origs.capa; if (IMGS.enq) delete IMGS.enq.capa; }
       else { for (var i = 0; i < fs.length && IMGS.fotos.length < 7; i++) IMGS.fotos.push(await arquivoParaUrl(fs[i], 2000, false)); }
       andamento(""); guardarImgs(); desenharForm(); agendarPrevia(0); aviso(alvo === "fotos" ? "Fotos na galeria ✓" : alvo === "logo" ? "Logo aplicada ✓" : alvo === "retrato" ? "Foto recortada aplicada ✓" : "Foto da capa aplicada ✓");
     } catch (e) { andamento(""); aviso("Não deu para abrir essa imagem. Tente outra (JPG ou PNG).", true); }
@@ -1206,7 +1539,11 @@
       if (t.getAttribute("data-a") === "vis" || t.getAttribute("data-a") === "servFotos") { acao(t.getAttribute("data-a"), t); return; }
       if (t.hasAttribute("data-k")) aoDigitar(e);
     });
-    document.addEventListener("input", function (e) { if (e.target && e.target.hasAttribute && e.target.hasAttribute("data-k") && e.target.type !== "color") aoDigitar(e); });
+    document.addEventListener("input", function (e) {
+      var t = e.target; if (!t || !t.hasAttribute || !t.hasAttribute("data-k")) return;
+      if (t.hasAttribute("data-mostra")) { var b = t.parentNode.querySelector("b"); if (b) b.textContent = t.value + "%"; }
+      aoDigitar(e);   /* cor também muda ao vivo (a prévia espera a pessoa parar de arrastar) */
+    });
     $("edNome").addEventListener("input", function () { if (KIT) { KIT.nome = this.value; guardar(); } });
     $("modal").addEventListener("click", function (e) { if (e.target === this) fecharModal(); });
     document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !$("modal").hidden) fecharModal(); });
@@ -1218,6 +1555,6 @@
     else if (mdl && MODELOS.some(function (m) { return m.id === mdl; })) criarKit(mdl);
     else { mostrar("lista"); desenharLista(); }
   }
-  window.BWPressKit = { modelos: MODELOS, modelo: modelo, defPdf: defPdf, kitNovo: kitNovo, imgsExemplo: imgsExemplo, atual: function () { return KIT; }, previa: desenharPrevia, paginas: function () { return PAGS; } };
+  window.BWPressKit = { imgsAtual: function () { return IMGS; }, recortar: recortar,  modelos: MODELOS, modelo: modelo, defPdf: defPdf, kitNovo: kitNovo, imgsExemplo: imgsExemplo, atual: function () { return KIT; }, previa: desenharPrevia, paginas: function () { return PAGS; } };
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", iniciar); else iniciar();
 })();

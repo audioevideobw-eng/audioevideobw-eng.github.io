@@ -782,3 +782,11 @@ Armadilha: classe de ESTADO não serve para destacar botão. `＋ IMPORTAR` usav
 - Prévia = o próprio PDF desenhado pelo pdf.js em canvas; teste lê `window.__pkUltimoDef` (content + background(1)).
 - Links: `link:` em texto/imagem vira /URI clicável; QR com qrcode-generator 1.4.4 desenhado em canvas → PNG.
 - Ditado: SpeechRecognition pt-BR contínuo; teste injeta um SpeechRecognition falso por add_init_script e a bw-ia simulada distingue "revisa textos".
+
+
+## Press kit — enquadrar foto e estilo ao vivo (25/11/2026)
+- Ajuste de foto guardado como dado ({x, y, z, aj}), nunca como imagem nova: o PDF recorta na hora com `recortar(src, w, h, enqOp(enq, op))`.
+- A janela de enquadrar usa a proporção do LUGAR (corteCapa/corteFoto) e o mesmo `recortar()` → o que se vê é o que sai. Arrastar: Δx/largura ÷ (sobra da foto).
+- Luz/cor por pixel (getImageData) — vale no iPhone; PNG transparente continua transparente. Foto redonda/arco: clip no canvas e saída PNG (o pdfMake não recorta).
+- Estilo da pessoa em `kit.est` aplicado por cima do tema em `modelo()`; troca de modelo zera `est`. Chips com data-a="est" data-c="campo" data-v="valor".
+- Conferir capas novas numa folha de contato (pdftoppm -r 40 + PIL) antes de publicar.

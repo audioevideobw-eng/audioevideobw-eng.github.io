@@ -557,6 +557,8 @@ for p, t in _codigo.items():
 for p, t in todos.items():
     if 'id="bwAntiMoldura"' not in t or "top.location.origin===location.origin" not in t:
         problemas.append(f"{p}: sem a proteção anti-moldura (rode python3 docs/automacoes/seguranca-paginas.py)")
+    elif 'id="bwAntiMoldura" ' not in t and 'id="bwAntiMoldura">html{display:none!important}</style>' not in t and 'id="bwAntiMoldura">' in t:
+        problemas.append(f"{p}: CSS da página dentro do <style id=bwAntiMoldura> — esse bloco é APAGADO ao abrir; o CSS some (25/11, press kit)")
     if '<meta name="referrer" content="strict-origin-when-cross-origin">' not in t:
         problemas.append(f"{p}: sem a política de referrer (rode python3 docs/automacoes/seguranca-paginas.py)")
 if not os.path.exists(".well-known/security.txt"):

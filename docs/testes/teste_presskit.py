@@ -96,12 +96,12 @@ with sync_playwright() as p:
         ok(estouro(pg) <= 0, "lista sem estouro horizontal")
         pg.click("text=＋ NOVA APRESENTAÇÃO")
         ok(pg.locator("#vModelos").is_visible(), "abre a galeria de modelos")
-        ok(pg.locator(".pk-mod").count() == 8, "8 modelos de apresentação pessoal")
+        ok(pg.locator(".pk-mod").count() == 14, "14 modelos de apresentação pessoal")
         try:
-            pg.wait_for_function("() => [...document.querySelectorAll('[data-mcapa]')].filter(i => i.src && i.src.startsWith('data:image')).length === 8", timeout=120000)
+            pg.wait_for_function("() => [...document.querySelectorAll('[data-mcapa]')].filter(i => i.src && i.src.startsWith('data:image')).length === 14", timeout=180000)
             capas = True
         except Exception: capas = False
-        ok(capas, "as 8 capas dos modelos são desenhadas pelo próprio PDF")
+        ok(capas, "as 14 capas dos modelos são desenhadas pelo próprio PDF")
         ok(estouro(pg) <= 0, "galeria sem estouro horizontal")
         pg.click('[data-a="usarModelo"][data-m="vip"]')
         try: pg.wait_for_selector("#vEd:not([hidden])", timeout=10000)
@@ -126,6 +126,26 @@ with sync_playwright() as p:
         # editar o nome
         pg.fill('[data-k="d.marca"]', "Zé Ação Teste")
         ok(esperar_previa(pg, "ZÉ AÇÃO TESTE"), "nome editado aparece na prévia (acentos)")
+        # 🎛 ESTILO AO VIVO: capa, paleta, títulos e tamanho mudam a prévia na hora
+        h_pag = "() => { const c = document.querySelector('#paginas canvas'); const d = c.getContext('2d').getImageData(0, 0, c.width, Math.round(c.height * 0.5)).data; let s = 0; for (let i = 0; i < d.length; i += 97) s = (s * 31 + d[i]) % 1000003; return s; }"
+        ok(pg.locator('.pk-capa').count() == 11 and pg.locator('.pk-paleta').count() == 12, "ESTILO AO VIVO: 11 capas e 12 paletas para escolher")
+        h0 = pg.evaluate(h_pag)
+        pg.click('.pk-capa[data-v="circulo"]'); esperar_previa(pg)
+        ok(pg.evaluate("() => BWPressKit.atual().est.capa") == "circulo" and pg.evaluate(h_pag) != h0, "trocar a CAPA (retrato redondo) refaz a prévia na hora")
+        ok("ellipse" in def_txt(pg), "capa redonda desenhada no PDF (anel em volta da foto)")
+        pg.click('.pk-paleta[data-i="2"]'); esperar_previa(pg)
+        claro = pg.evaluate("() => { const c = document.querySelectorAll('#paginas canvas')[1]; const d = c.getContext('2d').getImageData(4, Math.round(c.height * 0.5), 1, 1).data; return d[0] + d[1] + d[2]; }")
+        ok(claro > 690, f"PALETA Rosé deixa as páginas claras ({claro})")
+        pg.click('[data-a="est"][data-c="tit"][data-v="pilula"]'); esperar_previa(pg)
+        import re as _re
+        ok(_re.search(r'"text":"QUEM SOU EU\?","bold":true,"fontSize":[0-9.]+,"color":"#[0-9A-Fa-f]{6}","fillColor"', def_txt(pg)) is not None, "TÍTULOS em etiqueta colorida")
+        pg.evaluate("() => { const r = document.querySelector('[data-k=\"est.nome\"]'); r.value = 140; r.dispatchEvent(new Event('input', {bubbles: true})); }")
+        ok(pg.evaluate("() => BWPressKit.atual().est.nome") == "140" and esperar_previa(pg), "barra do TAMANHO DO NOME muda ao vivo")
+        for cp in ["revista", "diagonal", "faixa", "arco", "duotom"]:
+            pg.click(f'.pk-capa[data-v="{cp}"]')
+            ok(esperar_previa(pg) and "teste" in def_txt(pg).lower(), f"capa {cp.upper()} desenha sem erro")
+        pg.click('[data-a="estZerar"]'); esperar_previa(pg)
+        ok(pg.evaluate("() => JSON.stringify(BWPressKit.atual().est)") == "{}" and pg.locator('.pk-capa.on[data-v="recorte"]').count() == 1, "↺ VOLTAR AO ESTILO DO MODELO")
         # trabalhos com link: botão VER clicável
         ok("Programa Domingo Leve" in def_txt(pg) and "VER  ↗" in def_txt(pg), "TV, publicidade e eventos com botão VER ↗")
         pg.click('[data-a="vis"][data-s="experiencia"]')
@@ -174,6 +194,31 @@ with sync_playwright() as p:
         verm = pg.evaluate("""() => { const c = document.querySelector('#paginas canvas'); const d = c.getContext('2d').getImageData(Math.round(c.width/2), Math.round(c.height*0.15), 4, 4).data; return [d[0], d[2]]; }""")
         ok(verm[0] > verm[1] + 20, f"a foto nova aparece na capa (R {verm[0]} × B {verm[1]})")
         ok(pg.evaluate("() => JSON.stringify(window.__pkUltimoDef).includes('\"PF\"')"), "ATOR E ATRIZ usa a letra Playfair nos títulos")
+        # ✥ ENQUADRAR E AJUSTAR: arrastar move a foto dentro da moldura, a barra aproxima e a luz muda o pixel
+        pg.click('[data-a="enquadrar"][data-alvo="capa"]'); pg.wait_for_selector("#enqCv", timeout=5000); pg.wait_for_timeout(600)
+        ok(pg.evaluate("() => { const p = document.getElementById('enqPalco').getBoundingClientRect(); return p.width > 50 && p.height > 50 && p.right <= innerWidth + 1; }"), "ENQUADRAR abre a moldura no formato da capa, dentro da tela")
+        pg.evaluate("() => { const r = document.querySelector('[data-enq=\"z\"]'); r.value = 200; r.dispatchEvent(new Event('input', {bubbles: true})); }")
+        bx = pg.locator("#enqPalco").bounding_box()
+        pg.mouse.move(bx["x"] + bx["width"] / 2, bx["y"] + bx["height"] / 2); pg.mouse.down()
+        pg.mouse.move(bx["x"] + bx["width"] / 2 + 40, bx["y"] + bx["height"] / 2 + 60, steps=6); pg.mouse.up(); pg.wait_for_timeout(300)
+        lum_cv = "() => { const c = document.getElementById('enqCv'); const d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data; let s = 0; for (let i = 0; i < d.length; i += 40) s += d[i] + d[i+1] + d[i+2]; return s / (d.length / 40); }"
+        l0 = pg.evaluate(lum_cv)
+        pg.evaluate("() => { const r = document.querySelector('[data-enq=\"ex\"]'); r.value = 80; r.dispatchEvent(new Event('input', {bubbles: true})); }"); pg.wait_for_timeout(700)
+        l1 = pg.evaluate(lum_cv)
+        ok(l1 > l0 + 15, f"☀ EXPOSIÇÃO clareia a prévia da janela ({l0:.0f} → {l1:.0f})")
+        pg.click('[data-a="enqPronto"]'); pg.wait_for_timeout(400)
+        eq = pg.evaluate("() => window.BWPressKit.imgsAtual().enq || {}")
+        c = eq.get("capa") or {}
+        ok(abs(c.get("z", 1) - 2) < 0.01 and (c.get("x", .5) < 0.5 and c.get("y", .5) < 0.5) and c.get("aj", {}).get("ex") == 80, f"PRONTO grava posição, tamanho e luz da capa: {c}")
+        ok(esperar_previa(pg), "a prévia redesenha com a capa enquadrada")
+        ok(pg.evaluate("""async () => { const k = window.BWPressKit, g = document.createElement('canvas'); g.width = 80; g.height = 160; const gx = g.getContext('2d'), gr = gx.createLinearGradient(0, 0, 0, 160); gr.addColorStop(0, '#ff2020'); gr.addColorStop(1, '#2020ff'); gx.fillStyle = gr; gx.fillRect(0, 0, 80, 160); const src = g.toDataURL('image/png'); const med = async (op) => { const u = await k.recortar(src, 60, 60, op); const im = new Image(); im.src = u; await im.decode(); const c = document.createElement('canvas'); c.width = c.height = 60; const x = c.getContext('2d'); x.drawImage(im, 0, 0); const d = x.getImageData(0, 0, 60, 60).data; let s = 0; for (let i = 0; i < d.length; i += 4) s += d[i] + d[i+1] + d[i+2]; return s; }; return (await med({aj: {sa: -100}, q: 0.99})) !== (await med({q: 0.99})) && (await med({fy: 0, z: 2})) !== (await med({fy: 1, z: 2})); }"""), "a conta do PDF muda com a posição (topo × base) e com a cor")
+        pg.click('.pk-foto [data-a="enquadrar"][data-alvo="0"]'); pg.wait_for_selector("#enqCv", timeout=5000)
+        ok(pg.locator('#modal [data-enq="z"]').count() == 1 and pg.locator('#modal [data-a="enqLook"]').count() == 6, "galeria: ✥ abre o enquadrar com tamanho e os looks prontos")
+        pg.click('#modal [data-a="enqLook"][data-v="pb"]'); pg.click('[data-a="enqPronto"]'); pg.wait_for_timeout(300)
+        ok((pg.evaluate("() => (window.BWPressKit.imgsAtual().enq || {}).f0 || {}").get("aj") or {}).get("sa") == -100, "look P&B grava na foto 1 da galeria")
+        if pg.locator('.pk-foto').count() > 1:
+            pg.click('.pk-foto [data-a="fotoDir"][data-i="0"]'); pg.wait_for_timeout(300)
+            ok("f1" in pg.evaluate("() => window.BWPressKit.imgsAtual().enq || {}") and "f0" not in pg.evaluate("() => window.BWPressKit.imgsAtual().enq || {}"), "mover a foto leva o ajuste junto")
         conta = pg.evaluate("() => localStorage.getItem('bw_mkt_presskit_v1') || ''")
         ok("Zé Ação Teste" in conta and "data:image" not in conta, "conta guarda só os textos (fotos ficam no aparelho)")
         # 🎙 MONTE FALANDO (IA simulada) + voltar
