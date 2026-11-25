@@ -1,21 +1,21 @@
 {
- "versao": "1.9.45",
- "data": "24/11/2026",
+ "versao": "1.9.46",
+ "data": "25/11/2026",
  "pacote": "downloads/BW-Reels-Studio.zip",
- "sha256": "8237dd8d5427416889db738b4bdc7174a5284c944d1688df591f278e2b8e2484",
- "bytes": 42000928,
+ "sha256": "23ba3c2d024a1d80c11329837535bee3b694a80488d1915d57ab0f8dfa9a26c7",
+ "bytes": 41946239,
  "novidades": [
   {
-   "titulo": "Prévias vivas no editor de vídeo",
-   "texto": "Cada transição, tela, efeito, texto e motion mostra o efeito rodando, com fotos realistas: A é o take que sai e B, no fundo verde, o que entra."
+   "titulo": "Mais segurança nas páginas",
+   "texto": "A plataforma não abre mais escondida dentro de outro site: um site falso não consegue fazer você clicar sem ver."
   },
   {
-   "titulo": "Remover atributos e menu da transição",
-   "texto": "Botão direito no take volta ao original. Tocar numa transição aplicada abre tempo, trocar e excluir."
+   "titulo": "Links que saem do site",
+   "texto": "Levam só o nome da plataforma, nunca o endereço completo com códigos de galeria ou de cadastro."
   },
   {
-   "titulo": "Arrastar sem selecionar texto",
-   "texto": "Em todas as ferramentas, arrastar algo para aplicar não marca mais os textos da página."
+   "titulo": "Cópia sem internet atualizada",
+   "texto": "As ferramentas que funcionam sem internet foram atualizadas com o site de hoje."
   }
  ]
 }

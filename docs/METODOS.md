@@ -680,3 +680,18 @@ Armadilha: classe de ESTADO não serve para destacar botão. `＋ IMPORTAR` usav
 - Miniaturas: desenhadas UMA vez (cache em memória) — a biblioteca não anima à toa.
 - Folha de quadros de todos os modelos antes de publicar (pegou "1.500" virando "2" e etiquetas cortadas nas bordas).
 - Antes de criar id novo, grep no HTML da página (regra 96): alQtd já existia no Álbum 3D.
+
+## Segurança de site estático no GitHub Pages (25/11/2026)
+1. **Sem cabeçalhos**: GitHub Pages não deixa mandar X-Frame-Options, HSTS nem CSP por cabeçalho; no <meta> o navegador ignora frame-ancestors,
+   sandbox e report-uri. Clickjacking = bloco anti-moldura no <head> (style que esconde o html + script que só mostra se `self===top` ou se
+   `top.location.origin===location.origin`; senão tenta `top.location.href = location.href`). Vem logo depois da CSP, antes de tudo.
+2. **Teste de verdade**: dois servidores (127.0.0.1 = o site, localhost = "o golpista" com um <iframe> do site) → a página fica `display:none` no quadro
+   de fora e no quadro com sandbox; aparece sozinha e num quadro do mesmo site; o servidor de fora registra o Referer (deve ser só a origem). O Chrome
+   bloqueia o pulo da aba de quadro de fora sem gesto do usuário — por isso o que protege é a página ficar EM BRANCO (docs/testes/teste_moldura.py).
+3. **security.txt**: `.well-known/security.txt` com Contact, Expires (≤ 1 ano), Preferred-Languages, Canonical, Policy; o Jekyll do Pages pula pasta com
+   ponto → `_config.yml` com `include: [.well-known]`. Vigia confere o Expires.
+4. **Mesma origem**: tudo em `usuario.github.io/<repo>/` é o MESMO site para o navegador (localStorage e sessão juntos). Antes de pôr script de fora
+   (analytics, chat) em qualquer repositório desse usuário, lembrar que ele lê a sessão da plataforma.
+5. **App BW depois de outra sessão**: partir SEMPRE do pacote publicado (`unzip downloads/BW-Reels-Studio.zip`), nunca da cópia local — conferir
+   `downloads/app-versao.json` antes de subir a versão.
+

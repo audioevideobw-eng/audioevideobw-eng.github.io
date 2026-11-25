@@ -53,10 +53,28 @@ CSP = "; ".join([
 META = f'<meta http-equiv="Content-Security-Policy" content="{CSP}">'
 RE_META = re.compile(r'<meta http-equiv="Content-Security-Policy"[^>]*>\n?')
 
+# 3. REFERRER (25/11/2026, guia "100 pontos de segurança", ponto 57): link para fora leva só o endereço do site, nunca o
+#    caminho com ?id=, ?g=TOKEN (galeria do cliente) ou ?t= (link de cadastro).
+REF = '<meta name="referrer" content="strict-origin-when-cross-origin">'
+RE_REF = re.compile(r'<meta name="referrer"[^>]*>\n?')
 
-def aplicar(texto):
+# 4. ANTI-MOLDURA (clickjacking, pontos 48/55): no GitHub Pages não dá para mandar o cabeçalho X-Frame-Options nem o
+#    frame-ancestors (no <meta> o navegador IGNORA). Então: a página nasce escondida e só aparece se estiver sozinha na
+#    aba OU dentro de um quadro do PRÓPRIO site (TESTES E SOLUÇÕES, prévias). Dentro de um site de fora fica em branco e
+#    tenta abrir a aba inteira no endereço certo. Quadro com sandbox sem allow-same-origin também fica em branco.
+ANTI = ('<style id="bwAntiMoldura">html{display:none!important}</style>'
+        '<script>(function(){var ok=self===top;if(!ok){try{ok=top.location.origin===location.origin}catch(e){ok=false}}'
+        'if(ok){var s=document.getElementById("bwAntiMoldura");if(s)s.parentNode.removeChild(s)}'
+        'else{try{top.location.href=location.href}catch(e){}}})();</script>')
+RE_ANTI = re.compile(r'<style id="bwAntiMoldura">.*?</script>\n?', re.S)
+
+
+def aplicar(texto, anti=True):
     texto = RE_META.sub("", texto)
-    return re.sub(r'(<meta charset="utf-8">\n?)', lambda m: m.group(1).rstrip("\n") + "\n" + META + "\n", texto, count=1, flags=re.I)
+    texto = RE_REF.sub("", texto)
+    texto = RE_ANTI.sub("", texto)
+    bloco = META + "\n" + REF + "\n" + (ANTI + "\n" if anti else "")
+    return re.sub(r'(<meta charset="utf-8">\n?)', lambda m: m.group(1).rstrip("\n") + "\n" + bloco, texto, count=1, flags=re.I)
 
 
 def main():
@@ -74,9 +92,10 @@ def main():
     # molde das páginas geradas (negocio.html / casa.html — regra 101)
     g = os.path.join(RAIZ, "docs", "automacoes", "gerar-ambientes.py")
     t = open(g, encoding="utf8").read(); n = aplicar(t)
+    n = n.replace(ANTI, ANTI.replace("{", "{{").replace("}", "}}"))  # o molde usa .format(): chaves dobradas
     if n != t:
         open(g, "w", encoding="utf8").write(n); mudou += 1
-    print(f"CSP aplicada/atualizada em {mudou} arquivo(s).")
+    print(f"CSP, referrer e anti-moldura aplicados/atualizados em {mudou} arquivo(s).")
 
 
 if __name__ == "__main__":

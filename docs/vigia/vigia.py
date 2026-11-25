@@ -480,6 +480,25 @@ for p, t in _codigo.items():
     for v in re.findall(r'node-forge@(\d+)\.(\d+)\.(\d+)', t):
         if tuple(map(int, v)) < (1, 3, 2): problemas.append(f"{p}: node-forge {'.'.join(v)} tem falhas conhecidas (use ≥ 1.3.2)")
     if "xlsx@0.18" in t: problemas.append(f"{p}: xlsx 0.18 tem falhas conhecidas (use o CDN do SheetJS 0.20.3+)")
+# 7.10e (25/11/2026, guia "100 pontos de segurança"): anti-moldura (clickjacking) e referrer em TODA página; security.txt
+#   publicado (_config.yml inclui .well-known) e longe de vencer (Expires precisa estar > 30 dias à frente).
+for p, t in todos.items():
+    if 'id="bwAntiMoldura"' not in t or "top.location.origin===location.origin" not in t:
+        problemas.append(f"{p}: sem a proteção anti-moldura (rode python3 docs/automacoes/seguranca-paginas.py)")
+    if '<meta name="referrer" content="strict-origin-when-cross-origin">' not in t:
+        problemas.append(f"{p}: sem a política de referrer (rode python3 docs/automacoes/seguranca-paginas.py)")
+if not os.path.exists(".well-known/security.txt"):
+    problemas.append(".well-known/security.txt sumiu (contato para avisar falhas — RFC 9116)")
+else:
+    import datetime as _dt
+    _st = ler(".well-known/security.txt")
+    _m = re.search(r"^Expires:\s*(\d{4}-\d{2}-\d{2})", _st, re.M)
+    if "Contact:" not in _st or not _m:
+        problemas.append("security.txt sem Contact ou Expires")
+    elif _dt.date.fromisoformat(_m.group(1)) < _dt.date.today() + _dt.timedelta(days=30):
+        problemas.append(f"security.txt vence em {_m.group(1)} — renove o Expires (até 1 ano à frente)")
+if ".well-known" not in ler("_config.yml"):
+    problemas.append("_config.yml precisa incluir .well-known (senão o GitHub Pages não publica o security.txt)")
 if "politica.html" not in ler("assets/layout.js") or "POLÍTICA DE USO" not in ler("assets/layout.js"):
     problemas.append("layout.js: POLÍTICA DE USO sumiu do menu")
 if "seguranca.html" not in ler("assets/layout.js") or "SEGURANÇA E DADOS" not in ler("assets/layout.js"):

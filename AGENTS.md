@@ -996,6 +996,16 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
      vertical feita pelo JS (faixaFirme com o.vertical) precisa de EMBALO ao soltar, senão "trava"; a coluna dos nomes das camadas (#veRot) também rola.
      Teste com toque CDP para BAIXO e para CIMA (só para baixo passava): docs/testes/teste_rolagem_paineis.py e teste_video_rolagem.py.
 
+229. MESMO ENDEREÇO, SITES DIFERENTES (25/11/2026, guia "100 pontos de segurança"): GitHub Pages não deixa mandar CABEÇALHOS (X-Frame-Options, HSTS,
+     frame-ancestors) e o navegador IGNORA o frame-ancestors no <meta>. Contra clickjacking vale o bloco #bwAntiMoldura (seguranca-paginas.py, no <head>
+     de TODA página e no molde dos ambientes — chaves dobradas porque o molde usa .format): a página nasce escondida e só aparece sozinha na aba ou num
+     quadro do PRÓPRIO endereço (TESTES E SOLUÇÕES e prévias continuam); num site de fora ou quadro com sandbox fica em branco. Junto: <meta name=
+     "referrer" content="strict-origin-when-cross-origin"> (link para fora não leva ?g=TOKEN/?t=). security.txt em .well-known (o Jekyll ignora pasta
+     com ponto → _config.yml com include) com Expires de até 1 ano — o vigia avisa 30 dias antes de vencer. Brightway e BW Produções (/bw-producoes/)
+     são a MESMA ORIGEM: dividem o armazenamento do navegador onde fica a sessão do login; script de fora numa delas (o Google Analytics da BW
+     Produções) roda com o mesmo acesso — por isso nada de script de terceiros novo em nenhuma das duas sem pensar nisso (auto: vigia 7.10e,
+     docs/testes/teste_moldura.py; BW Produções: scripts/seguranca_paginas.py).
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -2815,3 +2825,15 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   página rola de qualquer ponto, para cima e para baixo. Editor de vídeo: subir/descer as camadas pelo meio da linha do tempo ganhou embalo ao soltar e a
   coluna dos nomes também rola. bw-ferramentas v11, ve-app v17, sw v234. Testes novos teste_rolagem_paineis e teste_video_rolagem 0 falhas; rolagem,
   video_app, regua, borda, toque_duplo, paineis, album, telas, motion_app, criador, 3d 0 falhas. PENTE FINO 228.
+- 25/11/2026 08:20 · Claude (dono: "aplique o guia de segurança no app BW e nos outros projetos"): conferido o PDF "100 pontos de segurança" (Geraldo
+  Alvês) — confiável, com simplificações; o que faltava aqui foi feito. (1) PROTEÇÃO CONTRA MOLDURA (clickjacking) em todas as 64 páginas e no molde dos
+  ambientes: página dentro de site de fora fica em branco; dentro do próprio site continua. (2) Política de REFERRER: link para fora leva só a origem.
+  (3) .well-known/security.txt (RFC 9116) + _config.yml para o GitHub publicar a pasta. (4) Página Segurança e seus dados e manual (73 p.) contam isso.
+  (5) downloads.html estourava 25 px a 360 px (texto em negrito sem quebrar) → corrigido. Vigia 7.10e; teste novo teste_moldura (16 ✓); testes,
+  layout, reels e varredura sem achado novo. sw v235. APP BW 1.9.46 a partir do pacote PUBLICADO 1.9.45 (a cópia local estava na 1.9.39 — publicar dela
+  apagaria o Electron e o resto da noite de 24/11): cópia sem internet de hoje, tutorial, novidades, teste-app ✓. BW PRODUÇÕES (repo bw-producoes): mesmas
+  proteções + scripts/seguranca_paginas.py + link do portfólio só abre http(s). Mesa de câmbio não está publicada como site (só fornece milhas.json).
+  ACHADO PARA DECISÃO: Brightway e BW Produções dividem o mesmo endereço; o Google Analytics da BW Produções roda com acesso à sessão do login da
+  Brightway. PENTE FINO 229.
+- [ ] (25/11) DECIDIR: Google Analytics no site da BW Produções (mesmo endereço da Brightway) — tirar, ou mudar a BW Produções para outro endereço
+      (domínio próprio ou outro serviço de hospedagem). BW-Setup.exe 1.9.46 depende do PC do dono (o app se atualiza sozinho).

@@ -3,6 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' blob: https://cdn.jsdelivr.net https://cdn.sheetjs.com; worker-src 'self' blob: https://cdn.jsdelivr.net; connect-src 'self' data: blob: https://zdtnetplvdonogmdvarx.supabase.co wss://zdtnetplvdonogmdvarx.supabase.co https://cdn.jsdelivr.net https://cdn.sheetjs.com https://open.er-api.com https://olinda.bcb.gov.br https://raw.githubusercontent.com https://storage.googleapis.com https://huggingface.co https://*.huggingface.co https://*.hf.co https://tessdata.projectnaptha.com https://fonts.googleapis.com https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' data: blob: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; font-src 'self' data: https://fonts.gstatic.com https://cdn.jsdelivr.net; frame-src 'self' blob: data: https://docs.google.com; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<style id="bwAntiMoldura">html{display:none!important}</style><script>(function(){var ok=self===top;if(!ok){try{ok=top.location.origin===location.origin}catch(e){ok=false}}if(ok){var s=document.getElementById("bwAntiMoldura");if(s)s.parentNode.removeChild(s)}else{try{top.location.href=location.href}catch(e){}}})();</script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Segurança e seus dados — Brightway</title>
 <link rel="manifest" href="manifest.json">
@@ -163,7 +165,7 @@
 
   <section class="sg-cx" id="testes">
     <h2>COMO A PLATAFORMA É TESTADA</h2>
-    <p>Análise de 23/11/2026 contra os 8 ataques mais comuns em sites e sistemas feitos com IA:</p>
+    <p>Análise de 23/11/2026 contra os ataques mais comuns em sites e sistemas feitos com IA:</p>
     <table class="sg-tab">
       <thead><tr><th>Ataque</th><th>Em palavras simples</th><th>Resultado</th></tr></thead>
       <tbody>
@@ -175,6 +177,7 @@
         <tr><td>Sem limite de tentativas</td><td>Robô tentando senhas ou mandando formulários sem parar.</td><td><span class="sg-ok">PROTEGIDO</span></td></tr>
         <tr><td>Prompt injection</td><td>Um texto escondido "mandar" na IA para ela agir sozinha.</td><td><span class="sg-ok">PROTEGIDO</span></td></tr>
         <tr><td>Pacotes inventados ou com falha</td><td>Biblioteca falsa, abandonada ou com falha conhecida.</td><td><span class="sg-ok">PROTEGIDO</span></td></tr>
+        <tr><td>Página escondida em outro site (clickjacking)</td><td>Um site falso abrir a plataforma por baixo para você clicar sem ver (incluído em 25/11).</td><td><span class="sg-ok">PROTEGIDO</span></td></tr>
       </tbody>
     </table>
     <p class="sg-p" style="margin-top:14px"><b>E todo dia, a cada atualização:</b></p>
@@ -183,6 +186,8 @@
       <div class="sg-card"><h3>Testes das ferramentas</h3><p>Mais de 60 testes automáticos usam cada ferramenta como uma pessoa usaria, no computador e no celular, e conferem que nada sai do aparelho quando não deve.</p></div>
       <div class="sg-card"><h3>Proteção do navegador</h3><p>As páginas só carregam código de endereços conhecidos, conferem a "impressão digital" de cada biblioteca externa e não conseguem mandar dados para servidores fora da lista.</p></div>
       <div class="sg-card"><h3>Banco conferido ao vivo</h3><p>As regras de acesso de cada tabela foram lidas direto no servidor, e um visitante sem conta enxerga zero registros dos usuários.</p></div>
+      <div class="sg-card"><h3>Links que saem do site</h3><p>Ao abrir um link para fora, o outro site recebe só o nome da plataforma, nunca o endereço completo com códigos de galeria ou de cadastro.</p></div>
+      <div class="sg-card"><h3>Achou uma falha?</h3><p>Escreva para <b>audioevideobw@gmail.com</b>. O contato também fica no arquivo padrão <a href="/.well-known/security.txt">security.txt</a>, onde especialistas em segurança procuram.</p></div>
     </div>
   </section>
 

@@ -3,6 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' blob: https://cdn.jsdelivr.net https://cdn.sheetjs.com; worker-src 'self' blob: https://cdn.jsdelivr.net; connect-src 'self' data: blob: https://zdtnetplvdonogmdvarx.supabase.co wss://zdtnetplvdonogmdvarx.supabase.co https://cdn.jsdelivr.net https://cdn.sheetjs.com https://open.er-api.com https://olinda.bcb.gov.br https://raw.githubusercontent.com https://storage.googleapis.com https://huggingface.co https://*.huggingface.co https://*.hf.co https://tessdata.projectnaptha.com https://fonts.googleapis.com https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' data: blob: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; font-src 'self' data: https://fonts.gstatic.com https://cdn.jsdelivr.net; frame-src 'self' blob: data: https://docs.google.com; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<style id="bwAntiMoldura">html{display:none!important}</style><script>(function(){var ok=self===top;if(!ok){try{ok=top.location.origin===location.origin}catch(e){ok=false}}if(ok){var s=document.getElementById("bwAntiMoldura");if(s)s.parentNode.removeChild(s)}else{try{top.location.href=location.href}catch(e){}}})();</script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Downloads — Brightway</title>
 <meta name="description" content="Baixe o app BW para Windows, Android, iPhone e os guias em PDF. Veja para que serve cada um.">
@@ -72,6 +74,8 @@ a{color:inherit}
 .escolha ul{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 22px}
 .escolha li{font-size:14.5px;line-height:1.5;display:flex;gap:8px}
 .escolha li b{white-space:nowrap}
+.escolha li span{min-width:0}
+@media(max-width:480px){.escolha li b{white-space:normal}}
 .escolha a{color:var(--ambar);text-decoration:none;font-weight:600}
 
 /* ---------- modelos ---------- */
