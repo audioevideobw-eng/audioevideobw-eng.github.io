@@ -750,6 +750,11 @@ Armadilha: classe de ESTADO não serve para destacar botão. `＋ IMPORTAR` usav
 - **Revisar** sempre numa folha de contato (todas as fotos de um tutorial com o alvo em vermelho): achou 3 bugs de verdade (botão principal
   invisível no PRETO E BRANCO em MINHAS IAS; "toque de novo para entrar" não existe no celular — um toque já entra; COLAR sem permissão de
   área de transferência mostra erro).
+- **Exemplo = resultado real** (regra 236): o texto do passo, a mídia e a resposta da IA simulada contam a MESMA história. Para IA de
+  imagem: gerar uma vez, na conta ADM, a pessoa inventada (`BWFotosNuvem.editar(null, prompt, w, h, {modo:"pers"})`) e o resultado real
+  do pedido do exemplo; trazer do navegador para cá em base64 pequeno (WEBP 320×400) conferindo o SHA-256 em pedaços de 1000 letras
+  (faltou um "=" na 1ª cópia). A rota da captura devolve esse resultado; decupagem simulada por take escolhida pela duração (`?dur=`);
+  `ping` responde `{pronto:true}`. Folha final: o ÚLTIMO quadro de cada passo de todos os tutoriais lado a lado.
 - **Armadilhas**: input com selo SRI + stub = supabase não carrega (página "não logada"); `post_data` de upload binário dá UnicodeDecodeError →
   `post_data_buffer`; botão só com ícone (Voltar da faixa do editor) tem innerText vazio — usar posição/JS; clique em `<label for=file>` abre
   o seletor: `expect_file_chooser` e depois `set_input_files`.

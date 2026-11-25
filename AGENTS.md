@@ -1046,6 +1046,13 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
      (o nome que a pessoa deu em MEU ASSISTENTE). Preferência do assistente (nome, visual, cor, voz) é do APARELHO (ui_assistente), nunca da
      conta. Ferramenta ASSISTENTE DE TEXTO continua com o nome completo para não confundir (auto: vigia 7.8n).
 
+236. TUTORIAL MOSTRA O EFEITO REAL (dono, 25/11: "o exemplo fala de mudar cabelo e a imagem não tem relação"): todo passo que pede um resultado
+     mostra ESSE resultado na tela — o texto do exemplo, a mídia e a resposta da IA simulada têm de bater. Foto de exemplo com pessoa INVENTADA e
+     resposta REAL da IA da plataforma para o pedido do exemplo (docs/tutoriais/exemplos/, gerada uma vez na conta ADM); resposta simulada descreve
+     o que a mídia mostra de verdade (decupagem por take, pela duração); o último quadro do passo mostra o efeito (cartão do assistente, versão nova,
+     clipe na linha do tempo com a agulha no começo). Ping das funções responde "pronto" na captura (senão aparece "IA sendo ativada"). Revisar a
+     folha de contato com o ÚLTIMO quadro de cada passo antes de publicar.
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -2755,6 +2762,10 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   Bug achado no caminho: botão 3 · CONECTAR de MINHAS IAS invisível no modo PRETO E BRANCO (minhas-ias.js v2). Testes: teste_tutoriais
   (0 falhas × 1280/390) + agente_leitor, pede, layout, ambientes, agente_arrastar, lancamentos, modos, testes; vigia ✅ (7.8n). Manual 75 → 76 p.
   ("Meu assistente"). App BW 1.9.50. layout.js v83, modos.js v11, bw-agente v27, tutoriais.js v4, sw v240. PENTE FINO 234–235.
+- 25/11/2026 12:20 · Claude (dono: "no tutorial de foto com IA o exemplo fala de mudar cabelo e a imagem não tem relação — regra: sempre mostre o efeito e o resultado
+  real do exemplo"): foto-ia refeito com uma pessoa inventada e o resultado REAL da IA da plataforma para "cabelo cacheado ruivo" + passo novo COMPARE E SALVE;
+  decupagem com trechos que descrevem o que cada take mostra; tela inicial mostra o cartão do assistente depois do pedido; aviso "IA sendo ativada" some da
+  captura. Revisados os 13 tutoriais pelo último quadro de cada passo. PENTE FINO 236. tutoriais.js v5, quadros.js v2, sw v241.
 ## Pendências (dono)
 - [x] (25/11 11:37) BW-Setup.exe 1.9.50 gerado pelo dono e publicado (13,2 MB, versão conferida dentro do .exe; maior pela cópia sem internet com as fotos dos tutoriais).
 - [ ] (25/11) TUTORIAIS + MEU ASSISTENTE: dono abrir um tutorial no celular (som ligado, iPhone sem o silencioso) e dizer se a narração e a música

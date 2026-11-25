@@ -39,7 +39,7 @@
       link: ["./", "IR PARA O INÍCIO"],
       passos: [
         { t: "Toque numa tela para entrar", d: "Em volta do robô ficam MEU NEGÓCIO, GESTÃO DE CASA, MARKETING e FERRAMENTAS. Passe o dedo para o lado para girar e toque numa delas para entrar." },
-        { t: "Peça pela caixa do assistente", d: "Embaixo do robô fica a caixa de pedido: escreva ou fale e toque na seta. O assistente mostra o cartão antes de lançar qualquer coisa." },
+        { t: "Peça pela caixa do assistente", d: "Embaixo do robô fica a caixa de pedido: escreva ou fale e toque na seta. No exemplo, gastei 50 no almoço vira um cartão de gasto da casa, com o valor e a data: o assistente sempre mostra o cartão e só lança quando você toca em LANÇAR." },
         { t: "Menu e configurações", d: "Toque em MAIS, arraste o menu e entre em CONFIGURAÇÕES: os seus dados, a aparência e as suas IAs." }
       ] },
     { id: "meu-assistente", cat: "comecar", ic: "🧑‍💻", titulo: "Deixar o assistente do seu jeito", ensina: "deixar o assistente do seu jeito", min: 2, nivel: "Fácil",
@@ -111,7 +111,7 @@
       passos: [
         { t: "Importe os takes", d: "No Editor de vídeo, toque em Mídia, na faixa de baixo, e depois em IMPORTAR. Escolha os vídeos do evento." },
         { t: "Toque em DECUPAR COM IA", d: "Na mesma folha, toque em DECUPAR COM IA. Os takes já vêm marcados: diga que evento é, se quiser, e toque em DECUPAR. Confirme o aviso: só uma cópia leve vai para a IA." },
-        { t: "Leia a lista", d: "Cada trecho vem com o tempo, a nota de uma a cinco estrelas, o tipo e a fala. Os filtros no alto mostram só as melhores notas ou um tipo." },
+        { t: "Leia a lista", d: "Cada trecho vem com o tempo, a nota de uma a cinco estrelas, o que aparece nele e a fala, quando alguém fala. Os filtros no alto mostram só as melhores notas ou um tipo." },
         { t: "Monte o vídeo", d: "O botão de mais põe um trecho já aparado na linha do tempo. MONTAR COM OS MELHORES enfileira todos, sem os ruins." }
       ] },
     { id: "exportar-redes", cat: "video", ic: "📤", titulo: "Editar leve e exportar para as redes", ensina: "editar sem travar e exportar o vídeo certinho para cada rede", min: 3, nivel: "Médio",
@@ -127,9 +127,10 @@
       resumo: "Peça uma mudança na foto (cabelo, roupa, fundo) e receba uma versão nova ao lado.",
       link: ["fotos.html", "ABRIR O EDITOR DE FOTOS"],
       passos: [
-        { t: "Abra a foto", d: "No Editor de fotos, toque em ESCOLHER FOTOS e escolha a foto na galeria." },
+        { t: "Abra a foto", d: "No Editor de fotos, toque em ESCOLHER FOTOS e escolha a foto na galeria. No exemplo, uma moça de cabelo liso castanho." },
         { t: "Aba IA", d: "Na faixa de baixo, arraste até IA e toque." },
-        { t: "Escreva e crie", d: "Escreva o que quer mudar, ou toque numa sugestão, e toque em CRIAR NOVA VERSÃO. Confirme: vai só uma cópia pequena. A versão nova aparece ao lado da original; depois é só tocar em SALVAR." }
+        { t: "Escreva e crie", d: "Escreva o que quer mudar, como cabelo cacheado ruivo, ou toque numa sugestão, e toque em CRIAR NOVA VERSÃO. Confirme: vai só uma cópia pequena. Em poucos segundos aparece a versão nova, com o cabelo cacheado ruivo, e a original continua guardada ao lado." },
+        { t: "Compare e salve", d: "Nas miniaturas, toque na primeira para ver a original e na segunda para ver a versão nova. Gostou? Toque em SALVAR." }
       ] },
     { id: "convite-animado", cat: "fotos", ic: "💌", titulo: "Convite animado em vídeo", ensina: "fazer um convite animado em vídeo", min: 3, nivel: "Fácil",
       resumo: "Escolha um modelo da biblioteca, ligue a animação e baixe o MP4.",

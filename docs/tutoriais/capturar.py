@@ -20,21 +20,42 @@ STUB_LOGADO = T.STUB_SB.replace("getSession:async()=>({data:{session:null}})",
     "getSession:async()=>({data:{session:{access_token:'demo',user:{id:'demo',email:'exemplo@produtoraexemplo.com',user_metadata:{full_name:'Produtora Exemplo'},app_metadata:{provider:'email'},created_at:'2026-01-10'}}}})").replace(
     "getUser:async()=>({data:{user:null}})", "getUser:async()=>({data:{user:{id:'demo',email:'exemplo@produtoraexemplo.com'}}})")
 
+# REGRA (dono, 25/11): o exemplo de cada tutorial mostra o RESULTADO REAL do que o passo pede.
+# foto-ia: pessoa INVENTADA criada pela IA da plataforma (modo pers) + o resultado REAL da bw-ia-imagem para "cabelo cacheado ruivo"
+# (gerados em 25/11 na conta ADM; docs/tutoriais/exemplos/). A captura entrega exatamente essa resposta da IA.
+EXEMPLOS = os.path.join(RAIZ, "docs", "tutoriais", "exemplos")
+FOTO_PESSOA = os.path.join(EXEMPLOS, "foto-ia-antes.webp")
 def _ia_img():
-    im = Image.open(os.path.join(RAIZ, "assets", "reels-exemplos", "depoimento.jpg")).convert("RGB"); im.thumbnail((504, 504))
-    r_, g_, b_ = im.split(); im = Image.merge("RGB", (r_.point(lambda v: min(255, int(v * 1.25))), g_, b_.point(lambda v: int(v * .8))))
-    bio = io.BytesIO(); im.save(bio, "JPEG", quality=80); import base64; return base64.b64encode(bio.getvalue()).decode()
-DECUP = {"resumo": "Anúncio e depoimento gravados no evento", "modelo": "exemplo", "trechos": [
-    {"ini": 0.5, "fim": 3, "tipo": "fala", "nota": 5, "desc": "abertura", "fala": "Sejam bem-vindos"},
-    {"ini": 3.2, "fim": 4.4, "tipo": "ruim", "nota": 1, "desc": "câmera tremida", "fala": ""},
-    {"ini": 4.6, "fim": 7, "tipo": "plateia", "nota": 4, "desc": "aplausos", "fala": ""},
-    {"ini": 7.2, "fim": 9, "tipo": "detalhe", "nota": 3, "desc": "logo no telão", "fala": ""}]}
+    im = Image.open(os.path.join(EXEMPLOS, "foto-ia-depois.webp")).convert("RGB")
+    bio = io.BytesIO(); im.save(bio, "JPEG", quality=90); import base64; return base64.b64encode(bio.getvalue()).decode()
+# decupar: o que a IA devolve para CADA take de exemplo, descrevendo o que o take mostra de verdade (anúncio 13 s, depoimento 11 s)
+DECUP_TAKE = {
+  13: {"resumo": "Anúncio animado da festa de sábado", "modelo": "exemplo", "trechos": [
+    {"ini": 0.3, "fim": 3.6, "tipo": "detalhe", "nota": 5, "desc": "chamada SÁBADO TEM! em neon", "fala": ""},
+    {"ini": 3.8, "fim": 6.8, "tipo": "detalhe", "nota": 4, "desc": "data e local: 20/12 às 21h", "fala": ""},
+    {"ini": 7.0, "fim": 11.2, "tipo": "detalhe", "nota": 4, "desc": "atrações: DJ, telão de LED e transmissão", "fala": ""},
+    {"ini": 11.4, "fim": 13.0, "tipo": "detalhe", "nota": 5, "desc": "chamada final: garanta o seu ingresso", "fala": ""}]},
+  11: {"resumo": "Depoimento de cliente com estrelas", "modelo": "exemplo", "trechos": [
+    {"ini": 0.0, "fim": 1.6, "tipo": "ruim", "nota": 1, "desc": "estrelas ainda entrando, tela quase vazia", "fala": ""},
+    {"ini": 1.8, "fim": 6.4, "tipo": "detalhe", "nota": 5, "desc": "depoimento com cinco estrelas", "fala": ""},
+    {"ini": 6.6, "fim": 8.6, "tipo": "detalhe", "nota": 3, "desc": "nome e cargo do cliente", "fala": ""},
+    {"ini": 8.8, "fim": 10.6, "tipo": "detalhe", "nota": 4, "desc": "chamada: peça um orçamento", "fala": ""}]}}
+def _decup(u):
+    import re as _re
+    m = _re.search(r"dur=(\d+)", u); d = int(m.group(1)) if m else 13
+    return DECUP_TAKE.get(d) or DECUP_TAKE[min(DECUP_TAKE, key=lambda k: abs(k - d))]
 def rota(r):
     u = r.request.url
     cab = {"Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "*"}
     if "functions/v1/" in u and b'"testar"' in (r.request.post_data_buffer or b""):   # conferência da chave colada (simulada: conecta)
         return r.fulfill(status=200, body=json.dumps({"ok": True, "conta": "0123456789abcdef0123456789abcdef"}), content_type="application/json", headers=cab)
-    if "functions/v1/bw-ia-video" in u: return r.fulfill(status=200, body=json.dumps(DECUP), content_type="application/json", headers=cab)
+    if "functions/v1/bw-ia-video" in u: return r.fulfill(status=200, body=json.dumps(_decup(u)), content_type="application/json", headers=cab)
+    if "functions/v1/" in u and b'"ping"' in (r.request.post_data_buffer or b""):   # a IA está ligada (senão a tela diz "sendo ativada")
+        return r.fulfill(status=200, body=json.dumps({"pronto": True}), content_type="application/json", headers=cab)
+    if "functions/v1/bw-ia?" in u or u.endswith("functions/v1/bw-ia"):   # IA de texto do assistente (resposta no formato real)
+        import datetime as _dt
+        ac = {"acoes": [{"tipo": "gasto_casa", "descricao": "Almoço", "valor": 50, "data": _dt.date.today().isoformat(), "categoria": "Alimentação"}], "resposta": "Anotei o almoço de 50 reais."}
+        return r.fulfill(status=200, body=json.dumps({"texto": json.dumps(ac, ensure_ascii=False), "modelo": "openai/gpt-oss-20b", "nivel": "rapido"}), content_type="application/json", headers=cab)
     if "functions/v1/bw-ia-imagem" in u: return r.fulfill(status=200, body=json.dumps({"imagem": _ia_img()}), content_type="application/json", headers=cab)
     if "supabase-js" in u: return r.fulfill(body=STUB_LOGADO, content_type="application/javascript")
     return T.rota(r)
@@ -70,7 +91,7 @@ ROTEIROS = {
   },
   "tela-inicial": {
     0: [("abrir", "index.html"), ("toque", ".hub-tela >> nth=2")],
-    1: [("abrir", "index.html"), ("digita", "#bpTexto", "gastei 50 no almoço")],
+    1: [("abrir", "index.html"), ("digita", "#bpTexto", "gastei 50 no almoço"), ("toque", "#bpEnviar"), ("espera", 2500)],
     2: CONFIG,
   },
   "meu-assistente": {
@@ -99,9 +120,9 @@ ROTEIROS = {
     1: VIDEO_COM_TAKES + [("rolar", "#veDecupBt"), ("toque", "#veDecupBt"), ("esperasel", "#veJanDecup"), ("digita", "#veDcCtx", "convenção de vendas"),
                           ("toque", "#veDcIr"), ("esperasel", "#veJanDecupVer")],
     2: VIDEO_COM_TAKES + [("clique", "#veDecupBt"), ("esperasel", "#veJanDecup"), ("clique", "#veDcIr"), ("esperasel", "#veJanDecupVer"),
-                          ("rolar", "#veJanDecupVer [data-por] >> nth=3")],
+                          ("rolar", "#veJanDecupVer [data-por] >> nth=5")],
     3: VIDEO_COM_TAKES + [("clique", "#veDecupBt"), ("esperasel", "#veJanDecup"), ("clique", "#veDcIr"), ("esperasel", "#veJanDecupVer"),
-                          ("toque", "#veDcMontar"), ("clique", "#vaSheetOk"), ("espera", 800), TOPO],
+                          ("toque", "#veDcMontar"), ("clique", "#vaSheetOk"), ("espera", 800), TOPO, ("tecla", "Home"), ("tecla", "Shift+ArrowRight"), ("espera", 800)],
   },
   "exportar-redes": {
     0: VIDEO_COM_TAKES + [("rolar", "#veProxyBt"), ("toque", "#veProxyBt")],
@@ -109,10 +130,14 @@ ROTEIROS = {
     2: VIDEO_NA_LINHA + [("toque", "#vaExportar"), ("esperasel", '[data-pronto="insta"]'), ("toque", '[data-pronto="insta"]'), ("rolar", "#veExIr"), ("toque", "#veExIr"), ("espera", 2500)],
   },
   "foto-ia": {
-    0: [("abrir", "fotos.html"), ("toque", "#solta"), ("arquivo", "#arquivos", [FOTO]), ("espera", 1500)],
-    1: [("abrir", "fotos.html"), ("arquivo", "#arquivos", [FOTO]), ("espera", 1500), ("rolar", ".ed-abas >> text=IA"), ("toque", ".ed-abas >> text=IA")],
-    2: [("abrir", "fotos.html"), ("arquivo", "#arquivos", [FOTO]), ("espera", 1500), ("clique", ".ed-abas >> text=IA"), ("espera", 600),
-        ("digita", 'textarea[data-k="iaPedido"]', "cabelo cacheado ruivo"), ("rolar", '[data-k="iaCriar"]'), ("toque", '[data-k="iaCriar"]'), ("espera", 1500)],
+    0: [("abrir", "fotos.html"), ("toque", "#solta"), ("arquivo", "#arquivos", [FOTO_PESSOA]), ("espera", 1500)],
+    1: [("abrir", "fotos.html"), ("arquivo", "#arquivos", [FOTO_PESSOA]), ("espera", 1500), ("rolar", ".ed-abas >> text=IA"), ("toque", ".ed-abas >> text=IA")],
+    2: [("abrir", "fotos.html"), ("arquivo", "#arquivos", [FOTO_PESSOA]), ("espera", 1500), ("clique", ".ed-abas >> text=IA"), ("espera", 600),
+        ("digita", 'textarea[data-k="iaPedido"]', "cabelo cacheado ruivo"), ("rolar", '[data-k="iaCriar"]'), ("toque", '[data-k="iaCriar"]'), ("espera", 2000), TOPO],
+    3: [("abrir", "fotos.html"), ("arquivo", "#arquivos", [FOTO_PESSOA]), ("espera", 1500), ("clique", ".ed-abas >> text=IA"), ("espera", 600),
+        ("js", "var t=document.querySelector('textarea[data-k=iaPedido]');t.value='cabelo cacheado ruivo';t.dispatchEvent(new Event('input',{bubbles:true}))"),
+        ("clique", '[data-k="iaCriar"]'), ("espera", 2000), TOPO,
+        ("toque", '#edFotos button[data-i="0"]'), ("espera", 600), ("toque", '#edFotos button[data-i="1"]'), ("espera", 600), ("toque", "#edSalvar")],
   },
   "convite-animado": {
     0: [("abrir", "criador.html"), ("toque", ".cr-tipo >> text=CONVITE")],
