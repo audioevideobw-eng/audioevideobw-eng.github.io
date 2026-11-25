@@ -2703,7 +2703,7 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   proxy_som, video_app, video, aviso 0 falhas (teste_video: a regra "nada saiu" passa a aceitar as fotos de amostra das prévias vivas). Manual 73 → 74 p.
   App BW 1.9.48 (cópia sem internet com o editor novo). bw-proxy v4, video-editor v40, sw v236.
 ## Pendências (dono)
-- [ ] (25/11) DECUPAGEM COM IA: (1) [x] 25/11 09:30 GEMINI_API_KEY colada pelo dono (digest 8284f275…; ping no ar {pronta:true}). Era: dono criar a chave em aistudio.google.com → Get API key e colar em Supabase → Edge Functions → Secrets como
+- [x] (25/11 09:39, dono: "ficou muito bom") DECUPAGEM COM IA testada com take real — FUNCIONANDO. (1) [x] 25/11 09:30 GEMINI_API_KEY colada pelo dono (digest 8284f275…; ping no ar {pronta:true}). Era: dono criar a chave em aistudio.google.com → Get API key e colar em Supabase → Edge Functions → Secrets como
       GEMINI_API_KEY (de preferência num projeto com faturamento ativo: no grátis o Google usa os vídeos para melhorar os produtos; o pago custa
       centavos por take); (2) [x] função bw-ia-video PUBLICADA 25/11 09:20 (SHA-256 065bb710… igual ao repo antes e depois; Verify JWT desligado; no ar: ping 200 {pronta:false}, sem login 401);
       (3) teste real com um take do dono.
