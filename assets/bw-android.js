@@ -73,5 +73,31 @@
     if (a) trata(a, ev);
   }, true);
 
-  window.BWAndroid = { salvar: salvar };
+  /* VOLTAR do Android (24/11, chamado pela MainActivity): fecha o que estiver aberto por cima da página (menu, folha, janela, editor
+     em tela cheia) usando o mesmo Esc que todas as ferramentas já entendem. Devolve true se algo fechou; senão a MainActivity volta de página. */
+  function assinatura() {
+    var vw = innerWidth, vh = innerHeight, s = [], els = document.body ? document.body.getElementsByTagName("*") : [], i, e, cs, r;
+    for (i = 0; i < els.length && i < 6000; i++) {
+      e = els[i];
+      if (e.tagName === "DIALOG" && e.open) { s.push("d" + i); continue; }
+      cs = getComputedStyle(e);
+      if (cs.position !== "fixed" || cs.display === "none" || cs.visibility === "hidden" || +cs.opacity === 0) continue;
+      r = e.getBoundingClientRect();
+      if (r.width * r.height < vw * vh * 0.12) continue;
+      s.push(i + ":" + Math.round(r.top) + ":" + Math.round(r.height));
+    }
+    return s.join("|") + "#" + R.className;
+  }
+  function voltar() {
+    try {
+      var antes = assinatura(), alvo = document.activeElement && document.activeElement !== document.body ? document.activeElement : document;
+      var ev = { key: "Escape", code: "Escape", keyCode: 27, which: 27, bubbles: true, cancelable: true };
+      alvo.dispatchEvent(new KeyboardEvent("keydown", ev));
+      alvo.dispatchEvent(new KeyboardEvent("keyup", ev));
+      if (alvo !== document && alvo.blur) alvo.blur();
+      return assinatura() !== antes;
+    } catch (e) { return false; }
+  }
+
+  window.BWAndroid = { salvar: salvar, voltar: voltar };
 })();

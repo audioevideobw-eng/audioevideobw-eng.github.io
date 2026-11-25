@@ -982,6 +982,13 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
      arrastável (data-arr/mid/clip, botão, canvas, img…) e passa de 3 px — user-select none na página toda + selectstart barrado + seleção limpa;
      campo de digitar e texto comum continuam selecionáveis (auto: teste_arrasto_selecao.py).
 
+227. APP ANDROID — VOLTAR E ROLAGEM (dono, 24/11: "rolagem e navegação muito bugadas"): o Capacitor SEM o plugin App não trata o botão/gesto
+     voltar — ele FECHAVA o app. MainActivity tem OnBackPressedCallback: 1) BWAndroid.voltar() (bw-android.js) manda Esc para a página e diz se algo
+     aberto por cima (camada fixa ≥ 12% da tela, dialog, classe do <html>) mudou; 2) senão webView.goBack(); 3) na 1ª página, moveTaskToBack (não mata o
+     app). WebView com setOverScrollMode(NEVER) (sem o "esticar" das pontas no Android 12+) e setTextZoom(100) (a letra grande do sistema estourava a
+     largura). Mudança nativa só chega com o .apk novo (o workflow monta sozinho); a do bw-android.js chega pelo site (subir ?v= no modos.js).
+     Teste: docs/testes/teste_android.py (menu e folha do editor fecham no voltar; sem nada aberto passa a vez).
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -2792,3 +2799,7 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
       depende da voz do aparelho (iPhone: baixar "Felipe"; Android: voz padrão) ou da voz neural (não feita, aguarda o dono).
 - [x] (22/11 14:30, Claude) Galeria do cliente: fotos em pasta privada + função bw-galeria (só com o link secreto). Testado no ar.
 - 22/11/2026 20:30 · Claude (dono, print do iPhone: "se for efeito, retire; em tudo que for ferramenta; deixe só no Início; se for bug, corrija"): saiu o fundo QUADRICULADO decorativo das ferramentas (entrada e palco do editor de fotos, Criador, Motion, Reels, Estúdio 3D) e o desfoque atrás das folhas (fotos, Prompt IA, captação) — ficam só os quadriculados que mostram TRANSPARÊNCIA de logo. Bug do título BORRADO ao rolar no iPhone: o conteúdo passava por baixo do vidro do Safari → a barrinha ‹ do modo foco fica PRESA no topo com fundo liso (+ espaço do relógio). layout.js v73, sw v196. App do PC/.exe: pendente (próxima entrega junta).
+- 24/11/2026 23:10 · Claude (dono: "analise o app android, muito bugado — rolagem e navegação"): o VOLTAR do Android fechava o app (Capacitor sem
+  tratamento do voltar) → agora fecha menu/folha/janela aberta, depois volta de página e, na primeira, só manda o app para o fundo. Rolagem sem o
+  "esticar" das pontas e letra no tamanho do site. bw-android.js v2, modos.js v10, sw v233. teste_android 0 falhas. Java NÃO compilado aqui (sem SDK):
+  o GitHub monta o .apk novo.
