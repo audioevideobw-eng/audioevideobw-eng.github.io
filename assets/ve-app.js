@@ -85,6 +85,8 @@
       if (BWFerr.travarBorda) BWFerr.travarBorda({so: "ve-app"}); /* 24/11: gesto de voltar do Safari pela borda */
       if (BWFerr.toqueDuplo) BWFerr.toqueDuplo({so: "ve-app", pular: ".va-faixa,.bwf-seta"}); /* 24/11: dois toques rápidos = botão direito */
       BWFerr.faixaFirme(FAIXA, {setas: true, pai: APP, esq: function () { var v = FAIXA.querySelector(".va-f.volta"); return v ? v.offsetWidth + 8 : 0; }});
+      /* 24/11: a coluna dos nomes das camadas também sobe e desce a linha do tempo (antes o toque ali não rolava nada) */
+      if ($("veRot")) BWFerr.faixaFirme($("veRot"), {vertical: $("veRolo").closest(".ve-tl-corpo"), parar: function () { return !!window.__bwSegurando; }});
       BWFerr.faixaFirme($("veRolo"), {max: fimPx, vertical: $("veRolo").closest(".ve-tl-corpo"), aoRolar: function () { rolando = Date.now(); }, parar: function () { return !!window.__bwSegurando; }, pular: function (t) { return !!(t.closest && t.closest(".ve-clip.on,.al,[data-junta],[data-trp]")); }});
     }
   }

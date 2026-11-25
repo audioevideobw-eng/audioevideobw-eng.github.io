@@ -989,6 +989,13 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
      largura). Mudança nativa só chega com o .apk novo (o workflow monta sozinho); a do bw-android.js chega pelo site (subir ?v= no modos.js).
      Teste: docs/testes/teste_android.py (menu e folha do editor fecham no voltar; sem nada aberto passa a vez).
 
+228. PAINEL QUE NÃO ROLA NÃO PODE PRENDER O DEDO (dono, 24/11: "no álbum 3D difícil rolar para cima, só pelas laterais" + "difícil subir e descer pelo
+     meio da tela no editor de vídeo"): no celular (telaFixa → .bwf-cel) os painéis viram parte da página, mas ficavam com overflow:auto + overscroll
+     contain — mesmo SEM nada para rolar por dentro, o Chrome entregava o gesto ao painel e a página não andava (só pelas beiradas). Regra comum no
+     bw-ferramentas.js: .bwf-cel .bwf-painel{overflow:visible; max-height:none; overscroll-behavior:auto} (Álbum, Telas, Motion, 3D, Criador). Rolagem
+     vertical feita pelo JS (faixaFirme com o.vertical) precisa de EMBALO ao soltar, senão "trava"; a coluna dos nomes das camadas (#veRot) também rola.
+     Teste com toque CDP para BAIXO e para CIMA (só para baixo passava): docs/testes/teste_rolagem_paineis.py e teste_video_rolagem.py.
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -2803,3 +2810,8 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   tratamento do voltar) → agora fecha menu/folha/janela aberta, depois volta de página e, na primeira, só manda o app para o fundo. Rolagem sem o
   "esticar" das pontas e letra no tamanho do site. bw-android.js v2, modos.js v10, sw v233. teste_android 0 falhas. Java NÃO compilado aqui (sem SDK):
   o GitHub monta o .apk novo.
+- 24/11/2026 23:40 · Claude (dono: "álbum 3D difícil rolar para cima, só pelas laterais" + "difícil subir e descer pelo meio da tela no editor de vídeo"):
+  Álbum 3D/Telas/Motion/3D/Criador no celular — o painel de modelos e ajustes prendia o dedo (caixa que rolava "sozinha" sem ter o que rolar) → agora a
+  página rola de qualquer ponto, para cima e para baixo. Editor de vídeo: subir/descer as camadas pelo meio da linha do tempo ganhou embalo ao soltar e a
+  coluna dos nomes também rola. bw-ferramentas v11, ve-app v17, sw v234. Testes novos teste_rolagem_paineis e teste_video_rolagem 0 falhas; rolagem,
+  video_app, regua, borda, toque_duplo, paineis, album, telas, motion_app, criador, 3d 0 falhas. PENTE FINO 228.
