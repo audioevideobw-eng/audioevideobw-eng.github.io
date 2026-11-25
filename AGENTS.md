@@ -2796,6 +2796,12 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   botão VER ↗ e PORTFÓLIO com links clicáveis + QR; PDF (A4 ou 4:5), WORD com links, PACOTE .zip. Textos na conta (mkt_presskit), fotos só no
   aparelho. teste_presskit.py (≈60 checagens × 1280/390) 0 falhas; vigia ✅. Manual 76 → 77 p. layout.js v84, sw v244. PENTE FINO 238.
   NÃO feito: pacote do app BW (a cópia sem internet ganha o press kit na próxima versão), tutorial do press kit.
+- 25/11/2026 15:10 · Claude (dono: "ponte no local da inserção de fotos, melhorar com IA com prompt já definido para fotos corporativas… ela se altera e se
+  cria no local com um clique"): PRESS KIT → embaixo da foto recortada e da foto da capa, ✨ MELHORAR COM IA · UM TOQUE com 6 presets prontos (CORPORATIVO,
+  ESCRITÓRIO, FUNDO LISO, LUZ DE ESTÚDIO, BOOK ARTÍSTICO, NO PALCO — todos mandam "a mesma pessoa, mesmo rosto") + ✎ DO MEU JEITO (com 🎙); na galeria, o ✨
+  de cada foto. Um toque → a foto nova entra NO LUGAR (prévia refeita) e aparece ↺ ORIGINAL. Passa pela fotos-nuvem.js (bw-ia-imagem: cópia ≤ 504 px,
+  confirmação na 1ª vez, limite do dia ou a conta da própria pessoa); o presskit.js não fala com a internet para isso. teste_presskit.py (+7, IA de imagem
+  simulada) 0 falhas × 1280/390; vigia ✅. Manual atualizado. presskit.js v3, sw v245.
 ## Pendências (dono)
 - [ ] (25/11) PRESS KIT: dono testar no celular e no PC — 🎙 CONTAR SOBRE MIM falando, 🎙 FALAR num texto e baixar o PDF; dizer quais modelos faltam.
 - [x] (25/11 13:01) BW-Setup.exe 1.9.51 gerado pelo dono e publicado (15,3 MB, versão conferida dentro do .exe).

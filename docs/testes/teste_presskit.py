@@ -34,6 +34,11 @@ socketserver.TCPServer.allow_reuse_address = True
 srv = socketserver.TCPServer(("127.0.0.1", PORTA), Q); threading.Thread(target=srv.serve_forever, daemon=True).start()
 BASE = f"http://127.0.0.1:{PORTA}/"
 FORA = []
+IMG_PEDIDOS = []
+def _azul():
+    from PIL import Image
+    b = io.BytesIO(); Image.new("RGB", (512, 640), (20, 60, 230)).save(b, "JPEG"); import base64; return base64.b64encode(b.getvalue()).decode()
+AZUL_B64 = _azul()
 IA_PEDIDOS = []
 CORS = {"Access-Control-Allow-Origin": "*"}
 def rota(r):
@@ -46,6 +51,10 @@ def rota(r):
     if "pdfjs-dist@4.10.38/build/pdf.worker.min.mjs" in u: return r.fulfill(path=PM + "pdfjs-dist/build/pdf.worker.min.mjs", content_type="text/javascript", headers=CORS)
     if "docx@" in u: return r.fulfill(path=NM + "docx/dist/index.iife.js", content_type="application/javascript")
     if "qrcode-generator@1.4.4" in u: return r.fulfill(path=PM + "qrcode-generator/qrcode.js", content_type="application/javascript")
+    if "/functions/v1/bw-ia-imagem" in u:
+        if r.request.method == "OPTIONS": return r.fulfill(status=204, headers={**CORS, "Access-Control-Allow-Headers": "*", "Access-Control-Allow-Methods": "POST"})
+        IMG_PEDIDOS.append(r.request.post_data_buffer or b"")
+        return r.fulfill(body=json.dumps({"imagem": AZUL_B64}), content_type="application/json", headers=CORS)
     if "/functions/v1/bw-ia" in u:
         if r.request.method == "OPTIONS": return r.fulfill(status=204, headers={**CORS, "Access-Control-Allow-Headers": "*", "Access-Control-Allow-Methods": "POST"})
         pd = r.request.post_data or ""; IA_PEDIDOS.append(pd)
@@ -138,6 +147,24 @@ with sync_playwright() as p:
         ok(pg.locator('[data-a="voltarCampo"][data-alvo="f_d_sobreCurto"]').is_visible(), "aparece ↺ COMO ESTAVA")
         pg.click('[data-a="voltarCampo"][data-alvo="f_d_sobreCurto"]'); pg.wait_for_timeout(300)
         ok(pg.input_value(alvo) == antes_t, "↺ COMO ESTAVA devolve o texto de antes")
+        # ✨ IA na foto: um toque no preset troca a foto NO LUGAR; ↺ ORIGINAL volta
+        antes_r = pg.evaluate("() => (document.querySelector('.pk-img img[alt^=\"SUA FOTO\"]') || {}).src || ''")
+        pg.click('[data-a="fotoIA"][data-alvo="retrato"][data-p="corp"]')
+        try: pg.wait_for_selector('[data-a="fotoIAvolta"][data-alvo="retrato"]', timeout=10000); trocou = True
+        except Exception: trocou = False
+        depois_r = pg.evaluate("() => (document.querySelector('.pk-img img[alt^=\"SUA FOTO\"]') || {}).src || ''")
+        ok(trocou and depois_r != antes_r, "✨ CORPORATIVO: um toque e a foto nova entra no lugar")
+        ok(IMG_PEDIDOS and b"corporate headshot" in IMG_PEDIDOS[-1] and b"same person" in IMG_PEDIDOS[-1], "a IA recebe o prompt corporativo pronto (mesma pessoa)")
+        ok(esperar_previa(pg), "a prévia redesenha com a foto da IA")
+        pg.click('[data-a="fotoIAvolta"][data-alvo="retrato"]'); pg.wait_for_timeout(400)
+        ok(pg.evaluate("() => (document.querySelector('.pk-img img[alt^=\"SUA FOTO\"]') || {}).src || ''") == antes_r, "↺ ORIGINAL devolve a foto de antes")
+        g_antes = pg.evaluate("() => document.querySelector('.pk-foto img').src")
+        pg.click('[data-a="fotoIAmenu"][data-i="0"]'); pg.wait_for_timeout(300)
+        ok(pg.locator('#modal [data-a="fotoIA"]').count() == 6, "galeria: ✨ abre os 6 presets")
+        pg.click('#modal [data-a="fotoIA"][data-p="luz"]')
+        try: pg.wait_for_function("(a) => { const i = document.querySelector('.pk-foto img'); return i && i.src !== a && i.complete; }", arg=g_antes, timeout=10000); g_ok = True
+        except Exception: g_ok = False
+        ok(g_ok and pg.evaluate("() => { const i = document.querySelector('.pk-foto img'); const c = document.createElement('canvas'); c.width = c.height = 4; const x = c.getContext('2d'); x.drawImage(i, 0, 0, 4, 4); const d = x.getImageData(1, 1, 1, 1).data; return d[2] > 150 && d[0] < 80; }"), "galeria: a foto da IA entra no lugar da foto 1")
         # foto recortada (PNG) + foto da capa em outro modelo
         pg.set_input_files('input[data-up="capa"]', FOTO); pg.wait_for_timeout(1500)
         pg.click('h3[data-seta="pk_modelo"]'); pg.wait_for_timeout(300)

@@ -23,6 +23,15 @@
 .pk-liga input{width:20px;height:20px;accent-color:#E8B54A}
 .pk-campo>label>span{font:700 11px Inter,system-ui,sans-serif;letter-spacing:.06em;color:rgba(245,241,234,.7);text-transform:uppercase}
 .pk-campo>label{display:block}
+.pk-ia{margin-top:10px;padding-top:10px;border-top:1px dashed rgba(245,241,234,.14)}
+.pk-ia-t{display:block;font:800 10.5px Inter,system-ui,sans-serif;letter-spacing:.08em;color:#E8B54A;margin-bottom:6px}
+.pk-ia-l{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:6px}
+.pk-iab{display:flex;flex-direction:column;align-items:center;gap:2px;min-height:54px;padding:6px 4px;border-radius:12px;border:1px solid rgba(232,181,74,.28);background:linear-gradient(160deg,rgba(232,181,74,.12),rgba(76,141,255,.06));color:#F5F1EA;font:700 11.5px/1.15 Inter,system-ui,sans-serif;cursor:pointer;text-align:center}
+.pk-iab i{font-style:normal;font-size:18px}
+.pk-iab:hover:not(:disabled){border-color:#E8B54A}
+.pk-iab:disabled{opacity:.4;cursor:wait}
+.pk-iab.volta{border-style:dashed;background:rgba(255,255,255,.03)}
+.pk-sx.ia{border-color:rgba(232,181,74,.45)}
 .pk-imgs{grid-template-columns:repeat(3,minmax(0,1fr))}
 @media (max-width:900px){.pk-imgs{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:560px){.pk-imgs{grid-template-columns:minmax(0,1fr)}}
@@ -129,7 +138,7 @@
 .pk-foto{border-radius:10px;overflow:hidden;border:1px solid rgba(245,241,234,.12);background:#0B1222}
 .pk-foto img{width:100%;aspect-ratio:16/11;object-fit:cover;display:block}
 .pk-foto span{display:flex;justify-content:space-between;padding:4px}
-.pk-foto .pk-sx{width:34px;height:34px}
+.pk-foto .pk-sx{width:28px;height:32px;font-size:12px}
 .pk-modal{position:fixed;inset:0;z-index:300;background:rgba(3,5,9,.78);display:grid;place-items:center;padding:16px}
 .pk-modal[hidden]{display:none}
 .pk-modal .cx{position:relative;width:min(560px,100%);max-height:calc(100vh - 32px);overflow:auto;background:#0E1420;border:1px solid rgba(245,241,234,.14);border-radius:18px;padding:20px}
@@ -193,6 +202,7 @@
 <script src="assets/layout.js?v=84"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.2/dist/umd/supabase.js" integrity="sha384-A97u3Qnt9GZHURO9YJZRe7VQgGUeFzcv6I1oIGnUTxQrCxnpQMwR0/G8F2zt9abZ" crossorigin="anonymous"></script>
 <script src="assets/bw-sync.js?v=20261125"></script>
-<script src="assets/presskit.js?v=2"></script>
+<script src="assets/fotos-nuvem.js?v=4"></script>
+<script src="assets/presskit.js?v=3"></script>
 </body>
 </html>

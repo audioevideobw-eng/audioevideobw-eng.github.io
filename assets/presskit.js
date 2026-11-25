@@ -775,10 +775,72 @@
         '</div><button type="button" class="pk-x" data-a="tirarItem" data-l="' + nome + '" data-i="' + i + '" aria-label="Tirar este item">✕</button></div>';
     }).join("") + (itens.length < max ? '<button type="button" class="bw-btn pk-add" data-a="addItem" data-l="' + nome + '">＋ ' + (rotAdd || "ADICIONAR") + "</button>" : "") + "</div>";
   }
+  /* ---------- ✨ IA NA FOTO (25/11, dono: "ponte no local da inserção de fotos, melhorar com IA e prompt já definido para fotos
+     corporativas… ela se altera e se cria no local com um clique"): um toque no preset → a IA da plataforma (bw-ia-imagem, pela
+     fotos-nuvem.js — a mesma do editor de fotos: cópia ≤ 504 px, confirmação na 1ª vez, limite do dia) devolve a foto nova e ela troca
+     NO LUGAR; ↺ ORIGINAL volta. O presskit.js não fala com a internet para isso: só chama BWFotosNuvem. ---------- */
+  var MANTER = "Keep exactly the same person: same face, identity, skin tone, hair and expression. Photorealistic, natural skin texture, sharp focus, no text, no watermark. ";
+  var FOTO_IA = [
+    { id: "corp", ico: "💼", nome: "Corporativo", p: MANTER + "Turn this into a professional corporate headshot: clean neutral light-gray studio background, soft even studio lighting, wearing a well-fitted dark blazer, confident friendly look, upper body framing." },
+    { id: "escr", ico: "🏢", nome: "Escritório", p: MANTER + "Place the person in a modern bright office with a softly blurred background (bokeh), natural window light, professional business attire, editorial corporate portrait." },
+    { id: "liso", ico: "⬜", nome: "Fundo liso", p: MANTER + "Replace the background with a plain seamless pure white studio background, even soft lighting, clean edges around the person, keep the same clothes." },
+    { id: "luz", ico: "💡", nome: "Luz de estúdio", p: MANTER + "Keep the same composition, clothes and background. Improve only the photo quality: professional studio lighting, balanced exposure, accurate natural colors, gentle contrast, crisp details." },
+    { id: "book", ico: "🎭", nome: "Book artístico", p: MANTER + "Artistic actor headshot: dark charcoal studio background, dramatic soft side light with subtle rim light, cinematic but natural colors, keep the same clothes." },
+    { id: "palco", ico: "🎤", nome: "No palco", p: MANTER + "Place the person on a professional event stage with warm spotlights and soft blurred audience lights behind, keep the same clothes, keep the person well lit and in focus." }
+  ];
+  var IA_FOTO_OK = false, IA_OCUP = {};
+  function chaveFoto(alvo) { return alvo === "retrato" || alvo === "capa" ? alvo : "f" + alvo; }
+  function srcFoto(alvo) { return alvo === "retrato" || alvo === "capa" ? IMGS[alvo] : (IMGS.fotos || [])[+alvo]; }
+  function botoesIA(alvo) {
+    var k = chaveFoto(alvo), orig = IMGS.origs && IMGS.origs[k];
+    return '<div class="pk-ia" data-iaalvo="' + alvo + '"><span class="pk-ia-t">✨ MELHORAR COM IA · UM TOQUE</span><div class="pk-ia-l">' + FOTO_IA.map(function (x) {
+      return '<button type="button" class="pk-iab" data-a="fotoIA" data-alvo="' + alvo + '" data-p="' + x.id + '" title="' + esc(x.nome) + '"' + (IA_OCUP[k] ? " disabled" : "") + '><i>' + x.ico + "</i>" + esc(x.nome) + "</button>";
+    }).join("") + '<button type="button" class="pk-iab" data-a="fotoIAlivre" data-alvo="' + alvo + '"' + (IA_OCUP[k] ? " disabled" : "") + "><i>✎</i>Do meu jeito</button>" +
+      (orig ? '<button type="button" class="pk-iab volta" data-a="fotoIAvolta" data-alvo="' + alvo + '"><i>↺</i>Original</button>' : "") + "</div></div>";
+  }
+  function encolher(src, max) {
+    return imgDe(src).then(function (im) {
+      var s = Math.min(1, max / Math.max(im.naturalWidth, im.naturalHeight)), c = document.createElement("canvas");
+      c.width = Math.round(im.naturalWidth * s); c.height = Math.round(im.naturalHeight * s);
+      var x = c.getContext("2d"); x.fillStyle = "#fff"; x.fillRect(0, 0, c.width, c.height); x.drawImage(im, 0, 0, c.width, c.height);
+      return new Promise(function (ok) { c.toBlob(function (b) { ok({ blob: b, w: c.width, h: c.height }); }, "image/jpeg", 0.9); });
+    });
+  }
+  function blobUrl(b) { return new Promise(function (ok, erro) { var r = new FileReader(); r.onload = function () { ok(r.result); }; r.onerror = erro; r.readAsDataURL(b); }); }
+  async function fotoIA(alvo, pedido) {
+    var src = srcFoto(alvo), k = chaveFoto(alvo); if (!src || IA_OCUP[k]) return;
+    if (!window.BWFotosNuvem) { aviso("Recarregue a página para usar a IA", true); return; }
+    if (!IA_FOTO_OK && !confirm("A IA da Brightway recebe uma cópia pequena desta foto e devolve uma versão nova, que entra no lugar (↺ ORIGINAL volta). Nada fica guardado na nuvem e conta no limite de imagens do dia.\n\nUse só fotos suas ou com autorização. Continuar?")) return;
+    IA_FOTO_OK = true; IA_OCUP[k] = true; desenharForm(); andamento("A IA está criando a foto (10 a 30 s)…");
+    try {
+      var e = await encolher(src, 504), q = 1024 / Math.max(e.w, e.h), w = Math.max(256, Math.round(e.w * q / 16) * 16), h = Math.max(256, Math.round(e.h * q / 16) * 16);
+      var r = await BWFotosNuvem.editar(e.blob, pedido, w, h);
+      andamento("");
+      if (r.erro) { aviso(BWFotosNuvem.msg(r.erro), true); return; }
+      var nova = await blobUrl(r.blob);
+      if (srcFoto(alvo) !== src) { aviso("A foto mudou enquanto a IA trabalhava — tente de novo", true); return; }
+      IMGS.origs = IMGS.origs || {}; if (!IMGS.origs[k]) IMGS.origs[k] = src;
+      if (alvo === "retrato" || alvo === "capa") IMGS[alvo] = nova; else IMGS.fotos[+alvo] = nova;
+      KIT.exemplo = false; guardar(); guardarImgs(); aviso("✨ Foto nova no lugar — ↺ ORIGINAL volta");
+    } catch (er) { andamento(""); aviso("A IA não respondeu agora", true); }
+    finally { delete IA_OCUP[k]; desenharForm(); agendarPrevia(0); }
+  }
+  function fotoIAvolta(alvo) {
+    var k = chaveFoto(alvo), o = IMGS.origs && IMGS.origs[k]; if (!o) return;
+    if (alvo === "retrato" || alvo === "capa") IMGS[alvo] = o; else IMGS.fotos[+alvo] = o;
+    delete IMGS.origs[k]; guardarImgs(); desenharForm(); agendarPrevia(0); aviso("↺ Voltou à foto original");
+  }
+  function fotoIAlivre(alvo) {
+    modal('<button type="button" class="pk-mx" data-a="fecharModal" aria-label="Fechar">✕</button><h3>✨ Do meu jeito</h3><p class="tf-sub">Diga o que mudar na foto (ex.: "camisa social branca e fundo azul-marinho"). A pessoa continua a mesma.</p>' +
+      '<textarea class="pk-in" id="iaFotoTexto" rows="3" maxlength="400" placeholder="Ex.: fundo de estúdio azul-marinho, blazer cinza, sorriso leve"></textarea>' + vozBarra("iaFotoTexto").replace(/<button[^>]*data-a="(corrigir|voltarCampo)"[^>]*>[^<]*<\/button>/g, "") +
+      '<div class="pk-chips" style="margin-top:12px"><button type="button" class="bw-btn pri" data-a="fotoIAlivreIr" data-alvo="' + alvo + '">✨ CRIAR NO LUGAR</button></div>');
+  }
+  /* galeria: o ✨ da foto abre os mesmos presets numa folha — um toque cria no lugar */
+  function fotoIAmenu(i) { modal('<button type="button" class="pk-mx" data-a="fecharModal" aria-label="Fechar">✕</button><h3>✨ Melhorar a foto ' + (+i + 1) + '</h3><p class="tf-sub">Um toque e a foto nova entra no lugar.</p>' + botoesIA(String(i))); }
   function caixaImg(rot, chave, dica, png) {
     var u = IMGS[chave];
     return '<div class="pk-img"><span>' + rot + "</span>" + (u ? '<img src="' + u + '" alt="' + esc(rot) + '"' + (png ? ' class="xadrez"' : "") + ">" : "<i>" + esc(dica) + "</i>") + '<div class="pk-chips">' + upload(u ? "↺ TROCAR" : "＋ ESCOLHER", chave) +
-      (u ? '<button type="button" class="pk-chip" data-a="tirarImg" data-v="' + chave + '">✕ TIRAR</button>' : "") + (chave === "logo" ? '<button type="button" class="pk-chip" data-a="logoEmpresa">★ DA MINHA EMPRESA</button>' : "") + "</div></div>";
+      (u ? '<button type="button" class="pk-chip" data-a="tirarImg" data-v="' + chave + '">✕ TIRAR</button>' : "") + (chave === "logo" ? '<button type="button" class="pk-chip" data-a="logoEmpresa">★ DA MINHA EMPRESA</button>' : "") + "</div>" + (u && chave !== "logo" ? botoesIA(chave) : "") + "</div>";
   }
   function desenharForm() {
     var k = KIT, d = k.d, c = d.contato || (d.contato = {}), mod = modeloDe(k.modelo), cc = mod.tema.capa === "compcard";
@@ -803,7 +865,7 @@
     h += grupo("midia", "FOTOS E MÍDIA",
       '<div class="pk-imgs">' + caixaImg("SUA FOTO RECORTADA (sem fundo)", "retrato", "PNG sem fundo — fica ao lado do seu texto", true) + caixaImg(cc ? "FOTO PRINCIPAL" : "FOTO DA CAPA", "capa", "a foto que abre a apresentação") + caixaImg("LOGO OU ASSINATURA (opcional)", "logo", "sem logo", true) + "</div>" +
       '<div class="pk-sub-t">GALERIA <small>(' + (IMGS.fotos || []).length + "/7)</small></div>" + '<div class="pk-fotos">' + (IMGS.fotos || []).map(function (u, i) {
-        return '<div class="pk-foto"><img src="' + u + '" alt="Foto ' + (i + 1) + '"><span><button type="button" class="pk-sx" data-a="fotoEsq" data-i="' + i + '" aria-label="Para a esquerda">◀</button><button type="button" class="pk-sx" data-a="fotoTira" data-i="' + i + '" aria-label="Tirar foto">✕</button><button type="button" class="pk-sx" data-a="fotoDir" data-i="' + i + '" aria-label="Para a direita">▶</button></span></div>';
+        return '<div class="pk-foto"><img src="' + u + '" alt="Foto ' + (i + 1) + '"><span><button type="button" class="pk-sx" data-a="fotoEsq" data-i="' + i + '" aria-label="Para a esquerda">◀</button><button type="button" class="pk-sx" data-a="fotoTira" data-i="' + i + '" aria-label="Tirar foto">✕</button><button type="button" class="pk-sx ia" data-a="fotoIAmenu" data-i="' + i + '" aria-label="Melhorar com IA"' + (IA_OCUP["f" + i] ? " disabled" : "") + '>✨</button><button type="button" class="pk-sx" data-a="fotoDir" data-i="' + i + '" aria-label="Para a direita">▶</button></span></div>';
       }).join("") + "</div>" + ((IMGS.fotos || []).length < 7 ? upload("＋ FOTOS NA GALERIA", "fotos", true) : "") +
       '<p class="tf-sub">' + (cc ? "As 4 primeiras fotos vão para o verso do comp card." : "A primeira foto da galeria sai grande; as outras, em grade.") + " Sem foto recortada? No <a href=\"fotos.html\">Editor de fotos</a> → ✨ IA → fundo transparente. Tudo fica só neste aparelho.</p>", false, true);
     /* seções ligadas, na ordem */
@@ -852,7 +914,7 @@
     if (DIT.rec || DIT.grav) { var mesmo = DIT.alvo === id; pararDit(); if (mesmo) return; }
     var el = $(id); if (!el) return;
     var SR = window.SpeechRecognition || window.webkitSpeechRecognition, base = el.value, fim = "";
-    DIT.alvo = id; if (id !== "iaTexto") DIT.antes[id] = base;
+    DIT.alvo = id; if (!/^ia/.test(id)) DIT.antes[id] = base;
     if (!SR || navigator.standalone) { gravarDit(el, base); return; }
     var r = new SR(); r.lang = "pt-BR"; r.interimResults = true; r.continuous = true;
     r.onresult = function (ev) { var p = ""; for (var i = ev.resultIndex; i < ev.results.length; i++) { var t = ev.results[i][0].transcript; if (ev.results[i].isFinal) fim += t + " "; else p += t; } setCampo(el, juntar(base, fim + p)); };
@@ -860,7 +922,7 @@
       if (ev.error === "not-allowed" || ev.error === "service-not-allowed") aviso("Microfone bloqueado — libere no cadeado do endereço", true);
       else if (ev.error !== "no-speech" && ev.error !== "aborted") aviso("Não consegui ouvir (" + ev.error + ")", true);
     };
-    r.onend = function () { DIT.rec = null; botoesMic(); if (fim.trim() && id !== "iaTexto") corrigirCampo(id); };
+    r.onend = function () { DIT.rec = null; botoesMic(); if (fim.trim() && !/^ia/.test(id)) corrigirCampo(id); };
     try { r.start(); DIT.rec = r; botoesMic(); aviso("🎙 Pode falar — toque em PARAR quando acabar"); } catch (e) { DIT.rec = null; aviso("Não consegui ligar o microfone", true); }
   }
   function wav16(am) {
@@ -891,7 +953,7 @@
       if (!r.ok) throw new Error(r.status === 429 ? "o limite de hoje da IA acabou" : "a transcrição falhou");
       var t = String(j.texto || (j.segmentos || []).map(function (x) { return x.texto || x.text; }).join(" ") || "").trim();
       var alvo = $(id) || el; if (!t) { aviso("Não ouvi nada — tente mais perto do microfone", true); return; }
-      setCampo(alvo, juntar(base, t)); if (id !== "iaTexto") corrigirCampo(id);
+      setCampo(alvo, juntar(base, t)); if (!/^ia/.test(id)) corrigirCampo(id);
     } catch (e) { andamento(""); aviso("Não consegui transcrever: " + (e && e.message || "erro"), true); }
   }
   /* correção sem IA (sem conta): espaços, vícios de fala, maiúsculas e ponto final */
@@ -1087,13 +1149,13 @@
     else if (a === "coresEmpresa") { var e = cfgOrc("empresa") || {}; if (!e.cor) { aviso("Sem cor salva em MINHA EMPRESA (Gerador de orçamento).", true); return; } KIT.cor = e.cor; guardar(); desenharForm(); agendarPrevia(0); }
     else if (a === "logoEmpresa") { var lg = cfgOrc("logo"); if (!lg) { aviso("Sem logo salva em MINHA EMPRESA (Gerador de orçamento).", true); return; } IMGS.logo = lg; guardarImgs(); desenharForm(); agendarPrevia(0); }
     else if (a === "puxarEmpresa") puxarEmpresa();
-    else if (a === "tirarImg") { IMGS[el.getAttribute("data-v")] = ""; guardarImgs(); desenharForm(); agendarPrevia(0); }
+    else if (a === "tirarImg") { IMGS[el.getAttribute("data-v")] = ""; if (IMGS.origs) delete IMGS.origs[el.getAttribute("data-v")]; guardarImgs(); desenharForm(); agendarPrevia(0); }
     else if (a === "vis") { var s = el.getAttribute("data-s"), oc = KIT.ocultas || (KIT.ocultas = []); if (el.checked) KIT.ocultas = oc.filter(function (x) { return x !== s; }); else if (oc.indexOf(s) < 0) oc.push(s); guardar(); desenharForm(); agendarPrevia(0); }
     else if (a === "sobe" || a === "desce") { var o = KIT.ordem || (KIT.ordem = TODAS.slice()), i = o.indexOf(el.getAttribute("data-s")); TODAS.forEach(function (x) { if (o.indexOf(x) < 0) o.push(x); }); i = o.indexOf(el.getAttribute("data-s")); mover(o, i, a === "sobe" ? i - 1 : i + 1); guardar(); desenharForm(); agendarPrevia(0); }
     else if (a === "addItem") { var l = el.getAttribute("data-l"); (d[l] || (d[l] = [])).push(clone(NOVOS[l])); guardar(); desenharForm(); var c = $("form").querySelectorAll('[data-k^="d.' + l + '."]'); if (c.length) { var alvo = c[c.length - Object.keys(NOVOS[l]).length]; if (alvo) alvo.focus(); } }
     else if (a === "tirarItem") { d[el.getAttribute("data-l")].splice(+el.getAttribute("data-i"), 1); guardar(); desenharForm(); agendarPrevia(0); }
-    else if (a === "fotoTira") { IMGS.fotos.splice(+el.getAttribute("data-i"), 1); guardarImgs(); desenharForm(); agendarPrevia(0); }
-    else if (a === "fotoEsq" || a === "fotoDir") { var fi = +el.getAttribute("data-i"); mover(IMGS.fotos, fi, a === "fotoEsq" ? fi - 1 : fi + 1); guardarImgs(); desenharForm(); agendarPrevia(0); }
+    else if (a === "fotoTira") { IMGS.origs = Object.keys(IMGS.origs || {}).filter(function (x) { return x[0] !== "f"; }).reduce(function (o, x) { o[x] = IMGS.origs[x]; return o; }, {}); IMGS.fotos.splice(+el.getAttribute("data-i"), 1); guardarImgs(); desenharForm(); agendarPrevia(0); }
+    else if (a === "fotoEsq" || a === "fotoDir") { var fi = +el.getAttribute("data-i"), oo = IMGS.origs || {}, ja = oo["f" + fi], jb = oo["f" + (a === "fotoEsq" ? fi - 1 : fi + 1)]; if (ja || jb) { delete oo["f" + fi]; delete oo["f" + (a === "fotoEsq" ? fi - 1 : fi + 1)]; if (ja) oo["f" + (a === "fotoEsq" ? fi - 1 : fi + 1)] = ja; if (jb) oo["f" + fi] = jb; } mover(IMGS.fotos, fi, a === "fotoEsq" ? fi - 1 : fi + 1); guardarImgs(); desenharForm(); agendarPrevia(0); }
     else if (a === "limparExemplo") {
       if (!confirm("Apagar todos os textos e fotos do exemplo e começar do zero? O modelo e as cores continuam.")) return;
       var vazio = base({ etiqueta: KIT.d.etiqueta || "APRESENTAÇÃO PESSOAL" }); (modeloDe(KIT.modelo).ordem || []).forEach(function (id) { if (NOVOS[id]) vazio[id] = [clone(NOVOS[id])]; });
@@ -1109,6 +1171,11 @@
     else if (a === "iaReleaseIr") iaRelease();
     else if (a === "desfazerIA") desfazerIA();
     else if (a === "falar") falar(el.getAttribute("data-alvo"));
+    else if (a === "fotoIA") { var px = FOTO_IA.filter(function (x) { return x.id === el.getAttribute("data-p"); })[0]; if (!$("modal").hidden) fecharModal(); if (px) fotoIA(el.getAttribute("data-alvo"), px.p); }
+    else if (a === "fotoIAvolta") { if (!$("modal").hidden) fecharModal(); fotoIAvolta(el.getAttribute("data-alvo")); }
+    else if (a === "fotoIAlivre") fotoIAlivre(el.getAttribute("data-alvo"));
+    else if (a === "fotoIAmenu") fotoIAmenu(el.getAttribute("data-i"));
+    else if (a === "fotoIAlivreIr") { var tl = ($("iaFotoTexto").value || "").trim(); if (tl.length < 4) { aviso("Diga o que mudar na foto", true); return; } pararDit(); fecharModal(); fotoIA(el.getAttribute("data-alvo"), MANTER + "Edit the photo as follows (user request in Portuguese): " + tl); }
     else if (a === "corrigir") corrigirCampo(el.getAttribute("data-alvo"));
     else if (a === "voltarCampo") voltarCampo(el.getAttribute("data-alvo"));
     else if (a === "servFotos") { KIT.servFotos = !!el.checked; guardar(); agendarPrevia(0); }
@@ -1120,8 +1187,8 @@
     andamento("Lendo a imagem…");
     try {
       if (alvo === "logo") IMGS.logo = await arquivoParaUrl(fs[0], 1600, true);
-      else if (alvo === "retrato") IMGS.retrato = await arquivoParaUrl(fs[0], 1800, true);
-      else if (alvo === "capa") IMGS.capa = await arquivoParaUrl(fs[0], 2400, false);
+      else if (alvo === "retrato") { IMGS.retrato = await arquivoParaUrl(fs[0], 1800, true); if (IMGS.origs) delete IMGS.origs.retrato; }
+      else if (alvo === "capa") { IMGS.capa = await arquivoParaUrl(fs[0], 2400, false); if (IMGS.origs) delete IMGS.origs.capa; }
       else { for (var i = 0; i < fs.length && IMGS.fotos.length < 7; i++) IMGS.fotos.push(await arquivoParaUrl(fs[i], 2000, false)); }
       andamento(""); guardarImgs(); desenharForm(); agendarPrevia(0); aviso(alvo === "fotos" ? "Fotos na galeria ✓" : alvo === "logo" ? "Logo aplicada ✓" : alvo === "retrato" ? "Foto recortada aplicada ✓" : "Foto da capa aplicada ✓");
     } catch (e) { andamento(""); aviso("Não deu para abrir essa imagem. Tente outra (JPG ou PNG).", true); }
