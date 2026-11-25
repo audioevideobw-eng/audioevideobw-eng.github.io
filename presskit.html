@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' blob: https://cdn.jsdelivr.net https://cdn.sheetjs.com; worker-src 'self' blob: https://cdn.jsdelivr.net; connect-src 'self' data: blob: https://zdtnetplvdonogmdvarx.supabase.co wss://zdtnetplvdonogmdvarx.supabase.co https://cdn.jsdelivr.net https://cdn.sheetjs.com https://open.er-api.com https://olinda.bcb.gov.br https://raw.githubusercontent.com https://storage.googleapis.com https://huggingface.co https://*.huggingface.co https://*.hf.co https://tessdata.projectnaptha.com https://fonts.googleapis.com https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' data: blob: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; font-src 'self' data: https://fonts.gstatic.com https://cdn.jsdelivr.net; frame-src 'self' blob: data: https://docs.google.com; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<style id="bwAntiMoldura">html{display:none!important}.pk-falando{display:flex;gap:14px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin:0 0 12px;border-color:rgba(232,181,74,.5)!important;background:linear-gradient(135deg,rgba(232,181,74,.14),rgba(76,141,255,.08))!important}
+.pk-falando>div{display:flex;flex-direction:column;gap:4px;min-width:0;flex:1 1 260px}
+.pk-falando b{font:800 16px Inter,system-ui,sans-serif;color:#F5F1EA}
+.pk-falando span{font:500 13.5px/1.5 Inter,system-ui,sans-serif;color:rgba(245,241,234,.78)}
+.pk-falando .bw-btn{min-height:46px}
+.pk-voz{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.pk-mic{min-height:34px;padding:0 12px;border-radius:999px;border:1px solid rgba(245,241,234,.16);background:rgba(255,255,255,.04);color:#F5F1EA;font:700 12px Inter,system-ui,sans-serif;cursor:pointer}
+.pk-mic.on{background:#FF4F6D;border-color:#FF4F6D;color:#fff;animation:pkPulsa 1.2s ease-in-out infinite}
+.pk-mic.volta{border-style:dashed}
+.pk-mic[hidden]{display:none}
+@keyframes pkPulsa{50%{box-shadow:0 0 0 6px rgba(255,79,109,.25)}}
+@media (prefers-reduced-motion:reduce){.pk-mic.on{animation:none}}
+.pk-grupo h3 .pk-n{display:inline-grid;place-items:center;width:26px;height:26px;margin-right:8px;border-radius:50%;background:#E8B54A;color:#06080D;font:800 13px Inter,system-ui,sans-serif;font-style:normal;vertical-align:1px}
+.pk-sub-t{margin:14px 0 4px;font:800 11px Inter,system-ui,sans-serif;letter-spacing:.08em;color:#E8B54A}
+.pk-sub-t small{color:rgba(245,241,234,.55);font-weight:600}
+.pk-liga{display:flex;align-items:center;gap:8px;margin-top:10px;font:600 13.5px Inter,system-ui,sans-serif;color:#F5F1EA;cursor:pointer}
+.pk-liga input{width:20px;height:20px;accent-color:#E8B54A}
+.pk-campo>label>span{font:700 11px Inter,system-ui,sans-serif;letter-spacing:.06em;color:rgba(245,241,234,.7);text-transform:uppercase}
+.pk-campo>label{display:block}
+.pk-imgs{grid-template-columns:repeat(3,minmax(0,1fr))}
+@media (max-width:900px){.pk-imgs{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:560px){.pk-imgs{grid-template-columns:minmax(0,1fr)}}
+</style><script>(function(){var ok=self===top;if(!ok){try{ok=top.location.origin===location.origin}catch(e){ok=false}}if(ok){var s=document.getElementById("bwAntiMoldura");if(s)s.parentNode.removeChild(s)}else{try{top.location.href=location.href}catch(e){}}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Press kit — Brightway</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#06080D">
+<link rel="icon" type="image/png" href="icons/favicon-64.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="Brightway">
+<link rel="stylesheet" href="assets/brightway.css?v=40">
+<style>
+.wrap{max-width:1280px;margin:0 auto;padding:0 20px 110px}
+.pk-barra{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+.pk-vazio{padding:28px;text-align:center;color:rgba(245,241,234,.75);font:500 14px/1.6 Inter,system-ui,sans-serif;border:1px dashed rgba(245,241,234,.2);border-radius:18px}
+.pk-lista-kits{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+@media (max-width:560px){.pk-lista-kits{grid-template-columns:minmax(0,1fr)}}
+.pk-card{display:flex;gap:12px;align-items:stretch;padding:12px;border-radius:18px;border:1px solid rgba(245,241,234,.1);background:linear-gradient(160deg,rgba(255,255,255,.05),rgba(255,255,255,.015));min-width:0}
+.pk-mini{flex:none;width:96px;aspect-ratio:595/842;border-radius:8px;overflow:hidden;border:1px solid rgba(245,241,234,.14);background:#0B1222;padding:0;cursor:pointer}
+.pk-mini img{width:100%;height:100%;object-fit:cover;display:block}
+.pk-mini.sem::after{content:"📄";display:grid;place-items:center;height:100%;font-size:28px}
+.pk-info{display:flex;flex-direction:column;gap:4px;min-width:0;flex:1}
+.pk-info b{font:800 15px Inter,system-ui,sans-serif;color:#F5F1EA;overflow:hidden;text-overflow:ellipsis}
+.pk-info span{font:500 12.5px Inter,system-ui,sans-serif;color:rgba(245,241,234,.65)}
+.pk-acoes{display:flex;flex-wrap:wrap;gap:6px;margin-top:auto}
+.pk-acoes .bw-btn{min-height:38px;padding:0 12px;font-size:12px}
+/* galeria de modelos */
+.pk-modelos{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px}
+@media (max-width:560px){.pk-modelos{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}}
+.pk-mod{display:flex;flex-direction:column;gap:6px;text-align:left;padding:10px;border-radius:18px;border:1px solid rgba(245,241,234,.12);background:rgba(255,255,255,.04);color:#F5F1EA;cursor:pointer;min-width:0;transition:transform .15s,border-color .15s}
+.pk-mod:hover,.pk-mod:focus-visible{transform:translateY(-3px);border-color:#E8B54A}
+.pk-mod-capa{display:block;aspect-ratio:595/842;border-radius:10px;overflow:hidden;background:linear-gradient(160deg,#0B1222,#142544);box-shadow:0 10px 26px rgba(0,0,0,.4)}
+.pk-mod-capa img{width:100%;height:100%;object-fit:cover;display:block}
+.pk-mod-capa img:not([src]){visibility:hidden}
+.pk-mod-capa.sem::after{content:"Sem prévia agora";display:grid;place-items:center;height:100%;font:600 12px Inter,system-ui,sans-serif;color:rgba(245,241,234,.6)}
+.pk-mod-nome{font:800 13px Inter,system-ui,sans-serif;letter-spacing:.04em}
+.pk-mod-para{font:500 12px/1.35 Inter,system-ui,sans-serif;color:rgba(245,241,234,.68)}
+/* editor */
+.pk-topo{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:10px 0 12px}
+.pk-topo .pk-nome{flex:1 1 240px;min-width:0;min-height:44px;padding:8px 12px;border-radius:12px;border:1px solid rgba(245,241,234,.16);background:rgba(6,8,13,.55);color:#F5F1EA;font:700 16px Inter,system-ui,sans-serif}
+.pk-saidas{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px}
+.pk-saidas .bw-btn{min-height:44px}
+@media (max-width:560px){.pk-saidas{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.pk-saidas .bw-btn{padding:0 8px;font-size:12px;white-space:normal;line-height:1.15}.pk-saidas .bw-btn.pri{grid-column:1/-1}.pk-topo .bw-btn{min-height:40px;font-size:12px}}
+.pk-ed{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,500px);gap:18px;align-items:start}
+.pk-prev{position:sticky;top:12px;max-height:calc(100vh - 24px);overflow:auto;border-radius:16px;background:#1a1f29;border:1px solid rgba(245,241,234,.1);padding:12px;overscroll-behavior:contain}
+.pk-prev-topo{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:0 0 8px;font:600 12px Inter,system-ui,sans-serif;color:rgba(245,241,234,.7)}
+#paginas{display:flex;flex-direction:column;gap:12px}
+.pk-pag{width:100%;height:auto;display:block;border-radius:4px;box-shadow:0 8px 24px rgba(0,0,0,.45);background:#fff}
+.pk-abas{display:none;gap:6px;margin:0 0 12px;position:sticky;top:0;z-index:5;padding:6px 0;background:var(--navy,#06080D)}
+.pk-aba{flex:1;min-height:44px;border-radius:12px;border:1px solid rgba(245,241,234,.16);background:rgba(255,255,255,.04);color:#F5F1EA;font:800 13px Inter,system-ui,sans-serif;cursor:pointer}
+.pk-aba.on{background:#E8B54A;color:#06080D;border-color:#E8B54A}
+@media (max-width:1060px){
+  .pk-ed{grid-template-columns:minmax(0,1fr)}
+  .pk-abas{display:flex}
+  #vEd:not([data-aba="prev"]) .pk-prev{display:none}
+  #vEd[data-aba="prev"] #form{display:none}
+  .pk-prev{position:static;max-height:none;overflow:visible}
+}
+.pk-grupo{margin:0 0 12px}
+.pk-grupo h3{margin:0 0 10px}
+.pk-exemplo{margin:0 0 12px;border-color:rgba(232,181,74,.45)!important;font:500 14px/1.6 Inter,system-ui,sans-serif;color:#F5F1EA}
+.pk-exemplo .bw-btn{min-height:38px;margin:4px 4px 0 0;font-size:12px}
+.pk-campos{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 12px}
+@media (max-width:560px){.pk-campos{grid-template-columns:minmax(0,1fr)}}
+.pk-campo{display:flex;flex-direction:column;gap:4px;min-width:0}
+.pk-campo.larga{grid-column:1/-1}
+.pk-campo>span{font:700 11px Inter,system-ui,sans-serif;letter-spacing:.06em;color:rgba(245,241,234,.7);text-transform:uppercase}
+.pk-campo input,.pk-campo textarea,.pk-campo select,.pk-in{width:100%;min-width:0;box-sizing:border-box;padding:10px 12px;border-radius:12px;border:1px solid rgba(245,241,234,.16);background:rgba(6,8,13,.55);color:#F5F1EA;font:400 16px/1.45 Inter,system-ui,sans-serif}
+.pk-campo textarea,.pk-in{resize:vertical}
+.pk-campo input[type=color]{height:46px;padding:4px;cursor:pointer}
+.pk-cores{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:8px 0}
+@media (max-width:560px){.pk-cores{grid-template-columns:repeat(2,minmax(0,1fr))}.pk-cores .pk-campo:last-child{grid-column:1/-1}}
+.pk-chips{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 0}
+.pk-chip{min-height:38px;padding:0 13px;border-radius:999px;border:1px solid rgba(245,241,234,.16);background:rgba(255,255,255,.04);color:#F5F1EA;font:700 12.5px Inter,system-ui,sans-serif;cursor:pointer}
+.pk-chip.on{background:#E8B54A;color:#06080D;border-color:#E8B54A}
+.pk-up{position:relative;overflow:hidden;min-height:38px;padding:0 14px;font-size:12.5px;cursor:pointer}
+.pk-up input[type=file]{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;font-size:16px}
+.pk-imgs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:12px}
+@media (max-width:560px){.pk-imgs{grid-template-columns:minmax(0,1fr)}}
+.pk-img{border:1px solid rgba(245,241,234,.12);border-radius:14px;padding:10px;min-width:0}
+.pk-img>span{display:block;font:800 11px Inter,system-ui,sans-serif;letter-spacing:.08em;color:#E8B54A;margin-bottom:6px}
+.pk-img img{display:block;max-width:100%;max-height:150px;border-radius:8px;object-fit:contain}
+.pk-img i{display:block;font:500 13px Inter,system-ui,sans-serif;color:rgba(245,241,234,.55);padding:20px 0}
+.xadrez{background:conic-gradient(#3a3f4a 25%,#2a2e36 0 50%,#3a3f4a 0 75%,#2a2e36 0) 0 0/16px 16px}
+.pk-ordem{display:flex;flex-direction:column;gap:6px}
+.pk-ord{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 8px 6px 10px;border-radius:12px;border:1px solid rgba(245,241,234,.1);background:rgba(255,255,255,.03);min-width:0}
+.pk-ord.off{opacity:.55}
+.pk-ord label{display:flex;align-items:center;gap:8px;font:600 14px Inter,system-ui,sans-serif;color:#F5F1EA;min-width:0;cursor:pointer}
+.pk-ord input{width:20px;height:20px;accent-color:#E8B54A;flex:none}
+.pk-ord>span{display:flex;gap:4px;flex:none}
+.pk-sx{width:38px;height:38px;border-radius:10px;border:1px solid rgba(245,241,234,.16);background:rgba(255,255,255,.04);color:#F5F1EA;font:700 13px Inter,system-ui,sans-serif;cursor:pointer}
+.pk-sx:disabled{opacity:.3;cursor:default}
+.pk-lista{display:flex;flex-direction:column;gap:10px;margin-top:10px}
+.pk-item{display:flex;gap:8px;align-items:flex-start;padding:10px;border-radius:14px;border:1px solid rgba(245,241,234,.1);background:rgba(255,255,255,.025)}
+.pk-item-campos{flex:1;min-width:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 10px}
+@media (max-width:560px){.pk-item-campos{grid-template-columns:minmax(0,1fr)}}
+.pk-x{flex:none;width:38px;height:38px;border-radius:10px;border:1px solid rgba(255,120,120,.35);background:rgba(255,99,99,.08);color:#FF8A8A;font:800 14px Inter,system-ui,sans-serif;cursor:pointer;margin-top:18px}
+.pk-add{align-self:flex-start;min-height:40px}
+.pk-fotos{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;margin:10px 0}
+.pk-foto{border-radius:10px;overflow:hidden;border:1px solid rgba(245,241,234,.12);background:#0B1222}
+.pk-foto img{width:100%;aspect-ratio:16/11;object-fit:cover;display:block}
+.pk-foto span{display:flex;justify-content:space-between;padding:4px}
+.pk-foto .pk-sx{width:34px;height:34px}
+.pk-modal{position:fixed;inset:0;z-index:300;background:rgba(3,5,9,.78);display:grid;place-items:center;padding:16px}
+.pk-modal[hidden]{display:none}
+.pk-modal .cx{position:relative;width:min(560px,100%);max-height:calc(100vh - 32px);overflow:auto;background:#0E1420;border:1px solid rgba(245,241,234,.14);border-radius:18px;padding:20px}
+.pk-modal h3{margin:0 34px 6px 0;font:800 18px Inter,system-ui,sans-serif;color:#F5F1EA}
+.pk-mx{position:absolute;top:10px;right:10px;width:40px;height:40px;border-radius:12px;border:1px solid rgba(245,241,234,.16);background:rgba(255,255,255,.04);color:#F5F1EA;font:800 15px Inter,system-ui,sans-serif;cursor:pointer}
+</style>
+<script src="assets/modos.js?v=11"></script>
+</head>
+<body>
+<header><div class="hd"><button id="btnVoltar" type="button">‹</button><div id="userBox"></div></div></header>
+<div class="wrap">
+  <!-- LISTA -->
+  <section id="vLista">
+    <div class="tf-card" style="margin-top:0">
+      <h3>Press kit · apresentação pessoal</h3>
+      <p class="tf-sub">Book de ator, comp card de modelo, EPK de músico, mídia kit de criador, folha de palestrante, portfólio de freelancer ou currículo visual. Escolha o modelo, preencha (ou <b>fale</b>) e a apresentação se monta sozinha — em PDF com links clicáveis ou em Word para editar.</p>
+      <div class="pk-barra"><button type="button" class="bw-btn pri" data-a="novo">＋ NOVA APRESENTAÇÃO</button></div>
+      <div class="pk-lista-kits" id="lista"></div>
+    </div>
+  </section>
+
+  <!-- MODELOS -->
+  <section id="vModelos" hidden>
+    <div class="tf-card" style="margin-top:0">
+      <div class="pk-topo"><button type="button" class="bw-btn" data-a="voltarLista">‹ VOLTAR</button></div>
+      <h3>Escolha um modelo</h3>
+      <p class="tf-sub">Cada modelo segue o padrão que o mercado usa para aquela profissão e vem com um exemplo de pessoa inventada. Depois você troca textos, fotos, cores e a ordem das partes.</p>
+      <div class="pk-modelos" id="modelos"></div>
+    </div>
+  </section>
+
+  <!-- EDITOR -->
+  <section id="vEd" hidden>
+    <div class="pk-topo">
+      <button type="button" class="bw-btn" data-a="voltarLista">‹ MINHAS APRESENTAÇÕES</button>
+      <input class="pk-nome" id="edNome" type="text" maxlength="120" aria-label="Nome desta apresentação">
+    </div>
+    <div class="pk-saidas">
+      <button type="button" class="bw-btn pri" data-a="pdf">⬇ BAIXAR PDF</button>
+      <button type="button" class="bw-btn" data-a="word">⬇ WORD (EDITÁVEL)</button>
+      <button type="button" class="bw-btn" data-a="zip">⬇ PACOTE (PDF + FOTOS)</button>
+      <button type="button" class="bw-btn" data-a="compartilhar">↗ COMPARTILHAR</button>
+      <button type="button" class="bw-btn" data-a="desfazerIA" id="btnDesfazerIA" hidden>↺ VOLTAR AO MEU TEXTO</button>
+    </div>
+    <div class="pk-abas" role="group" aria-label="Editar ou ver a prévia">
+      <button type="button" class="pk-aba on" data-a="aba" data-v="ed" aria-pressed="true">✎ EDITAR</button>
+      <button type="button" class="pk-aba" data-a="aba" data-v="prev" id="abaPrev" aria-pressed="false">👁 PRÉVIA</button>
+    </div>
+    <div class="pk-ed">
+      <div id="form" style="min-width:0"></div>
+      <div class="pk-prev" aria-label="Prévia do PDF">
+        <div class="pk-prev-topo"><span>PRÉVIA</span><span id="prevEstado">…</span></div>
+        <div id="paginas"></div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="pk-modal" id="modal" hidden><div class="cx" id="modalCx" role="dialog" aria-modal="true"></div></div>
+
+<script src="assets/layout.js?v=84"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.2/dist/umd/supabase.js" integrity="sha384-A97u3Qnt9GZHURO9YJZRe7VQgGUeFzcv6I1oIGnUTxQrCxnpQMwR0/G8F2zt9abZ" crossorigin="anonymous"></script>
+<script src="assets/bw-sync.js?v=20261125"></script>
+<script src="assets/presskit.js?v=2"></script>
+</body>
+</html>

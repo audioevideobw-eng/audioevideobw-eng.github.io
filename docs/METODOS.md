@@ -775,3 +775,10 @@ Armadilha: classe de ESTADO não serve para destacar botão. `＋ IMPORTAR` usav
   Visuais ELA/ELE/ROBÔ REDONDO são SVG próprios; o ROBÔ BW (imagem) muda de cor por hue-rotate a partir de 217°. Voz: "auto" segue o visual.
 - Trocar texto em massa: substituir as formas com artigo primeiro ("com o Tio Cláudio" → "com o assistente", "do…", "ao…", "O…") e só no fim o
   nome solto; depois `grep` no site inteiro (o vigia 7.8n recusa "Tio Cláudio" nas páginas).
+
+## Press kit / PDF com pdfMake (25/11/2026)
+- Fontes: TTF em assets/fontes; `pdfMake.addVirtualFileSystem(Object.assign({}, window.vfs, minhas))`; famílias por apelido (MO, PF).
+- Capa no `background(pg===1)`; tamanho de página livre `pageSize:{width,height}` (A4, 4:5 = 595×744, A5 = 420×595) e tudo escalado por k = W/595.
+- Prévia = o próprio PDF desenhado pelo pdf.js em canvas; teste lê `window.__pkUltimoDef` (content + background(1)).
+- Links: `link:` em texto/imagem vira /URI clicável; QR com qrcode-generator 1.4.4 desenhado em canvas → PNG.
+- Ditado: SpeechRecognition pt-BR contínuo; teste injeta um SpeechRecognition falso por add_init_script e a bw-ia simulada distingue "revisa textos".

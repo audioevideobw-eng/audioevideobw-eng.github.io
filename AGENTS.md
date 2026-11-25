@@ -1057,6 +1057,13 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
      âmbar (#E8B54A), texto claro — e o assunto bem NÍTIDO e contrastado no centro (sem desfoque, sem fundo "de mesa", sem brilho que suja a cor).
      Antes de publicar, olhar a folha de contato pensando "isso parece da nossa marca?". Exemplos dos tutoriais: docs/tutoriais/gerar_exemplos.py.
 
+**Aprendidos em 25/11 (PRESS KIT pessoal)**
+238. PDF com pdfMake: fontes próprias só em TTF (WOFF trava) e o addVirtualFileSystem SUBSTITUI o vfs (juntar com window.vfs); a CAPA inteira vai no
+     background(página 1) com largura fixa em cada pilha (texto posicionado no conteúdo escapava para a página 2); título de seção + 1º bloco num stack
+     unbreakable, e rótulo de grupo (ex.: "TV e publicidade") junto com o 1º item — senão fica órfão no pé da página. Teste que procura o nome no PDF
+     olha content + background(1) (o nome da capa não está no content). Ditado: reconhecimento do navegador → texto → bw-ia corrige SEM acrescentar
+     nada, com ↺ COMO ESTAVA; sem reconhecimento (iPhone instalado) grava e transcreve na bw-ia (?lang=pt) (auto: teste_presskit.py, vigia 7.8o).
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -2779,7 +2786,18 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
 - 25/11/2026 13:00 · Claude (dono: "pode ser agora"): APP BW 1.9.51 — cópia sem internet refeita com o site de hoje (352 arquivos, os 17 tutoriais
   com as telas reais e os exemplos), tutorial em PDF e novidades (tutoriais das FERRAMENTAS; exemplos com o resultado real). teste-app 0 falhas;
   pacote e app-versao.json publicados; arquivos copiados para Vídeos\\bw-reels-studio. BW-Setup.exe 1.9.51 publicado 13:01.
+- 25/11/2026 14:40 · Claude (dono: "press kit PESSOAL — atores, freelancers… modelos para apresentação pessoal"; "algo onde a pessoa coloca os dados e ele se
+  monta, como um orçamento; falar e o texto se monta corrigido; local de mídia e links; fácil e profissional; modelos assim e outros conhecidos"):
+  nova ferramenta PRESS KIT (presskit.html + assets/presskit.js) em Marketing, Ferramentas e Minha empresa. 8 modelos no padrão de cada profissão,
+  com pessoas inventadas: ATOR E ATRIZ (book), HUMORISTA E PRESENÇA VIP (pessoa recortada sobre círculos, 4:5, inspirado na estrutura do portfólio
+  do dono, sem copiar nada), FREELANCER AUDIOVISUAL, MÚSICO E DJ (EPK), CRIADOR DE CONTEÚDO (mídia kit), COMP CARD DE MODELO (A5, medidas na capa),
+  PALESTRANTE e PROFISSIONAL (currículo visual). Formulário em passos com prévia = o PDF ao lado; 🎙 CONTAR SOBRE MIM (a IA distribui o que foi
+  dito nas partes), 🎙 FALAR / ✨ CORRIGIR / ↺ COMO ESTAVA em todo texto longo; FOTOS E MÍDIA (foto recortada, capa, logo, galeria); trabalhos com
+  botão VER ↗ e PORTFÓLIO com links clicáveis + QR; PDF (A4 ou 4:5), WORD com links, PACOTE .zip. Textos na conta (mkt_presskit), fotos só no
+  aparelho. teste_presskit.py (≈60 checagens × 1280/390) 0 falhas; vigia ✅. Manual 76 → 77 p. layout.js v84, sw v244. PENTE FINO 238.
+  NÃO feito: pacote do app BW (a cópia sem internet ganha o press kit na próxima versão), tutorial do press kit.
 ## Pendências (dono)
+- [ ] (25/11) PRESS KIT: dono testar no celular e no PC — 🎙 CONTAR SOBRE MIM falando, 🎙 FALAR num texto e baixar o PDF; dizer quais modelos faltam.
 - [x] (25/11 13:01) BW-Setup.exe 1.9.51 gerado pelo dono e publicado (15,3 MB, versão conferida dentro do .exe).
 - [x] (25/11 11:37) BW-Setup.exe 1.9.50 gerado pelo dono e publicado (13,2 MB, versão conferida dentro do .exe; maior pela cópia sem internet com as fotos dos tutoriais).
 - [ ] (25/11) TUTORIAIS + MEU ASSISTENTE: dono abrir um tutorial no celular (som ligado, iPhone sem o silencioso) e dizer se a narração e a música

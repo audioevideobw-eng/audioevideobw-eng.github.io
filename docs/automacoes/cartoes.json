@@ -340,5 +340,11 @@
   "title": "Seus serviços, assinatura das mensagens e meta de fechamentos.",
   "ico": "<span class=\"ico\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0\"/><circle cx=\"16\" cy=\"6\" r=\"2\"/><circle cx=\"10\" cy=\"12\" r=\"2\"/><circle cx=\"18\" cy=\"18\" r=\"2\"/></svg></span>",
   "de": "crm.html"
+ },
+ "presskit.html": {
+  "nome": "PRESS KIT",
+  "title": "Press kit para imprensa e clientes: modelos profissionais prontos, troca pelo seu conteúdo e baixa em PDF ou Word.",
+  "ico": "<span class=\"ico\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><rect x=\"3\" y=\"4\" width=\"18\" height=\"16\" rx=\"2\"/><path d=\"M3 9h18\"/><path d=\"M7 13h6M7 16h4\"/><rect x=\"15\" y=\"12\" width=\"3.5\" height=\"5\" rx=\".6\"/></svg></span>",
+  "de": "index.html"
  }
 }

@@ -6,7 +6,7 @@ Mudou ferramenta ou molde? Rode na raiz:  python3 docs/automacoes/gerar-ambiente
 import html, json, os
 AQUI = os.path.dirname(os.path.abspath(__file__)); RAIZ = os.path.abspath(os.path.join(AQUI, "..", ".."))
 CART = json.load(open(os.path.join(AQUI, "cartoes.json"), encoding="utf8"))
-V_CSS, V_LAYOUT, V_AGENDA, V_AMB = 40, 83, 3, 1   # 23/11: estavam velhos (36, 75, 1) — conferir com o index.html antes de gerar
+V_CSS, V_LAYOUT, V_AGENDA, V_AMB = 40, 84, 3, 1   # 23/11: estavam velhos (36, 75, 1) — conferir com o index.html antes de gerar
 
 I_EMP = '<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M3 12h18"/>'
 I_CASA = '<path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M9 21v-6h6v6"/>'
@@ -34,7 +34,7 @@ AMBIENTES = {
                                                              cartao("leitor.html"), cartao("eventos.html#cliBox")], False),
                        ("emp-crm", "CRM · CLIENTES", [cartao("captacao.html"), cartao("captacao.html#agente"), cartao("captacao.html#colar"),
                                                      cartao("captacao.html#link"), cartao("resultados.html")], False),
-                       ("emp-mkt", "MARKETING", [cartao(h) for h in ["reels.html", "promptia.html", "personagens.html", "video.html", "motion.html", "telas.html", "album3d.html", "3d.html", "criador.html",
+                       ("emp-mkt", "MARKETING", [cartao(h) for h in ["reels.html", "promptia.html", "personagens.html", "video.html", "motion.html", "telas.html", "album3d.html", "3d.html", "criador.html", "presskit.html",
                                                                   "fotos.html", "transcricao.html", "assistente.html#legenda", "assistente.html#ideias", "assistente.html#email"]], False),
                        ("emp-ferr", "FERRAMENTAS DA EMPRESA", [cartao("pdf.html"), cartao("assistente.html"), cartao("dados.html"), cartao("configadm.html", adm=True)], True)]),
     "pf": dict(arquivo="casa.html", titulo="Minha casa — Brightway", h1="MINHA <b>CASA</b>", selo="PF · PESSOA FÍSICA", outro="pj", outro_href="negocio.html",
@@ -89,7 +89,7 @@ MOLDE = '''<!DOCTYPE html>
 </div>
 <script src="assets/layout.js?v={v_layout}"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.2/dist/umd/supabase.js" integrity="sha384-A97u3Qnt9GZHURO9YJZRe7VQgGUeFzcv6I1oIGnUTxQrCxnpQMwR0/G8F2zt9abZ" crossorigin="anonymous"></script>
-<script src="assets/bw-sync.js?v=20261122"></script>
+<script src="assets/bw-sync.js?v=20261125"></script>
 <script src="assets/agenda.js?v={v_agenda}"></script>
 <script src="assets/ambiente.js?v={v_amb}"></script>
 </body>

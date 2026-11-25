@@ -107,7 +107,7 @@ window.BWAssistente = window.BWAssistente || {
     casa: [["casa","Minha casa (PF)"],["lancamentos-pf","Lançamentos PF","lancamentos.html?a=pf"],["financeiro-painel-pf","Painel PF","financeiro-painel.html?a=pf"],["orcamento","Orçamento familiar"],["contas","Contas a pagar"],["reserva","Reserva de emergência"]],
     invest: [["investimentos-painel","Painel de Investimentos"],["cambio","Câmbio"],["evento","Evento no exterior"],["milhas","Mercado de milhas"],["meta","Meta de milhas"],["recs","★ Recomendações"],["noticias","Notícias"]],
     crm: [["crm","Painel do CRM"],["captacao","Funil de clientes"],["resultados","Indicadores"]],
-    mkt: [["marketing","Todas de marketing"],["promptia","Prompt IA"],["reels","BW Reels Pro"],["personagens","Personagens"],["video","Editor de vídeo"],["motion","Estúdio de motion"],["telas","Telas em movimento"],["album3d","Álbum 3D e efeitos"],["3d","Estúdio 3D"],["criador","Criador IA"],["fotos","Editor de fotos"],["assistente","Assistente de texto"],["transcricao","Transcrição e legendas"]],
+    mkt: [["marketing","Todas de marketing"],["promptia","Prompt IA"],["reels","BW Reels Pro"],["personagens","Personagens"],["video","Editor de vídeo"],["motion","Estúdio de motion"],["telas","Telas em movimento"],["album3d","Álbum 3D e efeitos"],["3d","Estúdio 3D"],["criador","Criador IA"],["fotos","Editor de fotos"],["presskit","Press kit"],["assistente","Assistente de texto"],["transcricao","Transcrição e legendas"]],
     ferr: [["ferramentas","Todas as ferramentas"],["pdf","PDF"],["dados","Meus dados"]],
     conta: [["tutoriais","Tutoriais"],["meu-assistente","Meu assistente"],["config","Configurações e aparência"],["seguranca","Segurança e seus dados"],["login","Acesso"],["configadm","Configuração (ADM)"]]
   };
@@ -132,7 +132,7 @@ window.BWAssistente = window.BWAssistente || {
     viagem:"Conversor de viagem", leitor:"Leitor de contas", recs:"Recomendações",
     noticias:"Notícias", dados:"Meus dados", app:"App & sincronização", login:"Acesso",
     configadm:"Configuração", config:"Configurações", teste:"Testes e soluções", tutoriais:"Tutoriais", "meu-assistente":"Meu assistente", marketing:"Marketing", assistente:"Assistente de texto", transcricao:"Transcrição e legendas", pdf:"Ferramentas de PDF",
-    crm:"CRM", captacao:"Funil de clientes", resultados:"Indicadores", fotos:"Editor de fotos", criador:"Criador IA", reels:"BW Reels Pro", personagens:"Personagens", promptia:"Prompt IA", video:"Editor de vídeo", motion:"Estúdio de motion", telas:"Telas em movimento", album3d:"Álbum 3D e efeitos", "3d":"Estúdio 3D", propostas:"Gerador de orçamento" };
+    crm:"CRM", captacao:"Funil de clientes", resultados:"Indicadores", fotos:"Editor de fotos", criador:"Criador IA", reels:"BW Reels Pro", personagens:"Personagens", promptia:"Prompt IA", video:"Editor de vídeo", motion:"Estúdio de motion", telas:"Telas em movimento", album3d:"Álbum 3D e efeitos", "3d":"Estúdio 3D", propostas:"Gerador de orçamento", presskit:"Press kit" };
   var NOMES_CAT = {}; CATEGORIAS.forEach(function(c){ NOMES_CAT[c.id] = c.nome; });
 
   var itens = CATEGORIAS.map(function(c){

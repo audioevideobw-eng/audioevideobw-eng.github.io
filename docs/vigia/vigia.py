@@ -225,7 +225,7 @@ for p in ["baixar.html", "downloads.html", "privacidade.html", "termos.html", "p
     if p not in todos:
         problemas.append(f"{p} sumiu (link de instalação / política exigida pelo Google / painel financeiro)")
 # 7.8a CRM (15/11): dados do CRM sincronizam (CHAVES) e as páginas carregam assets/crm.js; nada é enviado sozinho
-for ch in ["mkt_leads", "mkt_modelos", "mkt_redes", "mkt_config", "agenda_feitos", "neg_propostas", "neg_prop_config", "reels_projetos"]:
+for ch in ["mkt_leads", "mkt_modelos", "mkt_redes", "mkt_config", "agenda_feitos", "neg_propostas", "neg_prop_config", "reels_projetos", "mkt_presskit"]:
     if f'"{ch}"' not in sync:
         problemas.append(f"assets/bw-sync.js: chave {ch} fora de CHAVES (o CRM não chega nos outros aparelhos)")
 for p in ["crm.html", "captacao.html", "resultados.html"]:
@@ -459,6 +459,24 @@ else:
                         problemas.append(f"TUTORIAIS: a foto {_fp} falta ou não é WEBP binária")
     except Exception as _e:
         problemas.append(f"TUTORIAIS: assets/tutoriais/quadros.js ilegível ({_e})")
+# 7.8o PRESS KIT (25/11/2026, dono: "modelos padrões profissionais para o usuário criar o seu, gera PDF e editável"): presskit.html carrega
+# assets/presskit.js; só os TEXTOS vão para a conta (mkt_presskit, em CHAVES); fotos e logo ficam no IndexedDB do aparelho (nada de upload/Storage);
+# a única saída para a internet é a IA Brightway (bw-ia) e as fontes vêm do próprio site (assets/fontes, OFL); prévia, PDF e Word saem do mesmo modelo().
+_pk = _arq("assets/presskit.js")
+if not os.path.exists("presskit.html") or "assets/presskit.js" not in todos.get("presskit.html", ""):
+    problemas.append("PRESS KIT: presskit.html sumiu ou não carrega assets/presskit.js")
+elif re.search(r"\.upload\(|storage\.from|BWSync\.(subir|enviar)|XMLHttpRequest", _pk):
+    problemas.append("assets/presskit.js: fotos e logo do press kit ficam só no aparelho — nada de upload/Storage")
+else:
+    for _f in re.findall(r"fetch\(([^,)]+)", _pk):
+        if _f.strip() not in ("FN_TXT", 'FN_TXT + "?lang=pt"', '"assets/fontes/" + arqs[i]'):   # ?lang=pt = a fala gravada vai para a transcrição da bw-ia (iPhone sem reconhecimento)
+            problemas.append(f"assets/presskit.js: fetch para {_f.strip()} — a única saída é a IA Brightway (bw-ia)")
+    for _ttf in ["Montserrat-500.ttf", "Montserrat-800.ttf", "PlayfairDisplay-400.ttf", "PlayfairDisplay-700.ttf"]:
+        _fp = os.path.join("assets", "fontes", _ttf)
+        if not os.path.exists(_fp) or open(_fp, "rb").read(4) != b"\x00\x01\x00\x00":
+            problemas.append(f"PRESS KIT: a fonte {_fp} falta ou não é TTF binária")
+    if not os.path.exists("assets/fontes/OFL.txt"):
+        problemas.append("PRESS KIT: falta assets/fontes/OFL.txt (licença das fontes)")
 # 7.8d MODOS DE APARÊNCIA (20/11/2026): modos.js no <head> de toda página; só preferências locais (ui_*); nada de rede
 _mj, _cj = _arq("assets/modos.js"), _arq("assets/config.js")
 for _p, _t in todos.items():

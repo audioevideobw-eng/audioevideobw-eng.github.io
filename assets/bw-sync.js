@@ -36,7 +36,8 @@
     "dd_registros", "neg_eventos_checklist_modelos", "inv_lancamentos", "agenda_tarefas", "agenda_feitos",
     "mkt_leads", "mkt_modelos", "mkt_redes", "mkt_config",   /* 15/11: CRM (assets/crm.js) */
     "neg_propostas", "neg_prop_config",   /* 16/11: GERADOR DE ORÇAMENTO (assets/propostas.js) */
-    "reels_projetos"];   /* 17/11: BW REELS PRO — roteiros dos reels (sem as mídias) e fila "enviar para o PC" */
+    "reels_projetos",   /* 17/11: BW REELS PRO — roteiros dos reels (sem as mídias) e fila "enviar para o PC" */
+    "mkt_presskit"];   /* 25/11: PRESS KIT — só os textos; fotos e logo ficam no IndexedDB do aparelho */
 
   /* ---------- 1. cliente Supabase único ---------- */
   function unificarCliente() {
