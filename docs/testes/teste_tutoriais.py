@@ -40,7 +40,7 @@ with sync_playwright() as p:
         pg.add_init_script("if(!sessionStorage.getItem('_lmp')){sessionStorage.setItem('_lmp','1');localStorage.removeItem('ui_minhas_ias')}")
         pg.goto(BASE + "tutoriais.html"); pg.wait_for_selector(".tu-card", timeout=8000)
         n = pg.locator(".tu-card").count(); ok(n >= 10, f"lista com {n} tutoriais")
-        ok(pg.locator(".tu-cat").count() == 5, "5 assuntos organizados (Começar, Conectar minhas IAs, Editor de vídeo, Fotos e artes, Gestão)")
+        ok(pg.locator(".tu-cat").count() == 6, "6 assuntos organizados (Começar, Conectar minhas IAs, Editor de vídeo, Fotos e artes, Gestão, Ferramentas)")
         pg.fill("#tuBusca", "decupar"); pg.wait_for_timeout(150)
         ok(1 <= pg.locator(".tu-card").count() <= 3 and "Decupar" in pg.locator(".tu-card").first.inner_text(), "busca 'decupar' acha o tutorial certo")
         pg.fill("#tuBusca", "xyzabc"); pg.wait_for_timeout(100); ok(pg.locator(".tu-vazio").is_visible(), "busca sem resultado avisa")

@@ -10,7 +10,8 @@
     { id: "ias", ic: "🔌", nome: "CONECTAR MINHAS IAS", cor: "#E8B54A" },
     { id: "video", ic: "🎬", nome: "EDITOR DE VÍDEO", cor: "#FF5C8A" },
     { id: "fotos", ic: "📸", nome: "FOTOS E ARTES", cor: "#B07CFF" },
-    { id: "gestao", ic: "💼", nome: "GESTÃO", cor: "#2FD08A" }
+    { id: "gestao", ic: "💼", nome: "GESTÃO", cor: "#2FD08A" },
+    { id: "ferramentas", ic: "🧰", nome: "FERRAMENTAS", cor: "#FF9F43" }
   ];
   var BW = function (p) { return "Brightway · " + p; };
   /* Cada passo: t (título), d (explicação, também é o que a NARRAÇÃO lê) e, conforme o passo:
@@ -140,6 +141,38 @@
         { t: "Escolha um modelo", d: "Role até a BIBLIOTECA DE CONVITES PRONTOS e toque num modelo. Depois troque os textos pelos seus em DADOS." },
         { t: "Ligue o ANIMADO", d: "Role até o convite animado, toque em ANIMADO e escolha bichinhos e efeitos: toque para pôr e arraste na prévia." },
         { t: "Baixe o vídeo", d: "Em SALVAR E ENVIAR, toque em BAIXAR VÍDEO ANIMADO. O vídeo é feito no próprio celular." }
+      ] },
+
+    { id: "fotos-pdf", cat: "ferramentas", ic: "📄", titulo: "Transformar fotos em PDF", ensina: "transformar fotos de recibos e documentos em um PDF", min: 2, nivel: "Fácil",
+      resumo: "Fotos de recibos ou documentos viram um PDF só, uma foto por página. Nada sai do seu aparelho.",
+      link: ["pdf.html#fotos", "ABRIR AS FERRAMENTAS DE PDF"],
+      passos: [
+        { t: "Abra as ferramentas de PDF", d: "Em MINHA EMPRESA, role até FERRAMENTAS DA EMPRESA, toque no título para abrir e toque em PDF." },
+        { t: "Escolha as fotos", d: "Toque na aba FOTOS PARA PDF e depois em ESCOLHA AS FOTOS. No exemplo, três fotos de recibo: o almoço da equipe, o combustível e o aluguel de refletores. A ordem da lista é a ordem das páginas." },
+        { t: "Gere o PDF", d: "Toque em GERAR PDF. Pronto: os três recibos viram um PDF de três páginas, uma foto por página, já salvo no seu aparelho." }
+      ] },
+    { id: "juntar-pdf", cat: "ferramentas", ic: "📎", titulo: "Juntar vários PDFs em um", ensina: "juntar vários PDFs em um arquivo só", min: 2, nivel: "Fácil",
+      resumo: "Orçamento, contrato e o que mais precisar viram um arquivo só, na ordem que você escolher.",
+      link: ["pdf.html#juntar", "ABRIR AS FERRAMENTAS DE PDF"],
+      passos: [
+        { t: "Escolha os PDFs", d: "Nas ferramentas de PDF, toque na aba JUNTAR e em ESCOLHA OS PDFS. No exemplo, o orçamento e o contrato do mesmo cliente. As setinhas mudam a ordem." },
+        { t: "Junte e baixe", d: "Toque em JUNTAR E BAIXAR. Pronto: sai um PDF só com três páginas, primeiro o orçamento e depois as duas páginas do contrato." }
+      ] },
+    { id: "assinar-pdf", cat: "ferramentas", ic: "✍️", titulo: "Assinar um PDF com o dedo", ensina: "assinar um contrato em PDF com o dedo", min: 2, nivel: "Fácil",
+      resumo: "Desenhe a assinatura, toque onde ela fica e baixe o PDF assinado, com a data embaixo.",
+      link: ["pdf.html#assinar", "ABRIR AS FERRAMENTAS DE PDF"],
+      passos: [
+        { t: "Escolha o PDF", d: "Nas ferramentas de PDF, toque na aba ASSINAR e escolha o arquivo. No exemplo, o contrato da convenção, que já abre na página das assinaturas." },
+        { t: "Desenhe e escolha o lugar", d: "Desenhe a assinatura com o dedo no quadro branco. Depois toque na página, em cima da linha, onde ela deve ficar." },
+        { t: "Assine e baixe", d: "Toque em ASSINAR E BAIXAR. Pronto: o contrato sai com a sua assinatura em cima da linha e a data de hoje embaixo." }
+      ] },
+    { id: "assistente-texto", cat: "ferramentas", ic: "✨", titulo: "Legenda de post com IA", ensina: "fazer uma legenda de post com a inteligência artificial", min: 2, nivel: "Fácil",
+      resumo: "Conte sobre o que é o post e a IA escreve a legenda com emojis, hashtags e chamada para orçamento.",
+      link: ["assistente.html#legenda", "ABRIR O ASSISTENTE DE TEXTO"],
+      passos: [
+        { t: "Abra o assistente de texto", d: "Em MINHA EMPRESA, role até MARKETING e toque em LEGENDA DE POST." },
+        { t: "Conte o que aconteceu", d: "Escolha a rede e o tom e escreva sobre o que é o post. No exemplo: transmissão ao vivo da convenção de vendas em BH, com 800 pessoas, 3 câmeras e telão de LED. Toque em GERAR e a legenda aparece embaixo, com emojis, hashtags e o convite para pedir orçamento." },
+        { t: "Copie e poste", d: "Toque em COPIAR e cole no Instagram. Se quiser outro jeito, mude o tom e toque em GERAR de novo." }
       ] },
 
     { id: "lancamento", cat: "gestao", ic: "💸", titulo: "Lançar um gasto ou um recebimento", ensina: "lançar um gasto ou um recebimento", min: 2, nivel: "Fácil",

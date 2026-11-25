@@ -40,6 +40,43 @@ DECUP_TAKE = {
     {"ini": 1.8, "fim": 6.4, "tipo": "detalhe", "nota": 5, "desc": "depoimento com cinco estrelas", "fala": ""},
     {"ini": 6.6, "fim": 8.6, "tipo": "detalhe", "nota": 3, "desc": "nome e cargo do cliente", "fala": ""},
     {"ini": 8.8, "fim": 10.6, "tipo": "detalhe", "nota": 4, "desc": "chamada: peça um orçamento", "fala": ""}]}}
+# assistente de texto: resposta REAL da bw-ia (25/11, conta ADM, assistente.html#legenda, Instagram, descontraído) para o tema do exemplo
+LEGENDA = ("🚀 A convenção de vendas da Produtora Exemplo bombou em BH!  \nMais de 800 pessoas conectadas ao vivo 🎉  \n"
+           "Capturamos tudo com 3 câmeras e telão de LED 📺  \nEnergia, networking e resultados em tempo real 🎥  \n"
+           "Quer a mesma experiência no seu evento? Peça orçamento no direct ou WhatsApp.  \n\n"
+           "#TransmissãoAoVivo #EventosCorporativos #BH #ProdutoraExemplo #LiveStreaming")
+TEMA_LEGENDA = "Transmissão ao vivo da convenção de vendas da Produtora Exemplo em BH: 800 pessoas, 3 câmeras e telão de LED"
+LIBS = os.environ.get("BW_LIBS_PDF", "/tmp/libs")   # pdf-lib 1.17.1 e pdfjs-dist 4.10.38 (npm), servidos no lugar do CDN só na captura
+RECIBOS = [os.path.join(EXEMPLOS, f"recibo-{i}.jpg") for i in (1, 2, 3)]
+ORCAMENTO = os.path.join(EXEMPLOS, "orcamento.pdf"); CONTRATO = os.path.join(EXEMPLOS, "contrato.pdf")
+
+def quadro_arquivo(caminho, nome, destino, ultimas=0):
+    """O ÚLTIMO quadro de um passo que baixa um arquivo: o ARQUIVO DE VERDADE aberto (páginas do PDF), regra 236."""
+    import subprocess, tempfile, glob as _g
+    tmp = tempfile.mkdtemp()
+    subprocess.run(["pdftoppm", "-r", "110", "-png", caminho, os.path.join(tmp, "p")], check=True)
+    pags = [Image.open(f).convert("RGB") for f in sorted(_g.glob(os.path.join(tmp, "p*.png")))]
+    total = len(pags)
+    if ultimas: pags = pags[-ultimas:]
+    from PIL import ImageDraw, ImageFont, ImageFilter
+    E = 2; Wc, Hc = W * E, H * E
+    im = Image.new("RGB", (Wc, Hc), (11, 18, 34)); d = ImageDraw.Draw(im)   # azul-marinho da marca (regra 237)
+    fb = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 15 * E); fn = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 12 * E)
+    d.rectangle([0, 0, Wc, 58 * E], fill=(14, 27, 51)); d.rectangle([0, 58 * E, Wc, 58 * E + 3], fill=(232, 181, 74))
+    d.text((16 * E, 12 * E), "📄 " + nome if False else nome, font=fb, fill=(240, 240, 240))
+    d.text((16 * E, 33 * E), f"PDF pronto · {total} página" + ("s" if total > 1 else "") + (f" · mostrando a página {total}" if ultimas == 1 and total > 1 else ""), font=fn, fill=(62, 207, 142))
+    topo = 70 * E; esp = 12 * E; area_h = Hc - topo - 16 * E
+    n = len(pags); larg = Wc - 60 * E
+    alt_tot = sum(p.height * larg / p.width for p in pags) + esp * (n - 1)
+    k = min(1, area_h / alt_tot); larg = int(larg * k)
+    y = topo
+    for p in pags:
+        h = int(p.height * larg / p.width); x = (Wc - larg) // 2
+        sombra = Image.new("RGBA", (larg + 40, h + 40), (0, 0, 0, 0)); ImageDraw.Draw(sombra).rectangle([20, 24, larg + 20, h + 24], fill=(0, 0, 0, 150))
+        sombra = sombra.filter(ImageFilter.GaussianBlur(10)); im.paste(sombra, (x - 20, y - 20), sombra)
+        im.paste(p.resize((larg, h), Image.LANCZOS), (x, y)); y += h + esp
+    im.save(destino, "WEBP", quality=80, method=6)
+
 def _decup(u):
     import re as _re
     m = _re.search(r"dur=(\d+)", u); d = int(m.group(1)) if m else 13
@@ -52,6 +89,11 @@ def rota(r):
     if "functions/v1/bw-ia-video" in u: return r.fulfill(status=200, body=json.dumps(_decup(u)), content_type="application/json", headers=cab)
     if "functions/v1/" in u and b'"ping"' in (r.request.post_data_buffer or b""):   # a IA está ligada (senão a tela diz "sendo ativada")
         return r.fulfill(status=200, body=json.dumps({"pronto": True}), content_type="application/json", headers=cab)
+    if "pdf-lib@1.17.1/dist/pdf-lib.min.js" in u: return r.fulfill(path=os.path.join(LIBS, "pdf-lib.min.js"), content_type="application/javascript", headers=cab)
+    if "pdfjs-dist@4.10.38/build/" in u:
+        n = u.rsplit("/", 1)[1]; return r.fulfill(path=os.path.join(LIBS, n), content_type="text/javascript", headers=cab)
+    if ("functions/v1/bw-ia?" in u or u.endswith("functions/v1/bw-ia")) and "Produtora Exemplo em BH" in (r.request.post_data_buffer or b"").decode("utf-8", "ignore"):
+        return r.fulfill(status=200, body=json.dumps({"texto": LEGENDA, "modelo": "openai/gpt-oss-20b", "nivel": "rapido"}), content_type="application/json", headers=cab)
     if "functions/v1/bw-ia?" in u or u.endswith("functions/v1/bw-ia"):   # IA de texto do assistente (resposta no formato real)
         import datetime as _dt
         ac = {"acoes": [{"tipo": "gasto_casa", "descricao": "Almoço", "valor": 50, "data": _dt.date.today().isoformat(), "categoria": "Alimentação"}], "resposta": "Anotei o almoço de 50 reais."}
@@ -139,6 +181,26 @@ ROTEIROS = {
         ("clique", '[data-k="iaCriar"]'), ("espera", 2000), TOPO,
         ("toque", '#edFotos button[data-i="0"]'), ("espera", 600), ("toque", '#edFotos button[data-i="1"]'), ("espera", 600), ("toque", "#edSalvar")],
   },
+  "fotos-pdf": {
+    0: [("abrir", "negocio.html"), ("rolar", 'h3[data-seta="emp-ferr"]'), ("toque", 'h3[data-seta="emp-ferr"]'), ("rolar", 'a.bw-tool-card[href="pdf.html"]'), ("toque", 'a.bw-tool-card[href="pdf.html"]')],
+    1: [("abrir", "pdf.html"), ("toque", '#abas [data-aba="fotos"]'), ("toque", '.tf-soltar[data-alvo="fArq"]'), ("arquivo", "#fArq", RECIBOS), ("js", "document.getElementById('fLista').scrollIntoView({block:'center'})")],
+    2: [("abrir", "pdf.html#fotos"), ("arquivo", "#fArq", RECIBOS), ("rolar", "#fGo"), ("baixa", "#fGo")],
+  },
+  "juntar-pdf": {
+    0: [("abrir", "pdf.html"), ("toque", '#abas [data-aba="juntar"]'), ("toque", '.tf-soltar[data-alvo="jArq"]'), ("arquivo", "#jArq", [ORCAMENTO, CONTRATO]), ("js", "document.getElementById('jLista').scrollIntoView({block:'center'})")],
+    1: [("abrir", "pdf.html#juntar"), ("arquivo", "#jArq", [ORCAMENTO, CONTRATO]), ("rolar", "#jGo"), ("baixa", "#jGo")],
+  },
+  "assinar-pdf": {
+    0: [("abrir", "pdf.html"), ("toque", '#abas [data-aba="assinar"]'), ("toque", '.tf-soltar[data-alvo="aArq"]'), ("arquivo", "#aArq", [CONTRATO]), ("espera", 1500), ("js", "document.getElementById('aVer').scrollIntoView({block:'center'})")],
+    1: [("abrir", "pdf.html#assinar"), ("arquivo", "#aArq", [CONTRATO]), ("espera", 1500), ("desenha", "#aPad"), ("js", "var t=document.getElementById('aTam');t.value=40;t.dispatchEvent(new Event('input'))"), ("rolar", "#aCanvas"), ("toque", "#aCanvas")],
+    2: [("abrir", "pdf.html#assinar"), ("arquivo", "#aArq", [CONTRATO]), ("espera", 1500), ("desenha", "#aPad"), ("js", "var t=document.getElementById('aTam');t.value=40;t.dispatchEvent(new Event('input'))"), ("clique", "#aCanvas"), ("rolar", "#aGo"), ("baixa", "#aGo", 1)],
+  },
+  "assistente-texto": {
+    0: [("abrir", "negocio.html"), ("rolar", 'a.bw-tool-card[href="assistente.html#legenda"]'), ("toque", 'a.bw-tool-card[href="assistente.html#legenda"]')],
+    1: [("abrir", "assistente.html#legenda"), ("espera", 1500), ("digita", "#lgTema", TEMA_LEGENDA), ("rolar", "#btnGerar"), ("toque", "#btnGerar"), ("espera", 2500), ("rolar", "#saida")],
+    2: [("abrir", "assistente.html#legenda"), ("espera", 1500), ("js", "var t=document.getElementById('lgTema');t.value=" + json.dumps(TEMA_LEGENDA) + ";t.dispatchEvent(new Event('input',{bubbles:true}))"),
+        ("clique", "#btnGerar"), ("espera", 2500), ("rolar", "#btnCopiar"), ("toque", "#btnCopiar")],
+  },
   "convite-animado": {
     0: [("abrir", "criador.html"), ("toque", ".cr-tipo >> text=CONVITE")],
     1: [("abrir", "criador.html"), ("clique", ".cr-tipo >> text=CONVITE"), ("rolar", "#bib .cr-mod >> nth=0"), ("toque", "#bib .cr-mod >> nth=0"), ("js", "scrollTo(0,0)")],
@@ -183,9 +245,9 @@ def main(so):
                 pg.goto(base + "termos.html")
                 pg.evaluate("s=>{localStorage.clear();for(const k in s) localStorage.setItem('bw_'+k+'_v1', JSON.stringify(s[k]));"
                             "sessionStorage.setItem('bwsync_aviso','1')}", T.SEED)
-                lista = []; n = 0
+                lista = []; n = 0; sem_fim = False
                 def foto(acao, sel=None, texto=None):
-                    nonlocal n
+                    nonlocal n, sem_fim
                     pg.wait_for_timeout(500)
                     nome = f"{tid}-{pi}-{n}.webp"; n += 1
                     png = pg.screenshot(type="png")
@@ -225,9 +287,34 @@ def main(so):
                         antes = el.bounding_box(timeout=8000)
                         if antes and 70 < antes["y"] < H - 150: continue
                         foto("rolar"); el.evaluate("e=>e.scrollIntoView({block:'center'})"); pg.wait_for_timeout(600)
+                    elif k == "baixa":
+                        el = pg.locator(a[1]).first
+                        try: el.scroll_into_view_if_needed(timeout=3000)
+                        except Exception: pass
+                        foto("toque", a[1])
+                        with pg.expect_download(timeout=60000) as dl: el.click(force=True, timeout=5000)
+                        arq = os.path.join(SAI, "_baixado.pdf"); dl.value.save_as(arq); pg.wait_for_timeout(900)
+                        foto("ver")   # a página com o aviso "✓ …"
+                        nome = f"{tid}-{pi}-{n}.webp"; n += 1
+                        quadro_arquivo(arq, dl.value.suggested_filename, os.path.join(SAI, nome), a[2] if len(a) > 2 else 0); os.remove(arq)
+                        lista.append({"img": nome, "acao": "fim"}); sem_fim = True
+                    elif k == "desenha":
+                        el = pg.locator(a[1]).first; el.scroll_into_view_if_needed(); foto("toque", a[1])
+                        bb = el.bounding_box(); x0, y0, w0, h0 = bb["x"], bb["y"], bb["width"], bb["height"]
+                        import math as _m
+                        # assinatura cursiva: laços que andam para a direita (curva de laçadas) + um traço embaixo
+                        pts = []
+                        for t in range(0, 241):
+                            u = t / 240; ang = u * 2 * _m.pi * 6.5; amp = 0.30 * (0.55 + 0.45 * _m.sin(u * 7.3)) * (1 - 0.35 * u)
+                            pts.append((0.10 + 0.74 * u + 0.045 * _m.cos(ang), 0.48 - amp * _m.sin(ang) - 0.10 * _m.sin(u * 3.2)))
+                        pg.mouse.move(x0 + w0 * pts[0][0], y0 + h0 * pts[0][1]); pg.mouse.down()
+                        for px, py in pts[1:]: pg.mouse.move(x0 + w0 * px, y0 + h0 * py)
+                        pg.mouse.up()
+                        pg.mouse.move(x0 + w0 * 0.14, y0 + h0 * 0.84); pg.mouse.down(); pg.mouse.move(x0 + w0 * 0.86, y0 + h0 * 0.76, steps=16); pg.mouse.up()
+                        pg.wait_for_timeout(400)
                     elif k == "digita":
                         el = pg.locator(a[1]).first; el.scroll_into_view_if_needed(); foto("digita", a[1], a[2]); el.fill(a[2]); el.dispatch_event("input"); pg.wait_for_timeout(300)
-                foto("fim")
+                if not sem_fim: foto("fim")
                 quadros[tid][str(pi)] = lista
                 c.close()
                 print(tid, pi, len(lista), "quadros")

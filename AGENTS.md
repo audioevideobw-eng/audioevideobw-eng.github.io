@@ -1052,6 +1052,10 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
      o que a mídia mostra de verdade (decupagem por take, pela duração); o último quadro do passo mostra o efeito (cartão do assistente, versão nova,
      clipe na linha do tempo com a agulha no começo). Ping das funções responde "pronto" na captura (senão aparece "IA sendo ativada"). Revisar a
      folha de contato com o ÚLTIMO quadro de cada passo antes de publicar.
+237. VISUAL SEMPRE MODERNO E DA MARCA (dono, 25/11: "esse fundo marrom aí não tá legal, tem que ser sempre evidente"): todo material de exemplo, tela
+     desenhada, quadro de resultado ou imagem que a plataforma mostra usa a paleta da Brightway — fundo azul-marinho escuro (#0B1222 → #142544), destaque
+     âmbar (#E8B54A), texto claro — e o assunto bem NÍTIDO e contrastado no centro (sem desfoque, sem fundo "de mesa", sem brilho que suja a cor).
+     Antes de publicar, olhar a folha de contato pensando "isso parece da nossa marca?". Exemplos dos tutoriais: docs/tutoriais/gerar_exemplos.py.
 
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
@@ -2766,6 +2770,12 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   real do exemplo"): foto-ia refeito com uma pessoa inventada e o resultado REAL da IA da plataforma para "cabelo cacheado ruivo" + passo novo COMPARE E SALVE;
   decupagem com trechos que descrevem o que cada take mostra; tela inicial mostra o cartão do assistente depois do pedido; aviso "IA sendo ativada" some da
   captura. Revisados os 13 tutoriais pelo último quadro de cada passo. PENTE FINO 236. tutoriais.js v5, quadros.js v2, sw v241.
+- 25/11/2026 12:40 · Claude (dono: "ferramentas como transformar em pdf e etc" → "vamos fazer o tutorial"): TUTORIAIS ganharam o bloco 🧰 FERRAMENTAS com 4
+  tutoriais nas telas reais: TRANSFORMAR FOTOS EM PDF (3 recibos → PDF de 3 páginas), JUNTAR VÁRIOS PDFS (orçamento + contrato → 3 páginas), ASSINAR UM PDF
+  COM O DEDO (assinatura na linha + data) e LEGENDA DE POST COM IA (resposta REAL da IA da plataforma). O último quadro dos passos que baixam é o PDF de
+  verdade gerado pela página (capturar.py: ação "baixa" + quadro_arquivo). Exemplos fictícios da Produtora Exemplo em docs/tutoriais/exemplos/ (gerados por
+  docs/tutoriais/gerar_exemplos.py). Dono pediu no meio: fundo marrom dos recibos → azul-marinho da marca (regra 237). 17 tutoriais.
+  tutoriais.js v6, quadros.js v3, sw v242. PENTE FINO 237.
 ## Pendências (dono)
 - [x] (25/11 11:37) BW-Setup.exe 1.9.50 gerado pelo dono e publicado (13,2 MB, versão conferida dentro do .exe; maior pela cópia sem internet com as fotos dos tutoriais).
 - [ ] (25/11) TUTORIAIS + MEU ASSISTENTE: dono abrir um tutorial no celular (som ligado, iPhone sem o silencioso) e dizer se a narração e a música
