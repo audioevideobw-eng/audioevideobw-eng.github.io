@@ -1,24 +1,24 @@
 {
- "versao": "1.9.52",
+ "versao": "1.9.53",
  "data": "25/11/2026",
  "pacote": "downloads/BW-Reels-Studio.zip",
- "sha256": "aa1be511aa96eacfb1d28ba81f94bd3b3f0b240a2b167e3376bfe2d43af0888d",
- "bytes": 49040518,
+ "sha256": "46c12735499adf464d836268af78420b90bc8c61a9e831548da939c8a72b6a8b",
+ "bytes": 49055568,
  "novidades": [
   {
-   "titulo": "Press kit",
-   "texto": "Sua apresentação pessoal em PDF com 14 modelos (ator, músico, fotógrafo, beleza, chef, atleta, palestrante…). Fale e o texto se monta corrigido; o ✨ melhora a foto com IA num toque.",
-   "abrir": "presskit"
+   "titulo": "Modo diretor",
+   "texto": "No Quadro de História, o 🎬 DIRETOR monta a história: escolha um início rápido, conte a ideia (escrevendo ou falando) e aprove o roteiro antes de virar quadro.",
+   "abrir": "quadro"
   },
   {
-   "titulo": "Enquadrar e ajustar a foto",
-   "texto": "Arraste a foto dentro da moldura para não cortar a cabeça, aproxime e acerte exposição, brilho, contraste, cor e sombras.",
-   "abrir": "presskit"
+   "titulo": "Pedir mudança",
+   "texto": "Diga o que mudar e o diretor refaz só as cenas afetadas; as outras ficam iguais.",
+   "abrir": "quadro"
   },
   {
-   "titulo": "Estilo ao vivo",
-   "texto": "11 capas, 12 paletas, cor do fundo, títulos, caixas e tamanhos — a prévia muda na hora.",
-   "abrir": "presskit"
+   "titulo": "Storyboard 3×3",
+   "texto": "Uma imagem com até 9 cenas numeradas e o texto pronto para colar numa IA de vídeo.",
+   "abrir": "quadro"
   }
  ]
 }

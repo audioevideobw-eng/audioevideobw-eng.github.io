@@ -2836,7 +2836,12 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   vídeo) → 🎬 MONTAR O VÍDEO. Nada da interface do OpenArt foi copiado. teste_diretor.py (novo, 0 falhas × 1280/390), teste_quadro e teste_reels 0
   falhas, vigia ✅ (regra nova do diretor). Manual 77 → 78 p. reels-quadro.js v10, reels-diretor.js v1, sw v247. PENTE FINO 240. NÃO testado no ar
   com a IA real.
+- 25/11/2026 17:05 · Claude: APP BW 1.9.53 — cópia sem internet refeita com o site de hoje (361 arquivos, com o modo diretor), tutorial em PDF
+  (17 p.) e novidades (modo diretor, pedir mudança, storyboard 3×3). teste-app 0 falhas; pacote e app-versao.json publicados. BW-Setup.exe 1.9.53:
+  depende do PC do dono (quem já tem o app atualiza sozinho).
 ## Pendências (dono)
+- [ ] (25/11) BW-Setup.exe 1.9.53: dois cliques em "5 - GERAR INSTALADOR EXE" (Vídeos\\bw-reels-studio) e avisar o Claude.
+- [ ] (25/11) MODO DIRETOR: dono testar logado (IA real) — um aftermovie de verdade, um PEDIR MUDANÇA e o STORYBOARD 3×3 numa IA de vídeo.
 - [x] (25/11 15:47) BW-Setup.exe 1.9.52 gerado pelo dono e publicado (15,6 MB, versão conferida dentro do .exe).
 - [ ] (25/11) PRESS KIT: dono testar no celular e no PC — 🎙 CONTAR SOBRE MIM falando, 🎙 FALAR num texto e baixar o PDF; dizer quais modelos faltam.
 - [x] (25/11 13:01) BW-Setup.exe 1.9.51 gerado pelo dono e publicado (15,3 MB, versão conferida dentro do .exe).

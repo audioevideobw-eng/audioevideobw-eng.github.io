@@ -1,0 +1,5 @@
+[
+ {"titulo": "Modo diretor", "texto": "No Quadro de História, o 🎬 DIRETOR monta a história: escolha um início rápido, conte a ideia (escrevendo ou falando) e aprove o roteiro antes de virar quadro.", "abrir": "quadro"},
+ {"titulo": "Pedir mudança", "texto": "Diga o que mudar e o diretor refaz só as cenas afetadas; as outras ficam iguais.", "abrir": "quadro"},
+ {"titulo": "Storyboard 3×3", "texto": "Uma imagem com até 9 cenas numeradas e o texto pronto para colar numa IA de vídeo.", "abrir": "quadro"}
+]
