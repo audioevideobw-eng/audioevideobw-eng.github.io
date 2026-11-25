@@ -1006,6 +1006,13 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
      por isso o Google Analytics da BW Produções SAIU (25/11, decisão do dono) e nenhuma das duas recebe script de terceiros (analytics, pixel, chat) (auto: vigia 7.10e,
      docs/testes/teste_moldura.py; BW Produções: scripts/seguranca_paginas.py).
 
+230. CONFERÊNCIA DO VÍDEO PRONTO (app BW, motor/conferir.mjs; ideia do "raea check", feita do nosso jeito — a raea tem licença FSL que proíbe
+     produto concorrente): animar.mjs e render.mjs conferem no fim; texto é medido no HTML (Range do nó de texto: fora da tela, cortado por caixa
+     com overflow, letra < 2,2% da largura, área dos botões em vídeo vertical) e o CONTRASTE por foto do quadro com as letras TRANSPARENTES
+     (cor mediana atrás × cor da letra; texto com sombra/contorno fica de fora); o mesmo problema aparece UMA vez (chave = tipo + texto) e as letras
+     pequenas viram uma linha só — senão o relatório vira ruído. Imagem parada e preto viram AVISO (cartela final é de propósito); só o vídeo
+     inteiro parado/preto/mudo é ERRO. Teste com defeitos DE PROPÓSITO + um vídeo certo que tem de passar limpo (motor/teste-conferir.mjs).
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -2673,7 +2680,14 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   (teste_mascara: as 2 falhas antigas). Manual 73 p. video-editor v39, layout v81, brightway.css v40, sw bw-mesa-v232. PENTE FINO 224–226.
 - 24/11/2026 22:50 · Claude: APP BW 1.9.45 publicado (pacote, app-versao.json, cópia sem internet com o site de hoje — prévias vivas, remover atributos
   no vídeo, menu da transição, arrasto sem selecionar texto —, tutorial e novidades). teste-app 0 falhas. BW-Setup.exe 1.9.45: depende do PC do dono.
+- 25/11/2026 08:40 · Claude (dono: "raea check" — conferir o vídeo pronto, como a raea, mas no nosso motor): APP BW 1.9.47 — nova CONFERÊNCIA DO VÍDEO
+  (motor/conferir.mjs) no fim de todo render do app: texto fora da tela ou cortado por caixa, letra pequena, pouco contraste, texto na área dos botões
+  do Reels/TikTok, imagem parada, tela preta e som mudo/baixo/estourado (LUFS e pico real). O aviso "Vídeo pronto" do Estúdio de motion diz quantos
+  problemas e o 1º; `--checar` também confere os textos; `node motor/conferir.mjs <video>` confere qualquer arquivo. Skill ANIMAÇÃO POR CÓDIGO 1.3 e
+  revisão de qualidade ensinam a usar. teste-conferir.mjs (18 ✓), teste-recorte e teste-app 0 falhas; os 3 modelos do Studio sem erro (só avisos
+  reais de letra pequena). Pacote, tutorial (17 p.) e novidades publicados. A raea NÃO foi usada nem instalada.
 ## Pendências (dono)
+- [ ] (25/11) BW-Setup.exe 1.9.47: dono rodar "5 - GERAR INSTALADOR EXE" (os arquivos novos já estão na pasta).
 - [x] (24/11 23:02) BW-Setup.exe 1.9.45 gerado pelo dono e publicado (9,3 MB, versão conferida dentro do .exe).
 - [x] (24/11 18:28) BW-Setup.exe 1.9.44 gerado pelo dono e publicado (9,2 MB, versão conferida dentro do .exe).
 - [ ] (24/11 15:05) GOOGLE PLAY: dono PEDIU o D-U-N-S (Dun & Bradstreet, grátis, 5–30 dias). Quando chegar: criar a conta de ORGANIZAÇÃO em

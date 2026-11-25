@@ -695,3 +695,12 @@ Armadilha: classe de ESTADO não serve para destacar botão. `＋ IMPORTAR` usav
 5. **App BW depois de outra sessão**: partir SEMPRE do pacote publicado (`unzip downloads/BW-Reels-Studio.zip`), nunca da cópia local — conferir
    `downloads/app-versao.json` antes de subir a versão.
 
+
+
+## Conferência automática do vídeo pronto (25/11/2026)
+- ffmpeg faz quase tudo: `freezedetect=n=0.001:d=1.5` (parado), `blackdetect=d=0.4:pix_th=0.08` (preto; pular em vídeo com alfa),
+  `volumedetect` (mudo: mean < −60 dB), `ebur128=peak=true` (ler o bloco Summary: I em LUFS e Peak em dBFS do pico real), `silencedetect=n=-50dB:d=2`.
+- Texto em HTML: `document.createRange().selectNodeContents(noDeTexto).getBoundingClientRect()` dá a caixa da LETRA (não do bloco).
+- Contraste sem adivinhar o fundo: estilo temporário `*{color:transparent!important;text-shadow:none!important}`, foto do quadro, cor MEDIANA
+  da área do texto × cor da letra pela fórmula do WCAG; tirar o estilo depois. Avisar abaixo de 3:1 (texto normal) ou 2:1 (texto grande).
+- Teste = arquivos com defeito de propósito (ffmpeg lavfi: testsrc2, color=black, sine com volume, anullsrc, loudnorm=I=-14:TP=-2) + um certo que passa limpo.
