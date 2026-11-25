@@ -5,6 +5,9 @@
 // só passam por aqui. Limite: 15 imagens/dia por conta (tabela bw_ia_img_uso). {ping:true} diz se está pronta.
 // modo=editar (padrão): muda só o pedido na foto. modo=arte (CRIADOR IA): cria uma arte de fundo SEM LETRAS para convite/post/flyer/
 // cartão — com a pessoa da foto (opcional) — e deixa um espaço limpo onde o app escreve os textos com fontes de verdade.
+// 25/11 (MINHAS IAS, decisão do dono): quem conectou a PRÓPRIA conta da Cloudflare manda nos cabeçalhos x-bw-cf-conta + x-bw-cf-token;
+// a função usa essa chave SÓ neste pedido (não grava, não devolve, não registra) e o pedido NÃO conta no limite da plataforma.
+// {ping:true, testar:true} + os cabeçalhos (logado) confere se a chave da pessoa vale.
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
 const LIMITE_DIA = 15;
@@ -12,12 +15,33 @@ const LIMITE_ADM = 100;   // 19/11 (decisão do dono): só a conta ADM (is_bw_ad
 const MODELO = "@cf/black-forest-labs/flux-2-klein-4b";
 const CORS = {
   "Access-Control-Allow-Origin": "https://audioevideobw-eng.github.io",
-  "Access-Control-Allow-Headers": "authorization, apikey, content-type, x-client-info",
+  "Access-Control-Allow-Headers": "authorization, apikey, content-type, x-client-info, x-bw-cf-conta, x-bw-cf-token",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 const resp = (obj: unknown, status = 200) =>
   new Response(JSON.stringify(obj), { status, headers: { ...CORS, "Content-Type": "application/json" } });
 // pedidos que a ferramenta não faz (nudez/sexual) — o resto segue para a IA, que tem filtros próprios
+// chave da própria pessoa (só formato; quem diz se vale é a Cloudflare)
+function chaveSua(req: Request): { conta: string; token: string } | null {
+  const c = (req.headers.get("x-bw-cf-conta") || "").trim(), t = (req.headers.get("x-bw-cf-token") || "").trim();
+  return /^[a-f0-9]{32}$/i.test(c) && /^[\x21-\x7e]{20,400}$/.test(t) ? { conta: c, token: t } : null;
+}
+// conectar mais fácil: a pessoa cola só o TOKEN e, se ele enxerga uma conta só, o app descobre o ID sozinho
+async function acharConta(token: string): Promise<string | null> {
+  const r = await fetch("https://api.cloudflare.com/client/v4/accounts?per_page=5", { headers: { "Authorization": `Bearer ${token}` } }).catch(() => null);
+  const j = r ? await r.json().catch(() => ({})) : {};
+  const l = Array.isArray(j?.result) ? j.result : [];
+  return l.length === 1 && /^[a-f0-9]{32}$/i.test(l[0]?.id || "") ? l[0].id : null;
+}
+async function conferirCF(conta: string, token: string): Promise<{ ok: boolean; motivo?: string }> {
+  const h = { "Authorization": `Bearer ${token}` };
+  for (const u of [`https://api.cloudflare.com/client/v4/accounts/${conta}/tokens/verify`, "https://api.cloudflare.com/client/v4/user/tokens/verify"]) {
+    const r = await fetch(u, { headers: h }).catch(() => null);
+    const j = r ? await r.json().catch(() => ({})) : {};
+    if (r && r.ok && j?.result?.status === "active") return { ok: true };
+  }
+  return { ok: false, motivo: "a Cloudflare não aceitou esse token com essa conta" };
+}
 const PROIBIDO = /\b(nu|nua|nus|nuas|pelad[oa]s?|sem roupa|despid[oa]|nudez|topless|seios?|sexy|sensual|er[oó]tic[oa]|lingerie)\b/i;
 
 Deno.serve(async (req) => {
@@ -29,13 +53,29 @@ Deno.serve(async (req) => {
 
   if (tipo.includes("application/json")) {
     const j = await req.json().catch(() => ({}));
+    if (j?.ping && j?.testar) {
+      const us = createClient(url, anon, { global: { headers: { Authorization: req.headers.get("Authorization") || "" } } });
+      const { data: uu } = await us.auth.getUser();
+      if (!uu?.user) return resp({ erro: "sem_login" }, 401);
+      let sua = chaveSua(req);
+      const tk = (req.headers.get("x-bw-cf-token") || "").trim();
+      if (!sua && /^[\x21-\x7e]{20,400}$/.test(tk) && !(req.headers.get("x-bw-cf-conta") || "").trim()) {
+        const achada = await acharConta(tk);
+        if (!achada) return resp({ ok: false, motivo: "sem_conta" });
+        sua = { conta: achada, token: tk };
+      }
+      if (!sua) return resp({ ok: false, motivo: "formato" });
+      const v = await conferirCF(sua.conta, sua.token);
+      return resp(v.ok ? { ok: true, conta: sua.conta } : v);
+    }
     if (j?.ping) return resp({ pronto: !!(conta && token), limite: LIMITE_DIA });
     return resp({ erro: "corpo" }, 400);
   }
   const usuario = createClient(url, anon, { global: { headers: { Authorization: req.headers.get("Authorization") || "" } } });
   const { data: u } = await usuario.auth.getUser();
   if (!u?.user) return resp({ erro: "sem_login" }, 401);
-  if (!conta || !token) return resp({ erro: "sem_chave" }, 503);
+  const sua = chaveSua(req);
+  if (!sua && (!conta || !token)) return resp({ erro: "sem_chave" }, 503);
 
   let fd: FormData;
   try { fd = await req.formData(); } catch { return resp({ erro: "corpo" }, 400); }
@@ -52,11 +92,13 @@ Deno.serve(async (req) => {
   const lado = (v: unknown) => Math.max(256, Math.min(1440, Math.round((Number(v) || 1024) / 16) * 16));
   const w = lado(fd.get("w")), h = lado(fd.get("h"));
 
-  const adm = createClient(url, service);
-  const { data: ehAdm } = await usuario.rpc("is_bw_admin");
-  const { data: ok, error: e1 } = await adm.rpc("bw_ia_img_contar", { p_dono: u.user.id, p_limite: ehAdm === true ? LIMITE_ADM : LIMITE_DIA });
-  if (e1) return resp({ erro: "contador" }, 500);
-  if (!ok) return resp({ erro: "limite" }, 429);
+  if (!sua) {   // com a chave da própria pessoa, a conta dela paga — não conta no limite da plataforma
+    const adm = createClient(url, service);
+    const { data: ehAdm } = await usuario.rpc("is_bw_admin");
+    const { data: ok, error: e1 } = await adm.rpc("bw_ia_img_contar", { p_dono: u.user.id, p_limite: ehAdm === true ? LIMITE_ADM : LIMITE_DIA });
+    if (e1) return resp({ erro: "contador" }, 500);
+    if (!ok) return resp({ erro: "limite" }, 429);
+  }
 
   const cf = new FormData();
   const ESPACO: Record<string, string> = { topo: "the upper third", centro: "the center", baixo: "the lower third", esquerda: "the left half", direita: "the right half" };
@@ -79,14 +121,18 @@ Deno.serve(async (req) => {
   if (temRef) cf.append("input_image_1", img2 as File, "referencia.jpg");
   const seed = Number(fd.get("seed")); if (Number.isFinite(seed) && seed > 0) cf.append("seed", String(Math.floor(seed) % 2147483647));
   cf.append("width", String(w)); cf.append("height", String(h));
-  const r = await fetch(`https://api.cloudflare.com/client/v4/accounts/${conta}/ai/run/${MODELO}`, {
-    method: "POST", headers: { "Authorization": `Bearer ${token}` }, body: cf,
+  const usaConta = sua ? sua.conta : conta, usaToken = sua ? sua.token : token;
+  const r = await fetch(`https://api.cloudflare.com/client/v4/accounts/${usaConta}/ai/run/${MODELO}`, {
+    method: "POST", headers: { "Authorization": `Bearer ${usaToken}` }, body: cf,
   });
   const j = await r.json().catch(() => ({}));
   const b64 = j?.result?.image;
   if (!r.ok || !b64) {
     const msg = JSON.stringify(j?.errors || j).slice(0, 200);
-    return resp({ erro: r.status === 429 || /capacity|neuron|limit/i.test(msg) ? "cota" : /nsfw|safety|flag/i.test(msg) ? "filtro" : "cloudflare", detalhe: msg }, r.ok ? 502 : r.status === 429 ? 429 : 502);
+    const cota = r.status === 429 || /capacity|neuron|limit/i.test(msg);
+    const erro = sua && (r.status === 401 || r.status === 403 || /auth|permission|token/i.test(msg)) ? "chave_sua"
+      : cota ? (sua ? "cota_sua" : "cota") : /nsfw|safety|flag/i.test(msg) ? "filtro" : "cloudflare";
+    return resp({ erro, detalhe: msg }, r.ok ? 502 : r.status === 429 ? 429 : 502);
   }
-  return resp({ imagem: b64 });
+  return resp({ imagem: b64, sua: !!sua });
 });

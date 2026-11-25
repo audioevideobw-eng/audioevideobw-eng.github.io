@@ -5,6 +5,8 @@
 // Só usuário LOGADO; conta no mesmo limite diário dos pedaços de áudio da bw-ia (bw_ia_contar, 200/dia) — sem tabela nova.
 // {ping:true} diz se está pronta. Os modelos mudam de nome: lista MODELOS (ou o Secret GEMINI_MODELOS, separado por vírgula), tenta em
 // ordem e, se todos falharem, devolve o motivo de CADA um. Endereço novo (interactions) primeiro; se não existir, generateContent.
+// 25/11 (MINHAS IAS, decisão do dono): quem conectou a PRÓPRIA chave do Google manda no cabeçalho x-bw-gemini; a função usa essa chave
+// SÓ neste pedido (não grava, não devolve, não registra) e o pedido NÃO conta no limite da plataforma. {ping:true, testar:true} confere a chave.
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { encodeBase64 } from "jsr:@std/encoding/base64";
 
@@ -15,7 +17,7 @@ const MODELOS = ["gemini-3.8-flash", "gemini-3.5-flash", "gemini-2.5-flash", "ge
 const API = "https://generativelanguage.googleapis.com/v1beta";
 const CORS = {
   "Access-Control-Allow-Origin": "https://audioevideobw-eng.github.io",
-  "Access-Control-Allow-Headers": "authorization, apikey, content-type, x-client-info",
+  "Access-Control-Allow-Headers": "authorization, apikey, content-type, x-client-info, x-bw-gemini",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 const resp = (obj: unknown, status = 200) =>
@@ -80,6 +82,10 @@ function decupagem(texto: string, dur: number) {
 }
 // ===== FIM-AJUDANTES =====
 
+function chaveSua(req: Request): string | null {
+  const c = (req.headers.get("x-bw-gemini") || "").trim();
+  return /^[\x21-\x7e]{20,400}$/.test(c) ? c : null;
+}
 async function perguntar(chave: string, modelo: string, b64: string, texto: string): Promise<{ ok: boolean; texto?: string; motivo?: string; fim?: boolean }> {
   const h = { "x-goog-api-key": chave, "Content-Type": "application/json" };
   let r = await fetch(API + "/interactions", { method: "POST", headers: h, body: JSON.stringify({
@@ -104,21 +110,33 @@ Deno.serve(async (req) => {
   const tipo = req.headers.get("Content-Type") || "";
   if (tipo.startsWith("application/json")) {
     const b = await req.json().catch(() => ({}));
+    if (b && b.ping && b.testar) {
+      const us = createClient(url, anon, { global: { headers: { Authorization: req.headers.get("Authorization") || "" } } });
+      const { data: uu } = await us.auth.getUser();
+      if (!uu?.user) return resp({ erro: "sem_login" }, 401);
+      const sua = chaveSua(req);
+      if (!sua) return resp({ ok: false, motivo: "formato" });
+      const r = await fetch(API + "/models?pageSize=1", { headers: { "x-goog-api-key": sua } }).catch(() => null);
+      return resp(r && r.ok ? { ok: true } : { ok: false, motivo: "o Google não aceitou essa chave" + (r ? " (" + r.status + ")" : "") });
+    }
     if (b && b.ping) return resp({ pronta: !!chave });
     return resp({ erro: "pedido" }, 400);
   }
   const usuario = createClient(url, anon, { global: { headers: { Authorization: req.headers.get("Authorization") || "" } } });
   const { data: u } = await usuario.auth.getUser();
   if (!u?.user) return resp({ erro: "sem_login" }, 401);
-  if (!chave) return resp({ erro: "sem_chave" }, 503);
+  const sua = chaveSua(req);
+  if (!sua && !chave) return resp({ erro: "sem_chave" }, 503);
   if (!tipo.startsWith("video/mp4")) return resp({ erro: "formato" }, 415);
   const video = new Uint8Array(await req.arrayBuffer());
   if (video.byteLength > MAX_BYTES) return resp({ erro: "grande" }, 413);
   if (video.byteLength < 1000) return resp({ erro: "vazio" }, 400);
-  const adm = createClient(url, service);
-  const { data: ok, error: e1 } = await adm.rpc("bw_ia_contar", { p_dono: u.user.id, p_limite: LIMITE_DIA });
-  if (e1) return resp({ erro: "contador" }, 500);
-  if (!ok) return resp({ erro: "limite" }, 429);
+  if (!sua) {   // com a chave da própria pessoa, a conta dela paga — não conta no limite da plataforma
+    const adm = createClient(url, service);
+    const { data: ok, error: e1 } = await adm.rpc("bw_ia_contar", { p_dono: u.user.id, p_limite: LIMITE_DIA });
+    if (e1) return resp({ erro: "contador" }, 500);
+    if (!ok) return resp({ erro: "limite" }, 429);
+  }
   const q = new URL(req.url).searchParams;
   const dur = Math.max(0, Math.min(3600, Number(q.get("dur")) || 0));
   const texto = pedido(dur, (q.get("ctx") || "").replace(/[\r\n]+/g, " "));
@@ -127,13 +145,16 @@ Deno.serve(async (req) => {
   const motivos: string[] = [];
   for (const modelo of lista.length ? lista : MODELOS) {
     try {
-      const r = await perguntar(chave, modelo, b64, texto);
+      const r = await perguntar(sua || chave!, modelo, b64, texto);
       if (r.ok) {
         const d = decupagem(r.texto!, dur);
-        if (d && d.trechos.length) return resp({ ...d, modelo });
+        if (d && d.trechos.length) return resp({ ...d, modelo, sua: !!sua });
         motivos.push(modelo + ": resposta sem trechos");
       } else { motivos.push(modelo + ": " + r.motivo); if (r.fim) break; }
     } catch (e) { motivos.push(modelo + ": " + String(e).slice(0, 120)); }
   }
+  const tudo = motivos.join(" | ");
+  if (sua && /\b(401|403)\b|API key|PERMISSION/i.test(tudo)) return resp({ erro: "chave_sua", detalhe: motivos }, 502);
+  if (sua && /\b429\b|quota|RESOURCE_EXHAUSTED/i.test(tudo)) return resp({ erro: "cota_sua", detalhe: motivos }, 429);
   return resp({ erro: "gemini", detalhe: motivos }, 502);
 });
