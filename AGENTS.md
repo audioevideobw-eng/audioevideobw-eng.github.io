@@ -2816,6 +2816,9 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   texto, espaçamento, maiúsculas e enfeites — a prévia se refaz na hora. (3) 6 modelos novos (fotógrafo, beleza, chef, atleta, mestre de cerimônias, artista
   visual) = 14. Achado: parte do CSS do press kit estava dentro do bloco anti-moldura e sumia no site no ar — corrigido + vigia. teste_presskit 0 falhas
   (1280/390). Manual 77 p. presskit.js v4, sw v246. PENTE FINO 239.
+- 25/11/2026 15:55 · Claude (dono: "bora"): APP BW 1.9.52 — cartão PRESS KIT (destino presskit, página na cópia sem internet), cópia sem internet refeita com o
+  site de hoje (360 arquivos), tutorial em PDF (17 p.) e novidades (press kit, enquadrar e ajustar, estilo ao vivo). teste-app 0 falhas (28 ferramentas).
+  Pacote e app-versao.json publicados (aviso de atualização para quem está na 1.9.51). BW-Setup.exe 1.9.52: depende do PC do dono.
 ## Pendências (dono)
 - [ ] (25/11) PRESS KIT: dono testar no celular e no PC — 🎙 CONTAR SOBRE MIM falando, 🎙 FALAR num texto e baixar o PDF; dizer quais modelos faltam.
 - [x] (25/11 13:01) BW-Setup.exe 1.9.51 gerado pelo dono e publicado (15,3 MB, versão conferida dentro do .exe).
