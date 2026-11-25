@@ -220,7 +220,7 @@ if lgx and ("bw_excluir_minha_conta" not in lgx or "lExportar" not in lgx):
     problemas.append("login.html: sem 'Baixar meus dados' / 'Excluir minha conta' (LGPD)")
 
 # 7.8 páginas públicas obrigatórias
-for p in ["baixar.html", "downloads.html", "privacidade.html", "termos.html", "politica.html", "seguranca.html", "financeiro-painel.html", "investimentos-painel.html", "marketing.html", "assistente.html", "transcricao.html", "pdf.html",
+for p in ["baixar.html", "downloads.html", "privacidade.html", "termos.html", "politica.html", "seguranca.html", "tutoriais.html", "financeiro-painel.html", "investimentos-painel.html", "marketing.html", "assistente.html", "transcricao.html", "pdf.html",
           "crm.html", "captacao.html", "resultados.html", "fotos.html", "pedido.html"]:
     if p not in todos:
         problemas.append(f"{p} sumiu (link de instalação / política exigida pelo Google / painel financeiro)")
@@ -304,7 +304,7 @@ if os.path.exists("assets/bw-decupar.js"):
     _dc = ler("assets/bw-decupar.js")
     _urls = set(re.findall(r"https?://[^\s\"'`]+", _dc))
     if any("functions/v1/bw-ia-video" not in u for u in _urls): problemas.append(f"assets/bw-decupar.js: só pode falar com a Edge Function bw-ia-video ({_urls})")
-    if re.search(r"\.storage|user_data|\.upload\(|BWSync\.(?!cliente)|antesDeSalvar|localStorage", _dc): problemas.append("assets/bw-decupar.js: não pode guardar nada (conta, Storage ou aparelho) — quem guarda o resultado é o editor")
+    if re.search(r"\.storage|user_data|\.upload\(|BWSync\.(?!cliente)|antesDeSalvar|localStorage\.(?!getItem\(\"ui_minhas_ias\"\))", _dc): problemas.append("assets/bw-decupar.js: não pode guardar nada (conta, Storage ou aparelho) — quem guarda o resultado é o editor")
     if "confirm(" not in ler("assets/video-editor.js") or "BWDecupar.analisar" not in ler("assets/video-editor.js"): problemas.append("assets/video-editor.js: a decupagem precisa do confirm() antes de chamar BWDecupar.analisar")
 if os.path.exists("assets/bw-proxy.js") and re.search(r"fetch\(|XMLHttpRequest|supabase\.|BWSync\.|\.upload\(|https?://", ler("assets/bw-proxy.js")): problemas.append("assets/bw-proxy.js: o proxy é feito no aparelho e não pode enviar nada (PENTE FINO 182)")
 if os.path.exists("video.html") and "assets/bw-proxy.js" not in ler("video.html"): problemas.append("video.html: precisa carregar assets/bw-proxy.js (FAZER PROXY, PENTE FINO 182)")
@@ -414,6 +414,25 @@ for _p, _a in (("negocio.html", "pj"), ("casa.html", "pf")):
         problemas.append(f"{_p}: página do ambiente incompleta (gere de novo: python3 docs/automacoes/gerar-ambientes.py)")
 if 'href="downloads/BW-Setup.exe"' not in todos.get("baixar.html", "") or not os.path.exists("downloads/BW-Setup.exe") or open("downloads/BW-Setup.exe", "rb").read(2) != b"MZ":
     problemas.append("baixar.html: o botão de download do app BW (.exe) sumiu ou o instalador não está em downloads/")
+# 7.8m MINHAS IAS (25/11/2026, decisão do dono): a chave de IA da PRÓPRIA pessoa fica SÓ no aparelho (ui_minhas_ias, ligada à conta),
+# nunca na conta (user_data/BWSync), nunca no código; minhas-ias.js só fala com bw-ia-imagem/bw-ia-video (testar a chave);
+# as pontes (fotos-nuvem.js, bw-decupar.js) só LEEM ui_minhas_ias e mandam a chave no cabeçalho do pedido; as funções não guardam.
+_mi = _arq("assets/minhas-ias.js")
+if not _mi or 'src="assets/minhas-ias.js' not in todos.get("config.html", ""):
+    problemas.append("MINHAS IAS: falta assets/minhas-ias.js ou ele não está em config.html")
+else:
+    if [u for u in re.findall(r"https?://[^\s\"'`]+", _mi) if not re.search(r"functions/v1/(bw-ia-(imagem|video))?$|^https://(dash\.cloudflare\.com|aistudio\.google\.com)", u)]:
+        problemas.append("assets/minhas-ias.js: só pode falar com bw-ia-imagem / bw-ia-video (e apontar para as páginas da Cloudflare e do Google)")
+    if re.search(r"user_data|antesDeSalvar|BWSync\.(?!cliente)|\.upload\(|indexedDB|setItem\(\s*(?!CHAVE\b)", _mi) or 'var CHAVE = "ui_minhas_ias"' not in _mi:
+        problemas.append("assets/minhas-ias.js: a chave fica só no aparelho (ui_minhas_ias) — nada na conta, no Storage ou em outra chave")
+for _f, _cab in [("assets/fotos-nuvem.js", "x-bw-cf-token"), ("assets/bw-decupar.js", "x-bw-gemini")]:
+    _t = _arq(_f)
+    if _t and (_cab not in _t or re.search(r"localStorage\.(setItem|removeItem)", _t)):
+        problemas.append(f"{_f}: só LÊ a chave da pessoa (ui_minhas_ias) e manda no cabeçalho {_cab}")
+for _f in ["docs/supabase/functions/bw-ia-imagem/index.ts", "docs/supabase/functions/bw-ia-video/index.ts"]:
+    _t = _arq(_f)
+    if _t and ("chaveSua" not in _t or re.search(r"console\.log|\.insert\(|\.upsert\(", _t)):
+        problemas.append(f"{_f}: a chave da pessoa é usada só no pedido (chaveSua) — sem log e sem gravar")
 # 7.8d MODOS DE APARÊNCIA (20/11/2026): modos.js no <head> de toda página; só preferências locais (ui_*); nada de rede
 _mj, _cj = _arq("assets/modos.js"), _arq("assets/config.js")
 for _p, _t in todos.items():

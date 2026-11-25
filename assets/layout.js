@@ -73,7 +73,7 @@
     crm: [["crm","Painel do CRM"],["captacao","Funil de clientes"],["resultados","Indicadores"]],
     mkt: [["marketing","Todas de marketing"],["promptia","Prompt IA"],["reels","BW Reels Pro"],["personagens","Personagens"],["video","Editor de vídeo"],["motion","Estúdio de motion"],["telas","Telas em movimento"],["album3d","Álbum 3D e efeitos"],["3d","Estúdio 3D"],["criador","Criador IA"],["fotos","Editor de fotos"],["assistente","Assistente de texto"],["transcricao","Transcrição e legendas"]],
     ferr: [["ferramentas","Todas as ferramentas"],["pdf","PDF"],["dados","Meus dados"]],
-    conta: [["config","Configurações e aparência"],["seguranca","Segurança e seus dados"],["login","Acesso"],["configadm","Configuração (ADM)"]]
+    conta: [["tutoriais","Tutoriais"],["config","Configurações e aparência"],["seguranca","Segurança e seus dados"],["login","Acesso"],["configadm","Configuração (ADM)"]]
   };
   function categoriaDe(p){
     if (p === "index") return "inicio";
@@ -95,7 +95,7 @@
     invest:"Simulador de rendimento", "investimentos-painel":"Painel de Investimentos", serie:"Série histórica", diario:"Diário de câmbio", calc:"Calculadora",
     viagem:"Conversor de viagem", leitor:"Leitor de contas", recs:"Recomendações",
     noticias:"Notícias", dados:"Meus dados", app:"App & sincronização", login:"Acesso",
-    configadm:"Configuração", config:"Configurações", teste:"Testes e soluções", marketing:"Marketing", assistente:"Assistente de texto", transcricao:"Transcrição e legendas", pdf:"Ferramentas de PDF",
+    configadm:"Configuração", config:"Configurações", teste:"Testes e soluções", tutoriais:"Tutoriais", marketing:"Marketing", assistente:"Assistente de texto", transcricao:"Transcrição e legendas", pdf:"Ferramentas de PDF",
     crm:"CRM", captacao:"Funil de clientes", resultados:"Indicadores", fotos:"Editor de fotos", criador:"Criador IA", reels:"BW Reels Pro", personagens:"Personagens", promptia:"Prompt IA", video:"Editor de vídeo", motion:"Estúdio de motion", telas:"Telas em movimento", album3d:"Álbum 3D e efeitos", "3d":"Estúdio 3D", propostas:"Gerador de orçamento" };
   var NOMES_CAT = {}; CATEGORIAS.forEach(function(c){ NOMES_CAT[c.id] = c.nome; });
 
@@ -132,6 +132,8 @@
     '<a class="bw-fb-btn bw-cfg" href="config.html" title="Meus dados e modos de aparência"><svg width="17" height="17" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M12 2v3M12 19v3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M2 12h3M19 12h3M4.9 19.1 7 17M17 7l2.1-2.1"/></svg><span>CONFIGURAÇÕES</span></a>' +
     /* 24/11 (pedido do dono): página só de DOWNLOADS — cada app com o seu arquivo e para que serve */
     '<a class="bw-fb-btn bw-manual bw-downloads so-web" href="downloads.html" title="App BW para Windows, Android, iPhone e os guias em PDF"><svg width="17" height="17" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M5 21h14"/></svg><span>DOWNLOADS</span></a>' +
+    /* 25/11 (pedido do dono): aba TUTORIAIS — passo a passo com demonstração de cada ferramenta e de cada conexão */
+    '<a class="bw-fb-btn bw-manual bw-tutoriais" href="tutoriais.html" title="Passo a passo com demonstração: começar, conectar as suas IAs, editores e gestão"><svg width="17" height="17" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="m10 9 5 3-5 3z"/></svg><span>TUTORIAIS</span></a>' +
     /* 15/11 (pedido do dono): baixar o Guia do usuário (PDF) direto do menu */
     '<a class="bw-fb-btn bw-manual" href="docs/Brightway-Guia-do-usuario.pdf" target="_blank" rel="noopener" download="Brightway-Guia-do-usuario.pdf" title="Guia do usuário em PDF"><svg width="17" height="17" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/><path d="M12 7v6M9.5 10.5 12 13l2.5-2.5"/></svg><span>MANUAL DO USUÁRIO</span></a>' +
     /* 23/11 (pedido do dono): página dedicada à SEGURANÇA — dados, compartilhamentos permitidos e testes */

@@ -1021,6 +1021,18 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
      generateContent) e lê o texto da resposta nos dois formatos; ajudantes testados no Node 22 rodando o próprio .ts (--experimental-strip-types,
      sem tirar tipos na mão). Nota 0 da IA é nota 1, não "sem nota" (o teste pegou `+x || 3`). Variável que a biblioteca lê vai no TOPO (regra 210).
 
+**Aprendidos em 25/11 (MINHAS IAS e TUTORIAIS)**
+232. CHAVE DE IA DA PRÓPRIA PESSOA (decisão do dono, 25/11: "pode usar o modelo com limites sem conectar ou usar com conexão"; chave "só no aparelho"):
+     IA com limite (imagens bw-ia-imagem, decupagem bw-ia-video) funciona sem configurar nada; conectar é OPCIONAL (assets/minhas-ias.js, painel
+     `<div data-mia="cf|gemini">` em Configurações e nos tutoriais). A chave fica SÓ em localStorage ui_minhas_ias com o `dono` (outra conta no mesmo
+     aparelho não usa), nunca na conta/Storage/código; vai no CABEÇALHO do pedido e a função usa, não grava, não registra e pula o limite. Conectada,
+     a pessoa escolhe USAR MINHA CONTA / USAR A DA PLATAFORMA (`usar`). A tela nunca mostra a chave de volta (só os 4 últimos). Tio Cláudio/textos ficam
+     de fora (decisão do dono). Publicar função pelo painel: clicar no "Deploy updates" do diálogo achado por find (por coordenada errou e nada subiu)
+     e conferir o SHA-256 depois de recarregar (auto: vigia 7.8m, docs/testes/teste_tutoriais.py).
+233. TUTORIAIS (tutoriais.html + assets/tutoriais.js; dono: "aba só com tutoriais, passo a passo, vídeos de demonstração, simples e organizado"):
+     funcionalidade nova ou que muda passos = atualizar o item no catálogo TUT no mesmo commit (passos com o texto EXATO do botão). Demonstração
+     animada é desenho genérico (site de terceiros sem logo/cópia da interface); passos de serviço de fora conferidos na documentação oficial do dia.
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -2702,7 +2714,20 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   dados para melhorar os produtos, plano PAGO não). teste_decupar.py (novo, 2 larguras, Gemini simulado) 0 falhas; proxy, midia, takes,
   proxy_som, video_app, video, aviso 0 falhas (teste_video: a regra "nada saiu" passa a aceitar as fotos de amostra das prévias vivas). Manual 73 → 74 p.
   App BW 1.9.48 (cópia sem internet com o editor novo). bw-proxy v4, video-editor v40, sw v236.
+- 25/11/2026 10:20 · Claude (dono: "cada usuário utilizar a sua própria conta… pode usar com limites sem conectar ou usar com conexão" + "cada serviço
+  com uma página explicando e facilitando a conexão, com tutorial e o máximo de automação" + "uma aba só com tutoriais"): (1) MINHAS IAS — imagens
+  (Cloudflare) e decupagem (Google Gemini) aceitam a conta da própria pessoa; sem conectar continua tudo igual (15 imagens e 200 análises por dia).
+  Conectar: abrir o site → copiar → colar e ele CONECTA SOZINHO (a Cloudflare acha o ID da conta pelo token); depois USAR MINHA CONTA / USAR A DA
+  PLATAFORMA. Chave só no aparelho (ui_minhas_ias, ligada à conta), vai no cabeçalho do pedido; as funções bw-ia-imagem e bw-ia-video usam e não
+  guardam (publicadas pelo painel, SHA-256 bfbf4f96… e e91c159c…; no ar: ping igual e teste de chave exige login). Configurações → MINHAS IAS.
+  Tio Cláudio/textos ficaram de fora (dono). (2) TUTORIAIS — página nova no menu (botão ▶ TUTORIAIS e item em Conta): 11 tutoriais em 5 assuntos,
+  busca, demonstração animada de cada passo (cursor até o botão certo), passos clicáveis, dúvidas comuns, botão para a ferramenta; os de conexão
+  trazem o painel para conectar ali mesmo. Teste novo docs/testes/teste_tutoriais.py (0 falhas × 1280/390); decupar, aviso, ia_retoque, layout,
+  modos 0 falhas; vigia ✅ (7.8m). Manual 74 → 75 p. App BW 1.9.49 (cartão TUTORIAIS, cópia sem internet, tutorial 16 p., novidades).
+  layout.js v82, fotos-nuvem v4, bw-decupar v2, minhas-ias v1, tutoriais v1, sw v237. PENTE FINO 232–233.
 ## Pendências (dono)
+- [ ] (25/11) MINHAS IAS: dono testar conectar uma chave de verdade (ex.: um token novo da Cloudflare dele) em Configurações → MINHAS IAS e gerar
+      1 imagem com USAR MINHA CONTA; dizer se os tutoriais estão claros e quais tutoriais faltam. BW-Setup.exe 1.9.49: depende do PC (atualiza sozinho).
 - [x] (25/11 09:39, dono: "ficou muito bom") DECUPAGEM COM IA testada com take real — FUNCIONANDO. (1) [x] 25/11 09:30 GEMINI_API_KEY colada pelo dono (digest 8284f275…; ping no ar {pronta:true}). Era: dono criar a chave em aistudio.google.com → Get API key e colar em Supabase → Edge Functions → Secrets como
       GEMINI_API_KEY (de preferência num projeto com faturamento ativo: no grátis o Google usa os vídeos para melhorar os produtos; o pago custa
       centavos por take); (2) [x] função bw-ia-video PUBLICADA 25/11 09:20 (SHA-256 065bb710… igual ao repo antes e depois; Verify JWT desligado; no ar: ping 200 {pronta:false}, sem login 401);

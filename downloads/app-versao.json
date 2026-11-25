@@ -1,21 +1,22 @@
 {
- "versao": "1.9.48",
+ "versao": "1.9.49",
  "data": "25/11/2026",
  "pacote": "downloads/BW-Reels-Studio.zip",
- "sha256": "15e3094ab2eb2d626057981f1fd622d3396b18f3966778f2c40201d8ced46df7",
- "bytes": 41931105,
+ "sha256": "ca5b7d93381e4df0af2e922f87817ffaeec5dd1bd063d3c10e4a12f1d2063884",
+ "bytes": 41979939,
  "novidades": [
   {
-   "titulo": "Decupagem com IA",
-   "texto": "No editor de vídeo, toque em 🎬 DECUPAR COM IA: a IA do Google assiste aos takes e marca falas, plateia, palco, detalhes e os trechos ruins, com nota de 1 a 5."
+   "titulo": "Tutoriais",
+   "texto": "Passo a passo de cada ferramenta com demonstração animada, organizado por assunto. Fica no menu e num cartão novo.",
+   "abrir": "tutoriais"
   },
   {
-   "titulo": "Montar com os melhores",
-   "texto": "＋ põe um trecho na linha do tempo já aparado; MONTAR COM OS MELHORES põe todos em fila. COPIAR A LISTA leva a decupagem em texto."
+   "titulo": "Minhas IAs (opcional)",
+   "texto": "Imagens e decupagem continuam com o limite do dia. Quem precisar de mais conecta a própria conta grátis: abrir o site, copiar e colar — conecta sozinho."
   },
   {
-   "titulo": "Seus vídeos",
-   "texto": "Vai só uma cópia leve (360p) de cada take, depois do seu sim, e ela não fica guardada."
+   "titulo": "Sua chave fica aqui",
+   "texto": "A chave fica só neste computador e vai junto apenas na hora do pedido. Você escolhe usar a sua conta ou a da plataforma."
   }
  ]
 }

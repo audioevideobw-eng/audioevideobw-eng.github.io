@@ -713,3 +713,26 @@ Armadilha: classe de ESTADO não serve para destacar botão. `＋ IMPORTAR` usav
   `model_output` (sem pegar o texto do PEDIDO, que vem em `input`); resposta sem JSON = próximo modelo; todos falharam = motivo de cada um.
 - Testar ajudantes de Edge Function no Node 22: recortar o trecho entre marcadores do .ts e rodar com `node --experimental-strip-types`.
 - Teste no navegador: rota simulada guarda o CORPO enviado → ffprobe confere tamanho, quadros por segundo e som da cópia; recusar o confirm = 0 envios.
+
+## Chave de IA da própria pessoa, só no aparelho (MINHAS IAS, 25/11/2026)
+- Guardar: `localStorage["ui_minhas_ias"] = {dono: <id da conta>, cf:{conta,token,usar}, gemini:{chave,usar}}` — `ui_` não entra no cofre por conta
+  nem na sincronia (bw-sync só mexe em `bw_*`); o campo `dono` impede outra conta do mesmo aparelho de usar a chave.
+- Usar: a ponte lê a chave (só `getItem`) e manda num CABEÇALHO (`x-bw-cf-conta/x-bw-cf-token`, `x-bw-gemini`); a Edge Function valida o formato,
+  usa só naquele pedido, pula o contador do limite e devolve `sua:true`. Erros próprios: `chave_sua` (401/403 do provedor) e `cota_sua`.
+  Cabeçalho novo precisa entrar no `Access-Control-Allow-Headers` (senão o preflight barra e parece "sem internet").
+- Conferir a chave: `{ping:true, testar:true}` logado. Cloudflare: `GET /accounts/<id>/tokens/verify` (token de conta) e `/user/tokens/verify`;
+  sem ID, `GET /accounts` — se o token enxerga UMA conta, o ID vem dali (a pessoa cola só o token). Google: `GET /v1beta/models?pageSize=1`.
+- Formato aceito: ASCII visível 20–400 (as chaves novas do Google, de 28/05/2026, não começam necessariamente com AIza).
+- Automação sem pedir permissão: colar no campo (`paste`) já conecta; `navigator.clipboard.readText()` só no toque do 📋 COLAR; ao voltar da aba
+  do provedor (`focus`) o botão COLAR acende.
+- Publicar Edge Function pelo painel: push do index.ts primeiro, depois no editor `fetch(raw.githubusercontent…/<commit>/…)` → `executeEdits`
+  (não colar base64 gigante). O botão de confirmar do diálogo vem do `find("Deploy updates")` (o 2º) — clicar por coordenada de screenshot
+  reduzida errou o botão e NADA foi publicado; sempre recarregar e conferir o SHA-256 do código no ar.
+
+## Tutoriais com demonstração animada (25/11/2026)
+- Catálogo em `assets/tutoriais.js` (TUT): cada passo tem `tela {onde, itens, alvo, campo?}`; o player desenha a janela genérica, digita o campo
+  letra a letra, move o cursor até `itens[alvo]` (posição medida com getBoundingClientRect relativa ao conteúdo) e acende o toque.
+  Tutorial novo = um item; `conectar:"cf"|"gemini"` embute o painel de verdade (`<div data-mia>`); `video` aceita gravação MP4 nossa.
+- Tela de site de terceiros = desenho GENÉRICO com o texto do botão (sem logo nem cópia da interface); passos conferidos na documentação oficial do dia.
+- Teste: `docs/testes/teste_tutoriais.py` (funções simuladas; sessão simulada por `ctx.add_init_script` — a ÚLTIMA adicionada vale; limpar
+  localStorage só uma vez com flag em sessionStorage, senão cada navegação apaga a chave).

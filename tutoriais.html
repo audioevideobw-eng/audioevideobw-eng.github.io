@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' blob: https://cdn.jsdelivr.net https://cdn.sheetjs.com; worker-src 'self' blob: https://cdn.jsdelivr.net; connect-src 'self' data: blob: https://zdtnetplvdonogmdvarx.supabase.co wss://zdtnetplvdonogmdvarx.supabase.co https://cdn.jsdelivr.net https://cdn.sheetjs.com https://open.er-api.com https://olinda.bcb.gov.br https://raw.githubusercontent.com https://storage.googleapis.com https://huggingface.co https://*.huggingface.co https://*.hf.co https://tessdata.projectnaptha.com https://fonts.googleapis.com https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' data: blob: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; font-src 'self' data: https://fonts.gstatic.com https://cdn.jsdelivr.net; frame-src 'self' blob: data: https://docs.google.com; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<style id="bwAntiMoldura">html{display:none!important}</style><script>(function(){var ok=self===top;if(!ok){try{ok=top.location.origin===location.origin}catch(e){ok=false}}if(ok){var s=document.getElementById("bwAntiMoldura");if(s)s.parentNode.removeChild(s)}else{try{top.location.href=location.href}catch(e){}}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tutoriais — Brightway</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#06080D">
+<link rel="icon" type="image/png" href="icons/favicon-64.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="Brightway">
+<link rel="stylesheet" href="assets/brightway.css?v=40">
+<style>
+.wrap{max-width:1100px;margin:0 auto;padding:0 16px 120px}
+.tu-hero{margin:8px 0 18px;padding:22px;border-radius:22px;background:linear-gradient(135deg,rgba(76,141,255,.16),rgba(232,181,74,.12));border:1px solid var(--bw-card-borda)}
+.tu-hero h1{margin:0 0 6px;font:900 clamp(24px,4vw,34px) Inter,sans-serif;letter-spacing:.04em;color:var(--bw-marfim)}
+.tu-hero p{margin:0 0 14px;font:500 15px/1.55 Inter,sans-serif;color:var(--bw-texto-2)}
+.tu-hero input{width:100%;box-sizing:border-box;min-height:50px;padding:0 16px;border-radius:14px;border:1px solid var(--bw-card-borda);background:rgba(0,0,0,.18);color:var(--bw-marfim);font:600 16px Inter,sans-serif}
+.tu-chips{display:flex;gap:8px;overflow-x:auto;padding:4px 0 12px;scrollbar-width:none}.tu-chips::-webkit-scrollbar{display:none}
+.tu-chips button{flex:none;min-height:40px;padding:0 14px;border-radius:999px;border:1px solid var(--bw-card-borda);background:var(--bw-card-bg);color:var(--bw-marfim);font:800 12px Inter,sans-serif;letter-spacing:.05em;cursor:pointer}
+.tu-chips button.on{background:var(--gold,#E8B54A);color:#111;border-color:transparent}
+.tu-cat{margin:6px 0 22px}.tu-cat h2{display:flex;align-items:center;gap:10px;margin:0 0 12px;font:900 14px Inter,sans-serif;letter-spacing:.12em;color:var(--bw-marfim)}
+.tu-cat h2 span{display:grid;place-items:center;width:34px;height:34px;border-radius:10px;background:color-mix(in srgb,var(--c) 22%,transparent);font-size:18px}
+.tu-cat h2 small{margin-left:auto;font:600 12px Inter,sans-serif;letter-spacing:0;color:var(--bw-texto-3)}
+.tu-grade{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.tu-card{min-width:0;display:flex;flex-direction:column;gap:6px;padding:16px;border-radius:18px;background:var(--bw-card-bg);border:1px solid var(--bw-card-borda);border-left:4px solid var(--c);text-decoration:none;color:inherit;transition:transform .15s}
+.tu-card:hover{transform:translateY(-2px)}.tu-card .ic{font-size:26px}.tu-card b{font:800 15px/1.3 Inter,sans-serif;color:var(--bw-marfim)}
+.tu-card small{font:500 13px/1.5 Inter,sans-serif;color:var(--bw-texto-3)}.tu-card .meta{margin-top:auto;padding-top:6px;font:700 11px Inter,sans-serif;letter-spacing:.04em;color:var(--c)}
+.tu-card .meta i{font-style:normal;color:#2FD08A}.tu-vazio{font:600 15px Inter,sans-serif;color:var(--bw-texto-3)}
+.tu-voltar{min-height:40px;padding:0 14px;margin:6px 0 12px;border-radius:12px;border:1px solid var(--bw-card-borda);background:var(--bw-card-bg);color:var(--bw-marfim);font:800 12px Inter,sans-serif;cursor:pointer}
+.tu-cab{display:flex;gap:14px;align-items:flex-start;margin-bottom:12px}.tu-cab .ic{flex:none;display:grid;place-items:center;width:58px;height:58px;border-radius:16px;font-size:30px;background:color-mix(in srgb,var(--c) 22%,transparent)}
+.tu-cab small{font:800 11px Inter,sans-serif;letter-spacing:.12em;color:var(--c)}.tu-cab h1{margin:2px 0 4px;font:900 clamp(20px,3.4vw,28px)/1.2 Inter,sans-serif;color:var(--bw-marfim)}
+.tu-cab p{margin:0;font:500 14px/1.5 Inter,sans-serif;color:var(--bw-texto-2)}.tu-cab .meta{margin-top:4px;font-weight:700;color:var(--bw-texto-3);font-size:12px}
+.tu-precisa,.tu-texto{margin:0 0 14px;padding:14px 16px;border-radius:14px;background:var(--bw-card-bg);border:1px solid var(--bw-card-borda);font:500 14px/1.6 Inter,sans-serif;color:var(--bw-texto-2)}
+.tu-precisa b{color:var(--bw-marfim);font-size:12px;letter-spacing:.08em}.tu-texto p{margin:0 0 8px}.tu-texto p:last-child{margin:0}
+.tu-player{position:relative;margin-bottom:16px;padding:14px;border-radius:20px;background:#0b0f18;border:1px solid var(--bw-card-borda)}
+.tu-selo{position:absolute;top:10px;right:12px;z-index:2;padding:4px 9px;border-radius:999px;background:rgba(255,255,255,.08);font:800 10px Inter,sans-serif;letter-spacing:.1em;color:#cfd6e6}
+.tu-video{width:100%;border-radius:12px;margin-bottom:10px;background:#000}
+.tu-jan{border-radius:14px;overflow:hidden;background:#f4f6fb;color:#1b2333;box-shadow:0 10px 30px rgba(0,0,0,.35);margin-top:20px}
+.tu-barra{display:flex;align-items:center;gap:6px;padding:8px 12px;background:#e3e7ef}.tu-barra i{width:10px;height:10px;border-radius:50%;background:#c8ced9}
+.tu-barra span{margin-left:8px;flex:1;min-width:0;padding:4px 10px;border-radius:8px;background:#fff;font:600 12px Inter,sans-serif;color:#556;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tu-conteudo{position:relative;min-height:180px;padding:20px 16px 26px;display:flex;flex-direction:column;gap:14px}
+.tu-input{min-height:44px;padding:0 12px;border-radius:10px;border:2px solid #9fb3d9;background:#fff;display:flex;align-items:center;font:600 15px Inter,sans-serif}
+.tu-car{margin-left:1px;animation:tuPisca 1s steps(2) infinite;color:#4C8DFF}@keyframes tuPisca{50%{opacity:0}}
+.tu-itens{display:flex;flex-wrap:wrap;gap:10px}
+.tu-item{padding:11px 14px;border-radius:10px;background:#fff;border:1px solid #d5dbe6;font:700 13px Inter,sans-serif;color:#22304a;transition:background .2s,transform .2s,box-shadow .2s}
+.tu-item.toque{background:#E8B54A;color:#111;border-color:#E8B54A;transform:scale(.96);box-shadow:0 0 0 6px rgba(232,181,74,.35)}
+.tu-cursor{position:absolute;left:85%;top:80%;transition:left .85s cubic-bezier(.4,0,.2,1),top .85s cubic-bezier(.4,0,.2,1);pointer-events:none;filter:drop-shadow(0 2px 3px rgba(0,0,0,.4))}
+.tu-prog{height:4px;margin:12px 0 8px;border-radius:4px;background:rgba(255,255,255,.12);overflow:hidden}.tu-prog i{display:block;height:100%;width:0;background:var(--c);transition:width .4s}
+.tu-legenda{min-height:44px;margin:0;font:500 14px/1.5 Inter,sans-serif;color:#d7deeb}.tu-legenda b{color:#fff}
+.tu-ctl{display:flex;gap:8px;justify-content:center;margin-top:10px}.tu-ctl button{min-width:46px;min-height:42px;padding:0 14px;border-radius:12px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.06);color:#fff;font:800 13px Inter,sans-serif;cursor:pointer}
+.tu-ctl .pri{background:var(--c);color:#111;border-color:transparent;min-width:150px}
+.tu-passos{list-style:none;margin:0 0 16px;padding:0;display:flex;flex-direction:column;gap:8px}
+.tu-passo{width:100%;display:flex;gap:12px;align-items:flex-start;padding:12px;border-radius:14px;border:1px solid var(--bw-card-borda);background:var(--bw-card-bg);color:inherit;text-align:left;cursor:pointer}
+.tu-passo .n{flex:none;display:grid;place-items:center;width:30px;height:30px;border-radius:50%;background:rgba(127,127,127,.18);font:900 13px Inter,sans-serif;color:var(--bw-marfim)}
+.tu-passo b{display:block;font:800 14px Inter,sans-serif;color:var(--bw-marfim)}.tu-passo small{display:block;margin-top:2px;font:500 13px/1.5 Inter,sans-serif;color:var(--bw-texto-3)}
+.tu-passo.on{border-color:var(--c);box-shadow:0 0 0 2px color-mix(in srgb,var(--c) 40%,transparent)}.tu-passo.on .n{background:var(--c);color:#111}.tu-passo.feito .n{background:#2FD08A;color:#111}
+.tu-conectar,.tu-duvidas{margin:0 0 16px;padding:16px;border-radius:18px;background:var(--bw-card-bg);border:1px solid var(--c)}
+.tu-conectar h2,.tu-duvidas h2{margin:0 0 4px;font:900 13px Inter,sans-serif;letter-spacing:.12em;color:var(--bw-marfim)}.tu-conectar>p{margin:0 0 12px;font:500 14px/1.5 Inter,sans-serif;color:var(--bw-texto-2)}
+.tu-duvidas{border-color:var(--bw-card-borda)}.tu-duvidas details{padding:10px 0;border-top:1px solid var(--bw-card-borda)}.tu-duvidas summary{cursor:pointer;font:700 14px Inter,sans-serif;color:var(--bw-marfim)}
+.tu-duvidas details p{margin:8px 0 0;font:500 14px/1.55 Inter,sans-serif;color:var(--bw-texto-2)}
+.tu-ir{display:inline-flex;align-items:center;min-height:46px;padding:0 18px;margin-bottom:16px;border-radius:14px;background:var(--c);color:#111;font:900 13px Inter,sans-serif;letter-spacing:.06em;text-decoration:none}
+.tu-mais{font:500 13px/2 Inter,sans-serif;color:var(--bw-texto-3)}.tu-mais b{color:var(--bw-marfim)}.tu-mais a{margin-left:10px;color:var(--c);text-decoration:none;font-weight:700;white-space:normal}
+@media(max-width:480px){.tu-conteudo{min-height:200px}.tu-item{font-size:12px;padding:10px 12px}}
+</style>
+<script src="assets/modos.js?v=10"></script>
+</head>
+<body>
+<header><div class="hd"><button id="btnVoltar" type="button" title="Voltar">‹</button><div id="userBox"></div></div></header>
+<div class="wrap">
+  <div id="tuIndice">
+    <section class="tu-hero">
+      <h1>▶ TUTORIAIS</h1>
+      <p>Passo a passo com demonstração, do jeito mais simples. <span id="tuTotal"></span>.</p>
+      <input type="search" id="tuBusca" placeholder="O que você quer aprender? (ex.: decupar, convite, instalar)" autocomplete="off" aria-label="Procurar tutorial">
+    </section>
+    <div class="tu-chips" id="tuChips" role="tablist" aria-label="Assuntos"></div>
+    <div id="tuLista"></div>
+  </div>
+  <div id="tuDet" hidden></div>
+</div>
+<script src="assets/layout.js?v=82"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.2/dist/umd/supabase.js" integrity="sha384-A97u3Qnt9GZHURO9YJZRe7VQgGUeFzcv6I1oIGnUTxQrCxnpQMwR0/G8F2zt9abZ" crossorigin="anonymous"></script>
+<script src="assets/bw-sync.js?v=20261122"></script>
+<script src="assets/minhas-ias.js?v=1"></script>
+<script src="assets/tutoriais.js?v=1"></script>
+<script>
+(function () {
+  "use strict";
+  var $ = function (id) { return document.getElementById(id); };
+  var esc = function (s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return {"&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;"}[c]; }); };
+  var vb = $("btnVoltar"); if (vb) vb.onclick = function () { if (history.length > 1) history.back(); else location.href = "./"; };
+  (async function () {
+    var el = $("userBox"); if (!el) return;
+    try {
+      var sb = window.BWSync && BWSync.cliente(); var s = sb ? await sb.auth.getSession() : null;
+      var u = s && s.data && s.data.session && s.data.session.user;
+      el.innerHTML = u ? '<a href="login.html" class="bw-logado" title="Conta: ' + esc(u.email) + '"><i></i>LOGADO</a>'
+                       : '<a href="login.html" class="bw-btn bw-btn--vidro" style="min-height:34px;padding:0 14px;font-size:12px">LOGIN</a>';
+    } catch (e) { }
+  })();
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(function () { });
+})();
+</script>
+</body>
+</html>

@@ -57,6 +57,10 @@
 .cfg-aviso[hidden]{display:none}
 .cfg-chave{display:flex;align-items:center;gap:10px;font:600 14px Inter,sans-serif;color:var(--bw-marfim);cursor:pointer}
 .cfg-chave input{width:22px;height:22px;accent-color:var(--bw-ambar)}
+.cfg-mia{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;margin-top:14px}
+.cfg-mia>div{min-width:0;padding:14px;border-radius:16px;border:1px solid var(--bw-card-borda);background:rgba(127,127,127,.05);display:flex;flex-direction:column;gap:10px}
+.cfg-mia h3{margin:0;font:800 12px Inter,sans-serif;letter-spacing:.1em;color:var(--bw-marfim)}
+.cfg-tut{font:800 12px Inter,sans-serif;color:var(--gold,#E8B54A);text-decoration:none;letter-spacing:.06em}
 .cfg-cores{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
 .cfg-cores button{width:44px;height:44px;border-radius:12px;border:2px solid rgba(127,127,127,.4);cursor:pointer}
 </style>
@@ -75,6 +79,14 @@
       <a class="cfg-bt" href="docs/Brightway-Guia-do-usuario.pdf" target="_blank" rel="noopener">MANUAL DO USUÁRIO</a>
       <a class="cfg-bt" href="teste.html" title="Confere a plataforma neste aparelho e mostra a solução de cada problema">🩺 TESTES E SOLUÇÕES</a>
       <a class="cfg-bt so-web" href="baixar.html">BAIXAR O APP</a>
+    </div>
+  </section>
+
+  <section class="cfg-cx" id="cfgMinhasIas">
+    <h2>MINHAS IAS · CONECTAR A MINHA CONTA (OPCIONAL)</h2><p>As IAs de imagem e de decupagem já funcionam com a conta da plataforma, com um limite por dia que basta para a maioria. Se você precisar de mais, conecte a sua própria conta (grátis) e escolha qual usar.</p>
+    <div class="cfg-mia">
+      <div><h3>🎨 IMAGENS COM IA · CLOUDFLARE</h3><div data-mia="cf"></div><a class="cfg-tut" href="tutoriais.html?t=conectar-cloudflare">▶ VER O TUTORIAL PASSO A PASSO</a></div>
+      <div><h3>🎬 DECUPAGEM COM IA · GOOGLE GEMINI</h3><div data-mia="gemini"></div><a class="cfg-tut" href="tutoriais.html?t=conectar-gemini">▶ VER O TUTORIAL PASSO A PASSO</a></div>
     </div>
   </section>
 
@@ -102,9 +114,10 @@
     <div class="cfg-aviso" id="mkAviso" hidden aria-live="polite"></div>
   </section>
 </div>
-<script src="assets/layout.js?v=81"></script>
+<script src="assets/layout.js?v=82"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.2/dist/umd/supabase.js" integrity="sha384-A97u3Qnt9GZHURO9YJZRe7VQgGUeFzcv6I1oIGnUTxQrCxnpQMwR0/G8F2zt9abZ" crossorigin="anonymous"></script>
 <script src="assets/bw-sync.js?v=20261122"></script>
 <script src="assets/config.js?v=2"></script>
+<script src="assets/minhas-ias.js?v=1"></script>
 </body>
 </html>
