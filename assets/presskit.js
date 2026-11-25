@@ -48,7 +48,7 @@
   async function idbGet(loja, k) { try { var d = await db(); return await new Promise(function (ok) { var t = d.transaction(loja, "readonly").objectStore(loja).get(k); t.onsuccess = function () { ok(t.result || null); }; t.onerror = function () { ok(null); }; }); } catch (e) { return null; } }
   async function idbPut(loja, k, v) { try { var d = await db(); await new Promise(function (ok, erro) { var t = d.transaction(loja, "readwrite"); t.objectStore(loja).put(v, k); t.oncomplete = ok; t.onerror = function () { erro(t.error); }; }); return true; } catch (e) { return false; } }
   async function idbDel(loja, k) { try { var d = await db(); await new Promise(function (ok) { var t = d.transaction(loja, "readwrite"); t.objectStore(loja).delete(k); t.oncomplete = ok; t.onerror = ok; }); } catch (e) { } }
-  function imgsVazias() { return { logo: "", capa: "", retrato: "", fotos: [] }; }
+  function imgsVazias() { return { logo: "", capa: "", retrato: "", fotos: [], cards: {} }; }
 
   function imgDe(src) { return new Promise(function (ok, erro) { var i = new Image(); i.onload = function () { ok(i); }; i.onerror = function () { erro(new Error("imagem")); }; i.src = src; }); }
   /* arquivo escolhido → copiado na hora para a memória (regra 47) e reduzido; logo PNG fica PNG (transparência, regra 59) */
@@ -522,25 +522,36 @@
     m.contato = c;
     var vis = (kit.ordem || TODAS).filter(function (id) { return SECOES[id] && (kit.ocultas || []).indexOf(id) < 0; });
     TODAS.forEach(function (id) { if ((kit.ordem || []).indexOf(id) < 0 && (kit.ocultas || []).indexOf(id) < 0) vis.push(id); });
-    var fotos = (imgs.fotos || []).filter(Boolean);
+    var fotos = (imgs.fotos || []).filter(Boolean), CARDS = imgs.cards || {};
+    var fotoCard = function (l, i) { return (CARDS[l] || [])[i] || ""; };
+    var comIndice = function (arr, tem) { return (arr || []).map(function (x, i) { return { x: x, i: i }; }).filter(function (o) { return o.x && tem(o.x); }); };
     for (var i = 0; i < vis.length; i++) {
       var id = vis[i], s = { id: id, tit: titulo(kit, id) };
       if (id === "sobre") { s.curto = (d.sobreCurto || "").trim(); s.pars = paragrafos(d.sobre); if (!s.curto && !s.pars.length) continue; s.retrato = cap === "recorte" ? "" : m.retrato; }
       else if (id === "numeros") { s.itens = (d.numeros || []).filter(function (x) { return x && (String(x.v || "").trim() || String(x.r || "").trim()); }); if (!s.itens.length) continue; }
       else if (id === "servicos") {
-        s.itens = (d.servicos || []).filter(function (x) { return x && (String(x.t || "").trim() || String(x.d || "").trim()); }); if (!s.itens.length) continue;
-        if (kit.servFotos && fotos.length) { s.fotos = []; for (var a = 0; a < s.itens.length; a++) s.fotos.push(await recortar(fotos[a % fotos.length], 240 * f, 140 * f, enqOp(EQ["f" + (a % fotos.length)]))); }
+        var iS = comIndice(d.servicos, function (x) { return String(x.t || "").trim() || String(x.d || "").trim(); }); if (!iS.length) continue;
+        s.itens = iS.map(function (o) { return o.x; });
+        /* foto de cada cartão (25/11, dono: "não tem lugar de fazer o upload de cada foto"): a do próprio cartão; sem ela, uma da galeria (se ligado) */
+        var proprias = iS.map(function (o) { return fotoCard("servicos", o.i); });
+        if (proprias.some(Boolean) || (kit.servFotos && fotos.length)) { s.fotos = []; for (var a = 0; a < s.itens.length; a++) {
+          if (proprias[a]) s.fotos.push(await recortar(proprias[a], 240 * f, 140 * f, enqOp(EQ["c:servicos:" + iS[a].i])));
+          else if (kit.servFotos && fotos.length) s.fotos.push(await recortar(fotos[a % fotos.length], 240 * f, 140 * f, enqOp(EQ["f" + (a % fotos.length)])));
+          else s.fotos.push(""); } }
       }
       else if (id === "perfil") { s.itens = (d.perfil || []).filter(function (x) { return x && (String(x.k || "").trim() || String(x.v || "").trim()); }); if (!s.itens.length) continue; }
       else if (id === "experiencia") {
-        var ex = (d.experiencia || []).filter(function (x) { return x && (String(x.titulo || "").trim() || String(x.papel || "").trim()); }); if (!ex.length) continue;
+        var iE = comIndice(d.experiencia, function (x) { return String(x.titulo || "").trim() || String(x.papel || "").trim(); }); if (!iE.length) continue;
+        var ex = []; for (var e0 = 0; e0 < iE.length; e0++) { var fe = fotoCard("experiencia", iE[e0].i); ex.push(fe ? Object.assign({}, iE[e0].x, { foto: await recortar(fe, 150 * f, 96 * f, enqOp(EQ["c:experiencia:" + iE[e0].i])) }) : iE[e0].x); }
         s.grupos = []; ex.forEach(function (x) { var g = String(x.grupo || "").trim(), ult = s.grupos[s.grupos.length - 1]; if (!ult || ult.nome !== g) s.grupos.push({ nome: g, itens: [x] }); else ult.itens.push(x); });
       }
       else if (id === "formacao") { s.itens = (d.formacao || []).filter(function (x) { return x && (String(x.curso || "").trim() || String(x.onde || "").trim()); }); if (!s.itens.length) continue; }
       else if (id === "habilidades") { s.itens = linhas(d.habilidades); if (!s.itens.length) continue; }
       else if (id === "links") {
-        s.itens = (d.links || []).filter(function (x) { return x && linkDe(x.url, "site"); }); if (!s.itens.length) continue;
-        for (var q = 0; q < s.itens.length; q++) { s.itens[q] = Object.assign({}, s.itens[q], { href: linkDe(s.itens[q].url, "site") }); s.itens[q].qr = await qrUrl(s.itens[q].href); }
+        var iL = comIndice(d.links, function (x) { return linkDe(x.url, "site"); }); if (!iL.length) continue;
+        s.itens = [];
+        for (var q = 0; q < iL.length; q++) { var it = Object.assign({}, iL[q].x, { href: linkDe(iL[q].x.url, "site") }); it.qr = await qrUrl(it.href);
+          var fl = fotoCard("links", iL[q].i); if (fl) it.foto = await recortar(fl, 320 * f, 180 * f, enqOp(EQ["c:links:" + iL[q].i])); s.itens.push(it); }
       }
       else if (id === "clientes") { s.itens = linhas(d.clientes); if (!s.itens.length) continue; }
       else if (id === "depoimentos") { s.itens = (d.depoimentos || []).filter(function (x) { return x && String(x.texto || "").trim(); }); if (!s.itens.length) continue; }
@@ -558,6 +569,11 @@
       m.secoes.push(s);
     }
     m.linhaContato = [c.email, c.tel, c.insta || c.site].filter(function (x) { return String(x || "").trim(); }).join("   ·   ");
+    /* PDF interativo (25/11): cada contato vira um botão que abre o lugar certo — WhatsApp, e-mail, site, Instagram, TikTok, YouTube */
+    m.botoes = [["WHATSAPP", linkDe(c.tel, "tel")], ["E-MAIL", linkDe(c.email, "email")], ["SITE", linkDe(c.site, "site")], ["INSTAGRAM", linkDe(c.insta, "insta")],
+      ["TIKTOK", linkDe(c.tiktok, "tiktok")], ["YOUTUBE", linkDe(c.youtube, "youtube")]].filter(function (x) { return x[1]; });
+    m.rodape = [[c.email, linkDe(c.email, "email")], [c.tel, linkDe(c.tel, "tel")], [c.insta || c.site, c.insta ? linkDe(c.insta, "insta") : linkDe(c.site, "site")]]
+      .filter(function (x) { return String(x[0] || "").trim(); });
     return m;
   }
 
@@ -741,7 +757,7 @@
         var nc = nCol(s.fotos ? 3 : 2), cw0 = (CW - 8 * (nc - 1)) / nc;
         b = grade(s.itens.map(function (x, j) {
           var pil = [];
-          if (s.fotos) pil.push({ image: s.fotos[j], width: cw0, height: cw0 * 140 / 240 });
+          if (s.fotos && s.fotos[j]) pil.push({ image: s.fotos[j], width: cw0, height: cw0 * 140 / 240 });
           pil.push({ stack: [{ canvas: [{ type: "rect", x: 0, y: 0, w: 18, h: 3, color: t.corPura }], margin: [0, 0, 0, 8] }, { text: String(x.t || ""), bold: true, fontSize: z(12), color: t.txt }, { text: String(x.d || ""), fontSize: z(9.5), color: t.sub, margin: [0, 4, 0, 0], lineHeight: 1.3 }], margin: [12, 12, 12, 12] });
           return { stack: pil, fillColor: t.cartao };
         }), nc);
@@ -753,6 +769,7 @@
             var col = [{ text: String(x.ano || ""), width: z(52), bold: true, fontSize: z(10), color: t.cor, margin: [0, 2, 0, 0] },
               { width: "*", stack: [{ text: String(x.titulo || ""), bold: true, fontSize: z(11.5), color: t.txt }].concat(sub2 ? [{ text: sub2, fontSize: z(9.5), color: t.sub, margin: [0, 2, 0, 0] }] : []) }];
             if (!String(x.ano || "").trim()) col.shift();
+            if (x.foto) col.unshift({ image: x.foto, width: z(66), height: z(42), link: lk || undefined });   /* foto do trabalho (clicável quando tem link) */
             if (lk) col.push({ width: z(62), table: { body: [[{ text: "VER  ↗", bold: true, fontSize: z(8), color: sobre(t.corPura), fillColor: t.corPura, alignment: "center", margin: [6, 4, 6, 4], link: lk }]] }, layout: semGap(t.fundo, 0) });
             b.push({ stack: (gi === 0 && rot ? [rot] : []).concat([{ columns: col, columnGap: 10 }, linhaFina()]), unbreakable: true });   /* rótulo do grupo nunca fica sozinho no pé da página */
           });
@@ -764,11 +781,13 @@
       } else if (s.id === "habilidades") {
         b = grade(s.itens.map(function (x) { return { text: x, bold: true, fontSize: z(10), color: t.txt, alignment: "center", margin: [8, 9, 8, 9], fillColor: t.cartao }; }), nCol(3), 6);
       } else if (s.id === "links") {   /* botões do portfólio, clicáveis no PDF + QR para quem imprimiu */
-        var qw = z(54);
+        var qw = z(54), ncL = nCol(2), lwL = (CW - 8 * (ncL - 1)) / ncL;
         b = grade(s.itens.map(function (x) {
           var txt = { width: "*", stack: [{ text: String(x.rot || "Link").toUpperCase(), bold: true, fontSize: z(11), color: t.txt, link: x.href }, { text: x.href.replace(/^https?:\/\/(www\.)?/, "").slice(0, 40), fontSize: z(8.5), color: t.cor, margin: [0, 3, 0, 0], link: x.href }, { text: "TOQUE PARA ABRIR  ↗", fontSize: z(7.5), bold: true, color: t.sub, margin: [0, 6, 0, 0], link: x.href }] };
-          return { columns: x.qr ? [txt, { image: x.qr, width: qw, height: qw, link: x.href }] : [txt], columnGap: 8, margin: [12, 12, 12, 12], fillColor: t.cartao };
-        }), nCol(2));
+          var corpoL = { columns: x.qr ? [txt, { image: x.qr, width: qw, height: qw, link: x.href }] : [txt], columnGap: 8, margin: [12, 12, 12, 12] };
+          if (!x.foto) return Object.assign(corpoL, { fillColor: t.cartao });
+          return { stack: [{ image: x.foto, width: lwL, height: lwL * 180 / 320, link: x.href }, corpoL], fillColor: t.cartao };   /* capa do vídeo/portfólio, clicável */
+        }), ncL);
       } else if (s.id === "galeria") {
         if (!s.grande) b = grade(s.peq.map(function (u) { var lw = (CW - 8) / 2; return { image: u, width: lw, height: lw * 225 / 180 }; }), 2);
         else {
@@ -807,10 +826,11 @@
         var c = m.contato, lin = [["WhatsApp", c.tel, linkDe(c.tel, "tel")], ["E-mail", c.email, linkDe(c.email, "email")], ["Site", c.site, linkDe(c.site, "site")], ["Instagram", c.insta, linkDe(c.insta, "insta")],
           ["TikTok", c.tiktok, linkDe(c.tiktok, "tiktok")], ["YouTube", c.youtube, linkDe(c.youtube, "youtube")], ["Cidade", c.cidade, ""]].filter(function (x) { return String(x[1] || "").trim(); });
         var esq = [{ text: String(c.resp || m.marca), font: fT, bold: true, fontSize: z(18), color: t.txt }].concat(c.cargo ? [{ text: c.cargo, fontSize: z(10), color: t.sub, margin: [0, 2, 0, 12] }] : [{ text: "", margin: [0, 0, 0, 10] }])
-          .concat(lin.map(function (x) { return { columns: [{ text: x[0].toUpperCase(), width: z(74), fontSize: z(8), bold: true, color: t.cor, characterSpacing: 1, margin: [0, 2, 0, 0] }, { text: String(x[1]), fontSize: z(11), color: t.txt, link: x[2] || undefined }], margin: [0, 0, 0, 6] }; }));
+          .concat(lin.map(function (x) { return { columns: [{ text: x[0].toUpperCase(), width: z(74), fontSize: z(8), bold: true, color: t.cor, characterSpacing: 1, margin: [0, 2, 0, 0] }, { text: String(x[1]) + (x[2] ? "  ↗" : ""), fontSize: z(11), color: t.txt, link: x[2] || undefined, decoration: x[2] ? "underline" : undefined, decorationColor: t.cor }], margin: [0, 0, 0, 6] }; }));
         var cols = [{ stack: esq, width: "*" }];
         if (m.logo) { var lw2 = 120 * k, lh2 = lw2 / m.logoProp; if (lh2 > 70 * k) { lh2 = 70 * k; lw2 = lh2 * m.logoProp; } cols.push({ image: m.logo, width: lw2, height: lh2, margin: [10, 4, 0, 0] }); }
         b.push({ table: { widths: [5, "*"], body: [[{ text: "", fillColor: t.corPura }, { columns: cols, margin: [z(20), z(18), z(20), z(18)], fillColor: t.cartao }]] }, layout: semGap(t.fundo, 0) });
+        if (m.botoes.length) b.push({ stack: grade(m.botoes.map(function (x) { return { text: x[0] + "  ↗", link: x[1], bold: true, fontSize: z(9), color: corSobreCor, fillColor: t.corPura, alignment: "center", characterSpacing: 1, margin: [6, 9, 6, 9] }; }), nCol(3), 6), margin: [0, 10, 0, 0] });
       }
       secao(h, b);
     });
@@ -824,8 +844,8 @@
           if (pg === 1) return capaFundo;
           return [{ canvas: [{ type: "rect", x: 0, y: 0, w: W, h: H, color: t.fundo }, { type: "rect", x: 0, y: 0, w: W, h: 4, color: t.corPura }], absolutePosition: { x: 0, y: 0 } }];
         },
-        header: function (pg) { if (pg === 1) return null; return { columns: [{ text: m.marca.toUpperCase(), fontSize: z(7.5), bold: true, color: t.sub, characterSpacing: 1.6 }, { text: String(m.etiqueta).toUpperCase(), fontSize: z(7.5), color: t.sub, alignment: "right", characterSpacing: 1.6 }], margin: [MX, z(28), MX, 0] }; },
-        footer: function (pg, n) { if (pg === 1) return null; return { columns: [{ text: m.linhaContato, fontSize: z(7.5), color: t.sub }, { text: pg + " / " + n, fontSize: z(7.5), color: t.sub, alignment: "right", width: 50 }], margin: [MX, z(22), MX, 0] }; },
+        header: function (pg) { if (pg === 1) return null; return { columns: [{ text: m.marca.toUpperCase(), fontSize: z(7.5), bold: true, color: t.sub, characterSpacing: 1.6, link: (m.botoes.filter(function (x) { return x[0] === "SITE"; })[0] || m.botoes[0] || [])[1] || undefined }, { text: String(m.etiqueta).toUpperCase(), fontSize: z(7.5), color: t.sub, alignment: "right", characterSpacing: 1.6 }], margin: [MX, z(28), MX, 0] }; },
+        footer: function (pg, n) { if (pg === 1) return null; var rd = []; (m.rodape || []).forEach(function (x, i) { if (i) rd.push("   ·   "); rd.push({ text: String(x[0]), link: x[1] || undefined }); }); return { columns: [{ text: rd.length ? rd : m.linhaContato, fontSize: z(7.5), color: t.sub }, { text: pg + " / " + n, fontSize: z(7.5), color: t.sub, alignment: "right", width: 50 }], margin: [MX, z(22), MX, 0] }; },
         content: c,
         defaultStyle: { font: "Roboto", fontSize: z(10.5) * (t.escTxt || 1), lineHeight: 1.4, color: t.txt }
       };
@@ -888,15 +908,16 @@
       else if (s.id === "perfil") filhos.push(tabela(s.itens.map(function (x) { return [[P(String(x.k || ""), { b: true, size: 18, color: cor, after: 0 })], [P(String(x.v || ""), { b: true, after: 0 })]]; }), [35, 65]), P("", { after: 120 }));
       else if (s.id === "experiencia") s.grupos.forEach(function (g) { if (g.nome) filhos.push(P(g.nome.toUpperCase(), { b: true, size: 20, color: cor, after: 60, before: 120 })); g.itens.forEach(function (x) {
         var lk = linkDe(x.link, "site"), ch = [new D.TextRun({ text: (x.ano ? x.ano + "  ·  " : "") + (x.titulo || ""), bold: true, size: 24, color: txt })];
+        if (x.foto) filhos.push(new D.Paragraph({ children: [IMG(x.foto, 150, 96)], spacing: { after: 40 } }));
         filhos.push(new D.Paragraph({ children: ch, spacing: { after: 20 } }));
         var sb = [x.papel, x.onde].filter(function (v) { return String(v || "").trim(); }).join("  ·  ");
         var ch2 = [new D.TextRun({ text: sb, size: 20, color: sub })]; if (lk) ch2.push(new D.TextRun({ text: sb ? "   " : "", size: 20 }), new D.ExternalHyperlink({ link: lk, children: [new D.TextRun({ text: "VER ↗", bold: true, size: 18, color: cor, underline: {} })] }));
         filhos.push(new D.Paragraph({ children: ch2, spacing: { after: 140 } })); }); });
       else if (s.id === "formacao") s.itens.forEach(function (x) { filhos.push(P((x.ano ? x.ano + "  ·  " : "") + (x.curso || ""), { b: true, size: 23, after: 20 }), P(String(x.onde || ""), { size: 20, color: sub })); });
       else if (s.id === "habilidades") s.itens.forEach(function (x) { filhos.push(P(x, { bullet: true, after: 60 })); });
-      else if (s.id === "links") s.itens.forEach(function (x) { filhos.push(new D.Paragraph({ spacing: { after: 100 }, children: [new D.TextRun({ text: String(x.rot || "Link") + ":  ", bold: true, size: 22, color: txt }), new D.ExternalHyperlink({ link: x.href, children: [new D.TextRun({ text: x.href.replace(/^https?:\/\/(www\.)?/, ""), size: 22, color: cor, underline: {} })] })] })); });
+      else if (s.id === "links") s.itens.forEach(function (x) { if (x.foto) filhos.push(new D.Paragraph({ children: [new D.ExternalHyperlink({ link: x.href, children: [IMG(x.foto, 320, 180)] })], spacing: { after: 40 } })); filhos.push(new D.Paragraph({ spacing: { after: 100 }, children: [new D.TextRun({ text: String(x.rot || "Link") + ":  ", bold: true, size: 22, color: txt }), new D.ExternalHyperlink({ link: x.href, children: [new D.TextRun({ text: x.href.replace(/^https?:\/\/(www\.)?/, ""), size: 22, color: cor, underline: {} })] })] })); });
       else if (s.id === "numeros") filhos.push(tabela(emGrupos(s.itens, 3).map(function (r) { while (r.length < 3) r.push({ v: "", r: "" }); return r.map(function (x) { return [P(String(x.v || ""), { b: true, size: 40, color: cor, font: fonteT, after: 40 }), P(String(x.r || ""), { size: 18, color: sub, after: 0 })]; }); })), P("", { after: 120 }));
-      else if (s.id === "servicos") s.itens.forEach(function (x) { filhos.push(P(String(x.t || ""), { b: true, size: 24, after: 40 }), P(String(x.d || ""), { size: 20, color: sub })); });
+      else if (s.id === "servicos") s.itens.forEach(function (x, j) { if (s.fotos && s.fotos[j]) filhos.push(new D.Paragraph({ children: [IMG(s.fotos[j], 240, 140)], spacing: { after: 60 } })); filhos.push(P(String(x.t || ""), { b: true, size: 24, after: 40 }), P(String(x.d || ""), { size: 20, color: sub })); });
       else if (s.id === "galeria") { if (s.grande) filhos.push(new D.Paragraph({ children: [IMG(s.grande, 600, 315)], spacing: { after: 120 } })); if (s.peq.length) filhos.push(new D.Paragraph({ children: s.peq.map(function (u) { return s.grande ? IMG(u, 190, 131) : IMG(u, 140, 187); }), spacing: { after: 120 } })); if (s.legenda) filhos.push(P(s.legenda, { i: true, size: 18, color: sub })); }
       else if (s.id === "clientes") filhos.push(tabela(emGrupos(s.itens, 3).map(function (r) { while (r.length < 3) r.push(""); return r.map(function (x) { return [P(x, { b: true, al: D.AlignmentType.CENTER, after: 0 })]; }); })), P("", { after: 120 }));
       else if (s.id === "depoimentos") s.itens.forEach(function (x) { filhos.push(P("“" + String(x.texto || "") + "”", { i: true, size: 24, after: 60 }), P(String(x.autor || ""), { b: true, after: 0 }), P(String(x.cargo || ""), { size: 18, color: sub, after: 200 })); });
@@ -912,7 +933,7 @@
   }
 
   /* ================= TELA ================= */
-  var KIT = null, IMGS = imgsVazias(), VISTA = "lista", PAGS = 0;
+  var ULT_TIRADA = "", KIT = null, IMGS = imgsVazias(), VISTA = "lista", PAGS = 0;
   function aviso(t, erro) { if (window.BWAviso) { if (erro) BWAviso.erro(t); else BWAviso(t); } }
   function andamento(t) { if (window.BWAviso) { if (t) BWAviso("⏳ " + t, "", 0); else BWAviso.fechar && BWAviso.fechar(); } }
   function baixar(b, nome) { var u = URL.createObjectURL(b), a = document.createElement("a"); a.href = u; a.download = nome; document.body.appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(u); }, 8000); }
@@ -974,20 +995,85 @@
   var tGuardarImgs = 0;
   function guardarImgs() { clearTimeout(tGuardarImgs); var id = KIT && KIT.id, im = IMGS; tGuardarImgs = setTimeout(function () { if (id) idbPut("imgs", id, im); }, 200); }
 
+  /* ☰ OPÇÕES PRONTAS (25/11, dono: "botões com opções em tudo, exemplos mais utilizados, até profissões"): um botão por campo
+     abre a lista para tocar (regra 62: nunca chips soltos na tela). Campo de uma linha = troca o texto; "um por linha" = põe/tira. */
+  var PROFISSOES = [["Arte e palco", ["Ator e atriz", "Atriz · Teatro, TV e publicidade", "Humorista e apresentador", "Cantor e compositor", "Músico · Shows e eventos", "DJ · Festas e eventos corporativos", "Bailarina · Dança contemporânea", "Mestre de cerimônias", "Mágico e ilusionista", "Palhaço e animador de festas"]],
+    ["Imagem e criação", ["Fotógrafo de eventos", "Fotógrafa de casamentos e ensaios", "Videomaker · Eventos e marcas", "Editor de vídeo", "Cinegrafista e operador de câmera", "Diretor de fotografia", "Designer gráfico", "Ilustradora", "Criador de conteúdo", "Influenciadora digital · Moda e beleza", "Modelo · Moda e publicidade", "Artista visual"]],
+    ["Eventos e técnica", ["Técnico de som e luz", "Produtor de eventos", "Operador de transmissão ao vivo", "Cerimonialista", "Decoradora de festas", "Chef de cozinha e buffet", "Bartender e coquetelaria", "Locutor e voz comercial"]],
+    ["Serviços e carreira", ["Palestrante · Liderança e carreira", "Consultor de marketing", "Social media", "Gestora de projetos", "Professora e instrutora", "Personal trainer", "Atleta profissional", "Maquiadora e cabeleireira", "Esteticista", "Arquiteta e designer de interiores", "Advogado", "Psicóloga", "Corretor de imóveis", "Desenvolvedor de software"]]];
+  var OPC = {
+    "d.slogan": PROFISSOES,
+    "d.etiqueta": ["APRESENTAÇÃO PESSOAL", "PRESS KIT", "PORTFÓLIO", "BOOK", "MÍDIA KIT", "EPK", "COMP CARD", "CURRÍCULO", "APRESENTAÇÃO PROFISSIONAL", "PROPOSTA DE PARCERIA"],
+    "d.cidade": ["Belo Horizonte · MG", "São Paulo · SP", "Rio de Janeiro · RJ", "Brasília · DF", "Curitiba · PR", "Porto Alegre · RS", "Salvador · BA", "Recife · PE", "Fortaleza · CE", "Goiânia · GO", "Atendo todo o Brasil", "Brasil e exterior"],
+    "d.contato.cidade": "d.cidade",
+    "d.sobreCurto": ["Transformo ideias em momentos que as pessoas lembram.", "Mais de 10 anos fazendo o público rir, se emocionar e voltar.", "Trabalho com cuidado em cada detalhe, do primeiro contato à entrega.", "Imagem que conta a sua história do jeito que ela aconteceu.", "Conteúdo leve, honesto e que conversa com quem assiste.", "Experiência em grandes palcos e em eventos para poucas pessoas.", "Disponível para eventos, campanhas e parcerias em todo o Brasil."],
+    "d.perfil.k": ["Altura", "Idade de atuação", "Cor dos olhos", "Cor do cabelo", "Manequim", "Calçado", "Idiomas", "DRT", "CNH", "Disponibilidade", "Atende", "Formação", "Experiência", "Equipamento", "Estilo"],
+    "d.perfil.v": ["Português e inglês", "Português, inglês e espanhol", "Todo o Brasil", "Fins de semana e feriados", "Disponível para viagens", "Categoria B", "10 anos de experiência", "Mais de 300 eventos"],
+    "d.numeros.v": ["+10 anos", "+300", "+500", "+1.000", "+50 mil", "+1 milhão", "98%", "4,9 ★", "+20 cidades"],
+    "d.numeros.r": ["anos de experiência", "eventos realizados", "clientes atendidos", "seguidores nas redes", "visualizações", "shows por ano", "avaliação dos clientes", "cidades atendidas", "casamentos fotografados", "alunos formados", "palestras"],
+    "d.servicos.t": [["Arte e palco", ["Apresentação de eventos", "Show de humor (stand-up)", "Mestre de cerimônias", "Show ao vivo", "Discotecagem (DJ)", "Animação de festa", "Participação em campanha", "Gravação de vídeo para marca"]],
+      ["Imagem", ["Cobertura fotográfica", "Ensaio fotográfico", "Filmagem de evento", "Aftermovie", "Vídeo institucional", "Reels e conteúdo para redes", "Transmissão ao vivo", "Edição de vídeo"]],
+      ["Outros", ["Palestra", "Workshop", "Consultoria", "Mentoria", "Publi (post patrocinado)", "Presença VIP", "Locução", "Aula particular"]]],
+    "d.servicos.d": ["Do roteiro à entrega, com atendimento direto comigo.", "Pacotes por hora ou por evento, sob medida.", "Entrega rápida, em até 7 dias.", "Equipamento próprio e equipe de apoio.", "Formato presencial ou on-line.", "Ideal para eventos corporativos e festas."],
+    "d.experiencia.grupo": ["TV e publicidade", "Teatro", "Cinema", "Eventos", "Eventos corporativos", "Casamentos", "Shows", "Campanhas", "Redes sociais", "Palestras", "Moda", "Trabalhos recentes"],
+    "d.experiencia.papel": ["Apresentador", "Apresentadora", "Ator", "Atriz", "Protagonista", "Elenco", "Mestre de cerimônias", "Fotógrafo", "Videomaker", "Diretor", "Editor", "Produtor", "Palestrante", "Modelo", "Criador de conteúdo", "DJ", "Músico"],
+    "d.formacao.curso": ["Graduação em Artes Cênicas", "Curso de Teatro", "Curso de Fotografia", "Curso de Cinema e Vídeo", "Graduação em Publicidade", "Graduação em Jornalismo", "Curso de Locução", "Curso de Oratória", "MBA em Marketing", "Técnico em Produção de Eventos"],
+    "d.habilidades": ["Improviso", "Comédia", "Drama", "Canto", "Dança", "Locução", "Inglês fluente", "Espanhol", "Libras", "Oratória", "Condução de palco", "Edição de vídeo", "Fotografia", "Drone", "Iluminação", "Som ao vivo", "Roteiro", "Redes sociais", "Atendimento ao cliente", "Trabalho em equipe", "Dirigir (CNH B)", "Esportes"],
+    "d.links.rot": ["Vídeos", "Showreel", "Fotos", "Portfólio", "Canal no YouTube", "Instagram", "TikTok", "Site", "Spotify", "Matéria", "Agenda", "Currículo completo"],
+    "d.depoimentos.cargo": ["Cliente", "Noiva", "Produtora de eventos", "Diretor de marketing", "Gerente de RH", "Organizador do evento", "Diretora de elenco", "Sócio da empresa"],
+    "d.imprensa.veiculo": ["Jornal local", "Portal de notícias", "Revista", "TV aberta", "Rádio", "Podcast", "Blog especializado"],
+    "d.contato.resp": ["Eu mesmo", "Eu mesma", "Minha agência", "Minha assessoria", "Produção"],
+    "d.contato.cargo": ["Contato direto", "Agenciamento", "Assessoria de imprensa", "Produção e agenda", "Comercial"],
+    "d.rider": ["Microfone sem fio", "Retorno de palco", "Mesa de som com 2 canais livres", "Projetor ou telão", "Ponto de energia 220 V", "Camarim com espelho", "Água no palco", "Mesa e cadeira", "Iluminação de palco", "Estacionamento para 1 carro", "Internet para transmissão"],
+    "d.clientes": ["Empresas de tecnologia", "Agências de publicidade", "Produtoras de eventos", "Prefeituras", "Escolas", "Hotéis", "Restaurantes", "Marcas de moda"],
+    "d.release.titulo": ["Lança novo trabalho", "Estreia espetáculo", "Anuncia turnê", "Chega à cidade", "Completa 10 anos de carreira"],
+    "d.galeriaLegenda": ["Fotos de trabalhos recentes.", "Bastidores e eventos.", "Créditos das fotos: (nome do fotógrafo)."]
+  };
+  function chaveOpc(k) { var n = String(k).replace(/\.\d+\./g, "."), o = OPC[n]; return typeof o === "string" ? o : n; }
+  function opcDe(k) { var o = OPC[chaveOpc(k)]; return Array.isArray(o) ? o : null; }
+  function opcConta(o) { return o.reduce(function (s, x) { return s + (Array.isArray(x) ? x[1].length : 1); }, 0); }
+  function botaoOpc(id, k) { var o = opcDe(k); return o ? '<button type="button" class="pk-opc" data-a="opcoes" data-alvo="' + id + '">☰ OPÇÕES PRONTAS <b>' + opcConta(o) + "</b></button>" : ""; }
+  function abrirOpcoes(id) {
+    var el = $(id); if (!el) return; var o = opcDe(el.getAttribute("data-k")); if (!o) return;
+    var multi = el.tagName === "TEXTAREA" && el.getAttribute("data-lista") === "1", tem = multi ? linhas(el.value) : [String(el.value || "").trim()];
+    var chip = function (t) { var on = tem.indexOf(t) >= 0; return '<button type="button" class="pk-chip' + (on ? " on" : "") + '" data-a="opcTocar" data-alvo="' + id + '" data-v="' + esc(t) + '" aria-pressed="' + on + '">' + (multi ? (on ? "✓ " : "＋ ") : "") + esc(t) + "</button>"; };
+    modal('<button type="button" class="pk-mx" data-a="fecharModal" aria-label="Fechar">✕</button><h3>☰ ' + esc(el.closest(".pk-campo") ? el.closest(".pk-campo").querySelector("span").textContent : "Opções") + "</h3>" +
+      '<p class="tf-sub">' + (multi ? "Toque para pôr ou tirar. Dá para escolher várias." : "Toque numa opção — depois dá para mudar o texto à vontade.") + "</p>" +
+      o.map(function (x) { return Array.isArray(x) ? '<div class="pk-sub-t">' + esc(x[0]).toUpperCase() + '</div><div class="pk-chips">' + x[1].map(chip).join("") + "</div>" : ""; }).join("") +
+      (o.some(function (x) { return !Array.isArray(x); }) ? '<div class="pk-chips">' + o.filter(function (x) { return !Array.isArray(x); }).map(chip).join("") + "</div>" : "") +
+      (multi ? '<div class="pk-chips" style="margin-top:12px"><button type="button" class="bw-btn pri" data-a="fecharModal">✓ PRONTO</button></div>' : ""));
+  }
+  function opcTocar(btn) {
+    var id = btn.getAttribute("data-alvo"), el = $(id), v = btn.getAttribute("data-v"); if (!el) return;
+    if (el.tagName === "TEXTAREA" && el.getAttribute("data-lista") === "1") {
+      var l = linhas(el.value), i = l.indexOf(v); if (i >= 0) l.splice(i, 1); else l.push(v);
+      el.value = l.join("\n"); el.dispatchEvent(new Event("input", { bubbles: true }));
+      var on = i < 0; btn.classList.toggle("on", on); btn.setAttribute("aria-pressed", String(on)); btn.textContent = (on ? "✓ " : "＋ ") + v;
+    } else { el.value = v; el.dispatchEvent(new Event("input", { bubbles: true })); fecharModal(); aviso("✓ " + v.slice(0, 40)); }
+  }
   function campo(rot, k, v, op) {
     op = op || {};
     var id = "f_" + k.replace(/\W/g, "_");
-    if (op.area) return '<div class="pk-campo' + (op.larga ? " larga" : "") + '"><label for="' + id + '"><span>' + rot + '</span></label><textarea id="' + id + '" data-k="' + k + '" data-rot="' + esc(rot) + '"' + (op.lista ? ' data-lista="1"' : "") + ' rows="' + (op.linhas || 4) + '" maxlength="' + (op.max || 4000) + '" placeholder="' + esc(op.ph || "") + '">' + esc(v) + "</textarea>" + vozBarra(id) + "</div>";
-    return '<label class="pk-campo' + (op.larga ? " larga" : "") + '" for="' + id + '"><span>' + rot + '</span><input id="' + id + '" type="' + (op.tipo || "text") + '" data-k="' + k + '" value="' + esc(v) + '" maxlength="' + (op.max || 200) + '" placeholder="' + esc(op.ph || "") + '"' + (op.tipo === "url" ? ' inputmode="url"' : "") + "></label>";
+    if (op.area) return '<div class="pk-campo' + (op.larga ? " larga" : "") + '"><label for="' + id + '"><span>' + rot + '</span></label><textarea id="' + id + '" data-k="' + k + '" data-rot="' + esc(rot) + '"' + (op.lista ? ' data-lista="1"' : "") + ' rows="' + (op.linhas || 4) + '" maxlength="' + (op.max || 4000) + '" placeholder="' + esc(op.ph || "") + '">' + esc(v) + "</textarea>" + botaoOpc(id, k) + vozBarra(id) + "</div>";
+    return '<label class="pk-campo' + (op.larga ? " larga" : "") + '" for="' + id + '"><span>' + rot + '</span><input id="' + id + '" type="' + (op.tipo || "text") + '" data-k="' + k + '" value="' + esc(v) + '" maxlength="' + (op.max || 200) + '" placeholder="' + esc(op.ph || "") + '"' + (op.tipo === "url" ? ' inputmode="url"' : "") + ">" + botaoOpc(id, k) + "</label>";
   }
   /* 🎙 FALAR e ✨ CORRIGIR embaixo de todo texto longo (dono, 25/11: "falar e o texto se monta corrigido") */
   function vozBarra(id) { return '<div class="pk-voz"><button type="button" class="pk-mic" data-a="falar" data-alvo="' + id + '" aria-pressed="false">🎙 FALAR</button><button type="button" class="pk-mic" data-a="corrigir" data-alvo="' + id + '">✨ CORRIGIR</button><button type="button" class="pk-mic volta" data-a="voltarCampo" data-alvo="' + id + '" hidden>↺ COMO ESTAVA</button></div>'; }
   function upload(rot, alvo, multi) { return '<label class="bw-btn pk-up">' + rot + '<input type="file" accept="image/*" data-up="' + alvo + '"' + (multi ? " multiple" : "") + "></label>"; }
   var PASSO = 0;
   function grupo(chave, titulo, corpo, fechada, numerado) { var n = numerado ? '<i class="pk-n">' + (++PASSO) + "</i>" : ""; return '<section class="tf-card pk-grupo"><h3 data-seta="pk_' + chave + '"' + (fechada ? ' data-seta-padrao="fechada"' : "") + ">" + n + titulo + "</h3>" + corpo + "</section>"; }
+  /* 📷 FOTO DO CARTÃO (25/11): cada serviço, trabalho e link do portfólio pode ter a sua foto — enviada aqui ou escolhida da galeria */
+  function fotoCartao(nome, i) {
+    var u = ((IMGS.cards || {})[nome] || [])[i] || "", g = (IMGS.fotos || []).length, rot = nome === "links" ? "capa do link " : nome === "servicos" ? "foto do serviço " : "foto do trabalho ";
+    return '<div class="pk-cf">' + (u ? '<img src="' + u + '" alt="' + rot + (i + 1) + '">' : '<div class="pk-cf-v" aria-hidden="true">📷</div>') +
+      '<div class="pk-cf-bt"><label class="pk-cf-b">' + (u ? "TROCAR" : "＋ FOTO") + '<input type="file" accept="image/*" data-up="card:' + nome + ":" + i + '" aria-label="Enviar ' + rot + (i + 1) + '"></label>' +
+      (g ? '<button type="button" class="pk-cf-b" data-a="cardGal" data-l="' + nome + '" data-i="' + i + '">🖼 GALERIA</button>' : "") +
+      (u ? '<button type="button" class="pk-cf-b" data-a="enquadrar" data-alvo="c:' + nome + ":" + i + '" aria-label="Enquadrar a ' + rot + (i + 1) + '">✥</button><button type="button" class="pk-cf-b x" data-a="cardTira" data-l="' + nome + '" data-i="' + i + '" aria-label="Tirar a ' + rot + (i + 1) + '">✕</button>' : "") + "</div></div>";
+  }
+  var COM_FOTO = { servicos: 1, experiencia: 1, links: 1 };
   function listaCampos(nome, itens, cols, max, rotAdd) {
     return '<div class="pk-lista">' + itens.map(function (x, i) {
-      return '<div class="pk-item"><div class="pk-item-campos">' + cols.map(function (c) { return campo(c[1], "d." + nome + "." + i + "." + c[0], x[c[0]] || "", { area: c[2] === "area", larga: c[2] === "area" || c[2] === "larga", linhas: 3, ph: c[3] || "", tipo: c[2] === "url" ? "url" : undefined }); }).join("") +
+      return '<div class="pk-item' + (COM_FOTO[nome] ? " com-foto" : "") + '">' + (COM_FOTO[nome] ? fotoCartao(nome, i) : "") + '<div class="pk-item-campos">' + cols.map(function (c) { return campo(c[1], "d." + nome + "." + i + "." + c[0], x[c[0]] || "", { area: c[2] === "area", larga: c[2] === "area" || c[2] === "larga", linhas: 3, ph: c[3] || "", tipo: c[2] === "url" ? "url" : undefined }); }).join("") +
         '</div><button type="button" class="pk-x" data-a="tirarItem" data-l="' + nome + '" data-i="' + i + '" aria-label="Tirar este item">✕</button></div>';
     }).join("") + (itens.length < max ? '<button type="button" class="bw-btn pk-add" data-a="addItem" data-l="' + nome + '">＋ ' + (rotAdd || "ADICIONAR") + "</button>" : "") + "</div>";
   }
@@ -1005,7 +1091,8 @@
     { id: "palco", ico: "🎤", nome: "No palco", p: MANTER + "Place the person on a professional event stage with warm spotlights and soft blurred audience lights behind, keep the same clothes, keep the person well lit and in focus." }
   ];
   var IA_FOTO_OK = false, IA_OCUP = {};
-  function chaveFoto(alvo) { return alvo === "retrato" || alvo === "capa" ? alvo : "f" + alvo; }
+  function chaveFoto(alvo) { return alvo === "retrato" || alvo === "capa" || String(alvo).indexOf("c:") === 0 ? alvo : "f" + alvo; }
+  var CORTE_CARD = { servicos: [240, 140], experiencia: [150, 96], links: [320, 180] };
   function srcFoto(alvo) { return alvo === "retrato" || alvo === "capa" ? IMGS[alvo] : (IMGS.fotos || [])[+alvo]; }
   function botoesIA(alvo) {
     var k = chaveFoto(alvo), orig = IMGS.origs && IMGS.origs[k];
@@ -1063,11 +1150,12 @@
     var k = chaveFoto(alvo), fm = formatoKit(), src, cw, ch, op = {}, inteira = k === "retrato";
     if (k === "capa") { src = IMGS.capa || IMGS.retrato || (IMGS.fotos || [])[0]; var cc = corteCapa(fm.cap, fm.G, { corPura: KIT.cor || modeloDe(KIT.modelo).cor }); cw = cc[0]; ch = cc[1]; op = cc[2]; }
     else if (inteira) src = IMGS.retrato;
+    else if (k.indexOf("c:") === 0) { var pk = k.split(":"); src = ((IMGS.cards || {})[pk[1]] || [])[+pk[2]]; cw = CORTE_CARD[pk[1]][0]; ch = CORTE_CARD[pk[1]][1]; }
     else { src = (IMGS.fotos || [])[+alvo]; var cf = corteFoto(fm.cap, fm.G, +alvo); cw = cf[0]; ch = cf[1]; }
     if (!src) return;
     var e = Object.assign({ x: 0.5, y: 0.5, z: 1, aj: {} }, clone((IMGS.enq || {})[k] || {})); e.aj = Object.assign({}, e.aj || {});
     ENQ = { k: k, src: src, cw: cw, ch: ch, op: op, e: e, inteira: inteira, antes: false };
-    var nome = k === "capa" ? "foto da capa" : inteira ? "foto recortada" : "foto " + (+alvo + 1);
+    var nome = k === "capa" ? "foto da capa" : inteira ? "foto recortada" : k.indexOf("c:") === 0 ? "foto do cartão" : "foto " + (+alvo + 1);
     modal('<button type="button" class="pk-mx" data-a="fecharModal" aria-label="Fechar">✕</button><h3>' + (inteira ? "🎚 Ajustar a " : "✥ Enquadrar e ajustar a ") + nome + "</h3>" +
       '<p class="tf-sub">' + (inteira ? "Luz e cor da foto sem fundo." : "Arraste a foto para posicionar (sem cortar a cabeça), aproxime com a barra ou a rodinha e acerte a luz.") + " É exatamente assim que sai no PDF.</p>" +
       '<div class="pk-enq' + (inteira ? " xadrez" : "") + '" id="enqPalco"><canvas id="enqCv"></canvas>' + (inteira ? "" : '<i class="pk-enq-g"></i>') + "</div>" +
@@ -1175,6 +1263,7 @@
     /* o atalho que monta tudo: falar ou escrever do seu jeito e a IA distribui nos campos */
     h += '<div class="tf-card pk-falando"><div><b>🎙 Monte falando</b><span>Conte quem você é, o que faz, onde já trabalhou e como te encontrar. A IA corrige e coloca cada coisa no seu lugar — não inventa nada.</span></div><button type="button" class="bw-btn pri" data-a="iaSobre">🎙 CONTAR SOBRE MIM</button></div>';
     if (k.exemplo) h += '<div class="tf-card pk-exemplo"><b>Este modelo começou com um EXEMPLO</b> (pessoa inventada). Troque pelos seus dados ou comece do zero.<div class="pk-chips"><button type="button" class="bw-btn" data-a="limparExemplo">🧹 APAGAR O EXEMPLO</button><button type="button" class="bw-btn" data-a="puxarEmpresa">⇩ USAR MINHA EMPRESA</button></div></div>';
+    if (ULT_TIRADA && (k.ocultas || []).indexOf(ULT_TIRADA) >= 0) h += '<div class="tf-card pk-exemplo"><b>Você tirou “' + esc(titulo(k, ULT_TIRADA)) + '”.</b> As partes tiradas voltam em 📑 PARTES E ORDEM, no fim.<div class="pk-chips"><button type="button" class="bw-btn" data-a="devolverParte">↺ DEVOLVER</button></div></div>';
     /* modelo e cores */
     h += grupo("modelo", "🎨 MODELO E VISUAL",
       '<div class="pk-chips">' + MODELOS.map(function (m) { return '<button type="button" class="pk-chip' + (m.id === k.modelo ? " on" : "") + '" data-a="trocarModelo" data-m="' + m.id + '">' + m.ico + " " + esc(m.nome) + "</button>"; }).join("") + "</div>" +
@@ -1203,11 +1292,11 @@
       else if (id === "perfil") corpo = '<div class="pk-campos">' + titSec(id) + "</div>" + listaCampos("perfil", d.perfil || [], [["k", "Item", "", "Ex.: Altura, Idiomas, DRT"], ["v", "Valor"]], 12, "ITEM");
       else if (id === "numeros") corpo = '<div class="pk-campos">' + titSec(id) + "</div>" + listaCampos("numeros", d.numeros || [], [["v", "Número"], ["r", "O que ele mostra"]], 9, "NÚMERO") + '<p class="tf-sub">Só números que você pode provar.</p>';
       else if (id === "servicos") corpo = '<div class="pk-campos">' + titSec(id) + "</div>" + listaCampos("servicos", d.servicos || [], [["t", "Nome"], ["d", "Em uma frase", "area"]], 10, "ITEM") +
-        '<label class="pk-liga"><input type="checkbox" data-a="servFotos"' + (k.servFotos ? " checked" : "") + "> Mostrar uma foto da galeria em cada cartão</label>";
-      else if (id === "experiencia") corpo = '<div class="pk-campos">' + titSec(id) + "</div>" + listaCampos("experiencia", d.experiencia || [], [["grupo", "Grupo", "", "Ex.: TV e publicidade, Eventos, Teatro"], ["titulo", "Trabalho / projeto"], ["papel", "Sua função"], ["onde", "Onde / para quem"], ["ano", "Ano"], ["link", "Link do vídeo ou matéria (opcional)", "url", "youtube.com/..."]], 24, "TRABALHO") + '<p class="tf-sub">Com link, aparece o botão VER ↗ clicável no PDF. Itens do mesmo grupo ficam juntos.</p>';
+        '<label class="pk-liga"><input type="checkbox" data-a="servFotos"' + (k.servFotos ? " checked" : "") + "> Cartão sem foto própria usa uma foto da galeria</label>" + '<p class="tf-sub">📷 Cada cartão pode ter a sua foto: ＋ FOTO envia do aparelho, 🖼 GALERIA escolhe uma das suas.</p>';
+      else if (id === "experiencia") corpo = '<div class="pk-campos">' + titSec(id) + "</div>" + listaCampos("experiencia", d.experiencia || [], [["grupo", "Grupo", "", "Ex.: TV e publicidade, Eventos, Teatro"], ["titulo", "Trabalho / projeto"], ["papel", "Sua função"], ["onde", "Onde / para quem"], ["ano", "Ano"], ["link", "Link do vídeo ou matéria (opcional)", "url", "youtube.com/..."]], 24, "TRABALHO") + '<p class="tf-sub">Com link, aparece o botão VER ↗ clicável no PDF (a foto do trabalho também abre o link). Itens do mesmo grupo ficam juntos.</p>';
       else if (id === "formacao") corpo = '<div class="pk-campos">' + titSec(id) + "</div>" + listaCampos("formacao", d.formacao || [], [["curso", "Curso"], ["onde", "Onde"], ["ano", "Ano"]], 10, "CURSO");
       else if (id === "habilidades") corpo = '<div class="pk-campos">' + titSec(id) + campo("Uma por linha", "d.habilidades", d.habilidades || "", { area: true, larga: true, linhas: 5, max: 1500, lista: true }) + "</div>";
-      else if (id === "links") corpo = '<div class="pk-campos">' + titSec(id) + "</div>" + listaCampos("links", d.links || [], [["rot", "Nome do botão", "", "Ex.: Vídeos, Fotos, Reel"], ["url", "Link", "url", "youtube.com/..."]], 8, "LINK") + '<p class="tf-sub">Cada link vira um botão clicável no PDF, com QR code para quem imprimir.</p>';
+      else if (id === "links") corpo = '<div class="pk-campos">' + titSec(id) + "</div>" + listaCampos("links", d.links || [], [["rot", "Nome do botão", "", "Ex.: Vídeos, Fotos, Reel"], ["url", "Link", "url", "youtube.com/..."]], 8, "LINK") + '<p class="tf-sub">Cada link vira um cartão clicável no PDF, com QR code para quem imprimir. Ponha uma foto de capa (ex.: um quadro do vídeo) — ela também abre o link.</p>';
       else if (id === "galeria") corpo = '<div class="pk-campos">' + titSec(id) + campo("Legenda (opcional)", "d.galeriaLegenda", d.galeriaLegenda || "", { larga: true, max: 160 }) + '</div><p class="tf-sub">As fotos ficam em <b>FOTOS E MÍDIA</b>, lá em cima.</p>';
       else if (id === "clientes") corpo = '<div class="pk-campos">' + titSec(id) + campo("Um por linha", "d.clientes", d.clientes, { area: true, larga: true, linhas: 6, max: 2000, lista: true }) + "</div>";
       else if (id === "depoimentos") corpo = '<div class="pk-campos">' + titSec(id) + "</div>" + listaCampos("depoimentos", d.depoimentos || [], [["texto", "Recomendação", "area"], ["autor", "Quem disse"], ["cargo", "Cargo e empresa"]], 4, "RECOMENDAÇÃO") + '<p class="tf-sub">Só recomendações de verdade, com autorização de quem disse.</p>';
@@ -1218,7 +1307,7 @@
       else if (id === "contato") corpo = '<div class="pk-campos">' + titSec(id) + campo("Quem atende (você ou agência)", "d.contato.resp", c.resp || "", { max: 80 }) + campo("Função", "d.contato.cargo", c.cargo || "", { max: 80 }) + campo("WhatsApp", "d.contato.tel", c.tel || "", { tipo: "tel", max: 40 }) +
         campo("E-mail", "d.contato.email", c.email || "", { tipo: "email", max: 120 }) + campo("Instagram", "d.contato.insta", c.insta || "", { max: 80, ph: "@seuperfil" }) + campo("TikTok", "d.contato.tiktok", c.tiktok || "", { max: 80, ph: "@seuperfil" }) +
         campo("YouTube", "d.contato.youtube", c.youtube || "", { max: 120, ph: "@seucanal" }) + campo("Site", "d.contato.site", c.site || "", { max: 120 }) + campo("Cidade", "d.contato.cidade", c.cidade || "", { max: 80 }) + "</div>";
-      h += grupo("s_" + id, esc(nm), corpo, false, true);
+      h += grupo("s_" + id, esc(nm), '<div class="pk-tira"><button type="button" class="pk-tira-b" data-a="tirarParte" data-s="' + id + '">✕ TIRAR ESTA PARTE</button></div>' + corpo, false, true);
     });
     /* seções e ordem (no fim: é ajuste, não é o começo) */
     h += grupo("secoes", "📑 PARTES E ORDEM", '<p class="tf-sub">Ligue só o que faz sentido para você. As setas mudam a ordem no PDF.</p><div class="pk-ordem">' + ordem.map(function (id, i) {
@@ -1373,6 +1462,7 @@
       add("logo." + (/^data:image\/png/.test(IMGS.logo || "") ? "png" : "jpg"), IMGS.logo);
       add("fotos/capa.jpg", IMGS.capa); add("fotos/retrato.png", IMGS.retrato);
       (IMGS.fotos || []).forEach(function (u, i) { add("fotos/foto-" + String(i + 1).padStart(2, "0") + "." + (/^data:image\/png/.test(u) ? "png" : "jpg"), u); });
+      Object.keys(IMGS.cards || {}).forEach(function (l) { (IMGS.cards[l] || []).forEach(function (u, i) { if (u) add("fotos/cartoes/" + l + "-" + String(i + 1).padStart(2, "0") + "." + (/^data:image\/png/.test(u) ? "png" : "jpg"), u); }); });
       z.file("textos/apresentacao.txt", textoKit(m));
       var r = KIT.d.release || {}; if (String(r.titulo || r.texto || "").trim()) z.file("textos/release.txt", [r.titulo, r.data, "", r.texto].filter(function (x) { return x != null; }).join("\n").trim() + "\n");
       var b = await z.generateAsync({ type: "blob" }); andamento(""); baixar(b, base + "-imprensa.zip"); aviso("Pacote para imprensa pronto ✓");
@@ -1460,6 +1550,17 @@
   function desfazerIA() { if (!DESFAZER_IA || !KIT) return; if (DESFAZER_IA.__d) { KIT.d = DESFAZER_IA.__d; KIT.ocultas = DESFAZER_IA.__oc; } else Object.keys(DESFAZER_IA).forEach(function (k) { KIT.d[k] = DESFAZER_IA[k]; }); DESFAZER_IA = null; $("btnDesfazerIA").hidden = true; guardar(); desenharForm(); agendarPrevia(0); aviso("↺ Voltou ao seu texto"); }
 
   /* ---------- AÇÕES ---------- */
+  function cardPor(l, i, u) { IMGS.cards = IMGS.cards || {}; var arr = IMGS.cards[l] || (IMGS.cards[l] = []); while (arr.length <= i) arr.push(""); arr[i] = u; if (IMGS.enq) delete IMGS.enq["c:" + l + ":" + i]; guardarImgs(); desenharForm(); agendarPrevia(0); }
+  /* tirar o item i da lista l leva junto a foto dele e o enquadramento; os de baixo sobem uma casa */
+  function cardsTirar(l, i) {
+    var arr = (IMGS.cards || {})[l]; if (!arr || !arr.length) return false; arr.splice(i, 1);
+    var e = IMGS.enq || {}, n = {}, pre = "c:" + l + ":"; Object.keys(e).forEach(function (k) { if (k.indexOf(pre) !== 0) { n[k] = e[k]; return; } var j = +k.slice(pre.length); if (j < i) n[k] = e[k]; else if (j > i) n[pre + (j - 1)] = e[k]; }); IMGS.enq = n; return true;
+  }
+  function cardGaleria(l, i) {
+    var fs = IMGS.fotos || []; if (!fs.length) { aviso("Ponha fotos na galeria primeiro", true); return; }
+    modal('<button type="button" class="pk-mx" data-a="fecharModal" aria-label="Fechar">✕</button><h3>🖼 Escolha a foto deste cartão</h3><p class="tf-sub">Toque numa foto da sua galeria.</p><div class="pk-cf-gal">' +
+      fs.map(function (u, g) { return '<button type="button" data-a="cardDaGal" data-l="' + l + '" data-i="' + i + '" data-g="' + g + '" aria-label="Usar a foto ' + (g + 1) + ' da galeria"><img src="' + u + '" alt=""></button>'; }).join("") + "</div>");
+  }
   function mover(arr, i, j) { if (j < 0 || j >= arr.length) return; var x = arr[i]; arr[i] = arr[j]; arr[j] = x; }
   var NOVOS = { perfil: { k: "", v: "" }, experiencia: { grupo: "", titulo: "", papel: "", onde: "", ano: "", link: "" }, formacao: { ano: "", curso: "", onde: "" }, links: { rot: "", url: "" }, numeros: { v: "", r: "" }, servicos: { t: "", d: "" }, depoimentos: { texto: "", autor: "", cargo: "" }, imprensa: { veiculo: "", titulo: "", data: "", link: "" }, agenda: { data: "", titulo: "", local: "" } };
   async function acao(a, el) {
@@ -1485,8 +1586,15 @@
     else if (a === "tirarImg") { IMGS[el.getAttribute("data-v")] = ""; if (IMGS.origs) delete IMGS.origs[el.getAttribute("data-v")]; if (IMGS.enq) delete IMGS.enq[el.getAttribute("data-v")]; guardarImgs(); desenharForm(); agendarPrevia(0); }
     else if (a === "vis") { var s = el.getAttribute("data-s"), oc = KIT.ocultas || (KIT.ocultas = []); if (el.checked) KIT.ocultas = oc.filter(function (x) { return x !== s; }); else if (oc.indexOf(s) < 0) oc.push(s); guardar(); desenharForm(); agendarPrevia(0); }
     else if (a === "sobe" || a === "desce") { var o = KIT.ordem || (KIT.ordem = TODAS.slice()), i = o.indexOf(el.getAttribute("data-s")); TODAS.forEach(function (x) { if (o.indexOf(x) < 0) o.push(x); }); i = o.indexOf(el.getAttribute("data-s")); mover(o, i, a === "sobe" ? i - 1 : i + 1); guardar(); desenharForm(); agendarPrevia(0); }
+    else if (a === "opcoes") abrirOpcoes(el.getAttribute("data-alvo"));
+    else if (a === "opcTocar") opcTocar(el);
+    else if (a === "tirarParte") { var sp = el.getAttribute("data-s"), ocp = KIT.ocultas || (KIT.ocultas = []); if (ocp.indexOf(sp) < 0) ocp.push(sp); ULT_TIRADA = sp; guardar(); desenharForm(); agendarPrevia(0); aviso("Parte tirada — ↺ DEVOLVER no topo"); }
+    else if (a === "devolverParte") { KIT.ocultas = (KIT.ocultas || []).filter(function (x) { return x !== ULT_TIRADA; }); ULT_TIRADA = ""; guardar(); desenharForm(); agendarPrevia(0); }
     else if (a === "addItem") { var l = el.getAttribute("data-l"); (d[l] || (d[l] = [])).push(clone(NOVOS[l])); guardar(); desenharForm(); var c = $("form").querySelectorAll('[data-k^="d.' + l + '."]'); if (c.length) { var alvo = c[c.length - Object.keys(NOVOS[l]).length]; if (alvo) alvo.focus(); } }
-    else if (a === "tirarItem") { d[el.getAttribute("data-l")].splice(+el.getAttribute("data-i"), 1); guardar(); desenharForm(); agendarPrevia(0); }
+    else if (a === "tirarItem") { var tl0 = el.getAttribute("data-l"), ti0 = +el.getAttribute("data-i"); d[tl0].splice(ti0, 1); if (cardsTirar(tl0, ti0)) guardarImgs(); guardar(); desenharForm(); agendarPrevia(0); }
+    else if (a === "cardTira") { var ct = (IMGS.cards || {})[el.getAttribute("data-l")]; if (ct) ct[+el.getAttribute("data-i")] = ""; if (IMGS.enq) delete IMGS.enq["c:" + el.getAttribute("data-l") + ":" + el.getAttribute("data-i")]; guardarImgs(); desenharForm(); agendarPrevia(0); }
+    else if (a === "cardGal") cardGaleria(el.getAttribute("data-l"), +el.getAttribute("data-i"));
+    else if (a === "cardDaGal") { var u0 = (IMGS.fotos || [])[+el.getAttribute("data-g")]; if (!u0) return; fecharModal(); cardPor(el.getAttribute("data-l"), +el.getAttribute("data-i"), u0); aviso("Foto do cartão ✓"); }
     else if (a === "fotoTira") { IMGS.origs = Object.keys(IMGS.origs || {}).filter(function (x) { return x[0] !== "f"; }).reduce(function (o, x) { o[x] = IMGS.origs[x]; return o; }, {}); enqTirarFoto(+el.getAttribute("data-i")); IMGS.fotos.splice(+el.getAttribute("data-i"), 1); guardarImgs(); desenharForm(); agendarPrevia(0); }
     else if (a === "fotoEsq" || a === "fotoDir") { var fi = +el.getAttribute("data-i"), oo = IMGS.origs || {}, ja = oo["f" + fi], jb = oo["f" + (a === "fotoEsq" ? fi - 1 : fi + 1)]; if (ja || jb) { delete oo["f" + fi]; delete oo["f" + (a === "fotoEsq" ? fi - 1 : fi + 1)]; if (ja) oo["f" + (a === "fotoEsq" ? fi - 1 : fi + 1)] = ja; if (jb) oo["f" + fi] = jb; } if ((a === "fotoEsq" ? fi - 1 : fi + 1) >= 0 && (a === "fotoEsq" ? fi - 1 : fi + 1) < IMGS.fotos.length) enqTrocar("f" + fi, "f" + (a === "fotoEsq" ? fi - 1 : fi + 1)); mover(IMGS.fotos, fi, a === "fotoEsq" ? fi - 1 : fi + 1); guardarImgs(); desenharForm(); agendarPrevia(0); }
     else if (a === "limparExemplo") {
@@ -1522,6 +1630,7 @@
       if (alvo === "logo") IMGS.logo = await arquivoParaUrl(fs[0], 1600, true);
       else if (alvo === "retrato") { IMGS.retrato = await arquivoParaUrl(fs[0], 1800, true); if (IMGS.origs) delete IMGS.origs.retrato; if (IMGS.enq) delete IMGS.enq.retrato; }
       else if (alvo === "capa") { IMGS.capa = await arquivoParaUrl(fs[0], 2400, false); if (IMGS.origs) delete IMGS.origs.capa; if (IMGS.enq) delete IMGS.enq.capa; }
+      else if (alvo.indexOf("card:") === 0) { var pc = alvo.split(":"); var uc = await arquivoParaUrl(fs[0], 1400, false); andamento(""); cardPor(pc[1], +pc[2], uc); aviso("Foto do cartão ✓"); try { inp.value = ""; } catch (e) { } return; }
       else { for (var i = 0; i < fs.length && IMGS.fotos.length < 7; i++) IMGS.fotos.push(await arquivoParaUrl(fs[i], 2000, false)); }
       andamento(""); guardarImgs(); desenharForm(); agendarPrevia(0); aviso(alvo === "fotos" ? "Fotos na galeria ✓" : alvo === "logo" ? "Logo aplicada ✓" : alvo === "retrato" ? "Foto recortada aplicada ✓" : "Foto da capa aplicada ✓");
     } catch (e) { andamento(""); aviso("Não deu para abrir essa imagem. Tente outra (JPG ou PNG).", true); }

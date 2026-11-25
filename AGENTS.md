@@ -1079,6 +1079,12 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
      imagem nova tira o selo. Sem conta ou IA fora: roteiro base pelas batidas do tipo de vídeo + o motivo na tela (regra 86). Teste da grade: conta o
      tamanho pelo código (3 × 360 + 4 × 6 = 1104), não de cabeça (auto: docs/testes/teste_diretor.py).
 
+241. FOTO POR CARTÃO e PDF INTERATIVO (press kit, 25/11): foto de item de lista guardada em IMGS.cards[lista][índice] (só no aparelho) e o
+     enquadrar na chave "c:lista:i"; tirar o item tira a foto e SOBE as chaves dos de baixo (senão o item seguinte herda a foto do apagado).
+     PDF interativo = link em TODO contato (botões WHATSAPP/E-MAIL/SITE/INSTAGRAM/TIKTOK/YOUTUBE, rodapé e cabeçalho de cada página, fotos
+     com link); teste lê os /URI do arquivo e confere cada destino. ☰ OPÇÕES PRONTAS por campo (regra 62) num dicionário OPC por chave sem
+     índice ("d.servicos.t"); "uma por linha" = põe/tira várias. Teste que tira uma parte escolhe uma VISÍVEL (o modelo já esconde algumas).
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -2839,6 +2845,11 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
 - 25/11/2026 17:05 · Claude: APP BW 1.9.53 — cópia sem internet refeita com o site de hoje (361 arquivos, com o modo diretor), tutorial em PDF
   (17 p.) e novidades (modo diretor, pedir mudança, storyboard 3×3). teste-app 0 falhas; pacote e app-versao.json publicados. BW-Setup.exe 1.9.53:
   depende do PC do dono (quem já tem o app atualiza sozinho).
+- 25/11/2026 16:50 · Claude (dono: "foto em cada cartão… lugar de upload… PDF interativo com cada link" + "botões com opções em tudo, exemplos
+  mais usados, até profissões… e como tirar abas"): PRESS KIT — cada SERVIÇO, TRABALHO e LINK ganhou ＋ FOTO / 🖼 GALERIA / ✥ / ✕ (foto entra no
+  cartão do PDF, no Word e no pacote; a do link abre o link); CONTATO com botões clicáveis (WhatsApp, e-mail, site, Instagram, TikTok, YouTube),
+  rodapé e cabeçalho clicáveis em todas as páginas; ☰ OPÇÕES PRONTAS em ~30 campos (≈60 profissões em grupos, cidades, serviços, funções,
+  habilidades, perfil, números…); ✕ TIRAR ESTA PARTE em cada parte com ↺ DEVOLVER. teste_presskit (+25) 0 falhas. Manual 78 p. presskit.js v6, sw v248. PENTE FINO 241.
 ## Pendências (dono)
 - [ ] (25/11) BW-Setup.exe 1.9.53: dois cliques em "5 - GERAR INSTALADOR EXE" (Vídeos\\bw-reels-studio) e avisar o Claude.
 - [ ] (25/11) MODO DIRETOR: dono testar logado (IA real) — um aftermovie de verdade, um PEDIR MUDANÇA e o STORYBOARD 3×3 numa IA de vídeo.

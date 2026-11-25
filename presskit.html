@@ -104,6 +104,22 @@
 .pk-x{flex:none;width:38px;height:38px;border-radius:10px;border:1px solid rgba(255,120,120,.35);background:rgba(255,99,99,.08);color:#FF8A8A;font:800 14px Inter,system-ui,sans-serif;cursor:pointer;margin-top:18px}
 .pk-add{align-self:flex-start;min-height:40px}
 .pk-fotos{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin:10px 0}
+.pk-opc{align-self:flex-start;margin-top:6px;min-height:32px;padding:0 10px;border-radius:9px;border:1px solid rgba(232,181,74,.4);background:rgba(232,181,74,.08);color:#F5F1EA;font:700 11px Inter,system-ui,sans-serif;letter-spacing:.03em;cursor:pointer;text-transform:none;white-space:nowrap}
+.pk-opc b{color:#E8B54A;margin-left:4px}
+.pk-tira{display:flex;justify-content:flex-end;margin:-4px 0 6px}
+.pk-tira-b{min-height:30px;padding:0 10px;border-radius:9px;border:1px solid rgba(255,120,120,.3);background:transparent;color:#FF9A9A;font:700 11px Inter,system-ui,sans-serif;cursor:pointer}
+.pk-item.com-foto{flex-wrap:wrap}
+.pk-cf{flex:1 1 100%;display:flex;align-items:center;gap:10px;min-width:0}
+.pk-cf img,.pk-cf-v{width:110px;flex:none;aspect-ratio:16/10;object-fit:cover;border-radius:10px;border:1px solid rgba(245,241,234,.14);background:#0B1222;display:block}
+.pk-cf-v{display:flex;align-items:center;justify-content:center;font-size:26px;border-style:dashed;opacity:.75}
+.pk-cf-bt{display:flex;flex-wrap:wrap;gap:4px}
+.pk-cf-b{position:relative;overflow:hidden;min-height:32px;padding:0 9px;border-radius:9px;border:1px solid rgba(232,181,74,.4);background:rgba(232,181,74,.08);color:#F5F1EA;font:700 11px Inter,system-ui,sans-serif;display:inline-flex;align-items:center;cursor:pointer}
+.pk-cf-b input[type=file]{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;font-size:16px}
+.pk-cf-b.x{border-color:rgba(255,120,120,.35);background:rgba(255,99,99,.08);color:#FF8A8A}
+.pk-cf-gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px;margin-top:10px}
+.pk-cf-gal button{padding:0;border:2px solid transparent;border-radius:10px;overflow:hidden;background:none;cursor:pointer}
+.pk-cf-gal button:hover,.pk-cf-gal button:focus-visible{border-color:#E8B54A}
+.pk-cf-gal img{width:100%;aspect-ratio:16/11;object-fit:cover;display:block}
 .pk-foto{border-radius:10px;overflow:hidden;border:1px solid rgba(245,241,234,.12);background:#0B1222}
 .pk-foto img{width:100%;aspect-ratio:16/11;object-fit:cover;display:block}
 .pk-foto span{display:flex;justify-content:space-between;padding:4px}
@@ -236,6 +252,6 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.2/dist/umd/supabase.js" integrity="sha384-A97u3Qnt9GZHURO9YJZRe7VQgGUeFzcv6I1oIGnUTxQrCxnpQMwR0/G8F2zt9abZ" crossorigin="anonymous"></script>
 <script src="assets/bw-sync.js?v=20261125"></script>
 <script src="assets/fotos-nuvem.js?v=4"></script>
-<script src="assets/presskit.js?v=4"></script>
+<script src="assets/presskit.js?v=6"></script>
 </body>
 </html>

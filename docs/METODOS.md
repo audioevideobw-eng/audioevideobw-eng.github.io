@@ -799,3 +799,10 @@ Armadilha: classe de ESTADO não serve para destacar botão. `＋ IMPORTAR` usav
 - Mudança cirúrgica: a IA recebe o roteiro numerado e devolve só `{cenas:[{n,texto,fala}]}`; aplicar marca `mudou` e apaga só a imagem daquela cena.
 - Sem login/IA: roteiro base pelas batidas do tipo de vídeo e o motivo na tela.
 - Teste: IA simulada pela frase do prompt do sistema; storyboard conferido pelo tamanho calculado no código e pelo pixel (selo âmbar, fundo marinho).
+
+## Foto por item de lista e PDF interativo (press kit, 25/11/2026)
+- Foto de item: `IMGS.cards[lista][i]`; ao tirar o item, `splice` na foto e renumerar as chaves `c:lista:j` do enquadrar (j > i → j−1).
+- Upload no item = `<label><input type=file data-up="card:lista:i"></label>` (toque direto, iPhone); escolher da galeria = folha com as fotos.
+- pdfMake: `link` em texto, imagem e célula; rodapé/cabeçalho como array de pedaços `{text, link}`.
+- Conferir: `re.findall(rb"/URI\s*\(([^)]*)\)", pdf)` → cada destino esperado (wa.me/55, mailto:, instagram.com/, youtube.com/@, tiktok.com/@, site).
+- ☰ OPÇÕES PRONTAS: dicionário por chave sem índice (`k.replace(/\.\d+\./g, ".")`), grupos `[nome, [itens]]`; preencher = `value` + evento `input`.
