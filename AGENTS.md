@@ -2687,7 +2687,7 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   revisão de qualidade ensinam a usar. teste-conferir.mjs (18 ✓), teste-recorte e teste-app 0 falhas; os 3 modelos do Studio sem erro (só avisos
   reais de letra pequena). Pacote, tutorial (17 p.) e novidades publicados. A raea NÃO foi usada nem instalada.
 ## Pendências (dono)
-- [ ] (25/11) BW-Setup.exe 1.9.47: dono rodar "5 - GERAR INSTALADOR EXE" (os arquivos novos já estão na pasta).
+- [x] (25/11 08:36) BW-Setup.exe 1.9.47 gerado pelo dono e publicado (9,2 MB, versão conferida dentro do .exe).
 - [x] (24/11 23:02) BW-Setup.exe 1.9.45 gerado pelo dono e publicado (9,3 MB, versão conferida dentro do .exe).
 - [x] (24/11 18:28) BW-Setup.exe 1.9.44 gerado pelo dono e publicado (9,2 MB, versão conferida dentro do .exe).
 - [ ] (24/11 15:05) GOOGLE PLAY: dono PEDIU o D-U-N-S (Dun & Bradstreet, grátis, 5–30 dias). Quando chegar: criar a conta de ORGANIZAÇÃO em
