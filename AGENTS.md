@@ -2836,4 +2836,4 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   ACHADO PARA DECISÃO: Brightway e BW Produções dividem o mesmo endereço; o Google Analytics da BW Produções roda com acesso à sessão do login da
   Brightway. PENTE FINO 229.
 - [x] (25/11 08:10, dono: "vamos retirar") Google Analytics TIRADO do site da BW Produções (código, ID, CSP, privacidade e README).
-- [ ] (25/11) BW-Setup.exe 1.9.46 depende do PC do dono (o app se atualiza sozinho).
+- [x] (25/11 08:22) BW-Setup.exe 1.9.46 gerado pelo dono e publicado (9,2 MB, versão conferida dentro do .exe).
