@@ -1070,6 +1070,15 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
      ARMADILHA: CSS da página colado dentro do <style id="bwAntiMoldura"> SOME ao abrir (o bloco é apagado) — o press kit ficou sem parte do visual
      desde a publicação anterior e o teste não viu (auto: vigia 7.10e). Teste de "desenhou" não procura texto em MAIÚSCULAS: cada capa escreve o nome de um jeito. Classe nova: procurar antes (.pk-mini já era a miniatura da lista e quebrou os cartões).
 
+**Aprendidos em 25/11 (MODO DIRETOR do Quadro de História)**
+240. MODO DIRETOR (assets/reels-diretor.js; ideia do dono depois de analisar o "vibe directing" do OpenArt Director — só a ideia, nada da interface deles):
+     módulo novo de uma ferramenta que já existe fala com ela por uma API exposta (window.BWQuadroDir: estado, trocar, historia, ia, tirarImagem,
+     criarImagens, abrirMontar) — nunca reimplementa o quadro nem chama a IA por conta própria (vigia: sem fetch/https/BWSync no arquivo). Aprovar por
+     etapa: roteiro editável ANTES de virar blocos; trocar o quadro atual pede confirm(). PEDIR MUDANÇA = a IA devolve só as cenas que mudam ({n,…});
+     só elas ganham `mudou` e perdem a imagem "-ia" (CRIAR IMAGENS já pula quem tem imagem, então refaz só essas); editar o bloco à mão ou criar a
+     imagem nova tira o selo. Sem conta ou IA fora: roteiro base pelas batidas do tipo de vídeo + o motivo na tela (regra 86). Teste da grade: conta o
+     tamanho pelo código (3 × 360 + 4 × 6 = 1104), não de cabeça (auto: docs/testes/teste_diretor.py).
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -2819,6 +2828,14 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
 - 25/11/2026 15:55 · Claude (dono: "bora"): APP BW 1.9.52 — cartão PRESS KIT (destino presskit, página na cópia sem internet), cópia sem internet refeita com o
   site de hoje (360 arquivos), tutorial em PDF (17 p.) e novidades (press kit, enquadrar e ajustar, estilo ao vivo). teste-app 0 falhas (28 ferramentas).
   Pacote e app-versao.json publicados (aviso de atualização para quem está na 1.9.51). BW-Setup.exe 1.9.52: depende do PC do dono.
+- 25/11/2026 16:50 · Claude (dono mandou o OpenArt Director: "analise e veja o que dá para aprender e aplicar"; depois "pode fazer e testar o que seja
+  mais viável"): BW REELS PRO › QUADRO DE HISTÓRIA ganhou 🎬 MODO DIRETOR (assets/reels-diretor.js). 9 INÍCIOS RÁPIDOS (anúncio de produto, depoimento,
+  aftermovie, filme da marca, clipe, trailer, explicativo, microdrama, livre), ideia escrita ou 🎙 falada, tom e nº de cenas → ✨ ESCREVER O ROTEIRO
+  (bw-ia, só texto) → roteiro editável (↑ ↓ ✕ ＋) → ✓ MONTAR O QUADRO (blocos ligados em ordem; cada lugar ligado às cenas dele) → ✎ PEDIR MUDANÇA
+  (refaz só as cenas afetadas, selo ✎ MUDOU, só elas são desenhadas de novo) → ▦ STORYBOARD 3×3 (PNG numerado na cor da marca + texto para IA de
+  vídeo) → 🎬 MONTAR O VÍDEO. Nada da interface do OpenArt foi copiado. teste_diretor.py (novo, 0 falhas × 1280/390), teste_quadro e teste_reels 0
+  falhas, vigia ✅ (regra nova do diretor). Manual 77 → 78 p. reels-quadro.js v10, reels-diretor.js v1, sw v247. PENTE FINO 240. NÃO testado no ar
+  com a IA real.
 ## Pendências (dono)
 - [x] (25/11 15:47) BW-Setup.exe 1.9.52 gerado pelo dono e publicado (15,6 MB, versão conferida dentro do .exe).
 - [ ] (25/11) PRESS KIT: dono testar no celular e no PC — 🎙 CONTAR SOBRE MIM falando, 🎙 FALAR num texto e baixar o PDF; dizer quais modelos faltam.

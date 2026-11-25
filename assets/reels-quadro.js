@@ -68,13 +68,14 @@
       '<textarea class="qd-in" data-campo="texto" rows="3" maxlength="240" placeholder="O que acontece nesta cena?">' + esc(b.texto) + '</textarea><input class="qd-in" data-campo="fala" maxlength="90" placeholder="Fala ou texto na tela (opcional)" value="' + esc(b.fala) + '">';
     else if (b.tipo === "ref") corpo = foto("IMAGEM (opcional)") + '<textarea class="qd-in" data-campo="texto" rows="2" maxlength="200" placeholder="O que é: lugar, objeto, estilo, cores…">' + esc(b.texto) + '</textarea>';
     else corpo = '<input class="qd-in" data-campo="texto" maxlength="60" placeholder="Chamada final (ex.: Peça seu orçamento)" value="' + esc(b.texto) + '">';
+    var mudou = b.tipo === "cena" && b.mudou ? '<div class="qd-mudou">✎ MUDOU A PEDIDO DO DIRETOR</div>' : "";
     var pronto = b.tipo === "cena" && b.meuPrompt ? '<div class="qd-pp"><span>✨ Prompt pronto' + (b.meuPromptPara ? " · " + esc(b.meuPromptPara) : "") + '</span><button type="button" data-tirar-pp="' + b.id + '" aria-label="Tirar o prompt pronto">✕</button></div>' : "";
     return '<div class="qd-bloco t-' + b.tipo + (LIGAR === b.id ? " ligando" : "") + (LIGAR && LIGAR !== b.id && Q.setas.some(function (s) { return s.de === LIGAR && s.para === b.id; }) ? " ligado" : "") + '" data-id="' + b.id + '" style="left:' + b.x + 'px;top:' + b.y + 'px">' +
       (b.tipo !== "ref" ? '<i class="qd-pt ent" aria-hidden="true"></i>' : "") +
       (b.tipo !== "fim" ? '<button type="button" class="qd-pt sai" data-ligar="' + b.id + '" aria-label="Ligar este bloco a outros (toque ou arraste)" title="Arraste até outro bloco, ou toque e depois toque nos blocos"></button>' : "") +
       '<div class="qd-cab" data-pega="' + b.id + '"><b>' + ROT[b.tipo] + (b.tipo === "cena" && n ? " " + n : "") + '</b><span>' +
       (b.tipo === "cena" ? '<button type="button" class="qd-porta" data-prompt="' + b.id + '" aria-label="Melhorar o prompt desta cena" title="Melhorar o prompt desta cena">✨</button>' : "") +
-      (b.tipo === "cena" || b.tipo === "ref" ? '<button type="button" class="qd-porta" data-apagar="' + b.id + '" aria-label="Excluir bloco">🗑</button>' : "") + '</span></div>' + corpo + pronto + '</div>';
+      (b.tipo === "cena" || b.tipo === "ref" ? '<button type="button" class="qd-porta" data-apagar="' + b.id + '" aria-label="Excluir bloco">🗑</button>' : "") + '</span></div>' + mudou + corpo + pronto + '</div>';
   }
   function desenhar() {
     var h = historia(), num = {}; h.cenas.forEach(function (c, i) { num[c.id] = i + 1; });
@@ -240,7 +241,7 @@
       if (!base && refPeq) { base = refPeq; usaRef = true; } else if (base && refPeq) ref2 = refPeq;     /* personagem = imagem 0, referência = imagem 1 */
       var r = await window.BWFotosNuvem.arte(base, pedidoImagem(p.h, c, c.prompt, !!peq, usaRef) + (ref2 ? " Place the character in the place shown in image 1 and use its objects and style." : ""), 576, 1024, "topo", 2000 + i * 41, ref2);
       if (r.erro) { falhou = window.BWFotosNuvem.msg(r.erro); break; }
-      await porImagem(c.id, r.blob, "-ia"); feitas++; desenhar();
+      await porImagem(c.id, r.blob, "-ia"); feitas++; var bm = bloco(c.id); if (bm && bm.mudou) { delete bm.mudou; guardar(); } desenhar();
     }
     ocupado(); desenhar();
     aviso(falhou ? "Criei " + feitas + " imagem(ns) e parei: " + falhou : "✓ " + feitas + " imagem(ns) criada(s). Baixe as fotos ou monte o vídeo.", !!falhou);
@@ -321,7 +322,7 @@
       if (bl && bl.dataset.id !== p.de) { m = ligar(p.de, bl.dataset.id); guardar(); }
       desenhar(); aviso(m, !!m);
     });
-    $("qdBlocos").addEventListener("input", function (e) { var el = e.target.closest("[data-campo]"); if (!el) return; var b = bloco(el.closest(".qd-bloco").dataset.id); if (b) { b[el.dataset.campo] = el.value; guardar(); } });
+    $("qdBlocos").addEventListener("input", function (e) { var el = e.target.closest("[data-campo]"); if (!el) return; var b = bloco(el.closest(".qd-bloco").dataset.id); if (b) { b[el.dataset.campo] = el.value; if (b.mudou) { delete b.mudou; var sm = el.closest(".qd-bloco").querySelector(".qd-mudou"); if (sm) sm.remove(); } guardar(); } });
     $("qdBlocos").addEventListener("click", async function (e) {
       var t = e.target, x;
       if ((x = t.closest("[data-ligar]"))) { if (arrastou) { arrastou = false; return; } LIGAR = LIGAR === x.dataset.ligar ? null : x.dataset.ligar; aviso(""); desenhar(); return; }
@@ -553,5 +554,18 @@
     });
   }
 
+  /* IA de texto para o MODO DIRETOR (só texto vai para a bw-ia) */
+  async function iaTexto(sistema, pedido, max) {
+    var s = await sessao(); if (!s) return {erro: "login"};
+    try {
+      var r = await fetch(FN_IA, {method: "POST", headers: {"Content-Type": "application/json", "Authorization": "Bearer " + s.access_token, "apikey": CHAVE_PUB}, body: JSON.stringify({sistema: sistema, pedido: pedido, max: max || 1400, nivel: "inteligente"})});
+      var j = await r.json().catch(function () { return {}; });
+      if (!r.ok) return {erro: j.erro === "limite" ? "limite" : "ia", detalhe: j.detalhe || j.erro || r.status};
+      return {texto: j.texto || "", json: extrairJSON(j.texto)};
+    } catch (e) { return {erro: "rede"}; }
+  }
+  window.BWQuadroDir = {estado: function () { return Q; }, trocar: async function (q) { for (var k in IMG) { URL.revokeObjectURL(IMG[k].url); try { await db().del("midias", "quadro-" + k); } catch (e) { } } IMG = {}; Q = q; guardar(); desenhar(); centralizar(true); },
+    guardar: guardar, desenhar: desenhar, organizar: organizar, uid: uid, historia: historia, ia: iaTexto, sessao: sessao, imagem: function (id) { return IMG[id] || null; },
+    tirarImagem: async function (id, suf) { await tirarImagem(id, suf); }, aviso: aviso, ocupado: ocupado, criarImagens: criarImagens, abrirMontar: function () { $("qdMenuMontar").hidden = false; desenharMenuMontar(); }};
   window.BWQuadro = {abrir: abrir, fechar: fechar, estado: function () { return Q; }, historia: function () { var h = historia(); return {cenas: h.cenas.map(function (c) { return c.id; }), soltas: h.soltas.length}; }, ligar: function (a, b) { var m = ligar(a, b); guardar(); desenhar(); return m; }, add: addBloco, planoVideo: planoVideo, tipoCena: tipoCena, pedidoImagem: pedidoImagem, criarImagens: criarImagens, montar: montar, usarPers: usarPers, escolherPers: escolherPers};
 })();

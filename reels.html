@@ -167,6 +167,19 @@ html.qd-aberto,html.qd-aberto body{overflow:hidden}
 .qd-trilho .cC i{color:#B79CFF}.qd-trilho .cR i{color:#6FB6FF}
 .qd-trilho .pp{background:linear-gradient(160deg,rgba(183,156,255,.28),rgba(111,182,255,.16));border-color:rgba(183,156,255,.5)}
 .qd-trilho .ok{background:#C8F65A;color:#0B0E14}.qd-trilho .ok[hidden]{display:none}
+.qd-trilho .dir{background:linear-gradient(160deg,rgba(232,181,74,.34),rgba(183,156,255,.18));border-color:rgba(232,181,74,.6)}
+.qd-dir-passos{display:flex;gap:4px;margin:10px 0 4px;padding:0;list-style:none;counter-reset:none}
+.qd-dir-passos li{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:4px;font:800 9px Inter,sans-serif;letter-spacing:.06em;color:#7C8494}
+.qd-dir-passos i{display:grid;place-items:center;width:26px;height:26px;border-radius:50%;border:2px solid #39414F;font-style:normal;font-size:12px;color:#B9C0CC}
+.qd-dir-passos li.agora{color:#E8B54A}.qd-dir-passos li.agora i{border-color:#E8B54A;color:#E8B54A}
+.qd-dir-passos li.feito{color:#C8F65A}.qd-dir-passos li.feito i{border-color:#C8F65A;background:#C8F65A;color:#0B0E14}
+.qd-dir-cena{margin:8px 0;padding:8px 10px 10px;border-radius:12px;border:1px solid rgba(183,156,255,.3);background:rgba(183,156,255,.06)}
+.qd-dir-cab{display:flex;align-items:center;justify-content:space-between;gap:6px;font:800 11px Inter,sans-serif;letter-spacing:.1em;color:#D9CCFF}
+.qd-dir-cab span{display:flex;gap:4px}
+.qd-dir-nota{margin-top:8px;font-size:12px;color:#8F97A6}
+.qd-mudou{margin:0 0 6px;padding:4px 8px;border-radius:8px;background:rgba(232,181,74,.16);border:1px solid rgba(232,181,74,.5);font:800 10px Inter,sans-serif;letter-spacing:.06em;color:#E8B54A}
+#qdDirSb{display:block;width:100%;box-sizing:border-box;padding:10px;border-radius:12px;border:1px solid rgba(245,241,234,.18);background:#0E121A;color:#F5F1EA;font:500 13px/1.4 Inter,sans-serif;text-transform:none}
+.qd-dir .qd-pp-linha button[data-dir].on{background:#FF6B6B;border-color:#FF6B6B;color:#0B0E14}
 .qd-prompt{position:absolute;inset:0;z-index:6;display:flex;justify-content:flex-end;background:rgba(5,7,11,.55)}
 .qd-prompt[hidden]{display:none}
 .qd-pp-caixa{width:min(440px,100%);height:100%;box-sizing:border-box;overflow:auto;-webkit-overflow-scrolling:touch;background:#121722;border-left:1px solid rgba(183,156,255,.35);padding:14px 14px calc(16px + env(safe-area-inset-bottom));color:#F5F1EA;font:500 13px/1.45 Inter,sans-serif}
@@ -665,6 +678,7 @@ html.qd-aberto,html.qd-aberto body{overflow:hidden}
   <p class="qd-dica" id="qdDica" aria-live="polite"></p>
   <div class="qd-area" id="qdArea">
     <div class="qd-trilho" role="toolbar" aria-label="Ferramentas do quadro">
+      <button type="button" class="dir" id="qdBtDir"><i>🎬</i>DIRETOR</button>
       <button type="button" class="cC" id="qdMaisCena"><i>＋</i>CENA</button>
       <button type="button" class="cR" id="qdMaisRef"><i>＋</i>REFERÊNCIA</button>
       <button type="button" class="pp" id="qdBtPrompt"><i>✨</i>PROMPT</button>
@@ -724,6 +738,14 @@ html.qd-aberto,html.qd-aberto body{overflow:hidden}
       <div class="qd-pp-linha"><a class="rl-bt" href="personagens.html">✨ CRIAR COM O AGENTE (ÁREA DE PERSONAGENS)</a></div>
     </div>
   </div>
+  <div class="qd-prompt" id="qdDir" hidden>
+    <div class="qd-pp-caixa qd-dir" role="dialog" aria-label="Modo diretor">
+      <div class="qd-pp-cab"><b>🎬 MODO DIRETOR</b><button class="rl-bt peq" id="qdDirFechar" type="button" aria-label="Fechar o modo diretor">✕</button></div>
+      <p>Conte a ideia e o diretor monta a história em cenas. Você aprova cada etapa e pode pedir mudanças por frase.</p>
+      <div class="rl-aviso" id="qdDirAviso" hidden aria-live="polite"></div>
+      <div id="qdDirCorpo"></div>
+    </div>
+  </div>
   <input type="file" id="qdArquivo" accept="image/*" hidden>
   <div class="rl-ocup" id="qdOcup" hidden><div><i></i><span id="qdOcupTxt">Criando…</span></div></div>
 </div>
@@ -738,7 +760,8 @@ html.qd-aberto,html.qd-aberto body{overflow:hidden}
 <script src="assets/reels-avatar.js?v=1"></script>
 <script src="assets/reels-celular.js?v=6"></script>
 <script src="assets/bw-personagens.js?v=3"></script>
-<script src="assets/reels-quadro.js?v=9"></script>
+<script src="assets/reels-quadro.js?v=10"></script>
+<script src="assets/reels-diretor.js?v=1"></script>
 <script src="assets/bw-criacoes.js?v=4"></script>
 <script src="assets/reels.js?v=18"></script>
 </body>

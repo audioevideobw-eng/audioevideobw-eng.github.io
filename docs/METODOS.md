@@ -790,3 +790,12 @@ Armadilha: classe de ESTADO não serve para destacar botão. `＋ IMPORTAR` usav
 - Luz/cor por pixel (getImageData) — vale no iPhone; PNG transparente continua transparente. Foto redonda/arco: clip no canvas e saída PNG (o pdfMake não recorta).
 - Estilo da pessoa em `kit.est` aplicado por cima do tema em `modelo()`; troca de modelo zera `est`. Chips com data-a="est" data-c="campo" data-v="valor".
 - Conferir capas novas numa folha de contato (pdftoppm -r 40 + PIL) antes de publicar.
+
+
+## Modo diretor por cima de uma ferramenta que já existe (25/11/2026)
+- A ferramenta-base expõe uma API pequena (`window.BWQuadroDir`) e o módulo novo só usa ela: estado, trocar(q), historia(), ia(sistema, pedido),
+  tirarImagem(id, "-ia"), criarImagens(), abrirMontar(). O vigia recusa fetch/https/BWSync no módulo novo.
+- Fluxo com aprovação: ideia → roteiro (JSON da IA normalizado e limitado) → o usuário edita → só então vira blocos (confirm se o quadro tem conteúdo).
+- Mudança cirúrgica: a IA recebe o roteiro numerado e devolve só `{cenas:[{n,texto,fala}]}`; aplicar marca `mudou` e apaga só a imagem daquela cena.
+- Sem login/IA: roteiro base pelas batidas do tipo de vídeo e o motivo na tela.
+- Teste: IA simulada pela frase do prompt do sistema; storyboard conferido pelo tamanho calculado no código e pelo pixel (selo âmbar, fundo marinho).

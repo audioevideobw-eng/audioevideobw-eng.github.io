@@ -289,6 +289,12 @@ if pia:
     if "confirm(" not in pia or "functions/v1/bw-ia" not in pia: problemas.append("assets/promptia.js: a imagem só pode ir para a bw-ia e depois de confirm()")
     if re.search(r"fetch\((?!FN_IA)", pia): problemas.append("assets/promptia.js: só pode chamar a Edge Function bw-ia (fetch(FN_IA…))")
     if "antesDeSalvar" in pia or "user_data" in pia: problemas.append("assets/promptia.js: o PROMPT IA não grava nada na conta do usuário")
+rdir = ler("assets/reels-diretor.js") if os.path.exists("assets/reels-diretor.js") else ""
+if rdir:
+    # MODO DIRETOR (25/11): só texto vai para a IA, pela API do quadro (BWQuadroDir.ia → bw-ia); nada gravado na conta; trocar o quadro pede confirm()
+    if re.search(r"fetch\(|XMLHttpRequest|https?://|BWSync|antesDeSalvar|user_data|\.upload\(", rdir): problemas.append("assets/reels-diretor.js: não fala com a internet nem com a conta (só pela API do quadro)")
+    if "confirm(" not in rdir: problemas.append("assets/reels-diretor.js: trocar o quadro atual pelo roteiro precisa de confirm()")
+    if "(?<" in rdir: problemas.append("assets/reels-diretor.js: regex com lookbehind quebra o Safari antigo")
 pjs = ler("assets/personagens.js") if os.path.exists("assets/personagens.js") else ""
 if pjs:
     if [u for u in re.findall(r"https?://[^\s\"']+", pjs) if "functions/v1/bw-ia" not in u]: problemas.append("assets/personagens.js: só pode chamar a Edge Function bw-ia")
