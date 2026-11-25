@@ -2820,6 +2820,7 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   site de hoje (360 arquivos), tutorial em PDF (17 p.) e novidades (press kit, enquadrar e ajustar, estilo ao vivo). teste-app 0 falhas (28 ferramentas).
   Pacote e app-versao.json publicados (aviso de atualização para quem está na 1.9.51). BW-Setup.exe 1.9.52: depende do PC do dono.
 ## Pendências (dono)
+- [x] (25/11 15:47) BW-Setup.exe 1.9.52 gerado pelo dono e publicado (15,6 MB, versão conferida dentro do .exe).
 - [ ] (25/11) PRESS KIT: dono testar no celular e no PC — 🎙 CONTAR SOBRE MIM falando, 🎙 FALAR num texto e baixar o PDF; dizer quais modelos faltam.
 - [x] (25/11 13:01) BW-Setup.exe 1.9.51 gerado pelo dono e publicado (15,3 MB, versão conferida dentro do .exe).
 - [x] (25/11 11:37) BW-Setup.exe 1.9.50 gerado pelo dono e publicado (13,2 MB, versão conferida dentro do .exe; maior pela cópia sem internet com as fotos dos tutoriais).
