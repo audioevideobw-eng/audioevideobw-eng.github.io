@@ -2705,7 +2705,7 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
 ## Pendências (dono)
 - [ ] (25/11) DECUPAGEM COM IA: (1) dono criar a chave em aistudio.google.com → Get API key e colar em Supabase → Edge Functions → Secrets como
       GEMINI_API_KEY (de preferência num projeto com faturamento ativo: no grátis o Google usa os vídeos para melhorar os produtos; o pago custa
-      centavos por take); (2) publicar a função bw-ia-video pelo painel (Verify JWT DESLIGADO — a função confere o login) — o Claude faz com o "sim";
+      centavos por take); (2) [x] função bw-ia-video PUBLICADA 25/11 09:20 (SHA-256 065bb710… igual ao repo antes e depois; Verify JWT desligado; no ar: ping 200 {pronta:false}, sem login 401);
       (3) teste real com um take do dono.
 - [x] (25/11 09:02) BW-Setup.exe 1.9.48 gerado pelo dono e publicado (9,2 MB, versão conferida dentro do .exe).
 - [x] (25/11 08:36) BW-Setup.exe 1.9.47 gerado pelo dono e publicado (9,2 MB, versão conferida dentro do .exe).
