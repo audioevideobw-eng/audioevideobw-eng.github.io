@@ -2650,6 +2650,7 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
 - 24/11/2026 22:50 · Claude: APP BW 1.9.45 publicado (pacote, app-versao.json, cópia sem internet com o site de hoje — prévias vivas, remover atributos
   no vídeo, menu da transição, arrasto sem selecionar texto —, tutorial e novidades). teste-app 0 falhas. BW-Setup.exe 1.9.45: depende do PC do dono.
 ## Pendências (dono)
+- [x] (24/11 23:02) BW-Setup.exe 1.9.45 gerado pelo dono e publicado (9,3 MB, versão conferida dentro do .exe).
 - [x] (24/11 18:28) BW-Setup.exe 1.9.44 gerado pelo dono e publicado (9,2 MB, versão conferida dentro do .exe).
 - [ ] (24/11 15:05) GOOGLE PLAY: dono PEDIU o D-U-N-S (Dun & Bradstreet, grátis, 5–30 dias). Quando chegar: criar a conta de ORGANIZAÇÃO em
       play.google.com/console/signup (CNPJ + D-U-N-S, US$ 25) e avisar o Claude → gerar .aab + chave de assinatura fixa (segredos no GitHub) + ficha da loja.
