@@ -2876,6 +2876,7 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   Marcos, da Brightway"; sem o áudio certo volta a voz do aparelho. Google Cloud conferido: o ElevenLabs lá é só por oferta privada (empresa) — assinatura direta é o caminho.
   Sobrou no bucket trends/narracao/teste-voz.mp3 (o bucket não tem regra de apagar). teste_tutoriais 0 falhas. Manual 78 p. tutoriais.js v8, quadros.js v5, sw v250. PENTE FINO 243.
 ## Pendências (dono)
+- [x] (26/11 09:41) BW-Setup.exe 1.9.56 gerado pelo dono e publicado (17 MB, versão conferida dentro do .exe).
 - [x] (25/11 22:23) BW-Setup.exe 1.9.55 gerado pelo dono e publicado (16,4 MB, versão conferida dentro do .exe).
 - [x] (25/11 17:16) BW-Setup.exe 1.9.54 gerado pelo dono e publicado (15,5 MB, versão conferida dentro do .exe).
 - [ ] (25/11) PRESS KIT: testar foto em cada cartão, ☰ OPÇÕES PRONTAS, ✕ TIRAR ESTA PARTE e abrir os links do PDF no celular.
