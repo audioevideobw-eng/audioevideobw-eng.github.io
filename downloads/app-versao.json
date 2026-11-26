@@ -1,19 +1,19 @@
 {
- "versao": "1.9.55",
- "data": "25/11/2026",
+ "versao": "1.9.56",
+ "data": "26/11/2026",
  "pacote": "downloads/BW-Reels-Studio.zip",
- "sha256": "ac7a78a4dfb7eb00c6548c6c45e5b80b7b9b5673bef2fec19fd64f092faa5e06",
- "bytes": 49898938,
+ "sha256": "84b41d22cf112e7a0ec1bbbcbf4a3b3488ec2fc318f991140967a982b5ce7220",
+ "bytes": 51572379,
  "novidades": [
   {
-   "titulo": "Tutorial do press kit",
-   "texto": "Em TUTORIAIS → Fotos e artes: o passo a passo de um press kit de ator profissional, com as telas de verdade e o PDF pronto.",
+   "titulo": "Tutoriais com a voz do Marcos",
+   "texto": "A narração de todos os tutoriais agora é a voz do Marcos, da Brightway, gravada, com o fundo musical baixinho.",
    "abrir": "tutoriais"
   },
   {
-   "titulo": "Ator profissional nas opções",
-   "texto": "No press kit, em O que você faz, as opções prontas ganharam Ator profissional e Atriz profissional.",
-   "abrir": "presskit"
+   "titulo": "Tutorial do modo diretor",
+   "texto": "Do pedido de um aftermovie ao roteiro, às imagens, à mudança de uma cena só e ao storyboard 3×3 — com as telas de verdade.",
+   "abrir": "tutoriais"
   }
  ]
 }

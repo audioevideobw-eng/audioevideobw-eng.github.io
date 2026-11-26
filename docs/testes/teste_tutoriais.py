@@ -56,6 +56,11 @@ with sync_playwright() as p:
         pg.wait_for_timeout(1500)
         fala = " ".join(pg.evaluate("window.__falou"))
         ok(fala.startswith("Olá, sou o seu assistente virtual, e vou te ensinar a usar a tela inicial"), f"narração começa com 'Olá, sou o seu assistente virtual, e vou te ensinar a…' ({fala[:60]})")
+        sem = pg.evaluate("__tut.TUT.flatMap(t=>t.passos.map((p,i)=>__tut.audioGravado(t,i)?null:t.id+'-'+i)).filter(Boolean)")
+        ok(not sem, f"todo passo tem a narração GRAVADA na voz do dono (faltando: {sem[:5]})")
+        g0 = pg.evaluate("__tut.textoGravado(__tut.TUT.find(t=>t.id==='tela-inicial'),0)")
+        ok(g0.startswith("Olá, eu sou o Marcos, da Brightway, e vou te ensinar a usar a tela inicial"), f"a narração gravada começa com 'Olá, eu sou o Marcos…' ({g0[:50]})")
+        ok("bê dáblio" in pg.evaluate("__tut.textoGravado(__tut.TUT.find(t=>t.id==='instalar-app'),0)"), "a sigla BW é falada 'bê dáblio'")
         q = pg.evaluate("__tut.quadros(__tut.TUT.find(t=>t.id==='tela-inicial'),0)"); r = q[0]["r"]
         k = pg.evaluate("document.querySelector('.tf-foto').clientWidth/390"); dd = pg.evaluate("(()=>{const d=document.querySelector('.tf-dedo'),f=document.querySelector('.tf-foto');return [parseFloat(d.style.left), parseFloat(d.style.top)-f.offsetTop]})()")
         ok(abs(dd[0] - (r[0] + r[2] / 2) * k) < 3 and abs(dd[1] - (r[1] + r[3] / 2) * k) < 3, f"o dedo vai EXATAMENTE onde fica o botão real ({dd} × {r})")

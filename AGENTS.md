@@ -1090,6 +1090,12 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
      exemplo que sobraria do modelo (silhueta desenhada do retrato) tirada antes — no PDF final ela aparecia como um boneco amarelo. Passo que
      termina em arquivo de várias páginas mostra as PRIMEIRAS (quadro_arquivo com número negativo).
 
+243. NARRAÇÃO GRAVADA (dono, 26/11: "troque todas as narrações pela minha voz"): os tutoriais tocam o MP3 da voz clonada do dono (ElevenLabs) quando o
+     manifesto assets/tutoriais/narracao.js tem o passo com a MESMA conta (h8) do texto falado; senão, a voz do aparelho. Mudou passo de tutorial = gerar de novo
+     o áudio daquele passo (node docs/tutoriais/narracao.mjs --falta) no mesmo commit. Texto para voz: sem palavras em MAIÚSCULAS (a voz soletra), "BW" = "bê dáblio".
+     MODO DIRETOR no tutorial: respostas REAIS da IA gravadas no navegador do dono e repetidas na captura pela ordem (roteiro → textos → imagens → mudança); o aviso de
+     CRIAR IMAGENS vai para #qdAviso (não #qdDirAviso) e o painel do diretor FECHA sozinho depois — reabrir com BWDiretor.abrir() (auto: teste_tutoriais.py).
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -2862,6 +2868,13 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   Exemplo: Rafael Duarte, ator INVENTADO (foto criada pela IA da plataforma, conta ADM). Opções prontas ganharam Ator profissional e Atriz profissional.
   teste_tutoriais e teste_presskit 0 falhas; vigia ✅. Manual 78 p. App BW 1.9.55 (cópia sem internet, tutorial, novidades). tutoriais.js v7,
   quadros.js v4, presskit.js v7, sw v249. PENTE FINO 242.
+- 26/11/2026 10:40 · Claude (dono: "comece pelo tutorial do modo diretor… exemplos reais e lógicos, sem inventar" + "troque todas as narrações pela minha voz, tenho um
+  clone no ElevenLabs — MARCOS BONFÁ"): (1) TUTORIAL MODO DIRETOR em Editor de vídeo (8 passos, 32 fotos das telas de verdade): aftermovie da convenção de vendas de uma
+  cooperativa (600 pessoas, telão de LED, premiação) com o roteiro, as 4 imagens, a mudança "cena 2 à noite, hall em azul" e o storyboard 3×3 REAIS da IA da plataforma
+  (gerados no navegador do dono e repetidos na captura). (2) NARRAÇÃO NA VOZ DO DONO: 72 passos dos 18 tutoriais gravados no ElevenLabs (voz clonada, ~12 mil
+  caracteres do plano Starter), no bucket trends/narracao/ (SQL 2026-11-26-narracao-audio.sql rodado com o "pode" do dono: o bucket aceita MP3); abre com "Olá, eu sou o
+  Marcos, da Brightway"; sem o áudio certo volta a voz do aparelho. Google Cloud conferido: o ElevenLabs lá é só por oferta privada (empresa) — assinatura direta é o caminho.
+  Sobrou no bucket trends/narracao/teste-voz.mp3 (o bucket não tem regra de apagar). teste_tutoriais 0 falhas. Manual 78 p. tutoriais.js v8, quadros.js v5, sw v250. PENTE FINO 243.
 ## Pendências (dono)
 - [x] (25/11 22:23) BW-Setup.exe 1.9.55 gerado pelo dono e publicado (16,4 MB, versão conferida dentro do .exe).
 - [x] (25/11 17:16) BW-Setup.exe 1.9.54 gerado pelo dono e publicado (15,5 MB, versão conferida dentro do .exe).

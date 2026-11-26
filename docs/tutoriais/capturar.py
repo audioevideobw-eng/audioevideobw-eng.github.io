@@ -50,6 +50,42 @@ LIBS = os.environ.get("BW_LIBS_PDF", "/tmp/libs")   # pdf-lib 1.17.1 e pdfjs-dis
 RECIBOS = [os.path.join(EXEMPLOS, f"recibo-{i}.jpg") for i in (1, 2, 3)]
 ORCAMENTO = os.path.join(EXEMPLOS, "orcamento.pdf"); CONTRATO = os.path.join(EXEMPLOS, "contrato.pdf")
 
+# MODO DIRETOR: respostas REAIS da IA da plataforma (26/11, conta do dono, bw-ia nível inteligente + bw-ia-imagem) para a ideia do exemplo,
+# na ordem em que vieram: roteiro → textos das imagens → 4 imagens → pedido de mudança → textos de novo → imagem nova da cena 2.
+DIR_IDEIA = ("Aftermovie da convenção anual de vendas de uma cooperativa: 600 pessoas num centro de convenções, palco com telão de LED, "
+             "premiação dos melhores vendedores e show no encerramento.")
+DIR_MUD = "A cena 2 acontece à noite, com o hall iluminado em azul"
+DIR_ROT = {"titulo": "Aftermovie Convenção de Vendas", "personagem": None, "lugares": ["Centro de convenções vazio, estrutura de montagem e luzes", "Hall de entrada com público animado", "Palco com telão LED e bancada de premiação", "Área de catering com comida, decoração e sorrisos"],
+  "cenas": [{"texto": "Montagem finalizada, luzes se acendem, plano aberto mostrando o centro de convenções.", "fala": "Bem-vindos à Convenção!", "lugar": 0},
+            {"texto": "Público de 600 pessoas entra animado, câmera na mão captura a energia contagiante.", "fala": "A energia está alta!", "lugar": 1},
+            {"texto": "Premiação dos melhores vendedores no palco, telão LED ilumina, contraluz destaca os vencedores.", "fala": "Parabéns aos campeões!", "lugar": 2},
+            {"texto": "Close em sorrisos, pratos gourmet e decoração vibrante, celebrando o sucesso.", "fala": "", "lugar": 3}], "final": "Junte-se ao próximo sucesso!"}
+DIR_ARTE1 = {"gancho": "A magia da convenção começa!", "cenas": [{"prompt": "Wide angle of empty convention center, lights turning on, bright ambient lighting", "fala": "Bem-vindos à Convenção!"},
+  {"prompt": "Handheld camera follows enthusiastic crowd of 600 entering hall, dynamic movement, warm lighting", "fala": "A energia está alta!"},
+  {"prompt": "Backlit stage with LED screen glowing, award podium, winners highlighted, dramatic lighting", "fala": "Parabéns aos campeões!"},
+  {"prompt": "Close-up of smiling faces, gourmet dishes, vibrant décor, soft colorful lighting", "fala": "Brindamos ao sucesso e à boa comida!"}],
+  "legenda": "Confira os momentos inesquecíveis da nossa convenção: energia, celebração e sucesso dos melhores vendedores."}
+DIR_MUDOU = {"cenas": [{"n": 2, "texto": "À noite, o hall iluminado em azul recebe o público de 600 pessoas animado, câmera na mão captura a energia contagiante.", "fala": "A energia está alta!"}], "final": None, "personagem": None}
+DIR_ARTE2 = {"gancho": "A magia da convenção começa", "cenas": [{"prompt": "Wide shot of empty convention center interior as assembly lights flare on", "fala": "Bem-vindos à Convenção!"},
+  {"prompt": "Handheld camera moves through blue-lit hall filled with lively crowd", "fala": "A energia está alta!"},
+  {"prompt": "Stage with LED screen glowing, backlit winners receiving awards", "fala": "Parabéns aos campeões!"},
+  {"prompt": "Close-up of smiling faces, gourmet plates and vibrant decorations", "fala": "Sorrisos e sabores celebram nosso sucesso!"}],
+  "legenda": "Confira os melhores momentos da nossa convenção: luzes, energia, premiações e celebrações gastronômicas."}
+def _dir_ia(corpo):
+    """Qual resposta real da bw-ia o MODO DIRETOR recebe, pelo pedido que a página mandou."""
+    if "diretor de vídeos curtos" in corpo: return DIR_ROT
+    if "Recebe o roteiro atual" in corpo: return DIR_MUDOU
+    if "diretor de arte de Reels" in corpo and "convenç" in corpo.lower(): return DIR_ARTE2 if "azul" in corpo else DIR_ARTE1
+    return None
+def _dir_img(corpo):
+    """A imagem REAL que a IA criou para cada cena, achada pelo prompt em inglês que a página manda."""
+    c = corpo.lower()
+    for chave, nome in (("blue-lit", "diretor-c2-noite"), ("empty convention", "diretor-c1"), ("crowd", "diretor-c2-dia"), ("led screen", "diretor-c3"), ("close-up", "diretor-c4")):
+        if chave in c:
+            im = Image.open(os.path.join(EXEMPLOS, nome + ".webp")).convert("RGB").resize((576, 1024), Image.LANCZOS)
+            bio = io.BytesIO(); im.save(bio, "JPEG", quality=90); import base64; return base64.b64encode(bio.getvalue()).decode()
+    return None
+
 def quadro_arquivo(caminho, nome, destino, ultimas=0):
     """O ÚLTIMO quadro de um passo que baixa um arquivo: o ARQUIVO DE VERDADE aberto (páginas do PDF), regra 236."""
     import subprocess, tempfile, glob as _g
@@ -78,6 +114,23 @@ def quadro_arquivo(caminho, nome, destino, ultimas=0):
         im.paste(p.resize((larg, h), Image.LANCZOS), (x, y)); y += h + esp
     im.save(destino, "WEBP", quality=80, method=6)
 
+def quadro_imagem(caminho, nome, destino):
+    """O ÚLTIMO quadro de um passo que baixa uma IMAGEM: a imagem de verdade, inteira, na moldura da marca (regra 236/237)."""
+    from PIL import ImageDraw, ImageFont, ImageFilter
+    E = 2; Wc, Hc = W * E, H * E
+    im = Image.new("RGB", (Wc, Hc), (11, 18, 34)); d = ImageDraw.Draw(im)
+    fb = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 15 * E); fn = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 12 * E)
+    d.rectangle([0, 0, Wc, 58 * E], fill=(14, 27, 51)); d.rectangle([0, 58 * E, Wc, 58 * E + 3], fill=(232, 181, 74))
+    p = Image.open(caminho).convert("RGB")
+    d.text((16 * E, 12 * E), nome, font=fb, fill=(240, 240, 240))
+    d.text((16 * E, 33 * E), f"Imagem pronta · {p.width} × {p.height} px", font=fn, fill=(62, 207, 142))
+    topo = 70 * E; area_w, area_h = Wc - 40 * E, Hc - topo - 16 * E
+    k = min(area_w / p.width, area_h / p.height); w, h = int(p.width * k), int(p.height * k); x = (Wc - w) // 2
+    sombra = Image.new("RGBA", (w + 40, h + 40), (0, 0, 0, 0)); ImageDraw.Draw(sombra).rectangle([20, 24, w + 20, h + 24], fill=(0, 0, 0, 150))
+    sombra = sombra.filter(ImageFilter.GaussianBlur(10)); im.paste(sombra, (x - 20, topo - 20), sombra)
+    im.paste(p.resize((w, h), Image.LANCZOS), (x, topo))
+    im.save(destino, "WEBP", quality=82, method=6)
+
 def _decup(u):
     import re as _re
     m = _re.search(r"dur=(\d+)", u); d = int(m.group(1)) if m else 13
@@ -97,6 +150,10 @@ def rota(r):
     if "pdf-lib@1.17.1/dist/pdf-lib.min.js" in u: return r.fulfill(path=os.path.join(LIBS, "pdf-lib.min.js"), content_type="application/javascript", headers=cab)
     if "pdfjs-dist@4.10.38/build/" in u:
         n = u.rsplit("/", 1)[1]; return r.fulfill(path=os.path.join(LIBS, n), content_type="text/javascript", headers=cab)
+    corpo = (r.request.post_data_buffer or b"").decode("utf-8", "ignore")
+    if ("functions/v1/bw-ia?" in u or u.endswith("functions/v1/bw-ia")) and _dir_ia(corpo):
+        return r.fulfill(status=200, body=json.dumps({"texto": json.dumps(_dir_ia(corpo), ensure_ascii=False), "modelo": "openai/gpt-oss-120b", "nivel": "inteligente"}), content_type="application/json", headers=cab)
+    if "functions/v1/bw-ia-imagem" in u and _dir_img(corpo): return r.fulfill(status=200, body=json.dumps({"imagem": _dir_img(corpo)}), content_type="application/json", headers=cab)
     if ("functions/v1/bw-ia?" in u or u.endswith("functions/v1/bw-ia")) and "Produtora Exemplo em BH" in (r.request.post_data_buffer or b"").decode("utf-8", "ignore"):
         return r.fulfill(status=200, body=json.dumps({"texto": LEGENDA, "modelo": "openai/gpt-oss-20b", "nivel": "rapido"}), content_type="application/json", headers=cab)
     if "functions/v1/bw-ia?" in u or u.endswith("functions/v1/bw-ia"):   # IA de texto do assistente (resposta no formato real)
@@ -148,7 +205,32 @@ PK_FOTO = PK_ATOR + [("arquivo", "input[data-up='capa']", [FOTO_ATOR]), ("espera
   ("js", "var e=document.getElementById('f_d_slogan');e.value='Ator profissional';e.dispatchEvent(new Event('input',{bubbles:true}))"), ("espera", 600), TOPO]
 PK_PRONTO = PK_FOTO + [("clique", "[data-a=tirarParte][data-s=galeria]"), ("espera", 900), TOPO]
 
+# MODO DIRETOR (aftermovie da convenção de vendas, 4 cenas, tom emocionante): cada passo refaz o caminho até ali na página de verdade
+ESPERA_AVISO = lambda txt: ("js", "new Promise((ok,no)=>{const t0=Date.now(),t=setInterval(()=>{const x=['qdDirAviso','qdAviso','qdDica'].map(i=>(document.getElementById(i)||{}).textContent||'').join(' ');"
+    "if(x.indexOf(" + json.dumps(txt) + ")>=0){clearInterval(t);ok()}else if(Date.now()-t0>150000){clearInterval(t);no('sem aviso '+x+' | ocup='+((document.getElementById('qdOcupTxt')||{}).innerText||''))}},250)})")
+DIR_0 = [("abrir", "reels.html?quadro=1"), ("esperasel", "#folhaQuadro:not([hidden])"), ("espera", 600), ("clique", "#qdBtDir"), ("esperasel", "#qdDirIdeia")]
+DIR_1 = DIR_0 + [("clique", "[data-ini=evento]"), ("js", "var t=document.getElementById('qdDirIdeia');t.value=" + json.dumps(DIR_IDEIA) + ";t.dispatchEvent(new Event('input',{bubbles:true}))"),
+                 ("clique", "[data-tom=emocionante]"), ("clique", "[data-n='4']")]
+DIR_2 = DIR_1 + [("clique", "[data-dir=escrever]"), ("esperasel", "[data-dir=montar]")]
+DIR_3 = DIR_2 + [("clique", "[data-dir=montar]"), ("esperasel", "[data-dir=imagens]")]
+DIR_4 = DIR_3 + [("clique", "[data-dir=imagens]"), ESPERA_AVISO("criada"), ("js", "BWDiretor.abrir()"), ("espera", 500)]
+DIR_5 = DIR_4 + [("js", "var t=document.getElementById('qdDirMud');t.value=" + json.dumps(DIR_MUD) + ";t.dispatchEvent(new Event('input',{bubbles:true}))"),
+                 ("clique", "[data-dir=mudar]"), ESPERA_AVISO("Mudei só"), ("clique", "[data-dir=imagens]"), ESPERA_AVISO("1 imagem(ns) criada"), ("js", "BWDiretor.abrir()"), ("espera", 500)]
+VER_QUADRO = [("js", "BWDiretor.fechar()"), ("espera", 500), ("js", "document.getElementById('qdOrganizar').click()"), ("espera", 900)]
+
 ROTEIROS = {
+  "diretor": {
+    0: [("abrir", "index.html"), ("toque", ".bw-abas >> text=Marketing"), ("rolar", 'a.menu-card[href="reels.html"]'), ("toque", 'a.menu-card[href="reels.html"]')],
+    1: [("abrir", "reels.html"), ("espera", 1200), ("talvez", "#btFecharModelos"), TOPO, ("toque", "#btQuadro"), ("espera", 900), ("toque", "#qdBtDir"), ("esperasel", "#qdDirIdeia")],
+    2: DIR_0 + [("toque", "[data-ini=evento]"), ("digita", "#qdDirIdeia", DIR_IDEIA), ("rolar", "[data-tom=emocionante]"), ("toque", "[data-tom=emocionante]"), ("toque", "[data-n='4']")],
+    3: DIR_1 + [("rolar", "[data-dir=escrever]"), ("toque", "[data-dir=escrever]"), ("esperasel", "[data-dir=montar]"), ("js", "document.querySelector('#qdDirCorpo h4').scrollIntoView({block:'start'})"),
+        ("foto",), ("rolar", "[data-dir=montar]")],
+    4: DIR_2 + [("rolar", "[data-dir=montar]"), ("toque", "[data-dir=montar]"), ("esperasel", "[data-dir=imagens]"), ("foto",)] + VER_QUADRO,
+    5: DIR_3 + [("toque", "[data-dir=imagens]"), ESPERA_AVISO("criada"), ("foto",)] + VER_QUADRO,
+    6: DIR_4 + [("rolar", "#qdDirMud"), ("digita", "#qdDirMud", DIR_MUD), ("toque", "[data-dir=mudar]"), ESPERA_AVISO("Mudei só"), ("foto",),
+        ("toque", "[data-dir=imagens]"), ESPERA_AVISO("1 imagem(ns) criada")] + VER_QUADRO,
+    7: DIR_5 + [("rolar", "[data-dir=storyboard]"), ("baixaimg", "[data-dir=storyboard]")],
+  },
   "presskit": {
     0: [("abrir", "index.html"), ("toque", ".bw-abas >> text=Marketing"), ("rolar", 'a.menu-card[href="presskit.html"]'), ("toque", 'a.menu-card[href="presskit.html"]')],
     1: [("abrir", "presskit.html"), ("toque", "[data-a=novo]"), ("rolar", "[data-a=usarModelo][data-m=ator]"), ("toque", "[data-a=usarModelo][data-m=ator]"), ("espera", 1500), TOPO],
@@ -330,6 +412,19 @@ def main(so):
                         foto("ver")   # a página com o aviso "✓ …"
                         nome = f"{tid}-{pi}-{n}.webp"; n += 1
                         quadro_arquivo(arq, dl.value.suggested_filename, os.path.join(SAI, nome), a[2] if len(a) > 2 else 0); os.remove(arq)
+                        lista.append({"img": nome, "acao": "fim"}); sem_fim = True
+                    elif k == "baixaimg":
+                        el = pg.locator(a[1]).first
+                        try: el.scroll_into_view_if_needed(timeout=3000)
+                        except Exception: pass
+                        foto("toque", a[1])
+                        with pg.expect_download(timeout=60000) as dl: el.click(force=True, timeout=5000)
+                        arq = os.path.join(SAI, "_baixado.png"); dl.value.save_as(arq); pg.wait_for_timeout(900)
+                        try: pg.locator("#qdDirSbCx").evaluate("e=>e.scrollIntoView({block:'center'})")
+                        except Exception: pass
+                        foto("ver")
+                        nome = f"{tid}-{pi}-{n}.webp"; n += 1
+                        quadro_imagem(arq, dl.value.suggested_filename, os.path.join(SAI, nome)); os.remove(arq)
                         lista.append({"img": nome, "acao": "fim"}); sem_fim = True
                     elif k == "desenha":
                         el = pg.locator(a[1]).first; el.scroll_into_view_if_needed(); foto("toque", a[1])

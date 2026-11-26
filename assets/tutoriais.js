@@ -106,6 +106,20 @@
         ["Quero voltar a usar a da plataforma.", "Toque em USAR A DA PLATAFORMA. A chave continua salva para quando quiser."]
       ] },
 
+    { id: "diretor", cat: "video", ic: "🎬", titulo: "Modo diretor: do roteiro ao storyboard", ensina: "transformar uma ideia de vídeo em roteiro, imagens e storyboard com o modo diretor", min: 5, nivel: "Médio",
+      resumo: "Conte a ideia do vídeo, a IA escreve o roteiro em cenas, monta o quadro e desenha cada cena. Peça mudanças por frase e baixe o storyboard 3×3.",
+      link: ["reels.html?quadro=1", "ABRIR O QUADRO DE HISTÓRIA"],
+      passos: [
+        { t: "Abra o BW REELS PRO", d: "Na barra de baixo, toque em MARKETING. Em EDIÇÃO DE FOTO E VÍDEO, toque em BW REELS PRO." },
+        { t: "Entre no modo diretor", d: "Toque em QUADRO DE HISTÓRIA e, na faixa de ferramentas à esquerda, toque em DIRETOR." },
+        { t: "Conte a ideia", d: "Toque em Aftermovie de evento e escreva a ideia (ou toque em FALAR). No exemplo: a convenção anual de vendas de uma cooperativa, com 600 pessoas, palco com telão de LED, premiação e show. Escolha o tom Emocionante e 4 cenas." },
+        { t: "Escreva o roteiro", d: "Toque em ESCREVER O ROTEIRO. A IA devolve o título, os lugares e as 4 cenas com as falas. Mude qualquer texto, suba, desça ou tire uma cena antes de seguir." },
+        { t: "Monte o quadro", d: "Toque em MONTAR O QUADRO. As cenas viram blocos ligados em ordem, cada uma ligada ao lugar dela. Feche o painel para ver o quadro e mexer à mão." },
+        { t: "Crie as imagens", d: "Toque em CRIAR IMAGENS e confirme. A IA desenha uma imagem para cada cena: o salão vazio, o público entrando, a premiação no palco e o encerramento." },
+        { t: "Peça uma mudança", d: "Em PEDIR MUDANÇA, escreva o que mudar. No exemplo: a cena 2 acontece à noite, com o hall iluminado em azul. Toque em MUDAR SÓ O QUE PEDI e depois em CRIAR IMAGENS: só a cena 2 é desenhada de novo." },
+        { t: "Baixe o storyboard", d: "Toque em STORYBOARD 3×3. Sai uma imagem com as cenas numeradas e o texto pronto para colar numa IA de vídeo. Para montar o reel aqui, toque em MONTAR O VÍDEO." }
+      ] },
+
     { id: "decupar", cat: "video", ic: "🧠", titulo: "Decupar os takes com IA", ensina: "decupar os takes do seu evento com a inteligência artificial", min: 4, nivel: "Médio",
       resumo: "A IA assiste aos takes e devolve os melhores trechos com nota e a fala.",
       link: ["video.html", "ABRIR O EDITOR DE VÍDEO"],
@@ -359,6 +373,31 @@
     if (/^[A-ZÀ-Ý][a-zà-ÿ]/.test(d)) d = d.charAt(0).toLowerCase() + d.slice(1);
     return abre + d + (ult ? " E pronto! Viu como é fácil? Quando quiser, é só me chamar." : "");
   }
+  /* 26/11, dono: "TROQUE TODAS AS NARRAÇÕES PELA MINHA VOZ" — cada passo tem um MP3 gravado com a voz clonada do dono no ElevenLabs
+     ("MARCOS BONFÁ"), em trends/narracao/<tutorial>-<passo>-<conta>.mp3 (docs/tutoriais/narracao.py). A conta (h8) é do TEXTO falado:
+     se o passo mudar de texto e o áudio não for refeito, toca a voz do aparelho (nunca um áudio que diz outra coisa). */
+  var NARRA_URL = "https://zdtnetplvdonogmdvarx.supabase.co/storage/v1/object/public/trends/narracao/";
+  /*NARRA-INI*/
+  function h8(s) { var h = 5381; for (var ch of s) h = ((h * 33) ^ ch.codePointAt(0)) >>> 0; return ("0000000" + h.toString(16)).slice(-8); }
+  var SIGLAS = {BW: 1, IA: 1, LED: 1, PDF: 1, PJ: 1, PF: 1, API: 1, HD: 1, QR: 1, CPF: 1, CNH: 1, PIX: 1, UGC: 1, DJ: 1, AI: 1, BH: 1, USB: 1, GB: 1, MP4: 1, CDB: 1};
+  function limpaGravado(x) {   /* o texto que a voz gravada fala: sem símbolos, sem palavras em MAIÚSCULAS (a voz leria como sigla), siglas de verdade ficam */
+    x = String(x).replace(/\p{Extended_Pictographic}|\uFE0F|\u200D/gu, "").replace(/(\d)\s*×\s*(\d)/g, "$1 por $2").replace(/[＋+✓✕⧉·→↗↺▸▾⬇📋×]/g, " ");
+    x = x.replace(/(^|[^A-Za-zÀ-ÿ0-9])([A-ZÀ-Ý0-9]+(?: [A-ZÀ-Ý0-9]+)*)(?![A-Za-zÀ-ÿ0-9])/g, function (m0, antes, run) {
+      var ws = run.split(" "); if (!ws.some(function (w) { return w.length > 1 && /[A-ZÀ-Ý]/.test(w); })) return m0;
+      return antes + ws.map(function (w) { return SIGLAS[w] || /^\d+$/.test(w) ? w : w === "IAS" ? "IAs" : w.toLowerCase(); }).join(" ");
+    });
+    return x.replace(/\s+/g, " ").trim().replace(/([.!?]\s+)([a-zà-ÿ])/g, function (m0, a, b) { return a + b.toUpperCase(); }).replace(/(^|[^A-Za-z])BW(?![A-Za-z])/g, "$1bê dáblio");   /* a marca se fala "bê dáblio" */
+  }
+  function textoGravado(t, i) {
+    var p = t.passos[i], d = limpaGravado(p.d), ult = i === t.passos.length - 1;
+    var abre = i === 0 ? "Olá, eu sou o Marcos, da Brightway, e vou te ensinar a " + limpaGravado(t.ensina || t.titulo.toLowerCase()) + ". Primeiro: " : LIGA[(i - 1) % LIGA.length];
+    if (i > 0 && /^(depois|agora|em seguida|próximo)\b/i.test(d)) abre = "Então, ";
+    if (/^[A-ZÀ-Ý]([a-zà-ÿ]|\s)/.test(d)) d = d.charAt(0).toLowerCase() + d.slice(1);
+    return abre + d + (ult ? (/\bpronto\b/i.test(d) ? " Viu como é fácil? Quando quiser, é só me chamar." : " E pronto! Viu como é fácil? Quando quiser, é só me chamar.") : "");
+  }
+  /*NARRA-FIM*/
+  function audioGravado(t, i) { var m = window.BW_TUT_NARRA || {}, h = h8(textoGravado(t, i)); return m[t.id + "-" + i] === h ? NARRA_URL + t.id + "-" + i + "-" + h + ".mp3" : null; }
+  var AUD = null;
   var MUS = null;
   function musica(liga) {
     if (!liga) { if (MUS) { var m0 = MUS; MUS = null; clearInterval(m0.tm); try { m0.g.gain.setTargetAtTime(0, m0.c.currentTime, 0.4); setTimeout(function () { try { m0.c.close(); } catch (e) { } }, 1600); } catch (e) { } } return; }
@@ -387,10 +426,23 @@
     agenda(); MUS = { c: c, g: g, tm: setInterval(agenda, 180) };
   }
   function abaixar(sim) { if (MUS) try { MUS.g.gain.setTargetAtTime(sim ? 0.022 : 0.055, MUS.c.currentTime, 0.25); } catch (e) { } }
-  function calar() { try { if (window.speechSynthesis && (speechSynthesis.speaking || speechSynthesis.pending)) speechSynthesis.cancel(); } catch (e) { } }
+  function calar() { if (AUD) { try { AUD.onended = AUD.onerror = null; AUD.pause(); } catch (e) { } AUD = null; } try { if (window.speechSynthesis && (speechSynthesis.speaking || speechSynthesis.pending)) speechSynthesis.cancel(); } catch (e) { } }
   function narrar(i, run) {
     var t = P.t, S = window.speechSynthesis;
-    if (!P.som || !prefSom().narra || !S) { P.falaOk = true; return; }
+    if (!P.som || !prefSom().narra) { P.falaOk = true; return; }
+    var gravado = audioGravado(t, i);
+    if (gravado) {   /* a voz do dono, gravada */
+      var a = new Audio(gravado), fim = false; AUD = a; a.preload = "auto";
+      var pronto = function () { if (fim || !P || P.run !== run) return; fim = true; AUD = null; abaixar(false); P.falaOk = true; seguir(run); };
+      a.onended = pronto; a.onerror = function () { if (fim) return; fim = true; AUD = null; if (P && P.run === run) narrarAparelho(i, run); };
+      abaixar(true); var tp = a.play(); if (tp && tp.catch) tp.catch(function () { if (fim) return; fim = true; AUD = null; if (P && P.run === run) narrarAparelho(i, run); });
+      return;
+    }
+    narrarAparelho(i, run);
+  }
+  function narrarAparelho(i, run) {
+    var t = P.t, S = window.speechSynthesis;
+    if (!S) { P.falaOk = true; seguir(run); return; }
     var pedacos = (textoNarrado(t, i).match(/[^.!?:]+[.!?:]*\s*/g) || []).map(function (x) { return x.trim(); }).filter(Boolean), v = null, n = 0;
     try { v = window.BWAgente && BWAgente.voz && BWAgente.voz(); } catch (e) { }
     var acabou = function () { if (!P || P.run !== run) return; abaixar(false); P.falaOk = true; seguir(run); };
@@ -475,5 +527,5 @@
   $("tuTotal").textContent = TUT.length + " tutoriais em " + CATS.length + " assuntos";
   var ini = new URLSearchParams(location.search).get("t");
   if (ini) abrir(ini, false); else lista();
-  window.__tut = { TUT: TUT, CATS: CATS, abrir: abrir, textoNarrado: textoNarrado, quadros: quadros, P: function () { return P; } };
+  window.__tut = { TUT: TUT, CATS: CATS, abrir: abrir, textoNarrado: textoNarrado, textoGravado: textoGravado, audioGravado: audioGravado, quadros: quadros, P: function () { return P; } };
 })();

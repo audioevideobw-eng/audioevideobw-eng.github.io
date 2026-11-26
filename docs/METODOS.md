@@ -814,3 +814,17 @@ Armadilha: classe de ESTADO não serve para destacar botão. `＋ IMPORTAR` usav
   num canvas e copiar o base64 (≈15 KB) para docs/tutoriais/exemplos/.
 - `("baixa", sel, -2)` = o último quadro mostra as 2 PRIMEIRAS páginas do PDF baixado (positivo = as últimas).
 - Bibliotecas do press kit na captura: pdfMake/vfs_fonts/qrcode de PK_LIBS (/tmp/pm, `npm i pdfmake@0.2.20 qrcode-generator@1.4.4`).
+
+## Narração dos tutoriais com a voz do dono (ElevenLabs) — 26/11/2026
+- Voz clonada "MARCOS BONFÁ" (voice_id KXchXT7VheK0cTOGs2nK, plano Starter: 40 mil caracteres/mês; os 72 passos gastaram ~12 mil). Modelo eleven_multilingual_v2, 1 take por passo.
+- Texto falado = `textoGravado()` em assets/tutoriais.js (bloco /*NARRA-INI*/…/*NARRA-FIM*/): abre com "Olá, eu sou o Marcos, da Brightway…", tira palavras em MAIÚSCULAS
+  (a voz leria como sigla) menos as SIGLAS de verdade, "BW" vira "bê dáblio", "3×3" vira "3 por 3". `node docs/tutoriais/narracao.mjs [--falta]` lista o texto e o nome
+  de cada MP3 (`<tutorial>-<passo>-<h8 do texto>.mp3`) usando o MESMO código do site (lê o bloco do arquivo).
+- Gerar: MCP ElevenLabs creative_generate_speech (flow "Narração dos tutoriais Brightway"), depois creative_get_generations (4 por chamada) para os endereços assinados.
+- Guardar: bucket público trends/narracao/ (aceita audio/mpeg desde docs/sql/2026-11-26-narracao-audio.sql). O contêiner não alcança ElevenLabs nem Supabase: o envio é no
+  navegador do app — numa aba em elevenlabsusercontent.com (mesma origem do MP3) baixa e faz PUT na URL de envio assinada do Supabase. As assinaturas saem de uma aba
+  da Brightway SEM CSP (manifest.json) com a sessão do dono (`/object/upload/sign/...`, válidas 2 h, uma por arquivo); para não copiar tokens inteiros, passar só
+  `iat` + assinatura e remontar o JWT (cabeçalho fixo + payload {owner,url,upsert:false,scope:"upload",iat,exp:iat+7200}). window.open numa aba do app NÃO abre
+  outra aba (navega a mesma) — não dá para usar postMessage entre abas.
+- Manifesto assets/tutoriais/narracao.js (`window.BW_TUT_NARRA`): passo → h8. Texto mudou e o áudio não foi refeito = toca a voz do aparelho (nunca um áudio que diz outra coisa).
+  Passo novo = gerar só os de `--falta`, subir e regravar o manifesto.
