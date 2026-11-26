@@ -1,23 +1,18 @@
 {
- "versao": "1.9.54",
+ "versao": "1.9.55",
  "data": "25/11/2026",
  "pacote": "downloads/BW-Reels-Studio.zip",
- "sha256": "ac3dc29b461325a265982f241ad36a256c48b53919a2a2cfee0638f7fbd04f87",
- "bytes": 48953503,
+ "sha256": "ac7a78a4dfb7eb00c6548c6c45e5b80b7b9b5673bef2fec19fd64f092faa5e06",
+ "bytes": 49898938,
  "novidades": [
   {
-   "titulo": "Foto em cada cartão",
-   "texto": "No press kit, cada serviço, trabalho e link tem ＋ FOTO (ou escolha da sua galeria) e ✥ para enquadrar.",
-   "abrir": "presskit"
+   "titulo": "Tutorial do press kit",
+   "texto": "Em TUTORIAIS → Fotos e artes: o passo a passo de um press kit de ator profissional, com as telas de verdade e o PDF pronto.",
+   "abrir": "tutoriais"
   },
   {
-   "titulo": "PDF interativo",
-   "texto": "WhatsApp, e-mail, site, Instagram, TikTok e YouTube viram botões que abrem o lugar certo; rodapé e fotos com link também.",
-   "abrir": "presskit"
-  },
-  {
-   "titulo": "Opções prontas",
-   "texto": "☰ OPÇÕES PRONTAS nos campos (profissões, cidades, serviços, habilidades…) e ✕ TIRAR ESTA PARTE para o que não interessa.",
+   "titulo": "Ator profissional nas opções",
+   "texto": "No press kit, em O que você faz, as opções prontas ganharam Ator profissional e Atriz profissional.",
    "abrir": "presskit"
   }
  ]

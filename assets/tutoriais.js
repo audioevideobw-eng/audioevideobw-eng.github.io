@@ -143,6 +143,18 @@
         { t: "Baixe o vídeo", d: "Em SALVAR E ENVIAR, toque em BAIXAR VÍDEO ANIMADO. O vídeo é feito no próprio celular." }
       ] },
 
+    { id: "presskit", cat: "fotos", ic: "🎭", titulo: "Press kit de ator profissional", ensina: "montar o seu press kit de ator profissional", min: 4, nivel: "Fácil",
+      resumo: "Escolha o modelo, ponha o seu nome, a profissão e a sua foto, tire o que não usa e baixe o PDF com os links clicáveis.",
+      link: ["presskit.html", "ABRIR O PRESS KIT"],
+      passos: [
+        { t: "Abra o PRESS KIT", d: "Na barra de baixo, toque em MARKETING, role até FERRAMENTAS DE TEXTO e toque em PRESS KIT." },
+        { t: "Escolha o modelo", d: "Toque em NOVA APRESENTAÇÃO, role e toque em ATOR E ATRIZ. O modelo já abre com um exemplo de pessoa inventada para você trocar." },
+        { t: "Nome e profissão", d: "Em QUEM É VOCÊ, escreva o seu nome. No exemplo, Rafael Duarte. Embaixo de O que você faz, toque em OPÇÕES PRONTAS e escolha Ator profissional." },
+        { t: "Ponha a sua foto", d: "Em FOTOS E MÍDIA, toque em ESCOLHER na FOTO DA CAPA e escolha a foto na galeria. Se cortar a cabeça, toque em ENQUADRAR E AJUSTAR." },
+        { t: "Tire o que não usa", d: "Role até a parte que não quer, como a GALERIA, e toque em TIRAR ESTA PARTE. Se mudar de ideia, toque em DEVOLVER, lá em cima." },
+        { t: "Confira e baixe o PDF", d: "Toque em PRÉVIA para ver as páginas e em BAIXAR PDF. Pronto: sai o press kit do Rafael Duarte com a foto na capa e os links clicáveis." }
+      ] },
+
     { id: "fotos-pdf", cat: "ferramentas", ic: "📄", titulo: "Transformar fotos em PDF", ensina: "transformar fotos de recibos e documentos em um PDF", min: 2, nivel: "Fácil",
       resumo: "Fotos de recibos ou documentos viram um PDF só, uma foto por página. Nada sai do seu aparelho.",
       link: ["pdf.html#fotos", "ABRIR AS FERRAMENTAS DE PDF"],

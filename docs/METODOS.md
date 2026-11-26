@@ -806,3 +806,11 @@ Armadilha: classe de ESTADO não serve para destacar botão. `＋ IMPORTAR` usav
 - pdfMake: `link` em texto, imagem e célula; rodapé/cabeçalho como array de pedaços `{text, link}`.
 - Conferir: `re.findall(rb"/URI\s*\(([^)]*)\)", pdf)` → cada destino esperado (wa.me/55, mailto:, instagram.com/, youtube.com/@, tiktok.com/@, site).
 - ☰ OPÇÕES PRONTAS: dicionário por chave sem índice (`k.replace(/\.\d+\./g, ".")`), grupos `[nome, [itens]]`; preencher = `value` + evento `input`.
+
+## Tutorial com exemplo próprio por cima de um modelo (25/11/2026, press kit)
+- No capturar.py: abrir a ferramenta com o modelo (`presskit.html?modelo=ator`), trocar os dados pelo exemplo com `Object.assign(BWPressKit.atual().d, {...})`,
+  limpar imagens de exemplo que sobrariam (`BWPressKit.imgsAtual().retrato=''`) e clicar no botão que redesenha (`[data-a=trocarModelo]`).
+- Foto de pessoa inventada: no navegador logado como ADM, `BWFotosNuvem.editar(null, pedido, 768, 960, {modo:"pers"})`, reduzir para webp 480×600
+  num canvas e copiar o base64 (≈15 KB) para docs/tutoriais/exemplos/.
+- `("baixa", sel, -2)` = o último quadro mostra as 2 PRIMEIRAS páginas do PDF baixado (positivo = as últimas).
+- Bibliotecas do press kit na captura: pdfMake/vfs_fonts/qrcode de PK_LIBS (/tmp/pm, `npm i pdfmake@0.2.20 qrcode-generator@1.4.4`).

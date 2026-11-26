@@ -1085,6 +1085,11 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
      com link); teste lê os /URI do arquivo e confere cada destino. ☰ OPÇÕES PRONTAS por campo (regra 62) num dicionário OPC por chave sem
      índice ("d.servicos.t"); "uma por linha" = põe/tira várias. Teste que tira uma parte escolhe uma VISÍVEL (o modelo já esconde algumas).
 
+242. TUTORIAL DE FERRAMENTA COM EXEMPLO PRÓPRIO (press kit, 25/11): o exemplo do tutorial é montado por cima do modelo na captura (BWPressKit.atual() +
+     um clique em trocarModelo para redesenhar), com pessoa INVENTADA criada pela IA da plataforma (docs/tutoriais/exemplos/) e TODA imagem de
+     exemplo que sobraria do modelo (silhueta desenhada do retrato) tirada antes — no PDF final ela aparecia como um boneco amarelo. Passo que
+     termina em arquivo de várias páginas mostra as PRIMEIRAS (quadro_arquivo com número negativo).
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -2851,7 +2856,14 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   rodapé e cabeçalho clicáveis em todas as páginas; ☰ OPÇÕES PRONTAS em ~30 campos (≈60 profissões em grupos, cidades, serviços, funções,
   habilidades, perfil, números…); ✕ TIRAR ESTA PARTE em cada parte com ↺ DEVOLVER. teste_presskit (+25) 0 falhas. Manual 78 p. presskit.js v6, sw v248. PENTE FINO 241.
   App BW 1.9.54 publicado (cópia sem internet com o press kit novo, tutorial 18 p., novidades). teste-app 0 falhas.
+- 25/11/2026 22:40 · Claude (dono: "faça o tutorial ensinando o press kit com imagens ilustrativas e o passo a passo como antes" + "profissão Ator
+  profissional"): TUTORIAIS → Fotos e artes ganhou PRESS KIT DE ATOR PROFISSIONAL (6 passos, 23 fotos das telas de verdade: Marketing → PRESS KIT,
+  modelo ATOR E ATRIZ, nome + ☰ OPÇÕES PRONTAS → Ator profissional, foto da capa, ✕ TIRAR ESTA PARTE, PRÉVIA e o PDF real com as 2 primeiras páginas).
+  Exemplo: Rafael Duarte, ator INVENTADO (foto criada pela IA da plataforma, conta ADM). Opções prontas ganharam Ator profissional e Atriz profissional.
+  teste_tutoriais e teste_presskit 0 falhas; vigia ✅. Manual 78 p. App BW 1.9.55 (cópia sem internet, tutorial, novidades). tutoriais.js v7,
+  quadros.js v4, presskit.js v7, sw v249. PENTE FINO 242.
 ## Pendências (dono)
+- [ ] (25/11) BW-Setup.exe 1.9.55: dono dar dois cliques em "5 - GERAR INSTALADOR EXE" (Vídeos\\bw-reels-studio) e avisar.
 - [x] (25/11 17:16) BW-Setup.exe 1.9.54 gerado pelo dono e publicado (15,5 MB, versão conferida dentro do .exe).
 - [ ] (25/11) PRESS KIT: testar foto em cada cartão, ☰ OPÇÕES PRONTAS, ✕ TIRAR ESTA PARTE e abrir os links do PDF no celular.
 - [x] (25/11) BW-Setup.exe 1.9.53: substituído pelo 1.9.54.

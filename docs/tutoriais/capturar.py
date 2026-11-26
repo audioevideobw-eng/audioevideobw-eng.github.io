@@ -57,14 +57,15 @@ def quadro_arquivo(caminho, nome, destino, ultimas=0):
     subprocess.run(["pdftoppm", "-r", "110", "-png", caminho, os.path.join(tmp, "p")], check=True)
     pags = [Image.open(f).convert("RGB") for f in sorted(_g.glob(os.path.join(tmp, "p*.png")))]
     total = len(pags)
-    if ultimas: pags = pags[-ultimas:]
+    if ultimas > 0: pags = pags[-ultimas:]
+    elif ultimas < 0: pags = pags[:-ultimas]
     from PIL import ImageDraw, ImageFont, ImageFilter
     E = 2; Wc, Hc = W * E, H * E
     im = Image.new("RGB", (Wc, Hc), (11, 18, 34)); d = ImageDraw.Draw(im)   # azul-marinho da marca (regra 237)
     fb = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 15 * E); fn = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 12 * E)
     d.rectangle([0, 0, Wc, 58 * E], fill=(14, 27, 51)); d.rectangle([0, 58 * E, Wc, 58 * E + 3], fill=(232, 181, 74))
     d.text((16 * E, 12 * E), "📄 " + nome if False else nome, font=fb, fill=(240, 240, 240))
-    d.text((16 * E, 33 * E), f"PDF pronto · {total} página" + ("s" if total > 1 else "") + (f" · mostrando a página {total}" if ultimas == 1 and total > 1 else ""), font=fn, fill=(62, 207, 142))
+    d.text((16 * E, 33 * E), f"PDF pronto · {total} página" + ("s" if total > 1 else "") + (f" · mostrando a página {total}" if ultimas == 1 and total > 1 else "") + (f" · as {len(pags)} primeiras" if ultimas < 0 and total > len(pags) else ""), font=fn, fill=(62, 207, 142))
     topo = 70 * E; esp = 12 * E; area_h = Hc - topo - 16 * E
     n = len(pags); larg = Wc - 60 * E
     alt_tot = sum(p.height * larg / p.width for p in pags) + esp * (n - 1)
@@ -89,6 +90,10 @@ def rota(r):
     if "functions/v1/bw-ia-video" in u: return r.fulfill(status=200, body=json.dumps(_decup(u)), content_type="application/json", headers=cab)
     if "functions/v1/" in u and b'"ping"' in (r.request.post_data_buffer or b""):   # a IA está ligada (senão a tela diz "sendo ativada")
         return r.fulfill(status=200, body=json.dumps({"pronto": True}), content_type="application/json", headers=cab)
+    PMK = os.environ.get("PK_LIBS", "/tmp/pm") + "/node_modules/"   # pdfMake 0.2.20 + qrcode (npm), só na captura do press kit
+    if "pdfmake.min.js" in u: return r.fulfill(path=PMK + "pdfmake/build/pdfmake.min.js", content_type="application/javascript", headers=cab)
+    if "vfs_fonts" in u: return r.fulfill(path=PMK + "pdfmake/build/vfs_fonts.js", content_type="application/javascript", headers=cab)
+    if "qrcode-generator@1.4.4" in u: return r.fulfill(path=PMK + "qrcode-generator/qrcode.js", content_type="application/javascript", headers=cab)
     if "pdf-lib@1.17.1/dist/pdf-lib.min.js" in u: return r.fulfill(path=os.path.join(LIBS, "pdf-lib.min.js"), content_type="application/javascript", headers=cab)
     if "pdfjs-dist@4.10.38/build/" in u:
         n = u.rsplit("/", 1)[1]; return r.fulfill(path=os.path.join(LIBS, n), content_type="text/javascript", headers=cab)
@@ -126,7 +131,35 @@ def boleto():                                  # boleto de ENERGIA válido (mesm
     ln = "".join(bc[i*11:i*11+11] + str(m10(bc[i*11:i*11+11])) for i in range(4))
     return " ".join(ln[i*12:i*12+11] + "-" + ln[i*12+11] for i in range(4))
 
+# press kit: ATOR PROFISSIONAL inventado (foto criada pela IA da plataforma em 25/11, conta ADM: docs/tutoriais/exemplos/presskit-ator.webp)
+FOTO_ATOR = os.path.join(EXEMPLOS, "presskit-ator.webp")
+ATOR = {"marca": "Rafael Duarte", "slogan": "", "cidade": "Belo Horizonte · MG",
+  "sobreCurto": "Ator com 12 anos de palco e câmera, do drama à comédia.",
+  "sobre": "Rafael começou no teatro de grupo e hoje divide o tempo entre peças, séries e campanhas publicitárias. Gosta de personagens que misturam humor e emoção na mesma cena.\n\nEstudou interpretação para câmera e tem experiência com comerciais, dublagem e apresentação de eventos.",
+  "perfil": [{"k": "Registro profissional", "v": "DRT 00000/MG (exemplo)"}, {"k": "Altura", "v": "1,80 m"}, {"k": "Idiomas", "v": "Português, inglês e espanhol"}, {"k": "Disponível para", "v": "Viagens e gravações noturnas"}],
+  "experiencia": [{"grupo": "TV e streaming", "titulo": "Série Caminhos de Minas", "papel": "Personagem fixo (Tomás)", "onde": "Canal Exemplo", "ano": "2025", "link": "youtube.com/exemplo"},
+    {"grupo": "Publicidade", "titulo": "Campanha de verão", "papel": "Protagonista", "onde": "Banco Aurora", "ano": "2026", "link": "youtube.com/exemplo"},
+    {"grupo": "Teatro", "titulo": "A Casa das Janelas", "papel": "Otávio", "onde": "Teatro Municipal", "ano": "2023", "link": ""}],
+  "contato": {"resp": "Agência Talento Exemplo", "cargo": "Agenciamento", "tel": "(31) 90000-0010", "email": "rafael@exemplo.com.br", "site": "", "insta": "@rafaelduarte.ator", "tiktok": "", "youtube": "", "cidade": "Belo Horizonte · MG"}}
+PK_ATOR = [("abrir", "presskit.html?modelo=ator"), ("esperasel", "#form [data-k='d.marca']"),
+  ("js", "var K=BWPressKit.atual();Object.assign(K.d," + json.dumps(ATOR, ensure_ascii=False) + ");K.nome='Apresentação — Rafael Duarte';K.exemplo=false;BWPressKit.imgsAtual().retrato='';document.querySelector('[data-a=trocarModelo][data-m=ator]').click()"),
+  ("espera", 900), TOPO]
+PK_FOTO = PK_ATOR + [("arquivo", "input[data-up='capa']", [FOTO_ATOR]), ("espera", 1200),
+  ("js", "var e=document.getElementById('f_d_slogan');e.value='Ator profissional';e.dispatchEvent(new Event('input',{bubbles:true}))"), ("espera", 600), TOPO]
+PK_PRONTO = PK_FOTO + [("clique", "[data-a=tirarParte][data-s=galeria]"), ("espera", 900), TOPO]
+
 ROTEIROS = {
+  "presskit": {
+    0: [("abrir", "index.html"), ("toque", ".bw-abas >> text=Marketing"), ("rolar", 'a.menu-card[href="presskit.html"]'), ("toque", 'a.menu-card[href="presskit.html"]')],
+    1: [("abrir", "presskit.html"), ("toque", "[data-a=novo]"), ("rolar", "[data-a=usarModelo][data-m=ator]"), ("toque", "[data-a=usarModelo][data-m=ator]"), ("espera", 1500), TOPO],
+    2: PK_ATOR + [("rolar", "#f_d_marca"), ("digita", "#f_d_marca", "Rafael Duarte"), ("toque", "[data-a=opcoes][data-alvo=f_d_slogan]"),
+        ("toque", "#modal [data-a=opcTocar][data-v='Ator profissional']"), ("espera", 600), ("js", "document.getElementById('f_d_slogan').scrollIntoView({block:'center'})")],
+    3: PK_ATOR + [("rolar", "label.pk-up:has(input[data-up='capa'])"), ("toque", "label.pk-up:has(input[data-up='capa'])"), ("arquivo", "input[data-up='capa']", [FOTO_ATOR]), ("espera", 1200),
+        ("js", "document.querySelector('input[data-up=capa]').closest('.pk-img').scrollIntoView({block:'center'})")],
+    4: PK_FOTO + [("rolar", "[data-a=tirarParte][data-s=galeria]"), ("toque", "[data-a=tirarParte][data-s=galeria]"), ("espera", 900),
+        ("js", "document.querySelector('[data-a=devolverParte]').scrollIntoView({block:'center'})")],
+    5: PK_PRONTO + [("toque", "#abaPrev"), ("esperasel", "#paginas canvas, #paginas img"), ("espera", 2500), ("foto",), ("rolar", "[data-a=pdf]"), ("baixa", "[data-a=pdf]", -2)],
+  },
   "instalar-app": {
     0: [("abrir", "index.html"), ("toque", MAIS), ("rolar", "#bwMenu >> text=DOWNLOADS"), ("toque", "#bwMenu >> text=DOWNLOADS")],
     1: [("abrir", "downloads.html"), ("rolar", "text=BAIXAR PARA ANDROID"), ("toque", "text=BAIXAR PARA ANDROID")],
