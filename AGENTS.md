@@ -2863,7 +2863,7 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   teste_tutoriais e teste_presskit 0 falhas; vigia ✅. Manual 78 p. App BW 1.9.55 (cópia sem internet, tutorial, novidades). tutoriais.js v7,
   quadros.js v4, presskit.js v7, sw v249. PENTE FINO 242.
 ## Pendências (dono)
-- [ ] (25/11) BW-Setup.exe 1.9.55: dono dar dois cliques em "5 - GERAR INSTALADOR EXE" (Vídeos\\bw-reels-studio) e avisar.
+- [x] (25/11 22:23) BW-Setup.exe 1.9.55 gerado pelo dono e publicado (16,4 MB, versão conferida dentro do .exe).
 - [x] (25/11 17:16) BW-Setup.exe 1.9.54 gerado pelo dono e publicado (15,5 MB, versão conferida dentro do .exe).
 - [ ] (25/11) PRESS KIT: testar foto em cada cartão, ☰ OPÇÕES PRONTAS, ✕ TIRAR ESTA PARTE e abrir os links do PDF no celular.
 - [x] (25/11) BW-Setup.exe 1.9.53: substituído pelo 1.9.54.
