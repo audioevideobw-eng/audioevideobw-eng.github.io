@@ -174,7 +174,7 @@ with sync_playwright() as p:
         except Exception: trocou = False
         depois_r = pg.evaluate("() => (document.querySelector('.pk-img img[alt^=\"SUA FOTO\"]') || {}).src || ''")
         ok(trocou and depois_r != antes_r, "✨ CORPORATIVO: um toque e a foto nova entra no lugar")
-        ok(IMG_PEDIDOS and b"corporate headshot" in IMG_PEDIDOS[-1] and b"same person" in IMG_PEDIDOS[-1], "a IA recebe o prompt corporativo pronto (mesma pessoa)")
+        ok(IMG_PEDIDOS and b"corporate headshot" in IMG_PEDIDOS[-1] and b"identical face" in IMG_PEDIDOS[-1], "a IA recebe o prompt corporativo pronto (mesmo rosto e corpo)")
         ok(esperar_previa(pg), "a prévia redesenha com a foto da IA")
         pg.click('[data-a="fotoIAvolta"][data-alvo="retrato"]'); pg.wait_for_timeout(400)
         ok(pg.evaluate("() => (document.querySelector('.pk-img img[alt^=\"SUA FOTO\"]') || {}).src || ''") == antes_r, "↺ ORIGINAL devolve a foto de antes")

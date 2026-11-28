@@ -81,6 +81,7 @@
     x.drawImage(im, (c.width - dw) * (op.fx == null ? 0.5 : op.fx), (c.height - dh) * (op.fy == null ? 0.5 : op.fy), dw, dh);
     if (temAj(op.aj)) aplicarAj(x, c.width, c.height, op.aj);
     if (op.duo) duotom(x, c.width, c.height, op.duo[0], op.duo[1]);
+    if (op.efx) aplicarEfx(c, x, op.efx, !!op.forma);
     if (op.escurecer) {
       var g = op.dir === "esq" ? x.createLinearGradient(0, 0, c.width, 0) : x.createLinearGradient(0, 0, 0, c.height);
       g.addColorStop(0, "rgba(6,8,13," + (op.dir === "esq" ? op.escurecer : op.escurecer * 0.35) + ")");
@@ -108,6 +109,32 @@
     }
     x.putImageData(im, 0, 0);
   }
+  /* 28/11 (dono: "efeitos nas fotos da capa — mistura e máscara com o fundo, opacidade"): a foto é desenhada sobre a cor escolhida (fundo da página,
+     destaque, 2ª cor, preto ou branco) com MISTURA (modos do canvas, valem no iPhone), OPACIDADE e MÁSCARA que some suave. Mesma conta na janela e no PDF. */
+  var MISTURAS = { normal: ["Normal", "source-over"], mult: ["Multiplicar", "multiply"], tela: ["Tela", "screen"], sobrepor: ["Sobrepor", "overlay"], suave: ["Luz suave", "soft-light"],
+    forte: ["Luz forte", "hard-light"], escurecer: ["Escurecer", "darken"], clarear: ["Clarear", "lighten"], lumi: ["Luminosidade", "luminosity"], dif: ["Diferença", "difference"] };
+  var MASCARAS = { nenhuma: "Sem máscara", baixo: "Some embaixo", topo: "Some em cima", esq: "Some à esquerda", dir: "Some à direita", bordas: "Some nas bordas", circulo: "Círculo", diagonal: "Diagonal" };
+  var CORES_FX = { fundo: "Fundo da página", destaque: "Cor de destaque", cor2: "2ª cor", preto: "Preto", branco: "Branco" };
+  function coresDe(kit) { var mod = modeloDe(kit && kit.modelo), e = (kit && kit.est) || {}; return { fundo: /^#[0-9a-f]{6}$/i.test(e.fundo || "") ? e.fundo : mod.tema.fundo, destaque: (kit && kit.cor) || mod.cor, cor2: (kit && kit.cor2) || mod.cor2, preto: "#000000", branco: "#FFFFFF" }; }
+  function fxNeutro(f) { return !f || ((!f.m || f.m === "normal") && (f.o == null || +f.o >= 100) && (!f.k || f.k === "nenhuma")); }
+  function aplicarEfx(c, x, f, forma) {
+    var w = c.width, h = c.height, P = document.createElement("canvas"); P.width = w; P.height = h; var px = P.getContext("2d"); px.drawImage(c, 0, 0);
+    var sv = Math.max(0.05, Math.min(1, (f.s == null ? 50 : +f.s) / 100)), g = null;
+    if (f.k && f.k !== "nenhuma") {
+      if (f.k === "baixo") { g = px.createLinearGradient(0, 0, 0, h); g.addColorStop(0, "#000"); g.addColorStop(Math.max(0, 1 - sv), "#000"); g.addColorStop(1, "rgba(0,0,0,0)"); }
+      else if (f.k === "topo") { g = px.createLinearGradient(0, h, 0, 0); g.addColorStop(0, "#000"); g.addColorStop(Math.max(0, 1 - sv), "#000"); g.addColorStop(1, "rgba(0,0,0,0)"); }
+      else if (f.k === "esq") { g = px.createLinearGradient(w, 0, 0, 0); g.addColorStop(0, "#000"); g.addColorStop(Math.max(0, 1 - sv), "#000"); g.addColorStop(1, "rgba(0,0,0,0)"); }
+      else if (f.k === "dir") { g = px.createLinearGradient(0, 0, w, 0); g.addColorStop(0, "#000"); g.addColorStop(Math.max(0, 1 - sv), "#000"); g.addColorStop(1, "rgba(0,0,0,0)"); }
+      else if (f.k === "diagonal") { g = px.createLinearGradient(0, 0, w, h); g.addColorStop(0, "#000"); g.addColorStop(Math.max(0, 0.5 - sv / 2), "#000"); g.addColorStop(Math.min(1, 0.5 + sv / 2), "rgba(0,0,0,0)"); g.addColorStop(1, "rgba(0,0,0,0)"); }
+      else { var R = f.k === "circulo" ? Math.min(w, h) / 2 : Math.hypot(w, h) / 2; g = px.createRadialGradient(w / 2, h / 2, R * Math.max(0, 1 - sv) * (f.k === "circulo" ? 0.98 : 0.75), w / 2, h / 2, R * (f.k === "circulo" ? 1 : 0.95)); g.addColorStop(0, "#000"); g.addColorStop(1, "rgba(0,0,0,0)"); }
+      px.globalCompositeOperation = "destination-in"; px.fillStyle = g; px.fillRect(0, 0, w, h); px.globalCompositeOperation = "source-over";
+    }
+    x.save(); x.setTransform(1, 0, 0, 1, 0, 0); x.globalCompositeOperation = "source-over"; x.globalAlpha = 1;
+    if (forma) x.clearRect(0, 0, w, h);
+    x.fillStyle = f.cor || "#000000"; x.fillRect(0, 0, w, h);
+    x.globalAlpha = Math.max(0.05, Math.min(1, (f.o == null ? 100 : +f.o) / 100)); x.globalCompositeOperation = (MISTURAS[f.m] || MISTURAS.normal)[1];
+    x.drawImage(P, 0, 0); x.restore();
+  }
   /* duotom: a luz da foto vira a mistura entre duas cores (sombra → destaque) */
   function duotom(x, w, h, c1, c2) {
     var a = hexRgb(c1), b = hexRgb(c2), im = x.getImageData(0, 0, w, h), p = im.data;
@@ -122,6 +149,7 @@
     var x = c.getContext("2d"); x.drawImage(im, 0, 0); aplicarAj(x, c.width, c.height, aj);
     return (CORTES[k] = c.toDataURL("image/png"));
   }
+  function enqOpC(cr, e, op) { op = enqOp(e, op); if (e && !fxNeutro(e.fx)) { var f = e.fx; op.efx = { m: f.m || "normal", o: f.o == null ? 100 : +f.o, k: f.k || "nenhuma", s: f.s == null ? 50 : +f.s, cor: (cr || {})[f.c || "fundo"] || "#000000" }; } return op; }
   function enqOp(e, op) { op = Object.assign({}, op || {}); if (e) { if (e.x != null) op.fx = +e.x; if (e.y != null) op.fy = +e.y; if (+e.z > 1) op.z = +e.z; if (temAj(e.aj)) op.aj = e.aj; } return op; }
   /* tamanho do corte de cada lugar (em pontos do PDF) — usado no PDF e na janela ENQUADRAR */
   function corteCapa(cap, G, t) {
@@ -483,7 +511,13 @@
     if (tipo === "youtube") { if (/^https?:\/\//.test(t) || /youtube\.com|youtu\.be/.test(t)) return /^https?:\/\//.test(t) ? t : "https://" + t; var u3 = t.replace(/^@?/, "@"); return u3.length > 1 ? "https://www.youtube.com/" + u3 : ""; }
     return /^https?:\/\//.test(t) ? t : /\./.test(t) ? "https://" + t : "";
   }
-  function titulo(kit, id) { var t = kit.tit && kit.tit[id]; return t && String(t).trim() ? String(t).trim() : SECOES[id].nome; }
+  /* 28/11: press kit em inglês/espanhol (presskit-mais.js cria a cópia traduzida com kit.idioma) — títulos padrão e rótulos fixos do PDF/Word no idioma */
+  var SEC_IDIOMA = {
+    en: { sobre: "About me", perfil: "Profile", servicos: "What I do", numeros: "In numbers", experiencia: "Work", galeria: "Photo gallery", links: "Portfolio", clientes: "I have worked with", depoimentos: "Recommendations", formacao: "Education", habilidades: "Skills", release: "Press release", imprensa: "In the press", agenda: "Schedule", rider: "Technical rider", contato: "Contact" },
+    es: { sobre: "Quién soy", perfil: "Perfil", servicos: "Lo que hago", numeros: "En números", experiencia: "Trabajos", galeria: "Galería de fotos", links: "Portafolio", clientes: "He trabajado con", depoimentos: "Recomendaciones", formacao: "Formación", habilidades: "Habilidades", release: "Comunicado de prensa", imprensa: "En la prensa", agenda: "Agenda", rider: "Ficha técnica", contato: "Contacto" } };
+  var ROT_IDIOMA = { en: { "Cidade": "City", "VER  ↗": "VIEW  ↗", "Apresentação — ": "Press kit — " }, es: { "Cidade": "Ciudad", "VER  ↗": "VER  ↗", "Apresentação — ": "Presentación — " } };
+  function rotI(kit, t) { var r = ROT_IDIOMA[kit && kit.idioma]; return (r && r[t]) || t; }
+  function titulo(kit, id) { var t = kit.tit && kit.tit[id]; return t && String(t).trim() ? String(t).trim() : ((SEC_IDIOMA[kit.idioma] || {})[id] || SECOES[id].nome); }
   var GEOM = { a4: { W: 595.28, H: 841.89, MX: 50 }, rede: { W: 595.28, H: 744.1, MX: 46 }, a5: { W: 419.53, H: 595.28, MX: 30 } };
   function geom(f) { var g = GEOM[f] || GEOM.a4; return { W: g.W, H: g.H, MX: g.MX, CW: g.W - 2 * g.MX }; }
   async function qrUrl(txt) {
@@ -496,7 +530,7 @@
     op = op || {}; imgs = imgs || imgsVazias();
     var mod = modeloDe(kit.modelo), tm = Object.assign({}, mod.tema), d = kit.d || {}, alta = !!op.alta, f = alta ? 2 : 1.15;
     var formato = mod.tema.capa === "compcard" ? "a5" : (GEOM[kit.formato] ? kit.formato : mod.formato), G = geom(formato);
-    var cor = kit.cor || mod.cor, cor2 = kit.cor2 || mod.cor2, est = kit.est || {};
+    var cor = kit.cor || mod.cor, cor2 = kit.cor2 || mod.cor2, est = kit.est || {}, CR = coresDe(kit);
     /* 🎛 ESTILO AO VIVO: capa, fundo, títulos, cartões, tamanhos e espaço escolhidos pela pessoa por cima do modelo */
     tm.capa = capaDoKit(kit);
     if (/^#[0-9a-f]{6}$/i.test(est.fundo || "")) { tm.fundo = est.fundo; tm.escuro = lum(est.fundo) < 0.36; tm.txt = tm.escuro ? "#F5F1EA" : "#15181F"; tm.sub = misturar(tm.txt, tm.fundo, 0.36); }
@@ -517,7 +551,7 @@
     var cap = tm.capa, W = G.W, H = G.H;
     var capaSrc = imgs.capa || imgs.retrato || (imgs.fotos || [])[0] || "", EQ = imgs.enq || {};
     if (m.retrato && EQ.retrato && temAj(EQ.retrato.aj)) m.retrato = await ajustarImg(m.retrato, EQ.retrato.aj);
-    if (capaSrc && !(cap === "recorte" && imgs.retrato)) { var cc0 = corteCapa(cap, G, tm); m.capaImg = await recortar(capaSrc, cc0[0] * f, cc0[1] * f, enqOp(EQ.capa, cc0[2])); }
+    if (capaSrc && !(cap === "recorte" && imgs.retrato)) { var cc0 = corteCapa(cap, G, tm); m.capaImg = await recortar(capaSrc, cc0[0] * f, cc0[1] * f, enqOpC(CR, EQ.capa, cc0[2])); }
     var c = d.contato || {};
     m.contato = c;
     var vis = (kit.ordem || TODAS).filter(function (id) { return SECOES[id] && (kit.ocultas || []).indexOf(id) < 0; });
@@ -535,14 +569,14 @@
         /* foto de cada cartão (25/11, dono: "não tem lugar de fazer o upload de cada foto"): a do próprio cartão; sem ela, uma da galeria (se ligado) */
         var proprias = iS.map(function (o) { return fotoCard("servicos", o.i); });
         if (proprias.some(Boolean) || (kit.servFotos && fotos.length)) { s.fotos = []; for (var a = 0; a < s.itens.length; a++) {
-          if (proprias[a]) s.fotos.push(await recortar(proprias[a], 240 * f, 140 * f, enqOp(EQ["c:servicos:" + iS[a].i])));
-          else if (kit.servFotos && fotos.length) s.fotos.push(await recortar(fotos[a % fotos.length], 240 * f, 140 * f, enqOp(EQ["f" + (a % fotos.length)])));
+          if (proprias[a]) s.fotos.push(await recortar(proprias[a], 240 * f, 140 * f, enqOpC(CR, EQ["c:servicos:" + iS[a].i])));
+          else if (kit.servFotos && fotos.length) s.fotos.push(await recortar(fotos[a % fotos.length], 240 * f, 140 * f, enqOpC(CR, EQ["f" + (a % fotos.length)])));
           else s.fotos.push(""); } }
       }
       else if (id === "perfil") { s.itens = (d.perfil || []).filter(function (x) { return x && (String(x.k || "").trim() || String(x.v || "").trim()); }); if (!s.itens.length) continue; }
       else if (id === "experiencia") {
         var iE = comIndice(d.experiencia, function (x) { return String(x.titulo || "").trim() || String(x.papel || "").trim(); }); if (!iE.length) continue;
-        var ex = []; for (var e0 = 0; e0 < iE.length; e0++) { var fe = fotoCard("experiencia", iE[e0].i); ex.push(fe ? Object.assign({}, iE[e0].x, { foto: await recortar(fe, 150 * f, 96 * f, enqOp(EQ["c:experiencia:" + iE[e0].i])) }) : iE[e0].x); }
+        var ex = []; for (var e0 = 0; e0 < iE.length; e0++) { var fe = fotoCard("experiencia", iE[e0].i); ex.push(fe ? Object.assign({}, iE[e0].x, { foto: await recortar(fe, 150 * f, 96 * f, enqOpC(CR, EQ["c:experiencia:" + iE[e0].i])) }) : iE[e0].x); }
         s.grupos = []; ex.forEach(function (x) { var g = String(x.grupo || "").trim(), ult = s.grupos[s.grupos.length - 1]; if (!ult || ult.nome !== g) s.grupos.push({ nome: g, itens: [x] }); else ult.itens.push(x); });
       }
       else if (id === "formacao") { s.itens = (d.formacao || []).filter(function (x) { return x && (String(x.curso || "").trim() || String(x.onde || "").trim()); }); if (!s.itens.length) continue; }
@@ -551,7 +585,7 @@
         var iL = comIndice(d.links, function (x) { return linkDe(x.url, "site"); }); if (!iL.length) continue;
         s.itens = [];
         for (var q = 0; q < iL.length; q++) { var it = Object.assign({}, iL[q].x, { href: linkDe(iL[q].x.url, "site") }); it.qr = await qrUrl(it.href);
-          var fl = fotoCard("links", iL[q].i); if (fl) it.foto = await recortar(fl, 320 * f, 180 * f, enqOp(EQ["c:links:" + iL[q].i])); s.itens.push(it); }
+          var fl = fotoCard("links", iL[q].i); if (fl) it.foto = await recortar(fl, 320 * f, 180 * f, enqOpC(CR, EQ["c:links:" + iL[q].i])); s.itens.push(it); }
       }
       else if (id === "clientes") { s.itens = linhas(d.clientes); if (!s.itens.length) continue; }
       else if (id === "depoimentos") { s.itens = (d.depoimentos || []).filter(function (x) { return x && String(x.texto || "").trim(); }); if (!s.itens.length) continue; }
@@ -561,8 +595,8 @@
       else if (id === "rider") { s.itens = linhas(d.rider); s.obs = (d.riderObs || "").trim(); if (!s.itens.length && !s.obs) continue; }
       else if (id === "galeria") {
         var fs = fotos.slice(0, 7); if (!fs.length) continue;
-        if (cap === "compcard") { s.peq = []; for (var j0 = 0; j0 < Math.min(4, fs.length); j0++) s.peq.push(await recortar(fs[j0], 180 * f, 225 * f, enqOp(EQ["f" + j0]))); }
-        else { s.grande = await recortar(fs[0], G.CW * f, G.CW * 0.525 * f, enqOp(EQ.f0)); s.peq = []; for (var j = 1; j < fs.length; j++) s.peq.push(await recortar(fs[j], 160 * f, 110 * f, enqOp(EQ["f" + j]))); }
+        if (cap === "compcard") { s.peq = []; for (var j0 = 0; j0 < Math.min(4, fs.length); j0++) s.peq.push(await recortar(fs[j0], 180 * f, 225 * f, enqOpC(CR, EQ["f" + j0]))); }
+        else { s.grande = await recortar(fs[0], G.CW * f, G.CW * 0.525 * f, enqOpC(CR, EQ.f0)); s.peq = []; for (var j = 1; j < fs.length; j++) s.peq.push(await recortar(fs[j], 160 * f, 110 * f, enqOpC(CR, EQ["f" + j]))); }
         s.legenda = (d.galeriaLegenda || "").trim();
       }
       else if (id === "contato") { if (!cheio(c)) continue; }
@@ -770,7 +804,7 @@
               { width: "*", stack: [{ text: String(x.titulo || ""), bold: true, fontSize: z(11.5), color: t.txt }].concat(sub2 ? [{ text: sub2, fontSize: z(9.5), color: t.sub, margin: [0, 2, 0, 0] }] : []) }];
             if (!String(x.ano || "").trim()) col.shift();
             if (x.foto) col.unshift({ image: x.foto, width: z(66), height: z(42), link: lk || undefined });   /* foto do trabalho (clicável quando tem link) */
-            if (lk) col.push({ width: z(62), table: { body: [[{ text: "VER  ↗", bold: true, fontSize: z(8), color: sobre(t.corPura), fillColor: t.corPura, alignment: "center", margin: [6, 4, 6, 4], link: lk }]] }, layout: semGap(t.fundo, 0) });
+            if (lk) col.push({ width: z(62), table: { body: [[{ text: rotI(m.kit, "VER  ↗"), bold: true, fontSize: z(8), color: sobre(t.corPura), fillColor: t.corPura, alignment: "center", margin: [6, 4, 6, 4], link: lk }]] }, layout: semGap(t.fundo, 0) });
             b.push({ stack: (gi === 0 && rot ? [rot] : []).concat([{ columns: col, columnGap: 10 }, linhaFina()]), unbreakable: true });   /* rótulo do grupo nunca fica sozinho no pé da página */
           });
         });
@@ -824,7 +858,7 @@
         if (s.obs) b.push({ text: s.obs, italics: true, fontSize: z(9.5), color: t.sub, margin: [0, 10, 0, 0] });
       } else if (s.id === "contato") {
         var c = m.contato, lin = [["WhatsApp", c.tel, linkDe(c.tel, "tel")], ["E-mail", c.email, linkDe(c.email, "email")], ["Site", c.site, linkDe(c.site, "site")], ["Instagram", c.insta, linkDe(c.insta, "insta")],
-          ["TikTok", c.tiktok, linkDe(c.tiktok, "tiktok")], ["YouTube", c.youtube, linkDe(c.youtube, "youtube")], ["Cidade", c.cidade, ""]].filter(function (x) { return String(x[1] || "").trim(); });
+          ["TikTok", c.tiktok, linkDe(c.tiktok, "tiktok")], ["YouTube", c.youtube, linkDe(c.youtube, "youtube")], [rotI(m.kit, "Cidade"), c.cidade, ""]].filter(function (x) { return String(x[1] || "").trim(); });
         var esq = [{ text: String(c.resp || m.marca), font: fT, bold: true, fontSize: z(18), color: t.txt }].concat(c.cargo ? [{ text: c.cargo, fontSize: z(10), color: t.sub, margin: [0, 2, 0, 12] }] : [{ text: "", margin: [0, 0, 0, 10] }])
           .concat(lin.map(function (x) { return { columns: [{ text: x[0].toUpperCase(), width: z(74), fontSize: z(8), bold: true, color: t.cor, characterSpacing: 1, margin: [0, 2, 0, 0] }, { text: String(x[1]) + (x[2] ? "  ↗" : ""), fontSize: z(11), color: t.txt, link: x[2] || undefined, decoration: x[2] ? "underline" : undefined, decorationColor: t.cor }], margin: [0, 0, 0, 6] }; }));
         var cols = [{ stack: esq, width: "*" }];
@@ -839,7 +873,7 @@
     function montar(c) {
       return {
         pageSize: { width: W, height: H }, pageMargins: [MX, z(64), MX, z(60)],
-        info: { title: "Apresentação — " + m.marca, author: m.marca, creator: "Brightway — Press kit" },
+        info: { title: rotI(m.kit, "Apresentação — ") + m.marca, author: m.marca, creator: "Brightway — Press kit" },
         background: function (pg) {
           if (pg === 1) return capaFundo;
           return [{ canvas: [{ type: "rect", x: 0, y: 0, w: W, h: H, color: t.fundo }, { type: "rect", x: 0, y: 0, w: W, h: 4, color: t.corPura }], absolutePosition: { x: 0, y: 0 } }];
@@ -925,9 +959,9 @@
       else if (s.id === "imprensa") s.itens.forEach(function (x) { filhos.push(P(String(x.veiculo || "").toUpperCase(), { b: true, size: 16, color: cor, after: 20 }), P(String(x.titulo || ""), { b: true, size: 24, after: 20 }), P([x.data, x.link].filter(Boolean).join(" · "), { size: 18, color: sub, after: 200 })); });
       else if (s.id === "agenda") filhos.push(tabela(s.itens.map(function (x) { return [[P(String(x.data || ""), { b: true, color: cor, after: 0 })], [P(String(x.titulo || ""), { b: true, after: 0 })], [P(String(x.local || ""), { size: 20, color: sub, after: 0 })]]; }), [20, 50, 30]), P("", { after: 120 }));
       else if (s.id === "rider") { s.itens.forEach(function (x) { filhos.push(P(x, { bullet: true, after: 60 })); }); if (s.obs) filhos.push(P(s.obs, { i: true, size: 20, color: sub })); }
-      else if (s.id === "contato") { var c = m.contato; filhos.push(P(String(c.resp || m.marca), { b: true, size: 32, font: fonteT, after: 20 })); if (c.cargo) filhos.push(P(c.cargo, { color: sub })); [["WhatsApp", c.tel], ["E-mail", c.email], ["Site", c.site], ["Instagram", c.insta], ["TikTok", c.tiktok], ["YouTube", c.youtube], ["Cidade", c.cidade]].forEach(function (x) { if (String(x[1] || "").trim()) filhos.push(P(x[0] + ": " + x[1], { after: 60 })); }); }
+      else if (s.id === "contato") { var c = m.contato; filhos.push(P(String(c.resp || m.marca), { b: true, size: 32, font: fonteT, after: 20 })); if (c.cargo) filhos.push(P(c.cargo, { color: sub })); [["WhatsApp", c.tel], ["E-mail", c.email], ["Site", c.site], ["Instagram", c.insta], ["TikTok", c.tiktok], ["YouTube", c.youtube], [rotI(m.kit, "Cidade"), c.cidade]].forEach(function (x) { if (String(x[1] || "").trim()) filhos.push(P(x[0] + ": " + x[1], { after: 60 })); }); }
     });
-    var doc = new D.Document({ creator: "Brightway", title: "Apresentação — " + m.marca, styles: { default: { document: { run: { font: "Calibri", size: 22 } } } },
+    var doc = new D.Document({ creator: "Brightway", title: rotI(m.kit, "Apresentação — ") + m.marca, styles: { default: { document: { run: { font: "Calibri", size: 22 } } } },
       sections: [{ properties: { page: { margin: { top: 1000, bottom: 1000, left: 1100, right: 1100 } } }, children: filhos }] });
     return await D.Packer.toBlob(doc);
   }
@@ -983,12 +1017,26 @@
   async function abrirKit(id) {
     var k = acharKit(id); if (!k) { aviso("Esse press kit não está mais aqui.", true); mostrar("lista"); desenharLista(); return; }
     KIT = k; IMGS = (await idbGet("imgs", k.id)) || imgsVazias(); if (!Array.isArray(IMGS.fotos)) IMGS.fotos = [];
-    mostrar("editor"); desenharForm(); agendarPrevia(0);
+    mostrar("editor"); desenharForm(); desenharTrocar(); agendarPrevia(0);
+  }
+  /* 28/11 (dono: "vários press kits"): trocar de um para outro sem voltar para a lista, e duplicar o aberto */
+  function desenharTrocar() {
+    var sel = $("edTrocar"); if (!sel || !KIT) return;
+    var l = lista().sort(function (a, b) { return String(b.atualizado || "").localeCompare(String(a.atualizado || "")); });
+    sel.innerHTML = '<option value="" disabled>📁 MEUS PRESS KITS (' + l.length + ")</option>" + l.map(function (k) { return '<option value="' + esc(k.id) + '"' + (k.id === KIT.id ? " selected" : "") + ">" + esc(k.nome || "Press kit") + (k.idioma ? " · " + k.idioma.toUpperCase() : "") + "</option>"; }).join("") + '<option value="__novo">＋ Novo press kit…</option>';
+  }
+  async function guardarAgora() { if (!KIT) return; salvarKit(KIT); clearTimeout(tGuardarImgs); await idbPut("imgs", KIT.id, IMGS); }
+  async function duplicarKit(id, nomeNovo, mexer) {
+    if (KIT && KIT.id === id) await guardarAgora();
+    var k = acharKit(id); if (!k) return null; var n = clone(k); n.id = uid(); n.nome = nomeNovo || (k.nome || "Press kit") + " (cópia)"; n.criado = new Date().toISOString(); delete n.pub;
+    if (mexer) mexer(n); salvarKit(n);
+    var im = await idbGet("imgs", k.id); if (im) await idbPut("imgs", n.id, im); var th = await idbGet("thumbs", "kit-" + k.id); if (th) await idbPut("thumbs", "kit-" + n.id, th);
+    return n;
   }
   async function criarKit(modId) {
     var k = kitNovo(modId), mod = modeloDe(modId), im = imgsExemplo(mod);
     salvarKit(k); await idbPut("imgs", k.id, im);
-    KIT = k; IMGS = im; mostrar("editor"); desenharForm(); agendarPrevia(0);
+    KIT = k; IMGS = im; mostrar("editor"); desenharForm(); desenharTrocar(); agendarPrevia(0);
     aviso("Modelo " + mod.nome + " aberto com um exemplo");
   }
   function guardar() { if (!KIT) return; salvarKit(KIT); }
@@ -1081,14 +1129,18 @@
      corporativas… ela se altera e se cria no local com um clique"): um toque no preset → a IA da plataforma (bw-ia-imagem, pela
      fotos-nuvem.js — a mesma do editor de fotos: cópia ≤ 504 px, confirmação na 1ª vez, limite do dia) devolve a foto nova e ela troca
      NO LUGAR; ↺ ORIGINAL volta. O presskit.js não fala com a internet para isso: só chama BWFotosNuvem. ---------- */
-  var MANTER = "Keep exactly the same person: same face, identity, skin tone, hair and expression. Photorealistic, natural skin texture, sharp focus, no text, no watermark. ";
+  /* 28/11 (dono: "não alterar o rosto nem inserir acessório ou modificação no corpo — o mais real possível"): a trava vem ANTES do pedido e é repetida no fim.
+     A função bw-ia-imagem corta o pedido em 700 letras: MANTER + preset/pedido + FIM cabem (pedidoIA corta o meio, nunca a trava). */
+  var MANTER = "REAL PERSON, UNCHANGED: identical face (same features, shape, eyes, nose, mouth, skin, marks, age, expression, hair) and identical body (same shape, weight, proportions, pose, hands). Add NO accessories (no glasses, jewelry, hats, makeup, tattoos, beard). No beautifying, slimming or reshaping. ";
+  var FIM_IA = " Photorealistic, true to life, natural skin texture, no text.";
+  function pedidoIA(meio) { var max = 690 - MANTER.length - FIM_IA.length; return MANTER + String(meio || "").replace(/\s+/g, " ").trim().slice(0, max) + FIM_IA; }
   var FOTO_IA = [
-    { id: "corp", ico: "💼", nome: "Corporativo", p: MANTER + "Turn this into a professional corporate headshot: clean neutral light-gray studio background, soft even studio lighting, wearing a well-fitted dark blazer, confident friendly look, upper body framing." },
-    { id: "escr", ico: "🏢", nome: "Escritório", p: MANTER + "Place the person in a modern bright office with a softly blurred background (bokeh), natural window light, professional business attire, editorial corporate portrait." },
-    { id: "liso", ico: "⬜", nome: "Fundo liso", p: MANTER + "Replace the background with a plain seamless pure white studio background, even soft lighting, clean edges around the person, keep the same clothes." },
-    { id: "luz", ico: "💡", nome: "Luz de estúdio", p: MANTER + "Keep the same composition, clothes and background. Improve only the photo quality: professional studio lighting, balanced exposure, accurate natural colors, gentle contrast, crisp details." },
-    { id: "book", ico: "🎭", nome: "Book artístico", p: MANTER + "Artistic actor headshot: dark charcoal studio background, dramatic soft side light with subtle rim light, cinematic but natural colors, keep the same clothes." },
-    { id: "palco", ico: "🎤", nome: "No palco", p: MANTER + "Place the person on a professional event stage with warm spotlights and soft blurred audience lights behind, keep the same clothes, keep the person well lit and in focus." }
+    { id: "corp", ico: "💼", nome: "Corporativo", p: "Professional corporate headshot: clean neutral light-gray studio background, soft even studio lighting. Change only the background, light and clothing to a well-fitted dark blazer." },
+    { id: "escr", ico: "🏢", nome: "Escritório", p: "Place the person in a modern bright office with a softly blurred background, natural window light, professional business attire. Change only the background, light and clothing." },
+    { id: "liso", ico: "⬜", nome: "Fundo liso", p: "Replace the background with a plain seamless pure white studio background, even soft lighting, clean edges around the person, keep the same clothes." },
+    { id: "luz", ico: "💡", nome: "Luz de estúdio", p: "Keep the same composition, clothes and background. Improve only the photo quality: professional studio lighting, balanced exposure, accurate natural colors, gentle contrast, crisp details." },
+    { id: "book", ico: "🎭", nome: "Book artístico", p: "Artistic actor headshot: dark charcoal studio background, dramatic soft side light with subtle rim light, cinematic but natural colors, keep the same clothes." },
+    { id: "palco", ico: "🎤", nome: "No palco", p: "Place the person on a professional event stage with warm spotlights and soft blurred audience lights behind, keep the same clothes, keep the person well lit and in focus." }
   ];
   var IA_FOTO_OK = false, IA_OCUP = {};
   function chaveFoto(alvo) { return alvo === "retrato" || alvo === "capa" || String(alvo).indexOf("c:") === 0 ? alvo : "f" + alvo; }
@@ -1099,7 +1151,7 @@
     return '<div class="pk-ia" data-iaalvo="' + alvo + '"><span class="pk-ia-t">✨ MELHORAR COM IA · UM TOQUE</span><div class="pk-ia-l">' + FOTO_IA.map(function (x) {
       return '<button type="button" class="pk-iab" data-a="fotoIA" data-alvo="' + alvo + '" data-p="' + x.id + '" title="' + esc(x.nome) + '"' + (IA_OCUP[k] ? " disabled" : "") + '><i>' + x.ico + "</i>" + esc(x.nome) + "</button>";
     }).join("") + '<button type="button" class="pk-iab" data-a="fotoIAlivre" data-alvo="' + alvo + '"' + (IA_OCUP[k] ? " disabled" : "") + "><i>✎</i>Do meu jeito</button>" +
-      (orig ? '<button type="button" class="pk-iab volta" data-a="fotoIAvolta" data-alvo="' + alvo + '"><i>↺</i>Original</button>' : "") + "</div></div>";
+      (orig ? '<button type="button" class="pk-iab" data-a="fotoIAbaixar" data-alvo="' + alvo + '"><i>⬇</i>Baixar foto da IA</button><button type="button" class="pk-iab volta" data-a="fotoIAvolta" data-alvo="' + alvo + '"><i>↺</i>Original</button>' : "") + "</div></div>";
   }
   function encolher(src, max) {
     return imgDe(src).then(function (im) {
@@ -1117,7 +1169,7 @@
     IA_FOTO_OK = true; IA_OCUP[k] = true; desenharForm(); andamento("A IA está criando a foto (10 a 30 s)…");
     try {
       var e = await encolher(src, 504), q = 1024 / Math.max(e.w, e.h), w = Math.max(256, Math.round(e.w * q / 16) * 16), h = Math.max(256, Math.round(e.h * q / 16) * 16);
-      var r = await BWFotosNuvem.editar(e.blob, pedido, w, h);
+      var r = await BWFotosNuvem.editar(e.blob, pedidoIA(pedido), w, h);
       andamento("");
       if (r.erro) { aviso(BWFotosNuvem.msg(r.erro), true); return; }
       var nova = await blobUrl(r.blob);
@@ -1163,10 +1215,28 @@
         '<div class="pk-chips"><button type="button" class="pk-chip" data-a="enqPos" data-v="topo">⬆ MOSTRAR O TOPO</button><button type="button" class="pk-chip" data-a="enqPos" data-v="centro">⊕ CENTRALIZAR</button><button type="button" class="pk-chip" data-a="enqPos" data-v="base">⬇ MOSTRAR A BASE</button></div>') +
       '<div class="pk-sub-t">LUZ E COR</div>' + AJUSTES.map(function (a) { var v = +e.aj[a[0]] || 0; return '<label class="pk-aj"><span>' + a[1] + '</span><input type="range" min="-100" max="100" step="1" data-enq="' + a[0] + '" value="' + v + '"><b>' + v + "</b></label>"; }).join("") +
       '<div class="pk-chips"><button type="button" class="pk-chip" data-a="enqLook" data-v="auto">✦ CLAREAR</button><button type="button" class="pk-chip" data-a="enqLook" data-v="vivo">VIVO</button><button type="button" class="pk-chip" data-a="enqLook" data-v="quente">QUENTE</button><button type="button" class="pk-chip" data-a="enqLook" data-v="frio">FRIO</button><button type="button" class="pk-chip" data-a="enqLook" data-v="pb">P&amp;B</button><button type="button" class="pk-chip" data-a="enqLook" data-v="zero">↺ ZERAR</button></div>' +
+      (inteira ? "" : fxHtml(e)) +
       '<div class="pk-chips" style="margin-top:14px"><button type="button" class="pk-chip" data-a="enqAntes">◐ SEGURE PARA VER O ANTES</button><button type="button" class="bw-btn pri" data-a="enqPronto">✓ PRONTO</button></div>');
     var cv = $("enqCv"), palco = $("enqPalco");
     if (!inteira) { palco.style.aspectRatio = cw + " / " + ch; palco.style.width = "min(100%, calc(52vh * " + (cw / ch).toFixed(4) + "))"; }
     ligarEnquadrar(palco); enqDesenhar();
+  }
+  function fxHtml(e) {
+    var f = e.fx || {}, cr = coresDe(KIT), chip = function (c, v, rot, on, extra) { return '<button type="button" class="pk-chip' + (on ? " on" : "") + '" data-a="enqFx" data-c="' + c + '" data-v="' + v + '">' + (extra || "") + esc(rot) + "</button>"; };
+    return '<div class="pk-sub-t">EFEITOS DA FOTO <small>· mistura, opacidade e máscara com o fundo</small></div>' +
+      '<div class="pk-sub-t" style="margin-top:6px">MISTURA</div><div class="pk-chips" data-fxg="m">' + Object.keys(MISTURAS).map(function (k) { return chip("m", k, MISTURAS[k][0], (f.m || "normal") === k); }).join("") + "</div>" +
+      '<div class="pk-sub-t">MISTURAR COM</div><div class="pk-chips" data-fxg="c">' + Object.keys(CORES_FX).map(function (k) { return chip("c", k, CORES_FX[k], (f.c || "fundo") === k, '<i class="pk-bolinha" style="background:' + cr[k] + '"></i>'); }).join("") + "</div>" +
+      '<label class="pk-aj"><span>◌ Opacidade</span><input type="range" min="5" max="100" step="1" data-enq="fo" value="' + (f.o == null ? 100 : f.o) + '"><b>' + (f.o == null ? 100 : f.o) + "%</b></label>" +
+      '<div class="pk-sub-t">MÁSCARA</div><div class="pk-chips" data-fxg="k">' + Object.keys(MASCARAS).map(function (k) { return chip("k", k, MASCARAS[k], (f.k || "nenhuma") === k); }).join("") + "</div>" +
+      '<label class="pk-aj"><span>≈ Suavidade da máscara</span><input type="range" min="5" max="100" step="1" data-enq="fs" value="' + (f.s == null ? 50 : f.s) + '"><b>' + (f.s == null ? 50 : f.s) + "</b></label>" +
+      '<div class="pk-chips">' + chip("zero", "1", "↺ SEM EFEITO", false) + "</div>";
+  }
+  function enqFx(c, v) {
+    if (!ENQ) return; ENQ.e.fx = ENQ.e.fx || {};
+    if (c === "zero") { ENQ.e.fx = {}; var mc = $("modalCx"); [["fo", 100, "%"], ["fs", 50, ""]].forEach(function (a) { var r = mc.querySelector('[data-enq="' + a[0] + '"]'); if (r) { r.value = a[1]; r.parentNode.querySelector("b").textContent = a[1] + a[2]; } });
+      [].forEach.call(mc.querySelectorAll("[data-fxg] .pk-chip"), function (b) { var g = b.parentNode.getAttribute("data-fxg"); b.classList.toggle("on", b.getAttribute("data-v") === ({ m: "normal", c: "fundo", k: "nenhuma" })[g]); }); }
+    else { ENQ.e.fx[c] = v; var gr = $("modalCx").querySelector('[data-fxg="' + c + '"]'); if (gr) [].forEach.call(gr.children, function (b) { b.classList.toggle("on", b.getAttribute("data-v") === v); }); }
+    enqDesenhar();
   }
   var tEnq = 0, enqVez = 0;
   function enqDesenhar() {
@@ -1174,7 +1244,7 @@
     tEnq = requestAnimationFrame(async function () {
       var cv = $("enqCv"); if (!cv || !ENQ) return; var vez = ++enqVez, e = ENQ.antes ? { x: ENQ.e.x, y: ENQ.e.y, z: ENQ.e.z } : ENQ.e, u;
       if (ENQ.inteira) u = ENQ.antes ? ENQ.src : await ajustarImg(await reduzir(ENQ.src, 700), e.aj);
-      else { var L = Math.min(640, (cv.parentNode.clientWidth || 480) * 1.5), sc = L / ENQ.cw; u = await recortar(ENQ.src, ENQ.cw * sc, ENQ.ch * sc, enqOp(e, Object.assign({ q: 0.8 }, ENQ.op))); }
+      else { var L = Math.min(640, (cv.parentNode.clientWidth || 480) * 1.5), sc = L / ENQ.cw; u = await recortar(ENQ.src, ENQ.cw * sc, ENQ.ch * sc, enqOpC(coresDe(KIT), e, Object.assign({ q: 0.8 }, ENQ.op))); }
       if (vez !== enqVez || !ENQ) return;
       var im = await imgDe(u); if (vez !== enqVez) return;
       cv.width = im.naturalWidth; cv.height = im.naturalHeight; cv.getContext("2d").drawImage(im, 0, 0);
@@ -1185,8 +1255,8 @@
     if (!cx.__enq) { cx.__enq = 1;
       cx.addEventListener("input", function (ev) {
         var n = ev.target.getAttribute && ev.target.getAttribute("data-enq"); if (!n || !ENQ) return;
-        var v = +ev.target.value; if (n === "z") ENQ.e.z = v / 100; else ENQ.e.aj[n] = v;
-        var b = ev.target.parentNode.querySelector("b"); if (b) b.textContent = n === "z" ? v + "%" : v; enqDesenhar();
+        var v = +ev.target.value; if (n === "z") ENQ.e.z = v / 100; else if (n === "fo") (ENQ.e.fx = ENQ.e.fx || {}).o = v; else if (n === "fs") (ENQ.e.fx = ENQ.e.fx || {}).s = v; else ENQ.e.aj[n] = v;
+        var b = ev.target.parentNode.querySelector("b"); if (b) b.textContent = n === "z" || n === "fo" ? v + "%" : v; enqDesenhar();
       });
       var antes = function (on) { return function (ev) { var b = ev.target.closest && ev.target.closest('[data-a="enqAntes"]'); if (!b || !ENQ) return; if (on) ev.preventDefault(); ENQ.antes = on; enqDesenhar(); }; };
       cx.addEventListener("pointerdown", antes(true)); ["pointerup", "pointerleave", "pointercancel"].forEach(function (t) { cx.addEventListener(t, function (ev) { if (ENQ && ENQ.antes) { ENQ.antes = false; enqDesenhar(); } }, true); });
@@ -1223,8 +1293,9 @@
   function enqPronto() {
     if (!ENQ) return; var e = ENQ.e, aj = {}; AJUSTES.forEach(function (a) { if (+e.aj[a[0]]) aj[a[0]] = +e.aj[a[0]]; });
     var limpo = ENQ.inteira ? {} : { x: +(+e.x).toFixed(4), y: +(+e.y).toFixed(4), z: +(+e.z).toFixed(3) }; if (Object.keys(aj).length) limpo.aj = aj;
+    if (!ENQ.inteira && !fxNeutro(e.fx)) limpo.fx = { m: e.fx.m || "normal", c: e.fx.c || "fundo", o: e.fx.o == null ? 100 : +e.fx.o, k: e.fx.k || "nenhuma", s: e.fx.s == null ? 50 : +e.fx.s };
     IMGS.enq = IMGS.enq || {};
-    var neutro = !limpo.aj && (ENQ.inteira || (Math.abs(limpo.x - 0.5) < 0.001 && Math.abs(limpo.y - 0.5) < 0.001 && limpo.z <= 1.001));
+    var neutro = !limpo.aj && !limpo.fx && (ENQ.inteira || (Math.abs(limpo.x - 0.5) < 0.001 && Math.abs(limpo.y - 0.5) < 0.001 && limpo.z <= 1.001));
     if (neutro) delete IMGS.enq[ENQ.k]; else IMGS.enq[ENQ.k] = limpo;
     ENQ = null; fecharModal(); guardarImgs(); desenharForm(); agendarPrevia(0); aviso("Foto ajustada ✓");
   }
@@ -1430,7 +1501,7 @@
       $("abaPrev").textContent = "👁 PRÉVIA (" + PAGS + ")";
       try { var t = document.createElement("canvas"); t.width = 240; t.height = Math.round(240 * novos[0].height / novos[0].width); t.getContext("2d").drawImage(novos[0], 0, 0, t.width, t.height); idbPut("thumbs", "kit-" + KIT.id, t.toDataURL("image/jpeg", 0.8)); } catch (e) { }
     } catch (e) {
-      if (ger === GER) { $("prevEstado").textContent = "Sem prévia agora (" + (e && e.message === "sem internet" ? "sem internet" : "tente de novo") + ")."; }
+      if (ger === GER) { window.__pkErroPrev = String(e && (e.stack || e));  $("prevEstado").textContent = "Sem prévia agora (" + (e && e.message === "sem internet" ? "sem internet" : "tente de novo") + ")."; }
     }
   }
 
@@ -1565,11 +1636,13 @@
   var NOVOS = { perfil: { k: "", v: "" }, experiencia: { grupo: "", titulo: "", papel: "", onde: "", ano: "", link: "" }, formacao: { ano: "", curso: "", onde: "" }, links: { rot: "", url: "" }, numeros: { v: "", r: "" }, servicos: { t: "", d: "" }, depoimentos: { texto: "", autor: "", cargo: "" }, imprensa: { veiculo: "", titulo: "", data: "", link: "" }, agenda: { data: "", titulo: "", local: "" } };
   async function acao(a, el) {
     var id = el.getAttribute("data-id"), d = KIT && KIT.d;
+    if (/^pm/.test(a) || a === "pkVideo" || a === "pkIdioma" || a === "pkLink") { if (window.BWPressKitMais) await BWPressKitMais.acao(a, el); else aviso("Recarregue a página", true); return; }
     if (a === "novo") { mostrar("modelos"); desenharModelos(); }
     else if (a === "voltarLista") { KIT = null; mostrar("lista"); desenharLista(); }
     else if (a === "usarModelo") await criarKit(el.getAttribute("data-m"));
     else if (a === "abrir") await abrirKit(id);
-    else if (a === "duplicar") { var k = acharKit(id); if (!k) return; var n = clone(k); n.id = uid(); n.nome = (k.nome || "Press kit") + " (cópia)"; n.criado = new Date().toISOString(); salvarKit(n); var im = await idbGet("imgs", k.id); if (im) await idbPut("imgs", n.id, im); var th = await idbGet("thumbs", "kit-" + k.id); if (th) await idbPut("thumbs", "kit-" + n.id, th); desenharLista(); aviso("Cópia criada ✓"); }
+    else if (a === "duplicar") { if (await duplicarKit(id)) { desenharLista(); aviso("Cópia criada ✓"); } }
+    else if (a === "duplicarEste") { if (!KIT) return; var nd = await duplicarKit(KIT.id); if (nd) { await abrirKit(nd.id); aviso("Cópia aberta — o original continua guardado"); } }
     else if (a === "excluir") { var k2 = acharKit(id); if (!k2 || !confirm("Excluir o press kit \"" + (k2.nome || "") + "\"? Isso não pode ser desfeito.")) return; gravarLista(lista().filter(function (x) { return x.id !== id; })); await idbDel("imgs", id); await idbDel("thumbs", "kit-" + id); desenharLista(); aviso("Press kit excluído"); }
     else if (a === "trocarModelo") { var md = modeloDe(el.getAttribute("data-m")); KIT.modelo = md.id; KIT.cor = md.cor; KIT.cor2 = md.cor2; KIT.fonte = md.fonte; KIT.formato = md.formato; KIT.est = {}; guardar(); desenharForm(); agendarPrevia(0); aviso("Modelo " + md.nome + " ✓"); }
     else if (a === "coresModelo") { var m2 = modeloDe(KIT.modelo); KIT.cor = m2.cor; KIT.cor2 = m2.cor2; KIT.fonte = m2.fonte; guardar(); desenharForm(); agendarPrevia(0); }
@@ -1582,6 +1655,7 @@
     else if (a === "enquadrar") abrirEnquadrar(el.getAttribute("data-alvo"));
     else if (a === "enqPronto") enqPronto();
     else if (a === "enqLook") enqLook(el.getAttribute("data-v"));
+    else if (a === "enqFx") enqFx(el.getAttribute("data-c"), el.getAttribute("data-v"));
     else if (a === "enqPos") enqPos(el.getAttribute("data-v"));
     else if (a === "tirarImg") { IMGS[el.getAttribute("data-v")] = ""; if (IMGS.origs) delete IMGS.origs[el.getAttribute("data-v")]; if (IMGS.enq) delete IMGS.enq[el.getAttribute("data-v")]; guardarImgs(); desenharForm(); agendarPrevia(0); }
     else if (a === "vis") { var s = el.getAttribute("data-s"), oc = KIT.ocultas || (KIT.ocultas = []); if (el.checked) KIT.ocultas = oc.filter(function (x) { return x !== s; }); else if (oc.indexOf(s) < 0) oc.push(s); guardar(); desenharForm(); agendarPrevia(0); }
@@ -1613,10 +1687,11 @@
     else if (a === "desfazerIA") desfazerIA();
     else if (a === "falar") falar(el.getAttribute("data-alvo"));
     else if (a === "fotoIA") { var px = FOTO_IA.filter(function (x) { return x.id === el.getAttribute("data-p"); })[0]; if (!$("modal").hidden) fecharModal(); if (px) fotoIA(el.getAttribute("data-alvo"), px.p); }
+    else if (a === "fotoIAbaixar") { var ub = srcFoto(el.getAttribute("data-alvo")); if (!ub) return; var bb = new Blob([binDe(ub)], { type: (/^data:([^;]+)/.exec(ub) || [0, "image/jpeg"])[1] }); baixar(bb, nomeArq(KIT, "") .replace(/\.$/, "") + "-foto-ia-" + String(el.getAttribute("data-alvo")).replace(/[^a-z0-9]/gi, "") + (/png/.test(bb.type) ? ".png" : ".jpg")); aviso("⬇ Foto da IA baixada"); }
     else if (a === "fotoIAvolta") { if (!$("modal").hidden) fecharModal(); fotoIAvolta(el.getAttribute("data-alvo")); }
     else if (a === "fotoIAlivre") fotoIAlivre(el.getAttribute("data-alvo"));
     else if (a === "fotoIAmenu") fotoIAmenu(el.getAttribute("data-i"));
-    else if (a === "fotoIAlivreIr") { var tl = ($("iaFotoTexto").value || "").trim(); if (tl.length < 4) { aviso("Diga o que mudar na foto", true); return; } pararDit(); fecharModal(); fotoIA(el.getAttribute("data-alvo"), MANTER + "Edit the photo as follows (user request in Portuguese): " + tl); }
+    else if (a === "fotoIAlivreIr") { var tl = ($("iaFotoTexto").value || "").trim(); if (tl.length < 4) { aviso("Diga o que mudar na foto", true); return; } pararDit(); fecharModal(); fotoIA(el.getAttribute("data-alvo"), "Edit only this (request in Portuguese): " + tl); }
     else if (a === "corrigir") corrigirCampo(el.getAttribute("data-alvo"));
     else if (a === "voltarCampo") voltarCampo(el.getAttribute("data-alvo"));
     else if (a === "servFotos") { KIT.servFotos = !!el.checked; guardar(); agendarPrevia(0); }
@@ -1654,6 +1729,7 @@
       aoDigitar(e);   /* cor também muda ao vivo (a prévia espera a pessoa parar de arrastar) */
     });
     $("edNome").addEventListener("input", function () { if (KIT) { KIT.nome = this.value; guardar(); } });
+    $("edTrocar").addEventListener("change", async function () { var v = this.value; if (!KIT || !v || v === KIT.id) return; await guardarAgora(); if (v === "__novo") { KIT = null; mostrar("modelos"); desenharModelos(); } else await abrirKit(v); });
     $("modal").addEventListener("click", function (e) { if (e.target === this) fecharModal(); });
     document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !$("modal").hidden) fecharModal(); });
     var t; window.addEventListener("resize", function () { clearTimeout(t); t = setTimeout(function () { if (VISTA === "editor") agendarPrevia(200); }, 300); });
@@ -1664,6 +1740,19 @@
     else if (mdl && MODELOS.some(function (m) { return m.id === mdl; })) criarKit(mdl);
     else { mostrar("lista"); desenharLista(); }
   }
-  window.BWPressKit = { imgsAtual: function () { return IMGS; }, recortar: recortar,  modelos: MODELOS, modelo: modelo, defPdf: defPdf, kitNovo: kitNovo, imgsExemplo: imgsExemplo, atual: function () { return KIT; }, previa: desenharPrevia, paginas: function () { return PAGS; } };
+  window.BWPressKit = { imgsAtual: function () { return IMGS; }, lista: lista, acharKit: acharKit, salvarKit: salvarKit, abrirKit: abrirKit, duplicarKit: duplicarKit, guardarAgora: guardarAgora,
+    coresDe: coresDe, ia: ia, jsonDe: jsonDe, erroIA: erroIA, modal: modal, fecharModal: fecharModal, aviso: aviso, andamento: andamento, baixar: baixar, nomeArq: nomeArq, reduzir: reduzir,
+    titulo: titulo, linkDe: linkDe, secoes: SECOES, visiveis: function (k) { k = k || KIT; var o = (k.ordem || TODAS).filter(function (id) { return SECOES[id] && (k.ocultas || []).indexOf(id) < 0; }); TODAS.forEach(function (id) { if (o.indexOf(id) < 0 && (k.ocultas || []).indexOf(id) < 0) o.push(id); }); return o; },
+    /* 28/11: as fotos como saem no PDF (enquadradas, com luz/cor e efeitos), para o vídeo e para o link público */
+    imagensPub: async function (k, im) {
+      k = k || KIT; im = im || IMGS; var EQ = im.enq || {}, CR = coresDe(k), capaSrc = im.capa || im.retrato || (im.fotos || [])[0] || "", out = { fotos: [], cards: {} };
+      if (capaSrc) out.capa = await recortar(capaSrc, 1080, 1350, enqOpC(CR, EQ.capa, { q: 0.86 }));
+      if (im.retrato) out.retrato = await reduzir(EQ.retrato && temAj(EQ.retrato.aj) ? await ajustarImg(im.retrato, EQ.retrato.aj) : im.retrato, 1100);
+      if (im.logo) out.logo = await reduzir(im.logo, 700);
+      for (var i = 0; i < (im.fotos || []).length; i++) out.fotos.push(await recortar(im.fotos[i], 1400, 1050, enqOpC(CR, EQ["f" + i], { q: 0.84 })));
+      Object.keys(im.cards || {}).forEach(function (l) { out.cards[l] = []; });
+      for (var l in (im.cards || {})) { var arr = im.cards[l] || []; for (var j = 0; j < arr.length; j++) out.cards[l].push(arr[j] ? await recortar(arr[j], 960, 600, enqOpC(CR, EQ["c:" + l + ":" + j], { q: 0.84 })) : ""); }
+      return out;
+    }, gerarPdfBytes: async function () { await guardarAgora(); return await pdfBytes(defPdf(await modelo(KIT, IMGS, { alta: true }))); }, idbGet: idbGet, idbPut: idbPut, sessao: sessao, recortar: recortar,  modelos: MODELOS, modelo: modelo, defPdf: defPdf, kitNovo: kitNovo, imgsExemplo: imgsExemplo, atual: function () { return KIT; }, previa: desenharPrevia, paginas: function () { return PAGS; } };
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", iniciar); else iniciar();
 })();

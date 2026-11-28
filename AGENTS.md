@@ -1130,6 +1130,16 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
      cfg "meta:<id>". O "Preparando…" do iPhone é o seletor de fotos convertendo (Formato: Automático) — a página não controla: dica "Opções →
      Formato: Atual" (#veDicaIos). Medir com CPU 4× mais lenta e contar os seek feitos DURANTE o play (docs/testes/teste_video_play.py).
 
+**Aprendidos em 28/11 (PRESS KIT: idioma, vídeo, link e efeitos)**
+248. Variável LOCAL com o nome de uma função (`var rot = …` dentro do PDF, função `rot()` criada no mesmo dia) quebra a prévia inteira só
+     quando aquele caminho roda (trabalho com link VER) — nome de função nova: procurar antes (regra 200). Módulo que mexe no item ABERTO
+     (assets/presskit-mais.js) grava em BWPressKit.atual() e chama guardarAgora — gravar numa cópia de acharKit() some no próximo salvar.
+     LINK PÚBLICO de algo do usuário (kit.html?k=TOKEN): tabela com RLS por auth.uid() + leitura por função security definer de UMA linha
+     (nunca select público), arquivos num balde público SÓ dentro da pasta do token (regra de gravação pela tabela), versão nova numa
+     subpasta nova e a antiga apagada depois de gravar; caixinha de autorização antes da 1ª publicação; página pública sem supabase-js,
+     textos por textContent e links só http(s)/mailto (auto: docs/testes/teste_presskit_mais.py). Tradução por IA: só os campos de
+     texto, chaves JSON iguais, conferência dos DÍGITOS (número mudou = fica o original) e numa CÓPIA (o original não muda).
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -2933,7 +2943,20 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   ＋ IMPORTAR e no manual. Pesquisa: editores de navegador usam o play nativo do take ativo como relógio, aquecem o decodificador do próximo e baixam a
   qualidade da prévia no play. Teste novo docs/testes/teste_video_play.py (CPU 4× mais lenta, 390/1280: 0 pulos no meio do take, antes 1) + bateria do
   editor 0 falhas; vigia ✅. NÃO testado em iPhone real. video-editor v43, bw-proxy v6, sw v253. PENTE FINO 247.
+- 28/11/2026 15:30 · Claude (dono: "Vídeo do press kit, Versão em inglês/espanhol, Link para compartilhar, Vários press kits, DÊ A OPÇÃO DE DOWNLOAD DAS
+  FOTOS GERADAS PELA EDIÇÃO DE IA… NÃO ALTERAR O ROSTO NEM INSERIR NENHUM ACESSÓRIO…" + "EFEITOS NAS FOTOS DA CAPA, MISTURA E MÁSCARA COM O FUNDO E
+  OPACIDADE"): PRESS KIT — (1) foto da IA: o pedido sempre começa com a trava "mesmo rosto, mesmo corpo, sem acessórios nem retoques" (≤ 700 letras) e
+  ganhou ⬇ BAIXAR FOTO DA IA; (2) ✥ EFEITOS na capa, galeria e cartões: 9 misturas com o fundo/destaque/2ª cor/preto/branco, opacidade, 8 máscaras e
+  suavidade (mesma conta na prévia, no PDF e no vídeo); (3) seletor de press kits no editor + ⧉ DUPLICAR ESTE; (4) 🌐 INGLÊS/ESPANHOL = cópia traduzida
+  pela bw-ia (nomes, números, datas e links iguais; títulos das partes e botões no idioma); (5) 🎬 VÍDEO 9:16/1:1/16:9 em 720/1080p feito no aparelho
+  (assets/presskit-mais.js); (6) 🔗 LINK PARA COMPARTILHAR → kit.html?k=TOKEN (página pública nova; SQL docs/sql/2026-11-28-presskit-link.sql NÃO rodado
+  ainda — sem ele o botão avisa "ainda está sendo ativado"). Bug achado: `var rot` local escondia a função nova e derrubava a prévia de todo press kit
+  com link VER (regra 248). teste_presskit_mais.py (novo, 45 checagens × 1280/390, IA e Supabase simulados, MP4 conferido no ffprobe) e teste_presskit
+  0 falhas; vigia ✅ (7.8q). Manual 78 → 79 p. App BW 1.9.60 (cópia sem internet, tutorial 18 p., novidades). presskit.js v8, presskit-mais.js v1, sw v254.
 ## Pendências (dono)
+- [ ] (28/11) LINK DO PRESS KIT: dono dar o "sim" para o Claude rodar docs/sql/2026-11-28-presskit-link.sql no Supabase (tabela bw_presskit_pub + função
+      de leitura + balde público "presskit"); depois testar logado: 🔗 CRIAR O LINK, abrir no celular e ✕ TIRAR DO AR.
+- [ ] (28/11) PRESS KIT: testar 🎬 VÍDEO no iPhone, 🌐 INGLÊS logado (IA real) e os EFEITOS na capa. BW-Setup.exe 1.9.60: dois cliques em "5 - GERAR INSTALADOR EXE".
 - [x] (28/11 11:31) BW-Setup.exe 1.9.59 gerado pelo dono e publicado (17,9 MB, versão conferida dentro do .exe).
 - [ ] (28/11) iPhone: abrir o editor de vídeo, importar takes (testar Opções → Formato: Atual no seletor) e dar PLAY numa sequência; dizer se ainda engasga e onde (no meio do take ou nas emendas).
 - [x] (28/11 10:52) BW-Setup.exe 1.9.58 gerado pelo dono e publicado (17,9 MB, versão conferida dentro do .exe).

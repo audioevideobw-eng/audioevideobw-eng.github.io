@@ -483,9 +483,19 @@ else:
             problemas.append(f"PRESS KIT: a fonte {_fp} falta ou não é TTF binária")
     if not os.path.exists("assets/fontes/OFL.txt"):
         problemas.append("PRESS KIT: falta assets/fontes/OFL.txt (licença das fontes)")
+# 7.8q PRESS KIT — LINK PÚBLICO (28/11/2026): kit.html só lê pela função bw_presskit_ver, sem supabase-js/bw-sync, textos por textContent
+_kt = _arq("kit.html")
+if _kt:
+    if "supabase-js" in _kt or "bw-sync.js" in _kt or ".innerHTML = " in _kt.replace('pg.innerHTML = ""', ""):
+        problemas.append("kit.html: a página pública só pode ler pelo RPC (sem supabase-js/bw-sync) e montar o texto com textContent")
+    if "rpc/bw_presskit_ver" not in _kt: problemas.append("kit.html: deve ler só pela função bw_presskit_ver")
+_pm = _arq("assets/presskit-mais.js")
+if _pm and re.search(r"from\(\s*[\"'](?!bw_presskit_pub)[a-z_]+[\"']", _pm):
+    problemas.append("assets/presskit-mais.js: só grava na tabela bw_presskit_pub")
 # 7.8d MODOS DE APARÊNCIA (20/11/2026): modos.js no <head> de toda página; só preferências locais (ui_*); nada de rede
 _mj, _cj = _arq("assets/modos.js"), _arq("assets/config.js")
 for _p, _t in todos.items():
+    if _p == "kit.html": continue   # página pública de um press kit: usa as cores DAQUELE press kit, não o modo de quem visita
     if "</head>" in _t and "assets/modos.js" not in _t.split("</head>")[0]:
         problemas.append(f"{_p}: sem assets/modos.js no <head> (a página não acompanha o modo de aparência escolhido)")
 if re.search(r"fetch\(|XMLHttpRequest|supabase|BWSync|indexedDB|\.upload\(", _mj) or re.search(r"(get|set)Item\(\s*[\"']bw_", _mj + _cj):
@@ -587,7 +597,7 @@ if "bw-escudo--topo" not in ler("assets/layout.js") or "bw-escudo--menu" not in 
     problemas.append("layout.js: o ESCUDO de segurança ao lado do LOGADO (topo e menu) sumiu")
 
 # 7.9 páginas com o visual novo (menu lateral) — exceto as de propósito
-SEM_MENU = {"controle.html", "login.html", "cadastro.html", "pedido.html", "baixar.html", "downloads.html", "privacidade.html", "termos.html", "politica.html", "financeiro-painel.html", "investimentos-painel.html", "app.html", "financeiro.html", "fluxo.html", "custos.html"}
+SEM_MENU = {"controle.html", "login.html", "cadastro.html", "pedido.html", "kit.html", "baixar.html", "downloads.html", "privacidade.html", "termos.html", "politica.html", "financeiro-painel.html", "investimentos-painel.html", "app.html", "financeiro.html", "fluxo.html", "custos.html"}
 for p, t in todos.items():
     if p not in SEM_MENU and "assets/layout.js" not in t:
         problemas.append(f"{p}: sem o visual novo (não carrega assets/layout.js)")

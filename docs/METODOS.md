@@ -858,3 +858,15 @@ Armadilha: classe de ESTADO não serve para destacar botão. `＋ IMPORTAR` usav
   lido de volta é o que o editor usa.
 - Teste: `docs/testes/teste_video_play.py` com `Emulation.setCPUThrottlingRate` 4 e gancho no setter de `currentTime` contando seeks durante o play.
   O Chrome daqui não reproduz o iPhone (lá o preload é ignorado e o decodificador é disputado) — a prova final é no aparelho do dono.
+
+## Press kit: link público, vídeo e tradução (28/11/2026)
+- **Link público de dado do usuário**: tabela `bw_presskit_pub` (RLS por `auth.uid()`, gatilho põe o dono e limita 20) + função
+  `bw_presskit_ver(token)` security definer (devolve UMA linha, só com `dados.v >= 1`) + balde público `presskit` com gravação só na pasta
+  de um token que é da conta. Publicar = inserir a linha com `v:0` → subir os arquivos em `token/<versão>/` → gravar `dados` com `v:1` →
+  apagar as versões antigas. A página pública (kit.html) faz um `fetch` cru no `/rest/v1/rpc/...` com a chave publishable.
+- **Teste sem servidor**: Supabase simulado que GUARDA o que a página gravou (`window.__sb.linhas/arq`, arquivos em dataURL); depois o
+  Python serve esses mesmos dados na rota do RPC e do balde para abrir o kit.html — o teste prova o caminho inteiro.
+- **Vídeo de algo pronto**: `BWReelsCelular.gerar({desenhar})` com cenas de duração fixa e troca suave de 0,45 s; fontes por FontFace
+  (assets/fontes) antes do 1º quadro; conferir com ffprobe (codec, tamanho, duração) e 3 quadros diferentes pelo ffmpeg.
+- **Tradução por IA**: coletar só strings (pular nome, contato, links, anos), lotes de ~2,6 mil letras, JSON com as mesmas chaves,
+  aceitar a tradução só se os dígitos forem os mesmos, gravar numa cópia (`duplicarKit(id, nome, mexer)`).

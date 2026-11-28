@@ -79,6 +79,8 @@
 @media (max-width:560px){.pk-cores{grid-template-columns:repeat(2,minmax(0,1fr))}.pk-cores .pk-campo:last-child{grid-column:1/-1}}
 .pk-chips{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 0}
 .pk-chip{min-height:38px;padding:0 13px;border-radius:999px;border:1px solid rgba(245,241,234,.16);background:rgba(255,255,255,.04);color:#F5F1EA;font:700 12.5px Inter,system-ui,sans-serif;cursor:pointer}
+.pk-trocar{flex:0 1 230px;min-width:0;min-height:44px;padding:8px 10px;border-radius:12px;border:1px solid rgba(245,241,234,.16);background:rgba(6,8,13,.55);color:#F5F1EA;font:600 14px Inter,system-ui,sans-serif}
+.pk-bolinha{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:6px;vertical-align:-1px;border:1px solid rgba(255,255,255,.4)}
 .pk-chip.on{background:#E8B54A;color:#06080D;border-color:#E8B54A}
 .pk-up{position:relative;overflow:hidden;min-height:38px;padding:0 14px;font-size:12.5px;cursor:pointer}
 .pk-up input[type=file]{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;font-size:16px}
@@ -224,12 +226,17 @@
     <div class="pk-topo">
       <button type="button" class="bw-btn" data-a="voltarLista">‹ MINHAS APRESENTAÇÕES</button>
       <input class="pk-nome" id="edNome" type="text" maxlength="120" aria-label="Nome desta apresentação">
+      <select class="pk-trocar" id="edTrocar" aria-label="Trocar de press kit"></select>
+      <button type="button" class="bw-btn" data-a="duplicarEste" title="Faz uma cópia deste press kit (com as fotos) para começar outro">⧉ DUPLICAR ESTE</button>
     </div>
     <div class="pk-saidas">
       <button type="button" class="bw-btn pri" data-a="pdf">⬇ BAIXAR PDF</button>
       <button type="button" class="bw-btn" data-a="word">⬇ WORD (EDITÁVEL)</button>
       <button type="button" class="bw-btn" data-a="zip">⬇ PACOTE (PDF + FOTOS)</button>
       <button type="button" class="bw-btn" data-a="compartilhar">↗ COMPARTILHAR</button>
+      <button type="button" class="bw-btn" data-a="pkVideo">🎬 VÍDEO</button>
+      <button type="button" class="bw-btn" data-a="pkIdioma">🌐 INGLÊS / ESPANHOL</button>
+      <button type="button" class="bw-btn" data-a="pkLink">🔗 LINK PARA COMPARTILHAR</button>
       <button type="button" class="bw-btn" data-a="desfazerIA" id="btnDesfazerIA" hidden>↺ VOLTAR AO MEU TEXTO</button>
     </div>
     <div class="pk-abas" role="group" aria-label="Editar ou ver a prévia">
@@ -252,6 +259,8 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.2/dist/umd/supabase.js" integrity="sha384-A97u3Qnt9GZHURO9YJZRe7VQgGUeFzcv6I1oIGnUTxQrCxnpQMwR0/G8F2zt9abZ" crossorigin="anonymous"></script>
 <script src="assets/bw-sync.js?v=20261125"></script>
 <script src="assets/fotos-nuvem.js?v=4"></script>
-<script src="assets/presskit.js?v=7"></script>
+<script src="assets/reels-celular.js?v=6"></script>
+<script src="assets/presskit.js?v=8"></script>
+<script src="assets/presskit-mais.js?v=1"></script>
 </body>
 </html>
