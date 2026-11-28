@@ -2953,9 +2953,13 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   ainda — sem ele o botão avisa "ainda está sendo ativado"). Bug achado: `var rot` local escondia a função nova e derrubava a prévia de todo press kit
   com link VER (regra 248). teste_presskit_mais.py (novo, 45 checagens × 1280/390, IA e Supabase simulados, MP4 conferido no ffprobe) e teste_presskit
   0 falhas; vigia ✅ (7.8q). Manual 78 → 79 p. App BW 1.9.60 (cópia sem internet, tutorial 18 p., novidades). presskit.js v8, presskit-mais.js v1, sw v254.
+- 28/11/2026 12:55 · Claude (dono: "SIM"): SQL docs/sql/2026-11-28-presskit-link.sql rodado no Supabase. Teste no ar ponta a ponta com link de TESTE
+  (inserir, subir foto, publicar, abrir kit.html, recusar pasta alheia, apagar). Foto apagada ainda respondia 200 por alguns segundos pelo cache
+  público do Storage (sem cache = 400): TIRAR DO AR some na hora pela página, a foto some do endereço depois do cache.
 ## Pendências (dono)
-- [ ] (28/11) LINK DO PRESS KIT: dono dar o "sim" para o Claude rodar docs/sql/2026-11-28-presskit-link.sql no Supabase (tabela bw_presskit_pub + função
-      de leitura + balde público "presskit"); depois testar logado: 🔗 CRIAR O LINK, abrir no celular e ✕ TIRAR DO AR.
+- [x] (28/11 12:55, dono: "SIM") SQL do LINK DO PRESS KIT rodado (rls true · 4 regras na tabela · 3 no balde · balde público). Teste no ar: visitante
+      não lista nem grava (401), token falso = null; logado: link de TESTE criado, foto no balde, kit.html abriu, pasta de outro token recusada;
+      teste apagado (linha e foto). Falta o dono criar um link de verdade pelo 🔗 e abrir no celular.
 - [ ] (28/11) PRESS KIT: testar 🎬 VÍDEO no iPhone, 🌐 INGLÊS logado (IA real) e os EFEITOS na capa.
 - [x] (28/11 12:46) BW-Setup.exe 1.9.60 gerado pelo dono e publicado (17,8 MB, versão conferida dentro do .exe).
 - [x] (28/11 11:31) BW-Setup.exe 1.9.59 gerado pelo dono e publicado (17,9 MB, versão conferida dentro do .exe).
