@@ -5,7 +5,7 @@
      da "Produtora Exemplo" (pessoas e empresas inventadas) — a pessoa troca pelos dados dela, liga/desliga e reordena as seções.
    - UM modelo só (modelo()) alimenta o PDF (pdfMake, texto selecionável, fontes Montserrat/Playfair embutidas) e o WORD (.docx editável).
      A PRÉVIA é o próprio PDF desenhado pelo pdf.js — o que aparece na tela é o que sai no arquivo (regra 57).
-   - Dados da conta: mkt_presskit (só textos, em CHAVES do bw-sync). Fotos e logo ficam SÓ no aparelho (IndexedDB bw_presskit), como no BW Reels (regra 84).
+   - Dados da conta: mkt_presskit (só textos, em CHAVES do bw-sync). Fotos e logo ficam no IndexedDB do aparelho E (desde 28/11) na pasta privada da conta pelo assets/presskit-nuvem.js.
    - IA: só a IA Brightway (bw-ia), recebe só o texto que a pessoa digitou; nunca troca nome, números ou datas (regra 54). Nada sai sozinho. */
 (function () {
   "use strict";
@@ -551,14 +551,17 @@
       : tm.escuro ? misturar(tm.fundo, "#FFFFFF", 0.07) : misturar(tm.fundo, tm.corPura, 0.07);
     tm.linha = tm.escuro ? misturar(tm.fundo, "#FFFFFF", 0.16) : misturar(tm.fundo, "#000000", 0.12);
     var m = { kit: kit, tema: tm, formato: formato, G: G, marca: d.marca || "Seu nome", slogan: d.slogan || "", etiqueta: d.etiqueta || "APRESENTAÇÃO", cidade: d.cidade || "", secoes: [] };
+    var TG = m.tags = {}, tg = function (u, alvo) { if (u) TG[u] = alvo; return u; };   /* qual foto é qual (toque na prévia) */
     m.logo = imgs.logo ? await reduzir(imgs.logo, alta ? 1400 : 700) : "";
     m.logoProp = m.logo ? await proporcao(m.logo) : 1;
+    await elPreparar(m, kit, imgs);
     m.retrato = imgs.retrato ? await reduzir(imgs.retrato, alta ? 1800 : 900) : "";
     m.retratoProp = m.retrato ? await proporcao(m.retrato) : 0.8;
     var cap = tm.capa, W = G.W, H = G.H;
     var capaSrc = imgs.capa || imgs.retrato || (imgs.fotos || [])[0] || "", EQ = imgs.enq || {};
     if (m.retrato && EQ.retrato && temAj(EQ.retrato.aj)) m.retrato = await ajustarImg(m.retrato, EQ.retrato.aj);
-    if (capaSrc && !(cap === "recorte" && imgs.retrato)) { var cc0 = corteCapa(cap, G, tm); m.capaImg = await recortar(capaSrc, cc0[0] * f, cc0[1] * f, enqOpC(CR, EQ.capa, cc0[2])); }
+    tg(m.retrato, "retrato");
+    if (capaSrc && !(cap === "recorte" && imgs.retrato)) { var cc0 = corteCapa(cap, G, tm); m.capaImg = tg(await recortar(capaSrc, cc0[0] * f, cc0[1] * f, enqOpC(CR, EQ.capa, cc0[2])), "capa"); }
     var c = d.contato || {};
     m.contato = c;
     var vis = (kit.ordem || TODAS).filter(function (id) { return SECOES[id] && (kit.ocultas || []).indexOf(id) < 0; });
@@ -573,7 +576,7 @@
           var pS = +est.sobW ? Math.max(0.2, Math.min(0.62, +est.sobW / 100)) : 0; s.fotoW = pS ? G.CW * pS : 0;
           if (EQ.sobre || SOB_R[est.sobR]) { var fwS = G.CW * (pS || (tm.sob === "topo" ? 0.42 : 0.36)), rS = SOB_R[est.sobR] ? SOB_R[est.sobR][0] : 1 / m.retratoProp, fhS = Math.min(fwS * rS, G.H * 0.62);
             var eqS = Object.assign({}, EQ.sobre || {}); if (!temAj(eqS.aj) && EQ.retrato && temAj(EQ.retrato.aj)) eqS.aj = EQ.retrato.aj;
-            s.retrato = await recortar(imgs.retrato, fwS * f, fhS * f, enqOp(eqS, { png: true })); s.fotoW = fwS; s.fotoH = fhS; s.corte = true; }
+            s.retrato = tg(await recortar(imgs.retrato, fwS * f, fhS * f, enqOp(eqS, { png: true })), "sobre"); s.fotoW = fwS; s.fotoH = fhS; s.corte = true; }
         } }
       else if (id === "numeros") { s.itens = (d.numeros || []).filter(function (x) { return x && (String(x.v || "").trim() || String(x.r || "").trim()); }); if (!s.itens.length) continue; }
       else if (id === "servicos") {
@@ -582,14 +585,14 @@
         /* foto de cada cartão (25/11, dono: "não tem lugar de fazer o upload de cada foto"): a do próprio cartão; sem ela, uma da galeria (se ligado) */
         var proprias = iS.map(function (o) { return fotoCard("servicos", o.i); });
         if (proprias.some(Boolean) || (kit.servFotos && fotos.length)) { s.fotos = []; for (var a = 0; a < s.itens.length; a++) {
-          if (proprias[a]) s.fotos.push(await recortar(proprias[a], 240 * f, 140 * f, enqOpC(CR, EQ["c:servicos:" + iS[a].i])));
-          else if (kit.servFotos && fotos.length) s.fotos.push(await recortar(fotos[a % fotos.length], 240 * f, 140 * f, enqOpC(CR, EQ["f" + (a % fotos.length)])));
+          if (proprias[a]) s.fotos.push(tg(await recortar(proprias[a], 240 * f, 140 * f, enqOpC(CR, EQ["c:servicos:" + iS[a].i])), "c:servicos:" + iS[a].i));
+          else if (kit.servFotos && fotos.length) s.fotos.push(tg(await recortar(fotos[a % fotos.length], 240 * f, 140 * f, enqOpC(CR, EQ["f" + (a % fotos.length)])), String(a % fotos.length)));
           else s.fotos.push(""); } }
       }
       else if (id === "perfil") { s.itens = (d.perfil || []).filter(function (x) { return x && (String(x.k || "").trim() || String(x.v || "").trim()); }); if (!s.itens.length) continue; }
       else if (id === "experiencia") {
         var iE = comIndice(d.experiencia, function (x) { return String(x.titulo || "").trim() || String(x.papel || "").trim(); }); if (!iE.length) continue;
-        var ex = []; for (var e0 = 0; e0 < iE.length; e0++) { var fe = fotoCard("experiencia", iE[e0].i); ex.push(fe ? Object.assign({}, iE[e0].x, { foto: await recortar(fe, 150 * f, 96 * f, enqOpC(CR, EQ["c:experiencia:" + iE[e0].i])) }) : iE[e0].x); }
+        var ex = []; for (var e0 = 0; e0 < iE.length; e0++) { var fe = fotoCard("experiencia", iE[e0].i); ex.push(fe ? Object.assign({}, iE[e0].x, { foto: tg(await recortar(fe, 150 * f, 96 * f, enqOpC(CR, EQ["c:experiencia:" + iE[e0].i])), "c:experiencia:" + iE[e0].i) }) : iE[e0].x); }
         s.grupos = []; ex.forEach(function (x) { var g = String(x.grupo || "").trim(), ult = s.grupos[s.grupos.length - 1]; if (!ult || ult.nome !== g) s.grupos.push({ nome: g, itens: [x] }); else ult.itens.push(x); });
       }
       else if (id === "formacao") { s.itens = (d.formacao || []).filter(function (x) { return x && (String(x.curso || "").trim() || String(x.onde || "").trim()); }); if (!s.itens.length) continue; }
@@ -598,7 +601,7 @@
         var iL = comIndice(d.links, function (x) { return linkDe(x.url, "site"); }); if (!iL.length) continue;
         s.itens = [];
         for (var q = 0; q < iL.length; q++) { var it = Object.assign({}, iL[q].x, { href: linkDe(iL[q].x.url, "site") }); it.qr = await qrUrl(it.href);
-          var fl = fotoCard("links", iL[q].i); if (fl) it.foto = await recortar(fl, 320 * f, 180 * f, enqOpC(CR, EQ["c:links:" + iL[q].i])); s.itens.push(it); }
+          var fl = fotoCard("links", iL[q].i); if (fl) it.foto = tg(await recortar(fl, 320 * f, 180 * f, enqOpC(CR, EQ["c:links:" + iL[q].i])), "c:links:" + iL[q].i); s.itens.push(it); }
       }
       else if (id === "clientes") { s.itens = linhas(d.clientes); if (!s.itens.length) continue; }
       else if (id === "depoimentos") { s.itens = (d.depoimentos || []).filter(function (x) { return x && String(x.texto || "").trim(); }); if (!s.itens.length) continue; }
@@ -608,8 +611,8 @@
       else if (id === "rider") { s.itens = linhas(d.rider); s.obs = (d.riderObs || "").trim(); if (!s.itens.length && !s.obs) continue; }
       else if (id === "galeria") {
         var fs = fotos.slice(0, 7); if (!fs.length) continue;
-        if (cap === "compcard") { s.peq = []; for (var j0 = 0; j0 < Math.min(4, fs.length); j0++) s.peq.push(await recortar(fs[j0], 180 * f, 225 * f, enqOpC(CR, EQ["f" + j0]))); }
-        else { s.grande = await recortar(fs[0], G.CW * f, G.CW * 0.525 * f, enqOpC(CR, EQ.f0)); s.peq = []; for (var j = 1; j < fs.length; j++) s.peq.push(await recortar(fs[j], 160 * f, 110 * f, enqOpC(CR, EQ["f" + j]))); }
+        if (cap === "compcard") { s.peq = []; for (var j0 = 0; j0 < Math.min(4, fs.length); j0++) s.peq.push(tg(await recortar(fs[j0], 180 * f, 225 * f, enqOpC(CR, EQ["f" + j0])), String(j0))); }
+        else { s.grande = tg(await recortar(fs[0], G.CW * f, G.CW * 0.525 * f, enqOpC(CR, EQ.f0)), "0"); s.peq = []; for (var j = 1; j < fs.length; j++) s.peq.push(tg(await recortar(fs[j], 160 * f, 110 * f, enqOpC(CR, EQ["f" + j])), String(j))); }
         s.legenda = (d.galeriaLegenda || "").trim();
       }
       else if (id === "contato") { if (!cheio(c)) continue; }
@@ -804,9 +807,9 @@
           b = tx.concat(k >= 0.8 && ps.length > 1 ? [{ columns: [{ stack: ps.slice(0, Math.ceil(ps.length / 2)) }, { stack: ps.slice(Math.ceil(ps.length / 2)) }], columnGap: 22 }] : ps);
         } else if (s.retrato && t.sob === "topo") {
           var tw = s.fotoW || Math.min(CW * 0.42, 190), th = s.corte ? s.fotoH : Math.min(tw / m.retratoProp, s.fotoW ? H * 0.5 : 240);
-          b = [{ stack: [s.corte ? { image: s.retrato, width: tw, height: th, alignment: "center" } : { image: s.retrato, fit: [tw, th], alignment: "center" }, { canvas: [{ type: "rect", x: 0, y: 0, w: tw, h: 4, color: t.corPura }], margin: [(CW - tw) / 2, 0, 0, 14] }], unbreakable: true }].concat(tx, ps);
+          b = [{ stack: [s.corte ? { image: s.retrato, width: tw, height: th, alignment: "center", _bw: "sobre" } : { image: s.retrato, fit: [tw, th], alignment: "center", _bw: "sobre" }, { canvas: [{ type: "rect", x: 0, y: 0, w: tw, h: 4, color: t.corPura }], margin: [(CW - tw) / 2, 0, 0, 14] }], unbreakable: true }].concat(tx, ps);
         } else if (s.retrato && k >= 0.8) {   /* "Quem sou eu?" com a foto recortada ao lado (esquerda ou direita) */
-          var fw = s.fotoW || CW * 0.36, fhh = s.corte ? s.fotoH : Math.min(fw / m.retratoProp, s.fotoW ? H * 0.55 : 300), colF = { width: fw, stack: [s.corte ? { image: s.retrato, width: fw, height: fhh } : { image: s.retrato, fit: [fw, fhh], alignment: "center" }, { canvas: [{ type: "rect", x: 0, y: 0, w: fw, h: 4, color: t.corPura }] }] }, colT = { width: "*", stack: tx.concat(ps) };
+          var fw = s.fotoW || CW * 0.36, fhh = s.corte ? s.fotoH : Math.min(fw / m.retratoProp, s.fotoW ? H * 0.55 : 300), colF = { width: fw, stack: [s.corte ? { image: s.retrato, width: fw, height: fhh, _bw: "sobre" } : { image: s.retrato, fit: [fw, fhh], alignment: "center", _bw: "sobre" }, { canvas: [{ type: "rect", x: 0, y: 0, w: fw, h: 4, color: t.corPura }] }] }, colT = { width: "*", stack: tx.concat(ps) };
           b.push({ columns: t.sob === "dir" ? [colT, colF] : [colF, colT], columnGap: 22, unbreakable: true });
         } else if (fT === "PF" && s.pars.join(" ").length > 650 && k >= 0.8) b = tx.concat([{ columns: [{ stack: ps.slice(0, Math.ceil(ps.length / 2)) }, { stack: ps.slice(Math.ceil(ps.length / 2)) }], columnGap: 22 }]);
         else b = tx.concat(ps);
@@ -901,18 +904,25 @@
     return montar(cont);
 
     function montar(c) {
+      if (m.previa) { var vistos = [], marca = function (o) {   /* só na prévia: cada foto vira um "link" invisível que diz qual é (toque na prévia → ajustar) */
+          if (!o || typeof o !== "object" || vistos.indexOf(o) >= 0) return; vistos.push(o);
+          if (Array.isArray(o)) { o.forEach(marca); return; }
+          if (typeof o.image === "string") { var al = o._bw || (m.tags || {})[o.image]; if (al) o.link = "https://bw.foto/?k=" + encodeURIComponent(al); }
+          delete o._bw; Object.keys(o).forEach(function (q) { if (q !== "image" && o[q] && typeof o[q] === "object") marca(o[q]); }); };
+        marca(c); marca(capaFundo); }
+      else { var tira = function (o) { if (!o || typeof o !== "object") return; if (Array.isArray(o)) { o.forEach(tira); return; } delete o._bw; Object.keys(o).forEach(function (q) { if (q !== "image" && o[q] && typeof o[q] === "object") tira(o[q]); }); }; tira(c); }
       return {
         pageSize: { width: W, height: H }, pageMargins: [MX, z(64), MX, z(60)],
         info: { title: rotI(m.kit, "Apresentação — ") + m.marca, author: m.marca, creator: "Brightway — Press kit" },
         background: function (pg) {
-          if (pg === 1) return capaFundo;
+          if (pg === 1) return capaFundo.concat(elNos(m, 1, W, H));
           var fd = [{ type: "rect", x: 0, y: 0, w: W, h: H, color: t.fundo }];
           if (t.pg === "padrao") fd.push({ type: "rect", x: 0, y: 0, w: W, h: 4, color: t.corPura });
           else if (t.pg === "cabeca") fd.push({ type: "rect", x: 0, y: 0, w: W, h: z(44), color: t.corPura });
           else if (t.pg === "lateral") fd.push({ type: "rect", x: 0, y: 0, w: Math.max(8, MX * 0.32), h: H, color: t.corPura });
           else if (t.pg === "moldura") fd.push({ type: "rect", x: 16, y: 16, w: W - 32, h: H - 32, lineWidth: 1.2, lineColor: t.corPura });
           else if (t.pg === "rodape") fd.push({ type: "rect", x: 0, y: H - z(34), w: W, h: z(34), color: t.corPura });
-          return [{ canvas: fd, absolutePosition: { x: 0, y: 0 } }];
+          return [{ canvas: fd, absolutePosition: { x: 0, y: 0 } }].concat(elNos(m, pg, W, H));
         },
         header: function (pg) { if (pg === 1) return null; var cH = t.pg === "cabeca" ? sobre(t.corPura) : t.sub; return { columns: [{ text: m.marca.toUpperCase(), fontSize: z(7.5), bold: true, color: cH, characterSpacing: 1.6, link: (m.botoes.filter(function (x) { return x[0] === "SITE"; })[0] || m.botoes[0] || [])[1] || undefined }, { text: String(m.etiqueta).toUpperCase(), fontSize: z(7.5), color: cH, alignment: "right", characterSpacing: 1.6 }], margin: [MX, t.pg === "cabeca" ? z(18) : z(28), MX, 0] }; },
         footer: function (pg, n) { if (pg === 1) return null; var rd = []; (m.rodape || []).forEach(function (x, i) { if (i) rd.push("   ·   "); rd.push({ text: String(x[0]), link: x[1] || undefined }); }); var cF = t.pg === "rodape" ? sobre(t.corPura) : t.sub; return { columns: [{ text: rd.length ? rd : m.linhaContato, fontSize: z(7.5), color: cF }, { text: pg + " / " + n, fontSize: z(7.5), color: cF, alignment: "right", width: 50 }], margin: [MX, t.pg === "rodape" ? z(34) : z(22), MX, 0] }; },
@@ -1003,7 +1013,7 @@
   }
 
   /* ================= TELA ================= */
-  var ULT_TIRADA = "", KIT = null, IMGS = imgsVazias(), VISTA = "lista", PAGS = 0;
+  var PK_XY = { x: 0, y: 0 }, ULT_TIRADA = "", KIT = null, IMGS = imgsVazias(), VISTA = "lista", PAGS = 0;
   function aviso(t, erro) { if (window.BWAviso) { if (erro) BWAviso.erro(t); else BWAviso(t); } }
   function andamento(t) { if (window.BWAviso) { if (t) BWAviso("⏳ " + t, "", 0); else BWAviso.fechar && BWAviso.fechar(); } }
   function baixar(b, nome) { var u = URL.createObjectURL(b), a = document.createElement("a"); a.href = u; a.download = nome; document.body.appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(u); }, 8000); }
@@ -1060,6 +1070,8 @@
     var k = acharKit(id); if (!k) { aviso("Esse press kit não está mais aqui.", true); mostrar("lista"); desenharLista(); return; }
     KIT = k; IMGS = (await idbGet("imgs", k.id)) || imgsVazias(); if (!Array.isArray(IMGS.fotos)) IMGS.fotos = [];
     mostrar("editor"); desenharForm(); desenharTrocar(); agendarPrevia(0);
+    /* fotos que estão na conta e não neste aparelho (feitas em outro aparelho) */
+    if (window.BWPkNuvem) BWPkNuvem.baixar(k, IMGS).then(function (n) { if (!n || !KIT || KIT.id !== k.id) return; IMGS = n; idbPut("imgs", k.id, n); desenharForm(); agendarPrevia(0); aviso("Fotos trazidas da sua conta ✓"); }).catch(function () { });
   }
   /* 28/11 (dono: "vários press kits"): trocar de um para outro sem voltar para a lista, e duplicar o aberto */
   function desenharTrocar() {
@@ -1070,9 +1082,9 @@
   async function guardarAgora() { if (!KIT) return; salvarKit(KIT); clearTimeout(tGuardarImgs); await idbPut("imgs", KIT.id, IMGS); }
   async function duplicarKit(id, nomeNovo, mexer) {
     if (KIT && KIT.id === id) await guardarAgora();
-    var k = acharKit(id); if (!k) return null; var n = clone(k); n.id = uid(); n.nome = nomeNovo || (k.nome || "Press kit") + " (cópia)"; n.criado = new Date().toISOString(); delete n.pub;
+    var k = acharKit(id); if (!k) return null; var n = clone(k); n.id = uid(); n.nome = nomeNovo || (k.nome || "Press kit") + " (cópia)"; n.criado = new Date().toISOString(); delete n.pub; delete n.nuvem;
     if (mexer) mexer(n); salvarKit(n);
-    var im = await idbGet("imgs", k.id); if (im) await idbPut("imgs", n.id, im); var th = await idbGet("thumbs", "kit-" + k.id); if (th) await idbPut("thumbs", "kit-" + n.id, th);
+    var im = await idbGet("imgs", k.id); if (im) { await idbPut("imgs", n.id, im); if (window.BWPkNuvem) BWPkNuvem.subir(n.id, im); } var th = await idbGet("thumbs", "kit-" + k.id); if (th) await idbPut("thumbs", "kit-" + n.id, th);
     return n;
   }
   async function criarKit(modId) {
@@ -1083,7 +1095,7 @@
   }
   function guardar() { if (!KIT) return; salvarKit(KIT); }
   var tGuardarImgs = 0;
-  function guardarImgs() { clearTimeout(tGuardarImgs); var id = KIT && KIT.id, im = IMGS; tGuardarImgs = setTimeout(function () { if (id) idbPut("imgs", id, im); }, 200); }
+  function guardarImgs() { clearTimeout(tGuardarImgs); var id = KIT && KIT.id, im = IMGS; im._t = Date.now(); tGuardarImgs = setTimeout(function () { if (id) { idbPut("imgs", id, im); if (window.BWPkNuvem) BWPkNuvem.subir(id, im); } }, 200); }
 
   /* ☰ OPÇÕES PRONTAS (25/11, dono: "botões com opções em tudo, exemplos mais utilizados, até profissões"): um botão por campo
      abre a lista para tocar (regra 62: nunca chips soltos na tela). Campo de uma linha = troca o texto; "um por linha" = põe/tira. */
@@ -1268,7 +1280,8 @@
     if (!src) return;
     var e = Object.assign({ x: 0.5, y: 0.5, z: 1, aj: {} }, clone((IMGS.enq || {})[k] || {})); e.aj = Object.assign({}, e.aj || {});
     if (k === "sobre" && !temAj(e.aj) && IMGS.enq && IMGS.enq.retrato && temAj(IMGS.enq.retrato.aj)) e.aj = Object.assign({}, IMGS.enq.retrato.aj);
-    ENQ = { k: k, src: src, cw: cw, ch: ch, op: op, e: e, inteira: inteira, antes: false, G: fm.G };
+    var est0 = KIT.est || {};
+    var NOVO = { k: k, src: src, cw: cw, ch: ch, op: op, e: e, inteira: inteira, antes: false, G: fm.G, bk: { tem: !!(IMGS.enq && k in IMGS.enq), v: clone((IMGS.enq || {})[k] || null), sobW: est0.sobW, sobR: est0.sobR } };
     var nome = k === "capa" ? "foto da capa" : k === "sobre" ? "foto da página 2" : inteira ? "foto recortada" : k.indexOf("c:") === 0 ? "foto do cartão" : "foto " + (+alvo + 1);
     var abas = inteira ? [["luz", "☀ LUZ E COR"], ["look", "✦ LOOKS"]] : k === "sobre" ? [["pos", "✥ POSIÇÃO"], ["tam", "⤢ TAMANHO"], ["luz", "☀ LUZ E COR"], ["look", "✦ LOOKS"]] : [["pos", "✥ POSIÇÃO"], ["luz", "☀ LUZ E COR"], ["look", "✦ LOOKS"], ["mix", "◑ MISTURA"], ["masc", "◌ MÁSCARA"]];
     if (!abas.some(function (x) { return x[0] === ENQ_ABA; })) ENQ_ABA = abas[0][0];
@@ -1284,8 +1297,8 @@
       (k === "sobre" ? painel("tam", '<p class="tf-sub" style="margin:0 0 6px">Tamanho da foto na página 2 (Quem sou eu).</p><label class="pk-aj"><span>↔ Largura</span><input type="range" min="20" max="62" step="1" data-enq="sw" value="' + sobreW() + '"><b>' + sobreW() + "%</b></label>" +
         '<div class="pk-sub-t">PROPORÇÃO</div><div class="pk-chips pk-lin" data-fxg="r">' + [["", "Foto inteira"]].concat(Object.keys(SOB_R).map(function (q) { return [q, SOB_R[q][1]]; })).map(function (q) { return '<button type="button" class="pk-chip' + (((KIT.est || {}).sobR || "") === q[0] ? " on" : "") + '" data-a="enqProp" data-v="' + q[0] + '">' + q[1] + "</button>"; }).join("") + "</div>") : "") +
       (inteira || k === "sobre" ? "" : fxHtml(e, painel)) + "</div>" +
-      '<div class="pk-chips pk-enq-pe"><button type="button" class="pk-chip" data-a="enqAntes">◐ SEGURE: ANTES</button><button type="button" class="bw-btn pri" data-a="enqPronto">✓ PRONTO</button></div>');
-    $("modalCx").classList.add("enq-app");
+      '<div class="pk-chips pk-enq-pe"><button type="button" class="pk-chip" data-a="enqAntes">◐ SEGURE: ANTES</button><button type="button" class="pk-chip" data-a="enqVoltar">↺ COMO ESTAVA</button><button type="button" class="bw-btn pri" data-a="enqPronto">✓ PRONTO</button></div>');
+    ENQ = NOVO; $("modalCx").classList.add("enq-app"); dock(); marcarAtiva();
     var cv = $("enqCv"), palco = $("enqPalco");
     if (!inteira) { palco.style.aspectRatio = cw + " / " + ch; palco.style.width = "min(100%, calc(var(--enq-h, 46vh) * " + (cw / ch).toFixed(4) + "))"; }
     ligarEnquadrar(palco); enqDesenhar();
@@ -1309,7 +1322,7 @@
   }
   var tEnq = 0, enqVez = 0;
   function enqDesenhar() {
-    if (!ENQ) return; cancelAnimationFrame(tEnq);
+    if (!ENQ) return; cancelAnimationFrame(tEnq); enqVivo();
     tEnq = requestAnimationFrame(async function () {
       var cv = $("enqCv"); if (!cv || !ENQ) return; var vez = ++enqVez, e = ENQ.antes ? { x: ENQ.e.x, y: ENQ.e.y, z: ENQ.e.z } : ENQ.e, u;
       if (ENQ.inteira) u = ENQ.antes ? ENQ.src : await ajustarImg(await reduzir(ENQ.src, 700), e.aj);
@@ -1365,17 +1378,28 @@
   function enqTam() { if (!ENQ || ENQ.k !== "sobre") return; var d = sobreDim(ENQ.G); ENQ.cw = d[0]; ENQ.ch = d[1]; var pl = $("enqPalco"); if (pl) { pl.style.aspectRatio = d[0] + " / " + d[1]; pl.style.width = "min(100%, calc(var(--enq-h, 46vh) * " + (d[0] / d[1]).toFixed(4) + "))"; } enqDesenhar(); }
   function enqProp(v) { ENQ.sr = v; [].forEach.call($("modalCx").querySelectorAll('[data-a="enqProp"]'), function (b) { b.classList.toggle("on", b.getAttribute("data-v") === v); }); enqTam(); }
   function enqPos(v) { ENQ.e.y = v === "topo" ? 0 : v === "base" ? 1 : 0.5; if (v === "centro") ENQ.e.x = 0.5; enqDesenhar(); }
-  function enqPronto() {
+  /* AO VIVO: cada mudança já vai para o PDF da prévia (o layout se ajusta enquanto se mexe) */
+  var tVivo = 0;
+  function enqVivo() { clearTimeout(tVivo); tVivo = setTimeout(function () { if (!ENQ || ENQ.antes) return; var j = JSON.stringify([ENQ.e, ENQ.sw, ENQ.sr]); if (j === ENQ.ult) return; if (ENQ.ult == null) { ENQ.ult = j; return; } ENQ.ult = j; enqGravar(); agendarPrevia(0); }, 260); }
+  function enqVoltar() {
+    if (!ENQ) return; var b = ENQ.bk; IMGS.enq = IMGS.enq || {}; if (b.tem) IMGS.enq[ENQ.k] = clone(b.v); else delete IMGS.enq[ENQ.k];
+    KIT.est = KIT.est || {}; if (b.sobW == null) delete KIT.est.sobW; else KIT.est.sobW = b.sobW; if (b.sobR == null) delete KIT.est.sobR; else KIT.est.sobR = b.sobR;
+    var alvo = ENQ.k === "sobre" || ENQ.k === "capa" || ENQ.k === "retrato" || ENQ.k.indexOf("c:") === 0 ? ENQ.k : ENQ.k.replace(/^f/, ""); ENQ = null; agendarPrevia(0); abrirAlvo(alvo); aviso("Voltou como estava");
+  }
+  /* fechar (✕, Esc, tocar fora na prévia) GUARDA o que já se vê na prévia */
+  function enqFechar() { if (ENQ) { enqGravar(); ENQ = null; guardarImgs(); guardar(); agendarPrevia(0); } if (EL) { EL = null; guardar(); } $("modal").hidden = true; $("modal").classList.remove("lado"); $("modalCx").innerHTML = ""; marcarAtiva(); }
+  function dock() { var lado = window.innerWidth > 1060 || ($("vEd") && $("vEd").getAttribute("data-aba") === "prev"); $("modal").classList.toggle("lado", !!lado); }
+  function enqGravar() {
     if (!ENQ) return; var e = ENQ.e, aj = {}; AJUSTES.forEach(function (a) { if (+e.aj[a[0]]) aj[a[0]] = +e.aj[a[0]]; });
     var limpo = ENQ.inteira ? {} : { x: +(+e.x).toFixed(4), y: +(+e.y).toFixed(4), z: +(+e.z).toFixed(3) }; if (Object.keys(aj).length) limpo.aj = aj;
     if (!ENQ.inteira && !fxNeutro(e.fx)) limpo.fx = { m: e.fx.m || "normal", c: e.fx.c || "fundo", o: e.fx.o == null ? 100 : +e.fx.o, k: e.fx.k || "nenhuma", s: e.fx.s == null ? 50 : +e.fx.s };
     IMGS.enq = IMGS.enq || {};
     var neutro = !limpo.aj && !limpo.fx && (ENQ.inteira || (Math.abs(limpo.x - 0.5) < 0.001 && Math.abs(limpo.y - 0.5) < 0.001 && limpo.z <= 1.001));
-    if (ENQ.k === "sobre") { KIT.est = KIT.est || {}; if (ENQ.sw) KIT.est.sobW = ENQ.sw; if (ENQ.sr != null) { if (ENQ.sr) KIT.est.sobR = ENQ.sr; else delete KIT.est.sobR; } guardar();
+    if (ENQ.k === "sobre") { KIT.est = KIT.est || {}; if (ENQ.sw) KIT.est.sobW = ENQ.sw; if (ENQ.sr != null) { if (ENQ.sr) KIT.est.sobR = ENQ.sr; else delete KIT.est.sobR; } 
       if (neutro && !KIT.est.sobR) { delete IMGS.enq.sobre; } else IMGS.enq.sobre = limpo; }
     else if (neutro) delete IMGS.enq[ENQ.k]; else IMGS.enq[ENQ.k] = limpo;
-    ENQ = null; fecharModal(); guardarImgs(); desenharForm(); agendarPrevia(0); aviso("Foto ajustada ✓");
   }
+  function enqPronto() { if (!ENQ) return; enqGravar(); ENQ = null; fecharModal(); guardarImgs(); guardar(); desenharForm(); agendarPrevia(0); aviso("Foto ajustada ✓"); }
   function caixaImg(rot, chave, dica, png) {
     var u = IMGS[chave];
     return '<div class="pk-img"><span>' + rot + "</span>" + (u ? '<img src="' + u + '" alt="' + esc(rot) + '"' + (png ? ' class="xadrez"' : "") + ">" : "<i>" + esc(dica) + "</i>") + '<div class="pk-chips">' + upload(u ? "↺ TROCAR" : "＋ ESCOLHER", chave) +
@@ -1571,17 +1595,20 @@
     if (!KIT || VISTA !== "editor") return;
     var ger = ++GER;
     try {
-      var m = await modelo(KIT, IMGS), bytes = await pdfBytes(defPdf(m)); if (ger !== GER) return;
+      var m = await modelo(KIT, IMGS); m.previa = true; var bytes = await pdfBytes(defPdf(m)); if (ger !== GER) return;
       var J = await pdfjs(), doc = await J.getDocument({ data: bytes, isEvalSupported: false }).promise; if (ger !== GER) { doc.destroy(); return; }
       var caixa = $("paginas"), larg = Math.max(260, Math.min(caixa.clientWidth || 480, 900)), dpr = Math.min(2, window.devicePixelRatio || 1), novos = [];
       for (var i = 1; i <= doc.numPages; i++) {
         var pg = await doc.getPage(i), vp0 = pg.getViewport({ scale: 1 }), vp = pg.getViewport({ scale: larg * dpr / vp0.width });
         var c = document.createElement("canvas"); c.width = Math.round(vp.width); c.height = Math.round(vp.height); c.className = "pk-pag"; c.setAttribute("aria-label", "Página " + i + " — toque para ajustar as fotos"); c.setAttribute("data-a", "prevFoto"); c.setAttribute("data-pg", i); c.title = "Toque para ajustar as fotos desta página";
         await pg.render({ canvasContext: c.getContext("2d"), viewport: vp }).promise; if (ger !== GER) { doc.destroy(); return; }
+        try { c._fotos = (await pg.getAnnotations()).filter(function (a) { return a.url && a.url.indexOf("https://bw.foto/?k=") === 0; }).map(function (a) {
+          var r = vp.convertToViewportRectangle(a.rect); return { k: decodeURIComponent(a.url.split("?k=")[1]), x0: Math.min(r[0], r[2]) / vp.width, x1: Math.max(r[0], r[2]) / vp.width, y0: Math.min(r[1], r[3]) / vp.height, y1: Math.max(r[1], r[3]) / vp.height }; }); } catch (e) { c._fotos = []; }
+        livres().forEach(function (e) { if ((+e.pg || 1) !== i) return; var hF = elAlt(e, vp0.width, vp0.height); c._fotos.push({ k: "e:" + e.id, x0: e.x, y0: e.y, x1: e.x + e.w, y1: e.y + hF }); });
         novos.push(c);
       }
       PAGS = doc.numPages; doc.destroy();
-      caixa.innerHTML = ""; novos.forEach(function (c) { caixa.appendChild(c); });
+      caixa.innerHTML = ""; novos.forEach(function (c) { caixa.appendChild(c); }); marcarAtiva();
       $("prevEstado").textContent = PAGS + (PAGS === 1 ? " página" : " páginas") + " · igual ao PDF";
       $("abaPrev").textContent = "👁 PRÉVIA (" + PAGS + ")";
       try { var t = document.createElement("canvas"); t.width = 240; t.height = Math.round(240 * novos[0].height / novos[0].width); t.getContext("2d").drawImage(novos[0], 0, 0, t.width, t.height); idbPut("thumbs", "kit-" + KIT.id, t.toDataURL("image/jpeg", 0.8)); } catch (e) { }
@@ -1590,6 +1617,37 @@
     }
   }
 
+  function abrirAlvo(alvE) { if (alvE === "sobre" && IMGS.retrato) imgDe(IMGS.retrato).then(function (im) { ENQ_PROP_S = im.naturalHeight / im.naturalWidth; abrirEnquadrar("sobre"); }); else abrirEnquadrar(alvE); }
+  /* o que está debaixo do dedo numa página da prévia (a menor área que contém o ponto) */
+  function alvoNoPonto(cv, x, y) {
+    var r = cv.getBoundingClientRect(), fx = (x - r.left) / r.width, fy = (y - r.top) / r.height, best = null;
+    (cv._fotos || []).forEach(function (f) { if (fx >= f.x0 && fx <= f.x1 && fy >= f.y0 && fy <= f.y1) { var ar = (f.x1 - f.x0) * (f.y1 - f.y0) - (f.k.indexOf("e:") === 0 ? 10 : 0); if (!best || ar < best.ar) best = { k: f.k, ar: ar, f: f }; } });
+    return best;
+  }
+  function tocarPrevia(cv) {
+    if (Date.now() - (window.__pkArrastou || 0) < 400) return;
+    var h = alvoNoPonto(cv, PK_XY.x, PK_XY.y);
+    if (h && h.k.indexOf("e:") === 0) { if (ENQ) enqFechar(); abrirElemento(h.k.slice(2)); return; }
+    if (h) { if (ENQ || EL) enqFechar(); abrirAlvo(h.k); return; }
+    if (INS) { inserirEm(cv, PK_XY.x, PK_XY.y); return; }
+    if (ENQ || EL) { enqFechar(); return; }
+    abrirFotosPagina(+cv.getAttribute("data-pg") || 1);
+  }
+  /* contorno dourado na foto/elemento que está sendo ajustado + contorno fino ao passar o mouse */
+  function marcarAtiva() {
+    var cx = $("paginas"); if (!cx) return; [].forEach.call(cx.querySelectorAll(".pk-hl.on"), function (d) { d.remove(); });
+    var alvo = ENQ ? (ENQ.k === "sobre" || ENQ.k === "capa" || ENQ.k === "retrato" || ENQ.k.indexOf("c:") === 0 ? ENQ.k : ENQ.k.replace(/^f/, "")) : EL ? "e:" + EL : ""; if (!alvo) return;
+    var d0 = null; [].forEach.call(cx.querySelectorAll(".pk-pag"), function (cv) { (cv._fotos || []).forEach(function (f) { if (f.k === alvo) { var d = caixaHl(cv, f, "on"); d0 = d0 || d; } }); });
+    if (!d0 || !$("modal").classList.contains("lado")) return;   /* deixa à vista o que está sendo ajustado */
+    var r = d0.getBoundingClientRect();
+    if (window.innerWidth <= 1060) { var lim = window.innerHeight * 0.42; if (r.top < 50 || r.bottom > lim) window.scrollBy(0, r.top - Math.max(50, (lim - r.height) / 2)); }
+    else { var pv = cx.closest(".pk-prev"), pr = pv && pv.getBoundingClientRect(); if (pr && (r.top < pr.top || r.bottom > pr.bottom)) pv.scrollTop += r.top - pr.top - (pr.height - r.height) / 2; }
+  }
+  function caixaHl(cv, f, cls) {
+    var d = document.createElement("i"); d.className = "pk-hl " + cls;
+    d.style.left = (cv.offsetLeft + f.x0 * cv.offsetWidth) + "px"; d.style.top = (cv.offsetTop + f.y0 * cv.offsetHeight) + "px";
+    d.style.width = ((f.x1 - f.x0) * cv.offsetWidth) + "px"; d.style.height = ((f.y1 - f.y0) * cv.offsetHeight) + "px"; cv.parentNode.appendChild(d); return d;
+  }
   /* toque numa página da prévia: lista as fotos (as desta página primeiro) e abre o ajuste certo */
   function fotosPagina(pg) {
     var L = [], cap = IMGS.capa || IMGS.retrato || (IMGS.fotos || [])[0];
@@ -1607,6 +1665,125 @@
     if (!L.length) { aviso("Esta página ainda não tem foto"); return; }
     modal('<button type="button" class="pk-mx" data-a="fecharModal" aria-label="Fechar">✕</button><h3>✥ Ajustar uma foto · página ' + pg + '</h3><p class="tf-sub">Toque na foto para mudar o tamanho, a posição, a luz e os efeitos.</p><div class="pk-pf">' +
       L.map(function (f) { return '<button type="button" class="pk-pf-i" data-a="enquadrar" data-alvo="' + esc(f.alvo) + '"><img src="' + f.src + '" alt=""><span>' + esc(f.nome) + "</span></button>"; }).join("") + "</div>");
+  }
+
+  /* ✚ ELEMENTOS LIVRES (28/11): textos, ícones, imagens e formas postos em qualquer lugar da página, direto pela prévia.
+     Ficam em KIT.livres (na conta, só texto/medidas); a imagem de um elemento fica só no aparelho (IMGS.livres). */
+  var EL = null, INS = null, INS_IMG = null;
+  var ICONES = ["⭐", "✨", "🎬", "🎤", "📷", "🎥", "🎵", "🎧", "💡", "🏆", "❤️", "👍", "✅", "📍", "📞", "✉️", "🌐", "📅", "🚀", "🔥", "💎", "🎯", "👑", "🎉", "☕", "📌", "🎭", "🎙️", "➜", "✓", "★", "♪", "●", "◆"];
+  var ICO_COR = /^[➜✓★♪●◆]$/;
+  var ICO_CACHE = {};
+  function iconeUrl(ic, cor) {
+    var ch = ic + "|" + (ICO_COR.test(ic) ? cor : ""); if (ICO_CACHE[ch]) return ICO_CACHE[ch];
+    var c = document.createElement("canvas"); c.width = c.height = 256; var x = c.getContext("2d");
+    x.textAlign = "center"; x.textBaseline = "middle"; x.font = "200px 'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',system-ui,sans-serif"; x.fillStyle = cor || "#E8B54A";
+    x.fillText(ic, 128, 140); return (ICO_CACHE[ch] = c.toDataURL("image/png"));
+  }
+  function livres() { if (!KIT) return []; if (!Array.isArray(KIT.livres)) KIT.livres = []; return KIT.livres; }
+  function elDe(id) { return livres().filter(function (x) { return x.id === id; })[0]; }
+  /* altura do elemento na página (fração), a mesma conta da prévia e do toque */
+  function elAlt(e, W, H) {
+    var k = W / 595.28, w = e.w * W;
+    if (e.t === "texto") { var fs = (+e.tam || 22) * k, n = 0; String(e.txt || " ").split("\n").forEach(function (l) { n += Math.max(1, Math.ceil(l.length * fs * 0.52 / Math.max(10, w))); }); return n * fs * 1.2 / H; }
+    if (e.t === "icone") return w / H;
+    if (e.t === "imagem") return w / (+e.prop || 1) / H;
+    return Math.max(0.004, +e.h || 0.06);
+  }
+  function elNos(m, pg, W, H) {
+    var k = W / 595.28, cores = coresDe(m.kit);
+    return (m.livres || []).filter(function (e) { return (+e.pg || 1) === pg; }).map(function (e) {
+      var x = e.x * W, y = e.y * H, w = e.w * W, op = (e.op == null ? 100 : +e.op) / 100, ab = { absolutePosition: { x: x, y: y } };
+      if (e.t === "texto") return Object.assign({ table: { widths: [w], body: [[{ text: String(e.txt || ""), fontSize: (+e.tam || 22) * k, color: e.cor || cores.destaque || "#E8B54A", bold: !!e.neg, italics: !!e.it, alignment: e.al || "left", font: e.fonte === "tit" ? m.tema.fTit : undefined, lineHeight: 1.08, opacity: op }]] }, layout: semGap("#ffffff", 0) }, ab);
+      if ((e.t === "icone" || e.t === "imagem") && e.url) return Object.assign({ image: e.url, width: w, height: e.t === "icone" ? w : w / (+e.prop || 1), opacity: op }, ab);
+      if (e.t === "forma") { var hh = Math.max(1, (+e.h || 0.06) * H), cor = e.cor || "#E8B54A", cv;
+        if (e.forma === "circ") cv = { type: "ellipse", x: w / 2, y: hh / 2, r1: w / 2, r2: hh / 2, color: cor, fillOpacity: op };
+        else if (e.forma === "linha") cv = { type: "line", x1: 0, y1: hh / 2, x2: w, y2: hh / 2, lineWidth: Math.max(1, hh), lineColor: cor, strokeOpacity: op };
+        else cv = { type: "rect", x: 0, y: 0, w: w, h: hh, r: e.forma === "pilula" ? hh / 2 : 0, color: cor, fillOpacity: op };
+        return Object.assign({ canvas: [cv] }, ab); }
+      return null;
+    }).filter(Boolean);
+  }
+  async function elPreparar(m, kit, imgs) {
+    var cores = coresDe(kit); m.livres = [];
+    for (var i = 0; i < (Array.isArray(kit.livres) ? kit.livres : []).length; i++) {
+      var e = Object.assign({}, kit.livres[i]);
+      if (e.t === "icone") e.url = iconeUrl(e.ic || "⭐", e.cor || cores.destaque);
+      if (e.t === "imagem") { var u = ((imgs || {}).livres || {})[e.id]; if (!u) continue; e.url = u; }
+      m.livres.push(e);
+    }
+  }
+  function modoInserir(t) {
+    INS = t; var p = $("paginas"); if (p) p.classList.toggle("inserindo", !!t);
+    [].forEach.call(document.querySelectorAll("[data-ins]"), function (b) { b.classList.toggle("on", b.getAttribute("data-ins") === t); });
+    if (t) { if ($("vEd").getAttribute("data-aba") !== "prev" && window.innerWidth <= 1060) acao("aba", { getAttribute: function () { return "prev"; } }); aviso("Toque na página, no lugar onde vai o " + ({ texto: "texto", icone: "ícone", imagem: "imagem", forma: "elemento" })[t]); }
+  }
+  function inserirEm(cv, cx, cy) {
+    var r = cv.getBoundingClientRect(), fx = (cx - r.left) / r.width, fy = (cy - r.top) / r.height, pg = +cv.getAttribute("data-pg") || 1, cores = coresDe(KIT);
+    var id = "el" + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), e = { id: id, t: INS, pg: pg, op: 100 };
+    if (INS === "texto") Object.assign(e, { txt: "Seu texto aqui", tam: 22, cor: cores.destaque, neg: true, fonte: "tit", al: "left", w: 0.45 });
+    else if (INS === "icone") Object.assign(e, { ic: "⭐", w: 0.1, cor: cores.destaque });
+    else if (INS === "imagem") { if (!INS_IMG) return; Object.assign(e, { w: 0.32, prop: INS_IMG.prop }); IMGS.livres = IMGS.livres || {}; IMGS.livres[id] = INS_IMG.u; INS_IMG = null; }
+    else Object.assign(e, { forma: "ret", w: 0.4, h: 0.012, cor: cores.destaque });
+    e.x = Math.max(0, Math.min(1 - e.w, fx - e.w / 2)); e.y = Math.max(0, Math.min(0.97, fy - 0.01));
+    livres().push(e); modoInserir(null); guardar(); if (e.t === "imagem") guardarImgs(); agendarPrevia(0); abrirElemento(id);
+  }
+  function abrirElemento(id) {
+    var e = elDe(id); if (!e) return;
+    var cores = coresDe(KIT), cor = function (v) { return '<div class="pk-chips pk-lin">' + [["destaque", "Principal"], ["cor2", "Apoio"], ["#FFFFFF", "Branco"], ["#111111", "Preto"]].map(function (c) { var hx = cores[c[0]] || c[0]; return '<button type="button" class="pk-chip" data-a="elCor" data-v="' + hx + '"><i class="pk-bolinha" style="background:' + hx + '"></i>' + c[1] + "</button>"; }).join("") + '<label class="pk-chip">🎨 Outra<input type="color" data-el="cor" value="' + esc(v || "#E8B54A") + '" style="width:26px;height:20px;border:0;background:none;padding:0;margin-left:4px"></label></div>'; };
+    var faixa = function (rot, campo, min, max, v, suf) { return '<label class="pk-aj"><span>' + rot + '</span><input type="range" min="' + min + '" max="' + max + '" step="1" data-el="' + campo + '" value="' + v + '"><b>' + v + (suf || "") + "</b></label>"; };
+    var chips = function (campo, lista, atual) { return '<div class="pk-chips pk-lin">' + lista.map(function (x) { return '<button type="button" class="pk-chip' + (String(atual) === String(x[0]) ? " on" : "") + '" data-a="elSet" data-c="' + campo + '" data-v="' + esc(x[0]) + '">' + x[1] + "</button>"; }).join("") + "</div>"; };
+    var tit = { texto: "✎ Texto", icone: "★ Ícone", imagem: "🖼 Imagem", forma: "▬ Forma" }[e.t], h = "";
+    if (e.t === "texto") h += '<textarea class="pk-in" data-el="txt" rows="3" maxlength="600">' + esc(e.txt || "") + "</textarea>" +
+      '<div class="pk-sub-t">LETRA</div>' + chips("fonte", [["tit", "Títulos"], ["txt", "Texto"]], e.fonte || "tit") + chips("neg", [["1", "<b>Negrito</b>"], ["", "Normal"]], e.neg ? "1" : "") + chips("al", [["left", "⇤ Esquerda"], ["center", "↔ Centro"], ["right", "⇥ Direita"]], e.al || "left") +
+      faixa("Aa Tamanho", "tam", 8, 90, +e.tam || 22) + faixa("↔ Largura da caixa", "w", 10, 100, Math.round(e.w * 100), "%") + '<div class="pk-sub-t">COR</div>' + cor(e.cor);
+    if (e.t === "icone") h += '<div class="pk-icones">' + ICONES.map(function (ic) { return '<button type="button" class="pk-ico' + (ic === e.ic ? " on" : "") + '" data-a="elSet" data-c="ic" data-v="' + ic + '">' + ic + "</button>"; }).join("") + "</div>" +
+      faixa("⤢ Tamanho", "w", 3, 60, Math.round(e.w * 100), "%") + '<div class="pk-sub-t">COR (símbolos ➜ ✓ ★ ♪ ● ◆)</div>' + cor(e.cor);
+    if (e.t === "imagem") h += '<div class="pk-chips">' + upload("↺ TROCAR IMAGEM", "livre:" + e.id) + "</div>" + faixa("⤢ Tamanho", "w", 4, 100, Math.round(e.w * 100), "%");
+    if (e.t === "forma") h += chips("forma", [["ret", "▬ Faixa"], ["pilula", "⬭ Pílula"], ["circ", "● Círculo"], ["linha", "— Linha"]], e.forma || "ret") +
+      faixa("↔ Largura", "w", 2, 100, Math.round(e.w * 100), "%") + faixa("↕ Altura", "h", 1, 60, Math.max(1, Math.round((+e.h || 0.06) * 100)), "%") + '<div class="pk-sub-t">COR</div>' + cor(e.cor);
+    h += faixa("◌ Opacidade", "op", 5, 100, e.op == null ? 100 : e.op, "%") +
+      '<div class="pk-sub-t">LUGAR</div><p class="tf-sub" style="margin:0 0 6px">Arraste o elemento na prévia para mudar de lugar.</p>' + chips("pos", [["esq", "⇤ Encostar à esquerda"], ["meio", "↔ Centralizar"], ["dir", "⇥ À direita"]], "") +
+      (PAGS > 1 ? '<div class="pk-sub-t">PÁGINA</div>' + chips("pg", Array.from({ length: PAGS }, function (_, i) { return [i + 1, "Pág. " + (i + 1)]; }), e.pg || 1) : "") +
+      '<div class="pk-chips pk-enq-pe"><button type="button" class="pk-chip" data-a="elDup">⧉ DUPLICAR</button><button type="button" class="pk-chip perigo" data-a="elDel">🗑 APAGAR</button><button type="button" class="bw-btn pri" data-a="fecharModal">✓ PRONTO</button></div>';
+    modal('<button type="button" class="pk-mx" data-a="fecharModal" aria-label="Fechar">✕</button><h3>' + tit + '</h3><div class="pk-el-corpo">' + h + "</div>");
+    EL = id; dock(); marcarAtiva();
+  }
+  var tEl = 0;
+  function elMudou(redesenhar) { guardar(); clearTimeout(tEl); tEl = setTimeout(function () { agendarPrevia(0); }, 220); if (redesenhar && EL) abrirElemento(EL); }
+  function elSet(c, v) {
+    var e = elDe(EL); if (!e) return;
+    if (c === "neg") e.neg = !!v; else if (c === "pg") e.pg = +v;
+    else if (c === "pos") { e.x = v === "esq" ? 0.06 : v === "dir" ? Math.max(0, 0.94 - e.w) : Math.max(0, (1 - e.w) / 2); }
+    else e[c] = v;
+    elMudou(c !== "pos");
+  }
+  function elInput(t) {
+    var e = elDe(EL), n = t.getAttribute("data-el"); if (!e) return; var v = t.value;
+    if (n === "txt" || n === "cor") e[n] = v; else if (n === "w" || n === "h") e[n] = (+v) / 100; else e[n] = +v;
+    if (n === "w") e.x = Math.max(0, Math.min(e.x, 1 - e.w));
+    var b = t.parentNode && t.parentNode.querySelector("b"); if (b && t.type === "range") b.textContent = v + (n === "tam" ? "" : "%");
+    elMudou(false);
+  }
+  /* arrastar um elemento direto na prévia (mouse ou dedo) */
+  function ligarArrasteElementos() {
+    var cx = $("paginas"); if (!cx || cx.__arr) return; cx.__arr = 1; var A = null;
+    cx.addEventListener("pointerdown", function (ev) {
+      var cv = ev.target.closest && ev.target.closest(".pk-pag"); if (!cv || INS) return; var h = alvoNoPonto(cv, ev.clientX, ev.clientY); if (!h || h.k.indexOf("e:") !== 0) return;
+      var e = elDe(h.k.slice(2)); if (!e) return; A = { cv: cv, e: e, f: h.f, px: ev.clientX, py: ev.clientY, x: e.x, y: e.y, mexeu: false, box: null, id: ev.pointerId };
+    });
+    cx.addEventListener("pointermove", function (ev) {
+      if (A) { var dx = ev.clientX - A.px, dy = ev.clientY - A.py; if (!A.mexeu && Math.hypot(dx, dy) < 5) return;
+        if (!A.mexeu) { A.mexeu = true; try { cx.setPointerCapture(A.id); } catch (er) { } A.box = caixaHl(A.cv, A.f, "drag"); }
+        var w = A.cv.offsetWidth, hh = A.cv.offsetHeight; A.e.x = Math.max(-0.2, Math.min(1, A.x + dx / w)); A.e.y = Math.max(-0.1, Math.min(1, A.y + dy / hh));
+        A.box.style.left = (A.cv.offsetLeft + A.e.x * w) + "px"; A.box.style.top = (A.cv.offsetTop + A.e.y * hh) + "px"; ev.preventDefault(); return; }
+      if (ev.pointerType !== "mouse") return;
+      var cv = ev.target.closest && ev.target.closest(".pk-pag"), hv = cx.querySelector(".pk-hl.hv"); if (hv) hv.remove();
+      if (!cv || INS) return; var h = alvoNoPonto(cv, ev.clientX, ev.clientY); cv.style.cursor = h ? (h.k.indexOf("e:") === 0 ? "move" : "pointer") : "default"; if (h) caixaHl(cv, h.f, "hv");
+    });
+    var fim = function () { if (!A) return; var a = A; A = null; if (a.box) a.box.remove(); if (a.mexeu) { window.__pkArrastou = Date.now(); guardar(); agendarPrevia(0); } };
+    cx.addEventListener("pointerup", fim); cx.addEventListener("pointercancel", fim);
+    cx.addEventListener("pointerleave", function () { var hv = cx.querySelector(".pk-hl.hv"); if (hv) hv.remove(); });
+    cx.addEventListener("touchmove", function (ev) { if (A && A.mexeu) ev.preventDefault(); }, { passive: false });
   }
 
   /* ---------- SAÍDAS ---------- */
@@ -1671,8 +1848,8 @@
   function jsonDe(t) { t = String(t || "").replace(/```(json)?/g, ""); var a = t.indexOf("{"), b = t.lastIndexOf("}"); if (a < 0 || b <= a) return null; try { return JSON.parse(t.slice(a, b + 1)); } catch (e) { return null; } }
   function limpar(t) { return String(t || "").replace(/\*\*|__|^#+\s*/gm, "").trim(); }
   function erroIA(e) { return { sem_login: "Entre na sua conta para usar a IA.", limite: "Limite diário da IA atingido.", ocupada: "A IA está ocupada. Tente em alguns segundos.", rede: "Sem internet agora." }[e] || "A IA não respondeu agora (" + e + ")."; }
-  function modal(html) { $("modalCx").classList.remove("enq-app"); $("modalCx").innerHTML = html; $("modal").hidden = false; var f = $("modalCx").querySelector("textarea,input"); if (f) setTimeout(function () { f.focus(); }, 50); }
-  function fecharModal() { ENQ = null; $("modal").hidden = true; $("modalCx").innerHTML = ""; }
+  function modal(html) { if (ENQ || EL) { var e0 = ENQ, l0 = EL; if (e0) { enqGravar(); guardarImgs(); guardar(); agendarPrevia(0); } ENQ = null; EL = null; marcarAtiva(); } $("modal").classList.remove("lado"); $("modalCx").classList.remove("enq-app"); $("modalCx").innerHTML = html; $("modal").hidden = false; var f = $("modalCx").querySelector("textarea,input"); if (f) setTimeout(function () { f.focus(); }, 50); }
+  function fecharModal() { if (ENQ || EL) { enqFechar(); return; } $("modal").hidden = true; $("modal").classList.remove("lado"); $("modalCx").innerHTML = ""; }
   var DESFAZER_IA = null;
   function abrirIaSobre() {
     modal('<button type="button" class="pk-mx" data-a="fecharModal" aria-label="Fechar">✕</button><h3>🎙 Conte sobre você</h3><p class="tf-sub">Fale ou escreva do seu jeito, sem se preocupar com a ordem: quem você é, o que faz, há quanto tempo, onde já trabalhou, cursos, habilidades, suas medidas (se for modelo). A IA corrige e coloca cada coisa no lugar certo — <b>não inventa nada</b>.</p>' +
@@ -1747,7 +1924,7 @@
     else if (a === "abrir") await abrirKit(id);
     else if (a === "duplicar") { if (await duplicarKit(id)) { desenharLista(); aviso("Cópia criada ✓"); } }
     else if (a === "duplicarEste") { if (!KIT) return; var nd = await duplicarKit(KIT.id); if (nd) { await abrirKit(nd.id); aviso("Cópia aberta — o original continua guardado"); } }
-    else if (a === "excluir") { var k2 = acharKit(id); if (!k2 || !confirm("Excluir o press kit \"" + (k2.nome || "") + "\"? Isso não pode ser desfeito.")) return; gravarLista(lista().filter(function (x) { return x.id !== id; })); await idbDel("imgs", id); await idbDel("thumbs", "kit-" + id); desenharLista(); aviso("Press kit excluído"); }
+    else if (a === "excluir") { var k2 = acharKit(id); if (!k2 || !confirm("Excluir o press kit \"" + (k2.nome || "") + "\"? Isso não pode ser desfeito.")) return; gravarLista(lista().filter(function (x) { return x.id !== id; })); await idbDel("imgs", id); await idbDel("thumbs", "kit-" + id); if (window.BWPkNuvem) BWPkNuvem.apagarPasta(id); desenharLista(); aviso("Press kit excluído"); }
     else if (a === "trocarModelo") { var md = modeloDe(el.getAttribute("data-m")); KIT.modelo = md.id; KIT.cor = md.cor; KIT.cor2 = md.cor2; KIT.fonte = md.fonte; KIT.formato = md.formato; KIT.est = {}; guardar(); desenharForm(); agendarPrevia(0); aviso("Modelo " + md.nome + " ✓"); }
     else if (a === "coresModelo") { var m2 = modeloDe(KIT.modelo); KIT.cor = m2.cor; KIT.cor2 = m2.cor2; KIT.fonte = m2.fonte; guardar(); desenharForm(); agendarPrevia(0); }
     else if (a === "coresEmpresa") { var e = cfgOrc("empresa") || {}; if (!e.cor) { aviso("Sem cor salva em MINHA EMPRESA (Gerador de orçamento).", true); return; } KIT.cor = e.cor; guardar(); desenharForm(); agendarPrevia(0); }
@@ -1756,10 +1933,16 @@
     else if (a === "est") { var ec = el.getAttribute("data-c"); KIT.est = KIT.est || {}; KIT.est[ec] = el.getAttribute("data-v"); [].forEach.call(el.parentNode.children, function (b) { b.classList.toggle("on", b === el); }); guardar(); agendarPrevia(80); }
     else if (a === "estPaleta") { var pl = PALETAS[+el.getAttribute("data-i")]; KIT.cor = pl[1]; KIT.cor2 = pl[2]; KIT.est = KIT.est || {}; KIT.est.fundo = pl[3]; guardar(); desenharForm(); agendarPrevia(80); aviso("Paleta " + pl[0] + " ✓"); }
     else if (a === "estZerar") { var mz = modeloDe(KIT.modelo); KIT.est = {}; KIT.cor = mz.cor; KIT.cor2 = mz.cor2; guardar(); desenharForm(); agendarPrevia(80); aviso("Estilo do modelo de volta"); }
-    else if (a === "prevFoto") abrirFotosPagina(+el.getAttribute("data-pg") || 1);
-    else if (a === "enquadrar") { var alvE = el.getAttribute("data-alvo"); if (alvE === "sobre" && IMGS.retrato) imgDe(IMGS.retrato).then(function (im) { ENQ_PROP_S = im.naturalHeight / im.naturalWidth; abrirEnquadrar("sobre"); }); else abrirEnquadrar(alvE); }
+    else if (a === "prevFoto") tocarPrevia(el);
+    else if (a === "enquadrar") abrirAlvo(el.getAttribute("data-alvo"));
     else if (a === "enqProp") enqProp(el.getAttribute("data-v"));
     else if (a === "enqPronto") enqPronto();
+    else if (a === "enqVoltar") enqVoltar();
+    else if (a === "ins") modoInserir(INS === el.getAttribute("data-ins") ? null : el.getAttribute("data-ins"));
+    else if (a === "elSet") elSet(el.getAttribute("data-c"), el.getAttribute("data-v"));
+    else if (a === "elCor") { var eC = elDe(EL); if (eC) { eC.cor = el.getAttribute("data-v"); elMudou(true); } }
+    else if (a === "elDup") { var eD = elDe(EL); if (eD) { var n2 = clone(eD); n2.id = "el" + Date.now().toString(36); n2.x = Math.min(0.9, eD.x + 0.03); n2.y = Math.min(0.95, eD.y + 0.03); if (eD.t === "imagem" && IMGS.livres) { IMGS.livres[n2.id] = IMGS.livres[eD.id]; guardarImgs(); } livres().push(n2); EL = null; elMudou(false); abrirElemento(n2.id); aviso("Duplicado ✓"); } }
+    else if (a === "elDel") { if (!confirm("Apagar este elemento?")) return; var idD = EL; KIT.livres = livres().filter(function (x) { return x.id !== idD; }); if (IMGS.livres) { delete IMGS.livres[idD]; guardarImgs(); } EL = null; enqFechar(); guardar(); agendarPrevia(0); aviso("Elemento apagado"); }
     else if (a === "enqLook") enqLook(el.getAttribute("data-v"));
     else if (a === "enqAba") { ENQ_ABA = el.getAttribute("data-v"); var mcx = $("modalCx"); [].forEach.call(mcx.querySelectorAll(".pk-enq-aba"), function (b) { b.classList.toggle("on", b === el); }); [].forEach.call(mcx.querySelectorAll(".pk-enqp"), function (p) { p.hidden = p.getAttribute("data-p") !== ENQ_ABA; }); el.scrollIntoView({ block: "nearest", inline: "center" }); }
     else if (a === "enqFx") enqFx(el.getAttribute("data-c"), el.getAttribute("data-v"));
@@ -1817,6 +2000,10 @@
       else if (alvo === "retrato") { IMGS.retrato = await arquivoParaUrl(fs[0], 1800, true); if (IMGS.origs) delete IMGS.origs.retrato; if (IMGS.enq) delete IMGS.enq.retrato; }
       else if (alvo === "capa") { IMGS.capa = await arquivoParaUrl(fs[0], 2400, false); if (IMGS.origs) delete IMGS.origs.capa; if (IMGS.enq) delete IMGS.enq.capa; }
       else if (alvo.indexOf("ia:") === 0) { var ax = alvo.slice(3), kx = chaveFoto(ax), ant = srcFoto(ax); if (!ant) { andamento(""); return; } var ux = await arquivoParaUrl(fs[0], ax === "retrato" ? 1800 : 2400, ax === "retrato"); IMGS.origs = IMGS.origs || {}; if (!IMGS.origs[kx]) IMGS.origs[kx] = ant; if (ax === "retrato" || ax === "capa") IMGS[ax] = ux; else IMGS.fotos[+ax] = ux; KIT.exemplo = false; andamento(""); if (!$("modal").hidden) fecharModal(); guardarImgs(); desenharForm(); agendarPrevia(0); aviso("✨ Foto da sua IA no lugar — ↺ ORIGINAL volta"); try { inp.value = ""; } catch (e) { } return; }
+      else if (alvo === "livre" || alvo.indexOf("livre:") === 0) { var ul = await arquivoParaUrl(fs[0], 1600, true), pr = await proporcao(ul); andamento(""); try { inp.value = ""; } catch (e) { }
+        if (alvo === "livre") { INS_IMG = { u: ul, prop: pr }; modoInserir("imagem"); }
+        else { var idL = alvo.slice(6), eL = elDe(idL); IMGS.livres = IMGS.livres || {}; IMGS.livres[idL] = ul; if (eL) eL.prop = pr; guardarImgs(); guardar(); agendarPrevia(0); aviso("Imagem trocada ✓"); }
+        return; }
       else if (alvo.indexOf("card:") === 0) { var pc = alvo.split(":"); var uc = await arquivoParaUrl(fs[0], 1400, false); andamento(""); cardPor(pc[1], +pc[2], uc); aviso("Foto do cartão ✓"); try { inp.value = ""; } catch (e) { } return; }
       else { for (var i = 0; i < fs.length && IMGS.fotos.length < 7; i++) IMGS.fotos.push(await arquivoParaUrl(fs[i], 2000, false)); }
       andamento(""); guardarImgs(); desenharForm(); agendarPrevia(0); aviso(alvo === "fotos" ? "Fotos na galeria ✓" : alvo === "logo" ? "Logo aplicada ✓" : alvo === "retrato" ? "Foto recortada aplicada ✓" : "Foto da capa aplicada ✓");
@@ -1826,7 +2013,7 @@
 
   function iniciar() {
     document.addEventListener("click", function (e) {
-      var b = e.target.closest && e.target.closest("[data-a]"); if (!b || b.tagName === "INPUT" || !b.closest(".wrap, #modal")) return;
+      var b = e.target.closest && e.target.closest("[data-a]"); if (!b || b.tagName === "INPUT" || !b.closest(".wrap, #modal")) return; PK_XY = { x: e.clientX, y: e.clientY };
       if (b.disabled) return; e.preventDefault(); acao(b.getAttribute("data-a"), b);
     });
     document.addEventListener("change", function (e) {
@@ -1835,6 +2022,7 @@
       if (t.getAttribute("data-a") === "vis" || t.getAttribute("data-a") === "servFotos") { acao(t.getAttribute("data-a"), t); return; }
       if (t.hasAttribute("data-k")) aoDigitar(e);
     });
+    document.addEventListener("input", function (e) { var t = e.target; if (t && t.hasAttribute && t.hasAttribute("data-el")) elInput(t); });
     document.addEventListener("input", function (e) {
       var t = e.target; if (!t || !t.hasAttribute || !t.hasAttribute("data-k")) return;
       if (t.hasAttribute("data-mostra")) { var b = t.parentNode.querySelector("b"); if (b) b.textContent = t.value + "%"; }
@@ -1843,7 +2031,8 @@
     $("edNome").addEventListener("input", function () { if (KIT) { KIT.nome = this.value; guardar(); } });
     $("edTrocar").addEventListener("change", async function () { var v = this.value; if (!KIT || !v || v === KIT.id) return; await guardarAgora(); if (v === "__novo") { KIT = null; mostrar("modelos"); desenharModelos(); } else await abrirKit(v); });
     $("modal").addEventListener("click", function (e) { if (e.target === this) fecharModal(); });
-    document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !$("modal").hidden) fecharModal(); });
+    document.addEventListener("keydown", function (e) { if (e.key === "Escape" && INS) { modoInserir(null); return; } if (e.key === "Escape" && !$("modal").hidden) fecharModal(); });
+    ligarArrasteElementos();
     var t; window.addEventListener("resize", function () { altEd(); clearTimeout(t); t = setTimeout(function () { if (VISTA === "editor") agendarPrevia(200); }, 300); });
     /* dados que chegam de outro aparelho: só redesenha a lista (o editor aberto não é atropelado) */
     window.addEventListener("bw-dados", function () { if (VISTA === "lista") desenharLista(); });
@@ -1865,6 +2054,6 @@
       Object.keys(im.cards || {}).forEach(function (l) { out.cards[l] = []; });
       for (var l in (im.cards || {})) { var arr = im.cards[l] || []; for (var j = 0; j < arr.length; j++) out.cards[l].push(arr[j] ? await recortar(arr[j], 960, 600, enqOpC(CR, EQ["c:" + l + ":" + j], { q: 0.84 })) : ""); }
       return out;
-    }, gerarPdfBytes: async function () { await guardarAgora(); return await pdfBytes(defPdf(await modelo(KIT, IMGS, { alta: true }))); }, idbGet: idbGet, idbPut: idbPut, sessao: sessao, recortar: recortar,  modelos: MODELOS, modelo: modelo, defPdf: defPdf, kitNovo: kitNovo, imgsExemplo: imgsExemplo, atual: function () { return KIT; }, previa: desenharPrevia, paginas: function () { return PAGS; } };
+    }, gerarPdfBytes: async function () { await guardarAgora(); return await pdfBytes(defPdf(await modelo(KIT, IMGS, { alta: true }))); }, idbGet: idbGet, idbPut: idbPut, sessao: sessao, recortar: recortar,  modelos: MODELOS, modelo: modelo, defPdf: defPdf, kitNovo: kitNovo, imgsExemplo: imgsExemplo, atual: function () { return KIT; }, previa: desenharPrevia, pdfTexto: async function () { var b = await pdfBytes(defPdf(await modelo(KIT, IMGS))), J = await pdfjs(), d = await J.getDocument({ data: b, isEvalSupported: false }).promise, t = ""; for (var i = 1; i <= d.numPages; i++) t += (await (await d.getPage(i)).getTextContent()).items.map(function (x) { return x.str; }).join(" ") + "\n"; d.destroy(); return t; }, paginas: function () { return PAGS; } };
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", iniciar); else iniciar();
 })();

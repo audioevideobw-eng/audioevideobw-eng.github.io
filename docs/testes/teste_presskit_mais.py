@@ -37,6 +37,7 @@ window.supabase = { createClient: function () {
     upload: async (cam, blob) => { const fr = new FileReader(); const d = await new Promise(ok => { fr.onload = () => ok(fr.result); fr.readAsDataURL(blob); }); S.arq[cam] = d; S.log.push('up:' + cam); return { data: { path: cam }, error: null }; },
     getPublicUrl: (cam) => ({ data: { publicUrl: '""" + PUBLICO + r"""' + cam } }),
     list: async (pasta) => { const pre = pasta + '/', nomes = new Set(); Object.keys(S.arq).forEach(k => { if (k.indexOf(pre) === 0) nomes.add(k.slice(pre.length).split('/')[0]); }); return { data: [...nomes].map(n => ({ name: n })), error: null }; },
+    download: async (cam) => { const u = S.arq[cam]; if (!u) return { data: null, error: { message: 'not found' } }; const r = await fetch(u); return { data: await r.blob(), error: null }; },
     remove: async (l) => { l.forEach(k => { delete S.arq[k]; S.log.push('rm:' + k); }); return { data: l, error: null }; } }; }
   return { auth: { getSession: async () => ({ data: { session: ses } }), getUser: async () => ({ data: { user: ses.user } }), onAuthStateChange() { return { data: { subscription: { unsubscribe() {} } } }; } },
     from: tabela, rpc: async () => ({ data: null, error: null }), storage: { from: balde } }; } };"""
@@ -130,17 +131,76 @@ with sync_playwright() as p:
             fb = pg.locator("#form").bounding_box(); pg.mouse.move(fb["x"] + fb["width"] / 2, fb["y"] + fb["height"] / 2); pg.mouse.wheel(0, 900); pg.wait_for_timeout(300)
             ok(pg.evaluate("() => document.getElementById('form').scrollTop") > 200 and pg.evaluate("() => scrollY") < 5, "rodinha rola o formulário, não a página")
             pg.evaluate("() => document.getElementById('form').scrollTop = 0")
-        # toque na foto da prévia abre o ajuste
+        # toque na foto da prévia abre O AJUSTE DAQUELA FOTO e o PDF se refaz ao vivo
         if larg < 500: pg.click('[data-a="aba"][data-v="prev"]'); pg.wait_for_timeout(300)
-        pg.locator(".pk-pag").nth(1).click(); pg.wait_for_timeout(400)
-        it = pg.locator("#modal .pk-pf-i")
-        ok(not pg.locator("#modal").is_hidden() and it.count() >= 2 and it.first.get_attribute("data-alvo") == "sobre", "tocar na página 2 lista as fotos, a da página 2 primeiro")
-        it.first.click(); pg.wait_for_timeout(900)
-        ok(pg.locator('#modal [data-a="enqAba"][data-v="tam"]').count() == 1, "tocar na foto abre o ajuste com TAMANHO")
-        pg.evaluate("() => BWPressKit.fecharModal()")
-        pg.locator(".pk-pag").first.click(); pg.wait_for_timeout(400)
-        ok(pg.locator("#modal .pk-pf-i").first.get_attribute("data-alvo") == "capa", "na página 1 a capa vem primeiro")
-        pg.evaluate("() => BWPressKit.fecharModal()")
+        CENTRO = """(k) => { const cs = [...document.querySelectorAll('#paginas .pk-pag')]; for (const c of cs) { const f = (c._fotos||[]).find(f => !k || f.k === k);
+            if (f) { c.scrollIntoView({block:'center'}); const r = c.getBoundingClientRect(); return {x: r.left + (f.x0+f.x1)/2*r.width, y: r.top + (f.y0+f.y1)/2*r.height, k: f.k, pg: +c.dataset.pg}; } } return null; }"""
+        alvo = pg.evaluate(CENTRO, "capa")
+        ok(alvo is not None, f"a prévia sabe onde está cada foto {alvo}")
+        if alvo:
+            alvo = pg.evaluate(CENTRO, "capa"); pg.mouse.click(alvo["x"], alvo["y"]); pg.wait_for_timeout(900)
+            ok(pg.locator('#modal [data-a="enqAba"]').count() >= 2 and pg.locator("#modal .pk-pf-i").count() == 0, "tocar na foto da capa abre direto o ajuste dela (sem lista)")
+            ok(pg.evaluate("() => document.getElementById('modal').classList.contains('lado')"), "o ajuste fica ao lado/embaixo, com a prévia à vista")
+            if larg >= 1100:
+                pb = pg.locator(".pk-prev").bounding_box(); cb = pg.locator("#modalCx").bounding_box()
+                ok(cb["x"] + cb["width"] <= pb["x"] + 5, f"o painel não cobre a prévia ({cb['x']+cb['width']:.0f} ≤ {pb['x']:.0f})")
+            ok(pg.locator("#paginas .pk-hl.on").count() >= 1, "a foto que está sendo ajustada fica marcada na prévia")
+            pg.evaluate("() => { const r = document.querySelector('#modalCx [data-enq=\"z\"]'); r.value = 180; r.dispatchEvent(new Event('input', {bubbles:true})); }")
+            pg.wait_for_timeout(500); esperar_previa(pg)
+            ok(pg.evaluate("() => { const e = (BWPressKit.imgsAtual().enq||{}).capa; return !!e && e.z > 1.7; }"), "mexer no tamanho já muda o PDF ao vivo (antes do PRONTO)")
+            pg.click('#modalCx [data-a="enqVoltar"]'); pg.wait_for_timeout(700)
+            ok(pg.evaluate("() => !(BWPressKit.imgsAtual().enq||{}).capa || (BWPressKit.imgsAtual().enq.capa.z||1) < 1.05"), "↺ COMO ESTAVA desfaz")
+            pg.evaluate("() => BWPressKit.fecharModal()"); esperar_previa(pg)
+        # ✚ INSERIR elementos direto na prévia
+        n0 = pg.evaluate("() => (BWPressKit.atual().livres||[]).length")
+        pg.click('[data-a="ins"][data-ins="texto"]'); pg.wait_for_timeout(300)
+        c2 = pg.locator(".pk-pag").nth(1); c2.scroll_into_view_if_needed(); bb = c2.bounding_box()
+        pg.mouse.click(bb["x"] + bb["width"] * 0.5, bb["y"] + bb["height"] * 0.85); pg.wait_for_timeout(700)
+        L = pg.evaluate("() => BWPressKit.atual().livres||[]")
+        ok(len(L) == n0 + 1 and L[-1]["t"] == "texto" and L[-1]["pg"] == 2, f"＋ TEXTO e tocar na página põe o texto lá ({L[-1] if L else None})")
+        ok(pg.locator('#modalCx [data-el="txt"]').count() == 1, "abre o painel do texto")
+        pg.fill('#modalCx [data-el="txt"]', "TEXTO LIVRE TESTE"); pg.wait_for_timeout(400); esperar_previa(pg); pg.wait_for_timeout(600)
+        tem = pg.evaluate("async () => { const m = await BWPressKit.pdfTexto(); return m.replace(/\s+/g,'').includes('TEXTOLIVRETESTE'); }")
+        ok(tem, "o texto novo sai no PDF")
+        pg.click('#modalCx [data-a="fecharModal"]'); pg.wait_for_timeout(300)
+        pg.click('[data-a="ins"][data-ins="icone"]'); pg.wait_for_timeout(200)
+        c2.scroll_into_view_if_needed(); bb = c2.bounding_box(); pg.mouse.click(bb["x"] + bb["width"] * 0.2, bb["y"] + bb["height"] * 0.9); pg.wait_for_timeout(600)
+        ok(pg.locator("#modalCx .pk-ico").count() > 20, "＋ ÍCONE abre a grade de ícones")
+        pg.click('#modalCx .pk-ico[data-v="🎬"]'); pg.wait_for_timeout(500)
+        ok(pg.evaluate("() => (BWPressKit.atual().livres||[]).slice(-1)[0].ic") == "🎬", "trocar o ícone")
+        pg.click('#modalCx [data-a="fecharModal"]'); pg.wait_for_timeout(300)
+        with pg.expect_file_chooser() as fcI: pg.click(".pk-ins-img")
+        imgT = os.path.join(TMP, "livre.png"); open(imgT, "wb").write(_png((230, 40, 120), 300, 200, "PNG")); fcI.value.set_files(imgT); pg.wait_for_timeout(900)
+        c2.scroll_into_view_if_needed(); bb = c2.bounding_box(); pg.mouse.click(bb["x"] + bb["width"] * 0.7, bb["y"] + bb["height"] * 0.6); pg.wait_for_timeout(900)
+        ok(pg.evaluate("() => { const e = (BWPressKit.atual().livres||[]).slice(-1)[0]; return e.t === 'imagem' && !!(BWPressKit.imgsAtual().livres||{})[e.id]; }"), "＋ IMAGEM: escolher o arquivo e tocar na página")
+        pg.click('#modalCx [data-a="fecharModal"]'); pg.wait_for_timeout(300); esperar_previa(pg); pg.wait_for_timeout(500)
+        # arrastar o texto na prévia
+        ini = pg.evaluate("() => { const e = BWPressKit.atual().livres.find(x => x.t==='texto'); return [e.x, e.y]; }")
+        at = pg.evaluate(CENTRO, "e:" + L[-1]["id"])
+        if at and larg >= 1100:
+            pg.mouse.move(at["x"], at["y"]); pg.mouse.down(); pg.mouse.move(at["x"] - 60, at["y"] - 80, steps=8); pg.mouse.up(); pg.wait_for_timeout(600)
+            fimP = pg.evaluate("() => { const e = BWPressKit.atual().livres.find(x => x.t==='texto'); return [e.x, e.y]; }")
+            ok(fimP[0] < ini[0] - 0.02 and fimP[1] < ini[1] - 0.02 and pg.locator("#modal").is_hidden(), f"arrastar o texto na prévia muda o lugar ({ini} → {fimP})")
+        elif at:
+            pg.mouse.click(at["x"], at["y"]); pg.wait_for_timeout(500)
+            ok(pg.locator('#modalCx [data-el="txt"]').count() == 1, "tocar no texto da prévia abre o painel dele")
+            pg.click('#modalCx [data-a="elSet"][data-c="pos"][data-v="meio"]'); pg.wait_for_timeout(300)
+            e2 = pg.evaluate("() => BWPressKit.atual().livres.find(x => x.t==='texto')")
+            ok(abs(e2["x"] - (1 - e2["w"]) / 2) < 0.01, "↔ CENTRALIZAR o elemento")
+            pg.evaluate("() => BWPressKit.fecharModal()")
+        # ☁ fotos na conta: sobem para a pasta privada e voltam em "outro aparelho"
+        kid = pg.evaluate("() => BWPressKit.atual().id")
+        try: pg.wait_for_function("(k) => Object.keys(__sb.arq).some(c => c.startsWith('u-teste/' + k + '/')) && BWPressKit.atual().nuvem && Object.keys(BWPressKit.atual().nuvem.v).some(x => x.startsWith('e:'))", arg=kid, timeout=30000); sub = True
+        except Exception: sub = False
+        nv = pg.evaluate("(k) => ({ arq: Object.keys(__sb.arq).filter(c => c.startsWith('u-teste/' + k + '/')).length, vagas: Object.keys(BWPressKit.atual().nuvem ? BWPressKit.atual().nuvem.v : {}) })", kid)
+        ok(sub and nv["arq"] >= 2 and "retrato" in nv["vagas"], f"as fotos sobem para a pasta da conta ({nv['arq']} arquivos, vagas {nv['vagas'][:6]})")
+        pg.evaluate("async (k) => { await BWPressKit.idbPut('imgs', k, { logo: '', capa: '', retrato: '', fotos: [], cards: {}, _t: 1 }); await BWPressKit.abrirKit(k); }", kid)
+        try: pg.wait_for_function("() => { const i = BWPressKit.imgsAtual(); return i.retrato && i.livres && Object.keys(i.livres).length; }", timeout=30000); volta = True
+        except Exception: volta = False
+        ok(volta, "em outro aparelho (sem as fotos) o press kit traz as fotos da conta, inclusive a imagem inserida")
+        esperar_previa(pg)
+        # apagar os elementos de teste
+        pg.evaluate("() => { const k = BWPressKit.atual(); k.livres = []; }"); pg.evaluate("() => BWPressKit.fecharModal()")
         if larg < 500: pg.click('[data-a="aba"][data-v="ed"]'); pg.wait_for_timeout(300)
 
         # ✨ foto da IA: trava de rosto/corpo no pedido + ⬇ baixar
@@ -293,7 +353,7 @@ with sync_playwright() as p:
         ok(d.get("capa", "").startswith(PUBLICO + tok + "/") and d.get("pdf", "").endswith("press-kit.pdf"), "endereços públicos dentro da pasta do token")
         n_antes = len(arqs)
         pg.click('#modal [data-a="pmLpublicar"]')
-        try: pg.wait_for_function("(a) => document.getElementById('pmLurl') && Object.keys(__sb.arq).filter(k => k.startsWith(a + '/')).length > 0 && __sb.log.filter(x => x.startsWith('rm:')).length > 0", arg=tok, timeout=240000); atu = True
+        try: pg.wait_for_function("(a) => document.getElementById('pmLurl') && Object.keys(__sb.arq).filter(k => k.startsWith(a + '/')).length > 0 && __sb.log.filter(x => x.startsWith('rm:' + a + '/')).length > 0", arg=tok, timeout=240000); atu = True
         except Exception: atu = False
         sb = pg.evaluate("() => __sb"); arqs2 = [k for k in sb["arq"] if k.startswith(tok + "/")]
         ok(atu and len({k.split("/")[1] for k in arqs2}) == 1 and len(arqs2) == n_antes, "↻ ATUALIZAR troca os arquivos e apaga a versão antiga (mesmo link)")

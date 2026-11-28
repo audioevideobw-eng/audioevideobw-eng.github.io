@@ -1147,6 +1147,14 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
      t.col, t.centro, t.quebra) com miniatura CSS; sub-opções das partes ganham seta pelo BWDobras.agrupar(".pk-grupo .pk-sub-t"). Teste que conta
      .pk-capa precisa filtrar data-c="capa" (as miniaturas novas usam a mesma classe).
 
+251. EDITAR PELA PRÉVIA (press kit, 28/11): a prévia é o PDF desenhado pelo pdf.js — para saber o que está debaixo do dedo, cada foto vai com um
+     LINK invisível só na prévia (m.previa → link "https://bw.foto/?k=<alvo>", lido por page.getAnnotations()); o mapa url→alvo nasce em modelo()
+     (tg()) e o nó que repete a mesma imagem com outro papel leva _bw (tirado antes de ir ao pdfMake). Elementos livres (KIT.livres) entram no
+     background da página (pdfMake não tem "na frente" com absolutePosition; o footer desloca) e a caixa de toque deles é calculada pelas medidas
+     (elAlt). Ajuste aberto ao lado (.pk-modal.lado) com o PDF se refazendo ao vivo; fechar GUARDA (↺ COMO ESTAVA desfaz). Texto do pdf.js vem com
+     espaços entre letras: teste compara sem espaços. FOTOS NA CONTA: assets/presskit-nuvem.js → balde privado presskit-fotos (<uid>/<kit>/<sha>),
+     o press kit guarda o mapa das vagas + ajustes (kit.nuvem); quem mexeu por último ganha (_t); cópia de press kit não leva o mapa (vigia 7.8o).
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -2986,7 +2994,16 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   no PC (> 1060 px) o editor cabe na tela e a coluna das opções rola sozinha, com a barra dourada fina ao lado dela (a prévia rola à parte);
   tocar numa página da PRÉVIA abre "Ajustar uma foto" com as fotos daquela página primeiro (pág. 1 = capa; pág. 2 = foto de "Quem sou eu" com
   TAMANHO) e cada uma leva ao ✥ ajuste de sempre. teste_presskit_mais (+6 × 1280/390) e teste_presskit 0 falhas. Manual 79 p. presskit.js v14, sw v259.
+- 28/11/2026 14:55 · Claude (dono: "ao clicar na foto, alterar tamanho/corte como se fosse fluido, o layout se ajustando em tempo real" + "inserir ícones, imagens,
+  textos onde quiser a partir do preview" + "a imagem que insiro num aparelho não salva na nuvem"): PRESS KIT — (1) tocar numa foto da PRÉVIA abre o ajuste
+  DELA (sem lista) ao lado (PC) ou embaixo (celular), com a foto marcada na prévia, e o PDF se refaz enquanto mexe; fechar guarda, ↺ COMO ESTAVA desfaz;
+  (2) ＋ INSERIR na prévia: TEXTO, ÍCONE (34), IMAGEM e FORMA (faixa, pílula, círculo, linha) — toca na página e põe ali; arrastar move; painel com
+  tamanho, cor, letra, opacidade, página, centralizar, duplicar, apagar; (3) CAUSA da nuvem: as fotos eram SÓ do aparelho desde a criação (regra antiga) →
+  agora sobem para a pasta privada da conta (presskit-fotos) e voltam nos outros aparelhos. Falta rodar docs/sql/2026-11-28-presskit-fotos.sql (aguarda o
+  "sim"); até lá a tela diz "pasta da conta ainda não ativada" e tudo continua no aparelho. teste_presskit_mais (+19) e teste_presskit 0 falhas; vigia ✅.
+  Manual 79 p. presskit.js v15, presskit-nuvem.js v1, sw v260. PENTE FINO 251.
 ## Pendências (dono)
+- [ ] (28/11) SQL docs/sql/2026-11-28-presskit-fotos.sql (balde privado presskit-fotos) — aguarda o "sim" do dono para rodar; depois testar no PC e no celular logado.
 - [x] (28/11 12:55, dono: "SIM") SQL do LINK DO PRESS KIT rodado (rls true · 4 regras na tabela · 3 no balde · balde público). Teste no ar: visitante
       não lista nem grava (401), token falso = null; logado: link de TESTE criado, foto no balde, kit.html abriu, pasta de outro token recusada;
       teste apagado (linha e foto). Falta o dono criar um link de verdade pelo 🔗 e abrir no celular.

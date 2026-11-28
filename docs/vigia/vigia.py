@@ -472,7 +472,7 @@ _pk = _arq("assets/presskit.js")
 if not os.path.exists("presskit.html") or "assets/presskit.js" not in todos.get("presskit.html", ""):
     problemas.append("PRESS KIT: presskit.html sumiu ou não carrega assets/presskit.js")
 elif re.search(r"\.upload\(|storage\.from|BWSync\.(subir|enviar)|XMLHttpRequest", _pk):
-    problemas.append("assets/presskit.js: fotos e logo do press kit ficam só no aparelho — nada de upload/Storage")
+    problemas.append("assets/presskit.js: o envio das fotos é só pelo assets/presskit-nuvem.js (balde privado presskit-fotos)")
 else:
     for _f in re.findall(r"fetch\(([^,)]+)", _pk):
         if _f.strip() not in ("FN_TXT", 'FN_TXT + "?lang=pt"', '"assets/fontes/" + arqs[i]'):   # ?lang=pt = a fala gravada vai para a transcrição da bw-ia (iPhone sem reconhecimento)
@@ -489,6 +489,11 @@ if _kt:
     if "supabase-js" in _kt or "bw-sync.js" in _kt or ".innerHTML = " in _kt.replace('pg.innerHTML = ""', ""):
         problemas.append("kit.html: a página pública só pode ler pelo RPC (sem supabase-js/bw-sync) e montar o texto com textContent")
     if "rpc/bw_presskit_ver" not in _kt: problemas.append("kit.html: deve ler só pela função bw_presskit_ver")
+_pn = _arq("assets/presskit-nuvem.js")
+if _pn:   # 28/11: fotos do press kit na pasta PRIVADA da conta — só o balde presskit-fotos, caminho <id da conta>/<press kit>/
+    if re.search(r"from\(\s*[\"'](?!presskit-fotos)", _pn.replace("from(BALDE)", "")) or 'BALDE = "presskit-fotos"' not in _pn or "fetch(" in _pn:
+        problemas.append("assets/presskit-nuvem.js: só pode usar o balde privado presskit-fotos (sem fetch)")
+    if "uid + \"/\" + kitId" not in _pn: problemas.append("assets/presskit-nuvem.js: o caminho das fotos começa pelo id da conta (regra do banco)")
 _pm = _arq("assets/presskit-mais.js")
 if _pm and re.search(r"from\(\s*[\"'](?!bw_presskit_pub)[a-z_]+[\"']", _pm):
     problemas.append("assets/presskit-mais.js: só grava na tabela bw_presskit_pub")
