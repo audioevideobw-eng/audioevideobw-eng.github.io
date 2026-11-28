@@ -1,19 +1,14 @@
 {
- "versao": "1.9.56",
- "data": "26/11/2026",
+ "versao": "1.9.57",
+ "data": "28/11/2026",
  "pacote": "downloads/BW-Reels-Studio.zip",
- "sha256": "84b41d22cf112e7a0ec1bbbcbf4a3b3488ec2fc318f991140967a982b5ce7220",
- "bytes": 51572379,
+ "sha256": "2b915f47f3bde48e63c17d87dea8c89a419bb96834648dae0e877042319d9c5f",
+ "bytes": 51629667,
  "novidades": [
   {
-   "titulo": "Tutoriais com a voz do Marcos",
-   "texto": "A narração de todos os tutoriais agora é a voz do Marcos, da Brightway, gravada, com o fundo musical baixinho.",
-   "abrir": "tutoriais"
-  },
-  {
-   "titulo": "Tutorial do modo diretor",
-   "texto": "Do pedido de um aftermovie ao roteiro, às imagens, à mudança de uma cena só e ao storyboard 3×3 — com as telas de verdade.",
-   "abrir": "tutoriais"
+   "titulo": "Fotos HEIC do iPhone abrem",
+   "texto": "No editor de vídeo, no editor de fotos, nas Telas e no Álbum 3D, a foto .HEIC vira JPEG no próprio computador e entra normal.",
+   "abrir": "video"
   }
  ]
 }

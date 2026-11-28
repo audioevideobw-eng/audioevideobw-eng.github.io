@@ -2896,7 +2896,8 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   (onRenderProcessGone → refaz a tela); e o assistente ganhou VOZ no app (BwFala.java: a voz do Android, a masculina quando é o robô).
   teste_heic_android.py (novo, 0 falhas), teste_android, video_midia, agente_leitor, telas, album, fotos 0 falhas; vigia ✅. modos.js v12 (66 páginas),
   bw-android.js v3, video-editor v41, fotos v25, telas v13, album v7, bw-heic v1, sw v251. PENTE FINO 244–245. NÃO testado num Android de verdade
-  (o .apk novo sai pelo GitHub Actions).
+  (o .apk novo sai pelo GitHub Actions). App Android 1.0.35 montado e publicado pelo GitHub (Java compilou; 1ª tentativa caiu por limite do
+  servidor Maven, 429 — repetida). APP BW 1.9.57 (cópia sem internet com o bw-heic, tutorial 17 p., novidades) publicado; teste-app 0 falhas.
 ## Pendências (dono)
 - [ ] (28/11) APP ANDROID: instalar o .apk novo (Downloads → App BW para Android), abrir o editor de vídeo com as fotos .HEIC e tocar no robô do
       assistente (deve pedir o microfone, gravar e responder FALANDO); dizer se ainda fecha.
