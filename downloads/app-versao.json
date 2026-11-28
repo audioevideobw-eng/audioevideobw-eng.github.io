@@ -1,13 +1,18 @@
 {
- "versao": "1.9.58",
+ "versao": "1.9.59",
  "data": "28/11/2026",
  "pacote": "downloads/BW-Reels-Studio.zip",
- "sha256": "b4cd369850ba27307005a3378797368cb8aab97c7a4d4b55e83ad5d1cd7e9f45",
- "bytes": 51744183,
+ "sha256": "a579892e309fc783204cf7f037c1d649b17b33565ece1d55432938fe03bc269d",
+ "bytes": 51705081,
  "novidades": [
   {
-   "titulo": "Vídeos do iPhone abrem",
-   "texto": "HEVC, HDR/Dolby Vision, 4K 60p, câmera lenta, espacial e ProRes viram MP4 sozinhos ao importar — no PC, pelo FFmpeg e pela placa NVIDIA. Nada sai do computador.",
+   "titulo": "Play mais suave",
+   "texto": "No editor de vídeo o play segue o take que está tocando, o próximo take fica pronto antes da emenda e as tarefas de fundo esperam enquanto toca.",
+   "abrir": "video"
+  },
+  {
+   "titulo": "Importar mais rápido",
+   "texto": "O take entra na biblioteca na hora; a miniatura chega logo depois.",
    "abrir": "video"
   }
  ]

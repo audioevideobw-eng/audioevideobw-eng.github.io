@@ -20,7 +20,7 @@ with sync_playwright() as p:
     pg.goto(BASE + "video.html?novo=1"); pg.wait_for_function("window.__veProntoOk === true", timeout=15000); pg.wait_for_timeout(500)
     pg.evaluate("indexedDB.deleteDatabase('bw_video')") if False else None
     arqs = [f"{S}/take{i:02d}.webm" for i in range(N)] + [f"{S}/hevc.mp4"]
-    pg.set_input_files("#veArq", arqs); pg.wait_for_function(f"Object.values(__video.MID).filter(m=>/take|hevc/.test(m.nome)).length >= {N + 1}", timeout=300000); pg.wait_for_timeout(800)
+    pg.set_input_files("#veArq", arqs); pg.wait_for_function(f"Object.values(__video.MID).filter(m=>/take|hevc/.test(m.nome)).length >= {N + 1}", timeout=300000); pg.wait_for_function("!window.__veCapas || __veCapas() === 0", timeout=300000); pg.wait_for_timeout(800)   # 28/11: miniaturas chegam depois, numa fila
     ms = pg.evaluate("Object.values(__video.MID).filter(m=>/take|hevc/.test(m.nome)).map(m=>[m.nome,!!m.ruim,!!m.capa,m.codec||''])")
     ruins = [m[0] for m in ms if m[1] and m[0] != "hevc.mp4"]
     ok(not ruins, f"{N} takes importados de uma vez, nenhum marcado como 'não abre' ({ruins[:4]})")

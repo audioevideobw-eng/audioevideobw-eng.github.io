@@ -196,7 +196,10 @@
             var pct = Math.min(99, ts / dur * 100), gasto = (performance.now() - t0) / 1000;
             prog({ etapa: "Copiando os quadros", pct: pct, falta: pct > 1 ? gasto * (100 - pct) / pct : null, ow: ow, oh: oh, dur: dur });
           }
-          if (enc.encodeQueueSize > 8 && !v.paused) {   // o codificador ficou para trás: espera ele alcançar
+          if (op.pausar && op.pausar() && !v.paused) {   /* 28/11: o editor está tocando/arrastando — a cópia leve espera (no iPhone ela disputava o decodificador e o play engasgava) */
+            v.pause(); (function espera2() { if (fim) return; if (op.pausar()) { ultQ = performance.now(); return setTimeout(espera2, 250); } v.play().catch(function () {}); })();
+          }
+          else if (enc.encodeQueueSize > 8 && !v.paused) {   // o codificador ficou para trás: espera ele alcançar
             v.pause(); (function espera() { if (fim) return; if (enc.encodeQueueSize > 2) return setTimeout(espera, 10); v.play().catch(function () {}); })();
           }
           v.requestVideoFrameCallback(quadro);

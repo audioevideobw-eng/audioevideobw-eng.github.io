@@ -1,0 +1,4 @@
+[
+  {"titulo": "Play mais suave", "texto": "No editor de vídeo o play segue o take que está tocando, o próximo take fica pronto antes da emenda e as tarefas de fundo esperam enquanto toca.", "abrir": "video"},
+  {"titulo": "Importar mais rápido", "texto": "O take entra na biblioteca na hora; a miniatura chega logo depois.", "abrir": "video"}
+]

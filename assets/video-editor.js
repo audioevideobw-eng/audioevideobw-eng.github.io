@@ -192,10 +192,25 @@
       aviso("✓ " + nm + " convertido " + (r.via === "pc" ? "no PC" : "no aparelho")); return r.blob;
     } catch (e) { console.warn("vídeo do iPhone", e); m.motivoConv = e.message || String(e); if (!/cancelado/.test(m.motivoConv)) aviso("⚠ " + nm0(m) + ": " + (e.semFfmpeg ? "falta o FFmpeg no PC" : e.semCaminho ? "abra no app BW do PC para converter" : "não consegui converter"), true); return null; } }
   function nm0(m) { return String(m.nome || "take").slice(0, 26); }
-  async function porMidia(blob, nome, tipo, id, durFixa, capaFixa) {
+  /* 28/11 (dono: "na importação fica carregando os arquivos e depois vão para a galeria, muita demora"): o arquivo entra na biblioteca assim que os
+     METADADOS chegam (duração e tamanho); a miniatura é feita depois, um arquivo por vez, numa fila que para enquanto o vídeo toca — como os editores
+     de verdade. A duração/miniatura ficam guardadas à parte ("meta:<id>" no cfg) para reabrir sem abrir os vídeos de novo. */
+  var CAPAS = [], CAPAS_ON = false, LIB_TM = 0;
+  function libDepois() { clearTimeout(LIB_TM); LIB_TM = setTimeout(function () { try { desenharLib(); } catch (e) {} }, 150); }
+  async function guardarMeta(m) { try { await tx("cfg", "readwrite", function (st) { return st.put({id: "meta:" + m.id, dur: m.dur, capa: m.capa || "", w: m.w || 0, h: m.h || 0}); }); } catch (e) {} }
+  function filaCapa(m) { CAPAS.push(m); if (!CAPAS_ON) rodarCapas(); }
+  async function rodarCapas() { CAPAS_ON = true;
+    try { while (CAPAS.length) { while (TOCANDO || GRAV || window.__veRaspa) await new Promise(function (ok) { setTimeout(ok, 400); });
+      var m = CAPAS.shift(); if (!MID[m.id] || m.capa) { delete m.semCapa; continue; }
+      var r = await abrirVideo(m, true, 15000); if (r.capa) m.capa = r.capa; if (r.w && !m.w) { m.w = r.w; m.h = r.h; } delete m.semCapa; libDepois(); guardarMeta(m); } }
+    finally { CAPAS_ON = false; } }
+  window.__veCapas = function () { return CAPAS.length + (CAPAS_ON ? 1 : 0); };
+  async function porMidia(blob, nome, tipo, id, durFixa, capaFixa, rapido) {
     var m = {id: id || uid("m"), nome: String(nome || "arquivo").slice(0, 60), tipo: tipo, blob: blob, url: URL.createObjectURL(blob)};
     if (capaFixa && durFixa && tipo === "video") { m.capa = capaFixa; m.dur = durFixa; MID[m.id] = m; return m; }   /* ao reabrir: capa guardada, nada de abrir 37 vídeos 4K de novo */
-    var r = await abrirVideo(m, tipo === "video", 15000); if (r.w) { m.w = r.w; m.h = r.h; }
+    var r = rapido && tipo === "video" ? await abrirVideo(m, false, 12000) : null;
+    if (r && r.ok && r.w && r.dur) m.semCapa = true; else r = await abrirVideo(m, tipo === "video", 15000);
+    if (r.w) { m.w = r.w; m.h = r.h; }
     if (!r.ok && tipo === "imagem") { var cv = await heicJpeg(blob, m.nome); if (cv) { blob = cv; trocarBlob(m, cv); r = await abrirVideo(m, false, 15000); if (r.w) { m.w = r.w; m.h = r.h; } if (id && r.ok) guardarConvertida(m); } }   /* 28/11: foto HEIC do iPhone no Android/PC vira JPEG aqui */
     if (!r.ok && tipo === "video") { var cvv = await videoIphone(m, blob); if (cvv) { blob = cvv; r = await abrirVideo(m, true, 25000); if (r.w) { m.w = r.w; m.h = r.h; } if (id && r.ok) guardarConvertida(m); } }   /* 28/11: HEVC/ProRes do iPhone fora do Safari */
     if (!r.ok && tipo !== "imagem" && !(tipo === "video" && /^(hevc|prores)$/.test(m.codec || ""))) { await new Promise(function (ok) { setTimeout(ok, 400); }); r = await abrirVideo(m, tipo === "video", 25000); }   /* 2ª tentativa, com mais prazo (4K pesado) */
@@ -203,20 +218,31 @@
     if (!r.ok) { m.ruim = true; if (tipo === "video" && !m.codec) m.codec = await codecDe(blob); }
     MID[m.id] = m;
     if (!id) try { await tx("midias", "readwrite", function (s) { return s.put({id: m.id, nome: m.nome, tipo: m.tipo, blob: blob, dur: m.dur, capa: m.ruim ? "" : (m.capa || "")}); }); } catch (e) { m.soAgora = true; }   /* sem espaço no aparelho: fica só nesta sessão */
+    else if (rapido && tipo === "video" && !m.ruim) guardarMeta(m);
+    if (m.semCapa) filaCapa(m);
     return m;
   }
-  var IOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1);
+  var IOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1); try { if (IOS && document.getElementById("veDicaIos")) document.getElementById("veDicaIos").hidden = false; } catch (e) {}
   /* o iPhone invalida o arquivo escolhido depois (PENTE FINO 47): lá a cópia vai para a memória; no PC/Android o próprio arquivo serve —
      copiar 37 takes 4K inteiros para a memória é o que fazia a página travar */
   /* 22/11 23:11 (dono: "no iPhone um bug ao importar mídia"): copiar um vídeo GRANDE inteiro para a memória do iPhone falha (ou derruba a página) e o
      erro caía em "não é vídeo, imagem nem áudio". Agora: no iPhone copia até 300 MB; maior que isso, ou se a cópia falhar, usa o próprio arquivo. */
   async function copiaSegura(f) { if (!(IOS ? f.size < 300e6 : f.size < 80e6)) return f;
     try { return new Blob([await f.arrayBuffer()], { type: f.type || ({mov: "video/quicktime", mp4: "video/mp4", m4v: "video/mp4", heic: "image/heic"})[String(f.name).split(".").pop().toLowerCase()] || "" }); } catch (e) { return f; } }
+  /* 28/11 (iPhone: importar demorava e às vezes falhava): em vez de ler o vídeo INTEIRO para a memória (até 300 MB) e depois gravar de novo,
+     o arquivo vai direto para o armazenamento do aparelho (IndexedDB) assim que é escolhido — uma cópia só, de disco para disco — e o editor usa a
+     cópia guardada (que o iPhone não invalida). Se não der (sem espaço), volta para o jeito antigo. */
+  async function guardarPrimeiro(f, t) { if (!IOS) return null; var id = uid("m");
+    try { await tx("midias", "readwrite", function (s) { return s.put({id: id, nome: String(f.name || "arquivo").slice(0, 60), tipo: t, blob: f, dur: 0, capa: ""}); });
+      var r = await tx("midias", "readonly", function (s) { return s.get(id); }); if (r && r.blob && r.blob.size === f.size) return {id: id, blob: r.blob}; } catch (e) { }
+    try { await tx("midias", "readwrite", function (s) { return s.delete(id); }); } catch (e) { } return null; }
   async function importar(files) {
-    var n = 0, fora = 0, ruins = [], falhou = [];
+    var n = 0, fora = 0, ruins = [], falhou = [], gs = [];
+    files = [].slice.call(files || []);
+    if (IOS) for (var j = 0; j < files.length; j++) { var tj = tipoDe(files[j]); if (!tj) continue; if (files.length > 1) aviso("⏳ Guardando " + (j + 1) + " de " + files.length + "…"); gs[j] = await guardarPrimeiro(files[j], tj); }
     for (var i = 0; i < files.length; i++) { var f = files[i], t = tipoDe(f); if (!t) { fora++; continue; }
       if (files.length > 1) aviso("⏳ Trazendo " + (i + 1) + " de " + files.length + ": " + String(f.name).slice(0, 40) + "…");
-      try { var mm = await porMidia(await copiaSegura(f), f.name, t); n++; if (mm.ruim) ruins.push(mm.nome); desenharLib(); } catch (e) { console.warn("importar", f.name, e); falhou.push(String(f.name).slice(0, 30) + " (" + ((e && (e.name || e.message)) || "erro") + ")"); } }   /* cópia na memória na hora (o iPhone invalida o original); a biblioteca aparece arquivo a arquivo */
+      try { var mm = gs[i] ? await porMidia(gs[i].blob, f.name, t, gs[i].id, 0, "", true) : await porMidia(await copiaSegura(f), f.name, t, null, 0, "", true); n++; if (mm.ruim) ruins.push(mm.nome); desenharLib(); } catch (e) { console.warn("importar", f.name, e); falhou.push(String(f.name).slice(0, 30) + " (" + ((e && (e.name || e.message)) || "erro") + ")"); } }   /* cópia na memória na hora (o iPhone invalida o original); a biblioteca aparece arquivo a arquivo */
     desenharLib(); proxyAuto();
     /* 22/11 (dono: "bugs ao adicionar mídia"): arquivo que o navegador NÃO consegue abrir (vídeo HEVC/H.265 ou foto HEIC do iPhone, codec raro) entrava calado,
        com 5 s e tela preta. Agora fica marcado com ⚠ na biblioteca e o aviso diz o que fazer. */
@@ -531,13 +557,29 @@
   function fade(c, t) { if (c.off) return 0; var a = 1, r = t - c.ini, f = c.ini + c.dur - t; if (c.fin > 0 && r < c.fin) a = Math.min(a, r / c.fin); if (c.fout > 0 && f < c.fout) a = Math.min(a, f / c.fout); return lim(a, 0, 1); }
   function sincronizar(c, t, ativo) {
     var o = elDe(c); if (!o) return null; var e = o.e;
-    if (!ativo) { if (!e.paused) e.pause(); return o; }
+    if (!ativo) { if (!e.paused && !o.aq) e.pause();
+      /* 28/11 (dono, iPhone: "o PLAY fica engasgando"): o take seguinte é PREPARADO antes da emenda (como os editores de verdade, que deixam o
+         decodificador quente): já fica no ponto do corte e, no iPhone (que só carrega o quadro depois de um play), dá um play mudo e pausa. */
+      if (TOCANDO && !GRAV && c.tipo === "video" && t < c.ini && c.ini - t < 2.2 && !o.pre) { o.pre = 1; var a0 = c.corte || 0;
+        if (IOS && e.readyState < 2) { o.aq = 1; var mu = e.muted; e.muted = true; try { e.currentTime = a0; } catch (x) {} var pq = e.play(); var vol = function () { try { e.pause(); e.currentTime = a0; } catch (x) {} e.muted = mu; o.aq = 0; };
+          if (pq && pq.then) pq.then(function () { setTimeout(vol, 60); }, vol); else vol(); }
+        else if (Math.abs(e.currentTime - a0) > 0.05 && !e.seeking) { try { e.currentTime = a0; } catch (x) {} } }
+      return o; }
+    o.pre = 0;
     var alvo = (c.corte || 0) + (t - c.ini) * vel(c), v = trMuda(c.trilha) ? 0 : lim(ganhoTake(c) * fade(c, t), 0, 4);
     if (o.g) { o.g.gain.value = v; e.volume = 1; filtrosSom(o, c); } else e.volume = Math.min(1, v);
     var rt = GRAV ? 1 : RITMO, pb = lim(vel(c) * Math.max(rt, 0.25), 0.1, 16);
     if (Math.abs(e.playbackRate - pb) > 0.001) { try { e.playbackRate = pb; e.preservesPitch = true; } catch (x) {} }
     if (TOCANDO && rt < 0) { if (!e.paused) e.pause(); if (Math.abs(e.currentTime - alvo) > 0.08 && !e.seeking) { try { e.currentTime = alvo; } catch (x) {} } return o; }
-    if (TOCANDO) { if (c.tipo === "video" && (e.seeking || e.readyState < 3)) ESPERA = true; if (e.paused) { try { e.currentTime = alvo; } catch (x) {} var pr = e.play(); if (pr && pr.catch) pr.catch(function () {}); } else if (Math.abs(e.currentTime - alvo) > (IOS ? 0.6 : 0.35) * vel(c) * Math.max(1, rt)) { try { e.currentTime = alvo; } catch (x) {} } }
+    if (TOCANDO) { if (c.tipo === "video" && (e.seeking || e.readyState < 3)) ESPERA = true;
+      var fimArq = isFinite(e.duration) && e.duration > 0 ? e.duration : 1e9;
+      if (e.ended || (e.paused && alvo >= fimArq - 0.08)) return o;   /* 28/11: o arquivo acabou um tiquinho antes do take — segura o último quadro (antes reiniciava o take = engasgo em toda emenda) */
+      if (e.paused) { if (Math.abs(e.currentTime - alvo) > 0.06) { try { e.currentTime = alvo; } catch (x) {} } var pr = e.play(); if (pr && pr.catch) pr.catch(function () {}); }
+      else {   /* 28/11: o take que está tocando é o RELÓGIO do play (mestre) — o tempo segue o vídeo, e não o vídeo é puxado para o tempo (cada puxão = um engasgo) */
+        var tv = c.ini + (e.currentTime - (c.corte || 0)) / vel(c), agoraS = performance.now();
+        if (!GRAV && rt > 0 && !e.seeking && e.readyState >= 3 && (!MEST || MEST.id === c.id || agoraS - MEST.at > 250)) MEST = {id: c.id, tv: tv, at: agoraS, rt: rt};
+        var lim0 = MEST && MEST.id === c.id && !GRAV ? 1.5 : (IOS ? 0.6 : 0.35) * Math.max(1, rt);
+        if (Math.abs(e.currentTime - alvo) > lim0 * vel(c)) { try { e.currentTime = alvo; } catch (x) {} } } }
     else { if (!e.paused) e.pause(); if (Math.abs(e.currentTime - alvo) > 0.04) { if (window.__veRaspa && e.seeking) return o;   /* 23/11 (iPhone travando ao arrastar a linha do tempo): não empilhar pulos — o "seeked" redesenha e pede o ponto mais novo */ try { e.currentTime = alvo; } catch (x) {} } }
     return o;
   }
@@ -821,19 +863,23 @@
     frenteSel.forEach(function (c) { var f = fonteDe(c, t, true); if (f) desenharMidia(f.el, f.w, f.h, c, t, {soSel: true}); });
     if (SELDES && !GRAV) { var cs = P.clips.filter(function (x) { return x.id === SELDES; })[0], bx = cs && caixaTake(cs); if (bx) { cx.save(); cx.strokeStyle = "#FFD21F"; cx.lineWidth = Math.max(2, cv.width / 300); cx.setLineDash([cx.lineWidth * 4, cx.lineWidth * 3]);
       cx.strokeRect(bx.x, bx.y, bx.w, bx.h); if (cs.selm && cs.selm.pts && cs.selm.pts.length > 1) { cx.translate(bx.x, bx.y); caminhoSel(cx, cs.selm, bx.w, bx.h); cx.fillStyle = "rgba(255,210,31,.22)"; cx.fill(); cx.setLineDash([]); cx.stroke(); } cx.restore(); } }
-    $("veTempo").textContent = fmtT(T) + " / " + fmtT(total()); var ag = $("veAgulha"); if (ag) ag.style.left = (T * PPS) + "px"; if (!TOCANDO) marcarEmenda();
+    var vt = $("veTempo"), tt = fmtT(T) + " / " + fmtT(total()); if (vt.textContent !== tt) vt.textContent = tt; var ag = $("veAgulha"); if (ag) ag.style.left = (T * PPS) + "px"; if (!TOCANDO) marcarEmenda();
   }
   /* 23/11 (dono, iPhone: "o vídeo fica bugado ao dar play na linha do tempo"): o relógio do play andava sozinho enquanto o iPhone ainda estava
      carregando/pulando o take (começo do play, troca de take) → o take ficava para trás, o editor mandava pular de novo, e o vídeo "engasgava" em laço.
      Agora o relógio ESPERA o take da tela ficar pronto (ESPERA, marcada no sincronizar) — como o play dos editores de verdade, que seguram o tempo
      até o quadro chegar. Na gravação (exportar) o relógio não espera. */
-  var t0 = 0, p0 = 0, raf = 0, ESPERA = false, ultP = 0, espDesde = 0;
-  function passo() { if (!TOCANDO) return; var agora = performance.now(); if (ESPERA && !GRAV && ultP) { if (!espDesde) espDesde = agora; if (agora - espDesde < 1500) p0 += Math.min(250, agora - ultP); } else espDesde = 0; ultP = agora; ESPERA = false; T = t0 + (agora - p0) / 1000 * (GRAV ? 1 : RITMO); if (T <= 0 && RITMO < 0 && !GRAV) { T = 0; desenhar(); parar(); return; } var fim = GRAV && GRAV.ate != null ? GRAV.ate : total(); if (T >= fim) { T = fim; desenhar(); parar(); if (GRAV) GRAV.fim(); return; } desenhar(); if (GRAV) GRAV.prog((T - (GRAV.de || 0)) / Math.max(0.01, fim - (GRAV.de || 0))); var ag = $("veAgulha"), ro = $("veRolo"); if (ag && !GRAV && (T * PPS > ro.scrollLeft + ro.clientWidth - 40)) ro.scrollLeft = T * PPS - 60; raf = requestAnimationFrame(passo); }
-  function tocar() { if (TOCANDO) return; if (!P.clips.length) { aviso("Coloque um vídeo, imagem ou som na linha do tempo para tocar.", true); return; } var a = audioCtx(); if (a && a.state === "suspended") a.resume(); if (T >= total() - 0.05 && RITMO > 0) T = 0; TOCANDO = true; t0 = T; p0 = performance.now(); ultP = 0; ESPERA = false; $("vePlay").textContent = "⏸ PAUSAR"; raf = requestAnimationFrame(passo); }
+  var t0 = 0, p0 = 0, raf = 0, ESPERA = false, ultP = 0, espDesde = 0, MEST = null, ultDes = 0;
+  function passo() { if (!TOCANDO) return; var agora = performance.now(); if (ESPERA && !GRAV && ultP) { if (!espDesde) espDesde = agora; if (agora - espDesde < 1500) p0 += Math.min(250, agora - ultP); } else espDesde = 0; ultP = agora; ESPERA = false;
+    if (MEST && !GRAV && RITMO > 0 && MEST.rt === RITMO && agora - MEST.at < 250) { var prev = MEST.tv + (agora - MEST.at) / 1000 * RITMO, dif = t0 + (agora - p0) / 1000 * RITMO - prev; if (Math.abs(dif) > 0.015 && Math.abs(dif) < 1.4) p0 += dif * 1000 / RITMO * 0.35; }   /* relógio preso ao take que toca (suave) */
+    T = t0 + (agora - p0) / 1000 * (GRAV ? 1 : RITMO); if (T <= 0 && RITMO < 0 && !GRAV) { T = 0; desenhar(); parar(); return; } var fim = GRAV && GRAV.ate != null ? GRAV.ate : total(); if (T >= fim) { T = fim; desenhar(); parar(); if (GRAV) GRAV.fim(); return; }
+    if (!GRAV && LEVE() && agora - (ultDes || 0) < 30) { raf = requestAnimationFrame(passo); return; }   /* 28/11: no celular o play desenha a ~30 q/s (o vídeo tem 30) — metade do trabalho */
+    ultDes = agora; desenhar(); if (GRAV) GRAV.prog((T - (GRAV.de || 0)) / Math.max(0.01, fim - (GRAV.de || 0))); var ag = $("veAgulha"), ro = $("veRolo"); if (ag && !GRAV && (T * PPS > ro.scrollLeft + ro.clientWidth - 40)) ro.scrollLeft = T * PPS - 60; raf = requestAnimationFrame(passo); }
+  function tocar() { if (TOCANDO) return; if (!P.clips.length) { aviso("Coloque um vídeo, imagem ou som na linha do tempo para tocar.", true); return; } var a = audioCtx(); if (a && a.state === "suspended") a.resume(); if (T >= total() - 0.05 && RITMO > 0) T = 0; TOCANDO = true; t0 = T; p0 = performance.now(); ultP = 0; ESPERA = false; MEST = null; ultDes = 0; if (LEVE()) nitTam(); $("vePlay").textContent = "⏸ PAUSAR"; raf = requestAnimationFrame(passo); }
   var RITMO = 1;   /* L repetido: 1× → 2× → 4× → 8×; J: para trás */
   function ritmo(r) { if (GRAV) return; if (!TOCANDO) { RITMO = r; if (r < 0 && T <= 0) return; tocarRitmo(); } else { t0 = T; p0 = performance.now(); RITMO = r; } aviso(r === 1 ? "▶ 1×" : r > 0 ? "▶▶ " + r + "×" : "◀◀ " + (-r) + "×"); }
   function tocarRitmo() { var r = RITMO; tocar(); RITMO = r; }
-  function parar() { RITMO = 1; TOCANDO = false; cancelAnimationFrame(raf); $("vePlay").textContent = "▶ TOCAR"; Object.keys(EL).forEach(function (k) { try { EL[k].e.pause(); } catch (e) {} }); desenhar(); }
+  function parar() { RITMO = 1; TOCANDO = false; MEST = null; cancelAnimationFrame(raf); if (LEVE()) nitTam(); $("vePlay").textContent = "▶ TOCAR"; Object.keys(EL).forEach(function (k) { try { EL[k].e.pause(); } catch (e) {} }); desenhar(); }
   function irPara(t) { var era = TOCANDO; if (era) parar(); T = lim(t, 0, Math.max(total(), 0)); desenhar(); }
 
   /* ---------- telas ---------- */
@@ -1028,7 +1074,7 @@
         vvPessoa(W, H, t, o || {}); return; }
     }); }
   function vvLaco(agora) { VV.raf = 0; VV.set = VV.set.filter(function (c) { return c.isConnected; }); if (!VV.set.length) return; VV.raf = requestAnimationFrame(vvLaco);
-    if (document.hidden || GRAV) return; var fps = TOCANDO ? 8 : 24; if (agora - VV.last < 1000 / fps) return; VV.last = agora; var t = (agora - VV.t0) / 1000;
+    if (document.hidden || GRAV || TOCANDO) return; var fps = 24;   /* 28/11: no play as prévias da biblioteca param (o play é o assunto) */ if (agora - VV.last < 1000 / fps) return; VV.last = agora; var t = (agora - VV.t0) / 1000;
     VV.set.forEach(function (c) { vvPintar(c, t + (+c.getAttribute("data-fase") || 0)); }); }
   function ligarVivos(raiz) { if (!raiz) return; var cs = raiz.querySelectorAll("canvas[data-vivo]:not([data-ligado])"); if (!cs.length) return;
     if (!VV.io && "IntersectionObserver" in window) VV.io = new IntersectionObserver(function (es) { es.forEach(function (e) { var c = e.target, i = VV.set.indexOf(c);
@@ -1235,7 +1281,8 @@
   var CHEIA = false; try { CHEIA = localStorage.getItem("ui_ve_previa") === "cheia"; } catch (e) {}
   var FORCAR_REAL = false;
   function tamReal() { return P.fmt === "livre" && P.w && P.h ? [P.w, P.h] : FMT[P.fmt] || FMT["9:16"]; }
-  function escalaPrev() { var f = tamReal(); if (NIT.on && !CHEIA && !FORCAR_REAL && !GRAV && document.documentElement.classList.contains("ve-app")) return Math.min(1, 1920 / Math.max(f[0], f[1]));   /* celular: parado vai até Full HD (4K inteiro derruba a memória) */
+  function LEVE() { return IOS || document.documentElement.classList.contains("ve-app"); }
+  function escalaPrev() { var f = tamReal(); if (TOCANDO && !GRAV && !CHEIA && !FORCAR_REAL && LEVE()) return Math.min(1, 960 / Math.max(f[0], f[1]));   /* 28/11: no celular, enquanto toca, a prévia é desenhada em até 960 px (parado volta ao tamanho de antes) */ if (NIT.on && !CHEIA && !FORCAR_REAL && !GRAV && document.documentElement.classList.contains("ve-app")) return Math.min(1, 1920 / Math.max(f[0], f[1]));   /* celular: parado vai até Full HD (4K inteiro derruba a memória) */
     return (CHEIA || FORCAR_REAL || GRAV || NIT.on) ? 1 : Math.min(1, 1280 / Math.max(f[0], f[1])); }
   var SAIDA = null;   /* tamanho de saída escolhido na janela de EXPORTAR (ex.: YouTube 4K a partir de um projeto 1080p) */
   function tamanhoReal(sim, saida) { FORCAR_REAL = !!sim; SAIDA = sim && saida ? saida : null; formato(); }
@@ -2118,7 +2165,7 @@
     for (var i = 0; i < lista.length && !FILA.cancelado; i++) {
       var m = lista[i], dm = m.dur || 1; $("veCpN").textContent = (i + 1) + " de " + lista.length; $("veCpNome").textContent = m.nome;
       try {
-        var r = await BWProxy.fazer(m.blob, {curto: curto, cancelar: function () { return FILA.cancelado; }, aoProgredir: function (p) {
+        var r = await BWProxy.fazer(m.blob, {curto: curto, cancelar: function () { return FILA.cancelado; }, pausar: function () { return TOCANDO && !GRAV || !!window.__veRaspa; }, aoProgredir: function (p) {
           var f = (p.pct || 0) / 100, proc = feitoSeg + f * dm, gasto = (performance.now() - t0) / 1000, falta = proc > 0.5 ? gasto * (totSeg - proc) / proc : null;
           $("veCpB1").style.width = (p.pct || 0).toFixed(1) + "%"; $("veCpI1").textContent = Math.floor(p.pct || 0) + "% · " + (p.etapa || "") + (p.falta != null ? " · faltam " + tempoTxt(p.falta) : "") + (p.ow ? " · " + p.ow + "×" + p.oh : "");
           $("veCpB2").style.width = (proc / totSeg * 100).toFixed(1) + "%"; $("veCpI2").textContent = Math.floor(proc / totSeg * 100) + "% · " + feitos + " pronto" + (feitos === 1 ? "" : "s") + " · tempo esperado até concluir: " + tempoTxt(falta); }});
@@ -2391,7 +2438,8 @@
        nada disso pode impedir o editor de ficar PRONTO. Erro aqui só avisa; o editor abre do mesmo jeito. */
     try {
     var ms = (await tx("midias", "readonly", function (s) { return s.getAll(); })) || [];
-    for (var i = 0; i < ms.length; i++) { try { var mm = await porMidia(ms[i].blob, ms[i].nome, ms[i].tipo, ms[i].id, ms[i].dur, ms[i].capa); if (ms[i].cr) { mm.cr = ms[i].cr; mm.crCriado = ms[i].crCriado; mm.criacao = true; } } catch (e) {} }
+    for (var i = 0; i < ms.length; i++) { try { if (ms[i].tipo === "video" && !(ms[i].dur && ms[i].capa)) { try { var mt = await tx("cfg", "readonly", function (st) { return st.get("meta:" + ms[i].id); }); if (mt) { ms[i].dur = ms[i].dur || mt.dur; ms[i].capa = ms[i].capa || mt.capa; } } catch (e) {} }
+      var mm = await porMidia(ms[i].blob, ms[i].nome, ms[i].tipo, ms[i].id, ms[i].dur, ms[i].capa, true); if (ms[i].cr) { mm.cr = ms[i].cr; mm.crCriado = ms[i].crCriado; mm.criacao = true; } } catch (e) {} }
     await carregarPastas(); try { await pfCarregar(); } catch (e) {} await carregarProxies(); setTimeout(function () { try { proxyAuto(); } catch (e) {} }, 4000);
     var st = await tx("estado", "readonly", function (s) { return s.get("atual"); });
     if (st && st.p && Array.isArray(st.p.clips)) { P = st.p; for (var k = 0; k < P.clips.length; k++) { var c = P.clips[k]; if (c.mid && !MID[c.mid] && c.mid.indexOf("som-") === 0) { var ix = SONS.map(function (s) { return "som-" + s[1].toLowerCase().replace(/\s+/g, "-"); }).indexOf(c.mid); if (ix >= 0) await porSom(ix); } }

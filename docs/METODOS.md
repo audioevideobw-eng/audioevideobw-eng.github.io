@@ -845,3 +845,16 @@ Armadilha: classe de ESTADO não serve para destacar botão. `＋ IMPORTAR` usav
   grava trilhas de metadados), -fps_mode passthrough, -g = q/s (1 quadro-chave por s), aac 192k, +faststart.
 - Arquivos de teste com o FFmpeg: `-display_rotation ±90 -i x.mov -c copy` grava a matriz de giro (o `-metadata rotate` não grava no 6.1);
   HEVC HLG = libx265 yuv420p10le + `-color_trc arib-std-b67 -tag:v hvc1`.
+
+
+## Play suave e importação rápida no editor de vídeo (28/11)
+- Relógio do play = o take que está tocando (`MEST` em sincronizar/passo): o tempo é corrigido aos poucos (35% da diferença por quadro) para ficar
+  junto do `currentTime` do vídeo; seek só se passar de 1,5 s. Nunca puxar o vídeo para um relógio de parede a cada 0,3–0,6 s.
+- Próximo take: 2 s antes da emenda vai para o ponto do corte (iPhone: play mudo → pausa, porque lá o quadro só carrega depois de um play); ao
+  entrar, `play()` sem novo seek se já está no lugar. `e.ended` = segurar o último quadro.
+- Celular no play: desenhar a ~30 q/s, prévia ≤ 960 px (`escalaPrev` olha `TOCANDO`), e parar prévias vivas, fila de miniaturas e proxy
+  (`BWProxy.fazer(..., {pausar})`).
+- Importar: metadados primeiro, miniatura numa fila (`__veCapas()`), meta em cfg `meta:<id>`; no iPhone o File vai direto para o IndexedDB e o blob
+  lido de volta é o que o editor usa.
+- Teste: `docs/testes/teste_video_play.py` com `Emulation.setCPUThrottlingRate` 4 e gancho no setter de `currentTime` contando seeks durante o play.
+  O Chrome daqui não reproduz o iPhone (lá o preload é ignorado e o decodificador é disputado) — a prova final é no aparelho do dono.

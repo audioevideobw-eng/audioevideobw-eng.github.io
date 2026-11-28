@@ -1120,6 +1120,16 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
      comparar com o quadro do FFmpeg (o quadradinho verde no mesmo canto), nos DOIS sentidos (±90). Chrome de teste abre HEVC no <video> mas não no
      WebCodecs: para testar o caminho "não abre", init script que faz o <video> falhar com blob video/quicktime (auto: teste_video_iphone.py, motor/teste-converter.mjs).
 
+**Aprendidos em 28/11 (play engasgando e importação lenta no iPhone)**
+247. PLAY DO EDITOR = o take que está tocando é o RELÓGIO (MEST): o tempo segue o vídeo, suavemente, e o vídeo só é puxado (seek) se se afastar
+     mais de 1,5 s — puxar o vídeo para o relógio a cada pequena diferença era o engasgo. O próximo take é PREPARADO 2 s antes da emenda (fica no
+     ponto do corte; no iPhone, play mudo + pausa para carregar o quadro) e, quando entra, só dá play (sem pular de novo). Arquivo que acaba um
+     tiquinho antes do take segura o último quadro (antes reiniciava o take). No celular o play desenha a ~30 q/s numa prévia de até 960 px, as
+     prévias vivas da biblioteca, as miniaturas e o proxy automático PARAM enquanto toca. IMPORTAR: o take entra pela duração/tamanho (metadados) e a
+     miniatura vem depois numa fila (__veCapas); no iPhone o arquivo vai direto para o IndexedDB (sem ler 300 MB para a memória) e a meta fica em
+     cfg "meta:<id>". O "Preparando…" do iPhone é o seletor de fotos convertendo (Formato: Automático) — a página não controla: dica "Opções →
+     Formato: Atual" (#veDicaIos). Medir com CPU 4× mais lenta e contar os seek feitos DURANTE o play (docs/testes/teste_video_play.py).
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -2915,7 +2925,16 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   internet, tutorial, novidades). Testes novos teste_video_iphone.py e motor/teste-converter.mjs 0 falhas; video_midia, takes, heic_android, telas, album,
   proxy, proxy_som e teste-app 0 falhas; vigia ✅. Manual 78 p. bw-proxy v5, video-editor v42, telas v14, album v8, sw v252. PENTE FINO 246.
   NÃO testado com take real do iPhone nem num Android/Windows de verdade (aqui o Chrome não decodifica HEVC pelo WebCodecs).
+- 28/11/2026 11:40 · Claude (dono: "no iPhone o editor de vídeo trava, o PLAY fica engasgando, a importação fica carregando e demora"): PLAY — o tempo
+  agora segue o take que está tocando (antes o editor puxava o vídeo para o relógio e cada puxão era um engasgo), o próximo take fica pronto antes da
+  emenda, o fim do arquivo não reinicia o take, e no celular o play desenha a 30 q/s numa prévia menor enquanto as prévias da biblioteca, as miniaturas
+  e o proxy automático esperam. IMPORTAR — o take aparece na biblioteca pelos metadados e a miniatura chega depois; no iPhone o arquivo vai direto para o
+  armazenamento do aparelho (sem copiar para a memória). O "Preparando…" é o seletor do iPhone convertendo o vídeo: dica "Opções → Formato: Atual" ao lado de
+  ＋ IMPORTAR e no manual. Pesquisa: editores de navegador usam o play nativo do take ativo como relógio, aquecem o decodificador do próximo e baixam a
+  qualidade da prévia no play. Teste novo docs/testes/teste_video_play.py (CPU 4× mais lenta, 390/1280: 0 pulos no meio do take, antes 1) + bateria do
+  editor 0 falhas; vigia ✅. NÃO testado em iPhone real. video-editor v43, bw-proxy v6, sw v253. PENTE FINO 247.
 ## Pendências (dono)
+- [ ] (28/11) iPhone: abrir o editor de vídeo, importar takes (testar Opções → Formato: Atual no seletor) e dar PLAY numa sequência; dizer se ainda engasga e onde (no meio do take ou nas emendas).
 - [x] (28/11 10:52) BW-Setup.exe 1.9.58 gerado pelo dono e publicado (17,9 MB, versão conferida dentro do .exe).
 - [ ] (28/11) TAKES DO IPHONE: atualizar o BW para 1.9.58 e importar no editor de vídeo os .MOV do iPhone que davam ⚠ (HEVC/HDR/ProRes); conferir se
       ficaram em pé, com som e com a cor certa; no celular Android, importar um take HEVC.
