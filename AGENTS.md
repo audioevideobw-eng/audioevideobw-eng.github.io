@@ -2934,6 +2934,7 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   qualidade da prévia no play. Teste novo docs/testes/teste_video_play.py (CPU 4× mais lenta, 390/1280: 0 pulos no meio do take, antes 1) + bateria do
   editor 0 falhas; vigia ✅. NÃO testado em iPhone real. video-editor v43, bw-proxy v6, sw v253. PENTE FINO 247.
 ## Pendências (dono)
+- [ ] (28/11) BW-Setup.exe 1.9.59: dois cliques em "5 - GERAR INSTALADOR EXE" (arquivos já na pasta do PC) e avisar o Claude.
 - [ ] (28/11) iPhone: abrir o editor de vídeo, importar takes (testar Opções → Formato: Atual no seletor) e dar PLAY numa sequência; dizer se ainda engasga e onde (no meio do take ou nas emendas).
 - [x] (28/11 10:52) BW-Setup.exe 1.9.58 gerado pelo dono e publicado (17,9 MB, versão conferida dentro do .exe).
 - [ ] (28/11) TAKES DO IPHONE: atualizar o BW para 1.9.58 e importar no editor de vídeo os .MOV do iPhone que davam ⚠ (HEVC/HDR/ProRes); conferir se
