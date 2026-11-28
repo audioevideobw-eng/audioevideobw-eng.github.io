@@ -478,6 +478,8 @@
   var PAGINAS = { padrao: "Faixa no topo", cabeca: "Cabeçalho cheio", lateral: "Barra lateral", moldura: "Moldura", rodape: "Faixa embaixo", limpa: "Limpa" };
   var SOBRES = { esq: "Foto à esquerda", dir: "Foto à direita", topo: "Foto em cima", destaque: "Frase grande", sem: "Só texto" };
   var SOB_R = { "45": [1.25, "4:5"], "34": [4 / 3, "3:4"], "11": [1, "1:1"], "23": [1.5, "2:3"], "169": [0.5625, "16:9"] };
+  /* ✎ LIVRE (28/11): largura (X) e altura (Y) soltas — altura em % da largura do conteúdo, como a largura */
+  function sobAltLivre(G, sh, fw) { var v = Math.max(10, Math.min(100, +sh || Math.round(fw * 1.3 / G.CW * 100))); return G.CW * v / 100; }
   var LISTAS = { linhas: "Linhas", cartoes: "Cartões", tempo: "Ano em destaque" };
   function capaDoKit(kit) { var mc = modeloDe(kit.modelo).tema.capa, e = (kit.est || {}).capa; return mc === "compcard" ? mc : CAPAS[e] ? e : mc; }
   function modeloDe(id) { return MODELOS.filter(function (m) { return m.id === id; })[0] || MODELOS[0]; }
@@ -574,7 +576,7 @@
       if (id === "sobre") { s.curto = (d.sobreCurto || "").trim(); s.pars = paragrafos(d.sobre); if (!s.curto && !s.pars.length) continue; s.retrato = cap === "recorte" || tm.sob === "sem" || tm.sob === "destaque" ? "" : m.retrato;
         if (s.retrato && imgs.retrato) {   /* ✥ foto da PÁGINA 2: largura e proporção escolhidas + reenquadrar (28/11) */
           var pS = +est.sobW ? Math.max(0.2, Math.min(0.62, +est.sobW / 100)) : 0; s.fotoW = pS ? G.CW * pS : 0;
-          if (EQ.sobre || SOB_R[est.sobR]) { var fwS = G.CW * (pS || (tm.sob === "topo" ? 0.42 : 0.36)), rS = SOB_R[est.sobR] ? SOB_R[est.sobR][0] : 1 / m.retratoProp, fhS = Math.min(fwS * rS, G.H * 0.62);
+          if (EQ.sobre || SOB_R[est.sobR] || est.sobR === "livre") { var fwS = G.CW * (pS || (tm.sob === "topo" ? 0.42 : 0.36)), rS = est.sobR === "livre" ? sobAltLivre(G, est.sobH, fwS) / fwS : SOB_R[est.sobR] ? SOB_R[est.sobR][0] : 1 / m.retratoProp, fhS = Math.min(fwS * rS, G.H * 0.62);
             var eqS = Object.assign({}, EQ.sobre || {}); if (!temAj(eqS.aj) && EQ.retrato && temAj(EQ.retrato.aj)) eqS.aj = EQ.retrato.aj;
             s.retrato = tg(await recortar(imgs.retrato, fwS * f, fhS * f, enqOp(eqS, { png: true })), "sobre"); s.fotoW = fwS; s.fotoH = fhS; s.corte = true; }
         } }
@@ -1281,7 +1283,7 @@
     var e = Object.assign({ x: 0.5, y: 0.5, z: 1, aj: {} }, clone((IMGS.enq || {})[k] || {})); e.aj = Object.assign({}, e.aj || {});
     if (k === "sobre" && !temAj(e.aj) && IMGS.enq && IMGS.enq.retrato && temAj(IMGS.enq.retrato.aj)) e.aj = Object.assign({}, IMGS.enq.retrato.aj);
     var est0 = KIT.est || {};
-    var NOVO = { k: k, src: src, cw: cw, ch: ch, op: op, e: e, inteira: inteira, antes: false, G: fm.G, bk: { tem: !!(IMGS.enq && k in IMGS.enq), v: clone((IMGS.enq || {})[k] || null), sobW: est0.sobW, sobR: est0.sobR } };
+    var NOVO = { k: k, src: src, cw: cw, ch: ch, op: op, e: e, inteira: inteira, antes: false, G: fm.G, bk: { tem: !!(IMGS.enq && k in IMGS.enq), v: clone((IMGS.enq || {})[k] || null), sobW: est0.sobW, sobR: est0.sobR, sobH: est0.sobH } };
     var nome = k === "capa" ? "foto da capa" : k === "sobre" ? "foto da página 2" : inteira ? "foto recortada" : k.indexOf("c:") === 0 ? "foto do cartão" : "foto " + (+alvo + 1);
     var abas = inteira ? [["luz", "☀ LUZ E COR"], ["look", "✦ LOOKS"]] : k === "sobre" ? [["pos", "✥ POSIÇÃO"], ["tam", "⤢ TAMANHO"], ["luz", "☀ LUZ E COR"], ["look", "✦ LOOKS"]] : [["pos", "✥ POSIÇÃO"], ["luz", "☀ LUZ E COR"], ["look", "✦ LOOKS"], ["mix", "◑ MISTURA"], ["masc", "◌ MÁSCARA"]];
     if (!abas.some(function (x) { return x[0] === ENQ_ABA; })) ENQ_ABA = abas[0][0];
@@ -1294,14 +1296,16 @@
         '<div class="pk-chips pk-lin"><button type="button" class="pk-chip" data-a="enqPos" data-v="topo">⬆ MOSTRAR O TOPO</button><button type="button" class="pk-chip" data-a="enqPos" data-v="centro">⊕ CENTRALIZAR</button><button type="button" class="pk-chip" data-a="enqPos" data-v="base">⬇ MOSTRAR A BASE</button></div>')) +
       painel("luz", AJUSTES.map(function (a) { var v = +e.aj[a[0]] || 0; return '<label class="pk-aj"><span>' + a[1] + '</span><input type="range" min="-100" max="100" step="1" data-enq="' + a[0] + '" value="' + v + '"><b>' + v + "</b></label>"; }).join("")) +
       painel("look", '<div class="pk-chips pk-lin"><button type="button" class="pk-chip" data-a="enqLook" data-v="auto">✦ CLAREAR</button><button type="button" class="pk-chip" data-a="enqLook" data-v="vivo">VIVO</button><button type="button" class="pk-chip" data-a="enqLook" data-v="quente">QUENTE</button><button type="button" class="pk-chip" data-a="enqLook" data-v="frio">FRIO</button><button type="button" class="pk-chip" data-a="enqLook" data-v="pb">P&amp;B</button><button type="button" class="pk-chip" data-a="enqLook" data-v="zero">↺ ZERAR</button></div>') +
-      (k === "sobre" ? painel("tam", '<p class="tf-sub" style="margin:0 0 6px">Tamanho da foto na página 2 (Quem sou eu).</p><label class="pk-aj"><span>↔ Largura</span><input type="range" min="20" max="62" step="1" data-enq="sw" value="' + sobreW() + '"><b>' + sobreW() + "%</b></label>" +
-        '<div class="pk-sub-t">PROPORÇÃO</div><div class="pk-chips pk-lin" data-fxg="r">' + [["", "Foto inteira"]].concat(Object.keys(SOB_R).map(function (q) { return [q, SOB_R[q][1]]; })).map(function (q) { return '<button type="button" class="pk-chip' + (((KIT.est || {}).sobR || "") === q[0] ? " on" : "") + '" data-a="enqProp" data-v="' + q[0] + '">' + q[1] + "</button>"; }).join("") + "</div>") : "") +
+      (k === "sobre" ? painel("tam", '<p class="tf-sub" style="margin:0 0 6px">Tamanho da foto na página 2 (Quem sou eu).</p><label class="pk-aj"><span>↔ Largura (X)</span><input type="range" min="20" max="62" step="1" data-enq="sw" value="' + sobreW() + '"><b>' + sobreW() + "%</b></label>" +
+        '<label class="pk-aj" id="enqAltLivre"' + ((KIT.est || {}).sobR === "livre" ? "" : " hidden") + '><span>↕ Altura (Y)</span><input type="range" min="10" max="100" step="1" data-enq="sh" value="' + sobreH(fm.G) + '"><b>' + sobreH(fm.G) + "%</b></label>" +
+        '<div class="pk-sub-t">PROPORÇÃO</div><div class="pk-chips pk-lin" data-fxg="r">' + [["livre", "✎ LIVRE"], ["", "Foto inteira"]].concat(Object.keys(SOB_R).map(function (q) { return [q, SOB_R[q][1]]; })).map(function (q) { return '<button type="button" class="pk-chip' + (((KIT.est || {}).sobR || "") === q[0] ? " on" : "") + '" data-a="enqProp" data-v="' + q[0] + '">' + q[1] + "</button>"; }).join("") + "</div>" +
+        '<p class="tf-sub" id="enqDimTxt" style="margin:6px 0 0"></p>') : "") +
       (inteira || k === "sobre" ? "" : fxHtml(e, painel)) + "</div>" +
       '<div class="pk-chips pk-enq-pe"><button type="button" class="pk-chip" data-a="enqAntes">◐ SEGURE: ANTES</button><button type="button" class="pk-chip" data-a="enqVoltar">↺ COMO ESTAVA</button><button type="button" class="bw-btn pri" data-a="enqPronto">✓ PRONTO</button></div>');
     ENQ = NOVO; $("modalCx").classList.add("enq-app"); dock(); marcarAtiva();
     var cv = $("enqCv"), palco = $("enqPalco");
     if (!inteira) { palco.style.aspectRatio = cw + " / " + ch; palco.style.width = "min(100%, calc(var(--enq-h, 46vh) * " + (cw / ch).toFixed(4) + "))"; }
-    ligarEnquadrar(palco); enqDesenhar();
+    ligarEnquadrar(palco); if (k === "sobre") dimTxt([cw, ch]); enqDesenhar();
   }
   function fxHtml(e, painel) {
     var f = e.fx || {}, cr = coresDe(KIT), chip = function (c, v, rot, on, extra) { return '<button type="button" class="pk-chip' + (on ? " on" : "") + '" data-a="enqFx" data-c="' + c + '" data-v="' + v + '">' + (extra || "") + esc(rot) + "</button>"; };
@@ -1337,7 +1341,7 @@
     if (!cx.__enq) { cx.__enq = 1;
       cx.addEventListener("input", function (ev) {
         var n = ev.target.getAttribute && ev.target.getAttribute("data-enq"); if (!n || !ENQ) return;
-        var v = +ev.target.value; if (n === "sw") { ENQ.sw = v; ev.target.parentNode.querySelector("b").textContent = v + "%"; enqTam(); return; } if (n === "z") ENQ.e.z = v / 100; else if (n === "fo") (ENQ.e.fx = ENQ.e.fx || {}).o = v; else if (n === "fs") (ENQ.e.fx = ENQ.e.fx || {}).s = v; else ENQ.e.aj[n] = v;
+        var v = +ev.target.value; if (n === "sw" || n === "sh") { ENQ[n] = v; ev.target.parentNode.querySelector("b").textContent = v + "%"; enqTam(); return; } if (n === "z") ENQ.e.z = v / 100; else if (n === "fo") (ENQ.e.fx = ENQ.e.fx || {}).o = v; else if (n === "fs") (ENQ.e.fx = ENQ.e.fx || {}).s = v; else ENQ.e.aj[n] = v;
         var b = ev.target.parentNode.querySelector("b"); if (b) b.textContent = n === "z" || n === "fo" ? v + "%" : v; enqDesenhar();
       });
       var antes = function (on) { return function (ev) { var b = ev.target.closest && ev.target.closest('[data-a="enqAntes"]'); if (!b || !ENQ) return; if (on) ev.preventDefault(); ENQ.antes = on; enqDesenhar(); }; };
@@ -1373,17 +1377,21 @@
   }
   function sobreW() { var e = KIT.est || {}; return Math.round(ENQ && ENQ.sw ? ENQ.sw : +e.sobW || (e.sob === "topo" ? 42 : 36)); }
   function sobreDim(G) { var e = KIT.est || {}, w = G.CW * Math.max(0.2, Math.min(0.62, (ENQ && ENQ.sw ? ENQ.sw : +e.sobW || (e.sob === "topo" ? 42 : 36)) / 100)), q = ENQ && ENQ.sr != null ? ENQ.sr : e.sobR || "",
-    r = SOB_R[q] ? SOB_R[q][0] : (ENQ_PROP_S || 1.3); return [w, Math.min(w * r, G.H * 0.62)]; }
+    r = SOB_R[q] ? SOB_R[q][0] : (ENQ_PROP_S || 1.3); if (q === "livre") return [w, Math.min(sobAltLivre(G, ENQ && ENQ.sh ? ENQ.sh : e.sobH, w), G.H * 0.62)]; return [w, Math.min(w * r, G.H * 0.62)]; }
+  function sobreH(G) { var e = KIT.est || {}; if (ENQ && ENQ.sh) return Math.round(ENQ.sh); if (+e.sobH) return Math.round(+e.sobH); var d = sobreDim(G); return Math.max(10, Math.min(100, Math.round(d[1] / G.CW * 100))); }
   var ENQ_PROP_S = 0;
-  function enqTam() { if (!ENQ || ENQ.k !== "sobre") return; var d = sobreDim(ENQ.G); ENQ.cw = d[0]; ENQ.ch = d[1]; var pl = $("enqPalco"); if (pl) { pl.style.aspectRatio = d[0] + " / " + d[1]; pl.style.width = "min(100%, calc(var(--enq-h, 46vh) * " + (d[0] / d[1]).toFixed(4) + "))"; } enqDesenhar(); }
-  function enqProp(v) { ENQ.sr = v; [].forEach.call($("modalCx").querySelectorAll('[data-a="enqProp"]'), function (b) { b.classList.toggle("on", b.getAttribute("data-v") === v); }); enqTam(); }
+  function enqTam() { if (!ENQ || ENQ.k !== "sobre") return; var d = sobreDim(ENQ.G); ENQ.cw = d[0]; ENQ.ch = d[1]; var pl = $("enqPalco"); if (pl) { pl.style.aspectRatio = d[0] + " / " + d[1]; pl.style.width = "min(100%, calc(var(--enq-h, 46vh) * " + (d[0] / d[1]).toFixed(4) + "))"; }
+    dimTxt(d); enqDesenhar(); }
+  function dimTxt(d) { var tx = $("enqDimTxt"); if (tx && ENQ) tx.textContent = "Na página: " + Math.round(d[0] / 2.835) + " × " + Math.round(d[1] / 2.835) + " mm" + (d[1] >= ENQ.G.H * 0.62 - 0.5 ? " · altura no máximo da página" : ""); }
+  function enqProp(v) { if (v === "livre" && !ENQ.sh) { var dd = sobreDim(ENQ.G); ENQ.sh = Math.max(10, Math.min(100, Math.round(dd[1] / ENQ.G.CW * 100))); var rr = $("modalCx").querySelector('[data-enq="sh"]'); if (rr) { rr.value = ENQ.sh; rr.parentNode.querySelector("b").textContent = ENQ.sh + "%"; } }
+    ENQ.sr = v; var al = $("enqAltLivre"); if (al) al.hidden = v !== "livre"; [].forEach.call($("modalCx").querySelectorAll('[data-a="enqProp"]'), function (b) { b.classList.toggle("on", b.getAttribute("data-v") === v); }); enqTam(); }
   function enqPos(v) { ENQ.e.y = v === "topo" ? 0 : v === "base" ? 1 : 0.5; if (v === "centro") ENQ.e.x = 0.5; enqDesenhar(); }
   /* AO VIVO: cada mudança já vai para o PDF da prévia (o layout se ajusta enquanto se mexe) */
   var tVivo = 0;
-  function enqVivo() { clearTimeout(tVivo); tVivo = setTimeout(function () { if (!ENQ || ENQ.antes) return; var j = JSON.stringify([ENQ.e, ENQ.sw, ENQ.sr]); if (j === ENQ.ult) return; if (ENQ.ult == null) { ENQ.ult = j; return; } ENQ.ult = j; enqGravar(); agendarPrevia(0); }, 260); }
+  function enqVivo() { clearTimeout(tVivo); tVivo = setTimeout(function () { if (!ENQ || ENQ.antes) return; var j = JSON.stringify([ENQ.e, ENQ.sw, ENQ.sr, ENQ.sh]); if (j === ENQ.ult) return; if (ENQ.ult == null) { ENQ.ult = j; return; } ENQ.ult = j; enqGravar(); agendarPrevia(0); }, 260); }
   function enqVoltar() {
     if (!ENQ) return; var b = ENQ.bk; IMGS.enq = IMGS.enq || {}; if (b.tem) IMGS.enq[ENQ.k] = clone(b.v); else delete IMGS.enq[ENQ.k];
-    KIT.est = KIT.est || {}; if (b.sobW == null) delete KIT.est.sobW; else KIT.est.sobW = b.sobW; if (b.sobR == null) delete KIT.est.sobR; else KIT.est.sobR = b.sobR;
+    KIT.est = KIT.est || {}; if (b.sobW == null) delete KIT.est.sobW; else KIT.est.sobW = b.sobW; if (b.sobR == null) delete KIT.est.sobR; else KIT.est.sobR = b.sobR; if (b.sobH == null) delete KIT.est.sobH; else KIT.est.sobH = b.sobH;
     var alvo = ENQ.k === "sobre" || ENQ.k === "capa" || ENQ.k === "retrato" || ENQ.k.indexOf("c:") === 0 ? ENQ.k : ENQ.k.replace(/^f/, ""); ENQ = null; agendarPrevia(0); abrirAlvo(alvo); aviso("Voltou como estava");
   }
   /* fechar (✕, Esc, tocar fora na prévia) GUARDA o que já se vê na prévia */
@@ -1395,7 +1403,7 @@
     if (!ENQ.inteira && !fxNeutro(e.fx)) limpo.fx = { m: e.fx.m || "normal", c: e.fx.c || "fundo", o: e.fx.o == null ? 100 : +e.fx.o, k: e.fx.k || "nenhuma", s: e.fx.s == null ? 50 : +e.fx.s };
     IMGS.enq = IMGS.enq || {};
     var neutro = !limpo.aj && !limpo.fx && (ENQ.inteira || (Math.abs(limpo.x - 0.5) < 0.001 && Math.abs(limpo.y - 0.5) < 0.001 && limpo.z <= 1.001));
-    if (ENQ.k === "sobre") { KIT.est = KIT.est || {}; if (ENQ.sw) KIT.est.sobW = ENQ.sw; if (ENQ.sr != null) { if (ENQ.sr) KIT.est.sobR = ENQ.sr; else delete KIT.est.sobR; } 
+    if (ENQ.k === "sobre") { KIT.est = KIT.est || {}; if (ENQ.sw) KIT.est.sobW = ENQ.sw; if (ENQ.sr != null) { if (ENQ.sr) KIT.est.sobR = ENQ.sr; else delete KIT.est.sobR; } if (KIT.est.sobR === "livre" && ENQ.sh) KIT.est.sobH = ENQ.sh; else if (KIT.est.sobR !== "livre") delete KIT.est.sobH; 
       if (neutro && !KIT.est.sobR) { delete IMGS.enq.sobre; } else IMGS.enq.sobre = limpo; }
     else if (neutro) delete IMGS.enq[ENQ.k]; else IMGS.enq[ENQ.k] = limpo;
   }

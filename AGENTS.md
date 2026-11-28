@@ -3002,6 +3002,10 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   agora sobem para a pasta privada da conta (presskit-fotos) e voltam nos outros aparelhos. Falta rodar docs/sql/2026-11-28-presskit-fotos.sql (aguarda o
   "sim"); até lá a tela diz "pasta da conta ainda não ativada" e tudo continua no aparelho. teste_presskit_mais (+19) e teste_presskit 0 falhas; vigia ✅.
   Manual 79 p. presskit.js v15, presskit-nuvem.js v1, sw v260. PENTE FINO 251.
+- 28/11/2026 15:05 · Claude (dono: "no tamanho das imagens percebi algumas proporções padrões, faça o livre, em que você corta e altera os eixos X e Y livremente"):
+  PRESS KIT → ✥ ENQUADRAR NA PÁGINA 2 → ⤢ TAMANHO ganhou ✎ LIVRE: ↔ LARGURA (X) e ↕ ALTURA (Y) soltas (altura 10–100% da largura do conteúdo, limite de 62% da
+  página), moldura da janela e PDF acompanham ao vivo e a tela mostra a medida em mm (kit.est.sobR = "livre" + sobH). teste_presskit_mais (+3 × 2) e
+  teste_presskit 0 falhas; vigia ✅. Manual atualizado. presskit.js v16, sw v261.
 ## Pendências (dono)
 - [x] (28/11 15:10, dono: "Sim, pode rodar") SQL do balde privado presskit-fotos rodado (público = false · 4 regras pkfotos). Teste no ar logado: foto de TESTE
       enviada e baixada na própria pasta, pasta de outra conta recusada (RLS), endereço público = 400, teste apagado (0 arquivos). Falta o dono
