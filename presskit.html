@@ -152,10 +152,10 @@
 @media (pointer:coarse){.pk-alca{width:22px;height:22px;margin:-11px 0 0 -11px;border-radius:50%}}
 .pk-modal .cx.solta{position:fixed;margin:0;box-shadow:0 18px 50px rgba(0,0,0,.55)}
 .pk-modal #modalCx>h3{cursor:move;touch-action:none;user-select:none;margin-top:8px}
-.pk-jan-arr{position:absolute;top:6px;left:50%;transform:translateX(-50%);padding:0 14px;font:900 15px/16px Inter,system-ui,sans-serif;letter-spacing:2px;color:rgba(245,241,234,.45);cursor:move;touch-action:none;user-select:none;z-index:5}
+.pk-jan-arr{position:absolute;top:0;left:0;right:52px;height:24px;display:flex;align-items:center;justify-content:center;font:900 15px/16px Inter,system-ui,sans-serif;font-style:normal;letter-spacing:2px;color:rgba(245,241,234,.45);cursor:move;touch-action:none;user-select:none;z-index:5}
 .pk-jan-arr:hover{color:#E8B54A}
 .pk-jan-tam{position:absolute;right:2px;bottom:2px;width:20px;height:20px;cursor:nwse-resize;touch-action:none;z-index:5;background:linear-gradient(135deg,transparent 52%,rgba(232,181,74,.75) 52%,rgba(232,181,74,.75) 60%,transparent 60%,transparent 70%,rgba(232,181,74,.75) 70%,rgba(232,181,74,.75) 78%,transparent 78%)}
-@media (pointer:coarse){.pk-jan-tam{width:28px;height:28px}}
+@media (pointer:coarse){.pk-jan-tam{width:28px;height:28px}.pk-jan-arr{height:32px}}
 .pk-modal .cx.enq-app{display:flex;flex-direction:column;overflow:hidden;width:min(620px,100%);height:calc(100vh - 32px);height:calc(100dvh - 32px);padding:14px 16px 12px;--enq-h:46vh}
 .enq-app .pk-enq{flex:none;max-height:var(--enq-h);margin:4px auto 8px}
 .enq-app .pk-enq.xadrez{height:var(--enq-h);width:auto;max-width:100%}
@@ -244,6 +244,9 @@
 .pk-paleta i{display:flex;align-items:center;gap:5px;height:30px;padding:0 9px;border-radius:8px;border:1px solid rgba(245,241,234,.14)}
 .pk-paleta b{width:15px;height:15px;border-radius:50%;box-shadow:0 0 0 1.5px rgba(255,255,255,.35)}
 .pk-paleta span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+.pk-modal .cx:not(.enq-app){padding-top:26px}html .pk-modal .cx.enq-app{padding-top:24px}
+@media (pointer:coarse){.pk-modal .cx:not(.enq-app){padding-top:32px}html .pk-modal .cx.enq-app{padding-top:30px}}
 </style>
 <script src="assets/modos.js?v=12"></script>
 </head>
@@ -311,7 +314,7 @@
 <script src="assets/bw-sync.js?v=20261125"></script>
 <script src="assets/fotos-nuvem.js?v=4"></script>
 <script src="assets/reels-celular.js?v=6"></script>
-<script src="assets/presskit.js?v=18"></script>
+<script src="assets/presskit.js?v=19"></script>
 <script src="assets/presskit-nuvem.js?v=1"></script>
 <script src="assets/presskit-mais.js?v=1"></script>
 </body>

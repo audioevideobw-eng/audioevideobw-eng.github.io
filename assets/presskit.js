@@ -81,7 +81,7 @@
     x.drawImage(im, (c.width - dw) * (op.fx == null ? 0.5 : op.fx), (c.height - dh) * (op.fy == null ? 0.5 : op.fy), dw, dh);
     if (temAj(op.aj)) aplicarAj(x, c.width, c.height, op.aj);
     if (op.duo) duotom(x, c.width, c.height, op.duo[0], op.duo[1]);
-    if (op.efx) aplicarEfx(c, x, op.efx, !!op.forma);
+    if (op.efx) aplicarEfx(c, x, op.efx, !!op.forma, !!op.png && !op.forma);
     if (op.escurecer) {
       var g = op.dir === "esq" ? x.createLinearGradient(0, 0, c.width, 0) : x.createLinearGradient(0, 0, 0, c.height);
       g.addColorStop(0, "rgba(6,8,13," + (op.dir === "esq" ? op.escurecer : op.escurecer * 0.35) + ")");
@@ -117,7 +117,7 @@
   var CORES_FX = { fundo: "Fundo da página", destaque: "Cor de destaque", cor2: "2ª cor", preto: "Preto", branco: "Branco" };
   function coresDe(kit) { var mod = modeloDe(kit && kit.modelo), e = (kit && kit.est) || {}; return { fundo: /^#[0-9a-f]{6}$/i.test(e.fundo || "") ? e.fundo : mod.tema.fundo, destaque: (kit && kit.cor) || mod.cor, cor2: (kit && kit.cor2) || mod.cor2, preto: "#000000", branco: "#FFFFFF" }; }
   function fxNeutro(f) { return !f || ((!f.m || f.m === "normal") && (f.o == null || +f.o >= 100) && (!f.k || f.k === "nenhuma")); }
-  function aplicarEfx(c, x, f, forma) {
+  function aplicarEfx(c, x, f, forma, alfa) {
     var w = c.width, h = c.height, P = document.createElement("canvas"); P.width = w; P.height = h; var px = P.getContext("2d"); px.drawImage(c, 0, 0);
     var sv = Math.max(0.05, Math.min(1, (f.s == null ? 50 : +f.s) / 100)), g = null;
     if (f.k && f.k !== "nenhuma") {
@@ -130,6 +130,12 @@
       px.globalCompositeOperation = "destination-in"; px.fillStyle = g; px.fillRect(0, 0, w, h); px.globalCompositeOperation = "source-over";
     }
     x.save(); x.setTransform(1, 0, 0, 1, 0, 0); x.globalCompositeOperation = "source-over"; x.globalAlpha = 1;
+    if (alfa) {   /* 28/11: PNG recortado — mistura com a cor só onde há pessoa; opacidade e máscara viram transparência (o fundo da página aparece) */
+      x.clearRect(0, 0, w, h); x.fillStyle = f.cor || "#000000"; x.fillRect(0, 0, w, h);
+      x.globalCompositeOperation = (MISTURAS[f.m] || MISTURAS.normal)[1]; x.drawImage(P, 0, 0);
+      x.globalCompositeOperation = "destination-in"; x.globalAlpha = Math.max(0.05, Math.min(1, (f.o == null ? 100 : +f.o) / 100)); x.drawImage(P, 0, 0);
+      x.restore(); return;
+    }
     if (forma) x.clearRect(0, 0, w, h);
     x.fillStyle = f.cor || "#000000"; x.fillRect(0, 0, w, h);
     x.globalAlpha = Math.max(0.05, Math.min(1, (f.o == null ? 100 : +f.o) / 100)); x.globalCompositeOperation = (MISTURAS[f.m] || MISTURAS.normal)[1];
@@ -147,6 +153,14 @@
     var k = "a" + src.length + "|" + src.slice(-48) + "|" + JSON.stringify(aj); if (CORTES[k]) return CORTES[k];
     var im = await imgDe(src), c = document.createElement("canvas"); c.width = im.naturalWidth; c.height = im.naturalHeight;
     var x = c.getContext("2d"); x.drawImage(im, 0, 0); aplicarAj(x, c.width, c.height, aj);
+    return (CORTES[k] = c.toDataURL("image/png"));
+  }
+  /* foto recortada inteira com LUZ E COR + MISTURA/MÁSCARA (mesma conta na janela, no PDF e no pacote) */
+  async function retratoFx(src, e, cr) {
+    if (!src || !e) return src; var op = enqOpC(cr, e); if (!op.efx) return ajustarImg(src, e.aj);
+    var k = "r" + src.length + "|" + src.slice(-48) + "|" + JSON.stringify([e.aj || 0, op.efx]); if (CORTES[k]) return CORTES[k];
+    var im = await imgDe(src), c = document.createElement("canvas"); c.width = im.naturalWidth; c.height = im.naturalHeight;
+    var x = c.getContext("2d"); x.drawImage(im, 0, 0); if (temAj(e.aj)) aplicarAj(x, c.width, c.height, e.aj); aplicarEfx(c, x, op.efx, false, true);
     return (CORTES[k] = c.toDataURL("image/png"));
   }
   function enqOpC(cr, e, op) { op = enqOp(e, op); if (e && !fxNeutro(e.fx)) { var f = e.fx; op.efx = { m: f.m || "normal", o: f.o == null ? 100 : +f.o, k: f.k || "nenhuma", s: f.s == null ? 50 : +f.s, cor: (cr || {})[f.c || "fundo"] || "#000000" }; } return op; }
@@ -561,7 +575,7 @@
     m.retratoProp = m.retrato ? await proporcao(m.retrato) : 0.8;
     var cap = tm.capa, W = G.W, H = G.H;
     var capaSrc = imgs.capa || imgs.retrato || (imgs.fotos || [])[0] || "", EQ = imgs.enq || {};
-    if (m.retrato && EQ.retrato && temAj(EQ.retrato.aj)) m.retrato = await ajustarImg(m.retrato, EQ.retrato.aj);
+    if (m.retrato && EQ.retrato) m.retrato = await retratoFx(m.retrato, EQ.retrato, CR);
     tg(m.retrato, "retrato");
     if (capaSrc && !(cap === "recorte" && imgs.retrato)) { var cc0 = corteCapa(cap, G, tm); m.capaImg = tg(await recortar(capaSrc, cc0[0] * f, cc0[1] * f, enqOpC(CR, EQ.capa, cc0[2])), "capa"); }
     var c = d.contato || {};
@@ -578,7 +592,7 @@
           var pS = +est.sobW ? Math.max(0.2, Math.min(0.62, +est.sobW / 100)) : 0; s.fotoW = pS ? G.CW * pS : 0;
           if (EQ.sobre || SOB_R[est.sobR] || est.sobR === "livre") { var fwS = G.CW * (pS || (tm.sob === "topo" ? 0.42 : 0.36)), rS = est.sobR === "livre" ? sobAltLivre(G, est.sobH, fwS) / fwS : SOB_R[est.sobR] ? SOB_R[est.sobR][0] : 1 / m.retratoProp, fhS = Math.min(fwS * rS, G.H * 0.62);
             var eqS = Object.assign({}, EQ.sobre || {}); if (!temAj(eqS.aj) && EQ.retrato && temAj(EQ.retrato.aj)) eqS.aj = EQ.retrato.aj;
-            s.retrato = tg(await recortar(imgs.retrato, fwS * f, fhS * f, enqOp(eqS, { png: true })), "sobre"); s.fotoW = fwS; s.fotoH = fhS; s.corte = true; }
+            s.retrato = tg(await recortar(imgs.retrato, fwS * f, fhS * f, enqOpC(CR, eqS, { png: true })), "sobre"); s.fotoW = fwS; s.fotoH = fhS; s.corte = true; }
         } }
       else if (id === "numeros") { s.itens = (d.numeros || []).filter(function (x) { return x && (String(x.v || "").trim() || String(x.r || "").trim()); }); if (!s.itens.length) continue; }
       else if (id === "servicos") {
@@ -1325,7 +1339,7 @@
     var est0 = KIT.est || {};
     var NOVO = { k: k, src: src, cw: cw, ch: ch, op: op, e: e, inteira: inteira, antes: false, G: fm.G, bk: { tem: !!(IMGS.enq && k in IMGS.enq), v: clone((IMGS.enq || {})[k] || null), sobW: est0.sobW, sobR: est0.sobR, sobH: est0.sobH } };
     var nome = k === "capa" ? "foto da capa" : k === "sobre" ? "foto da página 2" : inteira ? "foto recortada" : k.indexOf("c:") === 0 ? "foto do cartão" : "foto " + (+alvo + 1);
-    var abas = inteira ? [["luz", "☀ LUZ E COR"], ["look", "✦ LOOKS"]] : k === "sobre" ? [["pos", "✥ POSIÇÃO"], ["tam", "⤢ TAMANHO"], ["luz", "☀ LUZ E COR"], ["look", "✦ LOOKS"]] : [["pos", "✥ POSIÇÃO"], ["luz", "☀ LUZ E COR"], ["look", "✦ LOOKS"], ["mix", "◑ MISTURA"], ["masc", "◌ MÁSCARA"]];
+    var abas = inteira ? [["luz", "☀ LUZ E COR"], ["look", "✦ LOOKS"], ["mix", "◑ MISTURA"], ["masc", "◌ MÁSCARA"]] : k === "sobre" ? [["pos", "✥ POSIÇÃO"], ["tam", "⤢ TAMANHO"], ["luz", "☀ LUZ E COR"], ["look", "✦ LOOKS"], ["mix", "◑ MISTURA"], ["masc", "◌ MÁSCARA"]] : [["pos", "✥ POSIÇÃO"], ["luz", "☀ LUZ E COR"], ["look", "✦ LOOKS"], ["mix", "◑ MISTURA"], ["masc", "◌ MÁSCARA"]];
     if (!abas.some(function (x) { return x[0] === ENQ_ABA; })) ENQ_ABA = abas[0][0];
     var painel = function (id, h) { return '<div class="pk-enqp" data-p="' + id + '"' + (id === ENQ_ABA ? "" : " hidden") + ">" + h + "</div>"; };
     modal('<button type="button" class="pk-mx" data-a="fecharModal" aria-label="Fechar">✕</button><h3>' + (inteira ? "🎚 Ajustar a " : "✥ Enquadrar e ajustar a ") + nome + "</h3>" +
@@ -1340,7 +1354,7 @@
         '<label class="pk-aj" id="enqAltLivre"' + ((KIT.est || {}).sobR === "livre" ? "" : " hidden") + '><span>↕ Altura (Y)</span><input type="range" min="10" max="100" step="1" data-enq="sh" value="' + sobreH(fm.G) + '"><b>' + sobreH(fm.G) + "%</b></label>" +
         '<div class="pk-sub-t">PROPORÇÃO</div><div class="pk-chips pk-lin" data-fxg="r">' + [["livre", "✎ LIVRE"], ["", "Foto inteira"]].concat(Object.keys(SOB_R).map(function (q) { return [q, SOB_R[q][1]]; })).map(function (q) { return '<button type="button" class="pk-chip' + (((KIT.est || {}).sobR || "") === q[0] ? " on" : "") + '" data-a="enqProp" data-v="' + q[0] + '">' + q[1] + "</button>"; }).join("") + "</div>" +
         '<p class="tf-sub" id="enqDimTxt" style="margin:6px 0 0"></p>') : "") +
-      (inteira || k === "sobre" ? "" : fxHtml(e, painel)) + "</div>" +
+      fxHtml(e, painel) + "</div>" +
       '<div class="pk-chips pk-enq-pe">' + SETAS_HIST + '<button type="button" class="pk-chip" data-a="enqAntes">◐ SEGURE: ANTES</button><button type="button" class="pk-chip" data-a="enqVoltar">↺ COMO ESTAVA</button><button type="button" class="bw-btn pri" data-a="enqPronto">✓ PRONTO</button></div>');
     ENQ = NOVO; $("modalCx").classList.add("enq-app"); dock(); marcarAtiva();
     var cv = $("enqCv"), palco = $("enqPalco");
@@ -1369,7 +1383,7 @@
     if (!ENQ) return; cancelAnimationFrame(tEnq); enqVivo();
     tEnq = requestAnimationFrame(async function () {
       var cv = $("enqCv"); if (!cv || !ENQ) return; var vez = ++enqVez, e = ENQ.antes ? { x: ENQ.e.x, y: ENQ.e.y, z: ENQ.e.z } : ENQ.e, u;
-      if (ENQ.inteira) u = ENQ.antes ? ENQ.src : await ajustarImg(await reduzir(ENQ.src, 700), e.aj);
+      if (ENQ.inteira) u = ENQ.antes ? ENQ.src : await retratoFx(await reduzir(ENQ.src, 700), e, coresDe(KIT));
       else { var L = Math.min(640, (cv.parentNode.clientWidth || 480) * 1.5), sc = L / ENQ.cw; u = await recortar(ENQ.src, ENQ.cw * sc, ENQ.ch * sc, enqOpC(coresDe(KIT), e, Object.assign({ q: 0.8 }, ENQ.op))); }
       if (vez !== enqVez || !ENQ) return;
       var im = await imgDe(u); if (vez !== enqVez) return;
@@ -1476,10 +1490,21 @@
     cx.classList.toggle("solta", !!j); if (j) encaixarJan(cx, j);
   }
   function gravarJan(cx) { var r = cx.getBoundingClientRect(); JAN[chaveJan()] = { x: Math.round(r.left), y: Math.round(r.top), w: Math.round(r.width), h: Math.round(r.height) }; try { localStorage.setItem("ui_pk_janela", JSON.stringify(JAN)); } catch (e) { } }
+  // Área LIVRE da janela (sem botão, campo, foto, régua…) também arrasta. No dedo, só onde nada rola por baixo (senão tiraria a rolagem).
+  var JAN_NAO = 'input,textarea,select,button,a,label,canvas,video,audio,img,[contenteditable],[data-a],[data-enq],[data-v],[data-fxg] *,.pk-chip,.pk-alca,#enqPalco,[draggable="true"],[role="button"],summary';
+  function janRola(el, cx) { for (var n = el; n && n !== cx.parentNode; n = n.parentNode) { if (n.nodeType !== 1) continue; var cs = getComputedStyle(n); if (/(auto|scroll)/.test(cs.overflowY + " " + cs.overflowX) && (n.scrollHeight > n.clientHeight + 2 || n.scrollWidth > n.clientWidth + 2)) return true; if (n === cx) break; } return false; }
+  function janLivre(t, cx, tipo) {
+    if (!t || !t.closest || !cx || !cx.contains(t) || t.closest(JAN_NAO)) return false;
+    if (window.getSelection && String(window.getSelection()).length) return false;
+    return tipo === "touch" ? !janRola(t, cx) : true;
+  }
   function ligarJanelas() {
     var mo = $("modal"); if (!mo || mo.__jan) return; mo.__jan = 1; var J = null, ultToque = 0;
+    mo.addEventListener("touchstart", function (ev) { var cx = $("modalCx"), t = ev.target; if (ev.touches && ev.touches.length === 1 && cx && !(t.closest && t.closest(".pk-jan-arr,.pk-jan-tam,#modalCx > h3")) && janLivre(t, cx, "touch")) ev.preventDefault(); }, { passive: false });
     mo.addEventListener("pointerdown", function (ev) {
-      var cx = $("modalCx"), alca = ev.target.closest && ev.target.closest(".pk-jan-arr,.pk-jan-tam,#modalCx > h3"); if (!alca || !cx.contains(alca)) return;
+      var cx = $("modalCx"), alca = ev.target.closest && ev.target.closest(".pk-jan-arr,.pk-jan-tam,#modalCx > h3");
+      if ((!alca || !cx.contains(alca)) && janLivre(ev.target, cx, ev.pointerType)) alca = cx;
+      if (!alca || !cx.contains(alca)) return;
       var tam = alca.classList.contains("pk-jan-tam");
       if (!tam && alca.classList.contains("pk-jan-arr") && Date.now() - ultToque < 320) { delete JAN[chaveJan()]; try { localStorage.setItem("ui_pk_janela", JSON.stringify(JAN)); } catch (e) { } aplicarJan(); aviso("Janela no lugar de sempre"); ultToque = 0; return; }
       if (alca.classList.contains("pk-jan-arr")) ultToque = Date.now();
@@ -1499,7 +1524,7 @@
   function enqGravar() {
     if (!ENQ) return; marcarHist(); var e = ENQ.e, aj = {}; AJUSTES.forEach(function (a) { if (+e.aj[a[0]]) aj[a[0]] = +e.aj[a[0]]; });
     var limpo = ENQ.inteira ? {} : { x: +(+e.x).toFixed(4), y: +(+e.y).toFixed(4), z: +(+e.z).toFixed(3) }; if (Object.keys(aj).length) limpo.aj = aj;
-    if (!ENQ.inteira && !fxNeutro(e.fx)) limpo.fx = { m: e.fx.m || "normal", c: e.fx.c || "fundo", o: e.fx.o == null ? 100 : +e.fx.o, k: e.fx.k || "nenhuma", s: e.fx.s == null ? 50 : +e.fx.s };
+    if (!fxNeutro(e.fx)) limpo.fx = { m: e.fx.m || "normal", c: e.fx.c || "fundo", o: e.fx.o == null ? 100 : +e.fx.o, k: e.fx.k || "nenhuma", s: e.fx.s == null ? 50 : +e.fx.s };
     IMGS.enq = IMGS.enq || {};
     var neutro = !limpo.aj && !limpo.fx && (ENQ.inteira || (Math.abs(limpo.x - 0.5) < 0.001 && Math.abs(limpo.y - 0.5) < 0.001 && limpo.z <= 1.001));
     if (ENQ.k === "sobre") { KIT.est = KIT.est || {}; if (ENQ.sw) KIT.est.sobW = ENQ.sw; if (ENQ.sr != null) { if (ENQ.sr) KIT.est.sobR = ENQ.sr; else delete KIT.est.sobR; } if (KIT.est.sobR === "livre" && ENQ.sh) KIT.est.sobH = ENQ.sh; else if (KIT.est.sobR !== "livre") delete KIT.est.sobH; 
@@ -1510,7 +1535,7 @@
   function caixaImg(rot, chave, dica, png) {
     var u = IMGS[chave];
     return '<div class="pk-img"><span>' + rot + "</span>" + (u ? '<img src="' + u + '" alt="' + esc(rot) + '"' + (png ? ' class="xadrez"' : "") + ">" : "<i>" + esc(dica) + "</i>") + '<div class="pk-chips">' + upload(u ? "↺ TROCAR" : "＋ ESCOLHER", chave) +
-      (u ? '<button type="button" class="pk-chip" data-a="fotoBaixar" data-alvo="' + chave + '">⬇ BAIXAR</button><button type="button" class="pk-chip" data-a="tirarImg" data-v="' + chave + '">✕ TIRAR</button>' : "") + (chave === "logo" ? '<button type="button" class="pk-chip" data-a="logoEmpresa">★ DA MINHA EMPRESA</button>' : u ? '<button type="button" class="pk-chip" data-a="enquadrar" data-alvo="' + chave + '">' + (chave === "retrato" ? "🎚 LUZ E COR" : "✥ ENQUADRAR E AJUSTAR") + "</button>" + (chave === "retrato" ? '<button type="button" class="pk-chip" data-a="enquadrar" data-alvo="sobre">✥ ENQUADRAR NA PÁGINA 2</button>' : "") : "") + "</div>" + (u && chave !== "logo" ? botoesIA(chave) : "") + "</div>";
+      (u ? '<button type="button" class="pk-chip" data-a="fotoBaixar" data-alvo="' + chave + '">⬇ BAIXAR</button><button type="button" class="pk-chip" data-a="tirarImg" data-v="' + chave + '">✕ TIRAR</button>' : "") + (chave === "logo" ? '<button type="button" class="pk-chip" data-a="logoEmpresa">★ DA MINHA EMPRESA</button>' : u ? '<button type="button" class="pk-chip" data-a="enquadrar" data-alvo="' + chave + '">' + (chave === "retrato" ? "🎚 COR E EFEITOS" : "✥ ENQUADRAR E AJUSTAR") + "</button>" + (chave === "retrato" ? '<button type="button" class="pk-chip" data-a="enquadrar" data-alvo="sobre">✥ ENQUADRAR NA PÁGINA 2</button>' : "") : "") + "</div>" + (u && chave !== "logo" ? botoesIA(chave) : "") + "</div>";
   }
   /* 🎛 ESTILO AO VIVO: tudo o que muda o visual, com a prévia (o próprio PDF) se refazendo na hora */
   function grupoEstilo(k, mod) {
@@ -2270,7 +2295,7 @@
     imagensPub: async function (k, im) {
       k = k || KIT; im = im || IMGS; var EQ = im.enq || {}, CR = coresDe(k), capaSrc = im.capa || im.retrato || (im.fotos || [])[0] || "", out = { fotos: [], cards: {} };
       if (capaSrc) out.capa = await recortar(capaSrc, 1080, 1350, enqOpC(CR, EQ.capa, { q: 0.86 }));
-      if (im.retrato) out.retrato = await reduzir(EQ.retrato && temAj(EQ.retrato.aj) ? await ajustarImg(im.retrato, EQ.retrato.aj) : im.retrato, 1100);
+      if (im.retrato) out.retrato = await reduzir(EQ.retrato ? await retratoFx(im.retrato, EQ.retrato, CR) : im.retrato, 1100);
       if (im.logo) out.logo = await reduzir(im.logo, 700);
       for (var i = 0; i < (im.fotos || []).length; i++) out.fotos.push(await recortar(im.fotos[i], 1400, 1050, enqOpC(CR, EQ["f" + i], { q: 0.84 })));
       Object.keys(im.cards || {}).forEach(function (l) { out.cards[l] = []; });

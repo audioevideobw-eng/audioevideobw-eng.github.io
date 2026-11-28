@@ -3024,6 +3024,13 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   aumentar a moldura REVELA mais da foto em vez de ampliar; (5) ↶ ↷ DESFAZER/REFAZER na barra da prévia e nas janelas + Ctrl+Z, Ctrl+Shift+Z/Ctrl+Y,
   Ctrl+D, Ctrl+C/V, Delete, setas (Shift = mais), Alt+arrastar duplica, Shift+arrastar trava o eixo. teste_presskit_mais (+20 × 1280/390, mouse e toque
   de verdade) e teste_presskit 0 falhas; vigia ✅. Manual atualizado. presskit.js v18, bw-ferramentas no press kit, sw v262. PENTE FINO 252.
+- 28/11/2026 15:45 · Claude (dono: "aumente a área de apertar para arrastar nas janelas e inclua o mesmo padrão de modificações da primeira imagem, máscara e mistura,
+  ambas as imagens" + "onde estiver área livre, deve ter a opção de arraste das janelas"): PRESS KIT — a barra de arrastar ocupa todo o alto da janela
+  (24 px; 32 px no dedo) e a janela também se arrasta por QUALQUER área livre (margem, textos, espaços — nunca a partir de botão, campo, régua, foto);
+  no dedo, a área livre só arrasta onde nada rola por baixo (senão tiraria a rolagem). A foto da PÁGINA 2 e a FOTO RECORTADA (botão agora
+  🎚 COR E EFEITOS) ganharam ◑ MISTURA e ◌ MÁSCARA, como a capa: no PNG recortado a mistura fica só dentro da pessoa e a máscara/opacidade viram
+  transparência (o fundo da página aparece) — mesma conta na janela, no PDF e no pacote (retratoFx + aplicarEfx com alfa). teste_presskit_mais (+11 × 1280/390)
+  e teste_presskit 0 falhas; vigia ✅. Manual 79 p. presskit.js v19, sw v263. App BW: entra no próximo pacote.
 ## Pendências (dono)
 - [x] (28/11 15:10, dono: "Sim, pode rodar") SQL do balde privado presskit-fotos rodado (público = false · 4 regras pkfotos). Teste no ar logado: foto de TESTE
       enviada e baixada na própria pasta, pasta de outra conta recusada (RLS), endereço público = 400, teste apagado (0 arquivos). Falta o dono

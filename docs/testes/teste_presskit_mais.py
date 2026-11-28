@@ -254,6 +254,18 @@ with sync_playwright() as p:
         r3 = pg.locator("#modalCx").bounding_box()
         ok(r3 and abs(r3["x"] - r2["x"] - 30) < 6 and abs(r3["y"] - r2["y"] - dyj) < 6, f"a janela se arrasta pelo ⠿ ({r2['x']:.0f},{r2['y']:.0f} → {r3 and r3['x']:.0f},{r3 and r3['y']:.0f})")
         ok(bool(pg.evaluate("() => JSON.parse(localStorage.getItem('ui_pk_janela')||'{}')")), "o lugar e o tamanho ficam guardados no aparelho")
+        gh = pg.locator("#modalCx .pk-jan-arr").bounding_box()
+        ok(gh["width"] > r3["width"] * 0.6 and gh["height"] >= 22, f"a barra de arrastar ocupa o alto da janela ({gh['width']:.0f}×{gh['height']:.0f})")
+        # arrastar pela ÁREA LIVRE (margem da janela, sem botão nem campo)
+        lx, ly = r3["x"] + 5, r3["y"] + r3["height"] * 0.6
+        livre = pg.evaluate("(p) => { const e = document.elementFromPoint(p[0], p[1]); return !!e && !e.closest('button,input,a,canvas,label,[data-a]'); }", [lx, ly])
+        pg.mouse.move(lx, ly); pg.mouse.down(); pg.mouse.move(lx + 25, ly - 20, steps=6); pg.mouse.up(); pg.wait_for_timeout(300)
+        r4 = pg.locator("#modalCx").bounding_box()
+        ok(livre and abs(r4["x"] - r3["x"] - 25) < 6 and abs(r4["y"] - r3["y"] + 20) < 6, f"a janela também se arrasta pela área livre ({r3['x']:.0f},{r3['y']:.0f} → {r4['x']:.0f},{r4['y']:.0f})")
+        bt = pg.locator("#modalCx button:visible").last.bounding_box()
+        pg.mouse.move(bt["x"] + bt["width"] / 2, bt["y"] + bt["height"] / 2); pg.mouse.down(); pg.mouse.move(bt["x"] + bt["width"] / 2 + 30, bt["y"] + bt["height"] / 2 + 10, steps=5); pg.mouse.up(); pg.wait_for_timeout(200)
+        r5 = pg.locator("#modalCx").bounding_box() if pg.locator("#modalCx").is_visible() else r4
+        ok(abs(r5["x"] - r4["x"]) < 2, "arrastar a partir de um botão NÃO move a janela")
         if os.environ.get("FOTO"): pg.screenshot(path=f"/tmp/janela-{larg}.png")
         pg.evaluate("() => BWPressKit.fecharModal()")
         # ☁ fotos na conta: sobem para a pasta privada e voltam em "outro aparelho"
@@ -383,6 +395,22 @@ with sync_playwright() as p:
             pg.click('[data-a="enqPronto"]'); pg.wait_for_timeout(400)
             so2 = pg.evaluate("async () => { const e = BWPressKit.atual().est; const m = await BWPressKit.modelo(BWPressKit.atual(), BWPressKit.imgsAtual()); const s = m.secoes.find(x => x.id === 'sobre'); return [e.sobR, e.sobH, s.fotoH / s.fotoW]; }")
             ok(so2[0] == "livre" and so2[1] == 70 and abs(so2[2] - 70/30) < 0.05, f"PRONTO guarda o LIVRE e o PDF usa a mesma medida ({so2})")
+            # ◑ MISTURA e ◌ MÁSCARA também na foto da página 2 e na foto recortada
+            for alvo, nome in (("sobre", "página 2"), ("retrato", "foto recortada")):
+                if pg.locator(f'[data-a="enquadrar"][data-alvo="{alvo}"]').count() == 0:
+                    ok(False, f"botão de ajustar a {nome} existe"); continue
+                pg.locator(f'[data-a="enquadrar"][data-alvo="{alvo}"]').first.click(); pg.wait_for_selector("#enqCv", timeout=6000); pg.wait_for_timeout(500)
+                ok(pg.locator('#modal [data-a="enqAba"][data-v="mix"]').count() == 1 and pg.locator('#modal [data-a="enqAba"][data-v="masc"]').count() == 1, f"a {nome} tem as abas ◑ MISTURA e ◌ MÁSCARA")
+                px0 = pg.evaluate("() => { const c = document.getElementById('enqCv'); return Array.from(c.getContext('2d').getImageData(0, 0, c.width, c.height).data.filter((v, i) => i % 4 === 3 && v > 10)).length; }")
+                pg.click('#modal [data-a="enqAba"][data-v="mix"]'); pg.click('#modal [data-a="enqFx"][data-c="m"][data-v="mult"]'); pg.click('#modal [data-a="enqFx"][data-c="c"][data-v="destaque"]')
+                pg.click('#modal [data-a="enqAba"][data-v="masc"]'); pg.click('#modal [data-a="enqFx"][data-c="k"][data-v="baixo"]'); pg.wait_for_timeout(900)
+                px1 = pg.evaluate("() => { const c = document.getElementById('enqCv'); return Array.from(c.getContext('2d').getImageData(0, 0, c.width, c.height).data.filter((v, i) => i % 4 === 3 && v > 10)).length; }")
+                ok(px1 < px0, f"a máscara some a {nome} embaixo e o fundo fica transparente ({px0} → {px1} pontos visíveis)")
+                pg.click('[data-a="enqPronto"]'); pg.wait_for_timeout(500)
+                fx = pg.evaluate("(k) => ((BWPressKit.imgsAtual().enq || {})[k] || {}).fx", alvo)
+                ok(fx and fx.get("m") == "mult" and fx.get("k") == "baixo", f"PRONTO guarda a mistura e a máscara da {nome} ({fx})")
+                ok(esperar_previa(pg), f"a prévia se refaz com o efeito na {nome}")
+                pg.evaluate("(k) => { delete BWPressKit.imgsAtual().enq[k]; }", alvo)
             pg.evaluate("() => { const k = BWPressKit.atual(); delete k.est.sobW; delete k.est.sobR; delete k.est.sobH; delete BWPressKit.imgsAtual().enq.sobre; }")
         # 📄 PÁGINAS INTERNAS e setas nas opções
         ok(pg.locator('[data-a="est"][data-c="pg"]').count() == 6 and pg.locator('[data-a="est"][data-c="sob"]').count() == 5, "🎛 ESTILO: miniaturas de PÁGINAS INTERNAS (6) e QUEM SOU EU (5)")
