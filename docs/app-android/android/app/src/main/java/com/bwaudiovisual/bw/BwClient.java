@@ -5,6 +5,7 @@ import android.net.ConnectivityManager;
 import android.net.Network;
 import android.net.NetworkCapabilities;
 import android.net.Uri;
+import android.webkit.RenderProcessGoneDetail;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebResourceResponse;
 import android.webkit.WebView;
@@ -54,6 +55,19 @@ public class BwClient extends BridgeWebViewClient {
             NetworkCapabilities c = cm.getNetworkCapabilities(n);
             return c != null && c.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET);
         } catch (Exception e) { return true; }
+    }
+
+    /* 28/11/2026 (dono: "o Assistente, quando clicado, fecha o app"): quando o processo que desenha a página cai (falta de memória ou
+       um recurso do navegador que o WebView não tem), o Capacitor devolvia false e o Android FECHAVA O APP inteiro. Agora o app fica aberto
+       e a tela é refeita (a Activity é recriada e a página volta). */
+    @Override
+    public boolean onRenderProcessGone(WebView view, RenderProcessGoneDetail detail) {
+        try { super.onRenderProcessGone(view, detail); } catch (Exception e) { }
+        try {
+            final android.app.Activity a = bridge.getActivity();
+            if (a != null && !a.isFinishing()) { a.runOnUiThread(a::recreate); return true; }
+        } catch (Exception e) { }
+        return true;
     }
 
     @Override

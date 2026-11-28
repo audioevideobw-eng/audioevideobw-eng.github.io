@@ -15,6 +15,8 @@ import com.getcapacitor.BridgeActivity;
    - ROLAGEM: sem o efeito de "esticar" a página nas pontas (Android 12+) e com a letra no tamanho do site (a fonte grande do
      sistema aumentava os textos e fazia a tela andar para o lado). */
 public class MainActivity extends BridgeActivity {
+    private BwFala fala;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -33,7 +35,16 @@ public class MainActivity extends BridgeActivity {
         wv.setOverScrollMode(View.OVER_SCROLL_NEVER);
         WebSettings s = wv.getSettings();
         s.setTextZoom(100);
-        if (!cliente.online()) wv.post(() -> wv.loadUrl(getBridge().getAppUrl()));
+        /* 28/11/2026: voz do Android para o assistente (o WebView não tem speechSynthesis — BwFala.java). A interface só aparece na página
+           carregada DEPOIS de registrada, por isso a primeira página é aberta de novo (antes isso só acontecia sem internet). */
+        try { fala = new BwFala(this, wv); wv.addJavascriptInterface(fala, "BWFalaNativa"); } catch (Exception e) { fala = null; }
+        wv.post(() -> { wv.stopLoading(); wv.loadUrl(getBridge().getAppUrl()); });
+    }
+
+    @Override
+    public void onDestroy() {
+        if (fala != null) fala.desligar();
+        super.onDestroy();
     }
 
     private void voltar() {

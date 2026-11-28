@@ -121,7 +121,12 @@
   /* 22/11 (dono): dentro do app BW do PC (window.BW_APP, posto antes da página) somem as opções que só fazem sentido na web (.so-web) */
   if (window.BW_APP) { R.classList.add("bw-no-app"); try { var st = document.createElement("style"); st.textContent = "html.bw-no-app .so-web{display:none!important}"; (document.head || R).appendChild(st); } catch (e) { } }
   /* 24/11 (dono): dentro do app BW do ANDROID (Capacitor; user agent com "BW-Android") carrega o ajuste do app — downloads viram arquivo de verdade */
-  if (/BW-Android/.test(navigator.userAgent)) { try { var sa = document.createElement("script"); sa.src = (document.currentScript && document.currentScript.src || "assets/modos.js").replace(/modos\.js.*$/, "bw-android.js?v=2"); (document.head || R).appendChild(sa); } catch (e) { } }
+  if (/BW-Android/.test(navigator.userAgent)) {
+    /* 28/11/2026 (dono: "no app Android o Assistente, quando clicado, fecha o app"): o WebView do Android mostra o reconhecimento de voz do navegador
+       (webkitSpeechRecognition) mas NÃO o tem de verdade — usar derrubava a página e, com ela, o app. Aqui ele some ANTES de qualquer ferramenta
+       olhar; todas já sabem gravar e transcrever (o mesmo caminho do iPhone instalado). */
+    ["SpeechRecognition", "webkitSpeechRecognition"].forEach(function (k) { try { delete window[k]; } catch (e) { } try { if (window[k]) Object.defineProperty(window, k, { value: undefined, configurable: true, writable: true }); } catch (e) { } });
+    try { var sa = document.createElement("script"); sa.src = (document.currentScript && document.currentScript.src || "assets/modos.js").replace(/modos\.js.*$/, "bw-android.js?v=3"); (document.head || R).appendChild(sa); } catch (e) { } }
   var VARS = [];
   function limpar() { VARS.forEach(function (v) { R.style.removeProperty(v); }); VARS = []; ["data-modo", "data-base", "data-conteudo", "data-fx", "data-estilo", "data-cena", "data-fonte"].forEach(function (a) { R.removeAttribute(a); }); }
   function def(o) { Object.keys(o).forEach(function (k) { R.style.setProperty(k, o[k]); VARS.push(k); }); }

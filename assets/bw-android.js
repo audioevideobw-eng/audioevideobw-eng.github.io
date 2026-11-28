@@ -99,5 +99,52 @@
     } catch (e) { return false; }
   }
 
+  /* VOZ (28/11/2026): o WebView do Android não tem window.speechSynthesis — o assistente ficava mudo no app. A MainActivity oferece a voz do
+     próprio Android (BWFalaNativa, BwFala.java) e aqui ela ganha a mesma cara do speechSynthesis do navegador: speak/cancel/getVoices e os
+     avisos onstart/onend/onerror. As vozes vêm com o nome do Android (ex.: "pt-br-x-ptd-local" = masculina), que o assistente já sabe ler. */
+  function vozNativa() {
+    var N = window.BWFalaNativa;
+    if (!N || window.speechSynthesis) return;
+    var fila = {}, n = 0, lista = null;
+    function vozes() {
+      if (lista && lista.length) return lista;
+      var l = [];
+      try { if (N.pronto()) l = JSON.parse(N.vozes() || "[]"); } catch (e) { l = []; }
+      lista = l.map(function (v, i) { return { name: v.n, lang: String(v.l || "pt-BR").replace("_", "-"), voiceURI: v.n, localService: !v.r, default: i === 0 }; });
+      if (!lista.length) return [{ name: "Voz do Android", lang: "pt-BR", voiceURI: "android", localService: true, default: true }];
+      return lista;
+    }
+    window.__bwFala = function (ev, id) {
+      var u = fila[id]; if (!u) return;
+      if (ev === "i") { u._comecou = true; if (u.onstart) try { u.onstart({ type: "start", utterance: u }); } catch (e) { } return; }
+      delete fila[id];
+      var f = ev === "e" ? u.onend : (u.onerror || u.onend);
+      if (f) try { f({ type: ev === "e" ? "end" : "error", error: ev === "c" ? "interrupted" : ev === "x" ? "synthesis-failed" : undefined, utterance: u }); } catch (e) { }
+    };
+    function U(t) { this.text = t == null ? "" : String(t); this.lang = "pt-BR"; this.rate = 1; this.pitch = 1; this.volume = 1; this.voice = null; this.onstart = this.onend = this.onerror = null; }
+    U.prototype.addEventListener = function (tipo, fn) { this["on" + tipo] = fn; };
+    window.SpeechSynthesisUtterance = U;
+    var ss = {
+      pending: false, paused: false, onvoiceschanged: null,
+      getVoices: vozes,
+      speak: function (u) {
+        if (!u) return;
+        var id = "f" + (++n);
+        if (!u.text || u.volume === 0) { fila[id] = u; setTimeout(function () { window.__bwFala("i", id); window.__bwFala("e", id); }, 0); return; }   /* fala muda (destravar): nada a dizer */
+        fila[id] = u;
+        try { N.falar(id, u.text, +u.rate || 1, +u.pitch || 1, u.voice && u.voice.voiceURI !== "android" ? u.voice.name : ""); }
+        catch (e) { window.__bwFala("x", id); }
+      },
+      cancel: function () { try { N.parar(); } catch (e) { } var f = fila; fila = {}; Object.keys(f).forEach(function (k) { var u = f[k]; if (u.onerror) try { u.onerror({ type: "error", error: "interrupted", utterance: u }); } catch (e) { } }); },
+      pause: function () { }, resume: function () { },
+      addEventListener: function (tipo, fn) { if (tipo === "voiceschanged") ss.onvoiceschanged = fn; }, removeEventListener: function () { }
+    };
+    Object.defineProperty(ss, "speaking", { get: function () { try { return !!N.falando(); } catch (e) { return false; } } });
+    window.speechSynthesis = ss;
+    /* a lista de vozes chega depois que o motor de voz do Android liga (1–2 s) */
+    var tent = 0, t = setInterval(function () { tent++; try { if (N.pronto()) { lista = null; vozes(); clearInterval(t); if (ss.onvoiceschanged) ss.onvoiceschanged({ type: "voiceschanged" }); } } catch (e) { } if (tent > 20) clearInterval(t); }, 500);
+  }
+  try { vozNativa(); } catch (e) { }
+
   window.BWAndroid = { salvar: salvar, voltar: voltar };
 })();

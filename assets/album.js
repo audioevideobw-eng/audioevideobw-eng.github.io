@@ -39,7 +39,9 @@
       if (!tipo) { ruins.push(f.name); continue; }
       if (arquivos.length > 1) aviso("Trazendo " + (i + 1) + " de " + arquivos.length + "…");
       var blob = new Blob([await f.arrayBuffer()], { type: f.type || (tipo === "video" ? "video/mp4" : "image/jpeg") });   // cópia na memória (o iPhone invalida o original)
-      var reg = { id: uid(), nome: f.name, tipo: tipo, blob: blob, w: 0, h: 0, dur: 0, thumb: "" };
+      var nomeF = f.name;
+      if (tipo === "foto" && window.BWHeic) try { var cv = await BWHeic.converterSePreciso(blob, f.name, function () { aviso("⏳ Convertendo a foto HEIC…"); }); if (cv) { blob = cv; nomeF = BWHeic.nomeJpg(f.name); } } catch (e) { }   /* 28/11: HEIC do iPhone fora do Safari */
+      var reg = { id: uid(), nome: nomeF, tipo: tipo, blob: blob, w: 0, h: 0, dur: 0, thumb: "" };
       try {
         if (tipo === "foto") { var bmp = await createImageBitmap(blob); reg.w = bmp.width; reg.h = bmp.height; reg.thumb = miniatura(bmp, bmp.width, bmp.height); if (bmp.close) bmp.close(); }
         else { var v = document.createElement("video"), u = URL.createObjectURL(blob); v.muted = true; v.playsInline = true; v.preload = "auto"; v.src = u;

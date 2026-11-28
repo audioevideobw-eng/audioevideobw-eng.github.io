@@ -828,3 +828,11 @@ Armadilha: classe de ESTADO não serve para destacar botão. `＋ IMPORTAR` usav
   outra aba (navega a mesma) — não dá para usar postMessage entre abas.
 - Manifesto assets/tutoriais/narracao.js (`window.BW_TUT_NARRA`): passo → h8. Texto mudou e o áudio não foi refeito = toca a voz do aparelho (nunca um áudio que diz outra coisa).
   Passo novo = gerar só os de `--falta`, subir e regravar o manifesto.
+
+## Foto HEIC e o app Android sem fechar (28/11/2026)
+- HEIC: `BWHeic.converterSePreciso(blob, nome, aoComecar)` → `null` se o navegador já abre (Safari) ou Blob JPEG novo. Biblioteca heic-to baixada só na 1ª
+  vez (`<script integrity>` criado pelo próprio bw-heic.js). No teste, servir a cópia do npm pela rota do Playwright (mesmos bytes = mesmo selo) e gerar
+  a foto com pillow-heif: `Image.new(...).save('x.HEIC', format='HEIF')`.
+- WebView do Android: (1) apagar `webkitSpeechRecognition` cedo (modos.js no <head>); (2) `onRenderProcessGone` → `return true` + `activity.recreate()`
+  (o padrão do Capacitor fecha o app); (3) voz: `addJavascriptInterface(new BwFala(...), "BWFalaNativa")` + polyfill de speechSynthesis em bw-android.js;
+  testar no Chromium com `Object.defineProperty(window,"speechSynthesis",{value:undefined,configurable:true,writable:true})` + interface simulada.

@@ -137,6 +137,7 @@
   async function abrirImagem(f, nome) {
     try { return await decodificar(f); }
     catch (e) {
+      if (window.BWHeic && await BWHeic.eHeic(f, nome || f.name)) return decodificar(await BWHeic.paraJpeg(f, 0.95));   /* 28/11: libheif atual (heic2any é de 2020 e falha em HEIC novos) */
       if (/heic|heif/i.test((f.type || "") + (nome || f.name || ""))) {
         if (!window.heic2any) await carregarScript("https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js");
         var b = await window.heic2any({ blob: f, toType: "image/jpeg", quality: 0.95 }); return decodificar(Array.isArray(b) ? b[0] : b);

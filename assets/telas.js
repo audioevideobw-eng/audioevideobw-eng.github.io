@@ -39,10 +39,12 @@
   async function importar(arquivos) {
     var n = 0, ruins = [], novos = [];
     for (var i = 0; i < arquivos.length; i++) {
-      var f = arquivos[i], tipo = /^video\//.test(f.type) || /\.(mp4|mov|m4v|webm)$/i.test(f.name) ? "video" : /^image\//.test(f.type) ? "foto" : null;
+      var f = arquivos[i], tipo = /^video\//.test(f.type) || /\.(mp4|mov|m4v|webm)$/i.test(f.name) ? "video" : /^image\//.test(f.type) || /\.(jpe?g|png|webp|gif|heic|heif)$/i.test(f.name) ? "foto" : null;
       if (!tipo) { ruins.push(f.name); continue; }
       var blob = new Blob([await f.arrayBuffer()], { type: f.type || (tipo === "video" ? "video/mp4" : "image/jpeg") }); // cópia na memória (iPhone invalida o original)
-      var reg = { id: uid(), nome: f.name, tipo: tipo, blob: blob, w: 0, h: 0, dur: 0, thumb: "" };
+      var nomeF = f.name;
+      if (tipo === "foto" && window.BWHeic) try { var cv = await BWHeic.converterSePreciso(blob, f.name, function () { aviso("⏳ Convertendo a foto HEIC…"); }); if (cv) { blob = cv; nomeF = BWHeic.nomeJpg(f.name); } } catch (e) { }   /* 28/11: HEIC do iPhone fora do Safari */
+      var reg = { id: uid(), nome: nomeF, tipo: tipo, blob: blob, w: 0, h: 0, dur: 0, thumb: "" };
       try {
         if (tipo === "foto") { var bmp = await createImageBitmap(blob); reg.w = bmp.width; reg.h = bmp.height; reg.thumb = miniatura(bmp, bmp.width, bmp.height); bmp.close && bmp.close(); }
         else {

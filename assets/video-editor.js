@@ -172,10 +172,18 @@
     return /hvc1|hev1/.test(t) ? "hevc" : /av01/.test(t) ? "av1" : /avc1/.test(t) ? "h264" : /apcn|apch|apcs|ap4h/.test(t) ? "prores" : ""; } catch (e) { return ""; } }
   function duracaoDe(url, tipo) { return abrirVideo({ url: url, tipo: tipo }, false, 12000).then(function (r) { duracaoDe.ok = r.ok; return r.ok && r.dur ? r.dur : 5; }); }
   async function capa(m) { var r = await abrirVideo(m, true, 15000); if (r.capa) m.capa = r.capa; if (!r.ok && m.tipo === "imagem") m.ruim = true; return r; }
+  /* 28/11/2026 (dono, app Android: "IMG_3685.HEIC … não abre neste navegador"): HEIC do iPhone só abre no Safari. Fora dele, BWHeic (assets/bw-heic.js)
+     converte para JPEG no aparelho e o arquivo fica guardado já convertido (reabrir não converte de novo). */
+  async function heicJpeg(b, nome) { if (!window.BWHeic || !b) return null;
+    try { return await BWHeic.converterSePreciso(b, nome, function () { aviso("⏳ Convertendo a foto HEIC " + String(nome || "").slice(0, 30) + "…"); }); }
+    catch (e) { console.warn("heic", e); aviso(/sem_rede/.test(String(e && e.message)) ? "Sem internet para converter a foto HEIC agora" : "Não consegui converter a foto HEIC", true); return null; } }
+  function trocarBlob(m, b) { try { URL.revokeObjectURL(m.url); } catch (e) { } m.blob = b; m.url = URL.createObjectURL(b); m.nome = String(BWHeic.nomeJpg(m.nome)).slice(0, 60); m.heic = true; }
+  async function guardarConvertida(m) { try { await tx("midias", "readwrite", function (s) { return s.put({id: m.id, nome: m.nome, tipo: m.tipo, blob: m.blob, dur: m.dur, capa: m.capa || ""}); }); } catch (e) { } }
   async function porMidia(blob, nome, tipo, id, durFixa, capaFixa) {
     var m = {id: id || uid("m"), nome: String(nome || "arquivo").slice(0, 60), tipo: tipo, blob: blob, url: URL.createObjectURL(blob)};
     if (capaFixa && durFixa && tipo === "video") { m.capa = capaFixa; m.dur = durFixa; MID[m.id] = m; return m; }   /* ao reabrir: capa guardada, nada de abrir 37 vídeos 4K de novo */
     var r = await abrirVideo(m, tipo === "video", 15000); if (r.w) { m.w = r.w; m.h = r.h; }
+    if (!r.ok && tipo === "imagem") { var cv = await heicJpeg(blob, m.nome); if (cv) { blob = cv; trocarBlob(m, cv); r = await abrirVideo(m, false, 15000); if (r.w) { m.w = r.w; m.h = r.h; } if (id && r.ok) guardarConvertida(m); } }   /* 28/11: foto HEIC do iPhone no Android/PC vira JPEG aqui */
     if (!r.ok && tipo !== "imagem") { await new Promise(function (ok) { setTimeout(ok, 400); }); r = await abrirVideo(m, tipo === "video", 25000); }   /* 2ª tentativa, com mais prazo (4K pesado) */
     if (r.capa) m.capa = r.capa; m.dur = durFixa || r.dur || (tipo === "imagem" ? 4 : 5);
     if (!r.ok) { m.ruim = true; if (tipo === "video") m.codec = await codecDe(blob); }
@@ -1304,7 +1312,8 @@
       if (kk.charAt(0) === "l") { addElemento(kk.slice(2)); if (window.VEApp && VEApp.aberta && VEApp.aberta()) VEApp.fechar(); return; }
       aplicarFx(sel(), kk.charAt(0), kk.slice(2)); return; }
     var rt = e.target.closest("[data-retry]"); if (rt) { e.stopPropagation(); var mr = MID[rt.dataset.retry]; if (!mr) return; aviso("⏳ Tentando abrir " + mr.nome + " de novo…");
-      var r2 = await abrirVideo(mr, mr.tipo === "video", 30000); if (r2.ok && (mr.tipo !== "video" || r2.capa)) { mr.ruim = false; mr.capa = r2.capa || mr.capa; if (r2.dur) mr.dur = r2.dur; aviso("✓ " + mr.nome + " abriu."); } else aviso("⚠ " + mr.nome + " continua sem abrir neste navegador" + (mr.codec === "hevc" ? " (é HEVC/H.265)." : "."), true); desenharLib(); tudo(); return; }
+      if (mr.tipo === "imagem") { var cv2 = await heicJpeg(mr.blob, mr.nome); if (cv2) { trocarBlob(mr, cv2); } }
+      var r2 = await abrirVideo(mr, mr.tipo === "video", 30000); if (r2.ok && mr.heic) guardarConvertida(mr); if (r2.ok && (mr.tipo !== "video" || r2.capa)) { mr.ruim = false; mr.capa = r2.capa || mr.capa; if (r2.dur) mr.dur = r2.dur; aviso("✓ " + mr.nome + " abriu."); } else aviso("⚠ " + mr.nome + " continua sem abrir neste navegador" + (mr.codec === "hevc" ? " (é HEVC/H.265)." : "."), true); desenharLib(); tudo(); return; }
     var d = e.target.closest("[data-del]"); if (d) { e.stopPropagation(); var id = d.dataset.del; if (P.clips.some(function (c) { return c.mid === id; }) && !confirm("Este arquivo está na linha do tempo. Tirar da biblioteca apaga os clipes dele. Continuar?")) return; P.clips.filter(function (c) { return c.mid === id; }).forEach(function (c) { soltarEl(c.id); }); P.clips = P.clips.filter(function (c) { return c.mid !== id; }); if (MID[id]) URL.revokeObjectURL(MID[id].url); delete MID[id]; if (window.BWMascara) BWMascara.apagar(id); await tx("midias", "readwrite", function (s) { return s.delete(id); }); desenharLib(); tudo(); return; }
     var tp = e.target.closest("[data-texto]"); if (tp) { porTextoPronto(tp.dataset.texto); if (window.VEApp && VEApp.aberta && VEApp.aberta()) VEApp.fechar(); return; }
     var ep = e.target.closest("[data-elem]"); if (ep) { addElemento(ep.dataset.elem); if (window.VEApp && VEApp.aberta && VEApp.aberta()) VEApp.fechar(); return; }

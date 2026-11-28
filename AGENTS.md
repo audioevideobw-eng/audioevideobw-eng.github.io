@@ -1096,6 +1096,20 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
      MODO DIRETOR no tutorial: respostas REAIS da IA gravadas no navegador do dono e repetidas na captura pela ordem (roteiro → textos → imagens → mudança); o aviso de
      CRIAR IMAGENS vai para #qdAviso (não #qdDirAviso) e o painel do diretor FECHA sozinho depois — reabrir com BWDiretor.abrir() (auto: teste_tutoriais.py).
 
+**Aprendidos em 28/11 (app Android: foto HEIC e o assistente que fechava o app)**
+244. FOTO HEIC DO IPHONE fora do Safari (Chrome, Edge, app Android/WebView): assets/bw-heic.js (BWHeic) converte para JPEG NO APARELHO — só quando o
+     navegador não abre sozinho (testa com <img>), com a biblioteca heic-to 1.6.7 (libheif 1.23.7, LGPL, sem alteração) baixada SÓ na 1ª foto HEIC, versão
+     fixa + selo de integridade; o arquivo fica guardado já convertido (reabrir não converte de novo). Ferramenta nova que recebe foto = carregar bw-heic.js
+     e chamar BWHeic.converterSePreciso (vídeo, fotos, Telas e Álbum já chamam). Teste com HEIC DE VERDADE feito por pillow-heif (bytes aleatórios
+     com nome .heic só provam o "não abre") (auto: teste_heic_android.py).
+245. APP ANDROID (WebView): (a) o WebView MOSTRA webkitSpeechRecognition mas não tem o serviço — usar derrubava a página; modos.js apaga
+     SpeechRecognition/webkitSpeechRecognition no app ANTES de qualquer ferramenta olhar (todas caem na gravação + transcrição, o caminho do iPhone
+     instalado). (b) Página que cai (falta de memória, recurso que o WebView não tem) FECHAVA O APP: o Capacitor devolve false em onRenderProcessGone →
+     BwClient devolve true e recria a Activity. (c) O WebView não tem window.speechSynthesis: a voz do Android entra por BWFalaNativa (BwFala.java,
+     TextToSpeech, com <queries> TTS_SERVICE no manifesto) e bw-android.js monta por cima um speechSynthesis igual ao do navegador (vozes com o nome do
+     Android: x-ptd = masculina). addJavascriptInterface só vale na página carregada DEPOIS → a 1ª página é aberta de novo no load(). Mudança em Java só
+     chega com o .apk novo — conferir o build do GitHub Actions (aqui não há SDK). Teste: navegador com speechSynthesis apagado + BWFalaNativa simulada.
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -2875,7 +2889,17 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   caracteres do plano Starter), no bucket trends/narracao/ (SQL 2026-11-26-narracao-audio.sql rodado com o "pode" do dono: o bucket aceita MP3); abre com "Olá, eu sou o
   Marcos, da Brightway"; sem o áudio certo volta a voz do aparelho. Google Cloud conferido: o ElevenLabs lá é só por oferta privada (empresa) — assinatura direta é o caminho.
   Sobrou no bucket trends/narracao/teste-voz.mp3 (o bucket não tem regra de apagar). teste_tutoriais 0 falhas. Manual 78 p. tutoriais.js v8, quadros.js v5, sw v250. PENTE FINO 243.
+- 28/11/2026 10:10 · Claude (dono, print do app Android: "IMG_3685.HEIC … não abre neste navegador" + "o Assistente, quando clicado, fecha o app"):
+  (1) FOTO HEIC: novo assets/bw-heic.js converte a foto do iPhone para JPEG no próprio aparelho quando o navegador não abre HEIC (Chrome, Edge,
+  app Android) — editor de vídeo (importar, reabrir e ↻), editor de fotos (troca o heic2any de 2020), Telas e Álbum 3D. (2) ASSISTENTE no app
+  Android: o reconhecimento de voz do navegador sai no app (usava um recurso que o WebView não tem); página que cai não fecha mais o app
+  (onRenderProcessGone → refaz a tela); e o assistente ganhou VOZ no app (BwFala.java: a voz do Android, a masculina quando é o robô).
+  teste_heic_android.py (novo, 0 falhas), teste_android, video_midia, agente_leitor, telas, album, fotos 0 falhas; vigia ✅. modos.js v12 (66 páginas),
+  bw-android.js v3, video-editor v41, fotos v25, telas v13, album v7, bw-heic v1, sw v251. PENTE FINO 244–245. NÃO testado num Android de verdade
+  (o .apk novo sai pelo GitHub Actions).
 ## Pendências (dono)
+- [ ] (28/11) APP ANDROID: instalar o .apk novo (Downloads → App BW para Android), abrir o editor de vídeo com as fotos .HEIC e tocar no robô do
+      assistente (deve pedir o microfone, gravar e responder FALANDO); dizer se ainda fecha.
 - [x] (26/11 09:41) BW-Setup.exe 1.9.56 gerado pelo dono e publicado (17 MB, versão conferida dentro do .exe).
 - [x] (25/11 22:23) BW-Setup.exe 1.9.55 gerado pelo dono e publicado (16,4 MB, versão conferida dentro do .exe).
 - [x] (25/11 17:16) BW-Setup.exe 1.9.54 gerado pelo dono e publicado (15,5 MB, versão conferida dentro do .exe).
