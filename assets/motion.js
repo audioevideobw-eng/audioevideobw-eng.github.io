@@ -85,6 +85,22 @@
     var ag = $("moAgulha"); if (ag) ag.style.left = (T * pxs()) + "px";
     moldura(); if (SEL && !TOCANDO) atualizarKbs();
   }
+  /* 28/11 (dono: "mexer livre em tudo"): ALÇAS nas pontas do item escolhido — sem tecla estica LIVRE (it.ex / it.ey), Shift proporcional,
+     Alt do centro; a posição segue a regra de sempre (keyframe quando GRAVAR está ligado ou o item já tem keyframes). */
+  var ALCM = null;
+  if (window.BWLivre) window.__moAlcas = BWLivre.alcas({
+    caixa: function () {
+      if (TOCANDO || !SEL || !MONT) return null; var c = MONT.caixas.filter(function (x) { return x.it.id === SEL; })[0]; if (!c || c.b.style.display === "none" || c.it.trava) return null;
+      var it = c.it, tl = $("moTela"); if (!tl || !tl.getClientRects().length) return null; var r = tl.getBoundingClientRect(), k = sc(), s = valorEm(it, "escala", T) || 1;
+      var w = c.w * s * (it.ex == null ? 1 : +it.ex) * k, h = c.h * s * (it.ey == null ? 1 : +it.ey) * k, x = r.left + valorEm(it, "x", T) * k, y = r.top + valorEm(it, "y", T) * k;
+      return { x: x - w / 2, y: y - h / 2, w: w, h: h };
+    },
+    giro: function () { var it = SEL && P.itens.filter(function (q) { return q.id === SEL; })[0]; return it ? valorEm(it, "giro", T) : 0; },
+    comecar: function () { var it = P.itens.filter(function (q) { return q.id === SEL; })[0]; ALCM = it ? { it: it, ex: it.ex == null ? 1 : +it.ex, ey: it.ey == null ? 1 : +it.ey, x: valorEm(it, "x", T), y: valorEm(it, "y", T) } : null; },
+    mudar: function (n, i) { if (!ALCM) return; var it = ALCM.it, k = sc(); it.ex = Math.round(Math.max(0.05, ALCM.ex * i.rw) * 1000) / 1000; it.ey = Math.round(Math.max(0.05, ALCM.ey * i.rh) * 1000) / 1000;
+      definir(it, "x", Math.round(ALCM.x + i.dcx / k)); definir(it, "y", Math.round(ALCM.y + i.dcy / k)); ver(T); },
+    fim: function () { ALCM = null; mudou({ remontar: false, painel: true }); }
+  });
   function moldura() {
     var s = $("moSelecao"), c = SEL && MONT && MONT.caixas.filter(function (x) { return x.it.id === SEL; })[0];
     if (!c || c.b.style.display === "none") { s.hidden = true; return; }
@@ -273,7 +289,7 @@
     h += '<div class="mo-g"><h4 data-seta="mo_conteudo">CONTEÚDO</h4><div>' + Object.keys(it.props).map(function (k) { return campo(it, k); }).join("") + "</div></div>";
     h += '<div class="mo-g"><h4 data-seta="mo_pos">POSIÇÃO E KEYFRAMES</h4><div>' + PROPS_POS.map(function (q) {
       var v = valorEm(it, q[0], T); return '<label class="k">' + q[1] + '<input type="range" data-pos="' + q[0] + '" min="' + q[2] + '" max="' + q[3] + '" step="' + q[4] + '" value="' + v + '"><output>' + (q[4] < 1 ? fmt(v, 2) : Math.round(v)) + '</output><button class="mo-kb" type="button" data-kb="' + q[0] + '" title="Keyframe aqui">◆</button></label>';
-    }).join("") + '<p class="mo-dica">◆ marca o valor NESTE tempo. Ande com a agulha, mude o valor e marque de novo: o item se move entre os keyframes. Com ◆ GRAVAR MOVIMENTO ligado, arrastar na tela já marca.</p><div class="mo-linha"><button class="mo-bt mini" type="button" data-acao="klimpar">LIMPAR KEYFRAMES</button><button class="mo-bt mini" type="button" data-acao="centro">CENTRALIZAR</button></div></div></div>';
+    }).join("") + [["ex", "↔ Largura (X)"], ["ey", "↕ Altura (Y)"]].map(function (q) { var v = it[q[0]] == null ? 1 : +it[q[0]]; return '<label class="k">' + q[1] + '<input type="range" data-exy="' + q[0] + '" min="0.1" max="4" step="0.01" value="' + v + '"><output>' + Math.round(v * 100) + '%</output></label>'; }).join("") + '<p class="mo-dica">◆ marca o valor NESTE tempo. Ande com a agulha, mude o valor e marque de novo: o item se move entre os keyframes. Com ◆ GRAVAR MOVIMENTO ligado, arrastar na tela já marca.</p><div class="mo-linha"><button class="mo-bt mini" type="button" data-acao="klimpar">LIMPAR KEYFRAMES</button><button class="mo-bt mini" type="button" data-acao="centro">CENTRALIZAR</button></div></div></div>';
     h += '<div class="mo-g"><h4 data-seta="mo_entrada">ENTRADA</h4><div>' + chips(listaEfeitos(it), it.entrada.efeito, "data-ent") +
       '<label>Duração<input type="range" data-ent-dur="1" min="0.1" max="3" step="0.05" value="' + it.entrada.dur + '"><output>' + fmt(it.entrada.dur, 2) + ' s</output></label><div class="mo-linha"><button class="mo-bt mini" type="button" data-acao="verent">▶ VER A ENTRADA</button><button class="mo-bt mini ia" type="button" data-acao="criaref">✨ CRIAR MEU EFEITO</button></div></div></div>';
     h += '<div class="mo-g"><h4 data-seta="mo_saida" data-seta-padrao="fechada">SAÍDA</h4><div>' + chips(listaEfeitos(it).filter(function (o) { return o[0] !== "palavras" && o[0] !== "maquina"; }), it.saida.efeito, "data-sai") +
@@ -300,6 +316,7 @@
       var it = SEL && item(SEL), el = e.target; if (!it) return;
       if (el.matches("[data-prop]")) { var k = el.getAttribute("data-prop"), v = el.type === "checkbox" ? el.checked : el.type === "range" || el.type === "number" || typeof it.props[k] === "number" ? Number(el.value) : el.value;
         it.props[k] = v; if (el.type === "range" && el.nextElementSibling) el.nextElementSibling.textContent = v; mudou(); return; }
+      if (el.matches("[data-exy]")) { it[el.getAttribute("data-exy")] = Math.round(Number(el.value) * 1000) / 1000; if (el.nextElementSibling) el.nextElementSibling.textContent = Math.round(el.value * 100) + "%"; mudou({ remontar: false }); return; }
       if (el.matches("[data-pos]")) { var pr = el.getAttribute("data-pos"); definir(it, pr, Number(el.value)); if (el.nextElementSibling) el.nextElementSibling.textContent = +el.step < 1 ? fmt(el.value, 2) : Math.round(el.value); mudou({ remontar: false }); return; }
       if (el.matches("[data-ent-dur]")) { it.entrada.dur = Number(el.value); el.nextElementSibling.textContent = fmt(el.value, 2) + " s"; mudou({ remontar: false }); return; }
       if (el.matches("[data-sai-dur]")) { it.saida.dur = Number(el.value); el.nextElementSibling.textContent = fmt(el.value, 2) + " s"; mudou({ remontar: false }); return; }

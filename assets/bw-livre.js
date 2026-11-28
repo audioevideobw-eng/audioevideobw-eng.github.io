@@ -44,6 +44,7 @@
   function soltar(cx) { cx.classList.remove("bwl-solta"); ["left", "top", "width", "height"].forEach(function (p) { cx.style[p] = ""; }); }
   function preparar(fundo) {
     var cx = caixaDe(fundo); if (!cx || !visivel(fundo)) return;
+    if (!cx.classList.contains("bwl-jan")) cx.__bwlAberta = false;   /* a ferramenta trocou a classe da caixa (modal reaberto): reaplica o lugar */
     if (cx.classList.contains("ve-jan-c")) cx.classList.add("bwl-semesp");   /* janela do vídeo já tem barra de título própria */
     cx.classList.add("bwl-jan"); cx.__bwlFundo = fundo;
     if (!cx.querySelector(":scope > .bwl-arr")) { var a = document.createElement("i"); a.className = "bwl-arr"; a.textContent = "⠿"; a.title = "Arraste para mover · dois toques: volta ao lugar"; a.setAttribute("aria-hidden", "true"); cx.appendChild(a); }
@@ -133,9 +134,12 @@
       var g = (o.giro ? +o.giro() || 0 : 0) * Math.PI / 180, dx = ev.clientX - D.px, dy = ev.clientY - D.py;
       if (g) { var c = Math.cos(-g), s = Math.sin(-g), rx = dx * c - dy * s, ry = dx * s + dy * c; dx = rx; dy = ry; }
       var n = conta(D.ini, D.q, dx, dy, ev.shiftKey, ev.altKey);
-      box.style.left = n.x + "px"; box.style.top = n.y + "px"; box.style.width = n.w + "px"; box.style.height = n.h + "px";
+      var lcx0 = n.x + n.w / 2 - (D.ini.x + D.ini.w / 2), lcy0 = n.y + n.h / 2 - (D.ini.y + D.ini.h / 2), scx = D.ini.x + D.ini.w / 2 + lcx0 * Math.cos(g) - lcy0 * Math.sin(g), scy = D.ini.y + D.ini.h / 2 + lcx0 * Math.sin(g) + lcy0 * Math.cos(g);
+      box.style.left = (scx - n.w / 2) + "px"; box.style.top = (scy - n.h / 2) + "px"; box.style.width = n.w + "px"; box.style.height = n.h + "px";
       dim.hidden = false; dim.textContent = Math.round(n.w / D.ini.w * 100) + "% × " + Math.round(n.h / D.ini.h * 100) + "%" + (ev.shiftKey ? " · proporcional" : "");
-      o.mudar(n, { q: D.q, shift: ev.shiftKey, alt: ev.altKey, ini: D.ini });
+      /* deslocamento do CENTRO já de volta na direção da tela (o item pode estar girado) */
+      var lcx = n.x + n.w / 2 - (D.ini.x + D.ini.w / 2), lcy = n.y + n.h / 2 - (D.ini.y + D.ini.h / 2), cg = Math.cos(g), sg = Math.sin(g);
+      o.mudar(n, { q: D.q, shift: ev.shiftKey, alt: ev.altKey, ini: D.ini, rw: n.w / D.ini.w, rh: n.h / D.ini.h, dcx: lcx * cg - lcy * sg, dcy: lcx * sg + lcy * cg });
     });
     var acabar = function () { if (!D) return; D = null; dim.hidden = true; ultimo = ""; document.documentElement.classList.remove("bwl-mexendo"); if (o.fim) o.fim(); };
     box.addEventListener("pointerup", acabar); box.addEventListener("pointercancel", acabar);

@@ -99,6 +99,24 @@
     cv.width = Math.round(P.w * PREVIA.esc); cv.height = Math.round(P.h * PREVIA.esc); cv.style.width = Math.round(P.w * k) + "px"; cv.style.height = Math.round(P.h * k) + "px";
     document.documentElement.style.scrollPaddingTop = cel ? Math.round(P.h * k + 70) + "px" : "";
   }
+  /* 28/11 (dono: "mexer livre em tudo"): ALÇAS na mídia da tela tocada (cena parada, fora da transição) — sem tecla estica LIVRE (c.enq[i].ex/ey),
+     Shift proporcional, Alt do centro; o centro anda junto (dx/dy em fração da tela). Tocar numa tela da prévia escolhe qual mídia. */
+  var PSEL = 0, ALT_ = null;
+  function cenaParada() { if (TOCANDO || !P) return null; var at = T.ativas(P, TEMPO); return at.length === 1 ? P.cenas[at[0].i] : null; }
+  if (window.BWLivre) {
+    window.__tlAlcas = BWLivre.alcas({
+      caixa: function () { var c = cenaParada(), cv = $("tlCv"); if (!c || !cv || !cv.getClientRects().length) return null; var g = T.REG[c.id + ":" + PSEL] || T.REG[c.id + ":0"]; if (!g) return null;
+        var r = cv.getBoundingClientRect(), sx = r.width / cv.width, sy = r.height / cv.height; return { x: r.left + g.x * sx, y: r.top + g.y * sy, w: g.w * sx, h: g.h * sy }; },
+      comecar: function () { var c = cenaParada(), cv = $("tlCv"); if (!c) { ALT_ = null; return; } var g = T.REG[c.id + ":" + PSEL], r = cv.getBoundingClientRect(); c.enq = c.enq || []; var a = c.enq[PSEL] = c.enq[PSEL] || {};
+        ALT_ = { a: a, ex: a.ex == null ? 1 : +a.ex, ey: a.ey == null ? 1 : +a.ey, dx: +a.dx || 0, dy: +a.dy || 0, pw: g.pw * r.width / cv.width, ph: g.ph * r.height / cv.height }; },
+      mudar: function (n, i) { if (!ALT_) return; var a = ALT_.a; a.ex = Math.round(Math.max(0.1, ALT_.ex * i.rw) * 1000) / 1000; a.ey = Math.round(Math.max(0.1, ALT_.ey * i.rh) * 1000) / 1000;
+        a.dx = Math.round((ALT_.dx + i.dcx / ALT_.pw) * 1000) / 1000; a.dy = Math.round((ALT_.dy + i.dcy / ALT_.ph) * 1000) / 1000; desenharAgora(); },
+      fim: function () { ALT_ = null; mudou({}); }
+    });
+    document.addEventListener("pointerdown", function (ev) { var cv = $("tlCv"); if (!cv || ev.target !== cv) return; var c = cenaParada(); if (!c) return; var r = cv.getBoundingClientRect(), x = (ev.clientX - r.left) * cv.width / r.width, y = (ev.clientY - r.top) * cv.height / r.height;
+      var ps = T.paineis(c.layout || "cheia", cv.width, cv.height, +(P.gap === undefined ? 10 : P.gap) * cv.width / 1080);
+      for (var k = ps.length - 1; k >= 0; k--) { var q = ps[k]; if (x >= q.x && x <= q.x + q.w && y >= q.y && y <= q.y + q.h) { PSEL = k; break; } } }, true);
+  }
   function desenharAgora() { var cv = $("tlCv"); T.desenhar(cv.getContext("2d"), P, TEMPO, cv.width, cv.height, fonteViva); }
   function relogio() { var d = T.duracao(P); $("tlTempo").textContent = fmt(TEMPO) + " / " + fmt(d) + " s"; $("tlScrub").max = String(Math.max(0.1, d)); if (document.activeElement !== $("tlScrub")) $("tlScrub").value = String(TEMPO); }
   var VER_T = 0;

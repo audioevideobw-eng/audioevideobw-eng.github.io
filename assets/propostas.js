@@ -350,10 +350,11 @@
   function desenharForm() {
     var d = DOC, rec = d.tipo === "recibo", h = "";
     h += '<div class="tf-card" style="margin-top:0"><div class="pr-tit"><span>' + (rec ? "RECIBO" : "ORÇAMENTO") + " " + esc(d.numero || "(número sai ao salvar)") + '</span><span class="pr-st st-' + d.status + '">' + esc(STATUS[d.status]) + "</span></div>" +
-      '<div class="pr-sugs" style="margin-top:0"><button type="button" class="pr-chip" data-a="voltar">‹ VOLTAR À LISTA</button>' + (rec ? "" : '<button type="button" class="pr-chip" data-a="ia">✨ MONTAR COM IA</button><button type="button" class="pr-chip" data-a="caprichar">✨ CAPRICHAR NO TEXTO</button>') + "</div></div>";
+      '<div class="pr-sugs" style="margin-top:0"><button type="button" class="pr-chip" data-a="voltar">‹ VOLTAR À LISTA</button><button type="button" class="pr-chip" data-a="dobrasTudo" data-v="0">▸ FECHAR TUDO</button><button type="button" class="pr-chip" data-a="dobrasTudo" data-v="1">▾ ABRIR TUDO</button>' + (rec ? "" : '<button type="button" class="pr-chip" data-a="ia">✨ MONTAR COM IA</button><button type="button" class="pr-chip" data-a="caprichar">✨ CAPRICHAR NO TEXTO</button>') + "</div></div>";
     if (!rec) {
       h += '<div class="tf-card"><div class="pr-tit">O que você vai fazer? <small style="color:rgba(245,241,234,.5);letter-spacing:0;text-transform:none;font-weight:600">toque para preencher</small></div><div class="pr-botoes">' +
-        botoes().map(function (b) { return '<button type="button" class="pr-bt" data-a="botao" data-v="' + esc(b.id) + '">' + esc(b.nome) + "<small>" + esc(b.desc || "") + "</small></button>"; }).join("") + "</div></div>";
+        botoes().map(function (b) { return '<button type="button" class="pr-bt" data-a="botao" data-v="' + esc(b.id) + '">' + esc(b.nome) + "<small>" + esc(b.desc || "") + "</small></button>"; }).join("") +
+        '<button type="button" class="pr-bt pr-bt-novo" data-a="cadServico">＋ CADASTRAR SERVIÇO<small>Crie o seu botão com as opções prontas</small></button>' + "</div></div>";
     }
     /* cliente */
     var cl = d.cliente;
@@ -408,6 +409,8 @@
     ac += '<button type="button" class="bw-btn bw-btn--vidro" data-a="excluirEd">EXCLUIR</button>';
     h += '<div class="pr-acoes">' + ac + '</div><div class="pr-msg" id="msgEd" role="status"></div>';
     $("form").innerHTML = h;
+    /* 28/11 (dono: "setas de omissão já padronizadas na ferramenta de orçamentos"): cada cartão vira uma seção com seta (BWDobras, ui_dobras) */
+    if (window.BWDobras) BWDobras.agrupar($("form"), ".tf-card:not(:first-child) > .pr-tit", "pr_");
   }
   function listasClientes() {
     var nomes = {}, emps = {};
@@ -753,6 +756,35 @@
       }).join("") + '<div class="pr-sugs" style="margin-top:14px"><button type="button" class="bw-btn" data-a="fecharModal">✓ PRONTO</button>' + (proprio ? '<button type="button" class="bw-btn bw-btn--vidro" data-a="bPadrao">RESTAURAR OS 7 PADRÃO</button>' : "") + "</div>", true);
   }
   function salvarBotoes(l) { salvarCfg("botoes", l); }
+  /* 28/11 (dono: "inserir a opção de cadastro em O que você vai fazer?, com os botões de opções já predefinidas como nas outras configurações"):
+     ＋ CADASTRAR SERVIÇO monta um botão novo (o mesmo formato de ★ SALVAR COMO BOTÃO) — cada lista tem ☰ OPÇÕES PRONTAS que abre/fecha na própria janela. */
+  var CAD = null;
+  var CAD_LISTAS = [["escopo", "O que será feito"], ["equipe", "Equipe"], ["equip", "Equipamentos"], ["obs", "Observações"]];
+  var CAD_UM = [["pagamento", "Condição de pagamento"], ["montagem", "Montagem"], ["horario", "Horário"]];
+  function abrirCadastro() { CAD = { nome: "", desc: "", objeto: "", valor: "", escopo: [], equipe: [], equip: [], obs: [], pagamento: "", montagem: "", horario: "", aberto: "" }; desenharCadastro(); }
+  function cadGuardarCampos() { var cx = $("modalCx"); if (!cx || !CAD) return; [].forEach.call(cx.querySelectorAll("[data-cad]"), function (el) { var k = el.getAttribute("data-cad"); if (CAD_LISTAS.some(function (q) { return q[0] === k; })) CAD[k] = el.value.split("\n").map(function (x) { return x.trim(); }).filter(Boolean); else CAD[k] = el.value; }); }
+  function desenharCadastro() {
+    var opc = function (k, tit, lista, um) { var on = CAD.aberto === k, atual = um ? [String(CAD[k] || "").toLowerCase()] : (CAD[k] || []).map(function (x) { return x.toLowerCase(); });
+      return '<div class="pr-sugs"><button type="button" class="pr-opc' + (on ? " on" : "") + '" data-a="cadOpc" data-l="' + k + '"><span>☰ ' + esc(tit.toUpperCase()) + " — OPÇÕES PRONTAS</span><b>" + lista.length + "</b></button></div>" +
+        (on ? '<div class="pr-opc-lista">' + lista.map(function (o) { var sel = atual.indexOf(o.toLowerCase()) >= 0; return '<button type="button" class="pr-opc-it' + (sel ? " on" : "") + '" data-a="' + (um ? "cadUm" : "cadItem") + '" data-l="' + k + '" data-v="' + esc(o) + '" aria-pressed="' + sel + '"><i>' + (sel ? "✓" : "+") + "</i><span>" + esc(o) + "</span></button>"; }).join("") + "</div>" : ""); };
+    var h = '<button type="button" class="pr-x" data-a="fecharModal" aria-label="Fechar">✕</button><h3>＋ Cadastrar serviço</h3><p class="tf-sub">Vira um botão em <b>O que você vai fazer?</b>: um toque preenche o orçamento com tudo isto. Use as <b>opções prontas</b> ou escreva (uma por linha).</p>' +
+      '<div class="pr-campos"><label><span>Nome do botão</span><input class="pr-in" data-cad="nome" value="' + esc(CAD.nome) + '" placeholder="TRANSMISSÃO 2 CÂMERAS" maxlength="40"></label>' +
+      '<label><span>Descrição curta</span><input class="pr-in" data-cad="desc" value="' + esc(CAD.desc) + '" placeholder="Ao vivo no YouTube, Full HD" maxlength="60"></label>' +
+      '<label class="largo"><span>Objeto / título do serviço (opcional)</span><input class="pr-in" data-cad="objeto" value="' + esc(CAD.objeto) + '" placeholder="Transmissão ao vivo do evento"></label>' +
+      '<label><span>Valor sugerido (R$)</span><input class="pr-in" data-cad="valor" value="' + esc(CAD.valor) + '" inputmode="decimal" placeholder="3.500,00"></label></div>';
+    CAD_LISTAS.forEach(function (q) { h += '<div class="pr-cad-b"><div class="pr-campos"><label class="largo"><span>' + esc(q[1]) + ' <small style="text-transform:none;opacity:.6">(uma por linha)</small></span><textarea class="pr-in" data-cad="' + q[0] + '" rows="3">' + esc((CAD[q[0]] || []).join("\n")) + "</textarea></label>" + opc(q[0], q[1], SUG[q[0]] || []) + "</div>"; });
+    CAD_UM.forEach(function (q) { h += '<div class="pr-cad-b"><div class="pr-campos"><label class="largo"><span>' + esc(q[1]) + '</span><input class="pr-in" data-cad="' + q[0] + '" value="' + esc(CAD[q[0]] || "") + '"></label></div>' + opc(q[0], q[1], SUG[q[0]] || [], true) + "</div>"; });
+    h += '<div class="pr-sugs" style="margin-top:14px"><button type="button" class="bw-btn" data-a="cadSalvar">✓ CADASTRAR</button><button type="button" class="bw-btn bw-btn--vidro" data-a="fecharModal">CANCELAR</button></div><p class="bw-msg" id="cadMsg" role="status"></p>';
+    var cx = $("modalCx"), y = cx && !$("modal").hidden ? cx.scrollTop : 0; modal(h, true); if (y) $("modalCx").scrollTop = y;
+  }
+  function salvarCadastro() {
+    cadGuardarCampos(); var nome = String(CAD.nome || "").trim();
+    if (!nome) { var m = $("cadMsg"); if (m) m.textContent = "Dê um nome ao botão."; var n = $("modalCx").querySelector('[data-cad="nome"]'); if (n) n.focus(); return; }
+    var b = { id: "b_" + Date.now().toString(36), nome: nome.toUpperCase(), desc: String(CAD.desc || "").trim(), objeto: String(CAD.objeto || "").trim(), valor: String(CAD.valor || "").trim(),
+      escopo: CAD.escopo.slice(), equipe: CAD.equipe.slice(), equip: CAD.equip.slice(), check: [], obs: CAD.obs.slice(), pagamento: CAD.pagamento || "", montagem: CAD.montagem || "", horario: CAD.horario || "" };
+    var lb = botoes().slice(), j0 = lb.findIndex(function (x) { return x.nome === b.nome; }); if (j0 >= 0) { b.id = lb[j0].id; lb[j0] = b; } else lb.push(b);
+    salvarBotoes(lb); CAD = null; fecharModal(); if (DOC) desenharForm(); toast("★ Serviço “" + b.nome + "” cadastrado — toque nele para preencher.");
+  }
 
   /* ================= IA (IA Brightway — só o texto que a pessoa colou) ================= */
   async function sessao() { try { var c = window.BWSync && BWSync.cliente(); var s = c ? await c.auth.getSession() : null; return s && s.data && s.data.session || null; } catch (e) { return null; } }
@@ -917,6 +949,12 @@
       case "reciboEd": salvarAtual(); reciboDe(DOC.id); break;
       case "eventoEd": salvarAtual(); criarEvento(DOC.id); break;
       case "comoBotao": var nome = prompt("Nome do botão (ex.: TRANSMISSÃO 2 CÂMERAS):", (DOC.botoes || [])[0] || ""); if (nome && nome.trim()) { var lb = botoes().slice(), novo = botaoDoDoc(DOC, nome.trim()), j0 = lb.findIndex(function (x) { return x.nome === novo.nome; }); if (j0 >= 0) { novo.id = lb[j0].id; lb[j0] = novo; } else lb.push(novo); salvarBotoes(lb); desenharForm(); toast("★ Botão " + novo.nome + " salvo."); } break;
+      case "dobrasTudo": if (window.BWDobras) BWDobras.todas($("form"), v === "1"); break;
+      case "cadServico": abrirCadastro(); break;
+      case "cadOpc": CAD.aberto = CAD.aberto === l ? "" : l; cadGuardarCampos(); desenharCadastro(); break;
+      case "cadItem": cadGuardarCampos(); (function () { var arr = CAD[l] = CAD[l] || [], ix = arr.map(function (x) { return x.toLowerCase(); }).indexOf(v.toLowerCase()); if (ix >= 0) arr.splice(ix, 1); else arr.push(v); })(); desenharCadastro(); break;
+      case "cadUm": cadGuardarCampos(); CAD[l] = v; desenharCadastro(); break;
+      case "cadSalvar": salvarCadastro(); break;
       case "excluirEd": if (confirm("Excluir " + (DOC.numero || "este documento") + "? Não dá para desfazer.")) { clearTimeout(tSalvar); apagarDoc(DOC.id); fechar(); } break;
       case "ia": abrirIA(); break;
       case "iaMontar": iaMontar(); break;

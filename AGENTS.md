@@ -1176,7 +1176,11 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
      (b) ALÇAS: BWLivre.alcas({caixa, comecar, mudar(n, info), fim}) — 8 alças por cima do item escolhido; sem tecla LIVRE (X e Y soltos), Shift
      proporcional, Alt do centro, rótulo com % × %. A ferramenta guarda as medidas EM PROPORÇÃO da caixa da tela (info.ini), nunca em pixels do canvas
      (a prévia rápida muda o tamanho do canvas no meio do arraste — regra 48). Editor de fotos: camada de imagem/adesivo (tam + alt); Editor de vídeo:
-     take de vídeo/foto na prévia (c.ex/c.ey novos, ↔/↕ no painel, Remover atributos zera). Item novo com tamanho = eixos X e Y separados desde o começo.
+     take de vídeo/foto na prévia (c.ex/c.ey novos, ↔/↕ no painel, Remover atributos zera); Motion: it.ex/it.ey no motor (scale(S·ex, S·ey) — motor do site e
+     do app IGUAIS, regra 109) + ↔/↕ no painel, alças giram com o item (info.dcx/dcy = centro já de volta na direção da tela); Criador: it.ex/it.ey no
+     convite-anim; Telas: c.enq[i] = {ex, ey, dx, dy} por tela, o motor guarda onde desenhou (BWTelas.REG) e tocar numa tela escolhe qual; Álbum 3D:
+     o motor guarda a caixa projetada (canvas.__bwCaixa) e as alças mexem P.esc (sem tecla x/y soltos, Shift = tamanho t) — só com o vídeo PARADO
+     (o álbum toca sozinho ao abrir). Item novo com tamanho = eixos X e Y separados desde o começo.
      Teste: docs/testes/teste_livre.py (janelas em 5 ferramentas × 1280/390 + alças nas fotos e no vídeo). Rodar a bateria UM POR VEZ: em paralelo os
      testes trombam de porta e de tempo e dão falha falsa.
 
@@ -3054,7 +3058,12 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   lugar no aparelho. ALÇAS: Editor de fotos (camada de imagem) e Editor de vídeo (take na prévia, eixos ↔ X e ↕ Y novos) com 8 alças — livre, Shift
   proporcional, Alt do centro. teste_livre.py (novo, 0 falhas × 1280/390) + 21 testes das ferramentas 0 falhas (motion: só a falha antiga do render
   do PC); vigia ✅. Manual 79 → 80 p. ("Mexer livre", depois de Atalhos). fotos.js v26, video-editor v44, bw-livre v1, sw v264. PENTE FINO 253.
-  FALTA (próxima etapa): alças com X/Y livres no Motion, Criador/Convites, Telas e Álbum 3D (hoje só tamanho proporcional lá).
+- 28/11/2026 16:50 · Claude (dono: "faça em tudo" + "setas de omissão padronizadas nos orçamentos e a opção de cadastro em O que você vai fazer?, com
+  os botões de opções prontas"): ALÇAS LIVRES também no Estúdio de motion (↔/↕ novos no painel, motor do site e do app iguais), Criador IA (objetos
+  animados), Telas (mídia de cada tela) e Álbum 3D (modelo inteiro, vídeo parado). ORÇAMENTOS: cada cartão do editor com seta (BWDobras) + ▸ FECHAR TUDO /
+  ▾ ABRIR TUDO; card ＋ CADASTRAR SERVIÇO no fim de O que você vai fazer? → janela com nome, descrição, valor e cada lista/campo com ☰ OPÇÕES PRONTAS que
+  abre na própria janela; salva como botão (mesmo formato de ★ SALVAR COMO BOTÃO). bw-livre: modal que troca a classe da caixa reaplica o lugar.
+  teste_livre (+16) e teste_propostas (+9) 0 falhas; motion, criador, convites, telas, álbum, vídeo 0 falhas; vigia ✅. Manual 80 p. sw v266.
 ## Pendências (dono)
 - [x] (28/11 15:10, dono: "Sim, pode rodar") SQL do balde privado presskit-fotos rodado (público = false · 4 regras pkfotos). Teste no ar logado: foto de TESTE
       enviada e baixada na própria pasta, pasta de outra conta recusada (RLS), endereço público = 400, teste apagado (0 arquivos). Falta o dono

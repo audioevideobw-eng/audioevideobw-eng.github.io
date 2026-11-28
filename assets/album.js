@@ -206,6 +206,22 @@
   /* ---------- salvar / desfazer ---------- */
   function foto() { var a = P.atualizado; P.atualizado = 0; var s = JSON.stringify(P); P.atualizado = a; return s; }
   function salvarJa() { if (!P) return; P.atualizado = Date.now(); op("projetos", "readwrite", function (s) { return s.put({ id: P.id, nome: P.nome, atualizado: P.atualizado, projeto: P }); }).catch(function () {}); try { localStorage.setItem("ui_album_ultimo", P.id); } catch (e) {} }
+  /* 28/11 (dono: "mexer livre em tudo"): tocar no modelo parado mostra ALÇAS em volta do que está na tela — sem tecla estica LIVRE
+     (P.esc.x / y, larg. e alt. soltas), Shift muda o TAMANHO todo (proporcional), Alt do centro; arrastar o centro = Mover X/Y. */
+  var ALB_SEL = false, ALB = null;
+  if (window.BWLivre) {
+    window.__alAlcas = BWLivre.alcas({
+      caixa: function () { var cv = $("alCv"); if (!ALB_SEL || TOCANDO || !cv || !cv.getClientRects().length || !cv.__bwCaixa) return null; var b = cv.__bwCaixa, r = cv.getBoundingClientRect(), sx = r.width / cv.width, sy = r.height / cv.height;
+        return { x: r.left + b.x * sx, y: r.top + b.y * sy, w: b.w * sx, h: b.h * sy }; },
+      comecar: function () { var cv = $("alCv"), r = cv.getBoundingClientRect(), e = P.esc = P.esc || {}; ALB = { t: e.t == null ? 1 : +e.t, x: e.x == null ? 1 : +e.x, y: e.y == null ? 1 : +e.y, mx: +e.mx || 0, my: +e.my || 0, u: (cv.__bwCaixa ? cv.__bwCaixa.u : cv.width / 2) * r.width / cv.width }; },
+      mudar: function (n, i) { if (!ALB) return; var e = P.esc;
+        if (i.shift) { e.t = Math.round(Math.max(0.1, ALB.t * i.rw) * 1000) / 1000; e.x = ALB.x; e.y = ALB.y; }
+        else { e.prop = false; e.x = Math.round(Math.max(0.1, ALB.x * i.rw) * 1000) / 1000; e.y = Math.round(Math.max(0.1, ALB.y * i.rh) * 1000) / 1000; }
+        e.mx = Math.round((ALB.mx + i.dcx / ALB.u) * 1000) / 1000; e.my = Math.round((ALB.my - i.dcy / ALB.u) * 1000) / 1000; desenharAgora(); },
+      fim: function () { ALB = null; desenharVisual(); mudou(); }
+    });
+    document.addEventListener("pointerdown", function (ev) { var cv = $("alCv"); if (!cv) return; var pal = ev.target.closest && ev.target.closest(".al-palco"); if (ev.target === cv || (pal && !ev.target.closest("button,input,select,a,.bwl-caixa"))) { ALB_SEL = true; return; } if (!(ev.target.closest && ev.target.closest(".bwl-caixa"))) ALB_SEL = false; }, true);
+  }
   function mudou() {
     clearTimeout(SALVAR_T); SALVAR_T = setTimeout(function () { salvarJa(); desenharProjetos(); }, 600);
     clearTimeout(HIST_T); HIST_T = setTimeout(gravarHist, 300); relogio(); info(); if (!TOCANDO) ver(TEMPO);

@@ -501,7 +501,8 @@
         var S = s * (fx.s === undefined ? 1 : fx.s), O = cl(o * (fx.o === undefined ? 1 : fx.o));
         var tr = "translate(" + (x + (fx.dx || 0) - c.w / 2).toFixed(2) + "px," + (y + (fx.dy || 0) - c.h / 2).toFixed(2) + "px)";
         if (fx.rx || fx.ry) tr += " perspective(1200px) rotateX(" + (fx.rx || 0).toFixed(2) + "deg) rotateY(" + (fx.ry || 0).toFixed(2) + "deg)";
-        tr += " rotate(" + (r + (fx.r || 0)).toFixed(2) + "deg) scale(" + Math.max(0, S).toFixed(4) + ")";
+        var EX = it.ex == null ? 1 : +it.ex, EY = it.ey == null ? 1 : +it.ey;   /* 28/11: largura (X) e altura (Y) soltas */
+        tr += " rotate(" + (r + (fx.r || 0)).toFixed(2) + "deg) scale(" + Math.max(0, S * EX).toFixed(4) + "," + Math.max(0, S * EY).toFixed(4) + ")";
         b.style.transform = tr; b.style.opacity = O.toFixed(3); var cf = corFiltro(it.cor); b.style.filter = (fx.b > 0.05 ? "blur(" + fx.b.toFixed(1) + "px) " : "") + cf;
         // textos: palavra por palavra / máquina de escrever
         if (pals) {

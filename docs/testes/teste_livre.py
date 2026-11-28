@@ -109,6 +109,42 @@ with sync_playwright() as p:
             v3 = pg.evaluate("() => { const c = __video.P().clips[0]; return [c.ex || 100, c.ey || 100]; }")
             ok(abs(v3[0] - v1[0]) < 0.5, f"editor de vídeo: desfazer volta o último esticar ({v3})")
             if os.environ.get("FOTO"): pg.screenshot(path=f"/tmp/livre-video-{larg}.png")
+        # ---------- ALÇAS no Motion, Criador, Telas e Álbum 3D (PC) ----------
+        if larg >= 900:
+            def alcas(nome, ler):
+                box = pg.locator(".bwl-caixa:visible")
+                if box.count() == 0: ok(False, f"{nome}: aparecem as alças"); return
+                ok(True, f"{nome}: aparecem as alças")
+                v0 = pg.evaluate(ler); e = pg.locator(".bwl-caixa:visible .bwl-alca[data-q=e]").bounding_box()
+                pg.mouse.move(e["x"] + e["width"] / 2, e["y"] + e["height"] / 2); pg.mouse.down(); pg.mouse.move(e["x"] + 50, e["y"] + e["height"] / 2, steps=8); pg.mouse.up(); pg.wait_for_timeout(700)
+                v1 = pg.evaluate(ler)
+                ok(v1[0] > v0[0] * 1.03 and abs(v1[1] - v0[1]) < 0.02 * max(1, v0[1]), f"{nome}: o lado direito estica só o X ({v0} → {v1})")
+                s_ = pg.locator(".bwl-caixa:visible .bwl-alca[data-q=se]").bounding_box()
+                pg.keyboard.down("Shift"); pg.mouse.move(s_["x"] + s_["width"] / 2, s_["y"] + s_["height"] / 2); pg.mouse.down(); pg.mouse.move(s_["x"] + 30, s_["y"] + 60, steps=8); pg.mouse.up(); pg.keyboard.up("Shift"); pg.wait_for_timeout(700)
+                v2 = pg.evaluate(ler)
+                ok(abs((v2[0] / v1[0]) - (v2[1] / v1[1])) < 0.04 and v2[0] > v1[0], f"{nome}: com Shift fica proporcional ({v1} → {v2})")
+            # Motion
+            pg.goto(BASE + "motion.html?layout=classico"); pg.wait_for_timeout(1500)
+            idm = pg.evaluate("() => { const P = BWMotionEditor.projeto(), it = P.itens.find(i => !i.fundo && i.tipo !== 'fundo') || P.itens[0]; BWMotionEditor.ver((it.ini + it.fim) / 2); BWMotionEditor.selecionar(it.id); return it.id; }"); pg.wait_for_timeout(600)
+            alcas("Motion", "() => { const it = BWMotionEditor.projeto().itens.find(i => i.id === '%s'); return [it.ex == null ? 1 : it.ex, it.ey == null ? 1 : it.ey]; }" % idm)
+            ok(pg.locator('[data-exy="ex"]').count() == 1 and pg.locator('[data-exy="ey"]').count() == 1, "Motion: ↔ Largura (X) e ↕ Altura (Y) no painel")
+            # Criador
+            pg.goto(BASE + "criador.html"); pg.wait_for_timeout(1500)
+            pg.evaluate("() => { const an = __criador.anim(); an.ligado = true; an.itens = [{ id: Object.keys(BWConviteAnim.ITENS)[0], x: 0.5, y: 0.5, s: 0.3 }]; __criador.tudo ? __criador.tudo() : __criador.render(); }"); pg.wait_for_timeout(800)
+            cr = pg.locator("#cv").bounding_box(); pg.mouse.click(cr["x"] + cr["width"] / 2, cr["y"] + cr["height"] / 2); pg.wait_for_timeout(400)
+            alcas("Criador (objeto animado)", "() => { const it = __criador.anim().itens[0]; return [it.ex == null ? 1 : it.ex, it.ey == null ? 1 : it.ey]; }")
+            # Telas
+            pg.goto(BASE + "telas.html"); pg.wait_for_timeout(1300)
+            pg.set_input_files("#tlArq", [f"{TMP}/f.jpg"]); pg.wait_for_timeout(1500)
+            if not pg.evaluate("() => BWTelasEditor.projeto().cenas.length"): pg.click("#tlNovaCena"); pg.wait_for_timeout(500)
+            pg.evaluate("() => BWTelasEditor.ver(0.4)"); pg.wait_for_timeout(600)
+            tc = pg.locator("#tlCv").bounding_box(); pg.mouse.move(tc["x"] + tc["width"] / 2, tc["y"] + tc["height"] / 2); pg.mouse.down(); pg.mouse.up(); pg.wait_for_timeout(500)
+            alcas("Telas (mídia na tela)", "() => { const c = BWTelasEditor.projeto().cenas[0], a = (c.enq || [])[0] || {}; return [a.ex == null ? 1 : a.ex, a.ey == null ? 1 : a.ey]; }")
+            # Álbum 3D
+            pg.goto(BASE + "album3d.html"); pg.wait_for_timeout(1500)
+            if pg.evaluate("() => BWAlbumEditor.tocando()"): pg.click("#alTocar"); pg.wait_for_timeout(400)
+            ac = pg.locator("#alCv").bounding_box(); pg.mouse.move(ac["x"] + ac["width"] / 2, ac["y"] + ac["height"] / 2); pg.mouse.down(); pg.mouse.up(); pg.wait_for_timeout(600)
+            alcas("Álbum 3D (modelo)", "() => { const e = BWAlbumEditor.projeto().esc || {}, t = e.t == null ? 1 : e.t; return [t * (e.x == null ? 1 : e.x), t * (e.y == null ? 1 : e.y)]; }")
         ok(not er, "nenhum erro de JavaScript" + (": " + "; ".join(er[:3]) if er else ""))
         ctx.close()
     b.close()

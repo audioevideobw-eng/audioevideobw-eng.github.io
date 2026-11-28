@@ -444,7 +444,8 @@
     var verso = P.verso || md.verso || "espelho", sombra = P.sombra !== false;
     var long = md.tela ? Math.min(1920, Math.round(Math.max(W, H) * 0.92)) : Math.min(opc.textura || 900, Math.max(160, Math.round(Math.min(W, H) * 0.62)));
     var tw = r >= 1 ? long : Math.round(long * r), th = r >= 1 ? Math.round(long / r) : long;
-    var zoom = cam.zoom || 1; function proj(p) { var X = p[0] + tx, Y = p[1] + ty, Z = p[2] + tz + dist; if (Z < 0.08) return null; var s = u * zoom * dist / Z; return [W / 2 + X * s, H / 2 - Y * s, Z]; }
+    var BB = [1e9, 1e9, -1e9, -1e9];   /* 28/11: caixa do que foi desenhado (para as alças do editor) */
+    var zoom = cam.zoom || 1; function proj(p) { var X = p[0] + tx, Y = p[1] + ty, Z = p[2] + tz + dist; if (Z < 0.08) return null; var s = u * zoom * dist / Z, px = W / 2 + X * s, py = H / 2 - Y * s; if (px < BB[0]) BB[0] = px; if (py < BB[1]) BB[1] = py; if (px > BB[2]) BB[2] = px; if (py > BB[3]) BB[3] = py; return [px, py, Z]; }
     function cameraDe(p) { return rot(p, 0, 0, 0); }
     var lista = [], zDe = {}, ES = escala(P);
     (q.pecas || []).forEach(function (pc, ordem) {
@@ -509,6 +510,7 @@
     }
     c.globalAlpha = 1;
     titulo(c, P, t, D, W, H);
+    try { c.canvas.__bwCaixa = BB[2] > BB[0] ? { x: Math.max(0, BB[0]), y: Math.max(0, BB[1]), w: Math.min(W, BB[2]) - Math.max(0, BB[0]), h: Math.min(H, BB[3]) - Math.max(0, BB[1]), u: u * zoom } : null; } catch (e) { }
     c.restore();
   }
 

@@ -644,7 +644,7 @@
   /* desenha um item na tela: (fx, fy) em fração, tamanho s em fração do menor lado */
   function desenharItem(x, it, W, H, t) {
     var def = ITENS[it.id]; if (!def) return; var m = Math.min(W, H), px = (it.s || 0.22) * m;
-    x.save(); x.translate(it.x * W, it.y * H); if (it.esp) x.scale(-1, 1); x.scale(px / 100, px / 100); try { def.f(x, t + (it.f || 0)); } catch (e) { } x.restore();
+    x.save(); x.translate(it.x * W, it.y * H); if (it.esp) x.scale(-1, 1); x.scale(px / 100 * (it.ex == null ? 1 : +it.ex), px / 100 * (it.ey == null ? 1 : +it.ey)); try { def.f(x, t + (it.f || 0)); } catch (e) { } x.restore();
   }
   window.BWConviteAnim = { ITENS: ITENS, EFEITOS: EFEITOS, mini: mini, miniEfeito: miniEfeito, desenharItem: desenharItem, pronto: pronto, carregar: carregar };
 })();

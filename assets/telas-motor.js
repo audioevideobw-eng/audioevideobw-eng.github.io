@@ -30,7 +30,10 @@
   var MOVS = { zoom: "Aproximar", afasta: "Afastar", esq: "Para a esquerda", dir: "Para a direita", sobe: "Subir", nenhum: "Parado" };
 
   /* ---------- mídia dentro de um retângulo (cobre, com movimento de câmera) ---------- */
-  function cobrir(ctx, m, r, mov, q) {
+  /* 28/11 (dono: "mexer livre em tudo"): aj = {ex, ey, dx, dy} — largura/altura soltas da mídia dentro da tela e o deslocamento (fração da tela).
+     REG guarda onde cada mídia foi desenhada no último quadro (canvas px), para as alças do editor. */
+  var REG = {};
+  function cobrir(ctx, m, r, mov, q, aj, chave) {
     if (!m || !m.el || !(m.w > 0)) {
       ctx.fillStyle = "#1c2230"; ctx.fillRect(r.x, r.y, r.w, r.h);
       ctx.fillStyle = "#56607a"; ctx.font = "800 " + Math.max(18, Math.round(Math.min(r.w, r.h) * 0.07)) + "px Inter,Arial,sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
@@ -41,6 +44,8 @@
     else if (mov === "esq") { z = 1.14; px = 1 - 2 * e; } else if (mov === "dir") { z = 1.14; px = -1 + 2 * e; } else if (mov === "sobe") { z = 1.14; py = 1 - 2 * e; }
     var k = Math.max(r.w / m.w, r.h / m.h) * z, dw = m.w * k, dh = m.h * k;
     var x = r.x + (r.w - dw) / 2 + px * (dw - r.w) / 2, y = r.y + (r.h - dh) / 2 + py * (dh - r.h) / 2;
+    if (aj) { var ex = aj.ex == null ? 1 : +aj.ex, ey = aj.ey == null ? 1 : +aj.ey, cx0 = x + dw / 2 + (+aj.dx || 0) * r.w, cy0 = y + dh / 2 + (+aj.dy || 0) * r.h; dw *= ex; dh *= ey; x = cx0 - dw / 2; y = cy0 - dh / 2; }
+    if (chave) REG[chave] = { x: x, y: y, w: dw, h: dh, pw: r.w, ph: r.h, W: ctx.canvas.width };
     try { ctx.drawImage(m.el, x, y, dw, dh); } catch (err) { ctx.fillStyle = "#1c2230"; ctx.fillRect(r.x, r.y, r.w, r.h); }
   }
 
@@ -70,8 +75,9 @@
         else ctx.translate(sx * (1 - e) * W * 0.7, sy * (1 - e) * H * 0.5);
       }
       poli(ctx, pn.pts); ctx.clip();
-      if (c.layout === "janela" && i === 0) { cobrir(ctx, m, pn, c.mov, q); ctx.fillStyle = "rgba(0,0,0,.45)"; ctx.fillRect(0, 0, W, H); }
-      else cobrir(ctx, m, pn, i % 2 && c.mov === "esq" ? "dir" : c.mov, q);
+      var aj = (c.enq || [])[i], ch = c.id + ":" + i;
+      if (c.layout === "janela" && i === 0) { cobrir(ctx, m, pn, c.mov, q, aj, ch); ctx.fillStyle = "rgba(0,0,0,.45)"; ctx.fillRect(0, 0, W, H); }
+      else cobrir(ctx, m, pn, i % 2 && c.mov === "esq" ? "dir" : c.mov, q, aj, ch);
       ctx.restore();
       if (c.layout === "janela" && i === 1 && corLinha(P, 1)) { ctx.save(); ctx.globalAlpha = e; ctx.strokeStyle = corLinha(P, 1); ctx.lineWidth = Math.max(3, W * 0.006); poli(ctx, pn.pts); ctx.stroke(); ctx.restore(); }
     });
@@ -223,5 +229,5 @@
     P.cenas = cenas; return P;
   }
 
-  window.BWTelas = { LAYOUTS: LAYOUTS, MOVS: MOVS, TRANS: TRANS, PACOTES: PACOTES, desenhar: desenhar, inicios: inicios, duracao: duracao, ativas: ativas, videosEm: videosEm, montar: montar, paineis: paineis, corLinha: corLinha };
+  window.BWTelas = { REG: REG, LAYOUTS: LAYOUTS, MOVS: MOVS, TRANS: TRANS, PACOTES: PACOTES, desenhar: desenhar, inicios: inicios, duracao: duracao, ativas: ativas, videosEm: videosEm, montar: montar, paineis: paineis, corLinha: corLinha };
 })();

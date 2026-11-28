@@ -1177,6 +1177,16 @@
     });
     cv.addEventListener("pointermove", function (ev) { if (!pega) return; var f = frac(ev), it = E.anim.itens[pega.i]; if (!it) return; it.x = lim(f.x + pega.dx, 0, 1); it.y = lim(f.y + pega.dy, 0, 1); agendar(); });
     function solta() { if (pega) { pega = null; gravar(); } }
+    /* 28/11 (dono: "mexer livre em tudo"): ALÇAS no objeto escolhido — sem tecla estica LIVRE (it.ex / it.ey), Shift proporcional, Alt do centro */
+    var AL = null;
+    if (window.BWLivre) window.__crAlcas = BWLivre.alcas({
+      caixa: function () { var it = E.anim && E.anim.ligado && E.anim.itens[ITEM_SEL]; if (!it || !cv.getClientRects().length) return null; var r = cv.getBoundingClientRect(), m = Math.min(r.width, r.height) * it.s * 1.1;
+        var w = m * (it.ex == null ? 1 : +it.ex), h = m * (it.ey == null ? 1 : +it.ey); return { x: r.left + it.x * r.width - w / 2, y: r.top + it.y * r.height - h / 2, w: w, h: h }; },
+      comecar: function () { var it = E.anim.itens[ITEM_SEL]; AL = it ? { it: it, ex: it.ex == null ? 1 : +it.ex, ey: it.ey == null ? 1 : +it.ey, x: it.x, y: it.y } : null; },
+      mudar: function (n, i) { if (!AL) return; var r = cv.getBoundingClientRect(), it = AL.it; it.ex = Math.round(lim(AL.ex * i.rw, 0.1, 8) * 1000) / 1000; it.ey = Math.round(lim(AL.ey * i.rh, 0.1, 8) * 1000) / 1000;
+        it.x = lim(AL.x + i.dcx / r.width, 0, 1); it.y = lim(AL.y + i.dcy / r.height, 0, 1); agendar(); },
+      fim: function () { AL = null; gravar(); }
+    });
     cv.addEventListener("pointerup", solta); cv.addEventListener("pointercancel", solta);
   })();
 
