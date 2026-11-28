@@ -1,19 +1,24 @@
 {
- "versao": "1.9.60",
+ "versao": "1.9.61",
  "data": "28/11/2026",
  "pacote": "downloads/BW-Reels-Studio.zip",
- "sha256": "9c3a142f287782bcb256098d9ba901052aa01121b577f44a273ad72cc922d95e",
- "bytes": 51663850,
+ "sha256": "780540b4a39fc514dc7205c1b21fa84c8cfca415d2135f4b0dcfeee63f0845d4",
+ "bytes": 51720163,
  "novidades": [
   {
-   "titulo": "Press kit em vídeo, em inglês e com link",
-   "texto": "Em PRESS KIT: 🎬 VÍDEO animado, 🌐 cópia em inglês ou espanhol e 🔗 uma página para mandar no WhatsApp.",
+   "titulo": "Mexer livre em todas as ferramentas",
+   "texto": "Janelas que se arrastam e mudam de tamanho; alças no item escolhido: livre, Shift proporcional, Alt do centro.",
+   "abrir": "fotos"
+  },
+  {
+   "titulo": "Press kit editado pela prévia",
+   "texto": "Toque na foto da prévia para ajustar ao vivo, ＋ INSERIR texto/ícone/forma, ↗ EM OUTRA IA e fotos guardadas na conta.",
    "abrir": "presskit"
   },
   {
-   "titulo": "Efeitos nas fotos do press kit",
-   "texto": "Mistura, opacidade e máscara com o fundo na capa e nas fotos; a foto da IA pode ser baixada e mantém o mesmo rosto.",
-   "abrir": "presskit"
+   "titulo": "Orçamentos com setas e cadastro",
+   "texto": "Cada parte abre e fecha pela seta e ＋ CADASTRAR SERVIÇO cria um botão novo com as opções prontas.",
+   "abrir": "orcamentos"
   }
  ]
 }
