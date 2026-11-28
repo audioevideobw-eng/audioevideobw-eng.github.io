@@ -1142,6 +1142,10 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
 249. Arquivo que a ferramenta produz (foto da IA) tem botão de BAIXAR SEMPRE À VISTA junto da própria foto — botão que só aparece depois de uma
      ação ou dentro de uma folha o dono "não achou". IA de imagem da plataforma (FLUX.2 klein 4B, cópia ≤ 504 px) muda o rosto: dar SEMPRE a saída
      ↗ EM OUTRA IA (baixar foto → copiar pedido com a trava → abrir Gemini/ChatGPT → ＋ TRAZER A FOTO PRONTA no mesmo lugar, com ↺ ORIGINAL).
+250. Janela de ajuste de imagem = PRÉVIA FIXA em cima + ABAS com rolagem lateral (uma opção por vez, o corpo rola por dentro), nunca uma coluna comprida
+     que leva a foto para fora da tela. Opção nova de layout do press kit = campo em kit.est aplicado dentro de modelo()/defPdf (t.pg, t.sob, t.lst,
+     t.col, t.centro, t.quebra) com miniatura CSS; sub-opções das partes ganham seta pelo BWDobras.agrupar(".pk-grupo .pk-sub-t"). Teste que conta
+     .pk-capa precisa filtrar data-c="capa" (as miniaturas novas usam a mesma classe).
 
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
@@ -2966,6 +2970,13 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   plataforma é FLUX.2 klein 4B (Cloudflare; com a chave conectada em MINHAS IAS usa a conta da pessoa, mas o mesmo modelo). teste_presskit_mais
   (+7) e teste_presskit 0 falhas; vigia ✅. Manual 79 p. presskit.js v10, sw v255. PENTE FINO 249. Próximo possível: Gemini (Nano Banana) direto
   pela chave Gemini conectada (função bw-ia-imagem nova — aguarda o "sim").
+- 28/11/2026 13:45 · Claude (dono, prints: "opções omitidas e com rolagem lateral, igual o editor de fotos, preview sempre fixo" + "sistema para alterar o
+  layout da página secundária, assim como a primária, e seta de omissão em toda ferramenta para as opções"): PRESS KIT — ✥ ENQUADRAR/🎚 LUZ E COR com a
+  prévia fixa e abas ✥ POSIÇÃO · ☀ LUZ E COR · ✦ LOOKS · ◑ MISTURA · ◌ MÁSCARA (rolagem lateral, uma por vez). 🎛 ESTILO AO VIVO ganhou PÁGINAS INTERNAS
+  (faixa no topo, cabeçalho cheio, barra lateral, moldura, faixa embaixo, limpa — com miniaturas), QUEM SOU EU (foto à esquerda/direita/em cima, frase
+  grande, só texto), trabalhos e cursos em linhas/cartões/ano em destaque, cartões por linha (auto/1/2/3), títulos no centro e cada parte numa página.
+  Toda sub-opção das partes tem seta ▾/▸. teste_presskit_mais (+8, PDFs de cada layout conferidos numa folha) e teste_presskit 0 falhas; vigia ✅.
+  Manual 79 p. presskit.js v12, sw v257. PENTE FINO 250. App BW: entra no próximo pacote.
 ## Pendências (dono)
 - [x] (28/11 12:55, dono: "SIM") SQL do LINK DO PRESS KIT rodado (rls true · 4 regras na tabela · 3 no balde · balde público). Teste no ar: visitante
       não lista nem grava (401), token falso = null; logado: link de TESTE criado, foto no balde, kit.html abriu, pasta de outro token recusada;

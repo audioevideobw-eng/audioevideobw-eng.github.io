@@ -195,6 +195,17 @@ with sync_playwright() as p:
         ok(esperar_previa(pg) and pg.evaluate("() => JSON.stringify(window.__pkUltimoDef).includes('ABOUT')"), "títulos das partes em inglês no PDF")
         ok(pg.evaluate("(a) => !/^EN: /.test(BWPressKit.acharKit(a).d.sobre || '')", id0), "o original continua em português")
 
+        # 📄 PÁGINAS INTERNAS e setas nas opções
+        ok(pg.locator('[data-a="est"][data-c="pg"]').count() == 6 and pg.locator('[data-a="est"][data-c="sob"]').count() == 5, "🎛 ESTILO: miniaturas de PÁGINAS INTERNAS (6) e QUEM SOU EU (5)")
+        ok(pg.locator('.pk-grupo .pk-sub-t[data-seta^="pks_"]').count() >= 8, "as opções dentro das partes ganham seta de abrir/fechar")
+        for pgv, sob, lst in (("cabeca", "dir", "cartoes"), ("lateral", "topo", "tempo"), ("moldura", "destaque", "linhas"), ("rodape", "sem", "cartoes"), ("limpa", "esq", "linhas")):
+            n_ = pg.evaluate("async (a) => { const k = BWPressKit.atual(); k.est = Object.assign({}, k.est, { pg: a[0], sob: a[1], lst: a[2], col: '2', alinh: 'centro', quebra: a[0] === 'moldura' ? 'pagina' : 'seguido' }); const b = await BWPressKit.gerarPdfBytes(); return b.length; }", [pgv, sob, lst])
+            ok(n_ > 20000, f"PDF com páginas '{pgv}', quem sou eu '{sob}', lista '{lst}' ({n_} bytes)")
+            if larg == 1280:
+                b64 = pg.evaluate("async () => { const b = await BWPressKit.gerarPdfBytes(); let s = ''; for (let i = 0; i < b.length; i++) s += String.fromCharCode(b[i]); return btoa(s); }")
+                open(os.path.join(TMP, f"pg-{pgv}.pdf"), "wb").write(base64.b64decode(b64))
+        pg.evaluate("() => { const k = BWPressKit.atual(); k.est = Object.assign({}, k.est, { pg: 'padrao', sob: 'esq', lst: 'linhas', col: 'auto', alinh: 'esq', quebra: 'seguido' }); }")
+        if larg == 1280: print("PDFS:", TMP)
         # 🎬 vídeo
         pg.click('[data-a="pkVideo"]')
         try: pg.wait_for_function("() => /cenas/.test((document.getElementById('pmVinfo') || {}).textContent || '')", timeout=20000); pv = True

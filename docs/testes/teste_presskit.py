@@ -128,7 +128,7 @@ with sync_playwright() as p:
         ok(esperar_previa(pg, "ZÉ AÇÃO TESTE"), "nome editado aparece na prévia (acentos)")
         # 🎛 ESTILO AO VIVO: capa, paleta, títulos e tamanho mudam a prévia na hora
         h_pag = "() => { const c = document.querySelector('#paginas canvas'); const d = c.getContext('2d').getImageData(0, 0, c.width, Math.round(c.height * 0.5)).data; let s = 0; for (let i = 0; i < d.length; i += 97) s = (s * 31 + d[i]) % 1000003; return s; }"
-        ok(pg.locator('.pk-capa').count() == 11 and pg.locator('.pk-paleta').count() == 12, "ESTILO AO VIVO: 11 capas e 12 paletas para escolher")
+        ok(pg.locator('.pk-capa[data-c="capa"]').count() == 11 and pg.locator('.pk-paleta').count() == 12, "ESTILO AO VIVO: 11 capas e 12 paletas para escolher")
         h0 = pg.evaluate(h_pag)
         pg.click('.pk-capa[data-v="circulo"]'); esperar_previa(pg)
         ok(pg.evaluate("() => BWPressKit.atual().est.capa") == "circulo" and pg.evaluate(h_pag) != h0, "trocar a CAPA (retrato redondo) refaz a prévia na hora")

@@ -474,6 +474,10 @@
     ["Esmeralda", "#10B981", "#F5C542", "#0E1714"], ["Terracota", "#C8553D", "#F2C14E", "#FBF4EC"], ["Lavanda", "#7C5CFF", "#FF7AB6", "#F7F5FF"],
     ["Preto e branco", "#111111", "#9A9A9A", "#FFFFFF"], ["Vinho", "#B0274A", "#E8B54A", "#170A0E"], ["Oceano", "#0F6E8C", "#7CD5E8", "#F2F8FA"], ["Lima", "#B6F23A", "#2F7BFF", "#0D0D0D"],
     ["Coral", "#FF6A3D", "#FFD166", "#101214"], ["Areia", "#8A6A3F", "#2F4858", "#F4EFE6"]];
+  /* 📄 PÁGINAS INTERNAS (28/11, dono: "alterar o layout da página secundária, assim como a primária") */
+  var PAGINAS = { padrao: "Faixa no topo", cabeca: "Cabeçalho cheio", lateral: "Barra lateral", moldura: "Moldura", rodape: "Faixa embaixo", limpa: "Limpa" };
+  var SOBRES = { esq: "Foto à esquerda", dir: "Foto à direita", topo: "Foto em cima", destaque: "Frase grande", sem: "Só texto" };
+  var LISTAS = { linhas: "Linhas", cartoes: "Cartões", tempo: "Ano em destaque" };
   function capaDoKit(kit) { var mc = modeloDe(kit.modelo).tema.capa, e = (kit.est || {}).capa; return mc === "compcard" ? mc : CAPAS[e] ? e : mc; }
   function modeloDe(id) { return MODELOS.filter(function (m) { return m.id === id; })[0] || MODELOS[0]; }
   function imgsExemplo(mod) {
@@ -538,6 +542,8 @@
     tm.estTit = TITULOS[est.tit] ? est.tit : (mod.estTit || "numero"); tm.deco = est.deco !== "nao";
     tm.escNome = Math.max(0.6, Math.min(1.5, (+est.nome || 100) / 100)); tm.escTxt = Math.max(0.8, Math.min(1.25, (+est.texto || 100) / 100));
     tm.esp = { compacto: 0.65, normal: 1, arejado: 1.4 }[est.esp] || 1;
+    tm.pg = PAGINAS[est.pg] ? est.pg : "padrao"; tm.sob = SOBRES[est.sob] ? est.sob : "esq"; tm.lst = LISTAS[est.lst] ? est.lst : "linhas";
+    tm.col = { "1": 1, "2": 2, "3": 3 }[est.col] || 0; tm.centro = est.alinh === "centro"; tm.quebra = est.quebra === "pagina";
     tm.cor = destaqueLegivel(cor, tm.fundo); tm.corPura = cor; tm.cor2 = cor2; tm.fTit = FONTES_TIT[kit.fonte] ? kit.fonte : mod.fonte;
     var cart = CARTOES[est.cart] ? est.cart : "suave";
     tm.cartao = cart === "liso" ? tm.fundo : cart === "forte" ? misturar(tm.fundo, tm.corPura, tm.escuro ? 0.24 : 0.15) : cart === "contraste" ? misturar(tm.fundo, tm.txt, tm.escuro ? 0.14 : 0.08)
@@ -561,7 +567,7 @@
     var comIndice = function (arr, tem) { return (arr || []).map(function (x, i) { return { x: x, i: i }; }).filter(function (o) { return o.x && tem(o.x); }); };
     for (var i = 0; i < vis.length; i++) {
       var id = vis[i], s = { id: id, tit: titulo(kit, id) };
-      if (id === "sobre") { s.curto = (d.sobreCurto || "").trim(); s.pars = paragrafos(d.sobre); if (!s.curto && !s.pars.length) continue; s.retrato = cap === "recorte" ? "" : m.retrato; }
+      if (id === "sobre") { s.curto = (d.sobreCurto || "").trim(); s.pars = paragrafos(d.sobre); if (!s.curto && !s.pars.length) continue; s.retrato = cap === "recorte" || tm.sob === "sem" || tm.sob === "destaque" ? "" : m.retrato; }
       else if (id === "numeros") { s.itens = (d.numeros || []).filter(function (x) { return x && (String(x.v || "").trim() || String(x.r || "").trim()); }); if (!s.itens.length) continue; }
       else if (id === "servicos") {
         var iS = comIndice(d.servicos, function (x) { return String(x.t || "").trim() || String(x.d || "").trim(); }); if (!iS.length) continue;
@@ -745,6 +751,14 @@
 
     /* ---------- SEÇÕES ---------- */
     var cabSec = function (s, n) {
+      var h0 = cabSec0(s, n); if (!t.centro) return h0;
+      return h0.map(function (x) {
+        if (x.canvas) { var wR = 0; x.canvas.forEach(function (c0) { if (c0.type === "rect") wR = Math.max(wR, c0.w); if (c0.type === "line") wR = CW; }); var mg = (x.margin || [0, 0, 0, 0]).slice(); mg[0] = Math.max(0, (CW - wR) / 2); return Object.assign({}, x, { margin: mg }); }
+        if (x.table) return { columns: [{ width: "*", text: "" }, { width: "auto", table: x.table, layout: x.layout }, { width: "*", text: "" }], margin: x.margin };
+        return Object.assign({}, x, { alignment: "center" });
+      });
+    };
+    var cabSec0 = function (s, n) {
       var topo = n === 1 ? 0 : z(26) * (t.esp || 1), tam = z(t.caixaAlta ? 17 : 22), est = t.estTit || "numero", tt = tituloCaixa(s.tit), dep = z(14) * (t.esp || 1);
       if (est === "barra") return [{ table: { widths: [5, "*"], body: [[{ text: "", fillColor: t.corPura }, { text: tt, font: fT, bold: true, fontSize: tam, color: t.txt, characterSpacing: t.caixaAlta ? k : 0, margin: [12, 2, 0, 2] }]] }, layout: semGap(t.fundo, 0), margin: [0, topo, 0, dep] }];
       if (est === "pilula") return [{ table: { body: [[{ text: tt.toUpperCase(), bold: true, fontSize: z(11), color: sobre(t.corPura), fillColor: t.corPura, characterSpacing: 1.6 * k, margin: [12, 6, 12, 5] }]] }, layout: semGap(t.fundo, 0), margin: [0, topo, 0, dep] }];
@@ -765,22 +779,28 @@
             paddingLeft: function () { return 0; }, paddingRight: function () { return 0; }, paddingTop: function () { return 0; }, paddingBottom: function () { return 0; } } };
       });
     };
-    var secao = function (h, blocos) {   /* título + 1º bloco nunca se separam (título órfão no pé da página) */
-      blocos = blocos.filter(Boolean);
-      cont.push({ stack: h.concat(blocos.slice(0, 1)), unbreakable: true });
+    var nSec = 0, secao = function (h, blocos) {   /* título + 1º bloco nunca se separam (título órfão no pé da página) */
+      blocos = blocos.filter(Boolean); nSec++;
+      cont.push(Object.assign({ stack: h.concat(blocos.slice(0, 1)), unbreakable: true }, t.quebra && nSec > 1 ? { pageBreak: "before" } : {}));
       cont = cont.concat(blocos.slice(1));
     };
     var linhaFina = function () { return { canvas: [{ type: "line", x1: 0, y1: 0, x2: CW, y2: 0, lineWidth: 0.6, lineColor: t.linha }], margin: [0, z(9), 0, z(9)] }; };
-    var nCol = function (a4) { return k < 0.8 ? Math.max(1, a4 - 1) : a4; };
+    var nCol = function (a4) { if (t.col) return k < 0.8 ? Math.min(t.col, 2) : t.col; return k < 0.8 ? Math.max(1, a4 - 1) : a4; };
     m.secoes.forEach(function (s, i) {
       var n = i + 1, h = cabSec(s, n), b = [];
       if (s.id === "sobre") {
         var tx = [];
         if (s.curto) tx.push({ table: { widths: [3, "*"], body: [[{ text: "", fillColor: t.corPura }, { text: s.curto, font: fT === "PF" ? "PF" : "Roboto", bold: fT !== "PF", fontSize: z(14.5), lineHeight: 1.3, color: t.txt, margin: [14, 1, 0, 1] }]] }, layout: semGap(t.fundo, 0), margin: [0, 0, 0, 14] });
         var ps = s.pars.map(function (p) { return { text: p, margin: [0, 0, 0, 9] }; });
-        if (s.retrato && k >= 0.8) {   /* "Quem sou eu?" com a foto recortada ao lado */
-          var fw = CW * 0.36, fhh = Math.min(fw / m.retratoProp, 300);
-          b.push({ columns: [{ width: fw, stack: [{ image: s.retrato, fit: [fw, fhh], alignment: "center" }, { canvas: [{ type: "rect", x: 0, y: 0, w: fw, h: 4, color: t.corPura }] }] }, { width: "*", stack: tx.concat(ps) }], columnGap: 22, unbreakable: true });
+        if (t.sob === "destaque" && s.curto) {   /* frase grande no centro + texto em duas colunas */
+          tx = [{ text: "“" + s.curto + "”", font: fT, bold: true, fontSize: z(20), lineHeight: 1.25, color: t.txt, alignment: "center", margin: [z(20), 0, z(20), 6] }, { canvas: [{ type: "rect", x: 0, y: 0, w: 48 * k, h: 3, color: t.corPura }], margin: [(CW - 48 * k) / 2, 4, 0, 16] }];
+          b = tx.concat(k >= 0.8 && ps.length > 1 ? [{ columns: [{ stack: ps.slice(0, Math.ceil(ps.length / 2)) }, { stack: ps.slice(Math.ceil(ps.length / 2)) }], columnGap: 22 }] : ps);
+        } else if (s.retrato && t.sob === "topo") {
+          var tw = Math.min(CW * 0.42, 190), th = Math.min(tw / m.retratoProp, 240);
+          b = [{ stack: [{ image: s.retrato, fit: [tw, th], alignment: "center" }, { canvas: [{ type: "rect", x: 0, y: 0, w: tw, h: 4, color: t.corPura }], margin: [(CW - tw) / 2, 0, 0, 14] }], unbreakable: true }].concat(tx, ps);
+        } else if (s.retrato && k >= 0.8) {   /* "Quem sou eu?" com a foto recortada ao lado (esquerda ou direita) */
+          var fw = CW * 0.36, fhh = Math.min(fw / m.retratoProp, 300), colF = { width: fw, stack: [{ image: s.retrato, fit: [fw, fhh], alignment: "center" }, { canvas: [{ type: "rect", x: 0, y: 0, w: fw, h: 4, color: t.corPura }] }] }, colT = { width: "*", stack: tx.concat(ps) };
+          b.push({ columns: t.sob === "dir" ? [colT, colF] : [colF, colT], columnGap: 22, unbreakable: true });
         } else if (fT === "PF" && s.pars.join(" ").length > 650 && k >= 0.8) b = tx.concat([{ columns: [{ stack: ps.slice(0, Math.ceil(ps.length / 2)) }, { stack: ps.slice(Math.ceil(ps.length / 2)) }], columnGap: 22 }]);
         else b = tx.concat(ps);
       } else if (s.id === "perfil") {
@@ -803,14 +823,17 @@
             var col = [{ text: String(x.ano || ""), width: z(52), bold: true, fontSize: z(10), color: t.cor, margin: [0, 2, 0, 0] },
               { width: "*", stack: [{ text: String(x.titulo || ""), bold: true, fontSize: z(11.5), color: t.txt }].concat(sub2 ? [{ text: sub2, fontSize: z(9.5), color: t.sub, margin: [0, 2, 0, 0] }] : []) }];
             if (!String(x.ano || "").trim()) col.shift();
+            else if (t.lst === "tempo") col[0] = { width: z(52), table: { body: [[{ text: String(x.ano), bold: true, fontSize: z(9.5), color: sobre(t.corPura), fillColor: t.corPura, alignment: "center", margin: [4, 3, 4, 2] }]] }, layout: semGap(t.fundo, 0) };
             if (x.foto) col.unshift({ image: x.foto, width: z(66), height: z(42), link: lk || undefined });   /* foto do trabalho (clicável quando tem link) */
             if (lk) col.push({ width: z(62), table: { body: [[{ text: rotI(m.kit, "VER  ↗"), bold: true, fontSize: z(8), color: sobre(t.corPura), fillColor: t.corPura, alignment: "center", margin: [6, 4, 6, 4], link: lk }]] }, layout: semGap(t.fundo, 0) });
-            b.push({ stack: (gi === 0 && rot ? [rot] : []).concat([{ columns: col, columnGap: 10 }, linhaFina()]), unbreakable: true });   /* rótulo do grupo nunca fica sozinho no pé da página */
+            b.push({ stack: (gi === 0 && rot ? [rot] : []).concat(t.lst === "cartoes" ? [Object.assign(cartao([{ columns: col, columnGap: 10 }], [12, 10, 12, 10]), { margin: [0, 0, 0, 8] })] : [{ columns: col, columnGap: 10 }, linhaFina()]), unbreakable: true });   /* rótulo do grupo nunca fica sozinho no pé da página */
           });
         });
       } else if (s.id === "formacao") {
         b = s.itens.map(function (x) {
-          return { stack: [{ columns: [{ text: String(x.ano || ""), width: z(52), bold: true, fontSize: z(10), color: t.cor }, { width: "*", stack: [{ text: String(x.curso || ""), bold: true, fontSize: z(11), color: t.txt }, { text: String(x.onde || ""), fontSize: z(9.5), color: t.sub }] }], columnGap: 10 }, linhaFina()], unbreakable: true };
+          var anoF = t.lst === "tempo" && String(x.ano || "").trim() ? { width: z(52), table: { body: [[{ text: String(x.ano), bold: true, fontSize: z(9.5), color: sobre(t.corPura), fillColor: t.corPura, alignment: "center", margin: [4, 3, 4, 2] }]] }, layout: semGap(t.fundo, 0) } : { text: String(x.ano || ""), width: z(52), bold: true, fontSize: z(10), color: t.cor };
+          var lin = { columns: [anoF, { width: "*", stack: [{ text: String(x.curso || ""), bold: true, fontSize: z(11), color: t.txt }, { text: String(x.onde || ""), fontSize: z(9.5), color: t.sub }] }], columnGap: 10 };
+          return t.lst === "cartoes" ? Object.assign(cartao([lin], [12, 10, 12, 10]), { margin: [0, 0, 0, 8] }) : { stack: [lin, linhaFina()], unbreakable: true };
         });
       } else if (s.id === "habilidades") {
         b = grade(s.itens.map(function (x) { return { text: x, bold: true, fontSize: z(10), color: t.txt, alignment: "center", margin: [8, 9, 8, 9], fillColor: t.cartao }; }), nCol(3), 6);
@@ -876,10 +899,16 @@
         info: { title: rotI(m.kit, "Apresentação — ") + m.marca, author: m.marca, creator: "Brightway — Press kit" },
         background: function (pg) {
           if (pg === 1) return capaFundo;
-          return [{ canvas: [{ type: "rect", x: 0, y: 0, w: W, h: H, color: t.fundo }, { type: "rect", x: 0, y: 0, w: W, h: 4, color: t.corPura }], absolutePosition: { x: 0, y: 0 } }];
+          var fd = [{ type: "rect", x: 0, y: 0, w: W, h: H, color: t.fundo }];
+          if (t.pg === "padrao") fd.push({ type: "rect", x: 0, y: 0, w: W, h: 4, color: t.corPura });
+          else if (t.pg === "cabeca") fd.push({ type: "rect", x: 0, y: 0, w: W, h: z(44), color: t.corPura });
+          else if (t.pg === "lateral") fd.push({ type: "rect", x: 0, y: 0, w: Math.max(8, MX * 0.32), h: H, color: t.corPura });
+          else if (t.pg === "moldura") fd.push({ type: "rect", x: 16, y: 16, w: W - 32, h: H - 32, lineWidth: 1.2, lineColor: t.corPura });
+          else if (t.pg === "rodape") fd.push({ type: "rect", x: 0, y: H - z(34), w: W, h: z(34), color: t.corPura });
+          return [{ canvas: fd, absolutePosition: { x: 0, y: 0 } }];
         },
-        header: function (pg) { if (pg === 1) return null; return { columns: [{ text: m.marca.toUpperCase(), fontSize: z(7.5), bold: true, color: t.sub, characterSpacing: 1.6, link: (m.botoes.filter(function (x) { return x[0] === "SITE"; })[0] || m.botoes[0] || [])[1] || undefined }, { text: String(m.etiqueta).toUpperCase(), fontSize: z(7.5), color: t.sub, alignment: "right", characterSpacing: 1.6 }], margin: [MX, z(28), MX, 0] }; },
-        footer: function (pg, n) { if (pg === 1) return null; var rd = []; (m.rodape || []).forEach(function (x, i) { if (i) rd.push("   ·   "); rd.push({ text: String(x[0]), link: x[1] || undefined }); }); return { columns: [{ text: rd.length ? rd : m.linhaContato, fontSize: z(7.5), color: t.sub }, { text: pg + " / " + n, fontSize: z(7.5), color: t.sub, alignment: "right", width: 50 }], margin: [MX, z(22), MX, 0] }; },
+        header: function (pg) { if (pg === 1) return null; var cH = t.pg === "cabeca" ? sobre(t.corPura) : t.sub; return { columns: [{ text: m.marca.toUpperCase(), fontSize: z(7.5), bold: true, color: cH, characterSpacing: 1.6, link: (m.botoes.filter(function (x) { return x[0] === "SITE"; })[0] || m.botoes[0] || [])[1] || undefined }, { text: String(m.etiqueta).toUpperCase(), fontSize: z(7.5), color: cH, alignment: "right", characterSpacing: 1.6 }], margin: [MX, t.pg === "cabeca" ? z(18) : z(28), MX, 0] }; },
+        footer: function (pg, n) { if (pg === 1) return null; var rd = []; (m.rodape || []).forEach(function (x, i) { if (i) rd.push("   ·   "); rd.push({ text: String(x[0]), link: x[1] || undefined }); }); var cF = t.pg === "rodape" ? sobre(t.corPura) : t.sub; return { columns: [{ text: rd.length ? rd : m.linhaContato, fontSize: z(7.5), color: cF }, { text: pg + " / " + n, fontSize: z(7.5), color: cF, alignment: "right", width: 50 }], margin: [MX, t.pg === "rodape" ? z(34) : z(22), MX, 0] }; },
         content: c,
         defaultStyle: { font: "Roboto", fontSize: z(10.5) * (t.escTxt || 1), lineHeight: 1.4, color: t.txt }
       };
@@ -1336,6 +1365,14 @@
     var corpo = '<p class="tf-sub">Mexa à vontade: a prévia se refaz na hora. Seus textos e fotos não mudam.</p>' +
       (cc ? "" : '<div class="pk-sub-t">CAPA</div><div class="pk-capas" style="' + vars + '">' + Object.keys(CAPAS).map(function (v) {
         return '<button type="button" class="pk-capa' + (v === cap ? " on" : "") + '" data-a="est" data-c="capa" data-v="' + v + '" title="' + CAPAS[v] + '"><i class="pk-cmini m-' + v + '"><u></u><s></s><em></em></i><span>' + CAPAS[v] + "</span></button>"; }).join("") + "</div>") +
+      '<div class="pk-sub-t">PÁGINAS INTERNAS</div><div class="pk-capas" style="' + vars + '">' + Object.keys(PAGINAS).map(function (v) {
+        return '<button type="button" class="pk-capa' + (v === (PAGINAS[e.pg] ? e.pg : "padrao") ? " on" : "") + '" data-a="est" data-c="pg" data-v="' + v + '" title="' + PAGINAS[v] + '"><i class="pk-cmini pk-pm p-' + v + '"><u></u><s></s><em></em><b></b></i><span>' + PAGINAS[v] + "</span></button>"; }).join("") + "</div>" +
+      '<div class="pk-sub-t">QUEM SOU EU</div><div class="pk-capas" style="' + vars + '">' + Object.keys(SOBRES).map(function (v) {
+        return '<button type="button" class="pk-capa' + (v === (SOBRES[e.sob] ? e.sob : "esq") ? " on" : "") + '" data-a="est" data-c="sob" data-v="' + v + '" title="' + SOBRES[v] + '"><i class="pk-cmini pk-sm s-' + v + '"><u></u><s></s><em></em><b></b></i><span>' + SOBRES[v] + "</span></button>"; }).join("") + "</div>" +
+      '<div class="pk-sub-t">TRABALHOS E CURSOS</div>' + chips("lst", LISTAS, LISTAS[e.lst] ? e.lst : "linhas") +
+      '<div class="pk-sub-t">CARTÕES POR LINHA</div>' + chips("col", { auto: "Automático", "1": "1 por linha", "2": "2 por linha", "3": "3 por linha" }, e.col || "auto") +
+      '<div class="pk-sub-t">TÍTULOS E PARTES</div>' + chips("alinh", { esq: "⇤ Títulos à esquerda", centro: "↔ Títulos no centro" }, e.alinh || "esq") +
+      chips("quebra", { seguido: "Partes seguidas", pagina: "📄 Cada parte numa página" }, e.quebra || "seguido") +
       '<div class="pk-sub-t">PALETAS PRONTAS</div><div class="pk-paletas">' + PALETAS.map(function (p, i) {
         return '<button type="button" class="pk-paleta' + (p[1] === c1 && p[3] === bg ? " on" : "") + '" data-a="estPaleta" data-i="' + i + '"><i style="background:' + p[3] + '"><b style="background:' + p[1] + '"></b><b style="background:' + p[2] + '"></b></i><span>' + esc(p[0]) + "</span></button>"; }).join("") + "</div>" +
       '<div class="pk-cores"><label class="pk-campo"><span>Cor principal</span><input type="color" data-k="cor" value="' + esc(c1) + '"></label><label class="pk-campo"><span>Cor de apoio</span><input type="color" data-k="cor2" value="' + esc(c2) + '"></label>' +
@@ -1409,7 +1446,7 @@
       return '<div class="pk-ord' + (on ? "" : " off") + '"><label><input type="checkbox" data-a="vis" data-s="' + id + '"' + (on ? " checked" : "") + "> " + SECOES[id].ico + " " + esc(titulo(k, id)) + '</label><span><button type="button" class="pk-sx" data-a="sobe" data-s="' + id + '"' + (i === 0 ? " disabled" : "") + ' aria-label="Subir">▲</button><button type="button" class="pk-sx" data-a="desce" data-s="' + id + '"' + (i === ordem.length - 1 ? " disabled" : "") + ' aria-label="Descer">▼</button></span></div>';
     }).join("") + "</div>");
     $("form").innerHTML = h;
-    if (window.BWDobras) BWDobras.aplicar($("form"));
+    if (window.BWDobras) { BWDobras.agrupar($("form"), ".pk-grupo .pk-sub-t", "pks_"); BWDobras.aplicar($("form")); }
     Object.keys(DIT.antes).forEach(function (id) { var b = $("form").querySelector('[data-a="voltarCampo"][data-alvo="' + id + '"]'); if (b) b.hidden = false; });
   }
 
