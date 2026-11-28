@@ -1155,6 +1155,14 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
      espaços entre letras: teste compara sem espaços. FOTOS NA CONTA: assets/presskit-nuvem.js → balde privado presskit-fotos (<uid>/<kit>/<sha>),
      o press kit guarda o mapa das vagas + ajustes (kit.nuvem); quem mexeu por último ganha (_t); cópia de press kit não leva o mapa (vigia 7.8o).
 
+252. REENQUADRAR ≠ AMPLIAR (dono, 28/11: "aumentar a moldura é mostrar o oculto da foto"): quando a moldura de uma foto recortada muda de tamanho, a foto fica
+     na MESMA escala na página (s = cover × z constante → z novo = s / cover novo) e a janela revela o que estava fora, presa no lado/canto puxado
+     (reenquadrar()); só quando a foto acaba ela começa a crescer. A moldura da janela mostra o tamanho REAL na mesma escala (altura fixa fazia o Y "mexer
+     só na largura"). Alças/menu/janelas/desfazer do press kit: alças só em item escolhido (pointer-events:auto dentro do contorno sem eventos); captura de
+     ponteiro manda o clique para o pai — o "toque fora fecha" da janela precisa ignorar o fim de um arraste; no celular o 1º toque espera ~340 ms para o
+     2º (dois toques = opções) senão a folha abre por cima e engole o 2º toque; DESFAZER só grava passos que vêm de toque/tecla/input da pessoa (o que a tela
+     ajeita sozinha depois de redesenhar apagava o REFAZER); atalhos ignoram só campos de DIGITAR (o foco num range/arquivo travava o Ctrl+Z).
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -3006,6 +3014,16 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   PRESS KIT → ✥ ENQUADRAR NA PÁGINA 2 → ⤢ TAMANHO ganhou ✎ LIVRE: ↔ LARGURA (X) e ↕ ALTURA (Y) soltas (altura 10–100% da largura do conteúdo, limite de 62% da
   página), moldura da janela e PDF acompanham ao vivo e a tela mostra a medida em mm (kit.est.sobR = "livre" + sobH). teste_presskit_mais (+3 × 2) e
   teste_presskit 0 falhas; vigia ✅. Manual atualizado. presskit.js v16, sw v261.
+- 28/11/2026 15:25 · Claude (dono: "clique duplo com o dedo e botão direito no PC para as opções, como nos editores; tamanho pelas pontas, Shift
+  proporcional, sem tecla livre" + "janelas flutuantes, arrastadas e ajustadas em tamanho e local" + "X e Y do LIVRE alterando o mesmo eixo, corrija" +
+  "não é só aumentar, é mostrar o oculto da foto" + "setas de desfazer/refazer em cada janela e os atalhos do PC, Ctrl+Z, Alt+arrastar…"): PRESS KIT —
+  (1) ⤢ ALÇAS nas pontas e lados do item escolhido na prévia (elementos e foto da página 2): sem tecla estica livre, com Shift proporcional;
+  (2) ☰ OPÇÕES por botão direito (PC) e dois toques (dedo) — editar, duplicar, frente/trás, centralizar, apagar; na foto: enquadrar, tamanho, baixar,
+  remover ajustes; no vazio: inserir texto/ícone/forma ali; (3) 🪟 JANELAS FLUTUANTES: arrastar pelo título/⠿, mudar o tamanho pelo ◢, lugar guardado
+  no aparelho (ui_pk_janela), dois toques no ⠿ voltam ao lugar; (4) LIVRE corrigido: a moldura mostra o tamanho real (X só largura, Y só altura) e
+  aumentar a moldura REVELA mais da foto em vez de ampliar; (5) ↶ ↷ DESFAZER/REFAZER na barra da prévia e nas janelas + Ctrl+Z, Ctrl+Shift+Z/Ctrl+Y,
+  Ctrl+D, Ctrl+C/V, Delete, setas (Shift = mais), Alt+arrastar duplica, Shift+arrastar trava o eixo. teste_presskit_mais (+20 × 1280/390, mouse e toque
+  de verdade) e teste_presskit 0 falhas; vigia ✅. Manual atualizado. presskit.js v18, bw-ferramentas no press kit, sw v262. PENTE FINO 252.
 ## Pendências (dono)
 - [x] (28/11 15:10, dono: "Sim, pode rodar") SQL do balde privado presskit-fotos rodado (público = false · 4 regras pkfotos). Teste no ar logado: foto de TESTE
       enviada e baixada na própria pasta, pasta de outra conta recusada (RLS), endereço público = 400, teste apagado (0 arquivos). Falta o dono

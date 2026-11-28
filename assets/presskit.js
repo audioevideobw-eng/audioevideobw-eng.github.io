@@ -1071,7 +1071,7 @@
   async function abrirKit(id) {
     var k = acharKit(id); if (!k) { aviso("Esse press kit não está mais aqui.", true); mostrar("lista"); desenharLista(); return; }
     KIT = k; IMGS = (await idbGet("imgs", k.id)) || imgsVazias(); if (!Array.isArray(IMGS.fotos)) IMGS.fotos = [];
-    mostrar("editor"); desenharForm(); desenharTrocar(); agendarPrevia(0);
+    mostrar("editor"); desenharForm(); desenharTrocar(); agendarPrevia(0); iniciarHist();
     /* fotos que estão na conta e não neste aparelho (feitas em outro aparelho) */
     if (window.BWPkNuvem) BWPkNuvem.baixar(k, IMGS).then(function (n) { if (!n || !KIT || KIT.id !== k.id) return; IMGS = n; idbPut("imgs", k.id, n); desenharForm(); agendarPrevia(0); aviso("Fotos trazidas da sua conta ✓"); }).catch(function () { });
   }
@@ -1095,7 +1095,47 @@
     KIT = k; IMGS = im; mostrar("editor"); desenharForm(); desenharTrocar(); agendarPrevia(0);
     aviso("Modelo " + mod.nome + " aberto com um exemplo");
   }
-  function guardar() { if (!KIT) return; salvarKit(KIT); }
+  function guardar() { if (!KIT) return; salvarKit(KIT); marcarHist(); }
+  /* ↶ ↷ DESFAZER / REFAZER (28/11, dono: "seta de refazer em cada janela de alterações + atalhos do PC iguais às outras ferramentas"):
+     foto do press kit (textos, estilo, elementos, ajustes das fotos) a cada mudança; mudanças em menos de 0,4 s viram um passo só.
+     As imagens não são copiadas (só as referências): desfazer é leve. Ctrl+Z / Ctrl+Shift+Z / Ctrl+Y. */
+  var HIST = { des: [], ref: [], atual: null, t: 0, volta: false };
+  function fotoHist() { if (!KIT) return null; var k = Object.assign({}, KIT); delete k.atualizado; delete k.nuvem; return { j: JSON.stringify(k), enq: JSON.stringify(IMGS.enq || {}), lv: Object.assign({}, IMGS.livres || {}), lvj: Object.keys(IMGS.livres || {}).sort().join(",") }; }
+  function igualHist(a, b) { return a && b && a.j === b.j && a.enq === b.enq && a.lvj === b.lvj; }
+  function iniciarHist() { HIST = { des: [], ref: [], atual: fotoHist(), t: 0, volta: false }; histUi(); }
+  function passarHist() { clearTimeout(HIST.t); HIST.t = 0; if (HIST.volta || !KIT) return; var f = fotoHist(); if (!HIST.atual || Date.now() < (HIST.ate || 0) || (HIST_MEXEU || 0) <= (HIST.tA || 0)) { HIST.atual = f; HIST.tA = Date.now(); return; }   /* mudança que a tela faz sozinha (sem toque/tecla da pessoa) não vira passo */ if (igualHist(f, HIST.atual)) return;
+    HIST.des.push(HIST.atual); if (HIST.des.length > 60) HIST.des.shift(); HIST.ref = []; HIST.atual = f; HIST.tA = Date.now(); histUi(); }
+  var HIST_MEXEU = 0; ["pointerdown", "keydown", "input", "change"].forEach(function (t) { document.addEventListener(t, function (ev) { var b = ev.target && ev.target.closest && ev.target.closest('[data-a="desfazer"],[data-a="refazer"]'); if (!b && !((ev.ctrlKey || ev.metaKey) && /^[zy]$/i.test(ev.key || ""))) HIST_MEXEU = Date.now(); }, true); });
+  function marcarHist() { if (HIST.volta) return; clearTimeout(HIST.t); HIST.t = setTimeout(passarHist, 400); }
+  function histUi() { [].forEach.call(document.querySelectorAll('[data-a="desfazer"]'), function (b) { b.disabled = !HIST.des.length; }); [].forEach.call(document.querySelectorAll('[data-a="refazer"]'), function (b) { b.disabled = !HIST.ref.length; }); }
+  function voltarHist(dir) {
+    if (!KIT) return; if (ENQ) enqGravar(); passarHist();   /* grava antes o passo que ainda estava esperando */
+    var de = dir < 0 ? HIST.des : HIST.ref, para = dir < 0 ? HIST.ref : HIST.des; if (!de.length) { aviso(dir < 0 ? "Nada para desfazer" : "Nada para refazer"); return; }
+    var alvoAberto = ENQ ? (ENQ.k === "sobre" || ENQ.k === "capa" || ENQ.k === "retrato" || ENQ.k.indexOf("c:") === 0 ? ENQ.k : ENQ.k.replace(/^f/, "")) : null, elAberto = EL;
+    para.push(HIST.atual); var f = de.pop(); HIST.volta = true;
+    try { var k = JSON.parse(f.j), id = KIT.id, nuvem = KIT.nuvem; Object.keys(KIT).forEach(function (c) { delete KIT[c]; }); Object.assign(KIT, k); KIT.id = id; if (nuvem) KIT.nuvem = nuvem;
+      IMGS.enq = JSON.parse(f.enq); IMGS.livres = Object.assign({}, f.lv);
+      ENQ = null; EL = null; $("modal").hidden = true; $("modal").classList.remove("lado"); $("modalCx").innerHTML = "";
+      salvarKit(KIT); guardarImgs(); desenharForm(); agendarPrevia(0);
+      if (alvoAberto) abrirAlvo(alvoAberto); else if (elAberto && elDe(elAberto)) abrirElemento(elAberto);
+    } finally { HIST.atual = f; HIST.tA = Date.now(); HIST.volta = false; HIST.ate = Date.now() + 900; }   /* o que a tela ajeita sozinha logo depois de voltar não vira passo (apagava o refazer) */
+    histUi(); aviso(dir < 0 ? "↶ Desfeito" : "↷ Refeito");
+  }
+  var PK_COPIA = null;
+  function duplicarEl(id, mesmoLugar) { var e = elDe(id); if (!e) return null; var n2 = clone(e); n2.id = "el" + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
+    if (!mesmoLugar) { n2.x = Math.min(0.9, e.x + 0.03); n2.y = Math.min(0.95, e.y + 0.03); } if (e.t === "imagem" && IMGS.livres) { IMGS.livres[n2.id] = IMGS.livres[e.id]; guardarImgs(); } livres().push(n2); return n2; }
+  function atalhosPk(ev) {
+    if (VISTA !== "editor" || !KIT) return; var t = ev.target, tg = (t && t.tagName) || "", campo = tg === "TEXTAREA" || tg === "SELECT" || (t && t.isContentEditable) || (tg === "INPUT" && /^(text|search|email|tel|url|number|password|)$/.test(t.type || ""));
+    var ctrl = ev.ctrlKey || ev.metaKey, k = (ev.key || "").toLowerCase();
+    if (ctrl && (k === "z" || k === "y")) { if (campo) return; ev.preventDefault(); voltarHist(k === "y" || ev.shiftKey ? 1 : -1); return; }
+    if (campo) return;
+    var e = EL && elDe(EL);
+    if (ctrl && k === "d" && e) { ev.preventDefault(); var n = duplicarEl(e.id); EL = null; guardar(); agendarPrevia(0); abrirElemento(n.id); aviso("Duplicado ✓"); return; }
+    if (ctrl && k === "c" && e) { PK_COPIA = { e: clone(e), img: e.t === "imagem" ? (IMGS.livres || {})[e.id] : null }; aviso("Copiado"); return; }
+    if (ctrl && k === "v" && PK_COPIA) { ev.preventDefault(); var c = clone(PK_COPIA.e); c.id = "el" + Date.now().toString(36); c.x = Math.min(0.9, c.x + 0.03); c.y = Math.min(0.95, c.y + 0.03); if (PK_COPIA.img) { IMGS.livres = IMGS.livres || {}; IMGS.livres[c.id] = PK_COPIA.img; guardarImgs(); } livres().push(c); PK_COPIA.e = clone(c); EL = null; guardar(); agendarPrevia(0); abrirElemento(c.id); aviso("Colado ✓"); return; }
+    if (e && /^arrow(left|right|up|down)$/.test(k)) { ev.preventDefault(); var p = ev.shiftKey ? 0.02 : 0.003; if (k === "arrowleft") e.x -= p; if (k === "arrowright") e.x += p; if (k === "arrowup") e.y -= p; if (k === "arrowdown") e.y += p;
+      e.x = +Math.max(-0.2, Math.min(1, e.x)).toFixed(4); e.y = +Math.max(-0.1, Math.min(1, e.y)).toFixed(4); guardar(); clearTimeout(tEl); tEl = setTimeout(function () { agendarPrevia(0); }, 220); return; }
+  }
   var tGuardarImgs = 0;
   function guardarImgs() { clearTimeout(tGuardarImgs); var id = KIT && KIT.id, im = IMGS; im._t = Date.now(); tGuardarImgs = setTimeout(function () { if (id) { idbPut("imgs", id, im); if (window.BWPkNuvem) BWPkNuvem.subir(id, im); } }, 200); }
 
@@ -1301,11 +1341,11 @@
         '<div class="pk-sub-t">PROPORÇÃO</div><div class="pk-chips pk-lin" data-fxg="r">' + [["livre", "✎ LIVRE"], ["", "Foto inteira"]].concat(Object.keys(SOB_R).map(function (q) { return [q, SOB_R[q][1]]; })).map(function (q) { return '<button type="button" class="pk-chip' + (((KIT.est || {}).sobR || "") === q[0] ? " on" : "") + '" data-a="enqProp" data-v="' + q[0] + '">' + q[1] + "</button>"; }).join("") + "</div>" +
         '<p class="tf-sub" id="enqDimTxt" style="margin:6px 0 0"></p>') : "") +
       (inteira || k === "sobre" ? "" : fxHtml(e, painel)) + "</div>" +
-      '<div class="pk-chips pk-enq-pe"><button type="button" class="pk-chip" data-a="enqAntes">◐ SEGURE: ANTES</button><button type="button" class="pk-chip" data-a="enqVoltar">↺ COMO ESTAVA</button><button type="button" class="bw-btn pri" data-a="enqPronto">✓ PRONTO</button></div>');
+      '<div class="pk-chips pk-enq-pe">' + SETAS_HIST + '<button type="button" class="pk-chip" data-a="enqAntes">◐ SEGURE: ANTES</button><button type="button" class="pk-chip" data-a="enqVoltar">↺ COMO ESTAVA</button><button type="button" class="bw-btn pri" data-a="enqPronto">✓ PRONTO</button></div>');
     ENQ = NOVO; $("modalCx").classList.add("enq-app"); dock(); marcarAtiva();
     var cv = $("enqCv"), palco = $("enqPalco");
     if (!inteira) { palco.style.aspectRatio = cw + " / " + ch; palco.style.width = "min(100%, calc(var(--enq-h, 46vh) * " + (cw / ch).toFixed(4) + "))"; }
-    ligarEnquadrar(palco); if (k === "sobre") dimTxt([cw, ch]); enqDesenhar();
+    ligarEnquadrar(palco); if (k === "sobre") enqTam(); else enqDesenhar();
   }
   function fxHtml(e, painel) {
     var f = e.fx || {}, cr = coresDe(KIT), chip = function (c, v, rot, on, extra) { return '<button type="button" class="pk-chip' + (on ? " on" : "") + '" data-a="enqFx" data-c="' + c + '" data-v="' + v + '">' + (extra || "") + esc(rot) + "</button>"; };
@@ -1380,7 +1420,27 @@
     r = SOB_R[q] ? SOB_R[q][0] : (ENQ_PROP_S || 1.3); if (q === "livre") return [w, Math.min(sobAltLivre(G, ENQ && ENQ.sh ? ENQ.sh : e.sobH, w), G.H * 0.62)]; return [w, Math.min(w * r, G.H * 0.62)]; }
   function sobreH(G) { var e = KIT.est || {}; if (ENQ && ENQ.sh) return Math.round(ENQ.sh); if (+e.sobH) return Math.round(+e.sobH); var d = sobreDim(G); return Math.max(10, Math.min(100, Math.round(d[1] / G.CW * 100))); }
   var ENQ_PROP_S = 0;
-  function enqTam() { if (!ENQ || ENQ.k !== "sobre") return; var d = sobreDim(ENQ.G); ENQ.cw = d[0]; ENQ.ch = d[1]; var pl = $("enqPalco"); if (pl) { pl.style.aspectRatio = d[0] + " / " + d[1]; pl.style.width = "min(100%, calc(var(--enq-h, 46vh) * " + (d[0] / d[1]).toFixed(4) + "))"; }
+  /* ⤢ REENQUADRAR (28/11, dono: "não é só aumentar para um lado — mostrar o oculto da foto"): a moldura mudou de w0×h0 para w1×h1 →
+     a foto fica na MESMA escala na página e a moldura revela (ou esconde) o que estava fora, preso no lado/canto puxado (q) ou no centro.
+     Quando a foto acaba (não tem mais o que mostrar), aí sim ela começa a crescer para cobrir. e = {x, y, z} do recorte (cover × z). */
+  function reenquadrar(e, w0, h0, w1, h1, ih, q) {
+    if (!e || !(w0 > 0) || !(h0 > 0) || !(ih > 0)) return e; var iw = 1; q = q || "";
+    var z0 = Math.max(1, +e.z || 1), s0 = Math.max(w0 / iw, h0 / ih) * z0, cov1 = Math.max(w1 / iw, h1 / ih), z1 = Math.max(1, Math.min(3, s0 / cov1)), s1 = cov1 * z1;
+    var eixo = function (p, c0, c1, tam, a0, a1) {   /* p = posição 0..1; c = tamanho da moldura; tam = tamanho da foto em px */
+      var L0 = Math.max(0, tam * s0 - c0) * p / s0, vis0 = c0 / s0, vis1 = c1 / s1, L1 = a0 ? L0 + vis0 - vis1 : a1 ? L0 : L0 + vis0 / 2 - vis1 / 2;
+      L1 = Math.max(0, Math.min(tam - vis1, L1)); var sobra = tam * s1 - c1; return sobra > 0.5 ? Math.max(0, Math.min(1, L1 * s1 / sobra)) : 0.5; };
+    e.x = +eixo(e.x == null ? 0.5 : +e.x, w0, w1, iw, q.indexOf("w") >= 0, q.indexOf("e") >= 0).toFixed(4);
+    e.y = +eixo(e.y == null ? 0.5 : +e.y, h0, h1, ih, q.indexOf("n") >= 0, q.indexOf("s") >= 0).toFixed(4);
+    e.z = +z1.toFixed(3); return e;
+  }
+  function zUi() { var r = $("modalCx") && $("modalCx").querySelector('[data-enq="z"]'); if (r && ENQ) { r.value = Math.round(ENQ.e.z * 100); r.parentNode.querySelector("b").textContent = r.value + "%"; } }
+  /* a moldura da página 2 mostra o tamanho REAL na mesma escala: X muda só a largura, Y só a altura (antes a altura era fixa e o Y só estreitava a moldura) */
+  function enqAltDisp() { var v = getComputedStyle($("modalCx")).getPropertyValue("--enq-h").trim(), n = parseFloat(v); if (!n) return window.innerHeight * 0.4; return /vh$/.test(v) ? n * window.innerHeight / 100 : /dvh$/.test(v) ? n * window.innerHeight / 100 : n; }
+  function enqTam(q) { if (!ENQ || ENQ.k !== "sobre") return; var d = sobreDim(ENQ.G);
+    if (ENQ.cw && ENQ.ch && (Math.abs(d[0] - ENQ.cw) > 0.5 || Math.abs(d[1] - ENQ.ch) > 0.5)) { reenquadrar(ENQ.e, ENQ.cw, ENQ.ch, d[0], d[1], ENQ_PROP_S, q); zUi(); }
+    ENQ.cw = d[0]; ENQ.ch = d[1]; var pl = $("enqPalco");
+    if (pl) { var G = ENQ.G, larg = Math.max(120, (pl.parentNode.clientWidth || 300) - 4), alt = Math.max(80, enqAltDisp()), maxW = G.CW * 0.62, maxH = Math.min(G.CW, G.H * 0.62), esc = Math.min(larg / maxW, alt / maxH);
+      pl.style.aspectRatio = "auto"; pl.style.width = Math.round(d[0] * esc) + "px"; pl.style.height = Math.round(d[1] * esc) + "px"; }
     dimTxt(d); enqDesenhar(); }
   function dimTxt(d) { var tx = $("enqDimTxt"); if (tx && ENQ) tx.textContent = "Na página: " + Math.round(d[0] / 2.835) + " × " + Math.round(d[1] / 2.835) + " mm" + (d[1] >= ENQ.G.H * 0.62 - 0.5 ? " · altura no máximo da página" : ""); }
   function enqProp(v) { if (v === "livre" && !ENQ.sh) { var dd = sobreDim(ENQ.G); ENQ.sh = Math.max(10, Math.min(100, Math.round(dd[1] / ENQ.G.CW * 100))); var rr = $("modalCx").querySelector('[data-enq="sh"]'); if (rr) { rr.value = ENQ.sh; rr.parentNode.querySelector("b").textContent = ENQ.sh + "%"; } }
@@ -1396,9 +1456,48 @@
   }
   /* fechar (✕, Esc, tocar fora na prévia) GUARDA o que já se vê na prévia */
   function enqFechar() { if (ENQ) { enqGravar(); ENQ = null; guardarImgs(); guardar(); agendarPrevia(0); } if (EL) { EL = null; guardar(); } $("modal").hidden = true; $("modal").classList.remove("lado"); $("modalCx").innerHTML = ""; marcarAtiva(); }
-  function dock() { var lado = window.innerWidth > 1060 || ($("vEd") && $("vEd").getAttribute("data-aba") === "prev"); $("modal").classList.toggle("lado", !!lado); }
+  function dock() { var lado = window.innerWidth > 1060 || ($("vEd") && $("vEd").getAttribute("data-aba") === "prev"); $("modal").classList.toggle("lado", !!lado); aplicarJan(); }
+  /* 🪟 JANELAS FLUTUANTES (28/11, dono: "as janelas que se abrem flutuantes, arrastadas e ajustadas em tamanho e local"): puxar pelo título ou pelo ⠿
+     move; o ◢ do canto muda o tamanho; dois toques no ⠿ volta ao lugar de sempre. Lugar e tamanho ficam NESTE aparelho (ui_pk_janela), um por tipo de janela. */
+  var SETAS_HIST = '<button type="button" class="pk-chip pk-hist" data-a="desfazer" title="Desfazer (Ctrl+Z)" aria-label="Desfazer">↶</button><button type="button" class="pk-chip pk-hist" data-a="refazer" title="Refazer (Ctrl+Shift+Z)" aria-label="Refazer">↷</button>';
+  var JAN_PECAS = '<i class="pk-jan-arr" title="Arraste para mover · dois toques: volta ao lugar" aria-hidden="true">⠿</i><i class="pk-jan-tam" title="Arraste para mudar o tamanho" aria-hidden="true"></i>';
+  var JAN = (function () { try { return JSON.parse(localStorage.getItem("ui_pk_janela") || "{}") || {}; } catch (e) { return {}; } })();
+  function chaveJan() { return ($("modal").classList.contains("lado") ? "lado" : "centro") + (window.innerWidth > 1060 ? "" : "-cel") + ($("modalCx").classList.contains("enq-app") ? "-enq" : ""); }
+  function encaixarJan(cx, j) {
+    var vw = window.innerWidth, vh = window.innerHeight, w = Math.max(260, Math.min(vw - 8, j.w)), h = Math.max(180, Math.min(vh - 8, j.h));
+    var x = Math.max(4 - w + 80, Math.min(vw - 80, j.x)), y = Math.max(4, Math.min(vh - 44, j.y));
+    cx.style.left = x + "px"; cx.style.top = y + "px"; cx.style.width = w + "px"; cx.style.height = h + "px"; cx.style.maxHeight = "none";
+    if (cx.classList.contains("enq-app")) cx.style.setProperty("--enq-h", Math.max(70, Math.round(h * 0.4)) + "px"); else cx.style.removeProperty("--enq-h");
+    return { x: x, y: y, w: w, h: h };
+  }
+  function aplicarJan() {
+    var cx = $("modalCx"); if (!cx) return; var j = JAN[chaveJan()];
+    ["left", "top", "width", "height", "max-height", "--enq-h"].forEach(function (p) { cx.style.removeProperty(p); });
+    cx.classList.toggle("solta", !!j); if (j) encaixarJan(cx, j);
+  }
+  function gravarJan(cx) { var r = cx.getBoundingClientRect(); JAN[chaveJan()] = { x: Math.round(r.left), y: Math.round(r.top), w: Math.round(r.width), h: Math.round(r.height) }; try { localStorage.setItem("ui_pk_janela", JSON.stringify(JAN)); } catch (e) { } }
+  function ligarJanelas() {
+    var mo = $("modal"); if (!mo || mo.__jan) return; mo.__jan = 1; var J = null, ultToque = 0;
+    mo.addEventListener("pointerdown", function (ev) {
+      var cx = $("modalCx"), alca = ev.target.closest && ev.target.closest(".pk-jan-arr,.pk-jan-tam,#modalCx > h3"); if (!alca || !cx.contains(alca)) return;
+      var tam = alca.classList.contains("pk-jan-tam");
+      if (!tam && alca.classList.contains("pk-jan-arr") && Date.now() - ultToque < 320) { delete JAN[chaveJan()]; try { localStorage.setItem("ui_pk_janela", JSON.stringify(JAN)); } catch (e) { } aplicarJan(); aviso("Janela no lugar de sempre"); ultToque = 0; return; }
+      if (alca.classList.contains("pk-jan-arr")) ultToque = Date.now();
+      var r = cx.getBoundingClientRect(); ev.preventDefault();
+      J = { tam: tam, px: ev.clientX, py: ev.clientY, r: { x: r.left, y: r.top, w: r.width, h: r.height }, id: ev.pointerId, mexeu: false };
+      try { mo.setPointerCapture(ev.pointerId); } catch (e) { }
+    });
+    mo.addEventListener("pointermove", function (ev) {
+      if (!J) return; var dx = ev.clientX - J.px, dy = ev.clientY - J.py; if (!J.mexeu && Math.hypot(dx, dy) < 4) return;
+      var cx = $("modalCx"); if (!J.mexeu) { J.mexeu = true; cx.classList.add("solta"); } ev.preventDefault();
+      encaixarJan(cx, J.tam ? { x: J.r.x, y: J.r.y, w: J.r.w + dx, h: J.r.h + dy } : { x: J.r.x + dx, y: J.r.y + dy, w: J.r.w, h: J.r.h });
+    });
+    var fim = function () { if (!J) return; var j = J; J = null; window.__pkJanT = Date.now(); if (j.mexeu) { gravarJan($("modalCx")); if (ENQ) { if (ENQ.k === "sobre") enqTam(); else enqDesenhar(); } } };
+    mo.addEventListener("pointerup", fim); mo.addEventListener("pointercancel", fim);
+    window.addEventListener("resize", function () { if (!$("modal").hidden) aplicarJan(); });
+  }
   function enqGravar() {
-    if (!ENQ) return; var e = ENQ.e, aj = {}; AJUSTES.forEach(function (a) { if (+e.aj[a[0]]) aj[a[0]] = +e.aj[a[0]]; });
+    if (!ENQ) return; marcarHist(); var e = ENQ.e, aj = {}; AJUSTES.forEach(function (a) { if (+e.aj[a[0]]) aj[a[0]] = +e.aj[a[0]]; });
     var limpo = ENQ.inteira ? {} : { x: +(+e.x).toFixed(4), y: +(+e.y).toFixed(4), z: +(+e.z).toFixed(3) }; if (Object.keys(aj).length) limpo.aj = aj;
     if (!ENQ.inteira && !fxNeutro(e.fx)) limpo.fx = { m: e.fx.m || "normal", c: e.fx.c || "fundo", o: e.fx.o == null ? 100 : +e.fx.o, k: e.fx.k || "nenhuma", s: e.fx.s == null ? 50 : +e.fx.s };
     IMGS.enq = IMGS.enq || {};
@@ -1634,6 +1733,10 @@
   }
   function tocarPrevia(cv) {
     if (Date.now() - (window.__pkArrastou || 0) < 400) return;
+    if (window.__pkTipo === "touch" && !INS) { var t0 = Date.now(), xy = PK_XY; setTimeout(function () { if ((window.__pkMenuT || 0) >= t0) return; PK_XY = xy; tocarPreviaJa(cv); }, 340); return; }   /* dedo: espera um 2º toque (dois toques = opções) */
+    tocarPreviaJa(cv);
+  }
+  function tocarPreviaJa(cv) {
     var h = alvoNoPonto(cv, PK_XY.x, PK_XY.y);
     if (h && h.k.indexOf("e:") === 0) { if (ENQ) enqFechar(); abrirElemento(h.k.slice(2)); return; }
     if (h) { if (ENQ || EL) enqFechar(); abrirAlvo(h.k); return; }
@@ -1645,7 +1748,7 @@
   function marcarAtiva() {
     var cx = $("paginas"); if (!cx) return; [].forEach.call(cx.querySelectorAll(".pk-hl.on"), function (d) { d.remove(); });
     var alvo = ENQ ? (ENQ.k === "sobre" || ENQ.k === "capa" || ENQ.k === "retrato" || ENQ.k.indexOf("c:") === 0 ? ENQ.k : ENQ.k.replace(/^f/, "")) : EL ? "e:" + EL : ""; if (!alvo) return;
-    var d0 = null; [].forEach.call(cx.querySelectorAll(".pk-pag"), function (cv) { (cv._fotos || []).forEach(function (f) { if (f.k === alvo) { var d = caixaHl(cv, f, "on"); d0 = d0 || d; } }); });
+    var d0 = null; [].forEach.call(cx.querySelectorAll(".pk-pag"), function (cv) { (cv._fotos || []).forEach(function (f) { if (f.k === alvo) { var d = caixaHl(cv, f, "on"); porAlcas(d, cv, f); d0 = d0 || d; } }); });
     if (!d0 || !$("modal").classList.contains("lado")) return;   /* deixa à vista o que está sendo ajustado */
     var r = d0.getBoundingClientRect();
     if (window.innerWidth <= 1060) { var lim = window.innerHeight * 0.42; if (r.top < 50 || r.bottom > lim) window.scrollBy(0, r.top - Math.max(50, (lim - r.height) / 2)); }
@@ -1693,7 +1796,7 @@
   function elAlt(e, W, H) {
     var k = W / 595.28, w = e.w * W;
     if (e.t === "texto") { var fs = (+e.tam || 22) * k, n = 0; String(e.txt || " ").split("\n").forEach(function (l) { n += Math.max(1, Math.ceil(l.length * fs * 0.52 / Math.max(10, w))); }); return n * fs * 1.2 / H; }
-    if (e.t === "icone") return w / H;
+    if (e.t === "icone") return w / (+e.prop || 1) / H;
     if (e.t === "imagem") return w / (+e.prop || 1) / H;
     return Math.max(0.004, +e.h || 0.06);
   }
@@ -1702,7 +1805,7 @@
     return (m.livres || []).filter(function (e) { return (+e.pg || 1) === pg; }).map(function (e) {
       var x = e.x * W, y = e.y * H, w = e.w * W, op = (e.op == null ? 100 : +e.op) / 100, ab = { absolutePosition: { x: x, y: y } };
       if (e.t === "texto") return Object.assign({ table: { widths: [w], body: [[{ text: String(e.txt || ""), fontSize: (+e.tam || 22) * k, color: e.cor || cores.destaque || "#E8B54A", bold: !!e.neg, italics: !!e.it, alignment: e.al || "left", font: e.fonte === "tit" ? m.tema.fTit : undefined, lineHeight: 1.08, opacity: op }]] }, layout: semGap("#ffffff", 0) }, ab);
-      if ((e.t === "icone" || e.t === "imagem") && e.url) return Object.assign({ image: e.url, width: w, height: e.t === "icone" ? w : w / (+e.prop || 1), opacity: op }, ab);
+      if ((e.t === "icone" || e.t === "imagem") && e.url) return Object.assign({ image: e.url, width: w, height: w / (+e.prop || 1), opacity: op }, ab);
       if (e.t === "forma") { var hh = Math.max(1, (+e.h || 0.06) * H), cor = e.cor || "#E8B54A", cv;
         if (e.forma === "circ") cv = { type: "ellipse", x: w / 2, y: hh / 2, r1: w / 2, r2: hh / 2, color: cor, fillOpacity: op };
         else if (e.forma === "linha") cv = { type: "line", x1: 0, y1: hh / 2, x2: w, y2: hh / 2, lineWidth: Math.max(1, hh), lineColor: cor, strokeOpacity: op };
@@ -1752,7 +1855,7 @@
     h += faixa("◌ Opacidade", "op", 5, 100, e.op == null ? 100 : e.op, "%") +
       '<div class="pk-sub-t">LUGAR</div><p class="tf-sub" style="margin:0 0 6px">Arraste o elemento na prévia para mudar de lugar.</p>' + chips("pos", [["esq", "⇤ Encostar à esquerda"], ["meio", "↔ Centralizar"], ["dir", "⇥ À direita"]], "") +
       (PAGS > 1 ? '<div class="pk-sub-t">PÁGINA</div>' + chips("pg", Array.from({ length: PAGS }, function (_, i) { return [i + 1, "Pág. " + (i + 1)]; }), e.pg || 1) : "") +
-      '<div class="pk-chips pk-enq-pe"><button type="button" class="pk-chip" data-a="elDup">⧉ DUPLICAR</button><button type="button" class="pk-chip perigo" data-a="elDel">🗑 APAGAR</button><button type="button" class="bw-btn pri" data-a="fecharModal">✓ PRONTO</button></div>';
+      '<div class="pk-chips pk-enq-pe">' + SETAS_HIST + '<button type="button" class="pk-chip" data-a="elDup">⧉ DUPLICAR</button><button type="button" class="pk-chip perigo" data-a="elDel">🗑 APAGAR</button><button type="button" class="bw-btn pri" data-a="fecharModal">✓ PRONTO</button></div>';
     modal('<button type="button" class="pk-mx" data-a="fecharModal" aria-label="Fechar">✕</button><h3>' + tit + '</h3><div class="pk-el-corpo">' + h + "</div>");
     EL = id; dock(); marcarAtiva();
   }
@@ -1777,11 +1880,13 @@
     var cx = $("paginas"); if (!cx || cx.__arr) return; cx.__arr = 1; var A = null;
     cx.addEventListener("pointerdown", function (ev) {
       var cv = ev.target.closest && ev.target.closest(".pk-pag"); if (!cv || INS) return; var h = alvoNoPonto(cv, ev.clientX, ev.clientY); if (!h || h.k.indexOf("e:") !== 0) return;
-      var e = elDe(h.k.slice(2)); if (!e) return; A = { cv: cv, e: e, f: h.f, px: ev.clientX, py: ev.clientY, x: e.x, y: e.y, mexeu: false, box: null, id: ev.pointerId };
+      var e = elDe(h.k.slice(2)); if (!e) return; A = { cv: cv, e: e, f: h.f, px: ev.clientX, py: ev.clientY, x: e.x, y: e.y, mexeu: false, box: null, id: ev.pointerId, alt: !!ev.altKey };
     });
     cx.addEventListener("pointermove", function (ev) {
       if (A) { var dx = ev.clientX - A.px, dy = ev.clientY - A.py; if (!A.mexeu && Math.hypot(dx, dy) < 5) return;
-        if (!A.mexeu) { A.mexeu = true; try { cx.setPointerCapture(A.id); } catch (er) { } A.box = caixaHl(A.cv, A.f, "drag"); }
+        if (!A.mexeu) { A.mexeu = true; try { cx.setPointerCapture(A.id); } catch (er) { } A.box = caixaHl(A.cv, A.f, "drag");
+          if (A.alt) { var cp = duplicarEl(A.e.id, true); if (cp) { A.e = cp; aviso("Alt: arrastando uma cópia"); } } }   /* ALT + arrastar = duplica (o original fica) */
+        if (ev.shiftKey) { if (Math.abs(dx) > Math.abs(dy)) dy = 0; else dx = 0; }   /* SHIFT trava na horizontal/vertical */
         var w = A.cv.offsetWidth, hh = A.cv.offsetHeight; A.e.x = Math.max(-0.2, Math.min(1, A.x + dx / w)); A.e.y = Math.max(-0.1, Math.min(1, A.y + dy / hh));
         A.box.style.left = (A.cv.offsetLeft + A.e.x * w) + "px"; A.box.style.top = (A.cv.offsetTop + A.e.y * hh) + "px"; ev.preventDefault(); return; }
       if (ev.pointerType !== "mouse") return;
@@ -1794,6 +1899,111 @@
     cx.addEventListener("touchmove", function (ev) { if (A && A.mexeu) ev.preventDefault(); }, { passive: false });
   }
 
+
+  /* ⤢ ALÇAS (28/11, dono: "alterar o tamanho pelo clique e arraste pelas pontas; com SHIFT proporcional, sem tecla livre"):
+     no item escolhido da prévia (elemento livre ou a foto da página 2) aparecem 8 alças; puxar muda largura/altura na hora e o PDF se refaz ao soltar. */
+  var ALCAS = ["nw", "n", "ne", "e", "se", "s", "sw", "w"];
+  function porAlcas(d, cv, f) {
+    if (!d || !(f.k === "sobre" || f.k.indexOf("e:") === 0)) return;
+    ALCAS.forEach(function (q) { var h = document.createElement("b"); h.className = "pk-alca " + q; h.setAttribute("data-alca", q); d.appendChild(h); });
+    d._cv = cv; d._f = f; d.classList.add("com-alca");
+  }
+  function ligarAlcas() {
+    var cx = $("paginas"); if (!cx || cx.__alca) return; cx.__alca = 1; var R = null;
+    cx.addEventListener("pointerdown", function (ev) {
+      var h = ev.target.closest && ev.target.closest(".pk-alca"); if (!h) return; var d = h.parentNode; if (!d || !d._cv) return;
+      ev.preventDefault(); ev.stopPropagation(); try { cx.setPointerCapture(ev.pointerId); } catch (er) { }
+      var f = d._f; R = { q: h.getAttribute("data-alca"), d: d, cv: d._cv, k: f.k, f0: { x0: f.x0, y0: f.y0, x1: f.x1, y1: f.y1 }, px: ev.clientX, py: ev.clientY, n: null };
+      window.__bwSegurando = true;
+    }, true);
+    cx.addEventListener("pointermove", function (ev) {
+      if (!R) return; ev.preventDefault(); ev.stopPropagation();
+      var W = R.cv.offsetWidth, H = R.cv.offsetHeight, f = R.f0, q = R.q, dx = (ev.clientX - R.px) / W, dy = (ev.clientY - R.py) / H;
+      var x0 = f.x0, y0 = f.y0, x1 = f.x1, y1 = f.y1, MIN = 0.02;
+      if (q.indexOf("w") >= 0) x0 = Math.min(x1 - MIN, f.x0 + dx); if (q.indexOf("e") >= 0) x1 = Math.max(x0 + MIN, f.x1 + dx);
+      if (q.indexOf("n") >= 0) y0 = Math.min(y1 - MIN, f.y0 + dy); if (q.indexOf("s") >= 0) y1 = Math.max(y0 + MIN, f.y1 + dy);
+      if (ev.shiftKey) {   /* SHIFT = proporcional: mantém a forma de antes, presa no canto/lado oposto */
+        var w0 = (f.x1 - f.x0) * W, h0 = (f.y1 - f.y0) * H, w = (x1 - x0) * W, hh = (y1 - y0) * H, a = w0 / h0, sc;
+        var hor = /[we]/.test(q), ver = /[ns]/.test(q);
+        sc = hor && ver ? Math.max(w / w0, hh / h0) : hor ? w / w0 : hh / h0; w = w0 * sc; hh = w / a;
+        if (hor && !ver) { var cy = (f.y0 + f.y1) / 2; y0 = cy - hh / H / 2; y1 = cy + hh / H / 2; }
+        else if (ver && !hor) { var cxm = (f.x0 + f.x1) / 2; x0 = cxm - w / W / 2; x1 = cxm + w / W / 2; }
+        if (hor) { if (q.indexOf("w") >= 0) x0 = f.x1 - w / W; else x1 = f.x0 + w / W; }
+        if (ver) { if (q.indexOf("n") >= 0) y0 = f.y1 - hh / H; else y1 = f.y0 + hh / H; }
+      }
+      R.n = { x0: x0, y0: y0, x1: x1, y1: y1, prop: !!ev.shiftKey };
+      var st = R.d.style; st.left = (R.cv.offsetLeft + x0 * W) + "px"; st.top = (R.cv.offsetTop + y0 * H) + "px"; st.width = ((x1 - x0) * W) + "px"; st.height = ((y1 - y0) * H) + "px";
+    }, true);
+    var fim = function (ev) { if (!R) return; var a = R; R = null; window.__bwSegurando = false; window.__pkArrastou = Date.now(); if (ev) ev.stopPropagation(); if (a.n) aplicarAlca(a); };
+    cx.addEventListener("pointerup", fim, true); cx.addEventListener("pointercancel", fim, true);
+  }
+  function aplicarAlca(a) {
+    var n = a.n, f = a.f0, cv = a.cv, nw = n.x1 - n.x0, nh = n.y1 - n.y0, razao = nw * cv.width / (nh * cv.height);
+    if (a.k === "sobre") {
+      var G = formatoKit().G; KIT.est = KIT.est || {}; var dAnt = sobreDim(G);
+      var sw = Math.round(Math.max(20, Math.min(62, nw * G.W / G.CW * 100))), sh = Math.round(Math.max(10, Math.min(100, nh * G.H / G.CW * 100)));
+      KIT.est.sobW = sw; if (n.prop && KIT.est.sobR && KIT.est.sobR !== "livre") { } else { KIT.est.sobR = "livre"; KIT.est.sobH = sh; }
+      if (!(ENQ && ENQ.k === "sobre")) { var dNov = sobreDim(G); IMGS.enq = IMGS.enq || {}; var eS = IMGS.enq.sobre = IMGS.enq.sobre || { x: 0.5, y: 0.5, z: 1 };
+        var feito = function () { reenquadrar(eS, dAnt[0], dAnt[1], dNov[0], dNov[1], ENQ_PROP_S, a.q); guardarImgs(); guardar(); agendarPrevia(0); };
+        if (ENQ_PROP_S) feito(); else imgDe(IMGS.retrato).then(function (im) { ENQ_PROP_S = im.naturalHeight / im.naturalWidth; feito(); }).catch(feito); }
+      if (ENQ && ENQ.k === "sobre") { ENQ.sw = sw; ENQ.sr = KIT.est.sobR; if (KIT.est.sobR === "livre") ENQ.sh = sh;
+        [["sw", sw], ["sh", ENQ.sh]].forEach(function (p) { var r = $("modalCx").querySelector('[data-enq="' + p[0] + '"]'); if (r && p[1]) { r.value = p[1]; r.parentNode.querySelector("b").textContent = p[1] + "%"; } });
+        var al = $("enqAltLivre"); if (al) al.hidden = ENQ.sr !== "livre";
+        [].forEach.call($("modalCx").querySelectorAll('[data-a="enqProp"]'), function (b) { b.classList.toggle("on", b.getAttribute("data-v") === ENQ.sr); }); enqTam(a.q); }
+      guardar(); agendarPrevia(0); aviso(KIT.est.sobR === "livre" ? "Foto da página 2: tamanho livre" : "Foto da página 2: tamanho ajustado"); return;
+    }
+    var e = elDe(a.k.slice(2)); if (!e) return; var hOld = Math.max(0.0001, f.y1 - f.y0);
+    e.x = n.x0; e.y = n.y0;
+    if (e.t === "forma") { e.w = nw; e.h = nh; }
+    else if (e.t === "texto") { if (/[ns]/.test(a.q)) e.tam = Math.max(6, Math.min(120, Math.round((+e.tam || 22) * nh / hOld))); e.w = nw; }
+    else { e.w = nw; e.prop = +razao.toFixed(4); }
+    if (EL === e.id) abrirElemento(e.id); guardar(); agendarPrevia(0);
+  }
+  /* ☰ OPÇÕES na prévia: botão direito (PC) ou dois toques (dedo) — o mesmo menu dos editores de foto e vídeo */
+  function ligarMenuPrevia() {
+    var cx = $("paginas"); if (!cx || cx.__menu || !window.BWFerr) return; cx.__menu = 1;
+    BWFerr.toqueDuplo({ pular: "#modal,.pk-form" });
+    BWFerr.contexto(cx, ".pk-pag", function (cv, ev) { return menuPrevia(cv, ev.clientX, ev.clientY); });
+    document.addEventListener("keydown", function (ev) {
+      if ((ev.key === "Delete" || ev.key === "Backspace") && EL && !(BWFerr.digitando && BWFerr.digitando(ev))) { var t = ev.target; if (t && /INPUT|TEXTAREA|SELECT/.test(t.tagName)) return; ev.preventDefault(); acao("elDel", falsoEl({})); }
+    });
+  }
+  function falsoEl(at) { return { getAttribute: function (n) { return at[n]; } }; }
+  function menuPrevia(cv, x, y) {
+    window.__pkMenuT = Date.now();
+    var h = alvoNoPonto(cv, x, y), pg = +cv.getAttribute("data-pg") || 1, k = h && h.k;
+    if (k && k.indexOf("e:") === 0) {
+      var id = k.slice(2), e = elDe(id); if (!e) return [];
+      var nome = { texto: "TEXTO", icone: "ÍCONE", imagem: "IMAGEM", forma: "FORMA" }[e.t] || "ELEMENTO";
+      var mover = function (dir) { return function () { var L = livres(), i = L.indexOf(e); L.splice(i, 1); if (dir > 0) L.push(e); else L.unshift(e); guardar(); agendarPrevia(0); aviso(dir > 0 ? "Na frente ✓" : "Atrás ✓"); }; };
+      return { titulo: nome, itens: [
+        { icone: "✎", rot: "Editar", fn: function () { if (ENQ) enqFechar(); abrirElemento(id); } },
+        { icone: "⧉", rot: "Duplicar", tecla: "", fn: function () { EL = id; acao("elDup", falsoEl({})); } },
+        { icone: "⤒", rot: "Trazer para a frente", fn: mover(1) },
+        { icone: "⤓", rot: "Mandar para trás", fn: mover(-1) },
+        { icone: "↔", rot: "Centralizar na página", fn: function () { e.x = Math.max(0, (1 - e.w) / 2); guardar(); agendarPrevia(0); } },
+        e.t === "imagem" || e.t === "icone" ? { icone: "⟲", rot: "Proporção original", fn: function () { if (e.t === "icone") delete e.prop; else { var u = (IMGS.livres || {})[e.id]; if (u) imgDe(u).then(function (im) { e.prop = im.naturalWidth / im.naturalHeight; guardar(); agendarPrevia(0); }); return; } guardar(); agendarPrevia(0); } } : null,
+        "-",
+        { icone: "🗑", rot: "Apagar", perigo: true, tecla: "Del", fn: function () { EL = id; acao("elDel", falsoEl({})); } }
+      ].filter(Boolean) };
+    }
+    if (k) {
+      var it = [
+        { icone: "✥", rot: "Enquadrar e ajustar", fn: function () { if (ENQ || EL) enqFechar(); abrirAlvo(k); } }];
+      if (k === "sobre") it.push({ icone: "⤢", rot: "Tamanho e proporção", fn: function () { if (ENQ || EL) enqFechar(); ENQ_ABA = "tam"; abrirAlvo("sobre"); } });
+      it.push({ icone: "⬇", rot: "Baixar a foto", fn: function () { acao("fotoBaixar", falsoEl({ "data-alvo": k })); } });
+      it.push("-", { icone: "⟲", rot: "Remover ajustes da foto", fn: function () {
+        if (ENQ) { ENQ = null; $("modal").hidden = true; }
+        IMGS.enq = IMGS.enq || {}; delete IMGS.enq[chaveFoto(k)]; if (k === "sobre") { KIT.est = KIT.est || {}; delete KIT.est.sobW; delete KIT.est.sobR; delete KIT.est.sobH; }
+        guardarImgs(); guardar(); agendarPrevia(0); marcarAtiva(); aviso("Ajustes removidos"); } });
+      return { titulo: k === "capa" ? "FOTO DA CAPA" : k === "sobre" ? "FOTO DA PÁGINA 2" : "FOTO", itens: it };
+    }
+    var ins = function (t) { return function () { INS = t; inserirEm(cv, x, y); }; };
+    return { titulo: "PÁGINA " + pg, itens: [{ tit: "INSERIR AQUI" },
+      { icone: "✎", rot: "Texto", fn: ins("texto") }, { icone: "★", rot: "Ícone", fn: ins("icone") }, { icone: "▬", rot: "Forma", fn: ins("forma") },
+"-",
+      { icone: "✥", rot: "Ajustar as fotos desta página", fn: function () { abrirFotosPagina(pg); } }] };
+  }
   /* ---------- SAÍDAS ---------- */
   async function gerarPdf(semBaixar) {
     andamento("Gerando o PDF…");
@@ -1856,7 +2066,7 @@
   function jsonDe(t) { t = String(t || "").replace(/```(json)?/g, ""); var a = t.indexOf("{"), b = t.lastIndexOf("}"); if (a < 0 || b <= a) return null; try { return JSON.parse(t.slice(a, b + 1)); } catch (e) { return null; } }
   function limpar(t) { return String(t || "").replace(/\*\*|__|^#+\s*/gm, "").trim(); }
   function erroIA(e) { return { sem_login: "Entre na sua conta para usar a IA.", limite: "Limite diário da IA atingido.", ocupada: "A IA está ocupada. Tente em alguns segundos.", rede: "Sem internet agora." }[e] || "A IA não respondeu agora (" + e + ")."; }
-  function modal(html) { if (ENQ || EL) { var e0 = ENQ, l0 = EL; if (e0) { enqGravar(); guardarImgs(); guardar(); agendarPrevia(0); } ENQ = null; EL = null; marcarAtiva(); } $("modal").classList.remove("lado"); $("modalCx").classList.remove("enq-app"); $("modalCx").innerHTML = html; $("modal").hidden = false; var f = $("modalCx").querySelector("textarea,input"); if (f) setTimeout(function () { f.focus(); }, 50); }
+  function modal(html) { if (ENQ || EL) { var e0 = ENQ, l0 = EL; if (e0) { enqGravar(); guardarImgs(); guardar(); agendarPrevia(0); } ENQ = null; EL = null; marcarAtiva(); } $("modal").classList.remove("lado"); $("modalCx").classList.remove("enq-app"); $("modalCx").innerHTML = html + JAN_PECAS; $("modal").hidden = false; aplicarJan(); histUi(); var f = $("modalCx").querySelector("textarea,input"); if (f) setTimeout(function () { f.focus(); }, 50); }
   function fecharModal() { if (ENQ || EL) { enqFechar(); return; } $("modal").hidden = true; $("modal").classList.remove("lado"); $("modalCx").innerHTML = ""; }
   var DESFAZER_IA = null;
   function abrirIaSobre() {
@@ -1983,6 +2193,8 @@
     else if (a === "iaRelease") abrirIaRelease();
     else if (a === "iaReleaseIr") iaRelease();
     else if (a === "desfazerIA") desfazerIA();
+    else if (a === "desfazer") voltarHist(-1);
+    else if (a === "refazer") voltarHist(1);
     else if (a === "falar") falar(el.getAttribute("data-alvo"));
     else if (a === "fotoIA") { var px = FOTO_IA.filter(function (x) { return x.id === el.getAttribute("data-p"); })[0]; if (!$("modal").hidden) fecharModal(); if (px) fotoIA(el.getAttribute("data-alvo"), px.p); }
     else if (a === "fotoBaixar" || a === "fotoIAbaixar") { var alv = String(el.getAttribute("data-alvo")), pcs = alv.split(":"), ub = alv === "logo" ? IMGS.logo : alv.indexOf("c:") === 0 ? ((IMGS.cards || {})[pcs[1]] || [])[+pcs[2]] : srcFoto(alv); if (!ub) return; var ehIA = !!(IMGS.origs && IMGS.origs[chaveFoto(alv)]), bb = new Blob([binDe(ub)], { type: (/^data:([^;]+)/.exec(ub) || [0, "image/jpeg"])[1] }); baixar(bb, nomeArq(KIT, "").replace(/\.$/, "") + (ehIA ? "-foto-ia-" : "-foto-") + alv.replace(/[^a-z0-9]/gi, "") + (/png/.test(bb.type) ? ".png" : ".jpg")); aviso(ehIA ? "⬇ Foto da IA baixada" : "⬇ Foto baixada"); }
@@ -2038,9 +2250,11 @@
     });
     $("edNome").addEventListener("input", function () { if (KIT) { KIT.nome = this.value; guardar(); } });
     $("edTrocar").addEventListener("change", async function () { var v = this.value; if (!KIT || !v || v === KIT.id) return; await guardarAgora(); if (v === "__novo") { KIT = null; mostrar("modelos"); desenharModelos(); } else await abrirKit(v); });
-    $("modal").addEventListener("click", function (e) { if (e.target === this) fecharModal(); });
+    $("modal").addEventListener("click", function (e) { if (e.target === this && Date.now() - (window.__pkJanT || 0) > 400) fecharModal(); });
     document.addEventListener("keydown", function (e) { if (e.key === "Escape" && INS) { modoInserir(null); return; } if (e.key === "Escape" && !$("modal").hidden) fecharModal(); });
-    ligarArrasteElementos();
+    ligarArrasteElementos(); ligarAlcas(); ligarMenuPrevia(); ligarJanelas();
+    document.addEventListener("pointerdown", function (ev) { window.__pkTipo = ev.pointerType; }, true);
+    document.addEventListener("keydown", atalhosPk);
     var t; window.addEventListener("resize", function () { altEd(); clearTimeout(t); t = setTimeout(function () { if (VISTA === "editor") agendarPrevia(200); }, 300); });
     /* dados que chegam de outro aparelho: só redesenha a lista (o editor aberto não é atropelado) */
     window.addEventListener("bw-dados", function () { if (VISTA === "lista") desenharLista(); });

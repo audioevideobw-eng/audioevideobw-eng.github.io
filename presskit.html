@@ -144,6 +144,18 @@
 .pk-aj input{width:100%;min-width:0;accent-color:#E8B54A}.pk-aj b{text-align:right;font-variant-numeric:tabular-nums;color:#E8B54A}
 .pk-modal{position:fixed;inset:0;z-index:300;background:rgba(3,5,9,.78);display:grid;place-items:center;padding:16px}
 .pk-modal[hidden]{display:none}
+.pk-hist{min-width:38px;justify-content:center;font-size:17px}.pk-hist[disabled]{opacity:.35;cursor:default}
+.pk-hl.com-alca{border:2px solid #E8B54A}
+.pk-alca{position:absolute;width:14px;height:14px;margin:-7px 0 0 -7px;background:#E8B54A;border:2px solid #0B1222;border-radius:3px;pointer-events:auto;touch-action:none;z-index:4}
+.pk-alca.nw{left:0;top:0;cursor:nwse-resize}.pk-alca.n{left:50%;top:0;cursor:ns-resize}.pk-alca.ne{left:100%;top:0;cursor:nesw-resize}.pk-alca.e{left:100%;top:50%;cursor:ew-resize}
+.pk-alca.se{left:100%;top:100%;cursor:nwse-resize}.pk-alca.s{left:50%;top:100%;cursor:ns-resize}.pk-alca.sw{left:0;top:100%;cursor:nesw-resize}.pk-alca.w{left:0;top:50%;cursor:ew-resize}
+@media (pointer:coarse){.pk-alca{width:22px;height:22px;margin:-11px 0 0 -11px;border-radius:50%}}
+.pk-modal .cx.solta{position:fixed;margin:0;box-shadow:0 18px 50px rgba(0,0,0,.55)}
+.pk-modal #modalCx>h3{cursor:move;touch-action:none;user-select:none;margin-top:8px}
+.pk-jan-arr{position:absolute;top:6px;left:50%;transform:translateX(-50%);padding:0 14px;font:900 15px/16px Inter,system-ui,sans-serif;letter-spacing:2px;color:rgba(245,241,234,.45);cursor:move;touch-action:none;user-select:none;z-index:5}
+.pk-jan-arr:hover{color:#E8B54A}
+.pk-jan-tam{position:absolute;right:2px;bottom:2px;width:20px;height:20px;cursor:nwse-resize;touch-action:none;z-index:5;background:linear-gradient(135deg,transparent 52%,rgba(232,181,74,.75) 52%,rgba(232,181,74,.75) 60%,transparent 60%,transparent 70%,rgba(232,181,74,.75) 70%,rgba(232,181,74,.75) 78%,transparent 78%)}
+@media (pointer:coarse){.pk-jan-tam{width:28px;height:28px}}
 .pk-modal .cx.enq-app{display:flex;flex-direction:column;overflow:hidden;width:min(620px,100%);height:calc(100vh - 32px);height:calc(100dvh - 32px);padding:14px 16px 12px;--enq-h:46vh}
 .enq-app .pk-enq{flex:none;max-height:var(--enq-h);margin:4px auto 8px}
 .enq-app .pk-enq.xadrez{height:var(--enq-h);width:auto;max-width:100%}
@@ -284,7 +296,7 @@
       <div id="form" style="min-width:0"></div>
       <div class="pk-prev" aria-label="Prévia do PDF">
         <div class="pk-prev-topo"><span>PRÉVIA · toque numa foto ou elemento para ajustar</span><span id="prevEstado">…</span></div><p class="pk-nuvem" id="pkNuvem"></p>
-        <div class="pk-ins" aria-label="Inserir na página"><span>＋ INSERIR</span><button type="button" class="pk-chip" data-a="ins" data-ins="texto">✎ TEXTO</button><button type="button" class="pk-chip" data-a="ins" data-ins="icone">★ ÍCONE</button><label class="pk-chip pk-up pk-ins-img" data-ins="imagem">🖼 IMAGEM<input type="file" accept="image/*" data-up="livre"></label><button type="button" class="pk-chip" data-a="ins" data-ins="forma">▬ FORMA</button></div>
+        <div class="pk-ins" aria-label="Inserir na página"><button type="button" class="pk-chip pk-hist" data-a="desfazer" title="Desfazer (Ctrl+Z)" aria-label="Desfazer" disabled>↶</button><button type="button" class="pk-chip pk-hist" data-a="refazer" title="Refazer (Ctrl+Shift+Z)" aria-label="Refazer" disabled>↷</button><span>＋ INSERIR</span><button type="button" class="pk-chip" data-a="ins" data-ins="texto">✎ TEXTO</button><button type="button" class="pk-chip" data-a="ins" data-ins="icone">★ ÍCONE</button><label class="pk-chip pk-up pk-ins-img" data-ins="imagem">🖼 IMAGEM<input type="file" accept="image/*" data-up="livre"></label><button type="button" class="pk-chip" data-a="ins" data-ins="forma">▬ FORMA</button></div>
         <div id="paginas"></div>
       </div>
     </div>
@@ -294,11 +306,12 @@
 <div class="pk-modal" id="modal" hidden><div class="cx" id="modalCx" role="dialog" aria-modal="true"></div></div>
 
 <script src="assets/layout.js?v=84"></script>
+<script src="assets/bw-ferramentas.js?v=11"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.2/dist/umd/supabase.js" integrity="sha384-A97u3Qnt9GZHURO9YJZRe7VQgGUeFzcv6I1oIGnUTxQrCxnpQMwR0/G8F2zt9abZ" crossorigin="anonymous"></script>
 <script src="assets/bw-sync.js?v=20261125"></script>
 <script src="assets/fotos-nuvem.js?v=4"></script>
 <script src="assets/reels-celular.js?v=6"></script>
-<script src="assets/presskit.js?v=16"></script>
+<script src="assets/presskit.js?v=18"></script>
 <script src="assets/presskit-nuvem.js?v=1"></script>
 <script src="assets/presskit-mais.js?v=1"></script>
 </body>
