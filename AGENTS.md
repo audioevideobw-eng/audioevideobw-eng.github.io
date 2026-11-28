@@ -1110,6 +1110,16 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
      Android: x-ptd = masculina). addJavascriptInterface só vale na página carregada DEPOIS → a 1ª página é aberta de novo no load(). Mudança em Java só
      chega com o .apk novo — conferir o build do GitHub Actions (aqui não há SDK). Teste: navegador com speechSynthesis apagado + BWFalaNativa simulada.
 
+**Aprendidos em 28/11 (takes de vídeo do iPhone em todos os formatos)**
+246. TAKE DO IPHONE QUE NÃO ABRE (HEVC, HDR/Dolby Vision, espacial, câmera lenta, ProRes): assets/bw-video-iphone.js (BWVideoIphone) lê o índice do MOV
+     (stsd/stts/ctts/stss/stsz/stsc/stco, giro pela matriz do tkhd, HDR pelo colr — no MOV o tipo é "nclc", não só "nclx") e converte para MP4 H.264:
+     NO APARELHO (VideoDecoder com o hvcC → canvas girado → VideoEncoder; som pelo BWProxy._lerSom/_somAac) quando o aparelho decodifica, senão no APP BW
+     (ações videoConv* em DO_SITE → motor/converter-video.mjs: FFmpeg com NVENC testado de verdade antes de usar, senão libx264; HLG/PQ → BT.709 por
+     zscale+tonemap; o FFmpeg já gira o vertical; temporário em tmp/bw-conversao apagado no fim; id só hex). O arquivo convertido fica guardado NO LUGAR
+     (reabrir não converte). Ferramenta nova que importa vídeo = carregar bw-proxy.js + bw-video-iphone.js e chamar converterSePreciso. Teste do giro =
+     comparar com o quadro do FFmpeg (o quadradinho verde no mesmo canto), nos DOIS sentidos (±90). Chrome de teste abre HEVC no <video> mas não no
+     WebCodecs: para testar o caminho "não abre", init script que faz o <video> falhar com blob video/quicktime (auto: teste_video_iphone.py, motor/teste-converter.mjs).
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -2898,7 +2908,16 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   bw-android.js v3, video-editor v41, fotos v25, telas v13, album v7, bw-heic v1, sw v251. PENTE FINO 244–245. NÃO testado num Android de verdade
   (o .apk novo sai pelo GitHub Actions). App Android 1.0.35 montado e publicado pelo GitHub (Java compilou; 1ª tentativa caiu por limite do
   servidor Maven, 429 — repetida). APP BW 1.9.57 (cópia sem internet com o bw-heic, tutorial 17 p., novidades) publicado; teste-app 0 falhas.
+- 28/11/2026 10:50 · Claude (dono: "faça para takes de vídeo realizados de iPhone, todos os formatos"): novo assets/bw-video-iphone.js — take que não abre
+  (HEVC, HDR/Dolby Vision, 4K 60p, câmera lenta, modo Cinema, espacial, ProRes/ProRes Log) vira MP4 H.264 + som ao importar no editor de vídeo, nas Telas e no
+  Álbum 3D: no próprio aparelho (peça de vídeo do celular/placa) quando ele decodifica, senão no app BW do PC pelo FFmpeg (NVIDIA quando há; HDR → SDR;
+  vertical continua em pé); ↻ do take converte de novo; guardado já convertido. App BW 1.9.58 (motor/converter-video.mjs + 6 ações videoConv*, cópia sem
+  internet, tutorial, novidades). Testes novos teste_video_iphone.py e motor/teste-converter.mjs 0 falhas; video_midia, takes, heic_android, telas, album,
+  proxy, proxy_som e teste-app 0 falhas; vigia ✅. Manual 78 p. bw-proxy v5, video-editor v42, telas v14, album v8, sw v252. PENTE FINO 246.
+  NÃO testado com take real do iPhone nem num Android/Windows de verdade (aqui o Chrome não decodifica HEVC pelo WebCodecs).
 ## Pendências (dono)
+- [ ] (28/11) TAKES DO IPHONE: atualizar o BW para 1.9.58 e importar no editor de vídeo os .MOV do iPhone que davam ⚠ (HEVC/HDR/ProRes); conferir se
+      ficaram em pé, com som e com a cor certa; no celular Android, importar um take HEVC. Gerar o BW-Setup.exe 1.9.58 ("5 - GERAR INSTALADOR EXE").
 - [ ] (28/11) APP ANDROID: instalar o .apk novo (Downloads → App BW para Android), abrir o editor de vídeo com as fotos .HEIC e tocar no robô do
       assistente (deve pedir o microfone, gravar e responder FALANDO); dizer se ainda fecha.
 - [x] (26/11 09:41) BW-Setup.exe 1.9.56 gerado pelo dono e publicado (17 MB, versão conferida dentro do .exe).

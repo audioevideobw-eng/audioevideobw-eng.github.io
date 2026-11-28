@@ -44,6 +44,7 @@
       var blob = new Blob([await f.arrayBuffer()], { type: f.type || (tipo === "video" ? "video/mp4" : "image/jpeg") }); // cópia na memória (iPhone invalida o original)
       var nomeF = f.name;
       if (tipo === "foto" && window.BWHeic) try { var cv = await BWHeic.converterSePreciso(blob, f.name, function () { aviso("⏳ Convertendo a foto HEIC…"); }); if (cv) { blob = cv; nomeF = BWHeic.nomeJpg(f.name); } } catch (e) { }   /* 28/11: HEIC do iPhone fora do Safari */
+      if (tipo === "video" && window.BWVideoIphone) try { var cvv = await BWVideoIphone.converterSePreciso(blob, f.name, function (p) { aviso("⏳ Convertendo " + String(f.name).slice(0, 24) + " · " + Math.round(p.pct || 0) + "%", "", 0); }); if (cvv) { blob = cvv.blob; nomeF = cvv.nome; aviso("✓ " + String(f.name).slice(0, 30) + " convertido"); } } catch (e) { console.warn("vídeo do iPhone", e); }   /* 28/11: HEVC/ProRes do iPhone fora do Safari */
       var reg = { id: uid(), nome: nomeF, tipo: tipo, blob: blob, w: 0, h: 0, dur: 0, thumb: "" };
       try {
         if (tipo === "foto") { var bmp = await createImageBitmap(blob); reg.w = bmp.width; reg.h = bmp.height; reg.thumb = miniatura(bmp, bmp.width, bmp.height); bmp.close && bmp.close(); }

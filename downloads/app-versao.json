@@ -1,13 +1,13 @@
 {
- "versao": "1.9.57",
+ "versao": "1.9.58",
  "data": "28/11/2026",
  "pacote": "downloads/BW-Reels-Studio.zip",
- "sha256": "2b915f47f3bde48e63c17d87dea8c89a419bb96834648dae0e877042319d9c5f",
- "bytes": 51629667,
+ "sha256": "b4cd369850ba27307005a3378797368cb8aab97c7a4d4b55e83ad5d1cd7e9f45",
+ "bytes": 51744183,
  "novidades": [
   {
-   "titulo": "Fotos HEIC do iPhone abrem",
-   "texto": "No editor de vídeo, no editor de fotos, nas Telas e no Álbum 3D, a foto .HEIC vira JPEG no próprio computador e entra normal.",
+   "titulo": "Vídeos do iPhone abrem",
+   "texto": "HEVC, HDR/Dolby Vision, 4K 60p, câmera lenta, espacial e ProRes viram MP4 sozinhos ao importar — no PC, pelo FFmpeg e pela placa NVIDIA. Nada sai do computador.",
    "abrir": "video"
   }
  ]

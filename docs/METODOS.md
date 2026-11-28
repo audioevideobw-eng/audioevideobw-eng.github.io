@@ -836,3 +836,12 @@ Armadilha: classe de ESTADO não serve para destacar botão. `＋ IMPORTAR` usav
 - WebView do Android: (1) apagar `webkitSpeechRecognition` cedo (modos.js no <head>); (2) `onRenderProcessGone` → `return true` + `activity.recreate()`
   (o padrão do Capacitor fecha o app); (3) voz: `addJavascriptInterface(new BwFala(...), "BWFalaNativa")` + polyfill de speechSynthesis em bw-android.js;
   testar no Chromium com `Object.defineProperty(window,"speechSynthesis",{value:undefined,configurable:true,writable:true})` + interface simulada.
+
+## Converter take de vídeo do iPhone (28/11/2026)
+- Navegador: `BWVideoIphone.info(blob)` (índice do MOV) → `converter(blob, {nome, aoProgredir})` tenta NO APARELHO (VideoDecoder.isConfigSupported com o
+  codec string tirado do hvcC + description = conteúdo do hvcC) e cai no app BW (`window.BW_APP` + `bwNode('videoConvPode')`). Pedaços de 6 MB em base64
+  pela ponte (o Playwright da janela antiga só passa JSON). `converterSePreciso` só converte se o `<video>` não abrir em 8 s.
+- PC: `motor/converter-video.mjs` — pode() testa o NVENC com 0,1 s de vídeo (o FFmpeg lista o NVENC mesmo sem NVIDIA); -map 0:v:0 -map 0:a:0? (o iPhone
+  grava trilhas de metadados), -fps_mode passthrough, -g = q/s (1 quadro-chave por s), aac 192k, +faststart.
+- Arquivos de teste com o FFmpeg: `-display_rotation ±90 -i x.mov -c copy` grava a matriz de giro (o `-metadata rotate` não grava no 6.1);
+  HEVC HLG = libx265 yuv420p10le + `-color_trc arib-std-b67 -tag:v hvc1`.

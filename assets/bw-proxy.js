@@ -218,5 +218,5 @@
     } finally { soltar(); }
   }
 
-  window.BWProxy = { suporta: suporta, fazer: fazer, _lerSom: lerSom };
+  window.BWProxy = { suporta: suporta, fazer: fazer, _lerSom: lerSom, _somAac: somAac };
 })();
