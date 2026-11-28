@@ -2956,7 +2956,8 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
 ## Pendências (dono)
 - [ ] (28/11) LINK DO PRESS KIT: dono dar o "sim" para o Claude rodar docs/sql/2026-11-28-presskit-link.sql no Supabase (tabela bw_presskit_pub + função
       de leitura + balde público "presskit"); depois testar logado: 🔗 CRIAR O LINK, abrir no celular e ✕ TIRAR DO AR.
-- [ ] (28/11) PRESS KIT: testar 🎬 VÍDEO no iPhone, 🌐 INGLÊS logado (IA real) e os EFEITOS na capa. BW-Setup.exe 1.9.60: dois cliques em "5 - GERAR INSTALADOR EXE".
+- [ ] (28/11) PRESS KIT: testar 🎬 VÍDEO no iPhone, 🌐 INGLÊS logado (IA real) e os EFEITOS na capa.
+- [x] (28/11 12:46) BW-Setup.exe 1.9.60 gerado pelo dono e publicado (17,8 MB, versão conferida dentro do .exe).
 - [x] (28/11 11:31) BW-Setup.exe 1.9.59 gerado pelo dono e publicado (17,9 MB, versão conferida dentro do .exe).
 - [ ] (28/11) iPhone: abrir o editor de vídeo, importar takes (testar Opções → Formato: Atual no seletor) e dar PLAY numa sequência; dizer se ainda engasga e onde (no meio do take ou nas emendas).
 - [x] (28/11 10:52) BW-Setup.exe 1.9.58 gerado pelo dono e publicado (17,9 MB, versão conferida dentro do .exe).
