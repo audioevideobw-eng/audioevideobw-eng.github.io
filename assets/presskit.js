@@ -1212,7 +1212,7 @@
   function fotoIAmenu(i) { modal('<button type="button" class="pk-mx" data-a="fecharModal" aria-label="Fechar">✕</button><h3>✨ Melhorar a foto ' + (+i + 1) + '</h3><p class="tf-sub">Um toque e a foto nova entra no lugar.</p>' + botoesIA(String(i))); }
   /* ✥ ENQUADRAR E AJUSTAR: arrastar a foto dentro da moldura (posição), aproximar (tamanho) e luz/cor.
      A prévia da janela é desenhada pelo MESMO recortar() do PDF, no mesmo formato do lugar onde a foto vai. */
-  var ENQ = null;
+  var ENQ = null, ENQ_ABA = "pos";
   function formatoKit() { var mod = modeloDe(KIT.modelo); return { cap: capaDoKit(KIT), G: geom(mod.tema.capa === "compcard" ? "a5" : (GEOM[KIT.formato] ? KIT.formato : mod.formato)) }; }
   function enqTrocar(a, b) { var e = IMGS.enq || {}, x = e[a], y = e[b]; delete e[a]; delete e[b]; if (x) e[b] = x; if (y) e[a] = y; }
   function enqTirarFoto(i) { var e = IMGS.enq || {}, n = {}; Object.keys(e).forEach(function (k) { var m = /^f(\d+)$/.exec(k); if (!m) n[k] = e[k]; else if (+m[1] < i) n[k] = e[k]; else if (+m[1] > i) n["f" + (+m[1] - 1)] = e[k]; }); IMGS.enq = n; }
@@ -1226,28 +1226,33 @@
     var e = Object.assign({ x: 0.5, y: 0.5, z: 1, aj: {} }, clone((IMGS.enq || {})[k] || {})); e.aj = Object.assign({}, e.aj || {});
     ENQ = { k: k, src: src, cw: cw, ch: ch, op: op, e: e, inteira: inteira, antes: false };
     var nome = k === "capa" ? "foto da capa" : inteira ? "foto recortada" : k.indexOf("c:") === 0 ? "foto do cartão" : "foto " + (+alvo + 1);
+    var abas = inteira ? [["luz", "☀ LUZ E COR"], ["look", "✦ LOOKS"]] : [["pos", "✥ POSIÇÃO"], ["luz", "☀ LUZ E COR"], ["look", "✦ LOOKS"], ["mix", "◑ MISTURA"], ["masc", "◌ MÁSCARA"]];
+    if (!abas.some(function (x) { return x[0] === ENQ_ABA; })) ENQ_ABA = abas[0][0];
+    var painel = function (id, h) { return '<div class="pk-enqp" data-p="' + id + '"' + (id === ENQ_ABA ? "" : " hidden") + ">" + h + "</div>"; };
     modal('<button type="button" class="pk-mx" data-a="fecharModal" aria-label="Fechar">✕</button><h3>' + (inteira ? "🎚 Ajustar a " : "✥ Enquadrar e ajustar a ") + nome + "</h3>" +
-      '<p class="tf-sub">' + (inteira ? "Luz e cor da foto sem fundo." : "Arraste a foto para posicionar (sem cortar a cabeça), aproxime com a barra ou a rodinha e acerte a luz.") + " É exatamente assim que sai no PDF.</p>" +
       '<div class="pk-enq' + (inteira ? " xadrez" : "") + '" id="enqPalco"><canvas id="enqCv"></canvas>' + (inteira ? "" : '<i class="pk-enq-g"></i>') + "</div>" +
-      (inteira ? "" : '<label class="pk-aj"><span>🔍 Tamanho</span><input type="range" min="100" max="300" step="1" data-enq="z" value="' + Math.round(e.z * 100) + '"><b>' + Math.round(e.z * 100) + "%</b></label>" +
-        '<div class="pk-chips"><button type="button" class="pk-chip" data-a="enqPos" data-v="topo">⬆ MOSTRAR O TOPO</button><button type="button" class="pk-chip" data-a="enqPos" data-v="centro">⊕ CENTRALIZAR</button><button type="button" class="pk-chip" data-a="enqPos" data-v="base">⬇ MOSTRAR A BASE</button></div>') +
-      '<div class="pk-sub-t">LUZ E COR</div>' + AJUSTES.map(function (a) { var v = +e.aj[a[0]] || 0; return '<label class="pk-aj"><span>' + a[1] + '</span><input type="range" min="-100" max="100" step="1" data-enq="' + a[0] + '" value="' + v + '"><b>' + v + "</b></label>"; }).join("") +
-      '<div class="pk-chips"><button type="button" class="pk-chip" data-a="enqLook" data-v="auto">✦ CLAREAR</button><button type="button" class="pk-chip" data-a="enqLook" data-v="vivo">VIVO</button><button type="button" class="pk-chip" data-a="enqLook" data-v="quente">QUENTE</button><button type="button" class="pk-chip" data-a="enqLook" data-v="frio">FRIO</button><button type="button" class="pk-chip" data-a="enqLook" data-v="pb">P&amp;B</button><button type="button" class="pk-chip" data-a="enqLook" data-v="zero">↺ ZERAR</button></div>' +
-      (inteira ? "" : fxHtml(e)) +
-      '<div class="pk-chips" style="margin-top:14px"><button type="button" class="pk-chip" data-a="enqAntes">◐ SEGURE PARA VER O ANTES</button><button type="button" class="bw-btn pri" data-a="enqPronto">✓ PRONTO</button></div>');
+      '<div class="pk-enq-abas" role="tablist">' + abas.map(function (x) { return '<button type="button" role="tab" class="pk-enq-aba' + (x[0] === ENQ_ABA ? " on" : "") + '" data-a="enqAba" data-v="' + x[0] + '">' + x[1] + "</button>"; }).join("") + "</div>" +
+      '<div class="pk-enq-corpo">' +
+      (inteira ? "" : painel("pos", '<p class="tf-sub" style="margin:0 0 6px">Arraste a foto para posicionar e aproxime com a barra ou a rodinha.</p><label class="pk-aj"><span>🔍 Tamanho</span><input type="range" min="100" max="300" step="1" data-enq="z" value="' + Math.round(e.z * 100) + '"><b>' + Math.round(e.z * 100) + "%</b></label>" +
+        '<div class="pk-chips pk-lin"><button type="button" class="pk-chip" data-a="enqPos" data-v="topo">⬆ MOSTRAR O TOPO</button><button type="button" class="pk-chip" data-a="enqPos" data-v="centro">⊕ CENTRALIZAR</button><button type="button" class="pk-chip" data-a="enqPos" data-v="base">⬇ MOSTRAR A BASE</button></div>')) +
+      painel("luz", AJUSTES.map(function (a) { var v = +e.aj[a[0]] || 0; return '<label class="pk-aj"><span>' + a[1] + '</span><input type="range" min="-100" max="100" step="1" data-enq="' + a[0] + '" value="' + v + '"><b>' + v + "</b></label>"; }).join("")) +
+      painel("look", '<div class="pk-chips pk-lin"><button type="button" class="pk-chip" data-a="enqLook" data-v="auto">✦ CLAREAR</button><button type="button" class="pk-chip" data-a="enqLook" data-v="vivo">VIVO</button><button type="button" class="pk-chip" data-a="enqLook" data-v="quente">QUENTE</button><button type="button" class="pk-chip" data-a="enqLook" data-v="frio">FRIO</button><button type="button" class="pk-chip" data-a="enqLook" data-v="pb">P&amp;B</button><button type="button" class="pk-chip" data-a="enqLook" data-v="zero">↺ ZERAR</button></div>') +
+      (inteira ? "" : fxHtml(e, painel)) + "</div>" +
+      '<div class="pk-chips pk-enq-pe"><button type="button" class="pk-chip" data-a="enqAntes">◐ SEGURE: ANTES</button><button type="button" class="bw-btn pri" data-a="enqPronto">✓ PRONTO</button></div>');
+    $("modalCx").classList.add("enq-app");
     var cv = $("enqCv"), palco = $("enqPalco");
-    if (!inteira) { palco.style.aspectRatio = cw + " / " + ch; palco.style.width = "min(100%, calc(52vh * " + (cw / ch).toFixed(4) + "))"; }
+    if (!inteira) { palco.style.aspectRatio = cw + " / " + ch; palco.style.width = "min(100%, calc(var(--enq-h, 46vh) * " + (cw / ch).toFixed(4) + "))"; }
     ligarEnquadrar(palco); enqDesenhar();
   }
-  function fxHtml(e) {
+  function fxHtml(e, painel) {
     var f = e.fx || {}, cr = coresDe(KIT), chip = function (c, v, rot, on, extra) { return '<button type="button" class="pk-chip' + (on ? " on" : "") + '" data-a="enqFx" data-c="' + c + '" data-v="' + v + '">' + (extra || "") + esc(rot) + "</button>"; };
-    return '<div class="pk-sub-t">EFEITOS DA FOTO <small>· mistura, opacidade e máscara com o fundo</small></div>' +
-      '<div class="pk-sub-t" style="margin-top:6px">MISTURA</div><div class="pk-chips" data-fxg="m">' + Object.keys(MISTURAS).map(function (k) { return chip("m", k, MISTURAS[k][0], (f.m || "normal") === k); }).join("") + "</div>" +
-      '<div class="pk-sub-t">MISTURAR COM</div><div class="pk-chips" data-fxg="c">' + Object.keys(CORES_FX).map(function (k) { return chip("c", k, CORES_FX[k], (f.c || "fundo") === k, '<i class="pk-bolinha" style="background:' + cr[k] + '"></i>'); }).join("") + "</div>" +
-      '<label class="pk-aj"><span>◌ Opacidade</span><input type="range" min="5" max="100" step="1" data-enq="fo" value="' + (f.o == null ? 100 : f.o) + '"><b>' + (f.o == null ? 100 : f.o) + "%</b></label>" +
-      '<div class="pk-sub-t">MÁSCARA</div><div class="pk-chips" data-fxg="k">' + Object.keys(MASCARAS).map(function (k) { return chip("k", k, MASCARAS[k], (f.k || "nenhuma") === k); }).join("") + "</div>" +
-      '<label class="pk-aj"><span>≈ Suavidade da máscara</span><input type="range" min="5" max="100" step="1" data-enq="fs" value="' + (f.s == null ? 50 : f.s) + '"><b>' + (f.s == null ? 50 : f.s) + "</b></label>" +
-      '<div class="pk-chips">' + chip("zero", "1", "↺ SEM EFEITO", false) + "</div>";
+    painel = painel || function (id, h) { return h; };
+    return painel("mix", '<div class="pk-sub-t" style="margin-top:0">MISTURA</div><div class="pk-chips pk-lin" data-fxg="m">' + Object.keys(MISTURAS).map(function (k) { return chip("m", k, MISTURAS[k][0], (f.m || "normal") === k); }).join("") + "</div>" +
+      '<div class="pk-sub-t">MISTURAR COM</div><div class="pk-chips pk-lin" data-fxg="c">' + Object.keys(CORES_FX).map(function (k) { return chip("c", k, CORES_FX[k], (f.c || "fundo") === k, '<i class="pk-bolinha" style="background:' + cr[k] + '"></i>'); }).join("") + "</div>" +
+      '<label class="pk-aj"><span>◌ Opacidade</span><input type="range" min="5" max="100" step="1" data-enq="fo" value="' + (f.o == null ? 100 : f.o) + '"><b>' + (f.o == null ? 100 : f.o) + "%</b></label>") +
+      painel("masc", '<div class="pk-sub-t" style="margin-top:0">MÁSCARA</div><div class="pk-chips pk-lin" data-fxg="k">' + Object.keys(MASCARAS).map(function (k) { return chip("k", k, MASCARAS[k], (f.k || "nenhuma") === k); }).join("") + "</div>" +
+      '<label class="pk-aj"><span>≈ Suavidade</span><input type="range" min="5" max="100" step="1" data-enq="fs" value="' + (f.s == null ? 50 : f.s) + '"><b>' + (f.s == null ? 50 : f.s) + "</b></label>" +
+      '<div class="pk-chips">' + chip("zero", "1", "↺ SEM EFEITO", false) + "</div>");
   }
   function enqFx(c, v) {
     if (!ENQ) return; ENQ.e.fx = ENQ.e.fx || {};
@@ -1585,7 +1590,7 @@
   function jsonDe(t) { t = String(t || "").replace(/```(json)?/g, ""); var a = t.indexOf("{"), b = t.lastIndexOf("}"); if (a < 0 || b <= a) return null; try { return JSON.parse(t.slice(a, b + 1)); } catch (e) { return null; } }
   function limpar(t) { return String(t || "").replace(/\*\*|__|^#+\s*/gm, "").trim(); }
   function erroIA(e) { return { sem_login: "Entre na sua conta para usar a IA.", limite: "Limite diário da IA atingido.", ocupada: "A IA está ocupada. Tente em alguns segundos.", rede: "Sem internet agora." }[e] || "A IA não respondeu agora (" + e + ")."; }
-  function modal(html) { $("modalCx").innerHTML = html; $("modal").hidden = false; var f = $("modalCx").querySelector("textarea,input"); if (f) setTimeout(function () { f.focus(); }, 50); }
+  function modal(html) { $("modalCx").classList.remove("enq-app"); $("modalCx").innerHTML = html; $("modal").hidden = false; var f = $("modalCx").querySelector("textarea,input"); if (f) setTimeout(function () { f.focus(); }, 50); }
   function fecharModal() { ENQ = null; $("modal").hidden = true; $("modalCx").innerHTML = ""; }
   var DESFAZER_IA = null;
   function abrirIaSobre() {
@@ -1673,6 +1678,7 @@
     else if (a === "enquadrar") abrirEnquadrar(el.getAttribute("data-alvo"));
     else if (a === "enqPronto") enqPronto();
     else if (a === "enqLook") enqLook(el.getAttribute("data-v"));
+    else if (a === "enqAba") { ENQ_ABA = el.getAttribute("data-v"); var mcx = $("modalCx"); [].forEach.call(mcx.querySelectorAll(".pk-enq-aba"), function (b) { b.classList.toggle("on", b === el); }); [].forEach.call(mcx.querySelectorAll(".pk-enqp"), function (p) { p.hidden = p.getAttribute("data-p") !== ENQ_ABA; }); el.scrollIntoView({ block: "nearest", inline: "center" }); }
     else if (a === "enqFx") enqFx(el.getAttribute("data-c"), el.getAttribute("data-v"));
     else if (a === "enqPos") enqPos(el.getAttribute("data-v"));
     else if (a === "tirarImg") { IMGS[el.getAttribute("data-v")] = ""; if (IMGS.origs) delete IMGS.origs[el.getAttribute("data-v")]; if (IMGS.enq) delete IMGS.enq[el.getAttribute("data-v")]; guardarImgs(); desenharForm(); agendarPrevia(0); }
