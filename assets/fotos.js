@@ -1004,6 +1004,26 @@
     if (it.tipo === "a" && ADS !== it.o.id) { ADS = it.o.id; CAM = it.k; muda = true; } else if (it.tipo === "t" && TXT !== it.o.id) { TXT = it.o.id; muda = true; }
     if (muda && (ABA === "camadas" || ABA === "adesivos" || ABA === "texto")) painel(); else if (muda) desenharCamadas(); }
   var FAIXA_TAM = { a: [3, 150], t: [2, 30], l: [4, 60] };
+  /* 28/11 (dono: "mexer nas imagens e eixos de forma livre em todas as ferramentas"): ALÇAS nas pontas da camada escolhida — sem tecla estica
+     LIVRE (largura e altura soltas), Shift mantém a proporção, Alt estica do centro (BWLivre, o mesmo jeito do press kit). */
+  var ALC = null;
+  if (window.BWLivre) window.__fotosAlcas = BWLivre.alcas({
+    caixa: function () {
+      var f = FOTOS[ATUAL]; if ($("ed").hidden || !LAY || !ADS || SEGURA || COMPARAR || PINTA || !f || !(ABA === "adesivos" || ABA === "camadas")) return null;
+      var k = "a:" + ADS; if (trancada(f, k) || ocultoK(f, k)) return null; var b = caixaDe(k); if (!b) return null;
+      var r = cv.getBoundingClientRect(), sx = r.width / cv.width, sy = r.height / cv.height; return { x: r.left + b.x * sx, y: r.top + b.y * sy, w: b.w * sx, h: b.h * sy };
+    },
+    comecar: function () { var f = FOTOS[ATUAL], a = (f.adesivos || []).filter(function (z) { return z.id === ADS; })[0]; if (!a || !LAY) { ALC = null; return; } var r = cv.getBoundingClientRect();
+      ALC = { a: a, pw: LAY.P.w * r.width / cv.width, ph: LAY.P.h * r.height / cv.height, tam: a.tam, alt: a.alt == null ? 100 : a.alt, cx: a.cx, cy: a.cy }; },
+    mudar: function (n, info) {   /* tudo em proporção da caixa da TELA: a prévia rápida muda o tamanho do canvas durante o arraste (regra 48) */
+      if (!ALC) return; var a = ALC.a, I = info.ini, rw = n.w / I.w, rh = n.h / I.h;
+      porTam({ tipo: "a", o: a }, ALC.tam * rw); var rwR = a.tam / ALC.tam;
+      a.alt = Math.round(lim(ALC.alt * rh / rwR, a.forma ? 1 : 15, a.forma ? 300 : 400)); sincSlider("aAlt", a.alt);
+      a.cx = lim(ALC.cx + (n.x + n.w / 2 - (I.x + I.w / 2)) / ALC.pw, -1, 2); a.cy = lim(ALC.cy + (n.y + n.h / 2 - (I.y + I.h / 2)) / ALC.ph, -1, 2);
+      agendar(true);
+    },
+    fim: function () { ALC = null; marcarHist(); agendar(); }
+  });
   function porTam(it, v) { var r = FAIXA_TAM[it.tipo]; it.o.tam = Math.round(lim(v, r[0], r[1]) * 2) / 2; sincSlider(it.tipo === "a" ? "aTam" : it.tipo === "t" ? "ttam" : "logoTam", it.o.tam); }
   function menuSegurar(x, y, it) {
     if (!window.BWFerr || !BWFerr.menu) return; try { navigator.vibrate && navigator.vibrate(12); } catch (e) {}

@@ -437,7 +437,7 @@
   var ATRIB_TIRAR = ["efeito", "efInt", "efs", "grade", "look", "corr", "nos", "ck", "ia", "selm", "tela", "trans", "rastro", "x", "y", "esc", "op", "encaixe", "fin", "fout", "vol", "normG", "ruido", "voz", "anima", "fundo", "cor", "frente", "raio", "velAnel", "fonte", "esp"];
   function temAtrib(c) { return ATRIB_TIRAR.some(function (k) { return c[k] != null && c[k] !== "" && !(k === "esc" && c[k] === 100) && !(k === "op" && c[k] === 100) && !((k === "x" || k === "y") && !c[k]) && !(k === "vol" && c[k] === 100); }); }
   function removerAtrib(lst) { lst = (lst || []).filter(Boolean); if (!lst.length) return; lst.forEach(function (c) { ATRIB_TIRAR.forEach(function (k) { delete c[k]; });
-      if (c.tipo === "texto") { c.tam = c.tam || 6; } if (c.tipo === "elemento" || c.tipo === "imagem" || c.tipo === "video") { c.esc = 100; c.op = 100; c.x = 0; c.y = 0; } if (c.tipo === "elemento" && String(c.el).indexOf("mo:") === 0) c.cor = "#FFC24A"; });
+      if (c.tipo === "texto") { c.tam = c.tam || 6; } if (c.tipo === "elemento" || c.tipo === "imagem" || c.tipo === "video") { c.esc = 100; c.op = 100; c.x = 0; c.y = 0; delete c.ex; delete c.ey; } if (c.tipo === "elemento" && String(c.el).indexOf("mo:") === 0) c.cor = "#FFC24A"; });
     tudo(); lst.forEach(function (c) { marcar(c.id); }); aviso("⟲ Atributos removidos" + (lst.length > 1 ? " de " + lst.length + " takes" : "") + " (Ctrl+Z desfaz)"); }
   function copiarAtrib() { var c = sel(); if (!c) return false; ATRIB = JSON.parse(JSON.stringify(c)); aviso("Ajustes copiados. Escolha outro take e use COLAR AJUSTES (Ctrl+Shift+V)."); }
   function colarAtrib() { var c = sel(); if (!c) return false; if (!ATRIB) { aviso("Nenhum ajuste copiado ainda (botão direito no take › Copiar ajustes).", true); return; }
@@ -748,7 +748,29 @@
     var oc = SMC["o" + modo] || (SMC["o" + modo] = document.createElement("canvas")); oc.width = w; oc.height = h; var ox = oc.getContext("2d"); ox.clearRect(0, 0, w, h); ox.drawImage(fonte, 0, 0, w, h);
     ox.globalCompositeOperation = modo === "esconder" ? "destination-out" : "destination-in"; ox.imageSmoothingEnabled = true; ox.drawImage(mc, 0, 0, w, h); ox.globalCompositeOperation = "source-over"; return oc; }
   /* onde o take está na tela (para desenhar a seleção na prévia) */
-  function caixaTake(c) { var f = fonteDe(c, T, true); if (!f || !f.w) return null; var W = cv.width, H = cv.height, s = (c.encaixe === "caber" ? Math.min : Math.max)(W / f.w, H / f.h) * (c.esc || 100) / 100, w = f.w * s, h = f.h * s;
+  /* 28/11 (dono: "mexer nas imagens e eixos de forma livre em todas as ferramentas"): ALÇAS nas pontas do take escolhido na prévia —
+     sem tecla estica LIVRE (largura X e altura Y soltas: c.ex / c.ey), Shift mantém a proporção, Alt estica do centro (BWLivre). */
+  var ALCV = null;
+  function alcasVideo() {
+    if (!window.BWLivre || window.__veAlcas) return;
+    window.__veAlcas = BWLivre.alcas({
+      caixa: function () {
+        if (TOCANDO || GRAV || !SEL || !cv || !cv.getClientRects().length) return null; var c = P.clips.filter(function (x) { return x.id === SEL; })[0];
+        if (!c || fam(c.trilha) !== "v" || !(c.tipo === "video" || c.tipo === "imagem") || !(T >= c.ini && T < c.ini + c.dur)) return null;
+        var b = caixaTake(c); if (!b) return null; var r = cv.getBoundingClientRect(), sx = r.width / cv.width, sy = r.height / cv.height;
+        return { x: r.left + b.x * sx, y: r.top + b.y * sy, w: b.w * sx, h: b.h * sy };
+      },
+      comecar: function () { var c = P.clips.filter(function (x) { return x.id === SEL; })[0], b = c && caixaTake(c); ALCV = c && b ? { c: c, b: b, ex: c.ex || 100, ey: c.ey || 100 } : null; },
+      mudar: function (n) {
+        if (!ALCV) return; var r = cv.getBoundingClientRect(), sx = r.width / cv.width, sy = r.height / cv.height, W = cv.width, H = cv.height, c = ALCV.c;
+        var nx = (n.x - r.left) / sx, ny = (n.y - r.top) / sy, nw = n.w / sx, nh = n.h / sy;
+        c.ex = Math.round(Math.max(5, Math.min(800, ALCV.ex * nw / ALCV.b.w)) * 10) / 10; c.ey = Math.round(Math.max(5, Math.min(800, ALCV.ey * nh / ALCV.b.h)) * 10) / 10;
+        c.x = Math.round((nx - (W - nw) / 2) / W * 1000) / 10; c.y = Math.round((ny - (H - nh) / 2) / H * 1000) / 10; desenhar();
+      },
+      fim: function () { ALCV = null; tudo(); }
+    });
+  }
+  function caixaTake(c) { var f = fonteDe(c, T, true); if (!f || !f.w) return null; var W = cv.width, H = cv.height, s = (c.encaixe === "caber" ? Math.min : Math.max)(W / f.w, H / f.h) * (c.esc || 100) / 100, w = f.w * s * (c.ex || 100) / 100, h = f.h * s * (c.ey || 100) / 100;
     return {x: (W - w) / 2 + (c.x || 0) / 100 * W, y: (H - h) / 2 + (c.y || 0) / 100 * H, w: w, h: h}; }
   function desenharMidia(fonte, fw, fh, c, t, mod) {
     c = comRastro(c, t);
@@ -758,7 +780,7 @@
     if (c.ia && window.BWMascara && BWMascara.tem(c.mid) && (mod.soPessoa || (c.ia.fundo || ""))) { var mk = BWMascara.mascara(c.mid, c.tipo === "video" ? (c.corte || 0) + (t - c.ini) * vel(c) : 0);
       if (mk) fonte = BWMascara.compor(fonte, fw, fh, mk, c.ia, !!mod.soPessoa); }   /* pessoa e fundo (IA, no aparelho) */
     if (c.selm && c.selm.pts && c.selm.pts.length > 1 && SELDES !== c.id && (mod.soSel || (c.selm.modo && c.selm.modo !== "frente"))) fonte = compSel(fonte, fw, fh, c.selm, mod.soSel ? "so" : c.selm.modo);
-    var W = cv.width, H = cv.height, s = (c.encaixe === "caber" ? Math.min : Math.max)(W / fw, H / fh) * (c.esc || 100) / 100, w = fw * s, h = fh * s;
+    var W = cv.width, H = cv.height, s = (c.encaixe === "caber" ? Math.min : Math.max)(W / fw, H / fh) * (c.esc || 100) / 100, w = fw * s * (c.ex || 100) / 100, h = fh * s * (c.ey || 100) / 100;
     var a = (c.op == null ? 100 : c.op) / 100 * fade(c, t) * (mod.a == null ? 1 : mod.a); if (a <= 0.001) return;
     var x = (W - w) / 2 + (c.x || 0) / 100 * W, y = (H - h) / 2 + (c.y || 0) / 100 * H;
     cx.save(); if (mod.recorte) { cx.beginPath(); mod.recorte(cx, W, H); cx.clip(); }
@@ -827,7 +849,7 @@
   function fonteDe(c, t, ativo) { if (c.tipo === "imagem") { var m = MID[c.mid]; return m && m.img ? {el: m.img, w: m.img.naturalWidth, h: m.img.naturalHeight} : null; }
     var o = sincronizar(c, t, ativo); var hq = NIT.on && NIT.els[c.id]; if (hq && c.tipo === "video" && hq.readyState >= 2 && hq.videoWidth) return {el: hq, w: hq.videoWidth, h: hq.videoHeight};
     return o && c.tipo === "video" && o.e.readyState >= 2 ? {el: o.e, w: o.e.videoWidth, h: o.e.videoHeight} : null; }
-  function desenhar() {
+  function desenhar() { if (!window.__veAlcas) alcasVideo();
     nitChecar();
     var t = T, W = cv.width, H = cv.height, frente = []; cx.fillStyle = "#000"; cx.fillRect(0, 0, W, H);
     var ordemDes = pilha().slice();   /* de baixo para cima: a camada de cima é desenhada por último */
@@ -1199,7 +1221,7 @@
       (c.anima === "anel" ? faixaR("raio", "Tamanho do anel", 15, 60, c.raio || 38, "%") + faixaR("velAnel", "Velocidade do giro", -2, 2, c.velAnel == null ? 0.7 : c.velAnel, "", 0.1) : "") +
       '<p class="ve-sub">EM RELAÇÃO À PESSOA</p><div class="ve-vchips"><button type="button" data-frente="0"' + (!c.frente ? ' class="on"' : "") + '>' + vv("ia:t=0", 160, 100) + '<span>Atrás da pessoa</span></button><button type="button" data-frente="1"' + (c.frente ? ' class="on"' : "") + '>' + vv("ia:t=1", 160, 100) + '<span>Na frente</span></button></div>' +
       '<p class="ve-nota" style="margin:4px 0 0">"Atrás da pessoa" funciona quando o take tem PESSOA E FUNDO (IA) analisado com "pessoa na frente" ligado.</p>');
-    if (visual) h += g("pos", "TAMANHO E POSIÇÃO", (c.tipo !== "texto" ? '<label class="um"><span>Encaixe</span><select data-p="encaixe" aria-label="Encaixe na tela"><option value="cobrir"' + (c.encaixe !== "caber" ? " selected" : "") + '>Encher a tela</option><option value="caber"' + (c.encaixe === "caber" ? " selected" : "") + '>Mostrar inteiro</option></select></label>' + faixaR("esc", "Tamanho", 10, 300, c.esc, "%") : "") +
+    if (visual) h += g("pos", "TAMANHO E POSIÇÃO", (c.tipo !== "texto" ? '<label class="um"><span>Encaixe</span><select data-p="encaixe" aria-label="Encaixe na tela"><option value="cobrir"' + (c.encaixe !== "caber" ? " selected" : "") + '>Encher a tela</option><option value="caber"' + (c.encaixe === "caber" ? " selected" : "") + '>Mostrar inteiro</option></select></label>' + faixaR("esc", "Tamanho", 10, 300, c.esc, "%") + faixaR("ex", "↔ Largura (X)", 10, 400, c.ex || 100, "%") + faixaR("ey", "↕ Altura (Y)", 10, 400, c.ey || 100, "%") : "") +
       faixaR("x", "Posição ↔", -60, 60, c.x || 0, "%") + faixaR("y", "Posição ↕", -60, 60, c.y || 0, "%") + faixaR("op", "Opacidade", 0, 100, c.op == null ? 100 : c.op, "%"));
     if (c.tipo === "video" || c.tipo === "audio") h += g("som", "SOM", '<label><span>Volume</span><input type="range" data-p="volDb" min="-40" max="12" step="0.5" value="' + dbDe(c) + '" aria-label="Volume em dB"><output>' + (dbDe(c) <= -40 ? "mudo" : String(dbDe(c)).replace(".", ",") + " dB") + '</output></label>' +
       '<div class="ve-linha" style="flex-wrap:wrap"><button class="ve-bt" type="button" data-acao="mudo">' + (c.vol === 0 ? "🔈 DEVOLVER O SOM" : "🔇 MUDO") + '</button><button class="ve-bt' + (c.normG ? " on" : "") + '" type="button" data-acao="normalizar" title="Deixa o volume deste take no padrão, sem estourar">🔊 NORMALIZAR' + (c.normG ? " ✓" : "") + '</button>' + (c.normG ? '<button class="ve-bt" type="button" data-acao="desnormalizar">✕</button>' : "") + (c.tipo === "video" ? '<button class="ve-bt" type="button" data-acao="extrair">🎵 EXTRAIR ÁUDIO</button>' : "") + '</div>' +

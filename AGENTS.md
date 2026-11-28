@@ -1163,6 +1163,23 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
      2º (dois toques = opções) senão a folha abre por cima e engole o 2º toque; DESFAZER só grava passos que vêm de toque/tecla/input da pessoa (o que a tela
      ajeita sozinha depois de redesenhar apagava o REFAZER); atalhos ignoram só campos de DIGITAR (o foco num range/arquivo travava o Ctrl+Z).
 
+**Aprendidos em 28/11 (JEITO LIVRE em todas as ferramentas — regra do dono)**
+253. MEXER LIVRE É O PADRÃO (dono, 28/11: "salve e implemente esse modelo de mexer nas imagens e eixos de forma livre, assim como as janelas, em
+     todas as ferramentas — fluido e livre"): assets/bw-livre.js (BWLivre) em TODA ferramenta de criação, logo depois do layout.js.
+     (a) JANELAS: toda folha/caixa de diálogo de ferramenta (lista FUNDOS: .ve-jan, .mo-folha, .tl-folha, .d3-folha, .al-folha, .rl-folha, .pg-folha,
+     .pi-folha, .ed-folha, .pr-folha, .pr-modal, [data-janela-livre]) ganha sozinha a barra ⠿ e o canto ◢; arrasta pela barra (ou pela barra de título
+     .ve-jan-t) e por QUALQUER área livre — nunca a partir de botão, campo, régua, canvas, [data-*] de ação; no dedo, área livre só arrasta onde nada
+     rola por baixo. Lugar e tamanho em ui_janelas (por página + janela, "-cel" no celular), aplicados UMA vez por abertura (o observador roda até
+     durante o arraste e desfazia o movimento); dois toques/clique duplo na barra = lugar de sempre; o clique que nasce do fim do arraste é engolido
+     (muita janela fecha com toque no fundo). O ◢ é sticky no pé (como absoluto ele rolava junto com o conteúdo e sumia). Janela NOVA = usar uma
+     dessas classes ou data-janela-livre; o press kit tem a versão própria (.pk-modal, regra 252).
+     (b) ALÇAS: BWLivre.alcas({caixa, comecar, mudar(n, info), fim}) — 8 alças por cima do item escolhido; sem tecla LIVRE (X e Y soltos), Shift
+     proporcional, Alt do centro, rótulo com % × %. A ferramenta guarda as medidas EM PROPORÇÃO da caixa da tela (info.ini), nunca em pixels do canvas
+     (a prévia rápida muda o tamanho do canvas no meio do arraste — regra 48). Editor de fotos: camada de imagem/adesivo (tam + alt); Editor de vídeo:
+     take de vídeo/foto na prévia (c.ex/c.ey novos, ↔/↕ no painel, Remover atributos zera). Item novo com tamanho = eixos X e Y separados desde o começo.
+     Teste: docs/testes/teste_livre.py (janelas em 5 ferramentas × 1280/390 + alças nas fotos e no vídeo). Rodar a bateria UM POR VEZ: em paralelo os
+     testes trombam de porta e de tempo e dão falha falsa.
+
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
 - Medir `scrollWidth - clientWidth` em 390 px → 0.
@@ -3031,6 +3048,13 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   🎚 COR E EFEITOS) ganharam ◑ MISTURA e ◌ MÁSCARA, como a capa: no PNG recortado a mistura fica só dentro da pessoa e a máscara/opacidade viram
   transparência (o fundo da página aparece) — mesma conta na janela, no PDF e no pacote (retratoFx + aplicarEfx com alfa). teste_presskit_mais (+11 × 1280/390)
   e teste_presskit 0 falhas; vigia ✅. Manual 79 p. presskit.js v19, sw v263. App BW: entra no próximo pacote.
+- 28/11/2026 17:10 · Claude (dono: "salve e implemente esse modelo de mexer nas imagens e eixos de forma livre, assim como as janelas, em todas as
+  ferramentas — fluido e livre"): novo assets/bw-livre.js em 11 ferramentas (vídeo, fotos, motion, telas, 3D, álbum, criador, reels, orçamentos,
+  personagens, Prompt IA). JANELAS: todas as folhas/janelas se arrastam pela barra ⠿ ou por qualquer área livre, mudam de tamanho pelo ◢ e lembram o
+  lugar no aparelho. ALÇAS: Editor de fotos (camada de imagem) e Editor de vídeo (take na prévia, eixos ↔ X e ↕ Y novos) com 8 alças — livre, Shift
+  proporcional, Alt do centro. teste_livre.py (novo, 0 falhas × 1280/390) + 21 testes das ferramentas 0 falhas (motion: só a falha antiga do render
+  do PC); vigia ✅. Manual 79 → 80 p. ("Mexer livre", depois de Atalhos). fotos.js v26, video-editor v44, bw-livre v1, sw v264. PENTE FINO 253.
+  FALTA (próxima etapa): alças com X/Y livres no Motion, Criador/Convites, Telas e Álbum 3D (hoje só tamanho proporcional lá).
 ## Pendências (dono)
 - [x] (28/11 15:10, dono: "Sim, pode rodar") SQL do balde privado presskit-fotos rodado (público = false · 4 regras pkfotos). Teste no ar logado: foto de TESTE
       enviada e baixada na própria pasta, pasta de outra conta recusada (RLS), endereço público = 400, teste apagado (0 arquivos). Falta o dono

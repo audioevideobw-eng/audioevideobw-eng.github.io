@@ -875,3 +875,11 @@ Armadilha: classe de ESTADO não serve para destacar botão. `＋ IMPORTAR` usav
 Quando a IA da plataforma não basta: modal com preset → ⬇ baixar a foto → ⧉ pedido pronto (inglês, trava de rosto/corpo, sem limite de 700) →
 links das IAs (target _blank) → `<input type=file data-up="ia:<alvo>">` que troca no lugar guardando IMGS.origs (mesmo ↺ ORIGINAL da IA da casa).
 Nada é enviado pelo site. Teste: set_input_files no input do modal e conferir origs + troca.
+
+## Jeito livre: janelas e alças (28/11/2026)
+- Ferramenta nova: `<script src="assets/bw-livre.js?v=1">` logo depois do layout.js. Janela nova: classe de folha da lista FUNDOS ou `data-janela-livre`
+  no fundo escuro; a caixa é o 1º filho (ou `.jan` / `.ve-jan-c` / `[role=dialog]`). Nada mais a fazer.
+- Alças: `BWLivre.alcas({ caixa: () => ({x,y,w,h} na tela) | null, comecar(), mudar(n, info), fim() })`. Em `mudar` use `n.w / info.ini.w` e o
+  deslocamento do centro em px de TELA ÷ tamanho de referência em px de tela guardado no `comecar` — nunca px do canvas (ele muda com a prévia rápida).
+- Teste: `docs/testes/teste_livre.py` (arrastar pela barra, pela área livre, a partir de botão = não move, ◢, lugar guardado e reaplicado; alças com e
+  sem Shift). Janela que é folha de baixo (3D) fica perto do fim da tela: no teste, arraste a barra para CIMA.
