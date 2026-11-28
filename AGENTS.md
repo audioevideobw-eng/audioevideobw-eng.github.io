@@ -3066,8 +3066,9 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   teste_livre (+16) e teste_propostas (+9) 0 falhas; motion, criador, convites, telas, álbum, vídeo 0 falhas; vigia ✅. Manual 80 p. sw v266.
 - 28/11/2026 17:05 · Claude (dono: "PODE GERAR"): APP BW 1.9.61 a partir do pacote PUBLICADO 1.9.60 — motor do Motion copiado (alças X/Y; site e app iguais),
   cópia sem internet refeita com o site de hoje (423 arquivos: mexer livre, press kit editado pela prévia, orçamentos), tutorial 19 p. e novidades.
-  teste-app 0 falhas; pacote e app-versao.json publicados. BW-Setup.exe 1.9.61: depende do PC do dono.
+  teste-app 0 falhas; pacote e app-versao.json publicados. BW-Setup.exe 1.9.61 publicado 17:03.
 ## Pendências (dono)
+- [x] (28/11 17:03) BW-Setup.exe 1.9.61 gerado pelo dono e publicado (17,9 MB, versão conferida dentro do .exe).
 - [x] (28/11 15:10, dono: "Sim, pode rodar") SQL do balde privado presskit-fotos rodado (público = false · 4 regras pkfotos). Teste no ar logado: foto de TESTE
       enviada e baixada na própria pasta, pasta de outra conta recusada (RLS), endereço público = 400, teste apagado (0 arquivos). Falta o dono
       pôr uma foto no PC e abrir o mesmo press kit no celular.
