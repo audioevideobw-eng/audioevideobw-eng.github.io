@@ -2916,8 +2916,9 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   proxy, proxy_som e teste-app 0 falhas; vigia ✅. Manual 78 p. bw-proxy v5, video-editor v42, telas v14, album v8, sw v252. PENTE FINO 246.
   NÃO testado com take real do iPhone nem num Android/Windows de verdade (aqui o Chrome não decodifica HEVC pelo WebCodecs).
 ## Pendências (dono)
+- [x] (28/11 10:52) BW-Setup.exe 1.9.58 gerado pelo dono e publicado (17,9 MB, versão conferida dentro do .exe).
 - [ ] (28/11) TAKES DO IPHONE: atualizar o BW para 1.9.58 e importar no editor de vídeo os .MOV do iPhone que davam ⚠ (HEVC/HDR/ProRes); conferir se
-      ficaram em pé, com som e com a cor certa; no celular Android, importar um take HEVC. Gerar o BW-Setup.exe 1.9.58 ("5 - GERAR INSTALADOR EXE").
+      ficaram em pé, com som e com a cor certa; no celular Android, importar um take HEVC.
 - [ ] (28/11) APP ANDROID: instalar o .apk novo (Downloads → App BW para Android), abrir o editor de vídeo com as fotos .HEIC e tocar no robô do
       assistente (deve pedir o microfone, gravar e responder FALANDO); dizer se ainda fecha.
 - [x] (26/11 09:41) BW-Setup.exe 1.9.56 gerado pelo dono e publicado (17 MB, versão conferida dentro do .exe).
