@@ -89,7 +89,7 @@
       g.addColorStop(1, "rgba(6,8,13," + (op.dir === "esq" ? 0.05 : op.escurecer) + ")");
       x.fillStyle = g; x.fillRect(0, 0, c.width, c.height);
     }
-    var u = op.forma ? c.toDataURL("image/png") : c.toDataURL("image/jpeg", op.q || 0.86);
+    var u = op.forma || op.png ? c.toDataURL("image/png") : c.toDataURL("image/jpeg", op.q || 0.86);
     var ks = Object.keys(CORTES); if (ks.length > 60) delete CORTES[ks[0]];
     return (CORTES[k] = u);
   }
@@ -477,6 +477,7 @@
   /* 📄 PÁGINAS INTERNAS (28/11, dono: "alterar o layout da página secundária, assim como a primária") */
   var PAGINAS = { padrao: "Faixa no topo", cabeca: "Cabeçalho cheio", lateral: "Barra lateral", moldura: "Moldura", rodape: "Faixa embaixo", limpa: "Limpa" };
   var SOBRES = { esq: "Foto à esquerda", dir: "Foto à direita", topo: "Foto em cima", destaque: "Frase grande", sem: "Só texto" };
+  var SOB_R = { "45": [1.25, "4:5"], "34": [4 / 3, "3:4"], "11": [1, "1:1"], "23": [1.5, "2:3"], "169": [0.5625, "16:9"] };
   var LISTAS = { linhas: "Linhas", cartoes: "Cartões", tempo: "Ano em destaque" };
   function capaDoKit(kit) { var mc = modeloDe(kit.modelo).tema.capa, e = (kit.est || {}).capa; return mc === "compcard" ? mc : CAPAS[e] ? e : mc; }
   function modeloDe(id) { return MODELOS.filter(function (m) { return m.id === id; })[0] || MODELOS[0]; }
@@ -567,7 +568,13 @@
     var comIndice = function (arr, tem) { return (arr || []).map(function (x, i) { return { x: x, i: i }; }).filter(function (o) { return o.x && tem(o.x); }); };
     for (var i = 0; i < vis.length; i++) {
       var id = vis[i], s = { id: id, tit: titulo(kit, id) };
-      if (id === "sobre") { s.curto = (d.sobreCurto || "").trim(); s.pars = paragrafos(d.sobre); if (!s.curto && !s.pars.length) continue; s.retrato = cap === "recorte" || tm.sob === "sem" || tm.sob === "destaque" ? "" : m.retrato; }
+      if (id === "sobre") { s.curto = (d.sobreCurto || "").trim(); s.pars = paragrafos(d.sobre); if (!s.curto && !s.pars.length) continue; s.retrato = cap === "recorte" || tm.sob === "sem" || tm.sob === "destaque" ? "" : m.retrato;
+        if (s.retrato && imgs.retrato) {   /* ✥ foto da PÁGINA 2: largura e proporção escolhidas + reenquadrar (28/11) */
+          var pS = +est.sobW ? Math.max(0.2, Math.min(0.62, +est.sobW / 100)) : 0; s.fotoW = pS ? G.CW * pS : 0;
+          if (EQ.sobre || SOB_R[est.sobR]) { var fwS = G.CW * (pS || (tm.sob === "topo" ? 0.42 : 0.36)), rS = SOB_R[est.sobR] ? SOB_R[est.sobR][0] : 1 / m.retratoProp, fhS = Math.min(fwS * rS, G.H * 0.62);
+            var eqS = Object.assign({}, EQ.sobre || {}); if (!temAj(eqS.aj) && EQ.retrato && temAj(EQ.retrato.aj)) eqS.aj = EQ.retrato.aj;
+            s.retrato = await recortar(imgs.retrato, fwS * f, fhS * f, enqOp(eqS, { png: true })); s.fotoW = fwS; s.fotoH = fhS; s.corte = true; }
+        } }
       else if (id === "numeros") { s.itens = (d.numeros || []).filter(function (x) { return x && (String(x.v || "").trim() || String(x.r || "").trim()); }); if (!s.itens.length) continue; }
       else if (id === "servicos") {
         var iS = comIndice(d.servicos, function (x) { return String(x.t || "").trim() || String(x.d || "").trim(); }); if (!iS.length) continue;
@@ -796,10 +803,10 @@
           tx = [{ text: "“" + s.curto + "”", font: fT, bold: true, fontSize: z(20), lineHeight: 1.25, color: t.txt, alignment: "center", margin: [z(20), 0, z(20), 6] }, { canvas: [{ type: "rect", x: 0, y: 0, w: 48 * k, h: 3, color: t.corPura }], margin: [(CW - 48 * k) / 2, 4, 0, 16] }];
           b = tx.concat(k >= 0.8 && ps.length > 1 ? [{ columns: [{ stack: ps.slice(0, Math.ceil(ps.length / 2)) }, { stack: ps.slice(Math.ceil(ps.length / 2)) }], columnGap: 22 }] : ps);
         } else if (s.retrato && t.sob === "topo") {
-          var tw = Math.min(CW * 0.42, 190), th = Math.min(tw / m.retratoProp, 240);
-          b = [{ stack: [{ image: s.retrato, fit: [tw, th], alignment: "center" }, { canvas: [{ type: "rect", x: 0, y: 0, w: tw, h: 4, color: t.corPura }], margin: [(CW - tw) / 2, 0, 0, 14] }], unbreakable: true }].concat(tx, ps);
+          var tw = s.fotoW || Math.min(CW * 0.42, 190), th = s.corte ? s.fotoH : Math.min(tw / m.retratoProp, s.fotoW ? H * 0.5 : 240);
+          b = [{ stack: [s.corte ? { image: s.retrato, width: tw, height: th, alignment: "center" } : { image: s.retrato, fit: [tw, th], alignment: "center" }, { canvas: [{ type: "rect", x: 0, y: 0, w: tw, h: 4, color: t.corPura }], margin: [(CW - tw) / 2, 0, 0, 14] }], unbreakable: true }].concat(tx, ps);
         } else if (s.retrato && k >= 0.8) {   /* "Quem sou eu?" com a foto recortada ao lado (esquerda ou direita) */
-          var fw = CW * 0.36, fhh = Math.min(fw / m.retratoProp, 300), colF = { width: fw, stack: [{ image: s.retrato, fit: [fw, fhh], alignment: "center" }, { canvas: [{ type: "rect", x: 0, y: 0, w: fw, h: 4, color: t.corPura }] }] }, colT = { width: "*", stack: tx.concat(ps) };
+          var fw = s.fotoW || CW * 0.36, fhh = s.corte ? s.fotoH : Math.min(fw / m.retratoProp, s.fotoW ? H * 0.55 : 300), colF = { width: fw, stack: [s.corte ? { image: s.retrato, width: fw, height: fhh } : { image: s.retrato, fit: [fw, fhh], alignment: "center" }, { canvas: [{ type: "rect", x: 0, y: 0, w: fw, h: 4, color: t.corPura }] }] }, colT = { width: "*", stack: tx.concat(ps) };
           b.push({ columns: t.sob === "dir" ? [colT, colF] : [colF, colT], columnGap: 22, unbreakable: true });
         } else if (fT === "PF" && s.pars.join(" ").length > 650 && k >= 0.8) b = tx.concat([{ columns: [{ stack: ps.slice(0, Math.ceil(ps.length / 2)) }, { stack: ps.slice(Math.ceil(ps.length / 2)) }], columnGap: 22 }]);
         else b = tx.concat(ps);
@@ -1172,9 +1179,9 @@
     { id: "palco", ico: "🎤", nome: "No palco", p: "Place the person on a professional event stage with warm spotlights and soft blurred audience lights behind, keep the same clothes, keep the person well lit and in focus." }
   ];
   var IA_FOTO_OK = false, IA_OCUP = {};
-  function chaveFoto(alvo) { return alvo === "retrato" || alvo === "capa" || String(alvo).indexOf("c:") === 0 ? alvo : "f" + alvo; }
+  function chaveFoto(alvo) { return alvo === "retrato" || alvo === "capa" || alvo === "sobre" || String(alvo).indexOf("c:") === 0 ? alvo : "f" + alvo; }
   var CORTE_CARD = { servicos: [240, 140], experiencia: [150, 96], links: [320, 180] };
-  function srcFoto(alvo) { return alvo === "retrato" || alvo === "capa" ? IMGS[alvo] : (IMGS.fotos || [])[+alvo]; }
+  function srcFoto(alvo) { if (alvo === "sobre") return IMGS.retrato; return alvo === "retrato" || alvo === "capa" ? IMGS[alvo] : (IMGS.fotos || [])[+alvo]; }
   function botoesIA(alvo) {
     var k = chaveFoto(alvo), orig = IMGS.origs && IMGS.origs[k];
     return '<div class="pk-ia" data-iaalvo="' + alvo + '"><span class="pk-ia-t">✨ MELHORAR COM IA · UM TOQUE</span><div class="pk-ia-l">' + FOTO_IA.map(function (x) {
@@ -1249,24 +1256,28 @@
     var k = chaveFoto(alvo), fm = formatoKit(), src, cw, ch, op = {}, inteira = k === "retrato";
     if (k === "capa") { src = IMGS.capa || IMGS.retrato || (IMGS.fotos || [])[0]; var cc = corteCapa(fm.cap, fm.G, { corPura: KIT.cor || modeloDe(KIT.modelo).cor }); cw = cc[0]; ch = cc[1]; op = cc[2]; }
     else if (inteira) src = IMGS.retrato;
+    else if (k === "sobre") { src = IMGS.retrato; var dS = sobreDim(fm.G); cw = dS[0]; ch = dS[1]; op = { png: true }; }
     else if (k.indexOf("c:") === 0) { var pk = k.split(":"); src = ((IMGS.cards || {})[pk[1]] || [])[+pk[2]]; cw = CORTE_CARD[pk[1]][0]; ch = CORTE_CARD[pk[1]][1]; }
     else { src = (IMGS.fotos || [])[+alvo]; var cf = corteFoto(fm.cap, fm.G, +alvo); cw = cf[0]; ch = cf[1]; }
     if (!src) return;
     var e = Object.assign({ x: 0.5, y: 0.5, z: 1, aj: {} }, clone((IMGS.enq || {})[k] || {})); e.aj = Object.assign({}, e.aj || {});
-    ENQ = { k: k, src: src, cw: cw, ch: ch, op: op, e: e, inteira: inteira, antes: false };
-    var nome = k === "capa" ? "foto da capa" : inteira ? "foto recortada" : k.indexOf("c:") === 0 ? "foto do cartão" : "foto " + (+alvo + 1);
-    var abas = inteira ? [["luz", "☀ LUZ E COR"], ["look", "✦ LOOKS"]] : [["pos", "✥ POSIÇÃO"], ["luz", "☀ LUZ E COR"], ["look", "✦ LOOKS"], ["mix", "◑ MISTURA"], ["masc", "◌ MÁSCARA"]];
+    if (k === "sobre" && !temAj(e.aj) && IMGS.enq && IMGS.enq.retrato && temAj(IMGS.enq.retrato.aj)) e.aj = Object.assign({}, IMGS.enq.retrato.aj);
+    ENQ = { k: k, src: src, cw: cw, ch: ch, op: op, e: e, inteira: inteira, antes: false, G: fm.G };
+    var nome = k === "capa" ? "foto da capa" : k === "sobre" ? "foto da página 2" : inteira ? "foto recortada" : k.indexOf("c:") === 0 ? "foto do cartão" : "foto " + (+alvo + 1);
+    var abas = inteira ? [["luz", "☀ LUZ E COR"], ["look", "✦ LOOKS"]] : k === "sobre" ? [["pos", "✥ POSIÇÃO"], ["tam", "⤢ TAMANHO"], ["luz", "☀ LUZ E COR"], ["look", "✦ LOOKS"]] : [["pos", "✥ POSIÇÃO"], ["luz", "☀ LUZ E COR"], ["look", "✦ LOOKS"], ["mix", "◑ MISTURA"], ["masc", "◌ MÁSCARA"]];
     if (!abas.some(function (x) { return x[0] === ENQ_ABA; })) ENQ_ABA = abas[0][0];
     var painel = function (id, h) { return '<div class="pk-enqp" data-p="' + id + '"' + (id === ENQ_ABA ? "" : " hidden") + ">" + h + "</div>"; };
     modal('<button type="button" class="pk-mx" data-a="fecharModal" aria-label="Fechar">✕</button><h3>' + (inteira ? "🎚 Ajustar a " : "✥ Enquadrar e ajustar a ") + nome + "</h3>" +
-      '<div class="pk-enq' + (inteira ? " xadrez" : "") + '" id="enqPalco"><canvas id="enqCv"></canvas>' + (inteira ? "" : '<i class="pk-enq-g"></i>') + "</div>" +
+      '<div class="pk-enq' + (inteira || k === "sobre" ? " xadrez" : "") + (k === "sobre" ? " corte" : "") + '" id="enqPalco"><canvas id="enqCv"></canvas>' + (inteira ? "" : '<i class="pk-enq-g"></i>') + "</div>" +
       '<div class="pk-enq-abas" role="tablist">' + abas.map(function (x) { return '<button type="button" role="tab" class="pk-enq-aba' + (x[0] === ENQ_ABA ? " on" : "") + '" data-a="enqAba" data-v="' + x[0] + '">' + x[1] + "</button>"; }).join("") + "</div>" +
       '<div class="pk-enq-corpo">' +
       (inteira ? "" : painel("pos", '<p class="tf-sub" style="margin:0 0 6px">Arraste a foto para posicionar e aproxime com a barra ou a rodinha.</p><label class="pk-aj"><span>🔍 Tamanho</span><input type="range" min="100" max="300" step="1" data-enq="z" value="' + Math.round(e.z * 100) + '"><b>' + Math.round(e.z * 100) + "%</b></label>" +
         '<div class="pk-chips pk-lin"><button type="button" class="pk-chip" data-a="enqPos" data-v="topo">⬆ MOSTRAR O TOPO</button><button type="button" class="pk-chip" data-a="enqPos" data-v="centro">⊕ CENTRALIZAR</button><button type="button" class="pk-chip" data-a="enqPos" data-v="base">⬇ MOSTRAR A BASE</button></div>')) +
       painel("luz", AJUSTES.map(function (a) { var v = +e.aj[a[0]] || 0; return '<label class="pk-aj"><span>' + a[1] + '</span><input type="range" min="-100" max="100" step="1" data-enq="' + a[0] + '" value="' + v + '"><b>' + v + "</b></label>"; }).join("")) +
       painel("look", '<div class="pk-chips pk-lin"><button type="button" class="pk-chip" data-a="enqLook" data-v="auto">✦ CLAREAR</button><button type="button" class="pk-chip" data-a="enqLook" data-v="vivo">VIVO</button><button type="button" class="pk-chip" data-a="enqLook" data-v="quente">QUENTE</button><button type="button" class="pk-chip" data-a="enqLook" data-v="frio">FRIO</button><button type="button" class="pk-chip" data-a="enqLook" data-v="pb">P&amp;B</button><button type="button" class="pk-chip" data-a="enqLook" data-v="zero">↺ ZERAR</button></div>') +
-      (inteira ? "" : fxHtml(e, painel)) + "</div>" +
+      (k === "sobre" ? painel("tam", '<p class="tf-sub" style="margin:0 0 6px">Tamanho da foto na página 2 (Quem sou eu).</p><label class="pk-aj"><span>↔ Largura</span><input type="range" min="20" max="62" step="1" data-enq="sw" value="' + sobreW() + '"><b>' + sobreW() + "%</b></label>" +
+        '<div class="pk-sub-t">PROPORÇÃO</div><div class="pk-chips pk-lin" data-fxg="r">' + [["", "Foto inteira"]].concat(Object.keys(SOB_R).map(function (q) { return [q, SOB_R[q][1]]; })).map(function (q) { return '<button type="button" class="pk-chip' + (((KIT.est || {}).sobR || "") === q[0] ? " on" : "") + '" data-a="enqProp" data-v="' + q[0] + '">' + q[1] + "</button>"; }).join("") + "</div>") : "") +
+      (inteira || k === "sobre" ? "" : fxHtml(e, painel)) + "</div>" +
       '<div class="pk-chips pk-enq-pe"><button type="button" class="pk-chip" data-a="enqAntes">◐ SEGURE: ANTES</button><button type="button" class="bw-btn pri" data-a="enqPronto">✓ PRONTO</button></div>');
     $("modalCx").classList.add("enq-app");
     var cv = $("enqCv"), palco = $("enqPalco");
@@ -1307,7 +1318,7 @@
     if (!cx.__enq) { cx.__enq = 1;
       cx.addEventListener("input", function (ev) {
         var n = ev.target.getAttribute && ev.target.getAttribute("data-enq"); if (!n || !ENQ) return;
-        var v = +ev.target.value; if (n === "z") ENQ.e.z = v / 100; else if (n === "fo") (ENQ.e.fx = ENQ.e.fx || {}).o = v; else if (n === "fs") (ENQ.e.fx = ENQ.e.fx || {}).s = v; else ENQ.e.aj[n] = v;
+        var v = +ev.target.value; if (n === "sw") { ENQ.sw = v; ev.target.parentNode.querySelector("b").textContent = v + "%"; enqTam(); return; } if (n === "z") ENQ.e.z = v / 100; else if (n === "fo") (ENQ.e.fx = ENQ.e.fx || {}).o = v; else if (n === "fs") (ENQ.e.fx = ENQ.e.fx || {}).s = v; else ENQ.e.aj[n] = v;
         var b = ev.target.parentNode.querySelector("b"); if (b) b.textContent = n === "z" || n === "fo" ? v + "%" : v; enqDesenhar();
       });
       var antes = function (on) { return function (ev) { var b = ev.target.closest && ev.target.closest('[data-a="enqAntes"]'); if (!b || !ENQ) return; if (on) ev.preventDefault(); ENQ.antes = on; enqDesenhar(); }; };
@@ -1341,6 +1352,12 @@
     AJUSTES.forEach(function (a) { var r = $("modalCx").querySelector('[data-enq="' + a[0] + '"]'); if (r) { r.value = +ENQ.e.aj[a[0]] || 0; r.parentNode.querySelector("b").textContent = r.value; } });
     enqDesenhar();
   }
+  function sobreW() { var e = KIT.est || {}; return Math.round(ENQ && ENQ.sw ? ENQ.sw : +e.sobW || (e.sob === "topo" ? 42 : 36)); }
+  function sobreDim(G) { var e = KIT.est || {}, w = G.CW * Math.max(0.2, Math.min(0.62, (ENQ && ENQ.sw ? ENQ.sw : +e.sobW || (e.sob === "topo" ? 42 : 36)) / 100)), q = ENQ && ENQ.sr != null ? ENQ.sr : e.sobR || "",
+    r = SOB_R[q] ? SOB_R[q][0] : (ENQ_PROP_S || 1.3); return [w, Math.min(w * r, G.H * 0.62)]; }
+  var ENQ_PROP_S = 0;
+  function enqTam() { if (!ENQ || ENQ.k !== "sobre") return; var d = sobreDim(ENQ.G); ENQ.cw = d[0]; ENQ.ch = d[1]; var pl = $("enqPalco"); if (pl) { pl.style.aspectRatio = d[0] + " / " + d[1]; pl.style.width = "min(100%, calc(var(--enq-h, 46vh) * " + (d[0] / d[1]).toFixed(4) + "))"; } enqDesenhar(); }
+  function enqProp(v) { ENQ.sr = v; [].forEach.call($("modalCx").querySelectorAll('[data-a="enqProp"]'), function (b) { b.classList.toggle("on", b.getAttribute("data-v") === v); }); enqTam(); }
   function enqPos(v) { ENQ.e.y = v === "topo" ? 0 : v === "base" ? 1 : 0.5; if (v === "centro") ENQ.e.x = 0.5; enqDesenhar(); }
   function enqPronto() {
     if (!ENQ) return; var e = ENQ.e, aj = {}; AJUSTES.forEach(function (a) { if (+e.aj[a[0]]) aj[a[0]] = +e.aj[a[0]]; });
@@ -1348,13 +1365,15 @@
     if (!ENQ.inteira && !fxNeutro(e.fx)) limpo.fx = { m: e.fx.m || "normal", c: e.fx.c || "fundo", o: e.fx.o == null ? 100 : +e.fx.o, k: e.fx.k || "nenhuma", s: e.fx.s == null ? 50 : +e.fx.s };
     IMGS.enq = IMGS.enq || {};
     var neutro = !limpo.aj && !limpo.fx && (ENQ.inteira || (Math.abs(limpo.x - 0.5) < 0.001 && Math.abs(limpo.y - 0.5) < 0.001 && limpo.z <= 1.001));
-    if (neutro) delete IMGS.enq[ENQ.k]; else IMGS.enq[ENQ.k] = limpo;
+    if (ENQ.k === "sobre") { KIT.est = KIT.est || {}; if (ENQ.sw) KIT.est.sobW = ENQ.sw; if (ENQ.sr != null) { if (ENQ.sr) KIT.est.sobR = ENQ.sr; else delete KIT.est.sobR; } guardar();
+      if (neutro && !KIT.est.sobR) { delete IMGS.enq.sobre; } else IMGS.enq.sobre = limpo; }
+    else if (neutro) delete IMGS.enq[ENQ.k]; else IMGS.enq[ENQ.k] = limpo;
     ENQ = null; fecharModal(); guardarImgs(); desenharForm(); agendarPrevia(0); aviso("Foto ajustada ✓");
   }
   function caixaImg(rot, chave, dica, png) {
     var u = IMGS[chave];
     return '<div class="pk-img"><span>' + rot + "</span>" + (u ? '<img src="' + u + '" alt="' + esc(rot) + '"' + (png ? ' class="xadrez"' : "") + ">" : "<i>" + esc(dica) + "</i>") + '<div class="pk-chips">' + upload(u ? "↺ TROCAR" : "＋ ESCOLHER", chave) +
-      (u ? '<button type="button" class="pk-chip" data-a="fotoBaixar" data-alvo="' + chave + '">⬇ BAIXAR</button><button type="button" class="pk-chip" data-a="tirarImg" data-v="' + chave + '">✕ TIRAR</button>' : "") + (chave === "logo" ? '<button type="button" class="pk-chip" data-a="logoEmpresa">★ DA MINHA EMPRESA</button>' : u ? '<button type="button" class="pk-chip" data-a="enquadrar" data-alvo="' + chave + '">' + (chave === "retrato" ? "🎚 LUZ E COR" : "✥ ENQUADRAR E AJUSTAR") + "</button>" : "") + "</div>" + (u && chave !== "logo" ? botoesIA(chave) : "") + "</div>";
+      (u ? '<button type="button" class="pk-chip" data-a="fotoBaixar" data-alvo="' + chave + '">⬇ BAIXAR</button><button type="button" class="pk-chip" data-a="tirarImg" data-v="' + chave + '">✕ TIRAR</button>' : "") + (chave === "logo" ? '<button type="button" class="pk-chip" data-a="logoEmpresa">★ DA MINHA EMPRESA</button>' : u ? '<button type="button" class="pk-chip" data-a="enquadrar" data-alvo="' + chave + '">' + (chave === "retrato" ? "🎚 LUZ E COR" : "✥ ENQUADRAR E AJUSTAR") + "</button>" + (chave === "retrato" ? '<button type="button" class="pk-chip" data-a="enquadrar" data-alvo="sobre">✥ ENQUADRAR NA PÁGINA 2</button>' : "") : "") + "</div>" + (u && chave !== "logo" ? botoesIA(chave) : "") + "</div>";
   }
   /* 🎛 ESTILO AO VIVO: tudo o que muda o visual, com a prévia (o próprio PDF) se refazendo na hora */
   function grupoEstilo(k, mod) {
@@ -1712,7 +1731,8 @@
     else if (a === "est") { var ec = el.getAttribute("data-c"); KIT.est = KIT.est || {}; KIT.est[ec] = el.getAttribute("data-v"); [].forEach.call(el.parentNode.children, function (b) { b.classList.toggle("on", b === el); }); guardar(); agendarPrevia(80); }
     else if (a === "estPaleta") { var pl = PALETAS[+el.getAttribute("data-i")]; KIT.cor = pl[1]; KIT.cor2 = pl[2]; KIT.est = KIT.est || {}; KIT.est.fundo = pl[3]; guardar(); desenharForm(); agendarPrevia(80); aviso("Paleta " + pl[0] + " ✓"); }
     else if (a === "estZerar") { var mz = modeloDe(KIT.modelo); KIT.est = {}; KIT.cor = mz.cor; KIT.cor2 = mz.cor2; guardar(); desenharForm(); agendarPrevia(80); aviso("Estilo do modelo de volta"); }
-    else if (a === "enquadrar") abrirEnquadrar(el.getAttribute("data-alvo"));
+    else if (a === "enquadrar") { var alvE = el.getAttribute("data-alvo"); if (alvE === "sobre" && IMGS.retrato) imgDe(IMGS.retrato).then(function (im) { ENQ_PROP_S = im.naturalHeight / im.naturalWidth; abrirEnquadrar("sobre"); }); else abrirEnquadrar(alvE); }
+    else if (a === "enqProp") enqProp(el.getAttribute("data-v"));
     else if (a === "enqPronto") enqPronto();
     else if (a === "enqLook") enqLook(el.getAttribute("data-v"));
     else if (a === "enqAba") { ENQ_ABA = el.getAttribute("data-v"); var mcx = $("modalCx"); [].forEach.call(mcx.querySelectorAll(".pk-enq-aba"), function (b) { b.classList.toggle("on", b === el); }); [].forEach.call(mcx.querySelectorAll(".pk-enqp"), function (p) { p.hidden = p.getAttribute("data-p") !== ENQ_ABA; }); el.scrollIntoView({ block: "nearest", inline: "center" }); }

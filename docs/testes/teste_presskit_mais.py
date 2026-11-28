@@ -195,6 +195,22 @@ with sync_playwright() as p:
         ok(esperar_previa(pg) and pg.evaluate("() => JSON.stringify(window.__pkUltimoDef).includes('ABOUT')"), "títulos das partes em inglês no PDF")
         ok(pg.evaluate("(a) => !/^EN: /.test(BWPressKit.acharKit(a).d.sobre || '')", id0), "o original continua em português")
 
+        # ✥ ENQUADRAR NA PÁGINA 2 (foto recortada do "quem sou eu": largura, proporção, posição)
+        if pg.evaluate("() => !!BWPressKit.imgsAtual().retrato"):
+            pg.click('[data-a="enquadrar"][data-alvo="sobre"]'); pg.wait_for_selector("#enqCv", timeout=6000); pg.wait_for_timeout(500)
+            ok(pg.locator('#modal [data-a="enqAba"][data-v="tam"]').count() == 1, "✥ ENQUADRAR NA PÁGINA 2 abre com a aba ⤢ TAMANHO")
+            pg.click('#modal [data-a="enqAba"][data-v="tam"]')
+            pg.evaluate("() => { const r = document.querySelector('[data-enq=\"sw\"]'); r.value = 52; r.dispatchEvent(new Event('input', {bubbles: true})); }")
+            pg.click('#modal [data-a="enqProp"][data-v="34"]'); pg.wait_for_timeout(300)
+            pg.evaluate("() => { const r = document.querySelector('[data-enq=\"z\"]'); r.value = 160; r.dispatchEvent(new Event('input', {bubbles: true})); }")
+            ar = pg.evaluate("() => { const p = document.getElementById('enqPalco').getBoundingClientRect(); return p.height / p.width; }")
+            ok(abs(ar - 4/3) < 0.08, f"a moldura da janela fica na proporção 3:4 ({ar:.2f})")
+            pg.click('[data-a="enqPronto"]'); pg.wait_for_timeout(500)
+            st = pg.evaluate("() => [BWPressKit.atual().est.sobW, BWPressKit.atual().est.sobR, (BWPressKit.imgsAtual().enq || {}).sobre]")
+            ok(st[0] == 52 and st[1] == "34" and st[2] and abs(st[2].get("z", 1) - 1.6) < 0.01, f"PRONTO guarda largura 52%, proporção 3:4 e o zoom ({st})")
+            so = pg.evaluate("async () => { const m = await BWPressKit.modelo(BWPressKit.atual(), BWPressKit.imgsAtual()); const s = m.secoes.find(x => x.id === 'sobre'); return s ? [!!s.corte, Math.round(s.fotoW), Math.round(s.fotoH)] : null; }")
+            ok(so and so[0] and so[2] > so[1], f"a página 2 usa a foto reenquadrada, maior ({so})")
+            pg.evaluate("() => { const k = BWPressKit.atual(); delete k.est.sobW; delete k.est.sobR; delete BWPressKit.imgsAtual().enq.sobre; }")
         # 📄 PÁGINAS INTERNAS e setas nas opções
         ok(pg.locator('[data-a="est"][data-c="pg"]').count() == 6 and pg.locator('[data-a="est"][data-c="sob"]').count() == 5, "🎛 ESTILO: miniaturas de PÁGINAS INTERNAS (6) e QUEM SOU EU (5)")
         ok(pg.locator('.pk-grupo .pk-sub-t[data-seta^="pks_"]').count() >= 8, "as opções dentro das partes ganham seta de abrir/fechar")

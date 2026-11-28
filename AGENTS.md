@@ -2977,6 +2977,11 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   grande, só texto), trabalhos e cursos em linhas/cartões/ano em destaque, cartões por linha (auto/1/2/3), títulos no centro e cada parte numa página.
   Toda sub-opção das partes tem seta ▾/▸. teste_presskit_mais (+8, PDFs de cada layout conferidos numa folha) e teste_presskit 0 falhas; vigia ✅.
   Manual 79 p. presskit.js v12, sw v257. PENTE FINO 250. App BW: entra no próximo pacote.
+- 28/11/2026 14:00 · Claude (dono: "reenquadrar a foto na segunda página e aumentar a área mostrada pela foto e as dimensões na tela"): PRESS KIT — foto
+  recortada ganhou ✥ ENQUADRAR NA PÁGINA 2: abas POSIÇÃO (arrastar, aproximar, topo/centro/base), ⤢ TAMANHO (largura 20–62% da página e proporção
+  foto inteira / 4:5 / 3:4 / 1:1 / 2:3 / 16:9), LUZ E COR e LOOKS, com prévia fixa na proporção escolhida. Guarda kit.est.sobW/sobR + IMGS.enq.sobre;
+  a capa e as outras fotos não mudam. Corte em PNG (op.png) para manter o fundo transparente. teste_presskit_mais (+4 × 2) e teste_presskit 0 falhas; vigia ✅.
+  presskit.js v13, sw v258.
 ## Pendências (dono)
 - [x] (28/11 12:55, dono: "SIM") SQL do LINK DO PRESS KIT rodado (rls true · 4 regras na tabela · 3 no balde · balde público). Teste no ar: visitante
       não lista nem grava (401), token falso = null; logado: link de TESTE criado, foto no balde, kit.html abriu, pasta de outro token recusada;
