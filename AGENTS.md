@@ -3003,7 +3003,9 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   "sim"); até lá a tela diz "pasta da conta ainda não ativada" e tudo continua no aparelho. teste_presskit_mais (+19) e teste_presskit 0 falhas; vigia ✅.
   Manual 79 p. presskit.js v15, presskit-nuvem.js v1, sw v260. PENTE FINO 251.
 ## Pendências (dono)
-- [ ] (28/11) SQL docs/sql/2026-11-28-presskit-fotos.sql (balde privado presskit-fotos) — aguarda o "sim" do dono para rodar; depois testar no PC e no celular logado.
+- [x] (28/11 15:10, dono: "Sim, pode rodar") SQL do balde privado presskit-fotos rodado (público = false · 4 regras pkfotos). Teste no ar logado: foto de TESTE
+      enviada e baixada na própria pasta, pasta de outra conta recusada (RLS), endereço público = 400, teste apagado (0 arquivos). Falta o dono
+      pôr uma foto no PC e abrir o mesmo press kit no celular.
 - [x] (28/11 12:55, dono: "SIM") SQL do LINK DO PRESS KIT rodado (rls true · 4 regras na tabela · 3 no balde · balde público). Teste no ar: visitante
       não lista nem grava (401), token falso = null; logado: link de TESTE criado, foto no balde, kit.html abriu, pasta de outro token recusada;
       teste apagado (linha e foto). Falta o dono criar um link de verdade pelo 🔗 e abrir no celular.
