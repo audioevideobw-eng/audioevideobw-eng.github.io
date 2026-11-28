@@ -1139,6 +1139,9 @@ os outros são conferidos no navegador, logado, em 1280 px E 390 px.
      subpasta nova e a antiga apagada depois de gravar; caixinha de autorização antes da 1ª publicação; página pública sem supabase-js,
      textos por textContent e links só http(s)/mailto (auto: docs/testes/teste_presskit_mais.py). Tradução por IA: só os campos de
      texto, chaves JSON iguais, conferência dos DÍGITOS (número mudou = fica o original) e numa CÓPIA (o original não muda).
+249. Arquivo que a ferramenta produz (foto da IA) tem botão de BAIXAR SEMPRE À VISTA junto da própria foto — botão que só aparece depois de uma
+     ação ou dentro de uma folha o dono "não achou". IA de imagem da plataforma (FLUX.2 klein 4B, cópia ≤ 504 px) muda o rosto: dar SEMPRE a saída
+     ↗ EM OUTRA IA (baixar foto → copiar pedido com a trava → abrir Gemini/ChatGPT → ＋ TRAZER A FOTO PRONTA no mesmo lugar, com ↺ ORIGINAL).
 
 **Como testar no navegador (rotina)**
 - Abrir as páginas com captura de erros (iframe sandbox + window.onerror) → 0 erros de JS.
@@ -2956,6 +2959,13 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
 - 28/11/2026 12:55 · Claude (dono: "SIM"): SQL docs/sql/2026-11-28-presskit-link.sql rodado no Supabase. Teste no ar ponta a ponta com link de TESTE
   (inserir, subir foto, publicar, abrir kit.html, recusar pasta alheia, apagar). Foto apagada ainda respondia 200 por alguns segundos pelo cache
   público do Storage (sem cache = 400): TIRAR DO AR some na hora pela página, a foto some do endereço depois do cache.
+- 28/11/2026 13:20 · Claude (dono: "o link funcionou, só não achei onde baixar a imagem" + "qual IA altera as fotos? faça uma ponte para a IA do usuário
+  ou outro lugar com o seu prompt — ela altera bastante a fidelidade"): PRESS KIT — ⬇ BAIXAR em toda foto (capa, foto recortada, logo, galeria, cartões;
+  antes só "Baixar foto da IA" depois da IA). ✨ MELHORAR COM IA ganhou ↗ EM OUTRA IA: escolhe o preset, ⬇ baixa a foto, ⧉ copia o pedido em inglês
+  com a trava de rosto/corpo, abre Gemini / ChatGPT / AI Studio e ＋ TRAZER A FOTO PRONTA põe o resultado no lugar (↺ ORIGINAL volta). A IA da
+  plataforma é FLUX.2 klein 4B (Cloudflare; com a chave conectada em MINHAS IAS usa a conta da pessoa, mas o mesmo modelo). teste_presskit_mais
+  (+7) e teste_presskit 0 falhas; vigia ✅. Manual 79 p. presskit.js v10, sw v255. PENTE FINO 249. Próximo possível: Gemini (Nano Banana) direto
+  pela chave Gemini conectada (função bw-ia-imagem nova — aguarda o "sim").
 ## Pendências (dono)
 - [x] (28/11 12:55, dono: "SIM") SQL do LINK DO PRESS KIT rodado (rls true · 4 regras na tabela · 3 no balde · balde público). Teste no ar: visitante
       não lista nem grava (401), token falso = null; logado: link de TESTE criado, foto no balde, kit.html abriu, pasta de outro token recusada;

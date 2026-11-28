@@ -136,6 +136,20 @@ with sync_playwright() as p:
         except Exception: azul = False
         ok(azul and "foto-ia" in dl.value.suggested_filename, f"⬇ baixa a foto da IA ({dl.value.suggested_filename})")
         pg.click('[data-a="fotoIAvolta"][data-alvo="retrato"]'); pg.wait_for_timeout(300)
+        # ⬇ BAIXAR sempre à vista na foto + ↗ EM OUTRA IA (levar e trazer de volta)
+        ok(pg.locator('[data-a="fotoBaixar"][data-alvo="capa"]').count() == 1 and pg.locator('[data-a="fotoBaixar"][data-alvo="retrato"]').count() == 1, "⬇ BAIXAR aparece na capa e na foto recortada sem usar a IA")
+        with pg.expect_download() as dl2: pg.click('[data-a="fotoBaixar"][data-alvo="capa"]')
+        ok("-foto-capa" in dl2.value.suggested_filename, f"⬇ BAIXAR baixa a foto da capa ({dl2.value.suggested_filename})")
+        pg.click('[data-a="fotoIAfora"][data-alvo="capa"]'); pg.wait_for_timeout(300)
+        tx = pg.input_value("#iaForaTexto")
+        ok("ATTACHED photo" in tx and "identical face" in tx and pg.locator('#modal a[href*="gemini.google.com"]').count() == 1, "↗ EM OUTRA IA mostra o pedido com a trava e o link do Gemini")
+        cap0 = pg.evaluate("() => BWPressKit.imgsAtual().capa")
+        arq = os.path.join(TMP, "volta.png"); Image.new("RGB", (400, 500), (200, 30, 30)).save(arq)
+        pg.set_input_files('#modal input[data-up="ia:capa"]', arq); pg.wait_for_timeout(1200)
+        im2 = pg.evaluate("() => BWPressKit.imgsAtual()")
+        ok(im2.get("capa") != cap0 and (im2.get("origs") or {}).get("capa") == cap0 and pg.locator("#modal").is_hidden(), "＋ TRAZER A FOTO PRONTA entra no lugar e guarda a original")
+        pg.click('[data-a="fotoIAvolta"][data-alvo="capa"]'); pg.wait_for_timeout(300)
+        ok(pg.evaluate("() => BWPressKit.imgsAtual().capa") == cap0, "↺ ORIGINAL volta a foto de antes")
 
         # ✥ efeitos na capa
         pg.set_input_files('input[data-up="capa"]', FOTO); pg.wait_for_timeout(1200); esperar_previa(pg)

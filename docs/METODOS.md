@@ -870,3 +870,8 @@ Armadilha: classe de ESTADO não serve para destacar botão. `＋ IMPORTAR` usav
   (assets/fontes) antes do 1º quadro; conferir com ffprobe (codec, tamanho, duração) e 3 quadros diferentes pelo ffmpeg.
 - **Tradução por IA**: coletar só strings (pular nome, contato, links, anos), lotes de ~2,6 mil letras, JSON com as mesmas chaves,
   aceitar a tradução só se os dígitos forem os mesmos, gravar numa cópia (`duplicarKit(id, nome, mexer)`).
+
+## Ponte "EM OUTRA IA" (press kit, 28/11/2026)
+Quando a IA da plataforma não basta: modal com preset → ⬇ baixar a foto → ⧉ pedido pronto (inglês, trava de rosto/corpo, sem limite de 700) →
+links das IAs (target _blank) → `<input type=file data-up="ia:<alvo>">` que troca no lugar guardando IMGS.origs (mesmo ↺ ORIGINAL da IA da casa).
+Nada é enviado pelo site. Teste: set_input_files no input do modal e conferir origs + troca.

@@ -1116,7 +1116,7 @@
     return '<div class="pk-cf">' + (u ? '<img src="' + u + '" alt="' + rot + (i + 1) + '">' : '<div class="pk-cf-v" aria-hidden="true">📷</div>') +
       '<div class="pk-cf-bt"><label class="pk-cf-b">' + (u ? "TROCAR" : "＋ FOTO") + '<input type="file" accept="image/*" data-up="card:' + nome + ":" + i + '" aria-label="Enviar ' + rot + (i + 1) + '"></label>' +
       (g ? '<button type="button" class="pk-cf-b" data-a="cardGal" data-l="' + nome + '" data-i="' + i + '">🖼 GALERIA</button>' : "") +
-      (u ? '<button type="button" class="pk-cf-b" data-a="enquadrar" data-alvo="c:' + nome + ":" + i + '" aria-label="Enquadrar a ' + rot + (i + 1) + '">✥</button><button type="button" class="pk-cf-b x" data-a="cardTira" data-l="' + nome + '" data-i="' + i + '" aria-label="Tirar a ' + rot + (i + 1) + '">✕</button>' : "") + "</div></div>";
+      (u ? '<button type="button" class="pk-cf-b" data-a="fotoBaixar" data-alvo="c:' + nome + ":" + i + '" aria-label="Baixar a ' + rot + (i + 1) + '">⬇</button><button type="button" class="pk-cf-b" data-a="enquadrar" data-alvo="c:' + nome + ":" + i + '" aria-label="Enquadrar a ' + rot + (i + 1) + '">✥</button><button type="button" class="pk-cf-b x" data-a="cardTira" data-l="' + nome + '" data-i="' + i + '" aria-label="Tirar a ' + rot + (i + 1) + '">✕</button>' : "") + "</div></div>";
   }
   var COM_FOTO = { servicos: 1, experiencia: 1, links: 1 };
   function listaCampos(nome, itens, cols, max, rotAdd) {
@@ -1151,6 +1151,7 @@
     return '<div class="pk-ia" data-iaalvo="' + alvo + '"><span class="pk-ia-t">✨ MELHORAR COM IA · UM TOQUE</span><div class="pk-ia-l">' + FOTO_IA.map(function (x) {
       return '<button type="button" class="pk-iab" data-a="fotoIA" data-alvo="' + alvo + '" data-p="' + x.id + '" title="' + esc(x.nome) + '"' + (IA_OCUP[k] ? " disabled" : "") + '><i>' + x.ico + "</i>" + esc(x.nome) + "</button>";
     }).join("") + '<button type="button" class="pk-iab" data-a="fotoIAlivre" data-alvo="' + alvo + '"' + (IA_OCUP[k] ? " disabled" : "") + "><i>✎</i>Do meu jeito</button>" +
+      '<button type="button" class="pk-iab" data-a="fotoIAfora" data-alvo="' + alvo + '"><i>↗</i>Em outra IA</button>' +
       (orig ? '<button type="button" class="pk-iab" data-a="fotoIAbaixar" data-alvo="' + alvo + '"><i>⬇</i>Baixar foto da IA</button><button type="button" class="pk-iab volta" data-a="fotoIAvolta" data-alvo="' + alvo + '"><i>↺</i>Original</button>' : "") + "</div></div>";
   }
   function encolher(src, max) {
@@ -1189,6 +1190,23 @@
     modal('<button type="button" class="pk-mx" data-a="fecharModal" aria-label="Fechar">✕</button><h3>✨ Do meu jeito</h3><p class="tf-sub">Diga o que mudar na foto (ex.: "camisa social branca e fundo azul-marinho"). A pessoa continua a mesma.</p>' +
       '<textarea class="pk-in" id="iaFotoTexto" rows="3" maxlength="400" placeholder="Ex.: fundo de estúdio azul-marinho, blazer cinza, sorriso leve"></textarea>' + vozBarra("iaFotoTexto").replace(/<button[^>]*data-a="(corrigir|voltarCampo)"[^>]*>[^<]*<\/button>/g, "") +
       '<div class="pk-chips" style="margin-top:12px"><button type="button" class="bw-btn pri" data-a="fotoIAlivreIr" data-alvo="' + alvo + '">✨ CRIAR NO LUGAR</button></div>');
+  }
+  /* ↗ EM OUTRA IA: a pessoa leva a foto + o pedido pronto para a IA dela (Gemini, ChatGPT…) e traz o resultado de volta para o mesmo lugar.
+     Nada sai daqui sozinho: ela baixa, copia e envia; o site só abre a página da IA. */
+  var IAS_FORA = [["Gemini", "https://gemini.google.com/app"], ["ChatGPT", "https://chatgpt.com/"], ["AI Studio", "https://aistudio.google.com/"]];
+  function pedidoFora(id) {
+    var x = FOTO_IA.filter(function (f) { return f.id === id; })[0] || FOTO_IA[0];
+    return "Edit the ATTACHED photo — do not create a new person. " + MANTER + x.p + " Keep the original framing and resolution as much as possible." + FIM_IA;
+  }
+  function fotoIAfora(alvo, id) {
+    id = id || (FOTO_IA[0] && FOTO_IA[0].id);
+    modal('<button type="button" class="pk-mx" data-a="fecharModal" aria-label="Fechar">✕</button><h3>↗ Fazer em outra IA</h3>' +
+      '<p class="tf-sub">Use a sua IA (Gemini, ChatGPT…). O pedido já pede para manter o rosto e o corpo iguais.</p>' +
+      '<div class="pk-chips">' + FOTO_IA.map(function (f) { return '<button type="button" class="pk-chip' + (f.id === id ? " on" : "") + '" data-a="fotoIAforaP" data-alvo="' + alvo + '" data-p="' + f.id + '">' + f.ico + " " + esc(f.nome) + "</button>"; }).join("") + "</div>" +
+      '<ol class="pk-fora"><li><button type="button" class="pk-chip" data-a="fotoBaixar" data-alvo="' + alvo + '">⬇ 1 · BAIXAR A FOTO</button></li>' +
+      '<li><textarea class="pk-in" id="iaForaTexto" rows="5">' + esc(pedidoFora(id)) + '</textarea><button type="button" class="pk-chip" data-a="fotoIAforaCopiar">⧉ 2 · COPIAR O PEDIDO</button></li>' +
+      '<li><span>3 · ABRIR A IA, enviar a foto e colar o pedido:</span> ' + IAS_FORA.map(function (x) { return '<a class="pk-chip" href="' + x[1] + '" target="_blank" rel="noopener">' + x[0] + " ↗</a>"; }).join(" ") + "</li>" +
+      '<li><label class="bw-btn pri pk-up">＋ 4 · TRAZER A FOTO PRONTA<input type="file" accept="image/*" data-up="ia:' + alvo + '"></label><span class="tf-sub"> entra no lugar; ↺ ORIGINAL volta.</span></li></ol>');
   }
   /* galeria: o ✨ da foto abre os mesmos presets numa folha — um toque cria no lugar */
   function fotoIAmenu(i) { modal('<button type="button" class="pk-mx" data-a="fecharModal" aria-label="Fechar">✕</button><h3>✨ Melhorar a foto ' + (+i + 1) + '</h3><p class="tf-sub">Um toque e a foto nova entra no lugar.</p>' + botoesIA(String(i))); }
@@ -1302,7 +1320,7 @@
   function caixaImg(rot, chave, dica, png) {
     var u = IMGS[chave];
     return '<div class="pk-img"><span>' + rot + "</span>" + (u ? '<img src="' + u + '" alt="' + esc(rot) + '"' + (png ? ' class="xadrez"' : "") + ">" : "<i>" + esc(dica) + "</i>") + '<div class="pk-chips">' + upload(u ? "↺ TROCAR" : "＋ ESCOLHER", chave) +
-      (u ? '<button type="button" class="pk-chip" data-a="tirarImg" data-v="' + chave + '">✕ TIRAR</button>' : "") + (chave === "logo" ? '<button type="button" class="pk-chip" data-a="logoEmpresa">★ DA MINHA EMPRESA</button>' : u ? '<button type="button" class="pk-chip" data-a="enquadrar" data-alvo="' + chave + '">' + (chave === "retrato" ? "🎚 LUZ E COR" : "✥ ENQUADRAR E AJUSTAR") + "</button>" : "") + "</div>" + (u && chave !== "logo" ? botoesIA(chave) : "") + "</div>";
+      (u ? '<button type="button" class="pk-chip" data-a="fotoBaixar" data-alvo="' + chave + '">⬇ BAIXAR</button><button type="button" class="pk-chip" data-a="tirarImg" data-v="' + chave + '">✕ TIRAR</button>' : "") + (chave === "logo" ? '<button type="button" class="pk-chip" data-a="logoEmpresa">★ DA MINHA EMPRESA</button>' : u ? '<button type="button" class="pk-chip" data-a="enquadrar" data-alvo="' + chave + '">' + (chave === "retrato" ? "🎚 LUZ E COR" : "✥ ENQUADRAR E AJUSTAR") + "</button>" : "") + "</div>" + (u && chave !== "logo" ? botoesIA(chave) : "") + "</div>";
   }
   /* 🎛 ESTILO AO VIVO: tudo o que muda o visual, com a prévia (o próprio PDF) se refazendo na hora */
   function grupoEstilo(k, mod) {
@@ -1351,7 +1369,7 @@
     h += grupo("midia", "FOTOS E MÍDIA",
       '<div class="pk-imgs">' + caixaImg("SUA FOTO RECORTADA (sem fundo)", "retrato", "PNG sem fundo — fica ao lado do seu texto", true) + caixaImg(cc ? "FOTO PRINCIPAL" : "FOTO DA CAPA", "capa", "a foto que abre a apresentação") + caixaImg("LOGO OU ASSINATURA (opcional)", "logo", "sem logo", true) + "</div>" +
       '<div class="pk-sub-t">GALERIA <small>(' + (IMGS.fotos || []).length + "/7)</small></div>" + '<div class="pk-fotos">' + (IMGS.fotos || []).map(function (u, i) {
-        return '<div class="pk-foto"><img src="' + u + '" alt="Foto ' + (i + 1) + '"><span><button type="button" class="pk-sx" data-a="fotoEsq" data-i="' + i + '" aria-label="Para a esquerda">◀</button><button type="button" class="pk-sx" data-a="fotoTira" data-i="' + i + '" aria-label="Tirar foto">✕</button><button type="button" class="pk-sx" data-a="enquadrar" data-alvo="' + i + '" aria-label="Enquadrar e ajustar">✥</button><button type="button" class="pk-sx ia" data-a="fotoIAmenu" data-i="' + i + '" aria-label="Melhorar com IA"' + (IA_OCUP["f" + i] ? " disabled" : "") + '>✨</button><button type="button" class="pk-sx" data-a="fotoDir" data-i="' + i + '" aria-label="Para a direita">▶</button></span></div>';
+        return '<div class="pk-foto"><img src="' + u + '" alt="Foto ' + (i + 1) + '"><span><button type="button" class="pk-sx" data-a="fotoEsq" data-i="' + i + '" aria-label="Para a esquerda">◀</button><button type="button" class="pk-sx" data-a="fotoTira" data-i="' + i + '" aria-label="Tirar foto">✕</button><button type="button" class="pk-sx" data-a="fotoBaixar" data-alvo="' + i + '" aria-label="Baixar a foto ' + (i + 1) + '">⬇</button><button type="button" class="pk-sx" data-a="enquadrar" data-alvo="' + i + '" aria-label="Enquadrar e ajustar">✥</button><button type="button" class="pk-sx ia" data-a="fotoIAmenu" data-i="' + i + '" aria-label="Melhorar com IA"' + (IA_OCUP["f" + i] ? " disabled" : "") + '>✨</button><button type="button" class="pk-sx" data-a="fotoDir" data-i="' + i + '" aria-label="Para a direita">▶</button></span></div>';
       }).join("") + "</div>" + ((IMGS.fotos || []).length < 7 ? upload("＋ FOTOS NA GALERIA", "fotos", true) : "") +
       '<p class="tf-sub">' + (cc ? "As 4 primeiras fotos vão para o verso do comp card." : "A primeira foto da galeria sai grande; as outras, em grade.") + " Sem foto recortada? No <a href=\"fotos.html\">Editor de fotos</a> → ✨ IA → fundo transparente. Tudo fica só neste aparelho.</p>", false, true);
     /* seções ligadas, na ordem */
@@ -1687,7 +1705,11 @@
     else if (a === "desfazerIA") desfazerIA();
     else if (a === "falar") falar(el.getAttribute("data-alvo"));
     else if (a === "fotoIA") { var px = FOTO_IA.filter(function (x) { return x.id === el.getAttribute("data-p"); })[0]; if (!$("modal").hidden) fecharModal(); if (px) fotoIA(el.getAttribute("data-alvo"), px.p); }
-    else if (a === "fotoIAbaixar") { var ub = srcFoto(el.getAttribute("data-alvo")); if (!ub) return; var bb = new Blob([binDe(ub)], { type: (/^data:([^;]+)/.exec(ub) || [0, "image/jpeg"])[1] }); baixar(bb, nomeArq(KIT, "") .replace(/\.$/, "") + "-foto-ia-" + String(el.getAttribute("data-alvo")).replace(/[^a-z0-9]/gi, "") + (/png/.test(bb.type) ? ".png" : ".jpg")); aviso("⬇ Foto da IA baixada"); }
+    else if (a === "fotoBaixar" || a === "fotoIAbaixar") { var alv = String(el.getAttribute("data-alvo")), pcs = alv.split(":"), ub = alv === "logo" ? IMGS.logo : alv.indexOf("c:") === 0 ? ((IMGS.cards || {})[pcs[1]] || [])[+pcs[2]] : srcFoto(alv); if (!ub) return; var ehIA = !!(IMGS.origs && IMGS.origs[chaveFoto(alv)]), bb = new Blob([binDe(ub)], { type: (/^data:([^;]+)/.exec(ub) || [0, "image/jpeg"])[1] }); baixar(bb, nomeArq(KIT, "").replace(/\.$/, "") + (ehIA ? "-foto-ia-" : "-foto-") + alv.replace(/[^a-z0-9]/gi, "") + (/png/.test(bb.type) ? ".png" : ".jpg")); aviso(ehIA ? "⬇ Foto da IA baixada" : "⬇ Foto baixada"); }
+    else if (a === "fotoIAbaixar_antigo") { var ub = srcFoto(el.getAttribute("data-alvo")); if (!ub) return; var bb = new Blob([binDe(ub)], { type: (/^data:([^;]+)/.exec(ub) || [0, "image/jpeg"])[1] }); baixar(bb, nomeArq(KIT, "") .replace(/\.$/, "") + "-foto-ia-" + String(el.getAttribute("data-alvo")).replace(/[^a-z0-9]/gi, "") + (/png/.test(bb.type) ? ".png" : ".jpg")); aviso("⬇ Foto da IA baixada"); }
+    else if (a === "fotoIAfora") fotoIAfora(el.getAttribute("data-alvo"));
+    else if (a === "fotoIAforaP") fotoIAfora(el.getAttribute("data-alvo"), el.getAttribute("data-p"));
+    else if (a === "fotoIAforaCopiar") { var tf = $("iaForaTexto"); if (tf) { try { navigator.clipboard.writeText(tf.value).then(function () { aviso("⧉ Pedido copiado"); }, function () { tf.select(); aviso("Selecionado — copie com Ctrl+C", true); }); } catch (e) { tf.select(); } } }
     else if (a === "fotoIAvolta") { if (!$("modal").hidden) fecharModal(); fotoIAvolta(el.getAttribute("data-alvo")); }
     else if (a === "fotoIAlivre") fotoIAlivre(el.getAttribute("data-alvo"));
     else if (a === "fotoIAmenu") fotoIAmenu(el.getAttribute("data-i"));
@@ -1705,6 +1727,7 @@
       if (alvo === "logo") IMGS.logo = await arquivoParaUrl(fs[0], 1600, true);
       else if (alvo === "retrato") { IMGS.retrato = await arquivoParaUrl(fs[0], 1800, true); if (IMGS.origs) delete IMGS.origs.retrato; if (IMGS.enq) delete IMGS.enq.retrato; }
       else if (alvo === "capa") { IMGS.capa = await arquivoParaUrl(fs[0], 2400, false); if (IMGS.origs) delete IMGS.origs.capa; if (IMGS.enq) delete IMGS.enq.capa; }
+      else if (alvo.indexOf("ia:") === 0) { var ax = alvo.slice(3), kx = chaveFoto(ax), ant = srcFoto(ax); if (!ant) { andamento(""); return; } var ux = await arquivoParaUrl(fs[0], ax === "retrato" ? 1800 : 2400, ax === "retrato"); IMGS.origs = IMGS.origs || {}; if (!IMGS.origs[kx]) IMGS.origs[kx] = ant; if (ax === "retrato" || ax === "capa") IMGS[ax] = ux; else IMGS.fotos[+ax] = ux; KIT.exemplo = false; andamento(""); if (!$("modal").hidden) fecharModal(); guardarImgs(); desenharForm(); agendarPrevia(0); aviso("✨ Foto da sua IA no lugar — ↺ ORIGINAL volta"); try { inp.value = ""; } catch (e) { } return; }
       else if (alvo.indexOf("card:") === 0) { var pc = alvo.split(":"); var uc = await arquivoParaUrl(fs[0], 1400, false); andamento(""); cardPor(pc[1], +pc[2], uc); aviso("Foto do cartão ✓"); try { inp.value = ""; } catch (e) { } return; }
       else { for (var i = 0; i < fs.length && IMGS.fotos.length < 7; i++) IMGS.fotos.push(await arquivoParaUrl(fs[i], 2000, false)); }
       andamento(""); guardarImgs(); desenharForm(); agendarPrevia(0); aviso(alvo === "fotos" ? "Fotos na galeria ✓" : alvo === "logo" ? "Logo aplicada ✓" : alvo === "retrato" ? "Foto recortada aplicada ✓" : "Foto da capa aplicada ✓");
