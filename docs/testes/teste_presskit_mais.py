@@ -121,6 +121,28 @@ with sync_playwright() as p:
         pg.goto(BASE + "presskit.html?modelo=ator"); esperar_previa(pg)
         ok(pg.locator("#vEd").is_visible() and pg.evaluate("() => !!window.BWPressKitMais"), "editor aberto e os recursos novos carregados")
 
+        # PC: o formulário rola na própria coluna (barra ao lado das opções) e a tela não rola
+        if larg >= 1100:
+            r = pg.evaluate("""() => { const f = document.getElementById('form'), e = document.querySelector('.pk-ed').getBoundingClientRect();
+              return { rola: getComputedStyle(f).overflowY, alto: f.scrollHeight > f.clientHeight + 50, cabe: e.bottom <= innerHeight + 1,
+                       pag: document.documentElement.scrollHeight - innerHeight }; }""")
+            ok(r["rola"] == "auto" and r["alto"] and r["cabe"], f"formulário com rolagem própria e o editor cabe na tela {r}")
+            fb = pg.locator("#form").bounding_box(); pg.mouse.move(fb["x"] + fb["width"] / 2, fb["y"] + fb["height"] / 2); pg.mouse.wheel(0, 900); pg.wait_for_timeout(300)
+            ok(pg.evaluate("() => document.getElementById('form').scrollTop") > 200 and pg.evaluate("() => scrollY") < 5, "rodinha rola o formulário, não a página")
+            pg.evaluate("() => document.getElementById('form').scrollTop = 0")
+        # toque na foto da prévia abre o ajuste
+        if larg < 500: pg.click('[data-a="aba"][data-v="prev"]'); pg.wait_for_timeout(300)
+        pg.locator(".pk-pag").nth(1).click(); pg.wait_for_timeout(400)
+        it = pg.locator("#modal .pk-pf-i")
+        ok(not pg.locator("#modal").is_hidden() and it.count() >= 2 and it.first.get_attribute("data-alvo") == "sobre", "tocar na página 2 lista as fotos, a da página 2 primeiro")
+        it.first.click(); pg.wait_for_timeout(900)
+        ok(pg.locator('#modal [data-a="enqAba"][data-v="tam"]').count() == 1, "tocar na foto abre o ajuste com TAMANHO")
+        pg.evaluate("() => BWPressKit.fecharModal()")
+        pg.locator(".pk-pag").first.click(); pg.wait_for_timeout(400)
+        ok(pg.locator("#modal .pk-pf-i").first.get_attribute("data-alvo") == "capa", "na página 1 a capa vem primeiro")
+        pg.evaluate("() => BWPressKit.fecharModal()")
+        if larg < 500: pg.click('[data-a="aba"][data-v="ed"]'); pg.wait_for_timeout(300)
+
         # ✨ foto da IA: trava de rosto/corpo no pedido + ⬇ baixar
         pg.click('[data-a="fotoIA"][data-alvo="retrato"][data-p="corp"]')
         try: pg.wait_for_selector('[data-a="fotoIAbaixar"][data-alvo="retrato"]', timeout=12000); tem = True

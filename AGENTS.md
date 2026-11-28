@@ -2982,6 +2982,10 @@ Ao fim de TODA construção ou modificação, nesta ordem (não pular etapa):
   foto inteira / 4:5 / 3:4 / 1:1 / 2:3 / 16:9), LUZ E COR e LOOKS, com prévia fixa na proporção escolhida. Guarda kit.est.sobW/sobR + IMGS.enq.sobre;
   a capa e as outras fotos não mudam. Corte em PNG (op.png) para manter o fundo transparente. teste_presskit_mais (+4 × 2) e teste_presskit 0 falhas; vigia ✅.
   presskit.js v13, sw v258.
+- 28/11/2026 14:20 · Claude (dono: "a barra de rolagem fica no canto direito, coloque ao lado dos menus" + "clicar na foto no preview e editar por lá"): PRESS KIT —
+  no PC (> 1060 px) o editor cabe na tela e a coluna das opções rola sozinha, com a barra dourada fina ao lado dela (a prévia rola à parte);
+  tocar numa página da PRÉVIA abre "Ajustar uma foto" com as fotos daquela página primeiro (pág. 1 = capa; pág. 2 = foto de "Quem sou eu" com
+  TAMANHO) e cada uma leva ao ✥ ajuste de sempre. teste_presskit_mais (+6 × 1280/390) e teste_presskit 0 falhas. Manual 79 p. presskit.js v14, sw v259.
 ## Pendências (dono)
 - [x] (28/11 12:55, dono: "SIM") SQL do LINK DO PRESS KIT rodado (rls true · 4 regras na tabela · 3 no balde · balde público). Teste no ar: visitante
       não lista nem grava (401), token falso = null; logado: link de TESTE criado, foto no balde, kit.html abriu, pasta de outro token recusada;

@@ -49,6 +49,8 @@
 .pk-saidas .bw-btn{min-height:44px}
 @media (max-width:560px){.pk-saidas{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.pk-saidas .bw-btn{padding:0 8px;font-size:12px;white-space:normal;line-height:1.15}.pk-saidas .bw-btn.pri{grid-column:1/-1}.pk-topo .bw-btn{min-height:40px;font-size:12px}}
 .pk-ed{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,500px);gap:18px;align-items:start}
+@media (min-width:1061px){.pk-ed{height:calc(100vh - 24px);align-items:stretch}.pk-ed>#form{overflow-y:auto;min-height:0;padding-right:8px;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:rgba(232,181,74,.6) transparent}.pk-ed>#form::-webkit-scrollbar{width:8px}.pk-ed>#form::-webkit-scrollbar-thumb{background:rgba(232,181,74,.55);border-radius:8px}.pk-ed>.pk-prev{position:static;max-height:none;min-height:0}}
+.pk-pag{cursor:pointer}.pk-pf{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;margin-top:10px}.pk-pf-i{display:flex;flex-direction:column;gap:6px;padding:6px;border-radius:10px;border:1px solid rgba(245,241,234,.15);background:rgba(255,255,255,.04);color:inherit;font:600 12px Inter,system-ui,sans-serif;text-align:left;cursor:pointer}.pk-pf-i img{width:100%;height:110px;object-fit:cover;border-radius:6px;background:#2a2f3a}.pk-pf-i:hover{border-color:#E8B54A}
 .pk-prev{position:sticky;top:12px;max-height:calc(100vh - 24px);overflow:auto;border-radius:16px;background:#1a1f29;border:1px solid rgba(245,241,234,.1);padding:12px;overscroll-behavior:contain}
 .pk-prev-topo{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:0 0 8px;font:600 12px Inter,system-ui,sans-serif;color:rgba(245,241,234,.7)}
 #paginas{display:flex;flex-direction:column;gap:12px}
@@ -273,7 +275,7 @@
     <div class="pk-ed">
       <div id="form" style="min-width:0"></div>
       <div class="pk-prev" aria-label="Prévia do PDF">
-        <div class="pk-prev-topo"><span>PRÉVIA</span><span id="prevEstado">…</span></div>
+        <div class="pk-prev-topo"><span>PRÉVIA · toque na foto para ajustar</span><span id="prevEstado">…</span></div>
         <div id="paginas"></div>
       </div>
     </div>
@@ -287,7 +289,7 @@
 <script src="assets/bw-sync.js?v=20261125"></script>
 <script src="assets/fotos-nuvem.js?v=4"></script>
 <script src="assets/reels-celular.js?v=6"></script>
-<script src="assets/presskit.js?v=13"></script>
+<script src="assets/presskit.js?v=14"></script>
 <script src="assets/presskit-mais.js?v=1"></script>
 </body>
 </html>

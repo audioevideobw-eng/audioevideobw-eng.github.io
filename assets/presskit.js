@@ -1012,7 +1012,13 @@
   function mostrar(v) {
     VISTA = v; $("vLista").hidden = v !== "lista"; $("vModelos").hidden = v !== "modelos"; $("vEd").hidden = v !== "editor";
     try { history.replaceState(null, "", v === "editor" && KIT ? "presskit.html?k=" + encodeURIComponent(KIT.id) : "presskit.html"); } catch (e) { }
-    window.scrollTo(0, 0);
+    window.scrollTo(0, 0); if (v === "editor") setTimeout(altEd, 0);
+  }
+  /* PC: a coluna do formulário rola sozinha (barra ao lado das opções) e cabe na tela, sem rolar a página */
+  function altEd() {
+    var ed = document.querySelector(".pk-ed"); if (!ed) return;
+    if (window.innerWidth <= 1060) { ed.style.height = ""; return; }
+    var t = ed.getBoundingClientRect().top + window.scrollY; ed.style.height = Math.max(420, window.innerHeight - t - 12) + "px";
   }
 
   /* ---------- LISTA ---------- */
@@ -1570,7 +1576,7 @@
       var caixa = $("paginas"), larg = Math.max(260, Math.min(caixa.clientWidth || 480, 900)), dpr = Math.min(2, window.devicePixelRatio || 1), novos = [];
       for (var i = 1; i <= doc.numPages; i++) {
         var pg = await doc.getPage(i), vp0 = pg.getViewport({ scale: 1 }), vp = pg.getViewport({ scale: larg * dpr / vp0.width });
-        var c = document.createElement("canvas"); c.width = Math.round(vp.width); c.height = Math.round(vp.height); c.className = "pk-pag"; c.setAttribute("aria-label", "Página " + i);
+        var c = document.createElement("canvas"); c.width = Math.round(vp.width); c.height = Math.round(vp.height); c.className = "pk-pag"; c.setAttribute("aria-label", "Página " + i + " — toque para ajustar as fotos"); c.setAttribute("data-a", "prevFoto"); c.setAttribute("data-pg", i); c.title = "Toque para ajustar as fotos desta página";
         await pg.render({ canvasContext: c.getContext("2d"), viewport: vp }).promise; if (ger !== GER) { doc.destroy(); return; }
         novos.push(c);
       }
@@ -1582,6 +1588,25 @@
     } catch (e) {
       if (ger === GER) { window.__pkErroPrev = String(e && (e.stack || e));  $("prevEstado").textContent = "Sem prévia agora (" + (e && e.message === "sem internet" ? "sem internet" : "tente de novo") + ")."; }
     }
+  }
+
+  /* toque numa página da prévia: lista as fotos (as desta página primeiro) e abre o ajuste certo */
+  function fotosPagina(pg) {
+    var L = [], cap = IMGS.capa || IMGS.retrato || (IMGS.fotos || [])[0];
+    function p(alvo, src, nome) { if (src) L.push({ alvo: alvo, src: src, nome: nome }); }
+    var capa = [], pag2 = [], resto = [];
+    if (cap) capa.push({ alvo: "capa", src: cap, nome: "Foto da capa — posição e luz" });
+    if (IMGS.retrato) { capa.push({ alvo: "retrato", src: IMGS.retrato, nome: "Foto recortada — luz e cor" }); pag2.push({ alvo: "sobre", src: IMGS.retrato, nome: "Foto da página 2 — tamanho e proporção" }); }
+    (IMGS.fotos || []).forEach(function (u, i) { if (u) resto.push({ alvo: String(i), src: u, nome: "Galeria · foto " + (i + 1) }); });
+    Object.keys(IMGS.cards || {}).forEach(function (l) { (IMGS.cards[l] || []).forEach(function (u, i) { if (u) resto.push({ alvo: "c:" + l + ":" + i, src: u, nome: "Cartão · " + l + " " + (i + 1) }); }); });
+    L = pg === 1 ? capa.concat(pag2, resto) : pg === 2 ? pag2.concat(capa, resto) : resto.concat(pag2, capa);
+    return L;
+  }
+  function abrirFotosPagina(pg) {
+    var L = fotosPagina(pg);
+    if (!L.length) { aviso("Esta página ainda não tem foto"); return; }
+    modal('<button type="button" class="pk-mx" data-a="fecharModal" aria-label="Fechar">✕</button><h3>✥ Ajustar uma foto · página ' + pg + '</h3><p class="tf-sub">Toque na foto para mudar o tamanho, a posição, a luz e os efeitos.</p><div class="pk-pf">' +
+      L.map(function (f) { return '<button type="button" class="pk-pf-i" data-a="enquadrar" data-alvo="' + esc(f.alvo) + '"><img src="' + f.src + '" alt=""><span>' + esc(f.nome) + "</span></button>"; }).join("") + "</div>");
   }
 
   /* ---------- SAÍDAS ---------- */
@@ -1731,6 +1756,7 @@
     else if (a === "est") { var ec = el.getAttribute("data-c"); KIT.est = KIT.est || {}; KIT.est[ec] = el.getAttribute("data-v"); [].forEach.call(el.parentNode.children, function (b) { b.classList.toggle("on", b === el); }); guardar(); agendarPrevia(80); }
     else if (a === "estPaleta") { var pl = PALETAS[+el.getAttribute("data-i")]; KIT.cor = pl[1]; KIT.cor2 = pl[2]; KIT.est = KIT.est || {}; KIT.est.fundo = pl[3]; guardar(); desenharForm(); agendarPrevia(80); aviso("Paleta " + pl[0] + " ✓"); }
     else if (a === "estZerar") { var mz = modeloDe(KIT.modelo); KIT.est = {}; KIT.cor = mz.cor; KIT.cor2 = mz.cor2; guardar(); desenharForm(); agendarPrevia(80); aviso("Estilo do modelo de volta"); }
+    else if (a === "prevFoto") abrirFotosPagina(+el.getAttribute("data-pg") || 1);
     else if (a === "enquadrar") { var alvE = el.getAttribute("data-alvo"); if (alvE === "sobre" && IMGS.retrato) imgDe(IMGS.retrato).then(function (im) { ENQ_PROP_S = im.naturalHeight / im.naturalWidth; abrirEnquadrar("sobre"); }); else abrirEnquadrar(alvE); }
     else if (a === "enqProp") enqProp(el.getAttribute("data-v"));
     else if (a === "enqPronto") enqPronto();
@@ -1818,7 +1844,7 @@
     $("edTrocar").addEventListener("change", async function () { var v = this.value; if (!KIT || !v || v === KIT.id) return; await guardarAgora(); if (v === "__novo") { KIT = null; mostrar("modelos"); desenharModelos(); } else await abrirKit(v); });
     $("modal").addEventListener("click", function (e) { if (e.target === this) fecharModal(); });
     document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !$("modal").hidden) fecharModal(); });
-    var t; window.addEventListener("resize", function () { clearTimeout(t); t = setTimeout(function () { if (VISTA === "editor") agendarPrevia(200); }, 300); });
+    var t; window.addEventListener("resize", function () { altEd(); clearTimeout(t); t = setTimeout(function () { if (VISTA === "editor") agendarPrevia(200); }, 300); });
     /* dados que chegam de outro aparelho: só redesenha a lista (o editor aberto não é atropelado) */
     window.addEventListener("bw-dados", function () { if (VISTA === "lista") desenharLista(); });
     var q = new URLSearchParams(location.search), k = q.get("k"), mdl = q.get("modelo");
